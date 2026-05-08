@@ -61,18 +61,21 @@ void sky() {
 
     // Clouds
     if (eye_alt > -0.1) {
-        // Improved UV projection to reduce horizon stretching
-        vec2 cloud_uv = EYEDIR.xz / (max(eye_alt, 0.0) + 0.2);
-        cloud_uv += TIME * 0.02; // Slower, more realistic cloud movement
+        // Use a more balanced projection for coverage across the entire sky
+        // Adding a smaller offset to the denominator to keep clouds visible at zenith
+        vec2 cloud_uv = EYEDIR.xz / (max(eye_alt, 0.01) + 0.05);
+        cloud_uv += TIME * 0.015;
 
-        float cloud_fbm = fbm(cloud_uv * 0.25);
-        // Multi-layered density for softer transitions and varied thickness
-        float cloud_density = smoothstep(0.4, 0.9, cloud_fbm);
-        float detail_noise = fbm(cloud_uv * 0.8 + vec2(TIME * 0.01));
-        cloud_density *= 0.8 + 0.4 * detail_noise;
+        float cloud_fbm = fbm(cloud_uv * 0.3);
+        // Lower threshold for more cloud coverage across the sky
+        float cloud_density = smoothstep(0.3, 0.8, cloud_fbm);
+
+        // Add detail noise without over-thinning
+        float detail_noise = fbm(cloud_uv * 1.5 + vec2(TIME * 0.005));
+        cloud_density = mix(cloud_density, cloud_density * detail_noise, 0.3);
 
         // Fade clouds at horizon more gracefully
-        float horizon_fade = smoothstep(-0.1, 0.3, eye_alt);
+        float horizon_fade = smoothstep(-0.05, 0.2, eye_alt);
         cloud_density *= horizon_fade;
         cloud_density = clamp(cloud_density, 0.0, 1.0);
 
