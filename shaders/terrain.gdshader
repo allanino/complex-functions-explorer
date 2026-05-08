@@ -1,6 +1,7 @@
 shader_type spatial;
 
 varying vec3 world_pos;
+varying vec3 normal;
 
 // Helper function to convert HSV to RGB
 vec3 hsv2rgb(vec3 c) {
@@ -9,32 +10,35 @@ vec3 hsv2rgb(vec3 c) {
     return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
 }
 
-void vertex() {
-    // world_pos is used to calculate the field consistently across chunks
-    world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
-
-    float x = world_pos.x;
-    float z = world_pos.z;
-
-    // Mathematical field:
-    // f(x,z) = exp(i*(0.15*x + 0.12*z)) + 0.5*exp(i*(0.31*x - 0.27*z))
-    // Using Euler's formula: exp(i*theta) = cos(theta) + i*sin(theta)
-
+// Function to calculate height at a given (x, z) coordinate
+float get_height(float x, float z) {
     float theta1 = 0.15 * x + 0.12 * z;
     float theta2 = 0.31 * x - 0.27 * z;
 
-    // Real and Imaginary parts of f(x,z)
     float re = cos(theta1) + 0.5 * cos(theta2);
     float im = sin(theta1) + 0.5 * sin(theta2);
 
-    // Magnitude |f| = sqrt(re^2 + im^2)
     float mag = sqrt(re * re + im * im);
+    return log(1.0 + mag);
+}
 
-    // Height = log(1 + |f|)
-    float height = log(1.0 + mag);
+void vertex() {
+    world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 
-    // Apply displacement
-    VERTEX.y += height;
+    float h = get_height(world_pos.x, world_pos.z);
+    VERTEX.y += h;
+
+    // Calculate normals using finite differences
+    float delta = 0.01;
+    float h_right = get_height(world_pos.x + delta, world_pos.z);
+    float h_forward = get_height(world_pos.x, world_pos.z + delta);
+
+    vec3 v_right = vec3(delta, h_right - h, 0.0);
+    vec3 v_forward = vec3(0.0, h_forward - h, delta);
+
+    // Normal is the cross product of two tangent vectors
+    normal = normalize(cross(v_forward, v_right));
+    NORMAL = (MODEL_NORMAL_MATRIX * normal);
 }
 
 void fragment() {
@@ -47,15 +51,14 @@ void fragment() {
     float re = cos(theta1) + 0.5 * cos(theta2);
     float im = sin(theta1) + 0.5 * sin(theta2);
 
-    // Complex phase (argument) of f(x,z)
-    // atan2(im, re) returns phase in range [-PI, PI]
     float phase = atan(im, re);
-
-    // Map phase to [0, 1] for HSV hue
     float hue = (phase + PI) / (2.0 * PI);
 
-    // Color based on complex phase
     vec3 hsv = vec3(hue, 0.8, 0.9);
     ALBEDO = hsv2rgb(hsv);
-    ROUGHNESS = 0.5;
+
+    // Shining plastic look
+    ROUGHNESS = 0.15;
+    SPECULAR = 0.5;
+    METALLIC = 0.0;
 }
