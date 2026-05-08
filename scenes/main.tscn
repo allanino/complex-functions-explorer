@@ -34,8 +34,4 @@ script = ExtResource("1_world")
 player = NodePath("../Player")
 
 [node name="HUD" parent="." node_paths=PackedStringArray("player") instance=ExtResource("3_hud")]
-
-[node name="Control" parent="HUD" index="0"]
-player = NodePath("../../Player")
-
-[editable path="HUD"]
+player = NodePath("../Player")

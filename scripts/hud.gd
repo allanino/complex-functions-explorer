@@ -1,7 +1,8 @@
-extends Control
+extends CanvasLayer
 
 @export var player: Node3D
-@onready var complex_rect = $ComplexPlane
+@onready var complex_rect = $Control/ComplexPlane
+@onready var pos_label = $Control/PosLabel
 
 var current_scale = 2.0
 
@@ -33,4 +34,4 @@ func _process(_delta):
 	material.set_shader_parameter("current_f", f)
 	material.set_shader_parameter("scale", current_scale)
 
-	$PosLabel.text = "Pos: (%.2f, %.2f)\n|f|: %.2f" % [x, z, mag]
+	pos_label.text = "Pos: (%.2f, %.2f)\n|f|: %.2f" % [x, z, mag]
