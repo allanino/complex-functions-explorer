@@ -40,11 +40,12 @@ void fragment() {
     float phase = atan(f.y, f.x);
     float hue = (phase + PI) / (2.0 * PI);
 
-    vec3 hsv = vec3(hue, 0.8, 0.9);
-    ALBEDO = hsv2rgb(hsv);
+    vec3 base = hsv2rgb(vec3(hue, 0.7, 0.8));
 
-    // Shining plastic look
-    ROUGHNESS = 0.15;
-    SPECULAR = 0.5;
-    METALLIC = 0.0;
+    ALBEDO = base * 0.15;
+
+    EMISSION = base * 0.25;
+	ROUGHNESS = 0.12;
+	METALLIC = 0.95;
+	SPECULAR = 1.0;
 }
