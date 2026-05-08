@@ -1,0 +1,52 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Shader" path="res://shaders/hud_complex_plane.gdshader" id="1_shader"]
+[ext_resource type="Script" path="res://scripts/hud.gd" id="2_script"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_1"]
+shader = ExtResource("1_shader")
+shader_parameter/current_f = Vector2(0, 0)
+shader_parameter/scale = 2.0
+
+[node name="HUD" type="CanvasLayer"]
+
+[node name="Control" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("2_script")
+
+[node name="ComplexPlane" type="ColorRect" parent="Control"]
+material = SubResource("ShaderMaterial_1")
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -220.0
+offset_top = -220.0
+offset_right = -20.0
+offset_bottom = -20.0
+grow_horizontal = 0
+grow_vertical = 0
+
+[node name="PosLabel" type="Label" parent="Control"]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -220.0
+offset_top = -280.0
+offset_right = -20.0
+offset_bottom = -230.0
+grow_horizontal = 0
+grow_vertical = 0
+text = "Pos: (0.00, 0.00)
+|f|: 0.00"
+horizontal_alignment = 2

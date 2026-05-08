@@ -1,7 +1,8 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scripts/world_manager.gd" id="1_world"]
 [ext_resource type="PackedScene" path="res://scenes/player.tscn" id="2_player"]
+[ext_resource type="PackedScene" path="res://scenes/hud.tscn" id="3_hud"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_1"]
 sky_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)
@@ -31,3 +32,10 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, 0)
 [node name="WorldManager" type="Node3D" parent="." node_paths=PackedStringArray("player")]
 script = ExtResource("1_world")
 player = NodePath("../Player")
+
+[node name="HUD" parent="." node_paths=PackedStringArray("player") instance=ExtResource("3_hud")]
+
+[node name="Control" parent="HUD" index="0"]
+player = NodePath("../../Player")
+
+[editable path="HUD"]
