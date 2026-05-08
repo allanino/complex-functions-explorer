@@ -4,14 +4,14 @@ uniform vec3 sky_color : source_color = vec3(0.3, 0.6, 0.9);
 uniform vec3 horizon_color : source_color = vec3(0.6, 0.8, 1.0);
 uniform vec3 cloud_color : source_color = vec3(1.0, 1.0, 1.0);
 
-// Simple hash for noise
+// Dave Hoskins' hash (2D to 1D)
 float hash(vec2 p) {
-    p = fract(p * vec2(123.34, 456.21));
-    p += dot(p, p + 45.32);
-    return fract(p.x * p.y);
+    vec3 p3 = fract(vec3(p.xyx) * 0.1031);
+    p3 += dot(p3, p3.yzx + 33.33);
+    return fract((p3.x + p3.y) * p3.z);
 }
 
-// 2D Noise
+// 2D Noise with quintic interpolation
 float noise(vec2 p) {
     vec2 i = floor(p);
     vec2 f = fract(p);
@@ -19,7 +19,8 @@ float noise(vec2 p) {
     float b = hash(i + vec2(1.0, 0.0));
     float c = hash(i + vec2(0.0, 1.0));
     float d = hash(i + vec2(1.0, 1.0));
-    vec2 u = f * f * (3.0 - 2.0 * f);
+    // Quintic interpolation
+    vec2 u = f * f * f * (f * (f * 6.0 - 15.0) + 10.0);
     return mix(a, b, u.x) + (c - a) * u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
 }
 
@@ -46,29 +47,43 @@ void sky() {
     if (LIGHT0_ENABLED) {
         float sun_dist = distance(EYEDIR, LIGHT0_DIRECTION);
         // Sun disk
-        // LIGHT0_SIZE is angular diameter in radians.
-        // distance() between normalized vectors is approximately the angle for small angles.
-        float sun_size = max(0.01, LIGHT0_SIZE); // Ensure it's not zero
+        float sun_size = max(0.01, LIGHT0_SIZE);
         float sun_disk = smoothstep(sun_size * 0.5, sun_size * 0.45, sun_dist);
         final_color += LIGHT0_COLOR * sun_disk * LIGHT0_ENERGY;
 
-        // Sun glow
-        float sun_glow = pow(max(0.0, 1.0 - sun_dist * 0.5), 100.0);
-        final_color += LIGHT0_COLOR * sun_glow * 0.5 * LIGHT0_ENERGY;
+        // Sun glow (Mie-like scattering approximation)
+        float mie = 0.01 / (0.001 + sun_dist * sun_dist * 10.0);
+        final_color += LIGHT0_COLOR * mie * LIGHT0_ENERGY;
+
+        float haze = 0.02 / (0.01 + sun_dist);
+        final_color += LIGHT0_COLOR * haze * LIGHT0_ENERGY;
     }
 
     // Clouds
-    if (eye_alt > 0.0) {
-        vec2 cloud_uv = EYEDIR.xz / max(eye_alt, 0.001);
-        cloud_uv += TIME * 0.05; // Cloud movement
+    if (eye_alt > -0.1) {
+        // Improved UV projection to reduce horizon stretching
+        vec2 cloud_uv = EYEDIR.xz / (max(eye_alt, 0.0) + 0.2);
+        cloud_uv += TIME * 0.02; // Slower, more realistic cloud movement
 
-        float cloud_density = fbm(cloud_uv * 0.2);
-        cloud_density = smoothstep(0.4, 0.8, cloud_density);
+        float cloud_fbm = fbm(cloud_uv * 0.25);
+        // Multi-layered density for softer transitions and varied thickness
+        float cloud_density = smoothstep(0.4, 0.9, cloud_fbm);
+        float detail_noise = fbm(cloud_uv * 0.8 + vec2(TIME * 0.01));
+        cloud_density *= 0.8 + 0.4 * detail_noise;
 
-        // Fade clouds at horizon
-        cloud_density *= smoothstep(0.0, 0.2, eye_alt);
+        // Fade clouds at horizon more gracefully
+        float horizon_fade = smoothstep(-0.1, 0.3, eye_alt);
+        cloud_density *= horizon_fade;
+        cloud_density = clamp(cloud_density, 0.0, 1.0);
 
-        final_color = mix(final_color, cloud_color, cloud_density);
+        // Cloud lighting: slightly brighten clouds near the sun
+        vec3 final_cloud_color = cloud_color;
+        if (LIGHT0_ENABLED) {
+            float sun_dot = max(0.0, dot(EYEDIR, LIGHT0_DIRECTION));
+            final_cloud_color = mix(cloud_color, LIGHT0_COLOR * 1.5, pow(sun_dot, 8.0) * cloud_density);
+        }
+
+        final_color = mix(final_color, final_cloud_color, cloud_density);
     }
 
     COLOR = final_color;
