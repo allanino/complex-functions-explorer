@@ -21,4 +21,4 @@ func _process(_delta):
 	material.set_shader_parameter("current_f", f)
 	material.set_shader_parameter("scale", current_scale)
 
-	pos_label.text = "Pos: (%.2f, %.2f)" % [x, z]
+	pos_label.text = "Pos: (%.2f, %.2f) |f|: %.2f" % [x, z, f.length()]
