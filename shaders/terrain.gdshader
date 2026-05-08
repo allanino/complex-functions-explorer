@@ -1,5 +1,7 @@
 shader_type spatial;
 
+#include "res://shaders/field.gdshaderinc"
+
 varying vec3 world_pos;
 varying vec3 normal;
 
@@ -8,18 +10,6 @@ vec3 hsv2rgb(vec3 c) {
     vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
     vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
     return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
-}
-
-// Function to calculate height at a given (x, z) coordinate
-float get_height(float x, float z) {
-    float theta1 = 0.15 * x + 0.12 * z;
-    float theta2 = 0.31 * x - 0.27 * z;
-
-    float re = cos(theta1) + 0.5 * cos(theta2);
-    float im = sin(theta1) + 0.5 * sin(theta2);
-
-    float mag = sqrt(re * re + im * im);
-    return log(1.0 + mag);
 }
 
 void vertex() {
@@ -45,13 +35,9 @@ void fragment() {
     float x = world_pos.x;
     float z = world_pos.z;
 
-    float theta1 = 0.15 * x + 0.12 * z;
-    float theta2 = 0.31 * x - 0.27 * z;
+    vec2 f = get_field(x, z);
 
-    float re = cos(theta1) + 0.5 * cos(theta2);
-    float im = sin(theta1) + 0.5 * sin(theta2);
-
-    float phase = atan(im, re);
+    float phase = atan(f.y, f.x);
     float hue = (phase + PI) / (2.0 * PI);
 
     vec3 hsv = vec3(hue, 0.8, 0.9);

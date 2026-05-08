@@ -25,14 +25,7 @@ func _unhandled_input(event):
 			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 func get_terrain_height(x: float, z: float) -> float:
-	var theta1 = 0.15 * x + 0.12 * z
-	var theta2 = 0.31 * x - 0.27 * z
-
-	var re = cos(theta1) + 0.5 * cos(theta2)
-	var im = sin(theta1) + 0.5 * sin(theta2)
-
-	var mag = sqrt(re * re + im * im)
-	return log(1.0 + mag)
+	return Field.get_height(x, z)
 
 func _physics_process(_delta):
 	var input_dir = Input.get_vector("move_left", "move_right", "move_forward", "move_backward")
