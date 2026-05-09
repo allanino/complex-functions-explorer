@@ -1,0 +1,44 @@
+# Godot-specific
+.export/
+.import/
+.godot/
+godot/export.cfg
+godot/tmp/
+godot/.tmp/
+export_presets.cfg
+*.uid
+
+# OS-specific
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# User/editor-specific
+*.swp
+*.tmp
+*.bak
+*.old
+*.orig
+*.log
+*.cfg.user
+*.editor
+.cache/
+
+# Build/Debug/Release artifacts
+/bin/
+*.pck
+*.exe
+*.app
+*.dll
+*.so
+*.dylib
+
+# IDE Specific
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# Godot exported game/project files
+*.import
+*.godot_exported
