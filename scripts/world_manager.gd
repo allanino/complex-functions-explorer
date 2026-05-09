@@ -30,6 +30,11 @@ func _process(_delta):
 	for chunk_coord in chunks_to_remove:
 		_unload_chunk(chunk_coord)
 
+	# Update player position uniform in all chunks
+	var p_pos = Vector2(player.global_position.x, player.global_position.z)
+	for chunk in chunks.values():
+		chunk.material_override.set_shader_parameter("player_pos", p_pos)
+
 func _load_chunk(coord: Vector2i):
 	var chunk = chunk_scene.instantiate()
 	chunk.global_position = Vector3(coord.x * chunk_size, 0, coord.y * chunk_size)

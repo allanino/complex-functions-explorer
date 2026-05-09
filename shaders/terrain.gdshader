@@ -5,6 +5,8 @@ shader_type spatial;
 varying vec3 world_pos;
 varying vec3 normal;
 
+uniform vec2 player_pos;
+
 // Helper function to convert HSV to RGB
 vec3 hsv2rgb(vec3 c) {
     vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
@@ -65,6 +67,11 @@ void fragment() {
     final_emission = mix(final_emission, line_color * 2.0 * glow, line_mask);
     final_emission = mix(final_emission, white_line_color * 2.0 * glow, line_mask_0);
     final_emission = mix(final_emission, white_line_color * 2.0 * glow, line_mask_10);
+
+    // Player marker
+    float dist_to_player = length(world_pos.xz - player_pos);
+    float marker_mask = 1.0 - smoothstep(0.0, 0.15, dist_to_player);
+    final_emission = mix(final_emission, vec3(1.0, 1.0, 1.0) * 5.0, marker_mask);
 
     EMISSION = final_emission;
 	ROUGHNESS = 0.12;

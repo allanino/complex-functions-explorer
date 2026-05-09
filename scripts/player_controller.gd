@@ -38,8 +38,10 @@ func get_terrain_height(x: float, z: float) -> float:
 
 func _physics_process(delta):
 	var current_speed = SPEED
-	if Input.is_key_pressed(KEY_LEFT_SHIFT) or Input.is_key_pressed(KEY_RIGHT_SHIFT):
+	if Input.is_key_pressed(KEY_SHIFT):
 		current_speed *= 2.0
+	elif Input.is_key_pressed(KEY_CTRL):
+		current_speed *= 0.25
 
 	if Input.is_key_pressed(KEY_SPACE):
 		height_offset += 10.0 * delta
