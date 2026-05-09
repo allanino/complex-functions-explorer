@@ -2,18 +2,18 @@ extends Node3D
 
 # --- CONSTANTS ---
 const ZERO_PITCH_BOOST = 1.5
-const BASE_FREQUENCY = 45.0 # Deep G1/A1 range
-const REVERB_AMOUNT = 0.45
-const PHASE_PAN_STRENGTH = 0.6
+const BASE_FREQUENCY = 65.4 # C2
+const REVERB_AMOUNT = 0.5
+const PHASE_PAN_STRENGTH = 0.7
 
 # --- SYNTHESIS STATE ---
 var playback: AudioStreamGeneratorPlayback
-var sample_rate: float
+var sample_rate: float = 44100.0
 var phase: float = 0.0
 
 # --- INTERPOLATED PARAMETERS ---
-var target_volume: float = 0.1
-var current_volume: float = 0.0
+var target_volume: float = 0.3
+var current_volume: float = 0.2
 var target_frequency: float = BASE_FREQUENCY
 var current_frequency: float = BASE_FREQUENCY
 var target_pan: float = 0.0
@@ -75,11 +75,22 @@ func setup_audio_bus():
 	$AudioStreamPlayer.bus = bus_name
 
 func _process(delta):
-	if not player:
-		player = get_tree().root.find_child("Player", true, false)
-		if not player: return
+	# Ensure we have a playback object
+	if playback == null:
+		var stream_player = $AudioStreamPlayer
+		if stream_player.playing:
+			playback = stream_player.get_stream_playback()
+		if playback == null: return
 
-	var pos = player.global_position
+	var pos = Vector3.ZERO
+	if player:
+		pos = player.global_position
+	else:
+		player = get_tree().root.find_child("Player", true, false)
+		# If still no player, we'll just use (0,0,0) for now
+		if player:
+			pos = player.global_position
+
 	# Sample Zeta field at player world coordinates
 	var f = Field.get_field(pos.x, pos.z)
 	var mag = f.length()
@@ -91,7 +102,7 @@ func _process(delta):
 	# 1. MAGNITUDE |f|
 	# Controls overall drone volume and reverb intensity.
 	# High magnitude = fuller, louder drone.
-	target_volume = clamp(0.1 + mag * 0.04, 0.05, 0.35)
+	target_volume = clamp(0.2 + mag * 0.05, 0.1, 0.5)
 
 	# 2. PROXIMITY TO ZERO
 	var proximity = 1.0 / (0.05 + mag)
@@ -148,15 +159,18 @@ func fill_buffer():
 		# Fundamental drone (sine)
 		var sample = sin(phase * TAU)
 
+		# Second voice for richness
+		sample += 0.5 * sin(phase * TAU * 2.0)
+
 		# Deep sub-resonance, fades slightly near zeros for "thinner" sound
-		var sub_strength = 0.8 * (1.0 - clamp(current_harmonic_intensity * 0.5, 0.0, 0.6))
+		var sub_strength = 0.7 * (1.0 - clamp(current_harmonic_intensity * 0.5, 0.0, 0.6))
 		sample += sub_strength * sin(phase * TAU * 0.5)
 
 		# Harmonic beating and tension near zeros
 		if current_harmonic_intensity > 0.01:
 			# High-pitched tension
-			sample += current_harmonic_intensity * sin(phase * TAU * 2.001)
-			sample += current_harmonic_intensity * 0.4 * sin(phase * TAU * 3.998)
+			sample += current_harmonic_intensity * 0.6 * sin(phase * TAU * 3.001)
+			sample += current_harmonic_intensity * 0.3 * sin(phase * TAU * 4.998)
 
 		# Critical line richness (glassy/Metallic overtones)
 		if current_resonance > 0.01:
