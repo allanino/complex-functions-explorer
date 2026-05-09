@@ -1,9 +1,10 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://scripts/world_manager.gd" id="1_world"]
 [ext_resource type="PackedScene" path="res://scenes/player.tscn" id="2_player"]
 [ext_resource type="PackedScene" path="res://scenes/hud.tscn" id="3_hud"]
 [ext_resource type="Shader" path="res://shaders/sky.gdshader" id="4_sky"]
+[ext_resource type="Shader" path="res://shaders/fog.gdshader" id="5_fog"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_1"]
 shader = ExtResource("4_sky")
@@ -17,6 +18,11 @@ background_mode = 2
 sky = SubResource("Sky_1")
 tonemap_mode = 2
 glow_enabled = true
+volumetric_fog_enabled = true
+volumetric_fog_density = 0.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_2"]
+shader = ExtResource("5_fog")
 
 [node name="Main" type="Node3D"]
 
@@ -36,3 +42,7 @@ player = NodePath("../Player")
 
 [node name="HUD" parent="." node_paths=PackedStringArray("player") instance=ExtResource("3_hud")]
 player = NodePath("../Player")
+
+[node name="FogVolume" type="FogVolume" parent="."]
+size = Vector3(1000, 100, 1000)
+material = SubResource("ShaderMaterial_2")
