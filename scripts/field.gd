@@ -12,6 +12,9 @@ static func complex_div(a: Vector2, b: Vector2) -> Vector2:
 
 	var denom = b.x * b.x + b.y * b.y
 
+	if denom == 0.0:
+		return Vector2.ZERO
+
 	return Vector2(
 		(a.x * b.x + a.y * b.y) / denom,
 		(a.y * b.x - a.x * b.y) / denom

@@ -40,12 +40,11 @@ func _ready():
 	# Ensure the generator is correctly configured
 	var generator = AudioStreamGenerator.new()
 	generator.mix_rate = 44100
-	generator.buffer_length = 0.5 # Increased buffer length to prevent underruns
+	generator.buffer_length = 0.5
 	stream_player.stream = generator
 
 	# Start playing
 	stream_player.play()
-	# MUST get playback AFTER play()
 	playback = stream_player.get_stream_playback()
 	sample_rate = stream_player.stream.mix_rate
 
@@ -65,7 +64,7 @@ func setup_audio_bus_and_effects():
 
 	# Index 0: PitchShift
 	pitch_shift_effect = AudioEffectPitchShift.new()
-	pitch_shift_effect.fft_size = AudioEffectPitchShift.FFT_SIZE_2048 # Better quality for low freq
+	pitch_shift_effect.fft_size = AudioEffectPitchShift.FFT_SIZE_2048
 	AudioServer.add_bus_effect(bus_index, pitch_shift_effect)
 
 	# Index 1: Reverb
@@ -84,7 +83,6 @@ func setup_audio_bus_and_effects():
 	$AudioStreamPlayer.bus = bus_name
 
 func _process(delta):
-	# Ensure we have a playback object
 	if playback == null:
 		var stream_player = $AudioStreamPlayer
 		if stream_player.playing:
@@ -96,12 +94,18 @@ func _process(delta):
 		pos = player.global_position
 	else:
 		player = get_tree().root.find_child("Player", true, false)
-		if player:
-			pos = player.global_position
+		if player: pos = player.global_position
 
-	# Sample Zeta field at player world coordinates
+	# Sample Zeta field
 	var f = Field.get_field(pos.x, pos.z)
+
+	# --- NAN SAFETY ---
+	if not is_finite(f.x) or not is_finite(f.y):
+		f = Vector2.ZERO
+
 	var mag = f.length()
+	if not is_finite(mag): mag = 0.0
+
 	var arg = atan2(f.y, f.x)
 	var sigma = pos.x * 0.1
 
@@ -112,6 +116,8 @@ func _process(delta):
 
 	# 2. PROXIMITY TO ZERO
 	var proximity = 1.0 / (0.05 + mag)
+	if not is_finite(proximity): proximity = 20.0
+
 	target_frequency = BASE_FREQUENCY * (1.0 + log(1.0 + proximity) * ZERO_PITCH_BOOST)
 	target_harmonic_intensity = clamp(proximity * 0.08, 0.0, 0.7)
 
@@ -123,6 +129,10 @@ func _process(delta):
 	var critical_factor = exp(-dist_to_critical * 25.0)
 	target_resonance = critical_factor
 
+	# --- FINITE CHECKS BEFORE LERP ---
+	if not is_finite(target_frequency): target_frequency = BASE_FREQUENCY
+	if not is_finite(target_pan): target_pan = 0.0
+
 	# --- SMOOTHING ---
 	current_volume = lerp(current_volume, target_volume, delta * 1.2)
 	current_frequency = lerp(current_frequency, target_frequency, delta * 0.8)
@@ -130,17 +140,24 @@ func _process(delta):
 	current_harmonic_intensity = lerp(current_harmonic_intensity, target_harmonic_intensity, delta * 1.5)
 	current_resonance = lerp(current_resonance, target_resonance, delta * 2.0)
 
+	# Final safety clamp
+	current_frequency = max(1.0, current_frequency)
+
 	# --- EFFECT MODULATION ---
-	# Modulate effects through stored references for better stability
 	if pitch_shift_effect:
-		pitch_shift_effect.pitch_scale = 1.0 + (target_harmonic_intensity * 0.02)
+		var ps = clamp(1.0 + (target_harmonic_intensity * 0.02), 0.5, 2.0)
+		if is_finite(ps): pitch_shift_effect.pitch_scale = ps
 
 	if reverb_effect:
-		reverb_effect.wet = clamp(REVERB_AMOUNT + current_resonance * 0.15 + (proximity * 0.01), 0.0, 0.8)
+		var rv = clamp(REVERB_AMOUNT + current_resonance * 0.15 + (proximity * 0.01), 0.0, 0.9)
+		if is_finite(rv): reverb_effect.wet = rv
 
 	if lpf_effect:
-		lpf_effect.cutoff_hz = lerp(600.0, 4500.0, clamp(mag * 0.05 + current_resonance * 0.8, 0.0, 1.0))
-		lpf_effect.resonance = 0.2 + current_resonance * 0.3
+		var cut = lerp(600.0, 4500.0, clamp(mag * 0.05 + current_resonance * 0.8, 0.0, 1.0))
+		if is_finite(cut): lpf_effect.cutoff_hz = clamp(cut, 100.0, 20000.0)
+
+		var res = 0.2 + current_resonance * 0.3
+		if is_finite(res): lpf_effect.resonance = clamp(res, 0.0, 0.9)
 
 	fill_buffer()
 
@@ -148,8 +165,13 @@ func fill_buffer():
 	if playback == null: return
 
 	var to_fill = playback.get_frames_available()
+	# Safety cap to prevent execution spikes
+	to_fill = min(to_fill, 4410)
+
 	while to_fill > 0:
 		var increment = current_frequency / sample_rate
+		if not is_finite(increment): increment = 0.001
+
 		phase = fmod(phase + increment, 1.0)
 
 		# --- PROCEDURAL SYNTHESIS ---
@@ -160,23 +182,24 @@ func fill_buffer():
 		# Second voice for richness
 		sample += 0.5 * sin(phase * TAU * 2.0)
 
-		# Deep sub-resonance, fades slightly near zeros for "thinner" sound
+		# Deep sub-resonance
 		var sub_strength = 0.7 * (1.0 - clamp(current_harmonic_intensity * 0.5, 0.0, 0.6))
 		sample += sub_strength * sin(phase * TAU * 0.5)
 
 		# Harmonic beating and tension near zeros
 		if current_harmonic_intensity > 0.01:
-			# High-pitched tension
 			sample += current_harmonic_intensity * 0.6 * sin(phase * TAU * 3.001)
 			sample += current_harmonic_intensity * 0.3 * sin(phase * TAU * 4.998)
 
-		# Critical line richness (glassy/Metallic overtones)
+		# Critical line richness
 		if current_resonance > 0.01:
 			sample += current_resonance * 0.3 * sin(phase * TAU * 7.0)
 			sample += current_resonance * 0.15 * sin(phase * TAU * 11.0)
 
 		# Non-linear saturation for warmth/smoothness
 		sample = atan(sample * 1.5) / (PI / 2.0)
+
+		if not is_finite(sample): sample = 0.0
 
 		var frame = Vector2.ONE * sample * current_volume
 
@@ -186,5 +209,9 @@ func fill_buffer():
 		frame.x *= pan_l
 		frame.y *= pan_r
 
-		playback.push_frame(frame)
+		if is_finite(frame.x) and is_finite(frame.y):
+			playback.push_frame(frame)
+		else:
+			playback.push_frame(Vector2.ZERO)
+
 		to_fill -= 1
