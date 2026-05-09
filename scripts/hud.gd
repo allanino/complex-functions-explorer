@@ -13,7 +13,6 @@ func _process(_delta):
 	var x = player.global_position.x
 	var z = player.global_position.z
 
-	# Calculate f(x,z)
 	var f = Field.get_field(x, z)
 
 	# Update shader uniforms
@@ -21,4 +20,4 @@ func _process(_delta):
 	material.set_shader_parameter("current_f", f)
 	material.set_shader_parameter("scale", current_scale)
 
-	pos_label.text = "Pos: (%.2f, %.2f)\n|f|: %.2f" % [x, z, f.length()]
+	pos_label.text = "x = %.3f  z = %.3f\n|f| = %.3f" % [x * 0.1, z * 0.5, f.length()]
