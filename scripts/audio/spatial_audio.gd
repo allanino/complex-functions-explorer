@@ -23,27 +23,33 @@ var current_harmonic_intensity: float = 0.0
 var target_resonance: float = 0.0
 var current_resonance: float = 0.0
 
+# --- EFFECT REFS ---
+var pitch_shift_effect: AudioEffectPitchShift
+var reverb_effect: AudioEffectReverb
+var lpf_effect: AudioEffectLowPassFilter
+
 var player: Node3D
 
 func _ready():
 	# Finding the player to sample position
 	player = get_tree().root.find_child("Player", true, false)
 
-	setup_audio_bus()
+	setup_audio_bus_and_effects()
 
 	var stream_player = $AudioStreamPlayer
-	if not stream_player.stream is AudioStreamGenerator:
-		var generator = AudioStreamGenerator.new()
-		generator.mix_rate = 44100
-		generator.buffer_length = 0.1
-		stream_player.stream = generator
+	# Ensure the generator is correctly configured
+	var generator = AudioStreamGenerator.new()
+	generator.mix_rate = 44100
+	generator.buffer_length = 0.5 # Increased buffer length to prevent underruns
+	stream_player.stream = generator
 
-	# Start playing before getting playback
+	# Start playing
 	stream_player.play()
+	# MUST get playback AFTER play()
 	playback = stream_player.get_stream_playback()
 	sample_rate = stream_player.stream.mix_rate
 
-func setup_audio_bus():
+func setup_audio_bus_and_effects():
 	var bus_name = "MathematicalSoundscape"
 
 	var bus_index = AudioServer.get_bus_index(bus_name)
@@ -52,25 +58,27 @@ func setup_audio_bus():
 		AudioServer.add_bus(bus_index)
 		AudioServer.set_bus_name(bus_index, bus_name)
 		AudioServer.set_bus_send(bus_index, &"Master")
+	else:
+		# Clear existing effects to ensure a clean state
+		AudioServer.clear_bus_effects(bus_index)
 
-		# Create effects requested by the requirements
+	# Index 0: PitchShift
+	pitch_shift_effect = AudioEffectPitchShift.new()
+	pitch_shift_effect.fft_size = AudioEffectPitchShift.FFT_SIZE_2048 # Better quality for low freq
+	AudioServer.add_bus_effect(bus_index, pitch_shift_effect)
 
-		# Index 0: PitchShift
-		var pitch_shift = AudioEffectPitchShift.new()
-		AudioServer.add_bus_effect(bus_index, pitch_shift)
+	# Index 1: Reverb
+	reverb_effect = AudioEffectReverb.new()
+	reverb_effect.room_size = 0.8
+	reverb_effect.damping = 0.5
+	reverb_effect.wet = REVERB_AMOUNT
+	AudioServer.add_bus_effect(bus_index, reverb_effect)
 
-		# Index 1: Reverb
-		var reverb = AudioEffectReverb.new()
-		reverb.room_size = 0.8
-		reverb.damping = 0.5
-		reverb.wet = REVERB_AMOUNT
-		AudioServer.add_bus_effect(bus_index, reverb)
-
-		# Index 2: Low Pass Filter
-		var lpf = AudioEffectLowPassFilter.new()
-		lpf.cutoff_hz = 800.0
-		lpf.resonance = 0.2
-		AudioServer.add_bus_effect(bus_index, lpf)
+	# Index 2: Low Pass Filter
+	lpf_effect = AudioEffectLowPassFilter.new()
+	lpf_effect.cutoff_hz = 800.0
+	lpf_effect.resonance = 0.2
+	AudioServer.add_bus_effect(bus_index, lpf_effect)
 
 	$AudioStreamPlayer.bus = bus_name
 
@@ -87,7 +95,6 @@ func _process(delta):
 		pos = player.global_position
 	else:
 		player = get_tree().root.find_child("Player", true, false)
-		# If still no player, we'll just use (0,0,0) for now
 		if player:
 			pos = player.global_position
 
@@ -100,25 +107,19 @@ func _process(delta):
 	# --- MAPPINGS ---
 
 	# 1. MAGNITUDE |f|
-	# Controls overall drone volume and reverb intensity.
-	# High magnitude = fuller, louder drone.
 	target_volume = clamp(0.2 + mag * 0.05, 0.1, 0.5)
 
 	# 2. PROXIMITY TO ZERO
 	var proximity = 1.0 / (0.05 + mag)
-	# As |f| -> 0, proximity increases.
-	# Pitch rises smoothly near zeros.
 	target_frequency = BASE_FREQUENCY * (1.0 + log(1.0 + proximity) * ZERO_PITCH_BOOST)
-	# Harmonic intensity increases (thinner sound, subtle beating).
 	target_harmonic_intensity = clamp(proximity * 0.08, 0.0, 0.7)
 
 	# 3. PHASE arg(f)
-	# Stereo panning: sound orbits as phase rotates.
 	target_pan = sin(arg) * PHASE_PAN_STRENGTH
 
 	# 4. CRITICAL LINE (sigma = 0.5)
 	var dist_to_critical = abs(sigma - 0.5)
-	var critical_factor = exp(-dist_to_critical * 25.0) # Very narrow focus
+	var critical_factor = exp(-dist_to_critical * 25.0)
 	target_resonance = critical_factor
 
 	# --- SMOOTHING ---
@@ -129,20 +130,16 @@ func _process(delta):
 	current_resonance = lerp(current_resonance, target_resonance, delta * 2.0)
 
 	# --- EFFECT MODULATION ---
-	var bus_idx = AudioServer.get_bus_index("MathematicalSoundscape")
+	# Modulate effects through stored references for better stability
+	if pitch_shift_effect:
+		pitch_shift_effect.pitch_scale = 1.0 + (target_harmonic_intensity * 0.02)
 
-	# PitchShift: subtle detune for "eerie" feeling near zeros
-	var ps = AudioServer.get_bus_effect(bus_idx, 0) as AudioEffectPitchShift
-	ps.pitch_scale = 1.0 + (target_harmonic_intensity * 0.02)
+	if reverb_effect:
+		reverb_effect.wet = clamp(REVERB_AMOUNT + current_resonance * 0.15 + (proximity * 0.01), 0.0, 0.8)
 
-	# Reverb: increases subtly near critical line and zeros
-	var rb = AudioServer.get_bus_effect(bus_idx, 1) as AudioEffectReverb
-	rb.wet = clamp(REVERB_AMOUNT + current_resonance * 0.15 + (proximity * 0.01), 0.0, 0.8)
-
-	# LPF: opens up for "harmonic richness" on critical line
-	var lp = AudioServer.get_bus_effect(bus_idx, 2) as AudioEffectLowPassFilter
-	lp.cutoff_hz = lerp(600.0, 4500.0, clamp(mag * 0.05 + current_resonance * 0.8, 0.0, 1.0))
-	lp.resonance = 0.2 + current_resonance * 0.3
+	if lpf_effect:
+		lpf_effect.cutoff_hz = lerp(600.0, 4500.0, clamp(mag * 0.05 + current_resonance * 0.8, 0.0, 1.0))
+		lpf_effect.resonance = 0.2 + current_resonance * 0.3
 
 	fill_buffer()
 
@@ -174,7 +171,6 @@ func fill_buffer():
 
 		# Critical line richness (glassy/Metallic overtones)
 		if current_resonance > 0.01:
-			# Glassy/Metallic overtones (higher primes or odd harmonics)
 			sample += current_resonance * 0.3 * sin(phase * TAU * 7.0)
 			sample += current_resonance * 0.15 * sin(phase * TAU * 11.0)
 

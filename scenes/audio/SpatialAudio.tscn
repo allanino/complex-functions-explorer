@@ -11,4 +11,3 @@ script = ExtResource("1_script")
 
 [node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
 stream = SubResource("AudioStreamGenerator_1")
-autoplay = true
