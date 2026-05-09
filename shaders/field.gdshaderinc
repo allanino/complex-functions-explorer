@@ -25,7 +25,7 @@ vec2 zeta(float sigma, float t) {
 
     vec2 eta = vec2(0.0);
 
-    for (int n = 1; n <= 240; n++) {
+    for (int n = 1; n <= 120; n++) {
 
         float nf = float(n);
 
