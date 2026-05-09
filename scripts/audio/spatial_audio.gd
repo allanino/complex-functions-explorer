@@ -60,7 +60,8 @@ func setup_audio_bus_and_effects():
 		AudioServer.set_bus_send(bus_index, &"Master")
 	else:
 		# Clear existing effects to ensure a clean state
-		AudioServer.clear_bus_effects(bus_index)
+		while AudioServer.get_bus_effect_count(bus_index) > 0:
+			AudioServer.remove_bus_effect(bus_index, 0)
 
 	# Index 0: PitchShift
 	pitch_shift_effect = AudioEffectPitchShift.new()
