@@ -27,7 +27,7 @@ func _unhandled_input(event):
 		else:
 			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
-	if event is InputEventKey and event.pressed and event.keycode == KEY_SPACE:
+	if event is InputEventKey and event.pressed and event.keycode == KEY_SPACE and not event.echo:
 		var current_time = Time.get_ticks_msec() / 1000.0
 		if current_time - last_space_time < DOUBLE_PRESS_TIME:
 			height_offset = 0.0
@@ -38,7 +38,7 @@ func get_terrain_height(x: float, z: float) -> float:
 
 func _physics_process(delta):
 	var current_speed = SPEED
-	if Input.is_key_pressed(KEY_SHIFT):
+	if Input.is_key_pressed(KEY_LEFT_SHIFT) or Input.is_key_pressed(KEY_RIGHT_SHIFT):
 		current_speed *= 2.0
 
 	if Input.is_key_pressed(KEY_SPACE):
