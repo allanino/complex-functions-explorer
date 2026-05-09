@@ -68,10 +68,11 @@ void fragment() {
     final_emission = mix(final_emission, white_line_color * 2.0 * glow, line_mask_0);
     final_emission = mix(final_emission, white_line_color * 2.0 * glow, line_mask_10);
 
-    // Player marker
+    // Player marker (black circle)
     float dist_to_player = length(world_pos.xz - player_pos);
-    float marker_mask = 1.0 - smoothstep(0.0, 0.15, dist_to_player);
-    final_emission = mix(final_emission, vec3(1.0, 1.0, 1.0) * 5.0, marker_mask);
+    float marker_mask = (1.0 - smoothstep(0.0, 0.2, dist_to_player)) * smoothstep(0.0, 0.1, dist_to_player);
+    ALBEDO = mix(ALBEDO, vec3(0.0), marker_mask);
+    final_emission = mix(final_emission, vec3(0.0), marker_mask);
 
     EMISSION = final_emission;
 	ROUGHNESS = 0.12;

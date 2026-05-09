@@ -33,7 +33,8 @@ func _process(_delta):
 	# Update player position uniform in all chunks
 	var p_pos = Vector2(player.global_position.x, player.global_position.z)
 	for chunk in chunks.values():
-		chunk.material_override.set_shader_parameter("player_pos", p_pos)
+		if chunk.material_override:
+			chunk.material_override.set_shader_parameter("player_pos", p_pos)
 
 func _load_chunk(coord: Vector2i):
 	var chunk = chunk_scene.instantiate()

@@ -8,6 +8,7 @@ const DOUBLE_PRESS_TIME = 0.3
 var rotation_x = 0.0
 var height_offset = 0.0
 var last_space_time = 0.0
+var space_held_time = 0.0
 
 @onready var camera = $Camera3D
 
@@ -41,10 +42,14 @@ func _physics_process(delta):
 	if Input.is_key_pressed(KEY_SHIFT):
 		current_speed *= 2.0
 	elif Input.is_key_pressed(KEY_CTRL):
-		current_speed *= 0.25
+		current_speed *= 0.15
 
 	if Input.is_key_pressed(KEY_SPACE):
-		height_offset += 10.0 * delta
+		space_held_time += delta
+		if space_held_time > DOUBLE_PRESS_TIME:
+			height_offset += 10.0 * delta
+	else:
+		space_held_time = 0.0
 
 	var input_dir = Input.get_vector("move_left", "move_right", "move_forward", "move_backward")
 	var direction = (transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
