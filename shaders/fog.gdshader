@@ -6,8 +6,6 @@ void fog() {
 
 	if (x <= 0.0) {
 		d = 1.0;
-	} else if (x >= 10.0) {
-		d = 0.2;
 	}
 
 	// Simple height falloff

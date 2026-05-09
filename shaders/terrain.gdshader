@@ -44,12 +44,29 @@ void fragment() {
 
     ALBEDO = base * 0.15;
 
+    // Periodic glow factor
+    float glow = 1.2 + 0.8 * sin(TIME * 2.0);
+
     // Critical line at x = 5.0 (HUD x = 0.5)
     float dist_to_critical = abs(world_pos.x - 5.0);
     float line_mask = 1.0 - smoothstep(0.0, 0.1, dist_to_critical);
     vec3 line_color = vec3(1.0, 1.0, 0.0); // Yellow
 
-    EMISSION = mix(base * 0.25, line_color * 2.0, line_mask);
+    // Critical stripe boundaries at x = 0.0 and x = 10.0
+    float dist_to_0 = abs(world_pos.x - 0.0);
+    float line_mask_0 = 1.0 - smoothstep(0.0, 0.1, dist_to_0);
+
+    float dist_to_10 = abs(world_pos.x - 10.0);
+    float line_mask_10 = 1.0 - smoothstep(0.0, 0.1, dist_to_10);
+
+    vec3 white_line_color = vec3(1.0, 1.0, 1.0);
+
+    vec3 final_emission = base * 0.25;
+    final_emission = mix(final_emission, line_color * 2.0 * glow, line_mask);
+    final_emission = mix(final_emission, white_line_color * 2.0 * glow, line_mask_0);
+    final_emission = mix(final_emission, white_line_color * 2.0 * glow, line_mask_10);
+
+    EMISSION = final_emission;
 	ROUGHNESS = 0.12;
 	METALLIC = 0.95;
 	SPECULAR = 1.0;
