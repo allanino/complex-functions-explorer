@@ -9,6 +9,7 @@ var rotation_x = 0.0
 var height_offset = 0.0
 var last_space_time = 0.0
 var space_held_time = 0.0
+var is_resetting_height = false
 
 @onready var camera = $Camera3D
 
@@ -31,7 +32,7 @@ func _unhandled_input(event):
 	if event is InputEventKey and event.pressed and event.keycode == KEY_SPACE and not event.echo:
 		var current_time = Time.get_ticks_msec() / 1000.0
 		if current_time - last_space_time < DOUBLE_PRESS_TIME:
-			height_offset = 0.0
+			is_resetting_height = true
 		last_space_time = current_time
 
 func get_terrain_height(x: float, z: float) -> float:
@@ -47,9 +48,15 @@ func _physics_process(delta):
 	if Input.is_key_pressed(KEY_SPACE):
 		space_held_time += delta
 		if space_held_time > DOUBLE_PRESS_TIME:
+			is_resetting_height = false
 			height_offset += 10.0 * delta
 	else:
 		space_held_time = 0.0
+
+	if is_resetting_height:
+		height_offset = move_toward(height_offset, 0.0, 20.0 * delta)
+		if height_offset <= 0.0:
+			is_resetting_height = false
 
 	var input_dir = Input.get_vector("move_left", "move_right", "move_forward", "move_backward")
 	var direction = (transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
