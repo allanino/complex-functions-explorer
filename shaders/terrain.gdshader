@@ -44,7 +44,12 @@ void fragment() {
 
     ALBEDO = base * 0.15;
 
-    EMISSION = base * 0.25;
+    // Critical line at x = 5.0 (HUD x = 0.5)
+    float dist_to_critical = abs(world_pos.x - 5.0);
+    float line_mask = 1.0 - smoothstep(0.0, 0.1, dist_to_critical);
+    vec3 line_color = vec3(1.0, 1.0, 0.0); // Yellow
+
+    EMISSION = mix(base * 0.25, line_color * 2.0, line_mask);
 	ROUGHNESS = 0.12;
 	METALLIC = 0.95;
 	SPECULAR = 1.0;
