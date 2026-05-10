@@ -3,8 +3,32 @@ extends CanvasLayer
 @export var player: Node3D
 @onready var complex_rect = $Control/ComplexPlane
 @onready var pos_label = $Control/PosLabel
+@onready var menu_overlay = $Control/MenuOverlay
+@onready var re_input = $Control/MenuOverlay/CenterContainer/VBoxContainer/ReContainer/ReInput
+@onready var im_input = $Control/MenuOverlay/CenterContainer/VBoxContainer/ImContainer/ImInput
+@onready var set_pos_button = $Control/MenuOverlay/CenterContainer/VBoxContainer/SetPosButton
 
 var current_scale = 2.0
+
+func _ready():
+	set_pos_button.pressed.connect(_on_set_pos_pressed)
+
+func toggle_menu():
+	menu_overlay.visible = !menu_overlay.visible
+	if menu_overlay.visible:
+		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	else:
+		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+
+func _on_set_pos_pressed():
+	var re = float(re_input.text)
+	var im = float(im_input.text)
+
+	if player:
+		player.global_position.x = 10.0 * re
+		player.global_position.z = -10.0 * im
+
+	toggle_menu()
 
 func _process(_delta):
 	if not player:

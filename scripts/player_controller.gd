@@ -27,10 +27,15 @@ func _unhandled_input(event):
 		camera.rotation.x = rotation_x
 
 	if event.is_action_pressed("ui_cancel"):
-		if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+		var hud = get_node_or_null("/root/Main/HUD")
+		if hud:
+			hud.toggle_menu()
 		else:
-			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+			# Fallback if HUD is not found
+			if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+				Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+			else:
+				Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 	if event is InputEventKey and event.pressed and event.keycode == KEY_SPACE and not event.echo:
 		var current_time = Time.get_ticks_msec() / 1000.0
