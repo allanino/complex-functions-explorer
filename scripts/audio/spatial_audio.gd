@@ -53,6 +53,25 @@ func _ready():
 	playback = stream_player.get_stream_playback()
 	sample_rate = stream_player.stream.mix_rate
 
+	setup_background_music()
+
+func setup_background_music():
+	var music_player = AudioStreamPlayer.new()
+	music_player.name = "BackgroundMusic"
+	add_child(music_player)
+
+	var music_path = "res://assets/Shore Contemplation.mp3"
+	var music_stream = load(music_path)
+
+	if music_stream:
+		music_player.stream = music_stream
+		if music_player.stream is AudioStreamMP3:
+			music_player.stream.loop = true
+		music_player.volume_db = -12.0
+		music_player.play()
+	else:
+		print("Warning: Background music not found at ", music_path)
+
 func setup_audio_bus_and_effects():
 	var bus_name = "MathematicalSoundscape"
 
