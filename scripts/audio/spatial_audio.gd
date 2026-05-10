@@ -2,7 +2,7 @@ extends Node3D
 
 # --- CONSTANTS ---
 const ZERO_PITCH_BOOST = 1.5
-const BASE_FREQUENCY = 43.65 # F1 (Deeper foundation)
+const BASE_FREQUENCY = 65.4 # C2 (Standard drone)
 const REVERB_AMOUNT = 0.5
 const PHASE_PAN_STRENGTH = 0.7
 
@@ -145,9 +145,14 @@ func _process(delta):
 	var proximity = 1.0 / (0.05 + mag)
 	if not is_finite(proximity): proximity = 20.0
 
-	target_frequency = BASE_FREQUENCY * (1.0 + log(1.0 + proximity) * 0.25)
-	target_harmonic_intensity = clamp(proximity * 0.08, 0.0, 0.7)
-	target_fm_index = clamp(proximity * 0.4, 0.0, 8.0)
+	# Frequency: C2 by default, jumps to C3 near zeros
+	if mag < 0.1:
+		target_frequency = 130.8 # C3
+	else:
+		target_frequency = BASE_FREQUENCY # C2
+
+	target_harmonic_intensity = clamp(proximity * 0.08, 0.0, 0.4)
+	target_fm_index = clamp(proximity * 0.4, 0.0, 4.0)
 
 	# 3. PHASE arg(f)
 	target_pan = sin(arg) * PHASE_PAN_STRENGTH
@@ -227,7 +232,7 @@ func fill_buffer():
 
 		# Growl (Noise component)
 		noise_state = fmod(noise_state + 0.1, 1.0) # Simple noise stepping
-		var noise = (randf() * 2.0 - 1.0) * current_harmonic_intensity * 0.4
+		var noise = (randf() * 2.0 - 1.0) * current_harmonic_intensity * 0.2
 		sample += noise
 
 		# Non-linear saturation (Cubic soft-clipper)
