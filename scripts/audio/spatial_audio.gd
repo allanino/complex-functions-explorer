@@ -2,7 +2,7 @@ extends Node3D
 
 # --- CONSTANTS ---
 const ZERO_PITCH_BOOST = 1.5
-const BASE_FREQUENCY = 65.4 # C2
+const BASE_FREQUENCY = 65.4 # C2 (Standard drone)
 const REVERB_AMOUNT = 0.5
 const PHASE_PAN_STRENGTH = 0.7
 
@@ -10,6 +10,9 @@ const PHASE_PAN_STRENGTH = 0.7
 var playback: AudioStreamGeneratorPlayback
 var sample_rate: float = 44100.0
 var phase: float = 0.0
+var mod_phase: float = 0.0
+var lfo_phase: float = 0.0
+var noise_state: float = 0.0
 
 # --- INTERPOLATED PARAMETERS ---
 var target_volume: float = 0.3
@@ -22,6 +25,8 @@ var target_harmonic_intensity: float = 0.0
 var current_harmonic_intensity: float = 0.0
 var target_resonance: float = 0.0
 var current_resonance: float = 0.0
+var target_fm_index: float = 0.0
+var current_fm_index: float = 0.0
 
 # --- EFFECT REFS ---
 var pitch_shift_effect: AudioEffectPitchShift
@@ -47,6 +52,25 @@ func _ready():
 	stream_player.play()
 	playback = stream_player.get_stream_playback()
 	sample_rate = stream_player.stream.mix_rate
+
+	setup_background_music()
+
+func setup_background_music():
+	var music_player = AudioStreamPlayer.new()
+	music_player.name = "BackgroundMusic"
+	add_child(music_player)
+
+	var music_path = "res://assets/Shore Contemplation.mp3"
+	var music_stream = load(music_path)
+
+	if music_stream:
+		music_player.stream = music_stream
+		if music_player.stream is AudioStreamMP3:
+			music_player.stream.loop = true
+		music_player.volume_db = -12.0
+		music_player.play()
+	else:
+		print("Warning: Background music not found at ", music_path)
 
 func setup_audio_bus_and_effects():
 	var bus_name = "MathematicalSoundscape"
@@ -115,14 +139,20 @@ func _process(delta):
 	# --- MAPPINGS ---
 
 	# 1. MAGNITUDE |f|
-	target_volume = clamp(0.2 + mag * 0.05, 0.1, 0.5)
+	target_volume = clamp(0.8 - mag * 0.05, 0.2, 0.7)
 
 	# 2. PROXIMITY TO ZERO
 	var proximity = 1.0 / (0.05 + mag)
 	if not is_finite(proximity): proximity = 20.0
 
-	target_frequency = BASE_FREQUENCY * (1.0 + log(1.0 + proximity) * ZERO_PITCH_BOOST)
-	target_harmonic_intensity = clamp(proximity * 0.08, 0.0, 0.7)
+	# Frequency: C2 by default, jumps to G2 near zeros
+	if mag < 0.5:
+		target_frequency = 88.0 # G2
+	else:
+		target_frequency = BASE_FREQUENCY # C2
+
+	target_harmonic_intensity = clamp(proximity * 0.08, 0.0, 0.4)
+	target_fm_index = clamp(proximity * 0.4, 0.0, 4.0)
 
 	# 3. PHASE arg(f)
 	target_pan = sin(arg) * PHASE_PAN_STRENGTH
@@ -138,11 +168,12 @@ func _process(delta):
 
 	# --- SMOOTHING ---
 	# Significantly increased interpolation weights for instantaneous response
-	current_volume = lerp(current_volume, target_volume, delta * 10.0)
-	current_frequency = lerp(current_frequency, target_frequency, delta * 15.0)
-	current_pan = lerp(current_pan, target_pan, delta * 8.0)
-	current_harmonic_intensity = lerp(current_harmonic_intensity, target_harmonic_intensity, delta * 12.0)
-	current_resonance = lerp(current_resonance, target_resonance, delta * 10.0)
+	current_volume = lerp(current_volume, target_volume, delta * 20.0)
+	current_frequency = lerp(current_frequency, target_frequency, delta * 30.0)
+	current_pan = lerp(current_pan, target_pan, delta * 16.0)
+	current_harmonic_intensity = lerp(current_harmonic_intensity, target_harmonic_intensity, delta * 24.0)
+	current_resonance = lerp(current_resonance, target_resonance, delta * 20.0)
+	current_fm_index = lerp(current_fm_index, target_fm_index, delta * 10.0)
 
 	# Final safety clamp
 	current_frequency = max(0.8, current_frequency)
@@ -173,35 +204,40 @@ func fill_buffer():
 	to_fill = min(to_fill, 4410)
 
 	while to_fill > 0:
-		var increment = current_frequency / sample_rate
-		if not is_finite(increment): increment = 0.001
+		# --- PHASE INCREMENTS ---
 
+		# LFO for organic drift (0.12 Hz)
+		lfo_phase = fmod(lfo_phase + 0.12 / sample_rate, 1.0)
+		var jitter = sin(lfo_phase * TAU) * 0.008
+
+		var freq = current_frequency * (1.0 + jitter)
+		var increment = freq / sample_rate
+		if not is_finite(increment): increment = 0.001
 		phase = fmod(phase + increment, 1.0)
 
-		# --- PROCEDURAL SYNTHESIS ---
+		# Modulator phase (harmonic ratio 1.0 or 2.0)
+		var mod_increment = freq * 1.0 / sample_rate
+		mod_phase = fmod(mod_phase + mod_increment, 1.0)
 
-		# Fundamental drone (sine)
-		var sample = sin(phase * TAU)
+		# --- FM SYNTHESIS ---
 
-		# Second voice for richness
-		sample += 0.5 * sin(phase * TAU * 2.0)
+		# Modulator
+		var modulator = sin(mod_phase * TAU) * current_fm_index
 
-		# Deep sub-resonance
-		var sub_strength = 0.7 * (1.0 - clamp(current_harmonic_intensity * 0.5, 0.0, 0.6))
-		sample += sub_strength * sin(phase * TAU * 0.5)
+		# Carrier
+		var sample = sin(phase * TAU + modulator)
 
-		# Harmonic beating and tension near zeros
-		if current_harmonic_intensity > 0.01:
-			sample += current_harmonic_intensity * 0.6 * sin(phase * TAU * 3.001)
-			sample += current_harmonic_intensity * 0.3 * sin(phase * TAU * 4.998)
+		# Add sub-depth
+		sample += 0.5 * sin(phase * TAU * 0.5)
 
-		# Critical line richness
-		if current_resonance > 0.01:
-			sample += current_resonance * 0.3 * sin(phase * TAU * 7.0)
-			sample += current_resonance * 0.15 * sin(phase * TAU * 11.0)
+		# Growl (Noise component)
+		noise_state = fmod(noise_state + 0.1, 1.0) # Simple noise stepping
+		var noise = (randf() * 2.0 - 1.0) * current_harmonic_intensity * 0.2
+		sample += noise
 
-		# Non-linear saturation for warmth/smoothness
-		sample = atan(sample * 1.5) / (PI / 2.0)
+		# Non-linear saturation (Cubic soft-clipper)
+		sample = clamp(sample * 1.1, -1.1, 1.1)
+		sample = sample - (pow(sample, 3) / 3.0)
 
 		if not is_finite(sample): sample = 0.0
 
