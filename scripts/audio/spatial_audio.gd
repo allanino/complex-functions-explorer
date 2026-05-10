@@ -139,15 +139,15 @@ func _process(delta):
 	# --- MAPPINGS ---
 
 	# 1. MAGNITUDE |f|
-	target_volume = clamp(0.2 + mag * 0.05, 0.1, 0.5)
+	target_volume = clamp(0.8 - mag * 0.05, 0.2, 0.7)
 
 	# 2. PROXIMITY TO ZERO
 	var proximity = 1.0 / (0.05 + mag)
 	if not is_finite(proximity): proximity = 20.0
 
-	# Frequency: C2 by default, jumps to C3 near zeros
-	if mag < 0.1:
-		target_frequency = 130.8 # C3
+	# Frequency: C2 by default, jumps to G2 near zeros
+	if mag < 0.5:
+		target_frequency = 88.0 # G2
 	else:
 		target_frequency = BASE_FREQUENCY # C2
 
@@ -168,12 +168,12 @@ func _process(delta):
 
 	# --- SMOOTHING ---
 	# Significantly increased interpolation weights for instantaneous response
-	current_volume = lerp(current_volume, target_volume, delta * 10.0)
-	current_frequency = lerp(current_frequency, target_frequency, delta * 15.0)
-	current_pan = lerp(current_pan, target_pan, delta * 8.0)
-	current_harmonic_intensity = lerp(current_harmonic_intensity, target_harmonic_intensity, delta * 12.0)
-	current_resonance = lerp(current_resonance, target_resonance, delta * 10.0)
-	current_fm_index = lerp(current_fm_index, target_fm_index, delta * 5.0)
+	current_volume = lerp(current_volume, target_volume, delta * 20.0)
+	current_frequency = lerp(current_frequency, target_frequency, delta * 30.0)
+	current_pan = lerp(current_pan, target_pan, delta * 16.0)
+	current_harmonic_intensity = lerp(current_harmonic_intensity, target_harmonic_intensity, delta * 24.0)
+	current_resonance = lerp(current_resonance, target_resonance, delta * 20.0)
+	current_fm_index = lerp(current_fm_index, target_fm_index, delta * 10.0)
 
 	# Final safety clamp
 	current_frequency = max(0.8, current_frequency)
