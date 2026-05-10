@@ -1,6 +1,6 @@
 extends CharacterBody3D
 
-const SPEED = 5.0
+const SPEED = 10.0
 const MOUSE_SENSITIVITY = 0.002
 const PLAYER_HEIGHT = 1.8
 const DOUBLE_PRESS_TIME = 0.3
@@ -46,7 +46,7 @@ func _physics_process(delta):
 	if Input.is_key_pressed(KEY_SHIFT):
 		current_speed *= 2.0
 	elif Input.is_key_pressed(KEY_CTRL):
-		current_speed *= 0.15
+		current_speed *= 0.05
 
 	if Input.is_key_pressed(KEY_SPACE):
 		space_held_time += delta
