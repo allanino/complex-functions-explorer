@@ -88,7 +88,9 @@ vec2 get_field(float x, float z) {
         //return vec2(0.0, 0.0);
     //}
 	float sigma = x * 0.1;
-	float t = z * 0.5;
+	// We reverse z to get the usual Re, Im axis orientation
+	// It looks like godot puts the z axis downwards
+	float t = -z * 0.1;
 
     return zeta(sigma, t);
 }

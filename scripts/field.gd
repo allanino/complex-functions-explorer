@@ -76,7 +76,9 @@ static func get_field(x: float, z: float) -> Vector2:
 		#return Vector2.ZERO
 	
 	var sigma: float = x * 0.1
-	var t: float = z * 0.5
+	# We reverse z to get the usual Re, Im axis orientation
+	# It looks like godot puts the z axis downwards
+	var t: float = -z * 0.1
 
 	return zeta(sigma, t)
 
