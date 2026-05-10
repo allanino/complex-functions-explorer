@@ -96,5 +96,5 @@ vec2 get_field(float x, float z) {
 float get_height(float x, float z) {
     vec2 f = get_field(x, z);
     float mag = length(f);
-    return 2.0 * log(1.0 + mag);
+    return 3.0 * log(1.0 + mag);
 }
