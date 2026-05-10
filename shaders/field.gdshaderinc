@@ -35,6 +35,10 @@ vec2 zeta(float sigma, float t) {
 
         float amp = pow(nf, -sigma);
 
+        if (amp < 1e-6) {
+            break;
+        }
+
         //----------------------------------------
         // phase = -t log n
         //----------------------------------------

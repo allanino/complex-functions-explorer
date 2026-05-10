@@ -35,6 +35,9 @@ static func zeta(sigma: float, t: float) -> Vector2:
 
 		# amplitude = n^{-sigma}
 		var amp = pow(nf, -sigma)
+		
+		if (amp < 1e-6):
+			break
 
 		# phase = -t log n
 		var theta = -t * log(nf)
