@@ -14,6 +14,9 @@ var is_resetting_height = false
 @onready var camera = $Camera3D
 
 func _ready():
+	# Set the global position directly using a Vector3(x, y, z)
+	global_position = Vector3(5.0, 0.0, 0.0)
+	
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 func _unhandled_input(event):
