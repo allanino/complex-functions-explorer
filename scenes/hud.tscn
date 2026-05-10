@@ -95,7 +95,7 @@ layout_mode = 2
 
 [node name="Label" type="Label" parent="Control/MenuOverlay/CenterContainer/VBoxContainer/ReContainer"]
 layout_mode = 2
-text = "Re = 0.5 (default)"
+text = "Re = "
 
 [node name="ReInput" type="LineEdit" parent="Control/MenuOverlay/CenterContainer/VBoxContainer/ReContainer"]
 custom_minimum_size = Vector2(100, 0)
@@ -108,7 +108,7 @@ layout_mode = 2
 
 [node name="Label" type="Label" parent="Control/MenuOverlay/CenterContainer/VBoxContainer/ImContainer"]
 layout_mode = 2
-text = "Im = 0.0 (default)"
+text = "Im = "
 
 [node name="ImInput" type="LineEdit" parent="Control/MenuOverlay/CenterContainer/VBoxContainer/ImContainer"]
 custom_minimum_size = Vector2(100, 0)
