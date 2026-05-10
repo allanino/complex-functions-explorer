@@ -67,18 +67,21 @@ func setup_audio_bus_and_effects():
 	pitch_shift_effect.fft_size = AudioEffectPitchShift.FFT_SIZE_2048
 	AudioServer.add_bus_effect(bus_index, pitch_shift_effect)
 
-	# Index 1: Reverb
-	reverb_effect = AudioEffectReverb.new()
-	reverb_effect.room_size = 0.8
-	reverb_effect.damping = 0.5
-	reverb_effect.wet = REVERB_AMOUNT
-	AudioServer.add_bus_effect(bus_index, reverb_effect)
-
-	# Index 2: Low Pass Filter
+	# Index 1: Low Pass Filter
 	lpf_effect = AudioEffectLowPassFilter.new()
 	lpf_effect.cutoff_hz = 800.0
 	lpf_effect.resonance = 0.2
 	AudioServer.add_bus_effect(bus_index, lpf_effect)
+
+	# Index 2: Reverb (conservative — large room + high wet caused dropouts here)
+	reverb_effect = AudioEffectReverb.new()
+	reverb_effect.room_size = 0.42
+	reverb_effect.damping = 0.72
+	reverb_effect.spread = 0.6
+	reverb_effect.hipass = 0.08
+	reverb_effect.dry = 1.0
+	reverb_effect.wet = REVERB_AMOUNT
+	AudioServer.add_bus_effect(bus_index, reverb_effect)
 
 	$AudioStreamPlayer.bus = bus_name
 
@@ -142,7 +145,7 @@ func _process(delta):
 	current_resonance = lerp(current_resonance, target_resonance, delta * 10.0)
 
 	# Final safety clamp
-	current_frequency = max(1.0, current_frequency)
+	current_frequency = max(0.8, current_frequency)
 
 	# --- EFFECT MODULATION ---
 	if pitch_shift_effect:
