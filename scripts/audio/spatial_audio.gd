@@ -3,9 +3,7 @@ extends Node3D
 # --- CONSTANTS ---
 const ZERO_PITCH_BOOST = 1.5
 const BASE_FREQUENCY = 65.4 # C2
-# Bus reverb: keep modest wet max — AudioEffectReverb + generator was unstable at high wet.
-const REVERB_AMOUNT = 0.22
-const REVERB_WET_MAX = 0.38
+const REVERB_AMOUNT = 0.5
 const PHASE_PAN_STRENGTH = 0.7
 
 # --- SYNTHESIS STATE ---
@@ -42,7 +40,7 @@ func _ready():
 	# Ensure the generator is correctly configured
 	var generator = AudioStreamGenerator.new()
 	generator.mix_rate = 44100
-	generator.buffer_length = 0.5
+	generator.buffer_length = 0.1 # Lower latency
 	stream_player.stream = generator
 
 	# Start playing
@@ -64,27 +62,23 @@ func setup_audio_bus_and_effects():
 		while AudioServer.get_bus_effect_count(bus_index) > 0:
 			AudioServer.remove_bus_effect(bus_index, 0)
 
-	# Chain order: pitch -> band-limit -> reverb last (stable with procedural generator).
 	# Index 0: PitchShift
 	pitch_shift_effect = AudioEffectPitchShift.new()
 	pitch_shift_effect.fft_size = AudioEffectPitchShift.FFT_SIZE_2048
 	AudioServer.add_bus_effect(bus_index, pitch_shift_effect)
 
-	# Index 1: Low Pass Filter (before reverb — less harsh input to the reverb)
+	# Index 1: Reverb
+	reverb_effect = AudioEffectReverb.new()
+	reverb_effect.room_size = 0.8
+	reverb_effect.damping = 0.5
+	reverb_effect.wet = REVERB_AMOUNT
+	AudioServer.add_bus_effect(bus_index, reverb_effect)
+
+	# Index 2: Low Pass Filter
 	lpf_effect = AudioEffectLowPassFilter.new()
 	lpf_effect.cutoff_hz = 800.0
 	lpf_effect.resonance = 0.2
 	AudioServer.add_bus_effect(bus_index, lpf_effect)
-
-	# Index 2: Reverb (conservative — large room + high wet caused dropouts here)
-	reverb_effect = AudioEffectReverb.new()
-	reverb_effect.room_size = 0.42
-	reverb_effect.damping = 0.72
-	reverb_effect.spread = 0.6
-	reverb_effect.hipass = 0.08
-	reverb_effect.dry = 1.0
-	reverb_effect.wet = REVERB_AMOUNT
-	AudioServer.add_bus_effect(bus_index, reverb_effect)
 
 	$AudioStreamPlayer.bus = bus_name
 
@@ -140,11 +134,12 @@ func _process(delta):
 	if not is_finite(target_pan): target_pan = 0.0
 
 	# --- SMOOTHING ---
-	current_volume = lerp(current_volume, target_volume, delta * 1.2)
-	current_frequency = lerp(current_frequency, target_frequency, delta * 0.8)
-	current_pan = lerp(current_pan, target_pan, delta * 0.4)
-	current_harmonic_intensity = lerp(current_harmonic_intensity, target_harmonic_intensity, delta * 1.5)
-	current_resonance = lerp(current_resonance, target_resonance, delta * 2.0)
+	# Significantly increased interpolation weights for instantaneous response
+	current_volume = lerp(current_volume, target_volume, delta * 10.0)
+	current_frequency = lerp(current_frequency, target_frequency, delta * 15.0)
+	current_pan = lerp(current_pan, target_pan, delta * 8.0)
+	current_harmonic_intensity = lerp(current_harmonic_intensity, target_harmonic_intensity, delta * 12.0)
+	current_resonance = lerp(current_resonance, target_resonance, delta * 10.0)
 
 	# Final safety clamp
 	current_frequency = max(1.0, current_frequency)
@@ -155,10 +150,8 @@ func _process(delta):
 		if is_finite(ps): pitch_shift_effect.pitch_scale = ps
 
 	if reverb_effect:
-		var rv = REVERB_AMOUNT + current_resonance * 0.08 + min(proximity * 0.004, 0.06)
-		rv = clamp(rv, 0.0, REVERB_WET_MAX)
-		if is_finite(rv):
-			reverb_effect.wet = rv
+		var rv = clamp(REVERB_AMOUNT + current_resonance * 0.15 + (proximity * 0.01), 0.0, 0.9)
+		if is_finite(rv): reverb_effect.wet = rv
 
 	if lpf_effect:
 		var cut = lerp(600.0, 4500.0, clamp(mag * 0.05 + current_resonance * 0.8, 0.0, 1.0))
