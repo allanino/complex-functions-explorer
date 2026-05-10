@@ -6,10 +6,6 @@ extends Node3D
 @export var view_distance: int = 4
 
 var chunks = {}
-var fog_volume: FogVolume
-
-func _ready():
-	fog_volume = get_node_or_null("../FogVolume")
 
 func _process(_delta):
 	if not player:
@@ -40,10 +36,6 @@ func _process(_delta):
 	for chunk in chunks.values():
 		if chunk.material_override:
 			chunk.material_override.set_shader_parameter("player_pos", p_pos_2d)
-
-	# Update global fog volume player position
-	if fog_volume and fog_volume.material:
-		fog_volume.material.set_shader_parameter("player_pos", player_pos)
 
 func _load_chunk(coord: Vector2i):
 	var chunk = chunk_scene.instantiate()
