@@ -6,6 +6,7 @@ extends CanvasLayer
 @onready var menu_overlay = $Control/MenuOverlay
 @onready var re_input = $Control/MenuOverlay/CenterContainer/VBoxContainer/ReContainer/ReInput
 @onready var im_input = $Control/MenuOverlay/CenterContainer/VBoxContainer/ImContainer/ImInput
+@onready var iter_input = $Control/MenuOverlay/CenterContainer/VBoxContainer/IterContainer/IterInput
 @onready var set_pos_button = $Control/MenuOverlay/CenterContainer/VBoxContainer/SetPosButton
 
 var current_scale = 2.0
@@ -23,6 +24,9 @@ func toggle_menu():
 func _on_set_pos_pressed():
 	var re = float(re_input.text)
 	var im = float(im_input.text)
+	var iters = int(iter_input.text)
+
+	Field.iterations = iters
 
 	if player:
 		player.global_position.x = 10.0 * re

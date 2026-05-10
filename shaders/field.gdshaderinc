@@ -1,5 +1,7 @@
 // Shared field and height functions for shaders
 
+uniform int iterations = 120;
+
 vec2 complex_mul(vec2 a, vec2 b) {
     return vec2(
         a.x * b.x - a.y * b.y,
@@ -25,7 +27,7 @@ vec2 zeta(float sigma, float t) {
 
     vec2 eta = vec2(0.0);
 
-    for (int n = 1; n <= 120; n++) {
+    for (int n = 1; n <= iterations; n++) {
 
         float nf = float(n);
 
