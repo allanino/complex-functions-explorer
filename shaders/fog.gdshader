@@ -1,16 +1,22 @@
 shader_type fog;
 
+uniform vec3 player_pos;
+
 void fog() {
-	float x = WORLD_POSITION.x;
-	float d = 0.0;
+	if (WORLD_POSITION.x > 0.0) {
+		DENSITY = 0.0;
+	} else {
+		// Base density for the entire x <= 0 region
+		float d = 0.15;
 
-	if (x <= 0.0) {
-		d = 1.0;
+		// Localized density around the player
+		float dist = distance(WORLD_POSITION, player_pos);
+		d += exp(-dist * 0.04) * 0.85;
+
+		// Soft height falloff to keep the extreme upper sky clear
+		float height_fade = smoothstep(500.0, 100.0, WORLD_POSITION.y);
+
+		DENSITY = d * height_fade;
 	}
-
-	// Simple height falloff
-	float height_fade = clamp(1.0 - (WORLD_POSITION.y - 10.0) * 0.1, 0.0, 1.0);
-
-	DENSITY = d * height_fade;
 	ALBEDO = vec3(0.2, 0.2, 0.25);
 }
