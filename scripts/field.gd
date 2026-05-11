@@ -1,6 +1,8 @@
 # Shared field and height functions for GDScript
 class_name Field
 
+static var iterations: int = 120
+
 static func complex_mul(a: Vector2, b: Vector2) -> Vector2:
 	return Vector2(
 		a.x * b.x - a.y * b.y,
@@ -29,7 +31,7 @@ static func zeta(sigma: float, t: float) -> Vector2:
 
 	var eta = Vector2.ZERO
 
-	for n in range(1, 121):
+	for n in range(1, iterations + 1):
 
 		var nf = float(n)
 
