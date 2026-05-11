@@ -6,12 +6,18 @@ extends CanvasLayer
 @onready var menu_overlay = $Control/MenuOverlay
 @onready var re_input = $Control/MenuOverlay/CenterContainer/VBoxContainer/ReContainer/ReInput
 @onready var im_input = $Control/MenuOverlay/CenterContainer/VBoxContainer/ImContainer/ImInput
+@onready var normals_checkbox = $Control/MenuOverlay/CenterContainer/VBoxContainer/NormalsContainer/NormalsCheckbox
 @onready var set_pos_button = $Control/MenuOverlay/CenterContainer/VBoxContainer/SetPosButton
 
 var current_scale = 2.0
 
 func _ready():
 	set_pos_button.pressed.connect(_on_set_pos_pressed)
+	normals_checkbox.button_pressed = Field.compute_normals
+	normals_checkbox.toggled.connect(_on_normals_toggled)
+
+func _on_normals_toggled(button_pressed: bool):
+	Field.compute_normals = button_pressed
 
 func toggle_menu():
 	menu_overlay.visible = !menu_overlay.visible

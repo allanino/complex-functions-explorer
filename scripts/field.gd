@@ -1,6 +1,8 @@
 # Shared field and height functions for GDScript
 class_name Field
 
+static var compute_normals: bool = false
+
 static func complex_mul(a: Vector2, b: Vector2) -> Vector2:
 	return Vector2(
 		a.x * b.x - a.y * b.y,

@@ -121,6 +121,17 @@ theme_override_font_sizes/font_size = 20
 text = "0.0"
 placeholder_text = "0.0"
 
+[node name="NormalsContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Control/MenuOverlay/CenterContainer/VBoxContainer/NormalsContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "Compute Normals = "
+
+[node name="NormalsCheckbox" type="CheckBox" parent="Control/MenuOverlay/CenterContainer/VBoxContainer/NormalsContainer"]
+layout_mode = 2
+
 [node name="SetPosButton" type="Button" parent="Control/MenuOverlay/CenterContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
