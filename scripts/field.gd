@@ -90,4 +90,4 @@ static func get_field(x: float, z: float) -> Vector2:
 
 static func get_height(x: float, z: float) -> float:
 	var f = get_field(x, z)
-	return 3.0 * log(1.0 + f.length())
+	return 3.0 * f.length()
