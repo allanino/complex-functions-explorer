@@ -7,6 +7,7 @@ extends CanvasLayer
 @onready var re_input = $Control/MenuOverlay/CenterContainer/VBoxContainer/ReContainer/ReInput
 @onready var im_input = $Control/MenuOverlay/CenterContainer/VBoxContainer/ImContainer/ImInput
 @onready var iter_input = $Control/MenuOverlay/CenterContainer/VBoxContainer/IterContainer/IterInput
+@onready var normals_checkbox = $Control/MenuOverlay/CenterContainer/VBoxContainer/NormalsContainer/NormalsCheckbox
 @onready var set_pos_button = $Control/MenuOverlay/CenterContainer/VBoxContainer/SetPosButton
 
 var current_scale = 2.0
@@ -27,6 +28,7 @@ func _on_set_pos_pressed():
 	var iters = int(iter_input.text)
 
 	Field.iterations = iters
+	Field.compute_normals = normals_checkbox.button_pressed
 
 	if player:
 		player.global_position.x = 10.0 * re

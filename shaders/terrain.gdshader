@@ -6,6 +6,7 @@ varying vec3 world_pos;
 varying vec3 normal;
 
 uniform vec2 player_pos;
+uniform bool compute_normals = false;
 
 // Helper function to convert HSV to RGB
 vec3 hsv2rgb(vec3 c) {
@@ -20,16 +21,20 @@ void vertex() {
     float h = get_height(world_pos.x, world_pos.z);
     VERTEX.y += h;
 
-    // Calculate normals using finite differences
-    float delta = 0.01;
-    float h_right = get_height(world_pos.x + delta, world_pos.z);
-    float h_forward = get_height(world_pos.x, world_pos.z + delta);
+    if (compute_normals) {
+        // Calculate normals using finite differences
+        float delta = 0.01;
+        float h_right = get_height(world_pos.x + delta, world_pos.z);
+        float h_forward = get_height(world_pos.x, world_pos.z + delta);
 
-    vec3 v_right = vec3(delta, h_right - h, 0.0);
-    vec3 v_forward = vec3(0.0, h_forward - h, delta);
+        vec3 v_right = vec3(delta, h_right - h, 0.0);
+        vec3 v_forward = vec3(0.0, h_forward - h, delta);
 
-    // Normal is the cross product of two tangent vectors
-    normal = normalize(cross(v_forward, v_right));
+        // Normal is the cross product of two tangent vectors
+        normal = normalize(cross(v_forward, v_right));
+    } else {
+        normal = vec3(0.0, 1.0, 0.0);
+    }
     NORMAL = (MODEL_NORMAL_MATRIX * normal);
 }
 

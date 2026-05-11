@@ -2,6 +2,7 @@
 class_name Field
 
 static var iterations: int = 120
+static var compute_normals: bool = false
 
 static func complex_mul(a: Vector2, b: Vector2) -> Vector2:
 	return Vector2(
