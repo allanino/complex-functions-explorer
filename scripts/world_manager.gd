@@ -31,11 +31,9 @@ func _process(_delta):
 	for chunk_coord in chunks_to_remove:
 		_unload_chunk(chunk_coord)
 
-	# Update player position and iterations uniform in all chunks
-	var p_pos_2d = Vector2(player_pos.x, player_pos.z)
+	# Update iterations and normal computation uniforms in all chunks
 	for chunk in chunks.values():
 		if chunk.material_override:
-			chunk.material_override.set_shader_parameter("player_pos", p_pos_2d)
 			chunk.material_override.set_shader_parameter("iterations", Field.iterations)
 			chunk.material_override.set_shader_parameter("compute_normals", Field.compute_normals)
 
