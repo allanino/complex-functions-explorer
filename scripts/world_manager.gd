@@ -38,6 +38,8 @@ func _process(_delta):
 			chunk.material_override.set_shader_parameter("player_pos", p_pos_2d)
 			chunk.material_override.set_shader_parameter("iterations", Field.iterations)
 			chunk.material_override.set_shader_parameter("compute_normals", Field.compute_normals)
+			chunk.material_override.set_shader_parameter("function_type", Field.function_type)
+			chunk.material_override.set_shader_parameter("height_type", Field.height_type)
 
 func _load_chunk(coord: Vector2i):
 	var chunk = chunk_scene.instantiate()

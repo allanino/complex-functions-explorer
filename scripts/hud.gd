@@ -10,10 +10,20 @@ extends CanvasLayer
 @onready var normals_checkbox = $Control/MenuOverlay/CenterContainer/VBoxContainer/NormalsContainer/NormalsCheckbox
 @onready var set_pos_button = $Control/MenuOverlay/CenterContainer/VBoxContainer/SetPosButton
 
+@onready var func_button = $Control/MenuOverlay/CenterContainer/VBoxContainer/FuncContainer/FuncButton
+@onready var height_button = $Control/MenuOverlay/CenterContainer/VBoxContainer/HeightContainer/HeightButton
+
 var current_scale = 2.0
 
 func _ready():
 	set_pos_button.pressed.connect(_on_set_pos_pressed)
+
+	func_button.add_item("Zeta")
+	func_button.add_item("Complex Sin")
+	func_button.add_item("Complex Cos")
+
+	height_button.add_item("log(1 + abs)")
+	height_button.add_item("abs")
 
 func toggle_menu():
 	menu_overlay.visible = !menu_overlay.visible
@@ -24,6 +34,9 @@ func toggle_menu():
 			im_input.text = "%.3f" % (-player.global_position.z * 0.1)
 		iter_input.text = str(Field.iterations)
 		normals_checkbox.button_pressed = Field.compute_normals
+
+		func_button.selected = Field.function_type
+		height_button.selected = Field.height_type
 	else:
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
@@ -34,6 +47,8 @@ func _on_set_pos_pressed():
 
 	Field.iterations = iters
 	Field.compute_normals = normals_checkbox.button_pressed
+	Field.function_type = func_button.selected
+	Field.height_type = height_button.selected
 
 	if player:
 		player.global_position.x = 10.0 * re

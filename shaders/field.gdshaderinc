@@ -1,6 +1,8 @@
 // Shared field and height functions for shaders
 
 uniform int iterations = 120;
+uniform int function_type = 0; // 0: Zeta, 1: Sin, 2: Cos
+uniform int height_type = 0;   // 0: Log, 1: Abs
 
 vec2 complex_mul(vec2 a, vec2 b) {
     return vec2(
@@ -89,20 +91,42 @@ vec2 zeta(float sigma, float t) {
     return complex_div(eta, denom);
 }
 
+vec2 complex_sin(float sigma, float t) {
+    return vec2(
+        sin(sigma) * cosh(t),
+        cos(sigma) * sinh(t)
+    );
+}
+
+vec2 complex_cos(float sigma, float t) {
+    return vec2(
+        cos(sigma) * cosh(t),
+        -sin(sigma) * sinh(t)
+    );
+}
+
 vec2 get_field(float x, float z) {
-    //if (x < 0.0) {
-        //return vec2(0.0, 0.0);
-    //}
 	float sigma = x * 0.1;
-	// We reverse z to get the usual Re, Im axis orientation
-	// It looks like godot puts the z axis downwards
 	float t = -z * 0.1;
 
-    return zeta(sigma, t);
+    if (function_type == 0) {
+        return zeta(sigma, t);
+    } else if (function_type == 1) {
+        return complex_sin(sigma, t);
+    } else if (function_type == 2) {
+        return complex_cos(sigma, t);
+    }
+
+    return vec2(0.0);
 }
 
 float get_height(float x, float z) {
     vec2 f = get_field(x, z);
     float mag = length(f);
-    return 3.0 * log(1.0 + mag);
+
+    if (height_type == 0) {
+        return 3.0 * log(1.0 + mag);
+    } else {
+        return mag;
+    }
 }

@@ -3,6 +3,8 @@ class_name Field
 
 static var iterations: int = 120
 static var compute_normals: bool = false
+static var function_type: int = 0 # 0: Zeta, 1: Sin, 2: Cos
+static var height_type: int = 0 # 0: Log, 1: Abs
 
 static func complex_mul(a: Vector2, b: Vector2) -> Vector2:
 	return Vector2(
@@ -77,17 +79,36 @@ static func zeta(sigma: float, t: float) -> Vector2:
 
 	return complex_div(eta, denom)
 
+static func complex_sin(sigma: float, t: float) -> Vector2:
+	return Vector2(
+		sin(sigma) * cosh(t),
+		cos(sigma) * sinh(t)
+	)
+
+static func complex_cos(sigma: float, t: float) -> Vector2:
+	return Vector2(
+		cos(sigma) * cosh(t),
+		-sin(sigma) * sinh(t)
+	)
+
 static func get_field(x: float, z: float) -> Vector2:
-	#if x <= 0.0:
-		#return Vector2.ZERO
-	
 	var sigma: float = x * 0.1
-	# We reverse z to get the usual Re, Im axis orientation
-	# It looks like godot puts the z axis downwards
 	var t: float = -z * 0.1
 
-	return zeta(sigma, t)
+	if function_type == 0:
+		return zeta(sigma, t)
+	elif function_type == 1:
+		return complex_sin(sigma, t)
+	elif function_type == 2:
+		return complex_cos(sigma, t)
+
+	return Vector2.ZERO
 
 static func get_height(x: float, z: float) -> float:
 	var f = get_field(x, z)
-	return 3.0 * log(1.0 + f.length())
+	var mag = f.length()
+
+	if height_type == 0:
+		return 3.0 * log(1.0 + mag)
+	else:
+		return mag

@@ -166,6 +166,40 @@ theme_override_font_sizes/font_size = 20
 text = "0.0"
 placeholder_text = "0.0"
 
+[node name="FuncContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Control/MenuOverlay/CenterContainer/VBoxContainer/FuncContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "Function = "
+
+[node name="FuncButton" type="OptionButton" parent="Control/MenuOverlay/CenterContainer/VBoxContainer/FuncContainer"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxFlat_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_pressed")
+theme_override_styles/focus = SubResource("StyleBoxFlat_normal")
+
+[node name="HeightContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Control/MenuOverlay/CenterContainer/VBoxContainer/HeightContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "Height = "
+
+[node name="HeightButton" type="OptionButton" parent="Control/MenuOverlay/CenterContainer/VBoxContainer/HeightContainer"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxFlat_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_pressed")
+theme_override_styles/focus = SubResource("StyleBoxFlat_normal")
+
 [node name="IterContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/VBoxContainer"]
 layout_mode = 2
 
