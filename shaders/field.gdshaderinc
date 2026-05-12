@@ -1,6 +1,11 @@
 // Shared field and height functions for shaders
 
 uniform int iterations = 120;
+uniform int function_type = 0; // 0: Zeta, 1: Sin, 2: Cos, 3: Tan, 4: Exp, 5: Log, 6: Rational
+uniform int height_type = 0;   // 0: Log, 1: Abs
+
+uniform float rational_num_coeffs[10];
+uniform float rational_den_coeffs[10];
 
 vec2 complex_mul(vec2 a, vec2 b) {
     return vec2(
@@ -89,20 +94,92 @@ vec2 zeta(float sigma, float t) {
     return complex_div(eta, denom);
 }
 
+vec2 complex_sin(float sigma, float t) {
+    return vec2(
+        sin(sigma) * cosh(t),
+        cos(sigma) * sinh(t)
+    );
+}
+
+vec2 complex_cos(float sigma, float t) {
+    return vec2(
+        cos(sigma) * cosh(t),
+        -sin(sigma) * sinh(t)
+    );
+}
+
+vec2 complex_tan(float sigma, float t) {
+    return complex_div(complex_sin(sigma, t), complex_cos(sigma, t));
+}
+
+vec2 complex_exp(float sigma, float t) {
+    float amp = exp(sigma);
+    return vec2(
+        amp * cos(t),
+        amp * sin(t)
+    );
+}
+
+vec2 complex_log(float sigma, float t) {
+    float mag = length(vec2(sigma, t));
+    if (mag < 1e-9) {
+        return vec2(-10.0, 0.0);
+    }
+    return vec2(
+        log(mag),
+        atan(t, sigma)
+    );
+}
+
+vec2 evaluate_poly(float sigma, float t, float coeffs[10]) {
+    vec2 z = vec2(sigma, t);
+    vec2 res = vec2(0.0);
+    vec2 z_pow = vec2(1.0, 0.0);
+
+    for (int i = 0; i < 10; i++) {
+        res += coeffs[i] * z_pow;
+        z_pow = complex_mul(z_pow, z);
+    }
+
+    return res;
+}
+
+vec2 get_rational(float sigma, float t) {
+    vec2 num = evaluate_poly(sigma, t, rational_num_coeffs);
+    vec2 den = evaluate_poly(sigma, t, rational_den_coeffs);
+    return complex_div(num, den);
+}
+
 vec2 get_field(float x, float z) {
-    //if (x < 0.0) {
-        //return vec2(0.0, 0.0);
-    //}
 	float sigma = x * 0.1;
-	// We reverse z to get the usual Re, Im axis orientation
-	// It looks like godot puts the z axis downwards
 	float t = -z * 0.1;
 
-    return zeta(sigma, t);
+    if (function_type == 0) {
+        return zeta(sigma, t);
+    } else if (function_type == 1) {
+        return complex_sin(sigma, t);
+    } else if (function_type == 2) {
+        return complex_cos(sigma, t);
+    } else if (function_type == 3) {
+        return complex_tan(sigma, t);
+    } else if (function_type == 4) {
+        return complex_exp(sigma, t);
+    } else if (function_type == 5) {
+        return complex_log(sigma, t);
+    } else if (function_type == 6) {
+        return get_rational(sigma, t);
+    }
+
+    return vec2(0.0);
 }
 
 float get_height(float x, float z) {
     vec2 f = get_field(x, z);
     float mag = length(f);
-    return 3.0 * log(1.0 + mag);
+
+    if (height_type == 0) {
+        return 3.0 * log(1.0 + mag);
+    } else {
+        return mag;
+    }
 }
