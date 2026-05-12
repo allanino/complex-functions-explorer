@@ -14,6 +14,7 @@ vec3 hsv2rgb(vec3 c) {
     return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
 }
 
+
 void vertex() {
     world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 
@@ -40,16 +41,47 @@ void vertex() {
 void fragment() {
     float x = world_pos.x;
     float z = world_pos.z;
-
-    vec2 f = get_field(x, z);
-
+	
+	vec2 f = get_field(x, z);
     float phase = atan(f.y, f.x);
     float hue = (phase + PI) / (2.0 * PI);
+    vec3 base = hsv2rgb(vec3(hue, 0.85, 1.0));
 
-    vec3 base = hsv2rgb(vec3(hue, 0.7, 0.8));
+    // TODO: Add option to toogle contour lines
+
+    // Compute countour lines where f.x is integer
+    float d_re = abs(f.x - round(f.x));
+    float w_re = clamp(fwidth(f.x), 0.000005, 1.0);
+    float line_re = smoothstep(w_re, 0.0, d_re);
+
+    float density_re = 1.0 / (1.0 + 20.0 * w_re);
+    line_re *= density_re;
+
+    base -= vec3(1.0) * line_re * 0.75;
+    base = clamp(base, 0.0, 1.0);
+
+
+    // Compute countour lines where f.y is integer
+    float d_im = abs(f.y - round(f.y));
+    float w_im = clamp(fwidth(f.y), 0.000005, 1.0);
+    float line_im = smoothstep(w_im, 0.0, d_im);
+
+    float density_im = 1.0 / (1.0 + 20.0 * w_im);
+    line_im *= density_im;
+
+    base += vec3(1.0) * line_im * 0.75;
+    base = clamp(base, 0.0, 1.0);
 
     ALBEDO = base * 0.15;
     vec3 final_emission = base * 0.25;
+
+    // Glow contour lines
+    // TODO: Add option to toogle contour lines
+    float glow_re = smoothstep(w_re * 4.0, 0.0, d_re);
+    float glow_im = smoothstep(w_im * 4.0, 0.0, d_im);
+
+    final_emission += vec3(1.0) * glow_im * 0.08;
+    final_emission += vec3(0.0) * glow_re;
 
     // Only apply the lines rendering for zeta (at x = 0, x = 5.0, x = 10.0)
     // which corresponds to Re = 0.0, Re = 0.5, Re = 1.0
