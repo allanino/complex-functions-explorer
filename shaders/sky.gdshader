@@ -43,21 +43,7 @@ void sky() {
     // Sky gradient
     vec3 final_color = mix(horizon_color, sky_color, clamp(eye_alt * 2.0, 0.0, 1.0));
 
-    // Sun
-    if (LIGHT0_ENABLED) {
-        float sun_dist = distance(EYEDIR, LIGHT0_DIRECTION);
-        // Sun disk
-        float sun_size = max(0.01, LIGHT0_SIZE);
-        float sun_disk = smoothstep(sun_size * 0.5, sun_size * 0.45, sun_dist);
-        final_color += LIGHT0_COLOR * sun_disk * LIGHT0_ENERGY;
-
-        // Sun glow (Mie-like scattering approximation)
-        float mie = 0.01 / (0.001 + sun_dist * sun_dist * 10.0);
-        final_color += LIGHT0_COLOR * mie * LIGHT0_ENERGY;
-
-        float haze = 0.02 / (0.01 + sun_dist);
-        final_color += LIGHT0_COLOR * haze * LIGHT0_ENERGY;
-    }
+    vec3 cloud_final_color = final_color;
 
     // Clouds
     if (eye_alt > -0.1) {
@@ -86,8 +72,24 @@ void sky() {
             final_cloud_color = mix(cloud_color, LIGHT0_COLOR * 1.5, pow(sun_dot, 8.0) * cloud_density);
         }
 
-        final_color = mix(final_color, final_cloud_color, cloud_density);
+        cloud_final_color = mix(final_color, final_cloud_color, cloud_density);
     }
 
-    COLOR = final_color;
+    // Sun
+    if (LIGHT0_ENABLED) {
+        float sun_dist = distance(EYEDIR, LIGHT0_DIRECTION);
+        // Sun disk
+        float sun_size = max(0.01, LIGHT0_SIZE);
+        float sun_disk = smoothstep(sun_size * 0.5, sun_size * 0.45, sun_dist);
+        cloud_final_color += LIGHT0_COLOR * sun_disk * LIGHT0_ENERGY;
+
+        // Sun glow (Mie-like scattering approximation)
+        float mie = 0.01 / (0.001 + sun_dist * sun_dist * 10.0);
+        cloud_final_color += LIGHT0_COLOR * mie * LIGHT0_ENERGY;
+
+        float haze = 0.02 / (0.01 + sun_dist);
+        cloud_final_color += LIGHT0_COLOR * haze * LIGHT0_ENERGY;
+    }
+
+    COLOR = cloud_final_color;
 }
