@@ -114,6 +114,9 @@ void fragment() {
         final_emission += white_line_color * (core_10 * 4.0 + glow_10 * glow * 2.0);
     }
 
+    float fresnel = pow(1.0 - dot(NORMAL, VIEW), 3.0);
+    final_emission += fresnel * 0.05;
+
     EMISSION = final_emission;
 	ROUGHNESS = 0.12;
 	METALLIC = 0.95;
