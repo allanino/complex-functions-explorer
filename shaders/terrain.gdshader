@@ -7,6 +7,7 @@ varying vec3 normal;
 
 uniform bool compute_normals = false;
 uniform bool show_curves = true;
+uniform bool show_critical_stripe = true;
 
 // Helper function to convert HSV to RGB
 vec3 hsv2rgb(vec3 c) {
@@ -100,7 +101,7 @@ void fragment() {
 
     // Only apply the lines rendering for zeta (at x = 0, x = 5.0, x = 10.0)
     // which corresponds to Re = 0.0, Re = 0.5, Re = 1.0
-    if (show_curves && function_type == 0) {
+    if (show_critical_stripe && function_type == 0) {
         // Periodic glow factor
         float glow = 0.5 + 0.5 * sin(TIME * 2.0);
         float line_width = 0.05;
