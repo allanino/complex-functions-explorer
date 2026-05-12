@@ -6,6 +6,7 @@ varying vec3 world_pos;
 varying vec3 normal;
 
 uniform bool compute_normals = false;
+uniform bool show_curves = true;
 
 // Helper function to convert HSV to RGB
 vec3 hsv2rgb(vec3 c) {
@@ -47,45 +48,59 @@ void fragment() {
     float hue = (phase + PI) / (2.0 * PI);
     vec3 base = hsv2rgb(vec3(hue, 0.85, 1.0));
 
-    // TODO: Add option to toogle contour lines
+    if (show_curves) {
+        // Compute countour lines where f.x is integer
+        float d_re = abs(f.x - round(f.x));
+        float w_re = clamp(fwidth(f.x), 0.000005, 1.0);
+        float line_re = smoothstep(w_re, 0.0, d_re);
 
-    // Compute countour lines where f.x is integer
-    float d_re = abs(f.x - round(f.x));
-    float w_re = clamp(fwidth(f.x), 0.000005, 1.0);
-    float line_re = smoothstep(w_re, 0.0, d_re);
+        float density_re = 1.0 / (1.0 + 20.0 * w_re);
+        line_re *= density_re;
 
-    float density_re = 1.0 / (1.0 + 20.0 * w_re);
-    line_re *= density_re;
-
-    base -= vec3(1.0) * line_re * 0.75;
-    base = clamp(base, 0.0, 1.0);
+        base -= vec3(1.0) * line_re * 0.75;
+        base = clamp(base, 0.0, 1.0);
 
 
-    // Compute countour lines where f.y is integer
-    float d_im = abs(f.y - round(f.y));
-    float w_im = clamp(fwidth(f.y), 0.000005, 1.0);
-    float line_im = smoothstep(w_im, 0.0, d_im);
+        // Compute countour lines where f.y is integer
+        float d_im = abs(f.y - round(f.y));
+        float w_im = clamp(fwidth(f.y), 0.000005, 1.0);
+        float line_im = smoothstep(w_im, 0.0, d_im);
 
-    float density_im = 1.0 / (1.0 + 20.0 * w_im);
-    line_im *= density_im;
+        float density_im = 1.0 / (1.0 + 20.0 * w_im);
+        line_im *= density_im;
 
-    base += vec3(1.0) * line_im * 0.75;
-    base = clamp(base, 0.0, 1.0);
+        base += vec3(1.0) * line_im * 0.75;
+        base = clamp(base, 0.0, 1.0);
+
+        // Glow contour lines
+        float glow_re = smoothstep(w_re * 4.0, 0.0, d_re);
+        float glow_im = smoothstep(w_im * 4.0, 0.0, d_im);
+
+        // Apply to base and emission
+        // (Note: ALBEDO and base emission use the modified base)
+    }
 
     ALBEDO = base * 0.15;
     vec3 final_emission = base * 0.25;
 
-    // Glow contour lines
-    // TODO: Add option to toogle contour lines
-    float glow_re = smoothstep(w_re * 4.0, 0.0, d_re);
-    float glow_im = smoothstep(w_im * 4.0, 0.0, d_im);
+    if (show_curves) {
+        // Compute these again or restructuring might be needed if fwidth used inside if.
+        // Actually fwidth is fine in uniform flow.
+        float d_re = abs(f.x - round(f.x));
+        float w_re = clamp(fwidth(f.x), 0.000005, 1.0);
+        float d_im = abs(f.y - round(f.y));
+        float w_im = clamp(fwidth(f.y), 0.000005, 1.0);
 
-    final_emission += vec3(1.0) * glow_im * 0.08;
-    final_emission += vec3(0.0) * glow_re;
+        float glow_re = smoothstep(w_re * 4.0, 0.0, d_re);
+        float glow_im = smoothstep(w_im * 4.0, 0.0, d_im);
+
+        final_emission += vec3(1.0) * glow_im * 0.08;
+        final_emission += vec3(0.0) * glow_re;
+    }
 
     // Only apply the lines rendering for zeta (at x = 0, x = 5.0, x = 10.0)
     // which corresponds to Re = 0.0, Re = 0.5, Re = 1.0
-    if (function_type == 0) {
+    if (show_curves && function_type == 0) {
         // Periodic glow factor
         float glow = 0.5 + 0.5 * sin(TIME * 2.0);
         float line_width = 0.05;

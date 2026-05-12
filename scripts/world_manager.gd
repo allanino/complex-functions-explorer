@@ -36,6 +36,7 @@ func _process(_delta):
 		if chunk.material_override:
 			chunk.material_override.set_shader_parameter("iterations", Field.iterations)
 			chunk.material_override.set_shader_parameter("compute_normals", Field.compute_normals)
+			chunk.material_override.set_shader_parameter("show_curves", Field.show_curves)
 			chunk.material_override.set_shader_parameter("function_type", Field.function_type)
 			chunk.material_override.set_shader_parameter("height_type", Field.height_type)
 			chunk.material_override.set_shader_parameter("rational_num_coeffs", Field.rational_num_coeffs)

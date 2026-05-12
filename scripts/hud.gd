@@ -8,6 +8,7 @@ extends CanvasLayer
 @onready var im_input = $Control/MenuOverlay/CenterContainer/VBoxContainer/ImContainer/ImInput
 @onready var iter_input = $Control/MenuOverlay/CenterContainer/VBoxContainer/IterContainer/IterInput
 @onready var normals_checkbox = $Control/MenuOverlay/CenterContainer/VBoxContainer/NormalsContainer/NormalsCheckbox
+@onready var curves_checkbox = $Control/MenuOverlay/CenterContainer/VBoxContainer/CurvesContainer/CurvesCheckbox
 @onready var set_pos_button = $Control/MenuOverlay/CenterContainer/VBoxContainer/SetPosButton
 
 @onready var func_button = $Control/MenuOverlay/CenterContainer/VBoxContainer/FuncContainer/FuncButton
@@ -41,6 +42,7 @@ func toggle_menu():
 			im_input.text = "%.3f" % (-player.global_position.z * 0.1)
 		iter_input.text = str(Field.iterations)
 		normals_checkbox.button_pressed = Field.compute_normals
+		curves_checkbox.button_pressed = Field.show_curves
 
 		func_button.selected = Field.function_type
 		height_button.selected = Field.height_type
@@ -86,6 +88,7 @@ func _on_set_pos_pressed():
 
 	Field.iterations = iters
 	Field.compute_normals = normals_checkbox.button_pressed
+	Field.show_curves = curves_checkbox.button_pressed
 	Field.function_type = func_button.selected
 	Field.height_type = height_button.selected
 
