@@ -74,15 +74,11 @@ void fragment() {
 
     vec3 final_emission = base * 0.25;
 
-    // Combine core (sharp, steady) and glow (wide, oscillating)
-    vec3 yellow_em = line_color * (core_critical * 4.0 + glow_critical * glow * 2.0);
-    final_emission = mix(final_emission, yellow_em, max(core_critical, glow_critical));
-
-    vec3 white_em_0 = white_line_color * (core_0 * 4.0 + glow_0 * glow * 2.0);
-    final_emission = mix(final_emission, white_em_0, max(core_0, glow_0));
-
-    vec3 white_em_10 = white_line_color * (core_10 * 4.0 + glow_10 * glow * 2.0);
-    final_emission = mix(final_emission, white_em_10, max(core_10, glow_10));
+    // Combine core (sharp, steady) and glow (wide, oscillating) using additive blending
+    // to prevent dark shadows when glow is low.
+    final_emission += line_color * (core_critical * 4.0 + glow_critical * glow * 2.0);
+    final_emission += white_line_color * (core_0 * 4.0 + glow_0 * glow * 2.0);
+    final_emission += white_line_color * (core_10 * 4.0 + glow_10 * glow * 2.0);
 
     // Player marker (black circle)
     float dist_to_player = length(world_pos.xz - player_pos);
