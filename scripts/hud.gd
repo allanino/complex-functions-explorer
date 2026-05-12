@@ -19,8 +19,10 @@ func _ready():
 	set_pos_button.pressed.connect(_on_set_pos_pressed)
 
 	func_button.add_item("Zeta")
-	func_button.add_item("Complex Sin")
-	func_button.add_item("Complex Cos")
+	func_button.add_item("Sin")
+	func_button.add_item("Cos")
+	func_button.add_item("Exp")
+	func_button.add_item("Log")
 
 	height_button.add_item("log(1 + abs)")
 	height_button.add_item("abs")

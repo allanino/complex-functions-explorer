@@ -3,7 +3,7 @@ class_name Field
 
 static var iterations: int = 120
 static var compute_normals: bool = false
-static var function_type: int = 0 # 0: Zeta, 1: Sin, 2: Cos
+static var function_type: int = 0 # 0: Zeta, 1: Sin, 2: Cos, 3: Exp, 4: Log
 static var height_type: int = 0 # 0: Log, 1: Abs
 
 static func complex_mul(a: Vector2, b: Vector2) -> Vector2:
@@ -91,6 +91,23 @@ static func complex_cos(sigma: float, t: float) -> Vector2:
 		-sin(sigma) * sinh(t)
 	)
 
+static func complex_exp(sigma: float, t: float) -> Vector2:
+	var amp = exp(sigma)
+	return Vector2(
+		amp * cos(t),
+		amp * sin(t)
+	)
+
+static func complex_log(sigma: float, t: float) -> Vector2:
+	# Principal branch
+	var mag = sqrt(sigma * sigma + t * t)
+	if mag < 1e-9:
+		return Vector2(-10.0, 0.0) # avoid singularity
+	return Vector2(
+		log(mag),
+		atan2(t, sigma)
+	)
+
 static func get_field(x: float, z: float) -> Vector2:
 	var sigma: float = x * 0.1
 	var t: float = -z * 0.1
@@ -101,6 +118,10 @@ static func get_field(x: float, z: float) -> Vector2:
 		return complex_sin(sigma, t)
 	elif function_type == 2:
 		return complex_cos(sigma, t)
+	elif function_type == 3:
+		return complex_exp(sigma, t)
+	elif function_type == 4:
+		return complex_log(sigma, t)
 
 	return Vector2.ZERO
 

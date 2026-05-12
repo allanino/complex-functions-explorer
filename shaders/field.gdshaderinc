@@ -1,7 +1,7 @@
 // Shared field and height functions for shaders
 
 uniform int iterations = 120;
-uniform int function_type = 0; // 0: Zeta, 1: Sin, 2: Cos
+uniform int function_type = 0; // 0: Zeta, 1: Sin, 2: Cos, 3: Exp, 4: Log
 uniform int height_type = 0;   // 0: Log, 1: Abs
 
 vec2 complex_mul(vec2 a, vec2 b) {
@@ -105,6 +105,25 @@ vec2 complex_cos(float sigma, float t) {
     );
 }
 
+vec2 complex_exp(float sigma, float t) {
+    float amp = exp(sigma);
+    return vec2(
+        amp * cos(t),
+        amp * sin(t)
+    );
+}
+
+vec2 complex_log(float sigma, float t) {
+    float mag = length(vec2(sigma, t));
+    if (mag < 1e-9) {
+        return vec2(-10.0, 0.0);
+    }
+    return vec2(
+        log(mag),
+        atan(t, sigma)
+    );
+}
+
 vec2 get_field(float x, float z) {
 	float sigma = x * 0.1;
 	float t = -z * 0.1;
@@ -115,6 +134,10 @@ vec2 get_field(float x, float z) {
         return complex_sin(sigma, t);
     } else if (function_type == 2) {
         return complex_cos(sigma, t);
+    } else if (function_type == 3) {
+        return complex_exp(sigma, t);
+    } else if (function_type == 4) {
+        return complex_log(sigma, t);
     }
 
     return vec2(0.0);
