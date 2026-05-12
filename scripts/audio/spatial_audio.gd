@@ -146,7 +146,8 @@ func _process(delta):
 	if not is_finite(proximity): proximity = 20.0
 
 	# Frequency: C2 by default, jumps to G2 near zeros
-	if mag < 0.5:
+	# Avoid the fake zeros for x < 0
+	if mag < 0.5 and pos.x > 0:
 		target_frequency = 88.0 # G2
 	else:
 		target_frequency = BASE_FREQUENCY # C2
