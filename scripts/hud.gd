@@ -12,17 +12,22 @@ extends CanvasLayer
 
 @onready var func_button = $Control/MenuOverlay/CenterContainer/VBoxContainer/FuncContainer/FuncButton
 @onready var height_button = $Control/MenuOverlay/CenterContainer/VBoxContainer/HeightContainer/HeightButton
+@onready var rational_container = $Control/MenuOverlay/CenterContainer/VBoxContainer/RationalContainer
+@onready var rational_input = $Control/MenuOverlay/CenterContainer/VBoxContainer/RationalContainer/RationalInput
 
 var current_scale = 2.0
 
 func _ready():
 	set_pos_button.pressed.connect(_on_set_pos_pressed)
+	func_button.item_selected.connect(_on_func_selected)
 
 	func_button.add_item("Zeta")
 	func_button.add_item("Sin")
 	func_button.add_item("Cos")
+	func_button.add_item("Tan")
 	func_button.add_item("Exp")
 	func_button.add_item("Log")
+	func_button.add_item("Rational")
 
 	height_button.add_item("log(1 + abs)")
 	height_button.add_item("abs")
@@ -39,8 +44,40 @@ func toggle_menu():
 
 		func_button.selected = Field.function_type
 		height_button.selected = Field.height_type
+		_on_func_selected(Field.function_type)
 	else:
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+
+func _on_func_selected(index):
+	rational_container.visible = (index == 6)
+
+func _parse_poly(text: String) -> PackedFloat32Array:
+	var coeffs = PackedFloat32Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+	text = text.replace(" ", "").replace("-", "+-")
+	var terms = text.split("+", false)
+
+	for term in terms:
+		if term == "": continue
+		var coeff = 1.0
+		var degree = 0
+
+		if "z" in term:
+			var parts = term.split("z")
+			if parts[0] == "": coeff = 1.0
+			elif parts[0] == "-": coeff = -1.0
+			else: coeff = float(parts[0])
+
+			if parts[1] == "": degree = 1
+			elif parts[1].begins_with("^"):
+				degree = int(parts[1].substr(1))
+		else:
+			coeff = float(term)
+			degree = 0
+
+		if degree >= 0 and degree < 10:
+			coeffs[degree] += coeff
+
+	return coeffs
 
 func _on_set_pos_pressed():
 	var re = float(re_input.text)
@@ -51,6 +88,16 @@ func _on_set_pos_pressed():
 	Field.compute_normals = normals_checkbox.button_pressed
 	Field.function_type = func_button.selected
 	Field.height_type = height_button.selected
+
+	if Field.function_type == 6:
+		var expr = rational_input.text.replace(" ", "")
+		if "/" in expr:
+			var parts = expr.split("/")
+			Field.rational_num_coeffs = _parse_poly(parts[0].replace("(", "").replace(")", ""))
+			Field.rational_den_coeffs = _parse_poly(parts[1].replace("(", "").replace(")", ""))
+		else:
+			Field.rational_num_coeffs = _parse_poly(expr)
+			Field.rational_den_coeffs = PackedFloat32Array([1, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 
 	if player:
 		player.global_position.x = 10.0 * re

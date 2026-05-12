@@ -40,6 +40,8 @@ func _process(_delta):
 			chunk.material_override.set_shader_parameter("compute_normals", Field.compute_normals)
 			chunk.material_override.set_shader_parameter("function_type", Field.function_type)
 			chunk.material_override.set_shader_parameter("height_type", Field.height_type)
+			chunk.material_override.set_shader_parameter("rational_num_coeffs", Field.rational_num_coeffs)
+			chunk.material_override.set_shader_parameter("rational_den_coeffs", Field.rational_den_coeffs)
 
 func _load_chunk(coord: Vector2i):
 	var chunk = chunk_scene.instantiate()

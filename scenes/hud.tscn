@@ -183,6 +183,21 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_pressed")
 theme_override_styles/focus = SubResource("StyleBoxFlat_normal")
 
+[node name="RationalContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Control/MenuOverlay/CenterContainer/VBoxContainer/RationalContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "Rational = "
+
+[node name="RationalInput" type="LineEdit" parent="Control/MenuOverlay/CenterContainer/VBoxContainer/RationalContainer"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "z^2 - 1"
+placeholder_text = "(z^2 + 1)/(z - 1)"
+
 [node name="HeightContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/VBoxContainer"]
 layout_mode = 2
 

@@ -1,8 +1,11 @@
 // Shared field and height functions for shaders
 
 uniform int iterations = 120;
-uniform int function_type = 0; // 0: Zeta, 1: Sin, 2: Cos, 3: Exp, 4: Log
+uniform int function_type = 0; // 0: Zeta, 1: Sin, 2: Cos, 3: Tan, 4: Exp, 5: Log, 6: Rational
 uniform int height_type = 0;   // 0: Log, 1: Abs
+
+uniform float rational_num_coeffs[10];
+uniform float rational_den_coeffs[10];
 
 vec2 complex_mul(vec2 a, vec2 b) {
     return vec2(
@@ -105,6 +108,10 @@ vec2 complex_cos(float sigma, float t) {
     );
 }
 
+vec2 complex_tan(float sigma, float t) {
+    return complex_div(complex_sin(sigma, t), complex_cos(sigma, t));
+}
+
 vec2 complex_exp(float sigma, float t) {
     float amp = exp(sigma);
     return vec2(
@@ -124,6 +131,25 @@ vec2 complex_log(float sigma, float t) {
     );
 }
 
+vec2 evaluate_poly(float sigma, float t, float coeffs[10]) {
+    vec2 z = vec2(sigma, t);
+    vec2 res = vec2(0.0);
+    vec2 z_pow = vec2(1.0, 0.0);
+
+    for (int i = 0; i < 10; i++) {
+        res += coeffs[i] * z_pow;
+        z_pow = complex_mul(z_pow, z);
+    }
+
+    return res;
+}
+
+vec2 get_rational(float sigma, float t) {
+    vec2 num = evaluate_poly(sigma, t, rational_num_coeffs);
+    vec2 den = evaluate_poly(sigma, t, rational_den_coeffs);
+    return complex_div(num, den);
+}
+
 vec2 get_field(float x, float z) {
 	float sigma = x * 0.1;
 	float t = -z * 0.1;
@@ -135,9 +161,13 @@ vec2 get_field(float x, float z) {
     } else if (function_type == 2) {
         return complex_cos(sigma, t);
     } else if (function_type == 3) {
-        return complex_exp(sigma, t);
+        return complex_tan(sigma, t);
     } else if (function_type == 4) {
+        return complex_exp(sigma, t);
+    } else if (function_type == 5) {
         return complex_log(sigma, t);
+    } else if (function_type == 6) {
+        return get_rational(sigma, t);
     }
 
     return vec2(0.0);

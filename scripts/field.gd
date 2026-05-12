@@ -3,8 +3,11 @@ class_name Field
 
 static var iterations: int = 120
 static var compute_normals: bool = false
-static var function_type: int = 0 # 0: Zeta, 1: Sin, 2: Cos, 3: Exp, 4: Log
+static var function_type: int = 0 # 0: Zeta, 1: Sin, 2: Cos, 3: Tan, 4: Exp, 5: Log, 6: Rational
 static var height_type: int = 0 # 0: Log, 1: Abs
+
+static var rational_num_coeffs: PackedFloat32Array = PackedFloat32Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+static var rational_den_coeffs: PackedFloat32Array = PackedFloat32Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 
 static func complex_mul(a: Vector2, b: Vector2) -> Vector2:
 	return Vector2(
@@ -91,6 +94,9 @@ static func complex_cos(sigma: float, t: float) -> Vector2:
 		-sin(sigma) * sinh(t)
 	)
 
+static func complex_tan(sigma: float, t: float) -> Vector2:
+	return complex_div(complex_sin(sigma, t), complex_cos(sigma, t))
+
 static func complex_exp(sigma: float, t: float) -> Vector2:
 	var amp = exp(sigma)
 	return Vector2(
@@ -108,6 +114,22 @@ static func complex_log(sigma: float, t: float) -> Vector2:
 		atan2(t, sigma)
 	)
 
+static func evaluate_poly(sigma: float, t: float, coeffs: PackedFloat32Array) -> Vector2:
+	var z = Vector2(sigma, t)
+	var res = Vector2.ZERO
+	var z_pow = Vector2(1.0, 0.0)
+
+	for i in range(10):
+		res += coeffs[i] * z_pow
+		z_pow = complex_mul(z_pow, z)
+
+	return res
+
+static func get_rational(sigma: float, t: float) -> Vector2:
+	var num = evaluate_poly(sigma, t, rational_num_coeffs)
+	var den = evaluate_poly(sigma, t, rational_den_coeffs)
+	return complex_div(num, den)
+
 static func get_field(x: float, z: float) -> Vector2:
 	var sigma: float = x * 0.1
 	var t: float = -z * 0.1
@@ -119,9 +141,13 @@ static func get_field(x: float, z: float) -> Vector2:
 	elif function_type == 2:
 		return complex_cos(sigma, t)
 	elif function_type == 3:
-		return complex_exp(sigma, t)
+		return complex_tan(sigma, t)
 	elif function_type == 4:
+		return complex_exp(sigma, t)
+	elif function_type == 5:
 		return complex_log(sigma, t)
+	elif function_type == 6:
+		return get_rational(sigma, t)
 
 	return Vector2.ZERO
 
