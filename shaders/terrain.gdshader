@@ -53,21 +53,21 @@ void fragment() {
 
     // Periodic glow factor
     float glow = 0.5 + 0.5 * sin(TIME * 2.0);
-    float line_width = fwidth(world_pos.x);
+    float line_width = 0.05;
 
     // Critical line at x = 5.0 (HUD x = 0.5)
     float dist_to_critical = abs(world_pos.x - 5.0);
-    float core_critical = 1.0 - smoothstep(0.0, line_width * 2.0, dist_to_critical);
+    float core_critical = 1.0 - smoothstep(0.0, line_width, dist_to_critical);
     float glow_critical = 1.0 - smoothstep(0.0, 0.15, dist_to_critical);
     vec3 line_color = vec3(1.0, 1.0, 0.0); // Yellow
 
     // Critical stripe boundaries at x = 0.0 and x = 10.0
     float dist_to_0 = abs(world_pos.x - 0.0);
-    float core_0 = 1.0 - smoothstep(0.0, line_width * 2.0, dist_to_0);
+    float core_0 = 1.0 - smoothstep(0.0, line_width, dist_to_0);
     float glow_0 = 1.0 - smoothstep(0.0, 0.15, dist_to_0);
 
     float dist_to_10 = abs(world_pos.x - 10.0);
-    float core_10 = 1.0 - smoothstep(0.0, line_width * 2.0, dist_to_10);
+    float core_10 = 1.0 - smoothstep(0.0, line_width, dist_to_10);
     float glow_10 = 1.0 - smoothstep(0.0, 0.15, dist_to_10);
 
     vec3 white_line_color = vec3(1.0, 1.0, 1.0);
