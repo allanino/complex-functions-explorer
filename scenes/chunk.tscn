@@ -12,6 +12,5 @@ subdivide_depth = 256
 subdivide_width = 256
 
 [node name="Chunk" type="MeshInstance3D"]
-extra_cull_margin = 8.0
 material_override = SubResource("ShaderMaterial_1")
 mesh = SubResource("PlaneMesh_1")

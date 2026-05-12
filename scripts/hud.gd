@@ -20,8 +20,8 @@ func toggle_menu():
 	if menu_overlay.visible:
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 		if player:
-			re_input.text = str(player.global_position.x * 0.1)
-			im_input.text = str(-player.global_position.z * 0.1)
+			re_input.text = "%.3f" % (player.global_position.x * 0.1)
+			im_input.text = "%.3f" % (-player.global_position.z * 0.1)
 		iter_input.text = str(Field.iterations)
 		normals_checkbox.button_pressed = Field.compute_normals
 	else:
