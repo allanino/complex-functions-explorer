@@ -37,3 +37,4 @@ move_right={
 [rendering]
 
 renderer/rendering_method="forward_plus"
+reflections/sky_reflections/roughness_layers=7
