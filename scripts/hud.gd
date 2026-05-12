@@ -6,8 +6,12 @@ extends CanvasLayer
 @onready var menu_overlay = $Control/MenuOverlay
 @onready var re_input = $Control/MenuOverlay/CenterContainer/VBoxContainer/ReContainer/ReInput
 @onready var im_input = $Control/MenuOverlay/CenterContainer/VBoxContainer/ImContainer/ImInput
+@onready var iter_container = $Control/MenuOverlay/CenterContainer/VBoxContainer/IterContainer
 @onready var iter_input = $Control/MenuOverlay/CenterContainer/VBoxContainer/IterContainer/IterInput
 @onready var normals_checkbox = $Control/MenuOverlay/CenterContainer/VBoxContainer/NormalsContainer/NormalsCheckbox
+@onready var curves_checkbox = $Control/MenuOverlay/CenterContainer/VBoxContainer/CurvesContainer/CurvesCheckbox
+@onready var critical_container = $Control/MenuOverlay/CenterContainer/VBoxContainer/CriticalContainer
+@onready var critical_checkbox = $Control/MenuOverlay/CenterContainer/VBoxContainer/CriticalContainer/CriticalCheckbox
 @onready var set_pos_button = $Control/MenuOverlay/CenterContainer/VBoxContainer/SetPosButton
 
 @onready var func_button = $Control/MenuOverlay/CenterContainer/VBoxContainer/FuncContainer/FuncButton
@@ -41,6 +45,8 @@ func toggle_menu():
 			im_input.text = "%.3f" % (-player.global_position.z * 0.1)
 		iter_input.text = str(Field.iterations)
 		normals_checkbox.button_pressed = Field.compute_normals
+		curves_checkbox.button_pressed = Field.show_curves
+		critical_checkbox.button_pressed = Field.show_critical_stripe
 
 		func_button.selected = Field.function_type
 		height_button.selected = Field.height_type
@@ -50,6 +56,8 @@ func toggle_menu():
 
 func _on_func_selected(index):
 	rational_container.visible = (index == 6)
+	iter_container.visible = (index == 0)
+	critical_container.visible = (index == 0)
 
 func _parse_poly(text: String) -> PackedFloat32Array:
 	var coeffs = PackedFloat32Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
@@ -86,6 +94,8 @@ func _on_set_pos_pressed():
 
 	Field.iterations = iters
 	Field.compute_normals = normals_checkbox.button_pressed
+	Field.show_curves = curves_checkbox.button_pressed
+	Field.show_critical_stripe = critical_checkbox.button_pressed
 	Field.function_type = func_button.selected
 	Field.height_type = height_button.selected
 

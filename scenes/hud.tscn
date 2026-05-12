@@ -245,6 +245,36 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_pressed")
 theme_override_styles/focus = SubResource("StyleBoxFlat_normal")
 
+[node name="CurvesContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Control/MenuOverlay/CenterContainer/VBoxContainer/CurvesContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "Show curve levels = "
+
+[node name="CurvesCheckbox" type="CheckBox" parent="Control/MenuOverlay/CenterContainer/VBoxContainer/CurvesContainer"]
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_pressed")
+theme_override_styles/focus = SubResource("StyleBoxFlat_normal")
+
+[node name="CriticalContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Control/MenuOverlay/CenterContainer/VBoxContainer/CriticalContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "Show critical stripe = "
+
+[node name="CriticalCheckbox" type="CheckBox" parent="Control/MenuOverlay/CenterContainer/VBoxContainer/CriticalContainer"]
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_pressed")
+theme_override_styles/focus = SubResource("StyleBoxFlat_normal")
+
 [node name="SetPosButton" type="Button" parent="Control/MenuOverlay/CenterContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
