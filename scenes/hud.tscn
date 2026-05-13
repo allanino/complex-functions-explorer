@@ -160,16 +160,20 @@ corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_checkbox"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
 bg_color = Color(0, 0, 0, 0.3)
 border_width_left = 1
 border_width_top = 1
 border_width_right = 1
 border_width_bottom = 1
 border_color = Color(1, 1, 1, 0.2)
-corner_radius_top_left = 4
-corner_radius_top_right = 4
-corner_radius_bottom_right = 4
-corner_radius_bottom_left = 4
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
 
 [node name="HUD" type="CanvasLayer"]
 script = ExtResource("1_script")
@@ -416,10 +420,12 @@ theme_override_font_sizes/font_size = 18
 text = "Surface Shading"
 
 [node name="NormalsCheckbox" type="CheckBox" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/ShadingContainer"]
+custom_minimum_size = Vector2(22, 22)
 layout_mode = 2
 theme_override_styles/normal = SubResource("StyleBoxFlat_checkbox")
 theme_override_styles/hover = SubResource("StyleBoxFlat_checkbox")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_checkbox")
+theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_checkbox")
 theme_override_styles/focus = SubResource("StyleBoxFlat_checkbox")
 
 [node name="CurvesContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING"]
@@ -433,10 +439,12 @@ theme_override_font_sizes/font_size = 18
 text = "Level Curves"
 
 [node name="CurvesCheckbox" type="CheckBox" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/CurvesContainer"]
+custom_minimum_size = Vector2(22, 22)
 layout_mode = 2
 theme_override_styles/normal = SubResource("StyleBoxFlat_checkbox")
 theme_override_styles/hover = SubResource("StyleBoxFlat_checkbox")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_checkbox")
+theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_checkbox")
 theme_override_styles/focus = SubResource("StyleBoxFlat_checkbox")
 
 [node name="CriticalContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING"]
@@ -450,10 +458,12 @@ theme_override_font_sizes/font_size = 18
 text = "Critical Stripe"
 
 [node name="CriticalCheckbox" type="CheckBox" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/CriticalContainer"]
+custom_minimum_size = Vector2(22, 22)
 layout_mode = 2
 theme_override_styles/normal = SubResource("StyleBoxFlat_checkbox")
 theme_override_styles/hover = SubResource("StyleBoxFlat_checkbox")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_checkbox")
+theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_checkbox")
 theme_override_styles/focus = SubResource("StyleBoxFlat_checkbox")
 
 [node name="SunsetContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING"]
@@ -467,10 +477,12 @@ theme_override_font_sizes/font_size = 18
 text = "Sunset"
 
 [node name="SunsetCheckbox" type="CheckBox" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/SunsetContainer"]
+custom_minimum_size = Vector2(22, 22)
 layout_mode = 2
 theme_override_styles/normal = SubResource("StyleBoxFlat_checkbox")
 theme_override_styles/hover = SubResource("StyleBoxFlat_checkbox")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_checkbox")
+theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_checkbox")
 theme_override_styles/focus = SubResource("StyleBoxFlat_checkbox")
 
 [node name="ApplyButton" type="Button" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox"]
