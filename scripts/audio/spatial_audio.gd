@@ -45,7 +45,7 @@ func _ready():
 	# Ensure the generator is correctly configured
 	var generator = AudioStreamGenerator.new()
 	generator.mix_rate = 44100
-	generator.buffer_length = 0.1 # Lower latency
+	generator.buffer_length = 0.5 # Increased buffer to prevent underruns during FPS drops
 	stream_player.stream = generator
 
 	# Start playing
@@ -201,8 +201,8 @@ func fill_buffer():
 	if playback == null: return
 
 	var to_fill = playback.get_frames_available()
-	# Safety cap to prevent execution spikes
-	to_fill = min(to_fill, 4410)
+	# Safety cap to prevent execution spikes (0.5s at 44100Hz)
+	to_fill = min(to_fill, 22050)
 
 	while to_fill > 0:
 		# --- PHASE INCREMENTS ---
