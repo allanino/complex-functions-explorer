@@ -7,7 +7,12 @@ extends Node3D
 
 var chunks = {}
 
-func _process(_delta):
+@onready var sun = get_node("../DirectionalLight3D")
+@onready var world_environment = get_node("../WorldEnvironment")
+
+var _sunrise_transition: float = 0.0
+
+func _process(delta):
 	if not player:
 		return
 
@@ -31,6 +36,23 @@ func _process(_delta):
 	for chunk_coord in chunks_to_remove:
 		_unload_chunk(chunk_coord)
 
+	# Update sun and sky for sunrise
+	if Field.sunrise:
+		_sunrise_transition = min(_sunrise_transition + delta * 0.5, 1.0)
+	else:
+		_sunrise_transition = max(_sunrise_transition - delta * 0.5, 0.0)
+
+	if sun:
+		var target_dir = lerp(Vector3.DOWN, Vector3(-1.0, -0.1, 0.0).normalized(), _sunrise_transition)
+		sun.basis = Basis.looking_at(target_dir, Vector3.FORWARD if abs(target_dir.y) < 0.99 else Vector3.UP)
+		sun.light_color = lerp(Color.WHITE, Color(1.0, 0.5, 0.2), _sunrise_transition)
+		sun.light_energy = lerp(1.0, 1.5, _sunrise_transition)
+
+	if world_environment and world_environment.environment and world_environment.environment.sky:
+		var sky_mat = world_environment.environment.sky.sky_material as ShaderMaterial
+		if sky_mat:
+			sky_mat.set_shader_parameter("sunrise_factor", _sunrise_transition)
+
 	# Update iterations and normal computation uniforms in all chunks
 	for chunk in chunks.values():
 		if chunk.material_override:
@@ -46,6 +68,11 @@ func _process(_delta):
 func _load_chunk(coord: Vector2i):
 	var chunk = chunk_scene.instantiate()
 	chunk.global_position = Vector3(coord.x * chunk_size, 0, coord.y * chunk_size)
+
+	# Increase AABB to prevent shadow culling of displaced vertices
+	# Height can go up to ~20-30 in extreme cases (Rational/Zeta spikes)
+	chunk.custom_aabb = AABB(Vector3(0, -50, 0), Vector3(chunk_size, 100, chunk_size))
+
 	add_child(chunk)
 	chunks[coord] = chunk
 

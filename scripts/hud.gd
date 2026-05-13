@@ -12,6 +12,7 @@ extends CanvasLayer
 @onready var curves_checkbox = $Control/MenuOverlay/CenterContainer/VBoxContainer/CurvesContainer/CurvesCheckbox
 @onready var critical_container = $Control/MenuOverlay/CenterContainer/VBoxContainer/CriticalContainer
 @onready var critical_checkbox = $Control/MenuOverlay/CenterContainer/VBoxContainer/CriticalContainer/CriticalCheckbox
+@onready var sunrise_checkbox = $Control/MenuOverlay/CenterContainer/VBoxContainer/SunriseContainer/SunriseCheckbox
 @onready var set_pos_button = $Control/MenuOverlay/CenterContainer/VBoxContainer/SetPosButton
 
 @onready var func_button = $Control/MenuOverlay/CenterContainer/VBoxContainer/FuncContainer/FuncButton
@@ -47,6 +48,7 @@ func toggle_menu():
 		normals_checkbox.button_pressed = Field.compute_normals
 		curves_checkbox.button_pressed = Field.show_curves
 		critical_checkbox.button_pressed = Field.show_critical_stripe
+		sunrise_checkbox.button_pressed = Field.sunrise
 
 		func_button.selected = Field.function_type
 		height_button.selected = Field.height_type
@@ -96,6 +98,7 @@ func _on_set_pos_pressed():
 	Field.compute_normals = normals_checkbox.button_pressed
 	Field.show_curves = curves_checkbox.button_pressed
 	Field.show_critical_stripe = critical_checkbox.button_pressed
+	Field.sunrise = sunrise_checkbox.button_pressed
 	Field.function_type = func_button.selected
 	Field.height_type = height_button.selected
 

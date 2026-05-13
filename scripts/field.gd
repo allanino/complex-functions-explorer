@@ -5,6 +5,7 @@ static var iterations: int = 120
 static var compute_normals: bool = true
 static var show_curves: bool = true
 static var show_critical_stripe: bool = true
+static var sunrise: bool = false
 static var function_type: int = 0 # 0: Zeta, 1: Sin, 2: Cos, 3: Tan, 4: Exp, 5: Log, 6: Rational
 static var height_type: int = 0 # 0: Log, 1: Abs
 
