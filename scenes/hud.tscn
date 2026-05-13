@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=15 format=3]
 
 [ext_resource type="Script" path="res://scripts/hud.gd" id="1_script"]
 [ext_resource type="Shader" path="res://shaders/hud_complex_plane.gdshader" id="2_shader"]
@@ -8,50 +8,156 @@ shader = ExtResource("2_shader")
 shader_parameter/current_f = Vector2(0, 0)
 shader_parameter/scale = 2.0
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_normal"]
-bg_color = Color(0.2, 0.2, 0.2, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.3, 0.3, 0.3, 1)
-corner_radius_top_left = 4
-corner_radius_top_right = 4
-corner_radius_bottom_right = 4
-corner_radius_bottom_left = 4
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_glass"]
+bg_color = Color(0.03, 0.03, 0.03, 0.8)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
 shadow_color = Color(0, 0, 0, 0.5)
-shadow_size = 4
-shadow_offset = Vector2(2, 2)
+shadow_size = 15
+shadow_offset = Vector2(0, 8)
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hover"]
-bg_color = Color(0.25, 0.25, 0.25, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tab_selected"]
+content_margin_left = 20.0
+content_margin_top = 10.0
+content_margin_right = 20.0
+content_margin_bottom = 10.0
+bg_color = Color(1, 1, 1, 0.08)
 border_width_bottom = 2
-border_color = Color(0.4, 0.4, 0.4, 1)
-corner_radius_top_left = 4
-corner_radius_top_right = 4
-corner_radius_bottom_right = 4
-corner_radius_bottom_left = 4
-shadow_color = Color(0, 0, 0, 0.5)
-shadow_size = 4
-shadow_offset = Vector2(2, 2)
+border_color = Color(1, 1, 1, 0.5)
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pressed"]
-bg_color = Color(0.1, 0.1, 0.1, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.2, 0.2, 0.2, 1)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tab_unselected"]
+content_margin_left = 20.0
+content_margin_top = 10.0
+content_margin_right = 20.0
+content_margin_bottom = 10.0
+bg_color = Color(0, 0, 0, 0)
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.1)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_tabpanel"]
+content_margin_left = 20.0
+content_margin_top = 30.0
+content_margin_right = 20.0
+content_margin_bottom = 20.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_input"]
+content_margin_left = 12.0
+content_margin_top = 8.0
+content_margin_right = 12.0
+content_margin_bottom = 8.0
+bg_color = Color(0, 0, 0, 0.3)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.1)
 corner_radius_top_left = 4
 corner_radius_top_right = 4
 corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
-shadow_color = Color(0, 0, 0, 0.5)
-shadow_size = 2
-shadow_offset = Vector2(1, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_normal"]
+content_margin_left = 15.0
+content_margin_top = 8.0
+content_margin_right = 15.0
+content_margin_bottom = 8.0
+bg_color = Color(1, 1, 1, 0.05)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_hover"]
+content_margin_left = 15.0
+content_margin_top = 8.0
+content_margin_right = 15.0
+content_margin_bottom = 8.0
+bg_color = Color(1, 1, 1, 0.1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.2)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_pressed"]
+content_margin_left = 15.0
+content_margin_top = 8.0
+content_margin_right = 15.0
+content_margin_bottom = 8.0
+bg_color = Color(1, 1, 1, 0.15)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.3)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_apply_normal"]
+content_margin_left = 40.0
+content_margin_top = 12.0
+content_margin_right = 40.0
+content_margin_bottom = 12.0
+bg_color = Color(1, 1, 1, 0.1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.2)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_apply_hover"]
+content_margin_left = 40.0
+content_margin_top = 12.0
+content_margin_right = 40.0
+content_margin_bottom = 12.0
+bg_color = Color(1, 1, 1, 0.15)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.3)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_apply_pressed"]
+content_margin_left = 40.0
+content_margin_top = 12.0
+content_margin_right = 40.0
+content_margin_bottom = 12.0
+bg_color = Color(1, 1, 1, 0.2)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.4)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
 
 [node name="HUD" type="CanvasLayer"]
 script = ExtResource("1_script")
@@ -122,7 +228,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0, 0, 0, 0.85)
+color = Color(0, 0, 0, 0.4)
 
 [node name="CenterContainer" type="CenterContainer" parent="Control/MenuOverlay"]
 layout_mode = 1
@@ -132,169 +238,218 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="Control/MenuOverlay/CenterContainer"]
+[node name="MainPanel" type="PanelContainer" parent="Control/MenuOverlay/CenterContainer"]
+custom_minimum_size = Vector2(500, 0)
 layout_mode = 2
-theme_override_constants/separation = 40
+theme_override_styles/panel = SubResource("StyleBoxFlat_glass")
 
-[node name="ReContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/VBoxContainer"]
+[node name="MarginContainer" type="MarginContainer" parent="Control/MenuOverlay/CenterContainer/MainPanel"]
 layout_mode = 2
+theme_override_constants/margin_left = 30
+theme_override_constants/margin_top = 30
+theme_override_constants/margin_right = 30
+theme_override_constants/margin_bottom = 30
 
-[node name="Label" type="Label" parent="Control/MenuOverlay/CenterContainer/VBoxContainer/ReContainer"]
+[node name="ContentVBox" type="VBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 20
-text = "Re = "
+theme_override_constants/separation = 30
 
-[node name="ReInput" type="LineEdit" parent="Control/MenuOverlay/CenterContainer/VBoxContainer/ReContainer"]
-custom_minimum_size = Vector2(200, 0)
+[node name="TabContainer" type="TabContainer" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 20
-text = "0.5"
-placeholder_text = "0.5"
+theme_override_constants/side_margin = 0
+theme_override_font_sizes/font_size = 22
+theme_override_styles/panel = SubResource("StyleBoxEmpty_tabpanel")
+theme_override_styles/tab_selected = SubResource("StyleBoxFlat_tab_selected")
+theme_override_styles/tab_unselected = SubResource("StyleBoxFlat_tab_unselected")
+tab_alignment = 1
 
-[node name="ImContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/VBoxContainer"]
+[node name="FUNCTION" type="VBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer"]
 layout_mode = 2
+theme_override_constants/separation = 20
 
-[node name="Label" type="Label" parent="Control/MenuOverlay/CenterContainer/VBoxContainer/ImContainer"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 20
-text = "Im = "
-
-[node name="ImInput" type="LineEdit" parent="Control/MenuOverlay/CenterContainer/VBoxContainer/ImContainer"]
-custom_minimum_size = Vector2(200, 0)
-layout_mode = 2
-theme_override_font_sizes/font_size = 20
-text = "0.0"
-placeholder_text = "0.0"
-
-[node name="FuncContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/VBoxContainer"]
+[node name="FuncContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION"]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="Control/MenuOverlay/CenterContainer/VBoxContainer/FuncContainer"]
+[node name="Label" type="Label" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/FuncContainer"]
+custom_minimum_size = Vector2(140, 0)
 layout_mode = 2
-theme_override_font_sizes/font_size = 20
-text = "Function = "
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 18
+text = "Function"
 
-[node name="FuncButton" type="OptionButton" parent="Control/MenuOverlay/CenterContainer/VBoxContainer/FuncContainer"]
-custom_minimum_size = Vector2(200, 0)
+[node name="FuncButton" type="OptionButton" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/FuncContainer"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 20
-theme_override_styles/normal = SubResource("StyleBoxFlat_normal")
-theme_override_styles/hover = SubResource("StyleBoxFlat_hover")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_pressed")
-theme_override_styles/focus = SubResource("StyleBoxFlat_normal")
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
+theme_override_styles/focus = SubResource("StyleBoxFlat_btn_normal")
 
-[node name="RationalContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/VBoxContainer"]
+[node name="HeightContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION"]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="Control/MenuOverlay/CenterContainer/VBoxContainer/RationalContainer"]
+[node name="Label" type="Label" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/HeightContainer"]
+custom_minimum_size = Vector2(140, 0)
 layout_mode = 2
-theme_override_font_sizes/font_size = 20
-text = "Rational = "
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 18
+text = "Height Map"
 
-[node name="RationalInput" type="LineEdit" parent="Control/MenuOverlay/CenterContainer/VBoxContainer/RationalContainer"]
-custom_minimum_size = Vector2(200, 0)
+[node name="HeightButton" type="OptionButton" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/HeightContainer"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 20
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
+theme_override_styles/focus = SubResource("StyleBoxFlat_btn_normal")
+
+[node name="IterContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/IterContainer"]
+custom_minimum_size = Vector2(140, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 18
+text = "Iterations"
+
+[node name="IterInput" type="LineEdit" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/IterContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_input")
+theme_override_styles/focus = SubResource("StyleBoxFlat_input")
+text = "120"
+alignment = 1
+
+[node name="RationalContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/RationalContainer"]
+custom_minimum_size = Vector2(140, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 18
+text = "Expression"
+
+[node name="RationalInput" type="LineEdit" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/RationalContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_input")
+theme_override_styles/focus = SubResource("StyleBoxFlat_input")
 text = "z^2 - 1"
 placeholder_text = "(z^2 + 1)/(z - 1)"
+alignment = 1
 
-[node name="HeightContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/VBoxContainer"]
+[node name="DOMAIN" type="VBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="ReContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/DOMAIN"]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="Control/MenuOverlay/CenterContainer/VBoxContainer/HeightContainer"]
+[node name="Label" type="Label" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/DOMAIN/ReContainer"]
+custom_minimum_size = Vector2(140, 0)
 layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 18
+text = "Real (σ)"
+
+[node name="ReInput" type="LineEdit" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/DOMAIN/ReContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_input")
+theme_override_styles/focus = SubResource("StyleBoxFlat_input")
+text = "0.5"
+alignment = 1
+
+[node name="ImContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/DOMAIN"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/DOMAIN/ImContainer"]
+custom_minimum_size = Vector2(140, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 18
+text = "Imaginary (t)"
+
+[node name="ImInput" type="LineEdit" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/DOMAIN/ImContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_input")
+theme_override_styles/focus = SubResource("StyleBoxFlat_input")
+text = "0.0"
+alignment = 1
+
+[node name="RENDERING" type="VBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="ShadingContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/ShadingContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 18
+text = "Surface Shading"
+
+[node name="NormalsCheckbox" type="CheckBox" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/ShadingContainer"]
+layout_mode = 2
+
+[node name="CurvesContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/CurvesContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 18
+text = "Level Curves"
+
+[node name="CurvesCheckbox" type="CheckBox" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/CurvesContainer"]
+layout_mode = 2
+
+[node name="CriticalContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/CriticalContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 18
+text = "Critical Stripe"
+
+[node name="CriticalCheckbox" type="CheckBox" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/CriticalContainer"]
+layout_mode = 2
+
+[node name="SunsetContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/SunsetContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 18
+text = "Sunset"
+
+[node name="SunsetCheckbox" type="CheckBox" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/SunsetContainer"]
+layout_mode = 2
+
+[node name="ApplyButton" type="Button" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox"]
+layout_mode = 2
+size_flags_horizontal = 4
 theme_override_font_sizes/font_size = 20
-text = "Height = "
-
-[node name="HeightButton" type="OptionButton" parent="Control/MenuOverlay/CenterContainer/VBoxContainer/HeightContainer"]
-custom_minimum_size = Vector2(200, 0)
-layout_mode = 2
-theme_override_font_sizes/font_size = 20
-theme_override_styles/normal = SubResource("StyleBoxFlat_normal")
-theme_override_styles/hover = SubResource("StyleBoxFlat_hover")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_pressed")
-theme_override_styles/focus = SubResource("StyleBoxFlat_normal")
-
-[node name="IterContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/VBoxContainer"]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="Control/MenuOverlay/CenterContainer/VBoxContainer/IterContainer"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 20
-text = "Iterations = "
-
-[node name="IterInput" type="LineEdit" parent="Control/MenuOverlay/CenterContainer/VBoxContainer/IterContainer"]
-custom_minimum_size = Vector2(200, 0)
-layout_mode = 2
-theme_override_font_sizes/font_size = 20
-text = "120"
-placeholder_text = "120"
-
-[node name="NormalsContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/VBoxContainer"]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="Control/MenuOverlay/CenterContainer/VBoxContainer/NormalsContainer"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 20
-text = "Compute Normals = "
-
-[node name="NormalsCheckbox" type="CheckBox" parent="Control/MenuOverlay/CenterContainer/VBoxContainer/NormalsContainer"]
-layout_mode = 2
-theme_override_styles/normal = SubResource("StyleBoxFlat_normal")
-theme_override_styles/hover = SubResource("StyleBoxFlat_hover")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_pressed")
-theme_override_styles/focus = SubResource("StyleBoxFlat_normal")
-
-[node name="CurvesContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/VBoxContainer"]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="Control/MenuOverlay/CenterContainer/VBoxContainer/CurvesContainer"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 20
-text = "Show curve levels = "
-
-[node name="CurvesCheckbox" type="CheckBox" parent="Control/MenuOverlay/CenterContainer/VBoxContainer/CurvesContainer"]
-layout_mode = 2
-theme_override_styles/normal = SubResource("StyleBoxFlat_normal")
-theme_override_styles/hover = SubResource("StyleBoxFlat_hover")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_pressed")
-theme_override_styles/focus = SubResource("StyleBoxFlat_normal")
-
-[node name="CriticalContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/VBoxContainer"]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="Control/MenuOverlay/CenterContainer/VBoxContainer/CriticalContainer"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 20
-text = "Show critical stripe = "
-
-[node name="CriticalCheckbox" type="CheckBox" parent="Control/MenuOverlay/CenterContainer/VBoxContainer/CriticalContainer"]
-layout_mode = 2
-theme_override_styles/normal = SubResource("StyleBoxFlat_normal")
-theme_override_styles/hover = SubResource("StyleBoxFlat_hover")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_pressed")
-theme_override_styles/focus = SubResource("StyleBoxFlat_normal")
-
-[node name="SunriseContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/VBoxContainer"]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="Control/MenuOverlay/CenterContainer/VBoxContainer/SunriseContainer"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 20
-text = "Sunrise = "
-
-[node name="SunriseCheckbox" type="CheckBox" parent="Control/MenuOverlay/CenterContainer/VBoxContainer/SunriseContainer"]
-layout_mode = 2
-theme_override_styles/normal = SubResource("StyleBoxFlat_normal")
-theme_override_styles/hover = SubResource("StyleBoxFlat_hover")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_pressed")
-theme_override_styles/focus = SubResource("StyleBoxFlat_normal")
-
-[node name="SetPosButton" type="Button" parent="Control/MenuOverlay/CenterContainer/VBoxContainer"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 20
-theme_override_styles/normal = SubResource("StyleBoxFlat_normal")
-theme_override_styles/hover = SubResource("StyleBoxFlat_hover")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_pressed")
-theme_override_styles/focus = SubResource("StyleBoxFlat_normal")
-text = "Apply"
+theme_override_styles/normal = SubResource("StyleBoxFlat_apply_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_apply_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_apply_pressed")
+theme_override_styles/focus = SubResource("StyleBoxFlat_apply_normal")
+text = "Apply Changes"
