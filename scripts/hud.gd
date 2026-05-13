@@ -4,28 +4,34 @@ extends CanvasLayer
 @onready var complex_rect = $Control/ComplexPlane
 @onready var pos_label = $Control/PosLabel
 @onready var menu_overlay = $Control/MenuOverlay
-@onready var re_input = $Control/MenuOverlay/CenterContainer/VBoxContainer/ReContainer/ReInput
-@onready var im_input = $Control/MenuOverlay/CenterContainer/VBoxContainer/ImContainer/ImInput
-@onready var iter_container = $Control/MenuOverlay/CenterContainer/VBoxContainer/IterContainer
-@onready var iter_input = $Control/MenuOverlay/CenterContainer/VBoxContainer/IterContainer/IterInput
-@onready var normals_checkbox = $Control/MenuOverlay/CenterContainer/VBoxContainer/NormalsContainer/NormalsCheckbox
-@onready var curves_checkbox = $Control/MenuOverlay/CenterContainer/VBoxContainer/CurvesContainer/CurvesCheckbox
-@onready var critical_container = $Control/MenuOverlay/CenterContainer/VBoxContainer/CriticalContainer
-@onready var critical_checkbox = $Control/MenuOverlay/CenterContainer/VBoxContainer/CriticalContainer/CriticalCheckbox
-@onready var sunrise_checkbox = $Control/MenuOverlay/CenterContainer/VBoxContainer/SunriseContainer/SunriseCheckbox
-@onready var set_pos_button = $Control/MenuOverlay/CenterContainer/VBoxContainer/SetPosButton
 
-@onready var func_button = $Control/MenuOverlay/CenterContainer/VBoxContainer/FuncContainer/FuncButton
-@onready var height_button = $Control/MenuOverlay/CenterContainer/VBoxContainer/HeightContainer/HeightButton
-@onready var rational_container = $Control/MenuOverlay/CenterContainer/VBoxContainer/RationalContainer
-@onready var rational_input = $Control/MenuOverlay/CenterContainer/VBoxContainer/RationalContainer/RationalInput
+# New UI Node Paths
+@onready var tab_container = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer
+@onready var func_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/FuncContainer/FuncButton
+@onready var height_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/HeightContainer/HeightButton
+@onready var iter_container = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/IterContainer
+@onready var iter_input = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/IterContainer/IterInput
+@onready var rational_container = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/RationalContainer
+@onready var rational_input = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/RationalContainer/RationalInput
+
+@onready var re_input = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/DOMAIN/ReContainer/ReInput
+@onready var im_input = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/DOMAIN/ImContainer/ImInput
+
+@onready var normals_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/ShadingContainer/NormalsCheckbox
+@onready var curves_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/CurvesContainer/CurvesCheckbox
+@onready var critical_container = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/CriticalContainer
+@onready var critical_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/CriticalContainer/CriticalCheckbox
+@onready var sunset_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/SunsetContainer/SunsetCheckbox
+
+@onready var apply_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/ApplyButton
 
 var current_scale = 2.0
 
 func _ready():
-	set_pos_button.pressed.connect(_on_set_pos_pressed)
+	apply_button.pressed.connect(_on_set_pos_pressed)
 	func_button.item_selected.connect(_on_func_selected)
 
+	func_button.clear()
 	func_button.add_item("Zeta")
 	func_button.add_item("Sin")
 	func_button.add_item("Cos")
@@ -34,8 +40,9 @@ func _ready():
 	func_button.add_item("Log")
 	func_button.add_item("Rational")
 
-	height_button.add_item("log(1 + abs)")
-	height_button.add_item("abs")
+	height_button.clear()
+	height_button.add_item("Logarithmic")
+	height_button.add_item("Absolute")
 
 func toggle_menu():
 	menu_overlay.visible = !menu_overlay.visible
@@ -48,7 +55,7 @@ func toggle_menu():
 		normals_checkbox.button_pressed = Field.compute_normals
 		curves_checkbox.button_pressed = Field.show_curves
 		critical_checkbox.button_pressed = Field.show_critical_stripe
-		sunrise_checkbox.button_pressed = Field.sunrise
+		sunset_checkbox.button_pressed = Field.sunset
 
 		func_button.selected = Field.function_type
 		height_button.selected = Field.height_type
@@ -98,7 +105,7 @@ func _on_set_pos_pressed():
 	Field.compute_normals = normals_checkbox.button_pressed
 	Field.show_curves = curves_checkbox.button_pressed
 	Field.show_critical_stripe = critical_checkbox.button_pressed
-	Field.sunrise = sunrise_checkbox.button_pressed
+	Field.sunset = sunset_checkbox.button_pressed
 	Field.function_type = func_button.selected
 	Field.height_type = height_button.selected
 
