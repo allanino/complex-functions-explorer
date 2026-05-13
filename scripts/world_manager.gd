@@ -10,7 +10,9 @@ var chunks = {}
 @onready var sun = get_node("../DirectionalLight3D")
 @onready var world_environment = get_node("../WorldEnvironment")
 
-func _process(_delta):
+var _sunrise_transition: float = 0.0
+
+func _process(delta):
 	if not player:
 		return
 
@@ -34,23 +36,22 @@ func _process(_delta):
 	for chunk_coord in chunks_to_remove:
 		_unload_chunk(chunk_coord)
 
-	# Update sun and sky for sunset
+	# Update sun and sky for sunrise
+	if Field.sunrise:
+		_sunrise_transition = min(_sunrise_transition + delta * 0.5, 1.0)
+	else:
+		_sunrise_transition = max(_sunrise_transition - delta * 0.5, 0.0)
+
 	if sun:
-		if Field.sunset:
-			# Horizon direction: pointing towards -X, slightly down
-			sun.basis = Basis.looking_at(Vector3(-1.0, -0.1, 0.0))
-			sun.light_color = Color(1.0, 0.5, 0.2) # Golden hour
-			sun.light_energy = 1.5
-		else:
-			# Zenith: pointing straight down
-			sun.basis = Basis.looking_at(Vector3.DOWN, Vector3.FORWARD)
-			sun.light_color = Color.WHITE
-			sun.light_energy = 1.0
+		var target_dir = lerp(Vector3.DOWN, Vector3(-1.0, -0.1, 0.0).normalized(), _sunrise_transition)
+		sun.basis = Basis.looking_at(target_dir, Vector3.FORWARD if abs(target_dir.y) < 0.99 else Vector3.UP)
+		sun.light_color = lerp(Color.WHITE, Color(1.0, 0.5, 0.2), _sunrise_transition)
+		sun.light_energy = lerp(1.0, 1.5, _sunrise_transition)
 
 	if world_environment and world_environment.environment and world_environment.environment.sky:
 		var sky_mat = world_environment.environment.sky.sky_material as ShaderMaterial
 		if sky_mat:
-			sky_mat.set_shader_parameter("sunset", Field.sunset)
+			sky_mat.set_shader_parameter("sunrise_factor", _sunrise_transition)
 
 	# Update iterations and normal computation uniforms in all chunks
 	for chunk in chunks.values():

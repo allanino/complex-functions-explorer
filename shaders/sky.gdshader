@@ -3,7 +3,7 @@ shader_type sky;
 uniform vec3 sky_color : source_color = vec3(0.3, 0.6, 0.9);
 uniform vec3 horizon_color : source_color = vec3(0.6, 0.8, 1.0);
 uniform vec3 cloud_color : source_color = vec3(1.0, 1.0, 1.0);
-uniform bool sunset = false;
+uniform float sunrise_factor = 0.0;
 
 // Dave Hoskins' hash (2D to 1D)
 float hash(vec2 p) {
@@ -41,15 +41,13 @@ float fbm(vec2 p) {
 void sky() {
     float eye_alt = EYEDIR.y;
 
-    vec3 current_sky = sky_color;
-    vec3 current_horizon = horizon_color;
-    vec3 current_cloud = cloud_color;
+    vec3 sunrise_sky = vec3(0.1, 0.15, 0.3); // Deep blue/purple
+    vec3 sunrise_horizon = vec3(1.0, 0.4, 0.1); // Deep orange
+    vec3 sunrise_cloud = vec3(1.0, 0.7, 0.5); // Golden/Pinkish
 
-    if (sunset) {
-        current_sky = vec3(0.1, 0.15, 0.3); // Deep blue/purple
-        current_horizon = vec3(1.0, 0.4, 0.1); // Deep orange
-        current_cloud = vec3(1.0, 0.7, 0.5); // Golden/Pinkish
-    }
+    vec3 current_sky = mix(sky_color, sunrise_sky, sunrise_factor);
+    vec3 current_horizon = mix(horizon_color, sunrise_horizon, sunrise_factor);
+    vec3 current_cloud = mix(cloud_color, sunrise_cloud, sunrise_factor);
 
     // Sky gradient
     vec3 final_color = mix(current_horizon, current_sky, clamp(eye_alt * 2.0, 0.0, 1.0));
