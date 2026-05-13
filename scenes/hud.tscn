@@ -438,7 +438,7 @@ theme_override_font_sizes/font_size = 18
 text = "Surface Shading"
 
 [node name="NormalsCheckbox" type="CheckBox" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/ShadingContainer"]
-custom_minimum_size = Vector2(20, 20)
+custom_minimum_size = Vector2(10, 10)
 layout_mode = 2
 size_flags_vertical = 4
 focus_mode = 0
@@ -461,7 +461,7 @@ theme_override_font_sizes/font_size = 18
 text = "Level Curves"
 
 [node name="CurvesCheckbox" type="CheckBox" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/CurvesContainer"]
-custom_minimum_size = Vector2(20, 20)
+custom_minimum_size = Vector2(10, 10)
 layout_mode = 2
 size_flags_vertical = 4
 focus_mode = 0
@@ -484,7 +484,7 @@ theme_override_font_sizes/font_size = 18
 text = "Critical Stripe"
 
 [node name="CriticalCheckbox" type="CheckBox" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/CriticalContainer"]
-custom_minimum_size = Vector2(20, 20)
+custom_minimum_size = Vector2(10, 10)
 layout_mode = 2
 size_flags_vertical = 4
 focus_mode = 0
@@ -507,9 +507,9 @@ theme_override_font_sizes/font_size = 18
 text = "Sunset"
 
 [node name="SunsetCheckbox" type="CheckBox" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/SunsetContainer"]
-custom_minimum_size = Vector2(20, 20)
-layout_mode = 2
-size_flags_vertical = 4
+custom_minimum_size = Vector2(5, 5)
+layout_mode = 1
+size_flags_vertical = 0
 focus_mode = 0
 theme_override_constants/h_separation = 0
 theme_override_styles/normal = SubResource("StyleBoxFlat_checkbox")
