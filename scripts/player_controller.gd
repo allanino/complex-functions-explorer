@@ -4,8 +4,12 @@ const SPEED = 10.0
 const MOUSE_SENSITIVITY = 0.002
 const PLAYER_HEIGHT = 1.8
 const DOUBLE_PRESS_TIME = 0.3
+const CRITICAL_LINE_X = 5.0
+
+enum AutoWalkState { NONE, MOVING_TO_LINE, ALIGNING, WALKING }
 
 var rotation_x = 0.0
+var auto_walk_state = AutoWalkState.NONE
 var height_offset = 0.0
 var last_space_time = 0.0
 var space_held_time = 0.0
@@ -21,10 +25,11 @@ func _ready():
 
 func _unhandled_input(event):
 	if event is InputEventMouseMotion:
-		rotate_y(-event.relative.x * MOUSE_SENSITIVITY)
-		rotation_x -= event.relative.y * MOUSE_SENSITIVITY
-		rotation_x = clamp(rotation_x, -PI/2, PI/2)
-		camera.rotation.x = rotation_x
+		if auto_walk_state == AutoWalkState.NONE or auto_walk_state == AutoWalkState.WALKING:
+			rotate_y(-event.relative.x * MOUSE_SENSITIVITY)
+			rotation_x -= event.relative.y * MOUSE_SENSITIVITY
+			rotation_x = clamp(rotation_x, -PI/2, PI/2)
+			camera.rotation.x = rotation_x
 
 	if event.is_action_pressed("ui_cancel"):
 		var hud = get_node_or_null("/root/Main/HUD")
@@ -43,15 +48,30 @@ func _unhandled_input(event):
 			is_resetting_height = true
 		last_space_time = current_time
 
+	if event is InputEventKey and event.pressed and event.ctrl_pressed:
+		if event.keycode == KEY_G:
+			Field.sunrise = !Field.sunrise
+		elif event.keycode == KEY_C:
+			if auto_walk_state == AutoWalkState.NONE:
+				auto_walk_state = AutoWalkState.MOVING_TO_LINE
+			else:
+				auto_walk_state = AutoWalkState.NONE
+
 func get_terrain_height(x: float, z: float) -> float:
 	return Field.get_height(x, z)
 
 func _physics_process(delta):
+	if auto_walk_state != AutoWalkState.NONE:
+		var manual_input = Input.get_vector("move_left", "move_right", "move_forward", "move_backward")
+		if manual_input != Vector2.ZERO or Input.is_key_pressed(KEY_SPACE):
+			auto_walk_state = AutoWalkState.NONE
+
 	var current_speed = SPEED
-	if Input.is_key_pressed(KEY_SHIFT):
-		current_speed *= 2.0
-	elif Input.is_key_pressed(KEY_CTRL):
-		current_speed *= 0.05
+	if auto_walk_state == AutoWalkState.NONE:
+		if Input.is_key_pressed(KEY_SHIFT):
+			current_speed *= 2.0
+		elif Input.is_key_pressed(KEY_CTRL):
+			current_speed *= 0.05
 
 	if Input.is_key_pressed(KEY_SPACE):
 		space_held_time += delta
@@ -68,6 +88,41 @@ func _physics_process(delta):
 
 	var input_dir = Input.get_vector("move_left", "move_right", "move_forward", "move_backward")
 	var direction = (transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
+
+	if auto_walk_state == AutoWalkState.MOVING_TO_LINE:
+		var target_x = CRITICAL_LINE_X
+		var diff_x = target_x - global_position.x
+
+		if abs(diff_x) < 0.1:
+			auto_walk_state = AutoWalkState.ALIGNING
+			direction = Vector3.ZERO
+		else:
+			var walk_dir = Vector3(sign(diff_x), 0, 0)
+			# Face the walk direction
+			var target_angle = atan2(-walk_dir.x, -walk_dir.z)
+			rotation.y = lerp_angle(rotation.y, target_angle, 5.0 * delta)
+
+			# Face camera forward (relative to player)
+			rotation_x = lerp(rotation_x, 0.0, 5.0 * delta)
+			camera.rotation.x = rotation_x
+
+			direction = walk_dir
+
+	elif auto_walk_state == AutoWalkState.ALIGNING:
+		# Target is facing forward (-Z)
+		var target_angle = 0.0
+		rotation.y = lerp_angle(rotation.y, target_angle, 5.0 * delta)
+		rotation_x = lerp(rotation_x, 0.0, 5.0 * delta)
+		camera.rotation.x = rotation_x
+
+		direction = Vector3.ZERO
+
+		if abs(angle_difference(rotation.y, target_angle)) < 0.01 and abs(rotation_x) < 0.01:
+			auto_walk_state = AutoWalkState.WALKING
+
+	elif auto_walk_state == AutoWalkState.WALKING:
+		direction = Vector3(0, 0, -1)
+		global_position.x = move_toward(global_position.x, CRITICAL_LINE_X, 2.0 * delta)
 
 	if direction != Vector3.ZERO:
 		velocity.x = direction.x * current_speed
