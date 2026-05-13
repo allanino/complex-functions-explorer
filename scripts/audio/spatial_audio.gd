@@ -168,16 +168,19 @@ func _process(delta):
 	if not is_finite(target_pan): target_pan = 0.0
 
 	# --- SMOOTHING ---
-	# Significantly increased interpolation weights for instantaneous response
-	current_volume = lerp(current_volume, target_volume, delta * 20.0)
-	current_frequency = lerp(current_frequency, target_frequency, delta * 30.0)
-	current_pan = lerp(current_pan, target_pan, delta * 16.0)
-	current_harmonic_intensity = lerp(current_harmonic_intensity, target_harmonic_intensity, delta * 24.0)
-	current_resonance = lerp(current_resonance, target_resonance, delta * 20.0)
-	current_fm_index = lerp(current_fm_index, target_fm_index, delta * 10.0)
+	# Frame-rate independent exponential smoothing to prevent overshoots during low FPS
+	current_volume = lerp(current_volume, target_volume, 1.0 - exp(-20.0 * delta))
+	current_frequency = lerp(current_frequency, target_frequency, 1.0 - exp(-30.0 * delta))
+	current_pan = lerp(current_pan, target_pan, 1.0 - exp(-16.0 * delta))
+	current_harmonic_intensity = lerp(current_harmonic_intensity, target_harmonic_intensity, 1.0 - exp(-24.0 * delta))
+	current_resonance = lerp(current_resonance, target_resonance, 1.0 - exp(-20.0 * delta))
+	current_fm_index = lerp(current_fm_index, target_fm_index, 1.0 - exp(-10.0 * delta))
 
-	# Final safety clamp
-	current_frequency = max(0.8, current_frequency)
+	# Final safety clamps
+	current_volume = clamp(current_volume, 0.0, 1.0)
+	current_frequency = clamp(current_frequency, 20.0, 5000.0)
+	current_fm_index = clamp(current_fm_index, 0.0, 20.0)
+	current_harmonic_intensity = clamp(current_harmonic_intensity, 0.0, 1.0)
 
 	# --- EFFECT MODULATION ---
 	if pitch_shift_effect:
@@ -201,8 +204,9 @@ func fill_buffer():
 	if playback == null: return
 
 	var to_fill = playback.get_frames_available()
-	# Safety cap to prevent execution spikes (0.5s at 44100Hz)
-	to_fill = min(to_fill, 22050)
+	# Safety cap to prevent execution spikes (0.2s at 44100Hz)
+	# 0.5s was too high and could contribute to frame drops
+	to_fill = min(to_fill, 8820)
 
 	while to_fill > 0:
 		# --- PHASE INCREMENTS ---
@@ -238,7 +242,7 @@ func fill_buffer():
 
 		# Non-linear saturation (Cubic soft-clipper)
 		sample = clamp(sample * 1.1, -1.1, 1.1)
-		sample = sample - (pow(sample, 3) / 3.0)
+		sample = sample - (sample * sample * sample / 3.0)
 
 		if not is_finite(sample): sample = 0.0
 
