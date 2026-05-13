@@ -7,6 +7,9 @@ extends Node3D
 
 var chunks = {}
 
+@onready var sun = get_node("../DirectionalLight3D")
+@onready var world_environment = get_node("../WorldEnvironment")
+
 func _process(_delta):
 	if not player:
 		return
@@ -30,6 +33,24 @@ func _process(_delta):
 
 	for chunk_coord in chunks_to_remove:
 		_unload_chunk(chunk_coord)
+
+	# Update sun and sky for sunset
+	if sun:
+		if Field.sunset:
+			# Horizon direction: pointing towards +X, slightly down
+			sun.basis = Basis.looking_at(Vector3(1.0, -0.1, 0.0))
+			sun.light_color = Color(1.0, 0.5, 0.2) # Golden hour
+			sun.light_energy = 1.5
+		else:
+			# Zenith: pointing straight down
+			sun.basis = Basis.looking_at(Vector3.DOWN, Vector3.FORWARD)
+			sun.light_color = Color.WHITE
+			sun.light_energy = 1.0
+
+	if world_environment and world_environment.environment and world_environment.environment.sky:
+		var sky_mat = world_environment.environment.sky.sky_material as ShaderMaterial
+		if sky_mat:
+			sky_mat.set_shader_parameter("sunset", Field.sunset)
 
 	# Update iterations and normal computation uniforms in all chunks
 	for chunk in chunks.values():
