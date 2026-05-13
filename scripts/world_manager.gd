@@ -37,8 +37,8 @@ func _process(_delta):
 	# Update sun and sky for sunset
 	if sun:
 		if Field.sunset:
-			# Horizon direction: pointing towards +X, slightly down
-			sun.basis = Basis.looking_at(Vector3(1.0, -0.1, 0.0))
+			# Horizon direction: pointing towards -X, slightly down
+			sun.basis = Basis.looking_at(Vector3(-1.0, -0.1, 0.0))
 			sun.light_color = Color(1.0, 0.5, 0.2) # Golden hour
 			sun.light_energy = 1.5
 		else:
@@ -67,6 +67,11 @@ func _process(_delta):
 func _load_chunk(coord: Vector2i):
 	var chunk = chunk_scene.instantiate()
 	chunk.global_position = Vector3(coord.x * chunk_size, 0, coord.y * chunk_size)
+
+	# Increase AABB to prevent shadow culling of displaced vertices
+	# Height can go up to ~20-30 in extreme cases (Rational/Zeta spikes)
+	chunk.custom_aabb = AABB(Vector3(0, -50, 0), Vector3(chunk_size, 100, chunk_size))
+
 	add_child(chunk)
 	chunks[coord] = chunk
 

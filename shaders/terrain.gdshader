@@ -74,8 +74,8 @@ void fragment() {
         // (Note: ALBEDO and base emission use the modified base)
     }
 
-    ALBEDO = base * 0.15;
-    vec3 final_emission = base * 0.25;
+    ALBEDO = base * 0.4;
+    vec3 final_emission = base * 0.05;
 
     // Only apply the lines rendering for zeta (at x = 0, x = 5.0, x = 10.0)
     // which corresponds to Re = 0.0, Re = 0.5, Re = 1.0
@@ -112,7 +112,7 @@ void fragment() {
     final_emission += fresnel * 0.05;
 
     EMISSION = final_emission;
-	ROUGHNESS = 0.12;
-	METALLIC = 0.95;
-	SPECULAR = 1.0;
+	ROUGHNESS = 0.4;
+	METALLIC = 0.2;
+	SPECULAR = 0.5;
 }
