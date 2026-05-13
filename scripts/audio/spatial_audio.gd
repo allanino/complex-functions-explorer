@@ -10,7 +10,6 @@ const PHASE_PAN_STRENGTH = 0.7
 var playback: AudioStreamGeneratorPlayback
 var sample_rate: float = 44100.0
 var phase: float = 0.0
-var mod_phase: float = 0.0
 var lfo_phase: float = 0.0
 var noise_state: float = 0.0
 
@@ -25,8 +24,6 @@ var target_harmonic_intensity: float = 0.0
 var current_harmonic_intensity: float = 0.0
 var target_resonance: float = 0.0
 var current_resonance: float = 0.0
-var target_fm_index: float = 0.0
-var current_fm_index: float = 0.0
 
 # --- EFFECT REFS ---
 var pitch_shift_effect: AudioEffectPitchShift
@@ -45,7 +42,7 @@ func _ready():
 	# Ensure the generator is correctly configured
 	var generator = AudioStreamGenerator.new()
 	generator.mix_rate = 44100
-	generator.buffer_length = 0.5 # Increased buffer to prevent underruns during FPS drops
+	generator.buffer_length = 0.15 # Reduced buffer for lower latency response
 	stream_player.stream = generator
 
 	# Start playing
@@ -153,7 +150,6 @@ func _process(delta):
 		target_frequency = BASE_FREQUENCY # C2
 
 	target_harmonic_intensity = clamp(proximity * 0.08, 0.0, 0.4)
-	target_fm_index = clamp(proximity * 0.4, 0.0, 4.0)
 
 	# 3. PHASE arg(f)
 	target_pan = sin(arg) * PHASE_PAN_STRENGTH
@@ -174,12 +170,10 @@ func _process(delta):
 	current_pan = lerp(current_pan, target_pan, 1.0 - exp(-16.0 * delta))
 	current_harmonic_intensity = lerp(current_harmonic_intensity, target_harmonic_intensity, 1.0 - exp(-24.0 * delta))
 	current_resonance = lerp(current_resonance, target_resonance, 1.0 - exp(-20.0 * delta))
-	current_fm_index = lerp(current_fm_index, target_fm_index, 1.0 - exp(-10.0 * delta))
 
 	# Final safety clamps
 	current_volume = clamp(current_volume, 0.0, 1.0)
 	current_frequency = clamp(current_frequency, 20.0, 5000.0)
-	current_fm_index = clamp(current_fm_index, 0.0, 20.0)
 	current_harmonic_intensity = clamp(current_harmonic_intensity, 0.0, 1.0)
 
 	# --- EFFECT MODULATION ---
@@ -204,9 +198,8 @@ func fill_buffer():
 	if playback == null: return
 
 	var to_fill = playback.get_frames_available()
-	# Safety cap to prevent execution spikes (0.2s at 44100Hz)
-	# 0.5s was too high and could contribute to frame drops
-	to_fill = min(to_fill, 8820)
+	# Safety cap to prevent execution spikes (0.15s at 44100Hz)
+	to_fill = min(to_fill, 6615)
 
 	while to_fill > 0:
 		# --- PHASE INCREMENTS ---
@@ -220,17 +213,10 @@ func fill_buffer():
 		if not is_finite(increment): increment = 0.001
 		phase = fmod(phase + increment, 1.0)
 
-		# Modulator phase (harmonic ratio 1.0 or 2.0)
-		var mod_increment = freq * 1.0 / sample_rate
-		mod_phase = fmod(mod_phase + mod_increment, 1.0)
+		# --- ADDITIVE SYNTHESIS ---
 
-		# --- FM SYNTHESIS ---
-
-		# Modulator
-		var modulator = sin(mod_phase * TAU) * current_fm_index
-
-		# Carrier
-		var sample = sin(phase * TAU + modulator)
+		# Base frequency
+		var sample = sin(phase * TAU)
 
 		# Add sub-depth
 		sample += 0.5 * sin(phase * TAU * 0.5)
