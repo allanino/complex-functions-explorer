@@ -3,7 +3,7 @@ extends CharacterBody3D
 const MOUSE_SENSITIVITY = 0.002
 const DOUBLE_PRESS_TIME = 0.3
 const CRITICAL_LINE_X = 5.0
-const AUTO_WALK_PITCH = -0.2618 # -15 degrees in radians
+const AUTO_WALK_PITCH = -0.523598776 # -30 degrees in radians
 
 enum AutoWalkState { NONE, MOVING_TO_LINE, ALIGNING, WALKING }
 
@@ -16,6 +16,7 @@ var is_resetting_height = false
 
 # Zero detection history
 var mag_history: Array[float] = [1.0, 1.0, 1.0]
+var t_history: Array[float] = [0.0, 0.0, 0.0]
 var last_detected_t = -1.0
 
 @onready var camera = $Camera3D
@@ -145,7 +146,11 @@ func _physics_process(delta):
 
 	# Zeta zero detection during auto-walk
 	if auto_walk_state == AutoWalkState.WALKING and Field.function_type == 0:
-		var current_mag = Field.get_field(global_position.x, global_position.z).length()
+		var f = Field.get_field(global_position.x, global_position.z)
+		var current_mag = f.length()
+
+		t_history.push_back(-global_position.z*0.1)
+		t_history.pop_front()
 
 		mag_history.push_back(current_mag)
 		mag_history.pop_front()
@@ -153,7 +158,7 @@ func _physics_process(delta):
 		# Check for local minimum: f[1] < f[0] and f[1] < f[2]
 		# We use the 3-frame approach suggested by the user.
 		if mag_history[1] < mag_history[0] and mag_history[1] < mag_history[2]:
-			var t = -global_position.z * 0.1 # Current t-value
+			var t = t_history[1] # Current minima t-value
 
 			# Check if this zero is far enough from the last detected one to avoid duplicates
 			# also check if the magnitude is reasonably low (e.g. < 0.5) to avoid false positives
