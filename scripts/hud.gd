@@ -18,8 +18,10 @@ extends CanvasLayer
 @onready var rational_container = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/RationalContainer
 @onready var rational_input = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/RationalContainer/RationalInput
 
-@onready var re_input = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/DOMAIN/ReContainer/ReInput
-@onready var im_input = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/DOMAIN/ImContainer/ImInput
+@onready var re_input = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/ReContainer/ReInput
+@onready var im_input = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/ImContainer/ImInput
+@onready var speed_input = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/SpeedContainer/SpeedInput
+@onready var camera_height_input = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/CameraHeightContainer/CameraHeightInput
 
 @onready var normals_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/ShadingContainer/NormalsButton
 @onready var curves_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/CurvesContainer/CurvesCheckbox
@@ -63,6 +65,8 @@ func toggle_menu():
 			re_input.text = "%.3f" % (player.global_position.x * 0.1)
 			im_input.text = "%.3f" % (-player.global_position.z * 0.1)
 		iter_input.text = str(Field.iterations)
+		speed_input.text = str(Field.movement_speed)
+		camera_height_input.text = str(Field.camera_height)
 		height_a_input.text = str(Field.height_a)
 		height_eps_input.text = str(Field.height_epsilon)
 		normals_button.selected = Field.surface_shading_mode
@@ -122,8 +126,12 @@ func _on_set_pos_pressed():
 	var iters = int(iter_input.text)
 	var h_a = float(height_a_input.text)
 	var h_eps = float(height_eps_input.text)
+	var m_speed = float(speed_input.text)
+	var c_height = float(camera_height_input.text)
 
 	Field.iterations = iters
+	Field.movement_speed = m_speed
+	Field.camera_height = c_height
 	Field.height_a = h_a
 	Field.height_epsilon = h_eps
 	Field.surface_shading_mode = normals_button.selected
@@ -164,4 +172,4 @@ func _process(_delta):
 	material.set_shader_parameter("current_f", f)
 	material.set_shader_parameter("scale", current_scale)
 
-	pos_label.text = "DOMAIN\nRe = %.3f\nIm = %.3f\n-------------------\nTARGET\nRe = %.3f\nIm = %.3f\n|f| = %.3f" % [x * 0.1, -z * 0.1, f.x, f.y, f.length()]
+	pos_label.text = "NAVIGATION\nRe = %.3f\nIm = %.3f\n-------------------\nTARGET\nRe = %.3f\nIm = %.3f\n|f| = %.3f" % [x * 0.1, -z * 0.1, f.x, f.y, f.length()]

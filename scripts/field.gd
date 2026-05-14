@@ -11,6 +11,8 @@ static var function_type: int = 0 # 0: Zeta, 1: Sin, 2: Cos, 3: Tan, 4: Exp, 5: 
 static var height_type: int = 0 # 0: Log, 1: Abs
 static var height_a: float = 3.0
 static var height_epsilon: float = 1.0
+static var movement_speed: float = 10.0
+static var camera_height: float = 1.8
 
 static var rational_num_coeffs: PackedFloat32Array = PackedFloat32Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 static var rational_den_coeffs: PackedFloat32Array = PackedFloat32Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
