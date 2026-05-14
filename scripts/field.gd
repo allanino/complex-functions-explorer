@@ -12,6 +12,8 @@ static var height_type: int = 0 # 0: Log, 1: Abs
 static var height_a: float = 3.0
 static var height_epsilon: float = 1.0
 
+static var visited_zeros: Array[float] = []
+
 static var rational_num_coeffs: PackedFloat32Array = PackedFloat32Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 static var rational_den_coeffs: PackedFloat32Array = PackedFloat32Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 

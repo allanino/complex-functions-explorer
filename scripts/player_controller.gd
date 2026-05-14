@@ -15,6 +15,10 @@ var last_space_time = 0.0
 var space_held_time = 0.0
 var is_resetting_height = false
 
+# Zero detection history
+var mag_history: Array[float] = [1.0, 1.0, 1.0]
+var last_detected_t = -1.0
+
 @onready var camera = $Camera3D
 
 func _ready():
@@ -136,5 +140,24 @@ func _physics_process(delta):
 
 	# Snap player to terrain height + offset
 	global_position.y = terrain_h + height_offset
+
+	# Zeta zero detection during auto-walk
+	if auto_walk_state == AutoWalkState.WALKING and Field.function_type == 0:
+		var current_mag = Field.get_field(global_position.x, global_position.z).length()
+
+		mag_history.push_back(current_mag)
+		mag_history.pop_front()
+
+		# Check for local minimum: f[1] < f[0] and f[1] < f[2]
+		# We use the 3-frame approach suggested by the user.
+		if mag_history[1] < mag_history[0] and mag_history[1] < mag_history[2]:
+			var t = -global_position.z * 0.1 # Current t-value
+
+			# Check if this zero is far enough from the last detected one to avoid duplicates
+			# also check if the magnitude is reasonably low (e.g. < 0.5) to avoid false positives
+			# from tiny oscillations far from zeros
+			if abs(t - last_detected_t) > 0.1 and mag_history[1] < 0.5:
+				Field.visited_zeros.push_back(t)
+				last_detected_t = t
 
 	move_and_slide()
