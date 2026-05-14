@@ -44,7 +44,7 @@ func _process(delta):
 
 	if sun:
 		var target_dir = lerp(Vector3.DOWN, Vector3(-1.0, -0.1, 0.0).normalized(), _golden_hour_transition)
-		sun.basis = Basis.looking_at(target_dir, Vector3.FORWARD if abs(target_dir.y) < 0.99 else Vector3.UP)
+		sun.basis = Basis.looking_at(target_dir, Vector3.UP if abs(target_dir.normalized().y) < 0.5 else Vector3.FORWARD)
 		sun.light_color = lerp(Color.WHITE, Color(1.0, 0.5, 0.2), _golden_hour_transition)
 		sun.light_energy = lerp(1.0, 1.5, _golden_hour_transition)
 
