@@ -27,7 +27,7 @@ void fragment() {
 
     // Background color based on phase
     float hue = (phase + PI) / (2.0 * PI);
-    vec3 color = hsv2rgb(vec3(hue, 0.6, 0.4)); // Darker background
+    vec3 color = hsv2rgb(vec3(hue, 0.6, 0.7)); // Brighter background
 
     // Draw unit circle
     float unit_circle = abs(mag - 1.0);
@@ -53,5 +53,5 @@ void fragment() {
         color = mix(color, vec3(1.0), arrow_mask);
     }
 
-    COLOR = vec4(color, 0.8);
+    COLOR = vec4(color, 0.5);
 }

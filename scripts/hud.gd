@@ -1,8 +1,12 @@
 extends CanvasLayer
 
 @export var player: Node3D
-@onready var complex_rect = $Control/ComplexPlane
-@onready var pos_label = $Control/PosLabel
+@onready var complex_rect = $Control/ComplexPanel/MarginContainer/ComplexPlane
+@onready var domain_label = $Control/InfoPanel/MarginContainer/VBox/DomainLabel
+@onready var target_label = $Control/InfoPanel/MarginContainer/VBox/TargetLabel
+@onready var zeros_panel = $Control/ZerosPanel
+@onready var zeros_count_label = $Control/ZerosPanel/MarginContainer/VBox/CountLabel
+@onready var zeros_list_label = $Control/ZerosPanel/MarginContainer/VBox/Scroll/ListLabel
 @onready var menu_overlay = $Control/MenuOverlay
 
 # New UI Node Paths
@@ -167,9 +171,29 @@ func _process(_delta):
 
 	var f = Field.get_field(x, z)
 
+	# Update Zeta Zeros display
+	var is_auto_walking = false
+	if player and "auto_walk_state" in player:
+		is_auto_walking = player.auto_walk_state != 0 # 0 is AutoWalkState.NONE
+
+	var show_zeros = (Field.function_type == 0 and is_auto_walking)
+	zeros_panel.visible = show_zeros
+
+	if show_zeros:
+		var total_count = Field.visited_zeros.size()
+		var last_zeros_text = ""
+
+		# Show all visited zeros in the scrolling list
+		for i in range(total_count - 1, -1, -1):
+			last_zeros_text += "t = %.3f\n" % Field.visited_zeros[i]
+
+		zeros_count_label.text = "ZEROS DETECTED: %d" % total_count
+		zeros_list_label.text = last_zeros_text
+
 	# Update shader uniforms
 	var material = complex_rect.material as ShaderMaterial
 	material.set_shader_parameter("current_f", f)
 	material.set_shader_parameter("scale", current_scale)
 
-	pos_label.text = "DOMAIN\nRe = %.3f\nIm = %.3f\n-------------------\nTARGET\nRe = %.3f\nIm = %.3f\n|f| = %.3f" % [x * 0.1, -z * 0.1, f.x, f.y, f.length()]
+	domain_label.text = "DOMAIN\nRe = %.3f\nIm = %.3f" % [x * 0.1, -z * 0.1]
+	target_label.text = "TARGET\nRe = %.3f\nIm = %.3f\n|f| = %.3f" % [f.x, f.y, f.length()]

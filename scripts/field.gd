@@ -14,6 +14,8 @@ static var height_epsilon: float = 1.0
 static var movement_speed: float = 10.0
 static var camera_height: float = 1.8
 
+static var visited_zeros: Array[float] = []
+
 static var rational_num_coeffs: PackedFloat32Array = PackedFloat32Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 static var rational_den_coeffs: PackedFloat32Array = PackedFloat32Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 
