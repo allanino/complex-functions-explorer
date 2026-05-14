@@ -42,16 +42,26 @@ func _ready():
 	setup_audio_bus_and_effects()
 
 	var stream_player = $AudioStreamPlayer
-	# Ensure the generator is correctly configured
+
 	var generator = AudioStreamGenerator.new()
 	generator.mix_rate = 44100
-	generator.buffer_length = 0.1 # Lower latency
+	generator.buffer_length = 0.1
+
 	stream_player.stream = generator
 
-	# Start playing
+	# Get playback BEFORE starting
 	stream_player.play()
 	playback = stream_player.get_stream_playback()
-	sample_rate = stream_player.stream.mix_rate
+	sample_rate = generator.mix_rate
+
+	# Prefill silence
+	var frames_to_fill = int(sample_rate * 0.1)
+
+	for i in frames_to_fill:
+		playback.push_frame(Vector2.ZERO)
+
+	# Small delay lets audio thread stabilize
+	await get_tree().process_frame
 
 	setup_background_music()
 
@@ -110,6 +120,8 @@ func setup_audio_bus_and_effects():
 	$AudioStreamPlayer.bus = bus_name
 
 func _process(delta):
+	_process_audio_toggles()
+
 	if playback == null:
 		var stream_player = $AudioStreamPlayer
 		if stream_player.playing:
@@ -139,7 +151,7 @@ func _process(delta):
 	# --- MAPPINGS ---
 
 	# 1. MAGNITUDE |f|
-	target_volume = clamp(0.8 - mag * 0.05, 0.2, 0.7)
+	target_volume = clamp(0.20 - mag * 0.01, 0.0, 0.2)
 
 	# 2. PROXIMITY TO ZERO
 	var proximity = 1.0 / (0.05 + mag)
@@ -242,7 +254,8 @@ func fill_buffer():
 
 		if not is_finite(sample): sample = 0.0
 
-		var frame = Vector2.ONE * sample * current_volume
+		var drone_vol_scale = Field.drone_volume / 100.0
+		var frame = Vector2.ONE * sample * current_volume * drone_vol_scale
 
 		# Apply Stereo Panning
 		var pan_l = clamp(1.0 - current_pan, 0.0, 1.0)
@@ -256,3 +269,29 @@ func fill_buffer():
 			playback.push_frame(Vector2.ZERO)
 
 		to_fill -= 1
+
+func _process_audio_toggles():
+	# 1. Background Music
+	var music = get_node_or_null("BackgroundMusic")
+	if music:
+		if Field.bg_music_volume > 0:
+			if not music.playing:
+				music.play()
+			# Map 0-100 to dB. 100 -> -12dB (original), 1 -> -52dB, 0 -> stop
+			var volume_linear = Field.bg_music_volume / 100.0
+			music.volume_db = linear_to_db(volume_linear) - 12.0
+		else:
+			if music.playing:
+				music.stop()
+
+	# 2. Topographic Drone
+	var drone = $AudioStreamPlayer
+	if Field.drone_volume > 0:
+		if not drone.playing:
+			drone.play()
+			# When resuming, we might need to re-fetch playback
+			playback = drone.get_stream_playback()
+	else:
+		if drone.playing:
+			drone.stop()
+			playback = null

@@ -41,6 +41,9 @@ extends CanvasLayer
 @onready var hud_zeros_container = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/HudZetaZerosContainer
 @onready var hud_zeros_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/HudZetaZerosContainer/HudZetaZerosCheckbox
 
+@onready var bg_music_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/AUDIO/BgMusicContainer/BgMusicSlider
+@onready var drone_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/AUDIO/DroneContainer/DroneSlider
+
 @onready var apply_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/ApplyButton
 
 var current_scale = 2.0
@@ -88,6 +91,8 @@ func toggle_menu():
 		hud_complex_checkbox.button_pressed = Field.show_hud_complex
 		hud_navigation_checkbox.button_pressed = Field.show_hud_navigation
 		hud_zeros_checkbox.button_pressed = Field.show_hud_zeros
+		bg_music_slider.value = Field.bg_music_volume
+		drone_slider.value = Field.drone_volume
 
 		func_button.selected = Field.function_type
 		height_button.selected = Field.height_type
@@ -157,6 +162,8 @@ func _on_set_pos_pressed():
 	Field.show_hud_complex = hud_complex_checkbox.button_pressed
 	Field.show_hud_navigation = hud_navigation_checkbox.button_pressed
 	Field.show_hud_zeros = hud_zeros_checkbox.button_pressed
+	Field.bg_music_volume = bg_music_slider.value
+	Field.drone_volume = drone_slider.value
 	Field.function_type = func_button.selected
 	Field.height_type = height_button.selected
 
