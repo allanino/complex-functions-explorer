@@ -52,22 +52,27 @@ void sky() {
     vec3 night_sky = vec3(0.005, 0.01, 0.02);
     vec3 night_horizon = vec3(0.01, 0.02, 0.05);
 
-    // Blue hour factor: peaks between golden hour and night
-    float blue_hour_factor = smoothstep(0.1, 0.5, night_factor) * (1.0 - smoothstep(0.5, 1.0, night_factor));
+    // Blue hour factor: peaks at night_factor 0.5
+    float blue_hour_factor = smoothstep(0.0, 0.5, night_factor) * (1.0 - smoothstep(0.5, 1.0, night_factor)) * 2.0;
+    float full_night_factor = smoothstep(0.5, 1.0, night_factor);
+
+    // Sequence: Day -> Golden Hour -> Blue Hour -> Night
+    // golden_hour_factor handles Day -> Golden
+    // night_factor handles Golden -> Blue -> Night
 
     vec3 current_sky = mix(sky_color, golden_hour_sky, golden_hour_factor);
-    current_sky = mix(current_sky, blue_hour_sky, blue_hour_factor);
-    current_sky = mix(current_sky, night_sky, smoothstep(0.5, 1.0, night_factor));
+    current_sky = mix(current_sky, blue_hour_sky, smoothstep(0.0, 0.5, night_factor));
+    current_sky = mix(current_sky, night_sky, full_night_factor);
 
     vec3 current_horizon = mix(horizon_color, golden_hour_horizon, golden_hour_factor);
-    current_horizon = mix(current_horizon, blue_hour_horizon, blue_hour_factor);
-    current_horizon = mix(current_horizon, night_horizon, smoothstep(0.5, 1.0, night_factor));
+    current_horizon = mix(current_horizon, blue_hour_horizon, smoothstep(0.0, 0.5, night_factor));
+    current_horizon = mix(current_horizon, night_horizon, full_night_factor);
 
     vec3 blue_hour_cloud = vec3(0.15, 0.2, 0.4);
 
     vec3 current_cloud = mix(cloud_color, golden_hour_cloud, golden_hour_factor);
-    current_cloud = mix(current_cloud, blue_hour_cloud, blue_hour_factor);
-    current_cloud = mix(current_cloud, vec3(0.05, 0.08, 0.15), smoothstep(0.5, 1.0, night_factor));
+    current_cloud = mix(current_cloud, blue_hour_cloud, smoothstep(0.0, 0.5, night_factor));
+    current_cloud = mix(current_cloud, vec3(0.05, 0.08, 0.15), full_night_factor);
 
     // Sky gradient
     vec3 final_color = mix(current_horizon, current_sky, clamp(eye_alt * 2.0, 0.0, 1.0));
@@ -121,7 +126,8 @@ void sky() {
         float sun_size = 0.05;
         float sun_disk = smoothstep(sun_size * 0.5, sun_size * 0.45, sun_dist);
         // disk_intensity stays 1.0 while sun is visible to keep its size
-        float disk_intensity = step(0.001, LIGHT0_ENERGY);
+        // Using a small threshold to avoid flickering
+        float disk_intensity = smoothstep(0.0, 0.1, LIGHT0_ENERGY);
         cloud_final_color += LIGHT0_COLOR * sun_disk * disk_intensity;
 
         // Sun glow (Mie-like scattering approximation)
@@ -138,7 +144,7 @@ void sky() {
         // Moon disk: Match sun size
         float moon_size = 0.05;
         float moon_disk = smoothstep(moon_size * 0.5, moon_size * 0.45, moon_dist);
-        float moon_disk_intensity = step(0.001, LIGHT1_ENERGY);
+        float moon_disk_intensity = smoothstep(0.0, 0.1, LIGHT1_ENERGY);
         cloud_final_color += LIGHT1_COLOR * moon_disk * moon_disk_intensity;
 
         // Moon glow
