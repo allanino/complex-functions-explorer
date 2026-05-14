@@ -8,7 +8,6 @@ extends CanvasLayer
 # New UI Node Paths
 @onready var tab_container = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer
 @onready var func_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/FuncContainer/FuncButton
-@onready var height_label = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/HeightContainer/Label
 @onready var height_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/HeightContainer/HeightButton
 @onready var height_a_container = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/HeightAContainer
 @onready var height_a_input = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/HeightAContainer/HeightAInput
@@ -47,7 +46,7 @@ func _ready():
 	func_button.add_item("Rational")
 
 	height_button.clear()
-	height_button.add_item("Logarithmic")
+	height_button.add_item("Logarithmic (a*log(ε + abs))")
 	height_button.add_item("Absolute")
 
 func toggle_menu():
@@ -81,10 +80,6 @@ func _on_height_selected(index):
 	var is_log = (index == 0)
 	height_a_container.visible = is_log
 	height_eps_container.visible = is_log
-	if is_log:
-		height_label.text = "Height Map: a*log(ε + abs)"
-	else:
-		height_label.text = "Height Map"
 
 func _parse_poly(text: String) -> PackedFloat32Array:
 	var coeffs = PackedFloat32Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
