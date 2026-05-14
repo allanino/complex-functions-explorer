@@ -58,6 +58,9 @@ func _unhandled_input(event):
 		elif event.keycode == KEY_C:
 			if auto_walk_state == AutoWalkState.NONE:
 				auto_walk_state = AutoWalkState.MOVING_TO_LINE
+				# Reset zero counter when starting auto-walk
+				Field.visited_zeros.clear()
+				last_detected_t = -1.0
 			else:
 				auto_walk_state = AutoWalkState.NONE
 
