@@ -1,12 +1,14 @@
 extends CanvasLayer
 
 @export var player: Node3D
-@onready var complex_rect = $Control/ComplexPanel/MarginContainer/ComplexPlane
-@onready var domain_label = $Control/InfoPanel/MarginContainer/VBox/DomainLabel
-@onready var target_label = $Control/InfoPanel/MarginContainer/VBox/TargetLabel
-@onready var zeros_panel = $Control/ZerosPanel
-@onready var zeros_count_label = $Control/ZerosPanel/MarginContainer/VBox/CountLabel
-@onready var zeros_list_label = $Control/ZerosPanel/MarginContainer/VBox/Scroll/ListLabel
+@onready var complex_panel = $Control/HUDStack/ComplexPanel
+@onready var info_panel = $Control/HUDStack/InfoPanel
+@onready var complex_rect = $Control/HUDStack/ComplexPanel/MarginContainer/ComplexPlane
+@onready var domain_label = $Control/HUDStack/InfoPanel/MarginContainer/VBox/DomainLabel
+@onready var target_label = $Control/HUDStack/InfoPanel/MarginContainer/VBox/TargetLabel
+@onready var zeros_panel = $Control/HUDStack/ZerosPanel
+@onready var zeros_count_label = $Control/HUDStack/ZerosPanel/MarginContainer/VBox/CountLabel
+@onready var zeros_list_label = $Control/HUDStack/ZerosPanel/MarginContainer/VBox/Scroll/ListLabel
 @onready var menu_overlay = $Control/MenuOverlay
 
 # New UI Node Paths
@@ -33,6 +35,11 @@ extends CanvasLayer
 @onready var critical_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/CriticalContainer/CriticalCheckbox
 @onready var golden_hour_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/GoldenHourContainer/GoldenHourCheckbox
 @onready var shadows_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/ShadowsContainer/ShadowsCheckbox
+
+@onready var hud_complex_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/HudComplexContainer/HudComplexCheckbox
+@onready var hud_navigation_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/HudNavigationContainer/HudNavigationCheckbox
+@onready var hud_zeros_container = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/HudZetaZerosContainer
+@onready var hud_zeros_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/HudZetaZerosContainer/HudZetaZerosCheckbox
 
 @onready var apply_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/ApplyButton
 
@@ -78,6 +85,9 @@ func toggle_menu():
 		critical_checkbox.button_pressed = Field.show_critical_stripe
 		golden_hour_checkbox.button_pressed = Field.golden_hour
 		shadows_checkbox.button_pressed = Field.shadows_enabled
+		hud_complex_checkbox.button_pressed = Field.show_hud_complex
+		hud_navigation_checkbox.button_pressed = Field.show_hud_navigation
+		hud_zeros_checkbox.button_pressed = Field.show_hud_zeros
 
 		func_button.selected = Field.function_type
 		height_button.selected = Field.height_type
@@ -90,6 +100,7 @@ func _on_func_selected(index):
 	rational_container.visible = (index == 6)
 	iter_container.visible = (index == 0)
 	critical_container.visible = (index == 0)
+	hud_zeros_container.visible = (index == 0)
 
 func _on_height_selected(index):
 	var is_log = (index == 0)
@@ -143,6 +154,9 @@ func _on_set_pos_pressed():
 	Field.show_critical_stripe = critical_checkbox.button_pressed
 	Field.golden_hour = golden_hour_checkbox.button_pressed
 	Field.shadows_enabled = shadows_checkbox.button_pressed
+	Field.show_hud_complex = hud_complex_checkbox.button_pressed
+	Field.show_hud_navigation = hud_navigation_checkbox.button_pressed
+	Field.show_hud_zeros = hud_zeros_checkbox.button_pressed
 	Field.function_type = func_button.selected
 	Field.height_type = height_button.selected
 
@@ -176,7 +190,7 @@ func _process(_delta):
 	if player and "auto_walk_state" in player:
 		is_auto_walking = player.auto_walk_state != 0 # 0 is AutoWalkState.NONE
 
-	var show_zeros = (Field.function_type == 0 and is_auto_walking)
+	var show_zeros = (Field.function_type == 0 and is_auto_walking and Field.show_hud_zeros)
 	zeros_panel.visible = show_zeros
 
 	if show_zeros:
@@ -197,3 +211,6 @@ func _process(_delta):
 
 	domain_label.text = "DOMAIN\nRe = %.3f\nIm = %.3f" % [x * 0.1, -z * 0.1]
 	target_label.text = "TARGET\nRe = %.3f\nIm = %.3f\n|f| = %.3f" % [f.x, f.y, f.length()]
+
+	complex_panel.visible = Field.show_hud_complex
+	info_panel.visible = Field.show_hud_navigation

@@ -13,6 +13,9 @@ static var height_a: float = 3.0
 static var height_epsilon: float = 1.0
 static var movement_speed: float = 10.0
 static var camera_height: float = 1.8
+static var show_hud_complex: bool = true
+static var show_hud_navigation: bool = true
+static var show_hud_zeros: bool = true
 
 static var visited_zeros: Array[float] = []
 
