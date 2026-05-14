@@ -62,6 +62,8 @@ func _process(delta):
 			chunk.material_override.set_shader_parameter("show_critical_stripe", Field.show_critical_stripe)
 			chunk.material_override.set_shader_parameter("function_type", Field.function_type)
 			chunk.material_override.set_shader_parameter("height_type", Field.height_type)
+			chunk.material_override.set_shader_parameter("height_a", Field.height_a)
+			chunk.material_override.set_shader_parameter("height_epsilon", Field.height_epsilon)
 			chunk.material_override.set_shader_parameter("rational_num_coeffs", Field.rational_num_coeffs)
 			chunk.material_override.set_shader_parameter("rational_den_coeffs", Field.rational_den_coeffs)
 
