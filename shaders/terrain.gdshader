@@ -3,7 +3,7 @@ shader_type spatial;
 #include "res://shaders/field.gdshaderinc"
 
 varying vec3 world_pos;
-varying vec3 normal;
+varying vec3 v_normal;
 varying vec2 field_val;
 
 uniform int surface_shading_mode = 2; // 0: Disabled, 1: Estimated, 2: Precise
@@ -42,11 +42,11 @@ void vertex() {
 
         vec3 v_right = vec3(delta, h_right - h, 0.0);
         vec3 v_forward = vec3(0.0, h_forward - h, delta);
-        normal = normalize(cross(v_forward, v_right));
+        v_normal = normalize(cross(v_forward, v_right));
     } else {
-        normal = vec3(0.0, 1.0, 0.0);
+        v_normal = vec3(0.0, 1.0, 0.0);
     }
-    NORMAL = (MODEL_NORMAL_MATRIX * normal);
+    NORMAL = (MODEL_NORMAL_MATRIX * v_normal);
 }
 
 void fragment() {
@@ -84,7 +84,7 @@ void fragment() {
     }
 
     if (surface_shading_mode == 1) {
-        NORMAL = normalize(cross(dFdy(world_pos), dFdx(world_pos)));
+        NORMAL = normalize(cross(dFdy(VERTEX), dFdx(VERTEX)));
     }
 
     ALBEDO = base * 0.4;

@@ -26,6 +26,7 @@ extends CanvasLayer
 @onready var critical_container = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/CriticalContainer
 @onready var critical_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/CriticalContainer/CriticalCheckbox
 @onready var golden_hour_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/GoldenHourContainer/GoldenHourCheckbox
+@onready var shadows_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/ShadowsContainer/ShadowsCheckbox
 
 @onready var apply_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/ApplyButton
 
@@ -68,6 +69,7 @@ func toggle_menu():
 		curves_checkbox.button_pressed = Field.show_curves
 		critical_checkbox.button_pressed = Field.show_critical_stripe
 		golden_hour_checkbox.button_pressed = Field.golden_hour
+		shadows_checkbox.button_pressed = Field.shadows_enabled
 
 		func_button.selected = Field.function_type
 		height_button.selected = Field.height_type
@@ -128,6 +130,7 @@ func _on_set_pos_pressed():
 	Field.show_curves = curves_checkbox.button_pressed
 	Field.show_critical_stripe = critical_checkbox.button_pressed
 	Field.golden_hour = golden_hour_checkbox.button_pressed
+	Field.shadows_enabled = shadows_checkbox.button_pressed
 	Field.function_type = func_button.selected
 	Field.height_type = height_button.selected
 

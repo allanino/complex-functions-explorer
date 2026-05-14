@@ -48,6 +48,7 @@ func _process(delta):
 		sun.basis = Basis.looking_at(target_dir, Vector3.FORWARD if abs(target_dir.y) < 0.99 else Vector3.UP)
 		sun.light_color = lerp(Color.WHITE, Color(1.0, 0.5, 0.2), _golden_hour_transition)
 		sun.light_energy = lerp(1.0, 1.5, _golden_hour_transition)
+		sun.shadow_enabled = Field.shadows_enabled
 
 	if world_environment and world_environment.environment and world_environment.environment.sky:
 		var sky_mat = world_environment.environment.sky.sky_material as ShaderMaterial
