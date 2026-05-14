@@ -3,6 +3,7 @@ extends CharacterBody3D
 const MOUSE_SENSITIVITY = 0.002
 const DOUBLE_PRESS_TIME = 0.3
 const CRITICAL_LINE_X = 5.0
+const AUTO_WALK_PITCH = -0.2618 # -15 degrees in radians
 
 enum AutoWalkState { NONE, MOVING_TO_LINE, ALIGNING, WALKING }
 
@@ -108,7 +109,7 @@ func _physics_process(delta):
 			rotation.y = lerp_angle(rotation.y, target_angle, 5.0 * delta)
 
 			# Face camera forward (relative to player)
-			rotation_x = lerp(rotation_x, 0.0, 5.0 * delta)
+			rotation_x = lerp(rotation_x, AUTO_WALK_PITCH, 5.0 * delta)
 			camera.rotation.x = rotation_x
 
 			direction = walk_dir
@@ -117,12 +118,12 @@ func _physics_process(delta):
 		# Target is facing forward (-Z)
 		var target_angle = 0.0
 		rotation.y = lerp_angle(rotation.y, target_angle, 5.0 * delta)
-		rotation_x = lerp(rotation_x, 0.0, 5.0 * delta)
+		rotation_x = lerp(rotation_x, AUTO_WALK_PITCH, 5.0 * delta)
 		camera.rotation.x = rotation_x
 
 		direction = Vector3.ZERO
 
-		if abs(angle_difference(rotation.y, target_angle)) < 0.01 and abs(rotation_x) < 0.01:
+		if abs(angle_difference(rotation.y, target_angle)) < 0.01 and abs(rotation_x - AUTO_WALK_PITCH) < 0.01:
 			auto_walk_state = AutoWalkState.WALKING
 
 	elif auto_walk_state == AutoWalkState.WALKING:
