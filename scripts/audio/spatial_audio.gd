@@ -244,7 +244,8 @@ func fill_buffer():
 
 		if not is_finite(sample): sample = 0.0
 
-		var frame = Vector2.ONE * sample * current_volume
+		var drone_vol_scale = Field.drone_volume / 100.0
+		var frame = Vector2.ONE * sample * current_volume * drone_vol_scale
 
 		# Apply Stereo Panning
 		var pan_l = clamp(1.0 - current_pan, 0.0, 1.0)
@@ -263,16 +264,19 @@ func _process_audio_toggles():
 	# 1. Background Music
 	var music = get_node_or_null("BackgroundMusic")
 	if music:
-		if Field.bg_music_enabled:
+		if Field.bg_music_volume > 0:
 			if not music.playing:
 				music.play()
+			# Map 0-100 to dB. 100 -> -12dB (original), 1 -> -52dB, 0 -> stop
+			var volume_linear = Field.bg_music_volume / 100.0
+			music.volume_db = linear_to_db(volume_linear) - 12.0
 		else:
 			if music.playing:
 				music.stop()
 
 	# 2. Topographic Drone
 	var drone = $AudioStreamPlayer
-	if Field.drone_enabled:
+	if Field.drone_volume > 0:
 		if not drone.playing:
 			drone.play()
 			# When resuming, we might need to re-fetch playback
