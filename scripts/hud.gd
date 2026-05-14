@@ -65,7 +65,7 @@ func toggle_menu():
 			re_input.text = "%.3f" % (player.global_position.x * 0.1)
 			im_input.text = "%.3f" % (-player.global_position.z * 0.1)
 		iter_input.text = str(Field.iterations)
-		speed_input.text = str(Field.movement_speed)
+		speed_input.text = "%.1f" % (Field.movement_speed * 0.1)
 		camera_height_input.text = str(Field.camera_height)
 		height_a_input.text = str(Field.height_a)
 		height_eps_input.text = str(Field.height_epsilon)
@@ -126,7 +126,7 @@ func _on_set_pos_pressed():
 	var iters = int(iter_input.text)
 	var h_a = float(height_a_input.text)
 	var h_eps = float(height_eps_input.text)
-	var m_speed = float(speed_input.text)
+	var m_speed = float(speed_input.text) * 10.0
 	var c_height = float(camera_height_input.text)
 
 	Field.iterations = iters
