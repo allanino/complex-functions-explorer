@@ -172,4 +172,4 @@ func _process(_delta):
 	material.set_shader_parameter("current_f", f)
 	material.set_shader_parameter("scale", current_scale)
 
-	pos_label.text = "NAVIGATION\nRe = %.3f\nIm = %.3f\n-------------------\nTARGET\nRe = %.3f\nIm = %.3f\n|f| = %.3f" % [x * 0.1, -z * 0.1, f.x, f.y, f.length()]
+	pos_label.text = "DOMAIN\nRe = %.3f\nIm = %.3f\n-------------------\nTARGET\nRe = %.3f\nIm = %.3f\n|f| = %.3f" % [x * 0.1, -z * 0.1, f.x, f.y, f.length()]
