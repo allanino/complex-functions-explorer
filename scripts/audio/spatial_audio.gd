@@ -151,7 +151,7 @@ func _process(delta):
 	# --- MAPPINGS ---
 
 	# 1. MAGNITUDE |f|
-	target_volume = clamp(0.8 - mag * 0.05, 0.2, 0.7)
+	target_volume = clamp(0.20 - mag * 0.01, 0.0, 0.2)
 
 	# 2. PROXIMITY TO ZERO
 	var proximity = 1.0 / (0.05 + mag)
