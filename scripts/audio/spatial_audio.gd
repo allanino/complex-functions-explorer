@@ -117,12 +117,20 @@ func _process(delta):
 	var pos = Vector3.ZERO
 	if player:
 		pos = player.global_position
-		global_transform = player.global_transform
+		var camera = player.get_node_or_null("Camera3D")
+		if camera:
+			global_transform = camera.global_transform
+		else:
+			global_transform = player.global_transform
 	else:
 		player = get_tree().root.find_child("Player", true, false)
 		if player:
 			pos = player.global_position
-			global_transform = player.global_transform
+			var camera = player.get_node_or_null("Camera3D")
+			if camera:
+				global_transform = camera.global_transform
+			else:
+				global_transform = player.global_transform
 
 	# Sample Zeta field
 	var f = Field.get_field(pos.x, pos.z)
