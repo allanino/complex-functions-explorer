@@ -19,7 +19,8 @@ float sdSegment(vec2 p, vec2 a, vec2 b) {
 
 void fragment() {
     // Map UV to complex plane [-scale, scale]
-    vec2 z = (UV - 0.5) * 2.0 * scale;
+    // Invert Y so that positive imaginary values are at the top
+    vec2 z = (vec2(UV.x, 1.0 - UV.y) - 0.5) * 2.0 * scale;
 
     // Calculate phase and magnitude
     float phase = atan(z.y, z.x);
