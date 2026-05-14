@@ -1,8 +1,9 @@
 extends CanvasLayer
 
 @export var player: Node3D
-@onready var complex_rect = $Control/ComplexPlane
-@onready var pos_label = $Control/PosLabel
+@onready var complex_rect = $Control/ComplexPanel/MarginContainer/ComplexPlane
+@onready var domain_label = $Control/InfoPanel/MarginContainer/VBox/DomainLabel
+@onready var target_label = $Control/InfoPanel/MarginContainer/VBox/TargetLabel
 @onready var zeros_panel = $Control/ZerosPanel
 @onready var zeros_count_label = $Control/ZerosPanel/MarginContainer/VBox/CountLabel
 @onready var zeros_list_label = $Control/ZerosPanel/MarginContainer/VBox/Scroll/ListLabel
@@ -186,4 +187,5 @@ func _process(_delta):
 	material.set_shader_parameter("current_f", f)
 	material.set_shader_parameter("scale", current_scale)
 
-	pos_label.text = "DOMAIN\nRe = %.3f\nIm = %.3f\n-------------------\nTARGET\nRe = %.3f\nIm = %.3f\n|f| = %.3f" % [x * 0.1, -z * 0.1, f.x, f.y, f.length()]
+	domain_label.text = "DOMAIN\nRe = %.3f\nIm = %.3f" % [x * 0.1, -z * 0.1]
+	target_label.text = "TARGET\nRe = %.3f\nIm = %.3f\n|f| = %.3f" % [f.x, f.y, f.length()]
