@@ -203,7 +203,7 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="ComplexPanel" type="PanelContainer" parent="Control"]
+[node name="HUDStack" type="VBoxContainer" parent="Control"]
 layout_mode = 1
 anchors_preset = 3
 anchor_left = 1.0
@@ -211,38 +211,54 @@ anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = -270.0
-offset_top = -250.0
+offset_top = -630.0
 offset_right = -20.0
 offset_bottom = -20.0
 grow_horizontal = 0
 grow_vertical = 0
+theme_override_constants/separation = 10
+alignment = 2
+
+[node name="ZerosPanel" type="PanelContainer" parent="Control/HUDStack"]
+visible = false
+custom_minimum_size = Vector2(0, 160)
+layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_glass")
 
-[node name="MarginContainer" type="MarginContainer" parent="Control/ComplexPanel"]
+[node name="MarginContainer" type="MarginContainer" parent="Control/ZerosPanel"]
 layout_mode = 2
-theme_override_constants/margin_left = 5
-theme_override_constants/margin_top = 5
-theme_override_constants/margin_right = 5
-theme_override_constants/margin_bottom = 5
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
 
-[node name="ComplexPlane" type="ColorRect" parent="Control/ComplexPanel/MarginContainer"]
-material = SubResource("ShaderMaterial_1")
-mouse_filter = 2
+[node name="VBox" type="VBoxContainer" parent="Control/ZerosPanel/MarginContainer"]
 layout_mode = 2
 
-[node name="InfoPanel" type="PanelContainer" parent="Control"]
-layout_mode = 1
-anchors_preset = 3
-anchor_left = 1.0
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = -270.0
-offset_top = -460.0
-offset_right = -20.0
-offset_bottom = -260.0
-grow_horizontal = 0
-grow_vertical = 0
+[node name="CountLabel" type="Label" parent="Control/ZerosPanel/MarginContainer/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "ZEROS DETECTED: 0"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="Control/ZerosPanel/MarginContainer/VBox"]
+layout_mode = 2
+
+[node name="Scroll" type="ScrollContainer" parent="Control/ZerosPanel/MarginContainer/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="ListLabel" type="Label" parent="Control/ZerosPanel/MarginContainer/VBox/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 14
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="InfoPanel" type="PanelContainer" parent="Control/HUDStack"]
+custom_minimum_size = Vector2(0, 200)
+layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_glass")
 
 [node name="MarginContainer" type="MarginContainer" parent="Control/InfoPanel"]
@@ -276,52 +292,22 @@ Im = 0.000
 |f| = 0.000"
 horizontal_alignment = 1
 
-[node name="ZerosPanel" type="PanelContainer" parent="Control"]
-visible = false
-layout_mode = 1
-anchors_preset = 3
-anchor_left = 1.0
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = -270.0
-offset_top = -630.0
-offset_right = -20.0
-offset_bottom = -482.0
-grow_horizontal = 0
-grow_vertical = 0
+[node name="ComplexPanel" type="PanelContainer" parent="Control/HUDStack"]
+custom_minimum_size = Vector2(0, 230)
+layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_glass")
 
-[node name="MarginContainer" type="MarginContainer" parent="Control/ZerosPanel"]
+[node name="MarginContainer" type="MarginContainer" parent="Control/ComplexPanel"]
 layout_mode = 2
-theme_override_constants/margin_left = 10
-theme_override_constants/margin_top = 10
-theme_override_constants/margin_right = 10
-theme_override_constants/margin_bottom = 10
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_top = 5
+theme_override_constants/margin_right = 5
+theme_override_constants/margin_bottom = 5
 
-[node name="VBox" type="VBoxContainer" parent="Control/ZerosPanel/MarginContainer"]
+[node name="ComplexPlane" type="ColorRect" parent="Control/ComplexPanel/MarginContainer"]
+material = SubResource("ShaderMaterial_1")
+mouse_filter = 2
 layout_mode = 2
-
-[node name="CountLabel" type="Label" parent="Control/ZerosPanel/MarginContainer/VBox"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 18
-text = "ZEROS DETECTED: 0"
-horizontal_alignment = 1
-
-[node name="HSeparator" type="HSeparator" parent="Control/ZerosPanel/MarginContainer/VBox"]
-layout_mode = 2
-
-[node name="Scroll" type="ScrollContainer" parent="Control/ZerosPanel/MarginContainer/VBox"]
-layout_mode = 2
-size_flags_vertical = 3
-horizontal_scroll_mode = 0
-
-[node name="ListLabel" type="Label" parent="Control/ZerosPanel/MarginContainer/VBox/Scroll"]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 14
-horizontal_alignment = 1
-autowrap_mode = 3
 
 [node name="MenuOverlay" type="ColorRect" parent="Control"]
 visible = false
@@ -671,6 +657,75 @@ theme_override_font_sizes/font_size = 18
 text = "Shadows"
 
 [node name="ShadowsCheckbox" type="CheckBox" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/ShadowsContainer"]
+custom_minimum_size = Vector2(10, 10)
+layout_mode = 2
+size_flags_vertical = 4
+focus_mode = 0
+theme_override_constants/h_separation = 0
+theme_override_styles/normal = SubResource("StyleBoxFlat_checkbox")
+theme_override_styles/hover = SubResource("StyleBoxFlat_checkbox_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_checkbox")
+theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_checkbox_hover")
+theme_override_styles/focus = SubResource("StyleBoxFlat_checkbox")
+
+[node name="HudComplexContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING"]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="Label" type="Label" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/HudComplexContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 18
+text = "HUD / Complex plane"
+
+[node name="HudComplexCheckbox" type="CheckBox" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/HudComplexContainer"]
+custom_minimum_size = Vector2(10, 10)
+layout_mode = 2
+size_flags_vertical = 4
+focus_mode = 0
+theme_override_constants/h_separation = 0
+theme_override_styles/normal = SubResource("StyleBoxFlat_checkbox")
+theme_override_styles/hover = SubResource("StyleBoxFlat_checkbox_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_checkbox")
+theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_checkbox_hover")
+theme_override_styles/focus = SubResource("StyleBoxFlat_checkbox")
+
+[node name="HudNavigationContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING"]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="Label" type="Label" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/HudNavigationContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 18
+text = "HUD / Navigation"
+
+[node name="HudNavigationCheckbox" type="CheckBox" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/HudNavigationContainer"]
+custom_minimum_size = Vector2(10, 10)
+layout_mode = 2
+size_flags_vertical = 4
+focus_mode = 0
+theme_override_constants/h_separation = 0
+theme_override_styles/normal = SubResource("StyleBoxFlat_checkbox")
+theme_override_styles/hover = SubResource("StyleBoxFlat_checkbox_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_checkbox")
+theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_checkbox_hover")
+theme_override_styles/focus = SubResource("StyleBoxFlat_checkbox")
+
+[node name="HudZetaZerosContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING"]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="Label" type="Label" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/HudZetaZerosContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 18
+text = "HUD / Zeta zeros"
+
+[node name="HudZetaZerosCheckbox" type="CheckBox" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/HudZetaZerosContainer"]
 custom_minimum_size = Vector2(10, 10)
 layout_mode = 2
 size_flags_vertical = 4
