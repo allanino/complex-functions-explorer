@@ -16,6 +16,8 @@ static var camera_height: float = 1.8
 static var show_hud_complex: bool = true
 static var show_hud_navigation: bool = true
 static var show_hud_zeros: bool = true
+static var bg_music_enabled: bool = true
+static var drone_enabled: bool = true
 
 static var visited_zeros: Array[float] = []
 

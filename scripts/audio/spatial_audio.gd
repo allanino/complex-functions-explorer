@@ -110,6 +110,8 @@ func setup_audio_bus_and_effects():
 	$AudioStreamPlayer.bus = bus_name
 
 func _process(delta):
+	_process_audio_toggles()
+
 	if playback == null:
 		var stream_player = $AudioStreamPlayer
 		if stream_player.playing:
@@ -256,3 +258,26 @@ func fill_buffer():
 			playback.push_frame(Vector2.ZERO)
 
 		to_fill -= 1
+
+func _process_audio_toggles():
+	# 1. Background Music
+	var music = get_node_or_null("BackgroundMusic")
+	if music:
+		if Field.bg_music_enabled:
+			if not music.playing:
+				music.play()
+		else:
+			if music.playing:
+				music.stop()
+
+	# 2. Topographic Drone
+	var drone = $AudioStreamPlayer
+	if Field.drone_enabled:
+		if not drone.playing:
+			drone.play()
+			# When resuming, we might need to re-fetch playback
+			playback = drone.get_stream_playback()
+	else:
+		if drone.playing:
+			drone.stop()
+			playback = null
