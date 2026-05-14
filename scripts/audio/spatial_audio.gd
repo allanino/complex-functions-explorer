@@ -19,8 +19,6 @@ var target_volume: float = 0.3
 var current_volume: float = 0.2
 var target_frequency: float = BASE_FREQUENCY
 var current_frequency: float = BASE_FREQUENCY
-var target_pan: float = 0.0
-var current_pan: float = 0.0
 var target_harmonic_intensity: float = 0.0
 var current_harmonic_intensity: float = 0.0
 var target_resonance: float = 0.0
@@ -41,7 +39,7 @@ func _ready():
 
 	setup_audio_bus_and_effects()
 
-	var stream_player = $AudioStreamPlayer
+	var stream_player = $AudioStreamPlayer3D
 	# Ensure the generator is correctly configured
 	var generator = AudioStreamGenerator.new()
 	generator.mix_rate = 44100
@@ -107,11 +105,11 @@ func setup_audio_bus_and_effects():
 	reverb_effect.wet = REVERB_AMOUNT
 	AudioServer.add_bus_effect(bus_index, reverb_effect)
 
-	$AudioStreamPlayer.bus = bus_name
+	$AudioStreamPlayer3D.bus = bus_name
 
 func _process(delta):
 	if playback == null:
-		var stream_player = $AudioStreamPlayer
+		var stream_player = $AudioStreamPlayer3D
 		if stream_player.playing:
 			playback = stream_player.get_stream_playback()
 		if playback == null: return
@@ -119,9 +117,12 @@ func _process(delta):
 	var pos = Vector3.ZERO
 	if player:
 		pos = player.global_position
+		global_transform = player.global_transform
 	else:
 		player = get_tree().root.find_child("Player", true, false)
-		if player: pos = player.global_position
+		if player:
+			pos = player.global_position
+			global_transform = player.global_transform
 
 	# Sample Zeta field
 	var f = Field.get_field(pos.x, pos.z)
@@ -155,8 +156,9 @@ func _process(delta):
 	target_harmonic_intensity = clamp(proximity * 0.08, 0.0, 0.4)
 	target_fm_index = clamp(proximity * 0.4, 0.0, 4.0)
 
-	# 3. PHASE arg(f)
-	target_pan = sin(arg) * PHASE_PAN_STRENGTH
+	# 3. PHASE arg(f) -> 3D POSITION
+	var radius = 5.0
+	$AudioStreamPlayer3D.position = Vector3(cos(arg) * radius, 0, -sin(arg) * radius)
 
 	# 4. CRITICAL LINE (sigma = 0.5)
 	var dist_to_critical = abs(sigma - 0.5)
@@ -165,13 +167,11 @@ func _process(delta):
 
 	# --- FINITE CHECKS BEFORE LERP ---
 	if not is_finite(target_frequency): target_frequency = BASE_FREQUENCY
-	if not is_finite(target_pan): target_pan = 0.0
 
 	# --- SMOOTHING ---
 	# Significantly increased interpolation weights for instantaneous response
 	current_volume = lerp(current_volume, target_volume, delta * 20.0)
 	current_frequency = lerp(current_frequency, target_frequency, delta * 30.0)
-	current_pan = lerp(current_pan, target_pan, delta * 16.0)
 	current_harmonic_intensity = lerp(current_harmonic_intensity, target_harmonic_intensity, delta * 24.0)
 	current_resonance = lerp(current_resonance, target_resonance, delta * 20.0)
 	current_fm_index = lerp(current_fm_index, target_fm_index, delta * 10.0)
@@ -243,12 +243,6 @@ func fill_buffer():
 		if not is_finite(sample): sample = 0.0
 
 		var frame = Vector2.ONE * sample * current_volume
-
-		# Apply Stereo Panning
-		var pan_l = clamp(1.0 - current_pan, 0.0, 1.0)
-		var pan_r = clamp(1.0 + current_pan, 0.0, 1.0)
-		frame.x *= pan_l
-		frame.y *= pan_r
 
 		if is_finite(frame.x) and is_finite(frame.y):
 			playback.push_frame(frame)
