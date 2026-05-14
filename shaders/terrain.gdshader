@@ -87,7 +87,7 @@ void fragment() {
         NORMAL = normalize(cross(dFdy(VERTEX), dFdx(VERTEX)));
     }
 
-    ALBEDO = base * 0.4;
+    ALBEDO = base * 0.5;
     vec3 final_emission = base * 0.05;
 
     // Only apply the lines rendering for zeta (at x = 0, x = 5.0, x = 10.0)
@@ -122,10 +122,10 @@ void fragment() {
     }
 
     float fresnel = pow(1.0 - dot(NORMAL, VIEW), 3.0);
-    final_emission += fresnel * 0.05;
+    final_emission += fresnel * 0.03;
 
     EMISSION = final_emission;
-	ROUGHNESS = 0.4;
-	METALLIC = 0.2;
-	SPECULAR = 0.5;
+	ROUGHNESS = 0.05;
+	METALLIC = 0.4;
+	SPECULAR = 0.2;
 }
