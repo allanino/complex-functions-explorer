@@ -10,7 +10,7 @@ var chunks = {}
 @onready var sun = get_node("../DirectionalLight3D")
 @onready var world_environment = get_node("../WorldEnvironment")
 
-var _sunset_transition: float = 0.0
+var _golden_hour_transition: float = 0.0
 
 func _process(delta):
 	if not player:
@@ -36,22 +36,22 @@ func _process(delta):
 	for chunk_coord in chunks_to_remove:
 		_unload_chunk(chunk_coord)
 
-	# Update sun and sky for sunset
-	if Field.sunset:
-		_sunset_transition = min(_sunset_transition + delta * 0.5, 1.0)
+	# Update sun and sky for golden hour
+	if Field.golden_hour:
+		_golden_hour_transition = min(_golden_hour_transition + delta * 0.5, 1.0)
 	else:
-		_sunset_transition = max(_sunset_transition - delta * 0.5, 0.0)
+		_golden_hour_transition = max(_golden_hour_transition - delta * 0.5, 0.0)
 
 	if sun:
-		var target_dir = lerp(Vector3.DOWN, Vector3(-1.0, -0.1, 0.0).normalized(), _sunset_transition)
+		var target_dir = lerp(Vector3.DOWN, Vector3(-1.0, -0.1, 0.0).normalized(), _golden_hour_transition)
 		sun.basis = Basis.looking_at(target_dir, Vector3.FORWARD if abs(target_dir.y) < 0.99 else Vector3.UP)
-		sun.light_color = lerp(Color.WHITE, Color(1.0, 0.5, 0.2), _sunset_transition)
-		sun.light_energy = lerp(1.0, 1.5, _sunset_transition)
+		sun.light_color = lerp(Color.WHITE, Color(1.0, 0.5, 0.2), _golden_hour_transition)
+		sun.light_energy = lerp(1.0, 1.5, _golden_hour_transition)
 
 	if world_environment and world_environment.environment and world_environment.environment.sky:
 		var sky_mat = world_environment.environment.sky.sky_material as ShaderMaterial
 		if sky_mat:
-			sky_mat.set_shader_parameter("sunset_factor", _sunset_transition)
+			sky_mat.set_shader_parameter("golden_hour_factor", _golden_hour_transition)
 
 	# Update iterations and normal computation uniforms in all chunks
 	for chunk in chunks.values():

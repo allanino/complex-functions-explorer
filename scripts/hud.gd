@@ -21,7 +21,7 @@ extends CanvasLayer
 @onready var curves_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/CurvesContainer/CurvesCheckbox
 @onready var critical_container = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/CriticalContainer
 @onready var critical_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/CriticalContainer/CriticalCheckbox
-@onready var sunset_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/SunsetContainer/SunsetCheckbox
+@onready var golden_hour_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/GoldenHourContainer/GoldenHourCheckbox
 
 @onready var apply_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/ApplyButton
 
@@ -55,7 +55,7 @@ func toggle_menu():
 		normals_checkbox.button_pressed = Field.compute_normals
 		curves_checkbox.button_pressed = Field.show_curves
 		critical_checkbox.button_pressed = Field.show_critical_stripe
-		sunset_checkbox.button_pressed = Field.sunset
+		golden_hour_checkbox.button_pressed = Field.golden_hour
 
 		func_button.selected = Field.function_type
 		height_button.selected = Field.height_type
@@ -105,7 +105,7 @@ func _on_set_pos_pressed():
 	Field.compute_normals = normals_checkbox.button_pressed
 	Field.show_curves = curves_checkbox.button_pressed
 	Field.show_critical_stripe = critical_checkbox.button_pressed
-	Field.sunset = sunset_checkbox.button_pressed
+	Field.golden_hour = golden_hour_checkbox.button_pressed
 	Field.function_type = func_button.selected
 	Field.height_type = height_button.selected
 
