@@ -63,8 +63,11 @@ void sky() {
     current_horizon = mix(current_horizon, blue_hour_horizon, blue_hour_factor);
     current_horizon = mix(current_horizon, night_horizon, smoothstep(0.5, 1.0, night_factor));
 
+    vec3 blue_hour_cloud = vec3(0.15, 0.2, 0.4);
+
     vec3 current_cloud = mix(cloud_color, golden_hour_cloud, golden_hour_factor);
-    current_cloud = mix(current_cloud, vec3(0.1, 0.15, 0.3), night_factor);
+    current_cloud = mix(current_cloud, blue_hour_cloud, blue_hour_factor);
+    current_cloud = mix(current_cloud, vec3(0.05, 0.08, 0.15), smoothstep(0.5, 1.0, night_factor));
 
     // Sky gradient
     vec3 final_color = mix(current_horizon, current_sky, clamp(eye_alt * 2.0, 0.0, 1.0));
@@ -112,12 +115,14 @@ void sky() {
     }
 
     // Sun
-    if (LIGHT0_ENABLED) {
+    if (LIGHT0_ENABLED && LIGHT0_ENERGY > 0.0) {
         float sun_dist = distance(EYEDIR, LIGHT0_DIRECTION);
         // Sun disk: Fixed size to prevent shrinking near horizon
         float sun_size = 0.05;
         float sun_disk = smoothstep(sun_size * 0.5, sun_size * 0.45, sun_dist);
-        cloud_final_color += LIGHT0_COLOR * sun_disk * clamp(LIGHT0_ENERGY, 0.0, 1.0);
+        // disk_intensity stays 1.0 while sun is visible to keep its size
+        float disk_intensity = step(0.001, LIGHT0_ENERGY);
+        cloud_final_color += LIGHT0_COLOR * sun_disk * disk_intensity;
 
         // Sun glow (Mie-like scattering approximation)
         float mie = 0.01 / (0.001 + sun_dist * sun_dist * 10.0);
@@ -133,7 +138,8 @@ void sky() {
         // Moon disk: Match sun size
         float moon_size = 0.05;
         float moon_disk = smoothstep(moon_size * 0.5, moon_size * 0.45, moon_dist);
-        cloud_final_color += LIGHT1_COLOR * moon_disk * clamp(LIGHT1_ENERGY * 2.5, 0.0, 1.0);
+        float moon_disk_intensity = step(0.001, LIGHT1_ENERGY);
+        cloud_final_color += LIGHT1_COLOR * moon_disk * moon_disk_intensity;
 
         // Moon glow
         float moon_glow = 0.01 / (0.001 + moon_dist * moon_dist * 10.0);

@@ -54,23 +54,23 @@ func _process(delta):
 		var moon_dir = -sun_dir
 
 		var sun_elevation = -sun_dir.y # Positive when above horizon
-		# Golden hour starts at 30 degrees (sin 30 = 0.5)
-		_golden_hour_transition = clamp(1.0 - abs(sun_elevation) * 2.0, 0.0, 1.0)
-		# Night factor kicks in as sun goes below horizon
-		night_factor = clamp(-sun_elevation * 3.0, 0.0, 1.0)
+		# Golden hour starts at 30 degrees (sin 30 = 0.5) and is full at 0 elevation
+		_golden_hour_transition = clamp(1.0 - sun_elevation * 2.0, 0.0, 1.0)
+		# Night factor kicks in as sun goes below horizon (0 to -0.3 elevation)
+		night_factor = clamp(-sun_elevation * 3.3, 0.0, 1.0)
 
 		if sun:
 			sun.basis = Basis.looking_at(sun_dir, Vector3.UP if abs(sun_dir.y) < 0.99 else Vector3.FORWARD)
-			# Keep energy high until very close to horizon to prevent shrinking look
-			sun.light_energy = clamp(sun_elevation * 10.0, 0.0, 1.0)
+			# Use smoothstep to keep energy high until the last moment
+			sun.light_energy = smoothstep(0.0, 0.05, sun_elevation)
 			sun.light_color = lerp(Color.WHITE, Color(1.0, 0.5, 0.2), _golden_hour_transition)
-			sun.shadow_enabled = Field.shadows_enabled and sun_elevation > 0.05
+			sun.shadow_enabled = Field.shadows_enabled and sun_elevation > 0.02
 
 		if moon:
 			moon.basis = Basis.looking_at(moon_dir, Vector3.UP if abs(moon_dir.y) < 0.99 else Vector3.FORWARD)
 			var moon_elevation = -moon_dir.y
-			moon.light_energy = clamp(moon_elevation * 10.0, 0.0, 0.4)
-			moon.shadow_enabled = Field.shadows_enabled and moon_elevation > 0.05
+			moon.light_energy = smoothstep(0.0, 0.05, moon_elevation) * 0.4
+			moon.shadow_enabled = Field.shadows_enabled and moon_elevation > 0.02
 	else:
 		if moon:
 			moon.light_energy = 0.0
