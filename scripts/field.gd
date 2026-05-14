@@ -2,10 +2,11 @@
 class_name Field
 
 static var iterations: int = 120
-static var compute_normals: bool = true
+static var surface_shading_mode: int = 2 # 0: Disabled, 1: Estimated, 2: Precise
 static var show_curves: bool = true
 static var show_critical_stripe: bool = true
 static var golden_hour: bool = false
+static var shadows_enabled: bool = false
 static var function_type: int = 0 # 0: Zeta, 1: Sin, 2: Cos, 3: Tan, 4: Exp, 5: Log, 6: Rational
 static var height_type: int = 0 # 0: Log, 1: Abs
 static var height_a: float = 3.0

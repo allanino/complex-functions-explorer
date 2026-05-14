@@ -30,7 +30,7 @@ float fbm(vec2 p) {
     float v = 0.0;
     float a = 0.5;
     mat2 rot = mat2(vec2(0.87758, 0.47942), vec2(-0.47942, 0.87758)); // approx cos(0.5), sin(0.5)
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 3; i++) {
         v += a * noise(p);
         p = rot * p * 2.0 + vec2(10.0);
         a *= 0.5;

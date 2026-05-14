@@ -475,17 +475,11 @@ theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
 theme_override_font_sizes/font_size = 18
 text = "Surface Shading"
 
-[node name="NormalsCheckbox" type="CheckBox" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/ShadingContainer"]
-custom_minimum_size = Vector2(10, 10)
+[node name="NormalsButton" type="OptionButton" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/ShadingContainer"]
 layout_mode = 2
-size_flags_vertical = 4
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 1.1
 focus_mode = 0
-theme_override_constants/h_separation = 0
-theme_override_styles/normal = SubResource("StyleBoxFlat_checkbox")
-theme_override_styles/hover = SubResource("StyleBoxFlat_checkbox_hover")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_checkbox")
-theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_checkbox_hover")
-theme_override_styles/focus = SubResource("StyleBoxFlat_checkbox")
 
 [node name="CurvesContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING"]
 layout_mode = 2
@@ -546,8 +540,31 @@ text = "Golden Hour"
 
 [node name="GoldenHourCheckbox" type="CheckBox" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/GoldenHourContainer"]
 custom_minimum_size = Vector2(5, 5)
-layout_mode = 1
-size_flags_vertical = 0
+layout_mode = 2
+size_flags_vertical = 4
+focus_mode = 0
+theme_override_constants/h_separation = 0
+theme_override_styles/normal = SubResource("StyleBoxFlat_checkbox")
+theme_override_styles/hover = SubResource("StyleBoxFlat_checkbox_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_checkbox")
+theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_checkbox_hover")
+theme_override_styles/focus = SubResource("StyleBoxFlat_checkbox")
+
+[node name="ShadowsContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING"]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="Label" type="Label" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/ShadowsContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 18
+text = "Shadows"
+
+[node name="ShadowsCheckbox" type="CheckBox" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/ShadowsContainer"]
+custom_minimum_size = Vector2(10, 10)
+layout_mode = 2
+size_flags_vertical = 4
 focus_mode = 0
 theme_override_constants/h_separation = 0
 theme_override_styles/normal = SubResource("StyleBoxFlat_checkbox")

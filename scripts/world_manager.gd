@@ -3,9 +3,10 @@ extends Node3D
 @export var chunk_scene: PackedScene = preload("res://scenes/chunk.tscn")
 @export var player: Node3D
 @export var chunk_size: float = 32.0
-@export var view_distance: int = 4
+@export var view_distance: int = 3
 
 var chunks = {}
+var _last_field_state = {}
 
 @onready var sun = get_node("../DirectionalLight3D")
 @onready var world_environment = get_node("../WorldEnvironment")
@@ -47,25 +48,47 @@ func _process(delta):
 		sun.basis = Basis.looking_at(target_dir, Vector3.UP if abs(target_dir.normalized().y) < 0.5 else Vector3.FORWARD)
 		sun.light_color = lerp(Color.WHITE, Color(1.0, 0.5, 0.2), _golden_hour_transition)
 		sun.light_energy = lerp(1.0, 1.5, _golden_hour_transition)
+		sun.shadow_enabled = Field.shadows_enabled
 
 	if world_environment and world_environment.environment and world_environment.environment.sky:
 		var sky_mat = world_environment.environment.sky.sky_material as ShaderMaterial
 		if sky_mat:
 			sky_mat.set_shader_parameter("golden_hour_factor", _golden_hour_transition)
 
-	# Update iterations and normal computation uniforms in all chunks
-	for chunk in chunks.values():
-		if chunk.material_override:
-			chunk.material_override.set_shader_parameter("iterations", Field.iterations)
-			chunk.material_override.set_shader_parameter("compute_normals", Field.compute_normals)
-			chunk.material_override.set_shader_parameter("show_curves", Field.show_curves)
-			chunk.material_override.set_shader_parameter("show_critical_stripe", Field.show_critical_stripe)
-			chunk.material_override.set_shader_parameter("function_type", Field.function_type)
-			chunk.material_override.set_shader_parameter("height_type", Field.height_type)
-			chunk.material_override.set_shader_parameter("height_a", Field.height_a)
-			chunk.material_override.set_shader_parameter("height_epsilon", Field.height_epsilon)
-			chunk.material_override.set_shader_parameter("rational_num_coeffs", Field.rational_num_coeffs)
-			chunk.material_override.set_shader_parameter("rational_den_coeffs", Field.rational_den_coeffs)
+	# Check if any field properties have changed
+	var current_field_state = {
+		"iterations": Field.iterations,
+		"surface_shading_mode": Field.surface_shading_mode,
+		"show_curves": Field.show_curves,
+		"show_critical_stripe": Field.show_critical_stripe,
+		"function_type": Field.function_type,
+		"height_type": Field.height_type,
+		"height_a": Field.height_a,
+		"height_epsilon": Field.height_epsilon,
+		"rational_num_coeffs": Field.rational_num_coeffs,
+		"rational_den_coeffs": Field.rational_den_coeffs
+	}
+
+	var state_changed = current_field_state != _last_field_state
+
+	if state_changed:
+		_last_field_state = current_field_state
+		# Update uniforms in all existing chunks
+		for chunk in chunks.values():
+			_update_chunk_uniforms(chunk)
+
+func _update_chunk_uniforms(chunk: MeshInstance3D):
+	if chunk.material_override:
+		chunk.material_override.set_shader_parameter("iterations", Field.iterations)
+		chunk.material_override.set_shader_parameter("surface_shading_mode", Field.surface_shading_mode)
+		chunk.material_override.set_shader_parameter("show_curves", Field.show_curves)
+		chunk.material_override.set_shader_parameter("show_critical_stripe", Field.show_critical_stripe)
+		chunk.material_override.set_shader_parameter("function_type", Field.function_type)
+		chunk.material_override.set_shader_parameter("height_type", Field.height_type)
+		chunk.material_override.set_shader_parameter("height_a", Field.height_a)
+		chunk.material_override.set_shader_parameter("height_epsilon", Field.height_epsilon)
+		chunk.material_override.set_shader_parameter("rational_num_coeffs", Field.rational_num_coeffs)
+		chunk.material_override.set_shader_parameter("rational_den_coeffs", Field.rational_den_coeffs)
 
 func _load_chunk(coord: Vector2i):
 	var chunk = chunk_scene.instantiate()
@@ -74,6 +97,9 @@ func _load_chunk(coord: Vector2i):
 	# Increase AABB to prevent shadow culling of displaced vertices
 	# Height can go up to ~20-30 in extreme cases (Rational/Zeta spikes)
 	chunk.custom_aabb = AABB(Vector3(0, -50, 0), Vector3(chunk_size, 100, chunk_size))
+
+	# Initialize uniforms for the new chunk
+	_update_chunk_uniforms(chunk)
 
 	add_child(chunk)
 	chunks[coord] = chunk

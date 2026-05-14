@@ -8,8 +8,8 @@ shader = ExtResource("1_shader")
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_1"]
 size = Vector2(64, 64)
-subdivide_depth = 256
-subdivide_width = 256
+subdivide_depth = 128
+subdivide_width = 128
 
 [node name="Chunk" type="MeshInstance3D"]
 material_override = SubResource("ShaderMaterial_1")
