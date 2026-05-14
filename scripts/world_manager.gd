@@ -2,7 +2,7 @@ extends Node3D
 
 @export var chunk_scene: PackedScene = preload("res://scenes/chunk.tscn")
 @export var player: Node3D
-@export var chunk_size: float = 32.0
+@export var chunk_size: float = 64.0
 @export var view_distance: int = 3
 
 var chunks = {}
@@ -12,6 +12,10 @@ var _last_field_state = {}
 @onready var world_environment = get_node("../WorldEnvironment")
 
 var _golden_hour_transition: float = 0.0
+
+# Uncomment this to debug the mesh wireframe
+# func _ready():
+# 	get_viewport().debug_draw = Viewport.DEBUG_DRAW_WIREFRAME
 
 func _process(delta):
 	if not player:
@@ -92,13 +96,42 @@ func _update_chunk_uniforms(chunk: MeshInstance3D):
 
 func _load_chunk(coord: Vector2i):
 	var chunk = chunk_scene.instantiate()
-	chunk.global_position = Vector3(coord.x * chunk_size, 0, coord.y * chunk_size)
 
-	# Increase AABB to prevent shadow culling of displaced vertices
-	# Height can go up to ~20-30 in extreme cases (Rational/Zeta spikes)
-	chunk.custom_aabb = AABB(Vector3(0, -50, 0), Vector3(chunk_size, 100, chunk_size))
+	# Example: distance from critical line
+	var distance_from_center = abs(coord.x)
 
-	# Initialize uniforms for the new chunk
+	# Decide subdivision dynamically
+	var subdivisions = 256
+	
+	# If zeta function, tune mesh for performance
+	if Field.function_type == 0:
+		if distance_from_center < 1:
+			subdivisions = 256
+		elif distance_from_center < 5:
+			subdivisions = 128
+		else:
+			subdivisions = 64
+
+	# Create mesh dynamically
+	var plane = PlaneMesh.new()
+	plane.size = Vector2(chunk_size, chunk_size)
+	plane.subdivide_width = subdivisions
+	plane.subdivide_depth = subdivisions
+
+	# Assign mesh
+	chunk.mesh = plane
+
+	chunk.global_position = Vector3(
+		coord.x * chunk_size + chunk_size * 0.5,
+		0,
+		coord.y * chunk_size + chunk_size * 0.5
+	)
+
+	chunk.custom_aabb = AABB(
+		Vector3(-chunk_size * 0.5, -50, -chunk_size * 0.5),
+		Vector3(chunk_size, 100, chunk_size)
+	)
+
 	_update_chunk_uniforms(chunk)
 
 	add_child(chunk)
