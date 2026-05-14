@@ -8,6 +8,8 @@ static var show_critical_stripe: bool = true
 static var golden_hour: bool = false
 static var function_type: int = 0 # 0: Zeta, 1: Sin, 2: Cos, 3: Tan, 4: Exp, 5: Log, 6: Rational
 static var height_type: int = 0 # 0: Log, 1: Abs
+static var height_a: float = 3.0
+static var height_epsilon: float = 1.0
 
 static var rational_num_coeffs: PackedFloat32Array = PackedFloat32Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 static var rational_den_coeffs: PackedFloat32Array = PackedFloat32Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
@@ -159,6 +161,6 @@ static func get_height(x: float, z: float) -> float:
 	var mag = f.length()
 
 	if height_type == 0:
-		return 3.0 * log(1.0 + mag)
+		return height_a * log(height_epsilon + mag)
 	else:
 		return mag

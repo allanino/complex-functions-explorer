@@ -3,6 +3,8 @@
 uniform int iterations = 120;
 uniform int function_type = 0; // 0: Zeta, 1: Sin, 2: Cos, 3: Tan, 4: Exp, 5: Log, 6: Rational
 uniform int height_type = 0;   // 0: Log, 1: Abs
+uniform float height_a = 3.0;
+uniform float height_epsilon = 1.0;
 
 uniform float rational_num_coeffs[10];
 uniform float rational_den_coeffs[10];
@@ -178,7 +180,7 @@ float get_height(float x, float z) {
     float mag = length(f);
 
     if (height_type == 0) {
-        return 3.0 * log(1.0 + mag);
+        return height_a * log(height_epsilon + mag);
     } else {
         return mag;
     }

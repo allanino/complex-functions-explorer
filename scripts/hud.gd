@@ -8,7 +8,12 @@ extends CanvasLayer
 # New UI Node Paths
 @onready var tab_container = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer
 @onready var func_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/FuncContainer/FuncButton
+@onready var height_label = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/HeightContainer/Label
 @onready var height_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/HeightContainer/HeightButton
+@onready var height_a_container = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/HeightAContainer
+@onready var height_a_input = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/HeightAContainer/HeightAInput
+@onready var height_eps_container = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/HeightEpsContainer
+@onready var height_eps_input = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/HeightEpsContainer/HeightEpsInput
 @onready var iter_container = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/IterContainer
 @onready var iter_input = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/IterContainer/IterInput
 @onready var rational_container = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/RationalContainer
@@ -30,6 +35,7 @@ var current_scale = 2.0
 func _ready():
 	apply_button.pressed.connect(_on_set_pos_pressed)
 	func_button.item_selected.connect(_on_func_selected)
+	height_button.item_selected.connect(_on_height_selected)
 
 	func_button.clear()
 	func_button.add_item("Zeta")
@@ -52,6 +58,8 @@ func toggle_menu():
 			re_input.text = "%.3f" % (player.global_position.x * 0.1)
 			im_input.text = "%.3f" % (-player.global_position.z * 0.1)
 		iter_input.text = str(Field.iterations)
+		height_a_input.text = str(Field.height_a)
+		height_eps_input.text = str(Field.height_epsilon)
 		normals_checkbox.button_pressed = Field.compute_normals
 		curves_checkbox.button_pressed = Field.show_curves
 		critical_checkbox.button_pressed = Field.show_critical_stripe
@@ -60,6 +68,7 @@ func toggle_menu():
 		func_button.selected = Field.function_type
 		height_button.selected = Field.height_type
 		_on_func_selected(Field.function_type)
+		_on_height_selected(Field.height_type)
 	else:
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
@@ -67,6 +76,15 @@ func _on_func_selected(index):
 	rational_container.visible = (index == 6)
 	iter_container.visible = (index == 0)
 	critical_container.visible = (index == 0)
+
+func _on_height_selected(index):
+	var is_log = (index == 0)
+	height_a_container.visible = is_log
+	height_eps_container.visible = is_log
+	if is_log:
+		height_label.text = "Height Map: a*log(ε + abs)"
+	else:
+		height_label.text = "Height Map"
 
 func _parse_poly(text: String) -> PackedFloat32Array:
 	var coeffs = PackedFloat32Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
@@ -100,8 +118,12 @@ func _on_set_pos_pressed():
 	var re = float(re_input.text)
 	var im = float(im_input.text)
 	var iters = int(iter_input.text)
+	var h_a = float(height_a_input.text)
+	var h_eps = float(height_eps_input.text)
 
 	Field.iterations = iters
+	Field.height_a = h_a
+	Field.height_epsilon = h_eps
 	Field.compute_normals = normals_checkbox.button_pressed
 	Field.show_curves = curves_checkbox.button_pressed
 	Field.show_critical_stripe = critical_checkbox.button_pressed
