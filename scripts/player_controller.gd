@@ -1,8 +1,6 @@
 extends CharacterBody3D
 
-const SPEED = 10.0
 const MOUSE_SENSITIVITY = 0.002
-const PLAYER_HEIGHT = 1.8
 const DOUBLE_PRESS_TIME = 0.3
 const CRITICAL_LINE_X = 5.0
 
@@ -66,7 +64,7 @@ func _physics_process(delta):
 		if manual_input != Vector2.ZERO or Input.is_key_pressed(KEY_SPACE):
 			auto_walk_state = AutoWalkState.NONE
 
-	var current_speed = SPEED
+	var current_speed = Field.movement_speed
 	if auto_walk_state == AutoWalkState.NONE:
 		if Input.is_key_pressed(KEY_SHIFT):
 			current_speed *= 2.0
@@ -135,6 +133,6 @@ func _physics_process(delta):
 	var terrain_h = get_terrain_height(global_position.x, global_position.z)
 
 	# Snap player to terrain height + offset
-	global_position.y = terrain_h + height_offset
+	global_position.y = terrain_h + Field.camera_height + height_offset
 
 	move_and_slide()
