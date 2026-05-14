@@ -4,6 +4,7 @@ uniform vec3 sky_color : source_color = vec3(0.3, 0.6, 0.9);
 uniform vec3 horizon_color : source_color = vec3(0.6, 0.8, 1.0);
 uniform vec3 cloud_color : source_color = vec3(1.0, 1.0, 1.0);
 uniform float golden_hour_factor = 0.0;
+uniform float night_factor = 0.0;
 
 // Dave Hoskins' hash (2D to 1D)
 float hash(vec2 p) {
@@ -45,12 +46,30 @@ void sky() {
     vec3 golden_hour_horizon = vec3(1.0, 0.4, 0.1); // Deep orange
     vec3 golden_hour_cloud = vec3(1.0, 0.7, 0.5); // Golden/Pinkish
 
+    vec3 night_sky = vec3(0.01, 0.02, 0.05);
+    vec3 night_horizon = vec3(0.02, 0.04, 0.1);
+
     vec3 current_sky = mix(sky_color, golden_hour_sky, golden_hour_factor);
+    current_sky = mix(current_sky, night_sky, night_factor);
+
     vec3 current_horizon = mix(horizon_color, golden_hour_horizon, golden_hour_factor);
+    current_horizon = mix(current_horizon, night_horizon, night_factor);
+
     vec3 current_cloud = mix(cloud_color, golden_hour_cloud, golden_hour_factor);
+    current_cloud = mix(current_cloud, vec3(0.1, 0.15, 0.3), night_factor);
 
     // Sky gradient
     vec3 final_color = mix(current_horizon, current_sky, clamp(eye_alt * 2.0, 0.0, 1.0));
+
+    // Stars
+    if (night_factor > 0.01 && eye_alt > 0.0) {
+        vec2 star_uv = EYEDIR.xz / (eye_alt + 0.1);
+        float star_noise = hash(floor(star_uv * 100.0));
+        if (star_noise > 0.995) {
+            float star_strength = smoothstep(0.995, 1.0, star_noise) * night_factor;
+            final_color += vec3(star_strength);
+        }
+    }
 
     vec3 cloud_final_color = final_color;
 
@@ -98,6 +117,19 @@ void sky() {
 
         float haze = 0.02 / (0.01 + sun_dist);
         cloud_final_color += LIGHT0_COLOR * haze * LIGHT0_ENERGY;
+    }
+
+    // Moon
+    if (LIGHT1_ENERGY > 0.01) {
+        float moon_dist = distance(EYEDIR, LIGHT1_DIRECTION);
+        // Moon disk
+        float moon_size = 0.03; // Default size if LIGHT1_SIZE is unavailable
+        float moon_disk = smoothstep(moon_size * 0.5, moon_size * 0.45, moon_dist);
+        cloud_final_color += LIGHT1_COLOR * moon_disk * LIGHT1_ENERGY;
+
+        // Moon glow
+        float moon_glow = 0.005 / (0.001 + moon_dist * moon_dist * 20.0);
+        cloud_final_color += LIGHT1_COLOR * moon_glow * LIGHT1_ENERGY;
     }
 
     COLOR = cloud_final_color;

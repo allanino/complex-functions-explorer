@@ -9,9 +9,11 @@ var chunks = {}
 var _last_field_state = {}
 
 @onready var sun = get_node("../DirectionalLight3D")
+@onready var moon = get_node("../MoonLight")
 @onready var world_environment = get_node("../WorldEnvironment")
 
 var _golden_hour_transition: float = 0.0
+var _day_night_time: float = 0.0
 
 func _process(delta):
 	if not player:
@@ -37,23 +39,58 @@ func _process(delta):
 	for chunk_coord in chunks_to_remove:
 		_unload_chunk(chunk_coord)
 
-	# Update sun and sky for golden hour
-	if Field.golden_hour:
-		_golden_hour_transition = min(_golden_hour_transition + delta * 0.5, 1.0)
-	else:
-		_golden_hour_transition = max(_golden_hour_transition - delta * 0.5, 0.0)
+	# Day/Night Cycle vs Manual Golden Hour
+	var night_factor = 0.0
+	if Field.day_night_cycle:
+		_day_night_time += delta
+		if _day_night_time >= 60.0:
+			_day_night_time -= 60.0
 
-	if sun:
-		var target_dir = lerp(Vector3.DOWN, Vector3(-1.0, -0.1, 0.0).normalized(), _golden_hour_transition)
-		sun.basis = Basis.looking_at(target_dir, Vector3.UP if abs(target_dir.normalized().y) < 0.5 else Vector3.FORWARD)
-		sun.light_color = lerp(Color.WHITE, Color(1.0, 0.5, 0.2), _golden_hour_transition)
-		sun.light_energy = lerp(1.0, 1.5, _golden_hour_transition)
-		sun.shadow_enabled = Field.shadows_enabled
+		var progress = _day_night_time / 60.0
+		var angle = progress * TAU
+
+		# Rotate in YZ plane
+		var sun_dir = Vector3(0, -sin(angle), -cos(angle)).normalized()
+		var moon_dir = -sun_dir
+
+		var sun_elevation = -sun_dir.y # Positive when above horizon
+		_golden_hour_transition = clamp(1.0 - abs(sun_elevation) * 5.0, 0.0, 1.0)
+		night_factor = clamp(-sun_elevation * 5.0, 0.0, 1.0)
+
+		if sun:
+			sun.basis = Basis.looking_at(sun_dir, Vector3.UP if abs(sun_dir.y) < 0.99 else Vector3.FORWARD)
+			sun.light_energy = clamp(sun_elevation * 2.0, 0.0, 1.0)
+			sun.light_color = lerp(Color.WHITE, Color(1.0, 0.5, 0.2), _golden_hour_transition)
+			sun.shadow_enabled = Field.shadows_enabled and sun_elevation > 0.1
+
+		if moon:
+			moon.basis = Basis.looking_at(moon_dir, Vector3.UP if abs(moon_dir.y) < 0.99 else Vector3.FORWARD)
+			var moon_elevation = -moon_dir.y
+			moon.light_energy = clamp(moon_elevation * 2.0, 0.0, 0.4)
+			moon.shadow_enabled = Field.shadows_enabled and moon_elevation > 0.1
+	else:
+		if moon:
+			moon.light_energy = 0.0
+
+		if Field.golden_hour:
+			_golden_hour_transition = min(_golden_hour_transition + delta * 0.5, 1.0)
+		else:
+			_golden_hour_transition = max(_golden_hour_transition - delta * 0.5, 0.0)
+
+		if sun:
+			var target_dir = lerp(Vector3.DOWN, Vector3(-1.0, -0.1, 0.0).normalized(), _golden_hour_transition)
+			sun.basis = Basis.looking_at(target_dir, Vector3.UP if abs(target_dir.normalized().y) < 0.5 else Vector3.FORWARD)
+			sun.light_color = lerp(Color.WHITE, Color(1.0, 0.5, 0.2), _golden_hour_transition)
+			sun.light_energy = lerp(1.0, 1.5, _golden_hour_transition)
+			sun.shadow_enabled = Field.shadows_enabled
+
+		night_factor = 0.0
 
 	if world_environment and world_environment.environment and world_environment.environment.sky:
 		var sky_mat = world_environment.environment.sky.sky_material as ShaderMaterial
 		if sky_mat:
 			sky_mat.set_shader_parameter("golden_hour_factor", _golden_hour_transition)
+			sky_mat.set_shader_parameter("night_factor", night_factor)
 
 	# Check if any field properties have changed
 	var current_field_state = {
