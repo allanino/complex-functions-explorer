@@ -42,16 +42,26 @@ func _ready():
 	setup_audio_bus_and_effects()
 
 	var stream_player = $AudioStreamPlayer
-	# Ensure the generator is correctly configured
+
 	var generator = AudioStreamGenerator.new()
 	generator.mix_rate = 44100
-	generator.buffer_length = 0.1 # Lower latency
+	generator.buffer_length = 0.1
+
 	stream_player.stream = generator
 
-	# Start playing
+	# Get playback BEFORE starting
 	stream_player.play()
 	playback = stream_player.get_stream_playback()
-	sample_rate = stream_player.stream.mix_rate
+	sample_rate = generator.mix_rate
+
+	# Prefill silence
+	var frames_to_fill = int(sample_rate * 0.1)
+
+	for i in frames_to_fill:
+		playback.push_frame(Vector2.ZERO)
+
+	# Small delay lets audio thread stabilize
+	await get_tree().process_frame
 
 	setup_background_music()
 
