@@ -21,7 +21,7 @@ extends CanvasLayer
 @onready var re_input = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/DOMAIN/ReContainer/ReInput
 @onready var im_input = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/DOMAIN/ImContainer/ImInput
 
-@onready var normals_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/ShadingContainer/NormalsCheckbox
+@onready var normals_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/ShadingContainer/NormalsButton
 @onready var curves_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/CurvesContainer/CurvesCheckbox
 @onready var critical_container = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/CriticalContainer
 @onready var critical_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/CriticalContainer/CriticalCheckbox
@@ -49,6 +49,11 @@ func _ready():
 	height_button.add_item("Logarithmic (a*log(ε + abs))")
 	height_button.add_item("Absolute")
 
+	normals_button.clear()
+	normals_button.add_item("Disabled")
+	normals_button.add_item("Estimated")
+	normals_button.add_item("Precise")
+
 func toggle_menu():
 	menu_overlay.visible = !menu_overlay.visible
 	if menu_overlay.visible:
@@ -59,7 +64,7 @@ func toggle_menu():
 		iter_input.text = str(Field.iterations)
 		height_a_input.text = str(Field.height_a)
 		height_eps_input.text = str(Field.height_epsilon)
-		normals_checkbox.button_pressed = Field.compute_normals
+		normals_button.selected = Field.surface_shading_mode
 		curves_checkbox.button_pressed = Field.show_curves
 		critical_checkbox.button_pressed = Field.show_critical_stripe
 		golden_hour_checkbox.button_pressed = Field.golden_hour
@@ -119,7 +124,7 @@ func _on_set_pos_pressed():
 	Field.iterations = iters
 	Field.height_a = h_a
 	Field.height_epsilon = h_eps
-	Field.compute_normals = normals_checkbox.button_pressed
+	Field.surface_shading_mode = normals_button.selected
 	Field.show_curves = curves_checkbox.button_pressed
 	Field.show_critical_stripe = critical_checkbox.button_pressed
 	Field.golden_hour = golden_hour_checkbox.button_pressed

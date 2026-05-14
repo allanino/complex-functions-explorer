@@ -2,7 +2,7 @@
 class_name Field
 
 static var iterations: int = 120
-static var compute_normals: bool = true
+static var surface_shading_mode: int = 2 # 0: Disabled, 1: Estimated, 2: Precise
 static var show_curves: bool = true
 static var show_critical_stripe: bool = true
 static var golden_hour: bool = false

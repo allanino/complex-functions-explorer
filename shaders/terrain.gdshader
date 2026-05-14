@@ -6,7 +6,7 @@ varying vec3 world_pos;
 varying vec3 normal;
 varying vec2 field_val;
 
-uniform bool compute_normals = false;
+uniform int surface_shading_mode = 2; // 0: Disabled, 1: Estimated, 2: Precise
 uniform bool show_curves = true;
 uniform bool show_critical_stripe = true;
 
@@ -34,7 +34,18 @@ void vertex() {
     VERTEX = local_pos;
     world_pos = (MODEL_MATRIX * vec4(local_pos, 1.0)).xyz;
 
-    normal = vec3(0.0, 1.0, 0.0);
+    if (surface_shading_mode == 2) {
+        // Precise normals using finite differences
+        float delta = 0.01;
+        float h_right = get_height(world_v_pos.x + delta, world_v_pos.z);
+        float h_forward = get_height(world_v_pos.x, world_v_pos.z + delta);
+
+        vec3 v_right = vec3(delta, h_right - h, 0.0);
+        vec3 v_forward = vec3(0.0, h_forward - h, delta);
+        normal = normalize(cross(v_forward, v_right));
+    } else {
+        normal = vec3(0.0, 1.0, 0.0);
+    }
     NORMAL = (MODEL_NORMAL_MATRIX * normal);
 }
 
@@ -72,7 +83,7 @@ void fragment() {
         // (Note: ALBEDO and base emission use the modified base)
     }
 
-    if (compute_normals) {
+    if (surface_shading_mode == 1) {
         NORMAL = normalize(cross(dFdy(world_pos), dFdx(world_pos)));
     }
 
