@@ -33,7 +33,7 @@ void fragment() {
     // Draw unit circle
     float unit_circle = abs(mag - 1.0);
     float circle_mask = smoothstep(0.02 * scale, 0.0, unit_circle);
-    color = mix(color, vec3(0.0), circle_mask);
+    color = mix(color, vec3(0.9), circle_mask);
 
     // Draw arrow for phase
     float f_mag = length(current_f);
