@@ -233,7 +233,7 @@ func _process(_delta):
 		for i in range(total_count - 1, -1, -1):
 			last_zeros_text += "t = %.3f\n" % Field.visited_zeros[i]
 
-		zeros_count_label.text = "ZEROS DETECTED: %d" % total_count
+		zeros_count_label.text = "Count: %d" % total_count
 
 		# Riemann-von Mangoldt formula: N(T) ≈ (T/2π) log(T/2πe) + 7/8
 		# For small T, it's roughly (T/2π) * (log(T/2π) - 1)
