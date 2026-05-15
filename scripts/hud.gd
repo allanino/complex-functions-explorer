@@ -49,12 +49,14 @@ extends CanvasLayer
 
 @onready var apply_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/ButtonsHBox/ApplyButton
 @onready var close_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/ButtonsHBox/CloseButton
+@onready var quit_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/ButtonsHBox/QuitContainer/QuitButton
 
 var current_scale = 2.0
 
 func _ready():
 	apply_button.pressed.connect(_on_set_pos_pressed)
 	close_button.pressed.connect(toggle_menu)
+	quit_button.pressed.connect(_on_quit_pressed)
 	func_button.item_selected.connect(_on_func_selected)
 	height_button.item_selected.connect(_on_height_selected)
 
@@ -207,6 +209,9 @@ func _on_set_pos_pressed():
 			player.auto_walk_state = 0 # NONE
 
 	toggle_menu()
+
+func _on_quit_pressed():
+	get_tree().quit()
 
 func _process(_delta):
 	if not player:
