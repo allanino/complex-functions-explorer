@@ -28,6 +28,7 @@ extends CanvasLayer
 @onready var re_input = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/ReContainer/ReInput
 @onready var im_input = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/ImContainer/ImInput
 @onready var speed_input = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/SpeedContainer/SpeedInput
+@onready var zero_speed_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/ZeroSpeedContainer/ZeroSpeedSlider
 @onready var camera_height_input = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/CameraHeightContainer/CameraHeightInput
 @onready var auto_walk_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/AutoWalkCheckbox
 
@@ -84,6 +85,7 @@ func toggle_menu():
 			im_input.text = "%.3f" % (-player.global_position.z * 0.1)
 		iter_input.text = str(Field.iterations)
 		speed_input.text = "%.1f" % (Field.movement_speed * 0.1)
+		zero_speed_slider.value = Field.speed_near_zeros
 		camera_height_input.text = str(Field.camera_height)
 		height_a_input.text = str(Field.height_a)
 		height_eps_input.text = str(Field.height_epsilon)
@@ -161,6 +163,7 @@ func _on_set_pos_pressed():
 
 	Field.iterations = iters
 	Field.movement_speed = m_speed
+	Field.speed_near_zeros = zero_speed_slider.value
 	Field.camera_height = c_height
 	Field.height_a = h_a
 	Field.height_epsilon = h_eps

@@ -159,7 +159,7 @@ func _process(delta):
 
 	# Frequency: C2 by default, jumps to G2 near zeros
 	# Avoid the fake zeros for x < 0
-	if mag < 0.5 and pos.x > 0:
+	if mag < Field.zero_threshold and pos.x > 0:
 		target_frequency = 88.0 # G2
 	else:
 		target_frequency = BASE_FREQUENCY # C2
