@@ -1,9 +1,9 @@
 extends CanvasLayer
 
 @export var player: Node3D
-@onready var complex_panel = $Control/HUDStack/ComplexPanel
+@onready var complex_panel = $Control/HUDStack/ComplexAspect
 @onready var info_panel = $Control/HUDStack/InfoPanel
-@onready var complex_rect = $Control/HUDStack/ComplexPanel/MarginContainer/ComplexPlane
+@onready var complex_rect = $Control/HUDStack/ComplexAspect/ComplexPanel/MarginContainer/ClipPanel/ComplexPlane
 @onready var domain_label = $Control/HUDStack/InfoPanel/MarginContainer/VBox/DomainLabel
 @onready var target_label = $Control/HUDStack/InfoPanel/MarginContainer/VBox/TargetLabel
 @onready var zeros_panel = $Control/HUDStack/ZerosPanel
@@ -233,7 +233,7 @@ func _process(_delta):
 		for i in range(total_count - 1, -1, -1):
 			last_zeros_text += "t = %.3f\n" % Field.visited_zeros[i]
 
-		zeros_count_label.text = "ZEROS DETECTED: %d" % total_count
+		zeros_count_label.text = "Count: %d" % total_count
 
 		# Riemann-von Mangoldt formula: N(T) ≈ (T/2π) log(T/2πe) + 7/8
 		# For small T, it's roughly (T/2π) * (log(T/2π) - 1)
@@ -255,8 +255,8 @@ func _process(_delta):
 	material.set_shader_parameter("current_f", f)
 	material.set_shader_parameter("scale", current_scale)
 
-	domain_label.text = "DOMAIN\nRe = %.3f\nIm = %.3f" % [x * 0.1, -z * 0.1]
-	target_label.text = "TARGET\nRe = %.3f\nIm = %.3f\n|f| = %.3f" % [f.x, f.y, f.length()]
+	domain_label.text = "Re = %.3f\nIm = %.3f" % [x * 0.1, -z * 0.1]
+	target_label.text = "Re = %.3f\nIm = %.3f\n|f| = %.3f" % [f.x, f.y, f.length()]
 
 	complex_panel.visible = Field.show_hud_complex
 	info_panel.visible = Field.show_hud_navigation

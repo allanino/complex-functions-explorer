@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=3]
+[gd_scene load_steps=18 format=3]
 
 [ext_resource type="Script" path="res://scripts/hud.gd" id="1_script"]
 [ext_resource type="Shader" path="res://shaders/hud_complex_plane.gdshader" id="2_shader"]
@@ -22,6 +22,13 @@ corner_radius_bottom_left = 10
 shadow_color = Color(0, 0, 0, 0.5)
 shadow_size = 15
 shadow_offset = Vector2(0, 8)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mask"]
+bg_color = Color(1, 1, 1, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tab_selected"]
 content_margin_left = 20.0
@@ -223,6 +230,7 @@ alignment = 2
 visible = false
 custom_minimum_size = Vector2(0, 200)
 layout_mode = 2
+size_flags_horizontal = 3
 theme_override_styles/panel = SubResource("StyleBoxFlat_glass")
 
 [node name="MarginContainer" type="MarginContainer" parent="Control/HUDStack/ZerosPanel"]
@@ -235,10 +243,19 @@ theme_override_constants/margin_bottom = 10
 [node name="VBox" type="VBoxContainer" parent="Control/HUDStack/ZerosPanel/MarginContainer"]
 layout_mode = 2
 
+[node name="TitleLabel" type="Label" parent="Control/HUDStack/ZerosPanel/MarginContainer/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "ZEROS DETECTED"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="Control/HUDStack/ZerosPanel/MarginContainer/VBox"]
+layout_mode = 2
+
 [node name="CountLabel" type="Label" parent="Control/HUDStack/ZerosPanel/MarginContainer/VBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 16
-text = "ZEROS DETECTED: 0"
+theme_override_font_sizes/font_size = 12
+text = "Count: 0"
 horizontal_alignment = 1
 
 [node name="RvmLabel" type="Label" parent="Control/HUDStack/ZerosPanel/MarginContainer/VBox"]
@@ -248,7 +265,7 @@ theme_override_font_sizes/font_size = 12
 text = "N(t) ≈ 0.00"
 horizontal_alignment = 1
 
-[node name="HSeparator" type="HSeparator" parent="Control/HUDStack/ZerosPanel/MarginContainer/VBox"]
+[node name="HSeparator2" type="HSeparator" parent="Control/HUDStack/ZerosPanel/MarginContainer/VBox"]
 layout_mode = 2
 
 [node name="Scroll" type="ScrollContainer" parent="Control/HUDStack/ZerosPanel/MarginContainer/VBox"]
@@ -266,6 +283,7 @@ autowrap_mode = 3
 [node name="InfoPanel" type="PanelContainer" parent="Control/HUDStack"]
 custom_minimum_size = Vector2(0, 200)
 layout_mode = 2
+size_flags_horizontal = 3
 theme_override_styles/panel = SubResource("StyleBoxFlat_glass")
 
 [node name="MarginContainer" type="MarginContainer" parent="Control/HUDStack/InfoPanel"]
@@ -279,40 +297,63 @@ theme_override_constants/margin_bottom = 10
 layout_mode = 2
 theme_override_constants/separation = 5
 
-[node name="DomainLabel" type="Label" parent="Control/HUDStack/InfoPanel/MarginContainer/VBox"]
+[node name="DomainTitle" type="Label" parent="Control/HUDStack/InfoPanel/MarginContainer/VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
-text = "DOMAIN
-Re = 0.000
+text = "DOMAIN"
+horizontal_alignment = 1
+
+[node name="HSeparator3" type="HSeparator" parent="Control/HUDStack/InfoPanel/MarginContainer/VBox"]
+layout_mode = 2
+
+[node name="DomainLabel" type="Label" parent="Control/HUDStack/InfoPanel/MarginContainer/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Re = 0.000
 Im = 0.000"
 horizontal_alignment = 1
 
-[node name="HSeparator" type="HSeparator" parent="Control/HUDStack/InfoPanel/MarginContainer/VBox"]
+[node name="TargetTitle" type="Label" parent="Control/HUDStack/InfoPanel/MarginContainer/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "\nTARGET"
+horizontal_alignment = 1
+
+[node name="HSeparator5" type="HSeparator" parent="Control/HUDStack/InfoPanel/MarginContainer/VBox"]
 layout_mode = 2
 
 [node name="TargetLabel" type="Label" parent="Control/HUDStack/InfoPanel/MarginContainer/VBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 14
-text = "TARGET
-Re = 0.000
+theme_override_font_sizes/font_size = 12
+text = "Re = 0.000
 Im = 0.000
 |f| = 0.000"
 horizontal_alignment = 1
 
-[node name="ComplexPanel" type="PanelContainer" parent="Control/HUDStack"]
+[node name="ComplexAspect" type="AspectRatioContainer" parent="Control/HUDStack"]
 custom_minimum_size = Vector2(0, 150)
 layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_glass")
-clip_children = 2
+size_flags_horizontal = 3
+ratio = 1.0
+stretch_mode = 0
 
-[node name="MarginContainer" type="MarginContainer" parent="Control/HUDStack/ComplexPanel"]
+[node name="ComplexPanel" type="PanelContainer" parent="Control/HUDStack/ComplexAspect"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_glass")
+
+[node name="MarginContainer" type="MarginContainer" parent="Control/HUDStack/ComplexAspect/ComplexPanel"]
 layout_mode = 2
 theme_override_constants/margin_left = 5
 theme_override_constants/margin_top = 5
 theme_override_constants/margin_right = 5
 theme_override_constants/margin_bottom = 5
 
-[node name="ComplexPlane" type="ColorRect" parent="Control/HUDStack/ComplexPanel/MarginContainer"]
+[node name="ClipPanel" type="PanelContainer" parent="Control/HUDStack/ComplexAspect/ComplexPanel/MarginContainer"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_mask")
+clip_children = 2
+
+[node name="ComplexPlane" type="ColorRect" parent="Control/HUDStack/ComplexAspect/ComplexPanel/MarginContainer/ClipPanel"]
 material = SubResource("ShaderMaterial_1")
 mouse_filter = 2
 layout_mode = 2
