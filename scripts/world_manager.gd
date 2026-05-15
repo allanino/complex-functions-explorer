@@ -50,7 +50,12 @@ func _process(delta):
 		var angle = progress * TAU
 
 		# Rotate in YZ plane
-		var sun_dir = Vector3(0, -sin(angle), -cos(angle)).normalized()
+		# var south_north_dir = Vector3(0, -sin(angle), -cos(angle)).normalized()
+	
+		# Rotate in YX plane
+		var east_west_dir = Vector3(sin(angle), -cos(angle), 0).normalized()
+
+		var sun_dir = east_west_dir
 		var moon_dir = -sun_dir
 
 		var sun_elevation = -sun_dir.y # Positive when above horizon
