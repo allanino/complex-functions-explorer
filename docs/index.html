@@ -194,17 +194,22 @@
         <section id="introduction">
             <h2>Introduction</h2>
             <p>
-                Complex Functions Explorer is an interactive 3D visualization tool designed to bring the abstract beauty of complex analysis to life. By mapping complex numbers to a three-dimensional landscape, users can navigate through the intricate patterns of functions like the Riemann Zeta function, exploring zeros, poles, and the critical line in an immersive environment.
+            Complex Functions Explorer is an interactive 3D visualization tool that brings the abstract beauty of complex analysis to life. By mapping complex numbers into a navigable three-dimensional landscape, the software allows users to explore the intricate structures of functions such as the Riemann zeta function, including zeros, poles, and the critical line, within an immersive environment.
             </p>
+
             <p>
                 Whether you are a student of mathematics, a researcher, or simply someone who appreciates the visual elegance of mathematical structures, this tool provides a unique perspective on how complex functions transform and shape the complex plane.
+            </p>
+
+            <p>
+                The project is intended not only as a mathematical visualization tool, but also as an invitation to contemplate the hidden geometries of the complex plane.
             </p>
         </section>
 
         <section id="domain-coloring">
             <h2>Domain Coloring</h2>
             <p>
-                The project employs domain coloring to visualize complex-valued functions \( f(z) \). Each point in the complex plane \( z = x + iy \) is mapped to a color based on its phase (argument) \( \arg(f(z)) \). The magnitude \( |f(z)| \) is represented as the height of the terrain at that point.
+                The explorer uses domain coloring to visualize complex-valued functions. Each point in the complex plane is assigned a color according to the phase (argument) of the function, while the magnitude determines the height of the terrain.
             </p>
             <ul>
                 <li><strong>Phase to Color:</strong> The color cycle (typically a rainbow or HSV wheel) represents the angle of the complex value. Purely real positive values are often mapped to red, while purely imaginary positive values map to yellow/green, and so on.</li>
@@ -215,24 +220,28 @@
         <section id="functions">
             <h2>Functions</h2>
             <p>
-                The explorer supports various standard complex functions, including trigonometric, exponential, and logarithmic functions. However, the centerpiece of the project is the <strong>Riemann Zeta Function</strong> \( \zeta(s) \).
+                The explorer supports various standard complex functions, including trigonometric, exponential, and logarithmic functions. However, the centerpiece of the project is the <strong>Riemann zeta function</strong> \( \zeta(s) \).
             </p>
 
-            <h3>The Riemann Zeta Function</h3>
+            <h3>The Riemann zeta function</h3>
             <p>
-                Defined as \( \zeta(s) = \sum_{n=1}^\infty n^{-s} \) for \( \text{Re}(s) > 1 \), it is analytically continued to the rest of the complex plane. Our implementation uses the <strong>Dirichlet Eta representation</strong> for numerical stability and to allow calculations across the critical strip.
+                Defined as \( \zeta(s) = \sum_{n=1}^\infty n^{-s} \) for \( \text{Re}(s) > 1 \), it is analytically continued to the rest of the complex plane. Our implementation uses the <strong>Dirichlet Eta representation</strong>, which provides improved numerical stability and allows evaluation across the critical strip.
             </p>
 
             <div class="math-block">
                 <p>The Dirichlet Eta function \( \eta(s) \) is defined as:</p>
                 \[ \eta(s) = \sum_{n=1}^\infty \frac{(-1)^{n-1}}{n^s} \]
-                <p>It is related to the Zeta function by the following identity:</p>
+                <p>It is related to the zeta function by the following identity:</p>
                 \[ \eta(s) = (1 - 2^{1-s})\zeta(s) \]
                 <p>From this, we derive the representation used in our explorer:</p>
                 \[ \zeta(s) = \frac{\eta(s)}{1 - 2^{1-s}} = \frac{1}{1 - 2^{1-s}} \sum_{n=1}^\infty \frac{(-1)^{n-1}}{n^s} \]
             </div>
             <p>
                 This alternating series converges for all \( s \) with \( \text{Re}(s) > 0 \), which is essential for visualizing the critical strip where the most famous unsolved problem in mathematics, the Riemann Hypothesis, resides.
+            </p>
+
+            <p>
+                In practice, the landscape is only an approximation of the Riemann zeta function, since the underlying series must be truncated after a finite number of terms using the Iterations parameter. Accuracy gradually decreases for larger imaginary values, though the overall structure of the function remains visible far beyond the region where the approximation is strictly reliable.
             </p>
         </section>
 
@@ -242,16 +251,16 @@
                 Pressing the <strong>Esc</strong> key opens the settings menu, providing several ways to customize your experience:
             </p>
             <ul>
-                <li><strong>Function:</strong> Switch between different complex functions (Zeta, Sin, Cos, etc.) to see how they transform the plane.</li>
+                <li><strong>Function:</strong> Switch between different complex functions (zeta, sin, cos, etc.) to see how they transform the plane.</li>
                 <li><strong>Navigation:</strong> Adjust movement speed and camera height to better explore the terrain.</li>
                 <li><strong>Rendering:</strong> Toggle visual features like shadows, day/night cycles, and terrain shading modes (Estimated vs. Precise).</li>
                 <li><strong>HUD:</strong> Customize the on-screen information, including the complex plane overlay and automated zeta zero detection.</li>
-                <li><strong>Audio:</strong> Control the volume of the background music and the topographic drone that responds to the terrain height.</li>
+                <li><strong>Audio:</strong> Control the volume of the background music and the topographic drone that responds to the terrain height and phase.</li>
             </ul>
         </section>
 
         <footer>
-            <p>&copy; 2024 Complex Functions Explorer. Built with Godot Engine.</p>
+            <p>&copy; 2026 Complex Functions Explorer. Built with Godot Engine.</p>
         </footer>
     </div>
 </body>
