@@ -8,6 +8,7 @@ extends CanvasLayer
 @onready var target_label = $Control/HUDStack/InfoPanel/MarginContainer/VBox/TargetLabel
 @onready var zeros_panel = $Control/HUDStack/ZerosPanel
 @onready var zeros_count_label = $Control/HUDStack/ZerosPanel/MarginContainer/VBox/CountLabel
+@onready var rvm_label = $Control/HUDStack/ZerosPanel/MarginContainer/VBox/RvmLabel
 @onready var zeros_list_label = $Control/HUDStack/ZerosPanel/MarginContainer/VBox/Scroll/ListLabel
 @onready var menu_overlay = $Control/MenuOverlay
 
@@ -28,29 +29,31 @@ extends CanvasLayer
 @onready var im_input = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/ImContainer/ImInput
 @onready var speed_input = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/SpeedContainer/SpeedInput
 @onready var camera_height_input = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/CameraHeightContainer/CameraHeightInput
+@onready var auto_walk_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/AutoWalkCheckbox
 
 @onready var normals_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/ShadingContainer/NormalsButton
-@onready var curves_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/CurvesContainer/CurvesCheckbox
-@onready var critical_container = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/CriticalContainer
-@onready var critical_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/CriticalContainer/CriticalCheckbox
-@onready var golden_hour_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/GoldenHourContainer/GoldenHourCheckbox
-@onready var day_night_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/DayNightContainer/DayNightCheckbox
-@onready var shadows_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/ShadowsContainer/ShadowsCheckbox
+@onready var curves_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/CurvesCheckbox
+@onready var critical_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/CriticalCheckbox
+@onready var golden_hour_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/GoldenHourCheckbox
+@onready var day_night_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/DayNightCheckbox
+@onready var shadows_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/ShadowsCheckbox
 
-@onready var hud_complex_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/HudComplexContainer/HudComplexCheckbox
-@onready var hud_navigation_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/HudNavigationContainer/HudNavigationCheckbox
-@onready var hud_zeros_container = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/HudZetaZerosContainer
-@onready var hud_zeros_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/HudZetaZerosContainer/HudZetaZerosCheckbox
+@onready var hud_complex_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/HUD/HudComplexCheckbox
+@onready var hud_navigation_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/HUD/HudNavigationCheckbox
+@onready var hud_zeros_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/HUD/HudZetaZerosCheckbox
+@onready var rvm_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/HUD/RvmCheckbox
 
 @onready var bg_music_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/AUDIO/BgMusicContainer/BgMusicSlider
 @onready var drone_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/AUDIO/DroneContainer/DroneSlider
 
-@onready var apply_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/ApplyButton
+@onready var apply_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/ButtonsHBox/ApplyButton
+@onready var close_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/ButtonsHBox/CloseButton
 
 var current_scale = 2.0
 
 func _ready():
 	apply_button.pressed.connect(_on_set_pos_pressed)
+	close_button.pressed.connect(toggle_menu)
 	func_button.item_selected.connect(_on_func_selected)
 	height_button.item_selected.connect(_on_height_selected)
 
@@ -93,6 +96,9 @@ func toggle_menu():
 		hud_complex_checkbox.button_pressed = Field.show_hud_complex
 		hud_navigation_checkbox.button_pressed = Field.show_hud_navigation
 		hud_zeros_checkbox.button_pressed = Field.show_hud_zeros
+		rvm_checkbox.button_pressed = Field.show_rvm
+		if player:
+			auto_walk_checkbox.button_pressed = (player.auto_walk_state != 0) # 0 is AutoWalkState.NONE
 		bg_music_slider.value = Field.bg_music_volume
 		drone_slider.value = Field.drone_volume
 
@@ -106,8 +112,10 @@ func toggle_menu():
 func _on_func_selected(index):
 	rational_container.visible = (index == 6)
 	iter_container.visible = (index == 0)
-	critical_container.visible = (index == 0)
-	hud_zeros_container.visible = (index == 0)
+	critical_checkbox.visible = (index == 0)
+	hud_zeros_checkbox.visible = (index == 0)
+	auto_walk_checkbox.visible = (index == 0)
+	rvm_checkbox.visible = (index == 0)
 
 func _on_height_selected(index):
 	var is_log = (index == 0)
@@ -165,6 +173,7 @@ func _on_set_pos_pressed():
 	Field.show_hud_complex = hud_complex_checkbox.button_pressed
 	Field.show_hud_navigation = hud_navigation_checkbox.button_pressed
 	Field.show_hud_zeros = hud_zeros_checkbox.button_pressed
+	Field.show_rvm = rvm_checkbox.button_pressed
 	Field.bg_music_volume = bg_music_slider.value
 	Field.drone_volume = drone_slider.value
 	Field.function_type = func_button.selected
@@ -183,6 +192,16 @@ func _on_set_pos_pressed():
 	if player:
 		player.global_position.x = 10.0 * re
 		player.global_position.z = -10.0 * im
+
+		# Update auto-walk state
+		if auto_walk_checkbox.button_pressed:
+			if player.auto_walk_state == 0: # NONE
+				player.auto_walk_state = 1 # MOVING_TO_LINE
+				Field.visited_zeros.clear()
+				if "last_detected_t" in player:
+					player.last_detected_t = -1.0
+		else:
+			player.auto_walk_state = 0 # NONE
 
 	toggle_menu()
 
@@ -212,6 +231,20 @@ func _process(_delta):
 			last_zeros_text += "t = %.3f\n" % Field.visited_zeros[i]
 
 		zeros_count_label.text = "ZEROS DETECTED: %d" % total_count
+
+		# Riemann-von Mangoldt formula: N(T) ≈ (T/2π) log(T/2πe) + 7/8
+		# For small T, it's roughly (T/2π) * (log(T/2π) - 1)
+		# A slightly more accurate version for visualization:
+		if Field.show_rvm:
+			var T = abs(z * 0.1)
+			var val = 0.0
+			if T > 0.1:
+				val = (T / (2.0 * PI)) * (log(T / (2.0 * PI)) - 1.0) + 7.0/8.0
+			rvm_label.text = "N(t) ≈ %.2f" % val
+			rvm_label.visible = true
+		else:
+			rvm_label.visible = false
+
 		zeros_list_label.text = last_zeros_text
 
 	# Update shader uniforms
