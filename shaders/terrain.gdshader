@@ -9,7 +9,6 @@ varying vec2 field_val;
 uniform int surface_shading_mode = 2; // 0: Disabled, 1: Estimated, 2: Precise
 uniform bool show_curves = true;
 uniform bool show_critical_stripe = true;
-uniform float night_factor = 0.0;
 
 // Helper function to convert HSV to RGB
 vec3 hsv2rgb(vec3 c) {
@@ -89,11 +88,7 @@ void fragment() {
     }
 
     ALBEDO = base * 0.5;
-
-    // Base emission + Night luminescence
-    // Luminescence is 0.4 at night, 0.05 during day
-    float lum = mix(0.05, 0.4, night_factor);
-    vec3 final_emission = base * lum;
+    vec3 final_emission = base * 0.05;
 
     // Only apply the lines rendering for zeta (at x = 0, x = 5.0, x = 10.0)
     // which corresponds to Re = 0.0, Re = 0.5, Re = 1.0
