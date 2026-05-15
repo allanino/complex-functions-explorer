@@ -55,6 +55,8 @@ func _unhandled_input(event):
 	if event is InputEventKey and event.pressed and event.ctrl_pressed:
 		if event.keycode == KEY_G:
 			Field.golden_hour = !Field.golden_hour
+		elif event.keycode == KEY_N:
+			Field.day_night_cycle = !Field.day_night_cycle
 		elif event.keycode == KEY_C:
 			if auto_walk_state == AutoWalkState.NONE:
 				auto_walk_state = AutoWalkState.MOVING_TO_LINE

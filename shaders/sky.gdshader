@@ -4,6 +4,7 @@ uniform vec3 sky_color : source_color = vec3(0.3, 0.6, 0.9);
 uniform vec3 horizon_color : source_color = vec3(0.6, 0.8, 1.0);
 uniform vec3 cloud_color : source_color = vec3(1.0, 1.0, 1.0);
 uniform float golden_hour_factor = 0.0;
+uniform float night_factor = 0.0;
 
 // Dave Hoskins' hash (2D to 1D)
 float hash(vec2 p) {
@@ -45,12 +46,65 @@ void sky() {
     vec3 golden_hour_horizon = vec3(1.0, 0.4, 0.1); // Deep orange
     vec3 golden_hour_cloud = vec3(1.0, 0.7, 0.5); // Golden/Pinkish
 
+    vec3 blue_hour_sky = vec3(0.02, 0.05, 0.15); // Rich blue
+    vec3 blue_hour_horizon = vec3(0.05, 0.1, 0.3); // Deep blue horizon
+
+    vec3 night_sky = vec3(0.005, 0.01, 0.02);
+    vec3 night_horizon = vec3(0.01, 0.02, 0.05);
+
+    // Blue hour factor: peaks at night_factor 0.5
+    float blue_hour_factor = smoothstep(0.0, 0.5, night_factor) * (1.0 - smoothstep(0.5, 1.0, night_factor)) * 2.0;
+    float full_night_factor = smoothstep(0.5, 1.0, night_factor);
+
+    // Sequence: Day -> Golden Hour -> Blue Hour -> Night
+    // golden_hour_factor handles Day -> Golden
+    // night_factor handles Golden -> Blue -> Night
+
     vec3 current_sky = mix(sky_color, golden_hour_sky, golden_hour_factor);
+    current_sky = mix(current_sky, blue_hour_sky, smoothstep(0.0, 0.5, night_factor));
+    current_sky = mix(current_sky, night_sky, full_night_factor);
+
     vec3 current_horizon = mix(horizon_color, golden_hour_horizon, golden_hour_factor);
+    current_horizon = mix(current_horizon, blue_hour_horizon, smoothstep(0.0, 0.5, night_factor));
+    current_horizon = mix(current_horizon, night_horizon, full_night_factor);
+
+    vec3 blue_hour_cloud = vec3(0.15, 0.2, 0.4);
+
     vec3 current_cloud = mix(cloud_color, golden_hour_cloud, golden_hour_factor);
+    current_cloud = mix(current_cloud, blue_hour_cloud, smoothstep(0.0, 0.5, night_factor));
+    current_cloud = mix(current_cloud, vec3(0.05, 0.08, 0.15), full_night_factor);
 
     // Sky gradient
     vec3 final_color = mix(current_horizon, current_sky, clamp(eye_alt * 2.0, 0.0, 1.0));
+
+    // Stars
+    if (night_factor > 0.01 && eye_alt > 0.0) {
+        // Project onto a sphere-like coordinate for more uniform distribution
+        vec3 star_dir = normalize(EYEDIR);
+        // Using a high frequency grid for stars
+        float star_res = 200.0;
+        vec3 star_grid = floor(star_dir * star_res);
+
+        // 3D Hash for star position and properties
+        vec3 p3 = fract(star_grid * vec3(0.1031, 0.1030, 0.0973));
+        p3 += dot(p3, p3.yxz + 33.33);
+        float h = fract((p3.x + p3.y) * p3.z);
+
+        if (h > 0.995) {
+            // Calculate center of the cell in star_dir space
+            vec3 cell_center = (star_grid + 0.5) / star_res;
+            float dist = distance(star_dir, normalize(cell_center));
+
+            // Very sharp point-like falloff
+            float star = smoothstep(0.0015, 0.0005, dist);
+
+            // Random brightness and subtle flicker
+            float flicker = 0.8 + 0.2 * sin(TIME * 2.0 + h * 100.0);
+            float brightness = fract(h * 10.0);
+
+            final_color += vec3(star * brightness * flicker * night_factor);
+        }
+    }
 
     vec3 cloud_final_color = final_color;
 
@@ -85,12 +139,15 @@ void sky() {
     }
 
     // Sun
-    if (LIGHT0_ENABLED) {
+    if (LIGHT0_ENABLED && LIGHT0_ENERGY > 0.0) {
         float sun_dist = distance(EYEDIR, LIGHT0_DIRECTION);
-        // Sun disk
-        float sun_size = max(0.01, LIGHT0_SIZE);
+        // Sun disk: Fixed size to prevent shrinking near horizon
+        float sun_size = 0.05;
         float sun_disk = smoothstep(sun_size * 0.5, sun_size * 0.45, sun_dist);
-        cloud_final_color += LIGHT0_COLOR * sun_disk * LIGHT0_ENERGY;
+        // disk_intensity stays 1.0 while sun is visible to keep its size
+        // Using a small threshold to avoid flickering
+        float disk_intensity = smoothstep(0.0, 0.1, LIGHT0_ENERGY);
+        cloud_final_color += LIGHT0_COLOR * sun_disk * disk_intensity;
 
         // Sun glow (Mie-like scattering approximation)
         float mie = 0.01 / (0.001 + sun_dist * sun_dist * 10.0);
@@ -98,6 +155,20 @@ void sky() {
 
         float haze = 0.02 / (0.01 + sun_dist);
         cloud_final_color += LIGHT0_COLOR * haze * LIGHT0_ENERGY;
+    }
+
+    // Moon
+    if (LIGHT1_ENERGY > 0.01) {
+        float moon_dist = distance(EYEDIR, LIGHT1_DIRECTION);
+        // Moon disk: Match sun size
+        float moon_size = 0.05;
+        float moon_disk = smoothstep(moon_size * 0.5, moon_size * 0.45, moon_dist);
+        float moon_disk_intensity = smoothstep(0.0, 0.1, LIGHT1_ENERGY);
+        cloud_final_color += LIGHT1_COLOR * moon_disk * moon_disk_intensity;
+
+        // Moon glow
+        float moon_glow = 0.01 / (0.001 + moon_dist * moon_dist * 10.0);
+        cloud_final_color += LIGHT1_COLOR * moon_glow * LIGHT1_ENERGY;
     }
 
     COLOR = cloud_final_color;

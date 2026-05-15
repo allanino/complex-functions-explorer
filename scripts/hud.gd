@@ -34,6 +34,7 @@ extends CanvasLayer
 @onready var critical_container = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/CriticalContainer
 @onready var critical_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/CriticalContainer/CriticalCheckbox
 @onready var golden_hour_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/GoldenHourContainer/GoldenHourCheckbox
+@onready var day_night_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/DayNightContainer/DayNightCheckbox
 @onready var shadows_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/ShadowsContainer/ShadowsCheckbox
 
 @onready var hud_complex_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/HudComplexContainer/HudComplexCheckbox
@@ -87,6 +88,7 @@ func toggle_menu():
 		curves_checkbox.button_pressed = Field.show_curves
 		critical_checkbox.button_pressed = Field.show_critical_stripe
 		golden_hour_checkbox.button_pressed = Field.golden_hour
+		day_night_checkbox.button_pressed = Field.day_night_cycle
 		shadows_checkbox.button_pressed = Field.shadows_enabled
 		hud_complex_checkbox.button_pressed = Field.show_hud_complex
 		hud_navigation_checkbox.button_pressed = Field.show_hud_navigation
@@ -158,6 +160,7 @@ func _on_set_pos_pressed():
 	Field.show_curves = curves_checkbox.button_pressed
 	Field.show_critical_stripe = critical_checkbox.button_pressed
 	Field.golden_hour = golden_hour_checkbox.button_pressed
+	Field.day_night_cycle = day_night_checkbox.button_pressed
 	Field.shadows_enabled = shadows_checkbox.button_pressed
 	Field.show_hud_complex = hud_complex_checkbox.button_pressed
 	Field.show_hud_navigation = hud_navigation_checkbox.button_pressed

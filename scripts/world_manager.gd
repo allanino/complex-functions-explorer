@@ -7,11 +7,14 @@ extends Node3D
 
 var chunks = {}
 var _last_field_state = {}
+var day_night_cycle_duration = 500.0;
 
 @onready var sun = get_node("../DirectionalLight3D")
+@onready var moon = get_node("../MoonLight")
 @onready var world_environment = get_node("../WorldEnvironment")
 
 var _golden_hour_transition: float = 0.0
+var _day_night_time: float = 0.0
 
 # Uncomment this to debug the mesh wireframe
 # func _ready():
@@ -41,23 +44,74 @@ func _process(delta):
 	for chunk_coord in chunks_to_remove:
 		_unload_chunk(chunk_coord)
 
-	# Update sun and sky for golden hour
-	if Field.golden_hour:
-		_golden_hour_transition = min(_golden_hour_transition + delta * 0.5, 1.0)
-	else:
-		_golden_hour_transition = max(_golden_hour_transition - delta * 0.5, 0.0)
+	# Day/Night Cycle vs Manual Golden Hour
+	var night_factor = 0.0
+	if Field.day_night_cycle:
+		_day_night_time += delta
+		if _day_night_time >= day_night_cycle_duration:
+			_day_night_time -= day_night_cycle_duration
 
-	if sun:
-		var target_dir = lerp(Vector3.DOWN, Vector3(-1.0, -0.1, 0.0).normalized(), _golden_hour_transition)
-		sun.basis = Basis.looking_at(target_dir, Vector3.UP if abs(target_dir.normalized().y) < 0.5 else Vector3.FORWARD)
-		sun.light_color = lerp(Color.WHITE, Color(1.0, 0.5, 0.2), _golden_hour_transition)
-		sun.light_energy = lerp(1.0, 1.5, _golden_hour_transition)
-		sun.shadow_enabled = Field.shadows_enabled
+		var progress = _day_night_time / day_night_cycle_duration
+		var angle = progress * TAU
+
+		# Rotate in YZ plane
+		# var south_north_dir = Vector3(0, -sin(angle), -cos(angle)).normalized()
+	
+		# Rotate in YX plane
+		var east_west_dir = Vector3(sin(angle), -cos(angle), 0).normalized()
+
+		var sun_dir = east_west_dir
+		var moon_dir = -sun_dir
+
+		var sun_elevation = -sun_dir.y # Positive when above horizon
+		# Golden hour peaks at horizon (elevation 0)
+		# Starts at 30 deg (0.5 elevation)
+		_golden_hour_transition = clamp((0.5 - sun_elevation) / 0.5, 0.0, 1.0)
+
+		# Night factor:
+		# 0.0 at horizon (0.0 elevation)
+		# 0.5 at blue hour peak (-0.1 elevation)
+		# 1.0 at full night (-0.3 elevation)
+		if sun_elevation < 0.0:
+			night_factor = clamp(-sun_elevation / 0.3, 0.0, 1.0)
+		else:
+			night_factor = 0.0
+
+		if sun:
+			sun.basis = Basis.looking_at(sun_dir, Vector3.UP if abs(sun_dir.y) < 0.99 else Vector3.FORWARD)
+			# Keep energy at 1.0 until sun is half-submerged, then fade quickly
+			sun.light_energy = smoothstep(-0.02, 0.02, sun_elevation)
+			sun.light_color = lerp(Color.WHITE, Color(1.0, 0.5, 0.2), _golden_hour_transition)
+			sun.shadow_enabled = Field.shadows_enabled and sun_elevation > 0.01
+
+		if moon:
+			moon.basis = Basis.looking_at(moon_dir, Vector3.UP if abs(moon_dir.y) < 0.99 else Vector3.FORWARD)
+			var moon_elevation = -moon_dir.y
+			moon.light_energy = smoothstep(-0.02, 0.02, moon_elevation) * 0.4
+			moon.shadow_enabled = Field.shadows_enabled and moon_elevation > 0.01
+	else:
+		if moon:
+			moon.light_energy = 0.0
+
+		if Field.golden_hour:
+			_golden_hour_transition = min(_golden_hour_transition + delta * 0.5, 1.0)
+		else:
+			_golden_hour_transition = max(_golden_hour_transition - delta * 0.5, 0.0)
+
+		if sun:
+			var target_dir = lerp(Vector3.DOWN, Vector3(-1.0, -0.1, 0.0).normalized(), _golden_hour_transition)
+			sun.basis = Basis.looking_at(target_dir, Vector3.UP if abs(target_dir.normalized().y) < 0.5 else Vector3.FORWARD)
+			sun.light_color = lerp(Color.WHITE, Color(1.0, 0.5, 0.2), _golden_hour_transition)
+			sun.light_energy = lerp(1.0, 1.5, _golden_hour_transition)
+			sun.shadow_enabled = Field.shadows_enabled
+
+		night_factor = 0.0
 
 	if world_environment and world_environment.environment and world_environment.environment.sky:
 		var sky_mat = world_environment.environment.sky.sky_material as ShaderMaterial
 		if sky_mat:
 			sky_mat.set_shader_parameter("golden_hour_factor", _golden_hour_transition)
+			sky_mat.set_shader_parameter("night_factor", night_factor)
 
 	# Check if any field properties have changed
 	var current_field_state = {
