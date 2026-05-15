@@ -46,12 +46,14 @@ extends CanvasLayer
 @onready var bg_music_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/AUDIO/BgMusicContainer/BgMusicSlider
 @onready var drone_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/AUDIO/DroneContainer/DroneSlider
 
-@onready var apply_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/ApplyButton
+@onready var apply_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/ButtonsHBox/ApplyButton
+@onready var close_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/ButtonsHBox/CloseButton
 
 var current_scale = 2.0
 
 func _ready():
 	apply_button.pressed.connect(_on_set_pos_pressed)
+	close_button.pressed.connect(toggle_menu)
 	func_button.item_selected.connect(_on_func_selected)
 	height_button.item_selected.connect(_on_height_selected)
 
