@@ -54,5 +54,5 @@ void fragment() {
         color = mix(color, vec3(1.0), arrow_mask);
     }
 
-    COLOR = vec4(color, 0.5);
+    COLOR = vec4(color, 1.0);
 }

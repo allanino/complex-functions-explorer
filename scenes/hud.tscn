@@ -299,20 +299,23 @@ Im = 0.000
 |f| = 0.000"
 horizontal_alignment = 1
 
-[node name="ComplexPanel" type="PanelContainer" parent="Control/HUDStack"]
+[node name="ComplexAspect" type="AspectRatioContainer" parent="Control/HUDStack"]
 custom_minimum_size = Vector2(0, 150)
 layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_glass")
-clip_children = 2
+ratio = 1.0
 
-[node name="MarginContainer" type="MarginContainer" parent="Control/HUDStack/ComplexPanel"]
+[node name="ComplexPanel" type="PanelContainer" parent="Control/HUDStack/ComplexAspect"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_glass")
+
+[node name="MarginContainer" type="MarginContainer" parent="Control/HUDStack/ComplexAspect/ComplexPanel"]
 layout_mode = 2
 theme_override_constants/margin_left = 5
 theme_override_constants/margin_top = 5
 theme_override_constants/margin_right = 5
 theme_override_constants/margin_bottom = 5
 
-[node name="ComplexPlane" type="ColorRect" parent="Control/HUDStack/ComplexPanel/MarginContainer"]
+[node name="ComplexPlane" type="ColorRect" parent="Control/HUDStack/ComplexAspect/ComplexPanel/MarginContainer"]
 material = SubResource("ShaderMaterial_1")
 mouse_filter = 2
 layout_mode = 2
