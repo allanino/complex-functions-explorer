@@ -377,7 +377,7 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="MainPanel" type="PanelContainer" parent="Control/MenuOverlay/CenterContainer"]
-custom_minimum_size = Vector2(500, 500)
+custom_minimum_size = Vector2(500, 540)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_glass")
 
