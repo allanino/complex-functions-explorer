@@ -857,8 +857,8 @@ alignment = 2
 
 [node name="QuitButton" type="Button" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/ButtonsHBox/QuitContainer"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.7, 0.5, 0.5, 0.4)
-theme_override_colors/font_hover_color = Color(0.9, 0.6, 0.6, 0.8)
+theme_override_colors/font_color = Color(0.7, 0.5, 0.5, 0.8)
+theme_override_colors/font_hover_color = Color(0.9, 0.6, 0.6, 0.9)
 theme_override_colors/font_pressed_color = Color(1, 0.4, 0.4, 1)
 theme_override_font_sizes/font_size = 20
 theme_override_styles/normal = SubResource("StyleBoxEmpty_btn")
