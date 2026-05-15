@@ -221,7 +221,7 @@ alignment = 2
 
 [node name="ZerosPanel" type="PanelContainer" parent="Control/HUDStack"]
 visible = false
-custom_minimum_size = Vector2(0, 160)
+custom_minimum_size = Vector2(0, 200)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_glass")
 
