@@ -28,6 +28,7 @@ extends CanvasLayer
 @onready var im_input = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/ImContainer/ImInput
 @onready var speed_input = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/SpeedContainer/SpeedInput
 @onready var camera_height_input = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/CameraHeightContainer/CameraHeightInput
+@onready var auto_walk_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/AutoWalkCheckbox
 
 @onready var normals_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/ShadingContainer/NormalsButton
 @onready var curves_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/CurvesCheckbox
@@ -91,6 +92,8 @@ func toggle_menu():
 		hud_complex_checkbox.button_pressed = Field.show_hud_complex
 		hud_navigation_checkbox.button_pressed = Field.show_hud_navigation
 		hud_zeros_checkbox.button_pressed = Field.show_hud_zeros
+		if player:
+			auto_walk_checkbox.button_pressed = (player.auto_walk_state != 0) # 0 is AutoWalkState.NONE
 		bg_music_slider.value = Field.bg_music_volume
 		drone_slider.value = Field.drone_volume
 
@@ -106,6 +109,7 @@ func _on_func_selected(index):
 	iter_container.visible = (index == 0)
 	critical_checkbox.visible = (index == 0)
 	hud_zeros_checkbox.visible = (index == 0)
+	auto_walk_checkbox.visible = (index == 0)
 
 func _on_height_selected(index):
 	var is_log = (index == 0)
@@ -181,6 +185,16 @@ func _on_set_pos_pressed():
 	if player:
 		player.global_position.x = 10.0 * re
 		player.global_position.z = -10.0 * im
+
+		# Update auto-walk state
+		if auto_walk_checkbox.button_pressed:
+			if player.auto_walk_state == 0: # NONE
+				player.auto_walk_state = 1 # MOVING_TO_LINE
+				Field.visited_zeros.clear()
+				if "last_detected_t" in player:
+					player.last_detected_t = -1.0
+		else:
+			player.auto_walk_state = 0 # NONE
 
 	toggle_menu()
 
