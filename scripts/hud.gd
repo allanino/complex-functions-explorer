@@ -255,8 +255,8 @@ func _process(_delta):
 	material.set_shader_parameter("current_f", f)
 	material.set_shader_parameter("scale", current_scale)
 
-	domain_label.text = "DOMAIN\nRe = %.3f\nIm = %.3f" % [x * 0.1, -z * 0.1]
-	target_label.text = "TARGET\nRe = %.3f\nIm = %.3f\n|f| = %.3f" % [f.x, f.y, f.length()]
+	domain_label.text = "Re = %.3f\nIm = %.3f" % [x * 0.1, -z * 0.1]
+	target_label.text = "Re = %.3f\nIm = %.3f\n|f| = %.3f" % [f.x, f.y, f.length()]
 
 	complex_panel.visible = Field.show_hud_complex
 	info_panel.visible = Field.show_hud_navigation

@@ -218,7 +218,7 @@ anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = -170.0
-offset_top = -170.0
+offset_top = -630.0
 offset_right = -20.0
 offset_bottom = -20.0
 grow_horizontal = 0
@@ -297,22 +297,38 @@ theme_override_constants/margin_bottom = 10
 layout_mode = 2
 theme_override_constants/separation = 5
 
-[node name="DomainLabel" type="Label" parent="Control/HUDStack/InfoPanel/MarginContainer/VBox"]
+[node name="DomainTitle" type="Label" parent="Control/HUDStack/InfoPanel/MarginContainer/VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
-text = "DOMAIN
-Re = 0.000
-Im = 0.000"
+text = "DOMAIN"
 horizontal_alignment = 1
 
 [node name="HSeparator" type="HSeparator" parent="Control/HUDStack/InfoPanel/MarginContainer/VBox"]
 layout_mode = 2
 
+[node name="DomainLabel" type="Label" parent="Control/HUDStack/InfoPanel/MarginContainer/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Re = 0.000
+Im = 0.000"
+horizontal_alignment = 1
+
+[node name="HSeparator2" type="HSeparator" parent="Control/HUDStack/InfoPanel/MarginContainer/VBox"]
+layout_mode = 2
+
+[node name="TargetTitle" type="Label" parent="Control/HUDStack/InfoPanel/MarginContainer/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "TARGET"
+horizontal_alignment = 1
+
+[node name="HSeparator3" type="HSeparator" parent="Control/HUDStack/InfoPanel/MarginContainer/VBox"]
+layout_mode = 2
+
 [node name="TargetLabel" type="Label" parent="Control/HUDStack/InfoPanel/MarginContainer/VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
-text = "TARGET
-Re = 0.000
+text = "Re = 0.000
 Im = 0.000
 |f| = 0.000"
 horizontal_alignment = 1
