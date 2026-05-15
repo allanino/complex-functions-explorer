@@ -3,7 +3,7 @@ extends CanvasLayer
 @export var player: Node3D
 @onready var complex_panel = $Control/HUDStack/ComplexAspect
 @onready var info_panel = $Control/HUDStack/InfoPanel
-@onready var complex_rect = $Control/HUDStack/ComplexAspect/ComplexPanel/MarginContainer/ComplexPlane
+@onready var complex_rect = $Control/HUDStack/ComplexAspect/ComplexPanel/MarginContainer/ClipPanel/ComplexPlane
 @onready var domain_label = $Control/HUDStack/InfoPanel/MarginContainer/VBox/DomainLabel
 @onready var target_label = $Control/HUDStack/InfoPanel/MarginContainer/VBox/TargetLabel
 @onready var zeros_panel = $Control/HUDStack/ZerosPanel
