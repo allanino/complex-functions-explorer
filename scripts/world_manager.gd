@@ -13,7 +13,6 @@ var _last_field_state = {}
 @onready var world_environment = get_node("../WorldEnvironment")
 
 var _golden_hour_transition: float = 0.0
-var _current_night_factor: float = 0.0
 var _day_night_time: float = 0.0
 
 func _process(delta):
@@ -73,8 +72,6 @@ func _process(delta):
 		else:
 			night_factor = 0.0
 
-		_current_night_factor = night_factor
-
 		if sun:
 			sun.basis = Basis.looking_at(sun_dir, Vector3.UP if abs(sun_dir.y) < 0.99 else Vector3.FORWARD)
 			# Keep energy at 1.0 until sun is half-submerged, then fade quickly
@@ -104,7 +101,6 @@ func _process(delta):
 			sun.shadow_enabled = Field.shadows_enabled
 
 		night_factor = 0.0
-		_current_night_factor = 0.0
 
 	if world_environment and world_environment.environment and world_environment.environment.sky:
 		var sky_mat = world_environment.environment.sky.sky_material as ShaderMaterial
@@ -114,7 +110,6 @@ func _process(delta):
 
 	# Check if any field properties have changed
 	var current_field_state = {
-		"night_factor": night_factor,
 		"iterations": Field.iterations,
 		"surface_shading_mode": Field.surface_shading_mode,
 		"show_curves": Field.show_curves,
@@ -137,15 +132,6 @@ func _process(delta):
 
 func _update_chunk_uniforms(chunk: MeshInstance3D):
 	if chunk.material_override:
-		var nf = 0.0
-		if Field.day_night_cycle:
-			# Get current night_factor from current state if possible,
-			# but it's easier to just recalculate it here or store it globally.
-			# Since _process updates it every frame, we can just use the local var
-			# by making it a class variable.
-			nf = _current_night_factor
-
-		chunk.material_override.set_shader_parameter("night_factor", nf)
 		chunk.material_override.set_shader_parameter("iterations", Field.iterations)
 		chunk.material_override.set_shader_parameter("surface_shading_mode", Field.surface_shading_mode)
 		chunk.material_override.set_shader_parameter("show_curves", Field.show_curves)
