@@ -7,6 +7,7 @@ extends Node3D
 
 var chunks = {}
 var _last_field_state = {}
+var day_night_cycle_duration = 500.0;
 
 @onready var sun = get_node("../DirectionalLight3D")
 @onready var moon = get_node("../MoonLight")
@@ -43,10 +44,10 @@ func _process(delta):
 	var night_factor = 0.0
 	if Field.day_night_cycle:
 		_day_night_time += delta
-		if _day_night_time >= 60.0:
-			_day_night_time -= 60.0
+		if _day_night_time >= day_night_cycle_duration:
+			_day_night_time -= day_night_cycle_duration
 
-		var progress = _day_night_time / 60.0
+		var progress = _day_night_time / day_night_cycle_duration
 		var angle = progress * TAU
 
 		# Rotate in YZ plane
