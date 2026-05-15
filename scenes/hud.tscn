@@ -230,6 +230,7 @@ alignment = 2
 visible = false
 custom_minimum_size = Vector2(0, 200)
 layout_mode = 2
+size_flags_horizontal = 3
 theme_override_styles/panel = SubResource("StyleBoxFlat_glass")
 
 [node name="MarginContainer" type="MarginContainer" parent="Control/HUDStack/ZerosPanel"]
@@ -273,6 +274,7 @@ autowrap_mode = 3
 [node name="InfoPanel" type="PanelContainer" parent="Control/HUDStack"]
 custom_minimum_size = Vector2(0, 200)
 layout_mode = 2
+size_flags_horizontal = 3
 theme_override_styles/panel = SubResource("StyleBoxFlat_glass")
 
 [node name="MarginContainer" type="MarginContainer" parent="Control/HUDStack/InfoPanel"]
@@ -309,7 +311,9 @@ horizontal_alignment = 1
 [node name="ComplexAspect" type="AspectRatioContainer" parent="Control/HUDStack"]
 custom_minimum_size = Vector2(0, 150)
 layout_mode = 2
+size_flags_horizontal = 3
 ratio = 1.0
+stretch_mode = 0
 
 [node name="ComplexPanel" type="PanelContainer" parent="Control/HUDStack/ComplexAspect"]
 layout_mode = 2
