@@ -151,6 +151,8 @@ func _update_chunk_uniforms(chunk: MeshInstance3D):
 func _load_chunk(coord: Vector2i):
 	var chunk = chunk_scene.instantiate()
 
+	add_child(chunk)
+
 	# Example: distance from critical line
 	var distance_from_center = abs(coord.x)
 
@@ -188,7 +190,6 @@ func _load_chunk(coord: Vector2i):
 
 	_update_chunk_uniforms(chunk)
 
-	add_child(chunk)
 	chunks[coord] = chunk
 
 func _unload_chunk(coord: Vector2i):
