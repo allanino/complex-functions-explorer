@@ -8,6 +8,7 @@ extends CanvasLayer
 @onready var target_label = $Control/HUDStack/InfoPanel/MarginContainer/VBox/TargetLabel
 @onready var zeros_panel = $Control/HUDStack/ZerosPanel
 @onready var zeros_count_label = $Control/HUDStack/ZerosPanel/MarginContainer/VBox/CountLabel
+@onready var rvm_label = $Control/HUDStack/ZerosPanel/MarginContainer/VBox/RvmLabel
 @onready var zeros_list_label = $Control/HUDStack/ZerosPanel/MarginContainer/VBox/Scroll/ListLabel
 @onready var menu_overlay = $Control/MenuOverlay
 
@@ -40,6 +41,7 @@ extends CanvasLayer
 @onready var hud_complex_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/HUD/HudComplexCheckbox
 @onready var hud_navigation_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/HUD/HudNavigationCheckbox
 @onready var hud_zeros_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/HUD/HudZetaZerosCheckbox
+@onready var rvm_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/HUD/RvmCheckbox
 
 @onready var bg_music_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/AUDIO/BgMusicContainer/BgMusicSlider
 @onready var drone_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/AUDIO/DroneContainer/DroneSlider
@@ -92,6 +94,7 @@ func toggle_menu():
 		hud_complex_checkbox.button_pressed = Field.show_hud_complex
 		hud_navigation_checkbox.button_pressed = Field.show_hud_navigation
 		hud_zeros_checkbox.button_pressed = Field.show_hud_zeros
+		rvm_checkbox.button_pressed = Field.show_rvm
 		if player:
 			auto_walk_checkbox.button_pressed = (player.auto_walk_state != 0) # 0 is AutoWalkState.NONE
 		bg_music_slider.value = Field.bg_music_volume
@@ -110,6 +113,7 @@ func _on_func_selected(index):
 	critical_checkbox.visible = (index == 0)
 	hud_zeros_checkbox.visible = (index == 0)
 	auto_walk_checkbox.visible = (index == 0)
+	rvm_checkbox.visible = (index == 0)
 
 func _on_height_selected(index):
 	var is_log = (index == 0)
@@ -167,6 +171,7 @@ func _on_set_pos_pressed():
 	Field.show_hud_complex = hud_complex_checkbox.button_pressed
 	Field.show_hud_navigation = hud_navigation_checkbox.button_pressed
 	Field.show_hud_zeros = hud_zeros_checkbox.button_pressed
+	Field.show_rvm = rvm_checkbox.button_pressed
 	Field.bg_music_volume = bg_music_slider.value
 	Field.drone_volume = drone_slider.value
 	Field.function_type = func_button.selected
@@ -224,6 +229,20 @@ func _process(_delta):
 			last_zeros_text += "t = %.3f\n" % Field.visited_zeros[i]
 
 		zeros_count_label.text = "ZEROS DETECTED: %d" % total_count
+
+		# Riemann-von Mangoldt formula: N(T) ≈ (T/2π) log(T/2πe) + 7/8
+		# For small T, it's roughly (T/2π) * (log(T/2π) - 1)
+		# A slightly more accurate version for visualization:
+		if Field.show_rvm:
+			var T = abs(z * 0.1)
+			var val = 0.0
+			if T > 0.1:
+				val = (T / (2.0 * PI)) * (log(T / (2.0 * PI)) - 1.0) + 7.0/8.0
+			rvm_label.text = "N(t) ≈ %.2f" % val
+			rvm_label.visible = true
+		else:
+			rvm_label.visible = false
+
 		zeros_list_label.text = last_zeros_text
 
 	# Update shader uniforms
