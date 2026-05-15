@@ -824,7 +824,11 @@ value = 100.0
 [node name="ButtonsHBox" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox"]
 layout_mode = 2
 theme_override_constants/separation = 20
-alignment = 2
+alignment = 1
+
+[node name="Spacer" type="Control" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/ButtonsHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
 
 [node name="CloseButton" type="Button" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/ButtonsHBox"]
 layout_mode = 2
@@ -846,7 +850,12 @@ theme_override_styles/pressed = SubResource("StyleBoxFlat_apply_pressed")
 theme_override_styles/focus = SubResource("StyleBoxFlat_apply_normal")
 text = "Apply Changes"
 
-[node name="QuitButton" type="Button" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/ButtonsHBox"]
+[node name="QuitContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/ButtonsHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 2
+
+[node name="QuitButton" type="Button" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/ButtonsHBox/QuitContainer"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.5, 0.5, 0.4)
 theme_override_colors/font_hover_color = Color(0.9, 0.6, 0.6, 0.8)
