@@ -4,7 +4,7 @@ extends Node3D
 const ZERO_PITCH_BOOST = 1.5
 const BASE_FREQUENCY = 65.4 # C2 (Standard drone)
 const REVERB_AMOUNT = 0.5
-const PHASE_PAN_STRENGTH = 0.7
+const PHASE_PAN_STRENGTH = 1.0
 
 # --- SYNTHESIS STATE ---
 var playback: AudioStreamGeneratorPlayback
