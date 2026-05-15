@@ -15,6 +15,7 @@ var day_night_cycle_duration = 500.0;
 
 var _golden_hour_transition: float = 0.0
 var _day_night_time: float = 0.0
+var _sun_color = Color("#fc9500")
 
 # Uncomment this to debug the mesh wireframe
 # func _ready():
@@ -81,7 +82,7 @@ func _process(delta):
 			sun.basis = Basis.looking_at(sun_dir, Vector3.UP if abs(sun_dir.y) < 0.99 else Vector3.FORWARD)
 			# Keep energy at 1.0 until sun is half-submerged, then fade quickly
 			sun.light_energy = smoothstep(-0.02, 0.02, sun_elevation)
-			sun.light_color = lerp(Color.WHITE, Color(1.0, 0.5, 0.2), _golden_hour_transition)
+			sun.light_color = lerp(_sun_color, Color(1.0, 0.5, 0.2), _golden_hour_transition)
 			sun.shadow_enabled = Field.shadows_enabled and sun_elevation > 0.01
 
 		if moon:
@@ -101,7 +102,7 @@ func _process(delta):
 		if sun:
 			var target_dir = lerp(Vector3.DOWN, Vector3(-1.0, -0.1, 0.0).normalized(), _golden_hour_transition)
 			sun.basis = Basis.looking_at(target_dir, Vector3.UP if abs(target_dir.normalized().y) < 0.5 else Vector3.FORWARD)
-			sun.light_color = lerp(Color.WHITE, Color(1.0, 0.5, 0.2), _golden_hour_transition)
+			sun.light_color = lerp(_sun_color, Color(1.0, 0.5, 0.2), _golden_hour_transition)
 			sun.light_energy = lerp(1.0, 1.5, _golden_hour_transition)
 			sun.shadow_enabled = Field.shadows_enabled
 
