@@ -691,18 +691,23 @@ theme_override_styles/pressed = SubResource("StyleBoxFlat_checkbox")
 theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_checkbox_hover")
 theme_override_styles/focus = SubResource("StyleBoxFlat_checkbox")
 
-[node name="HudComplexContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING"]
+[node name="HUD" type="VBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="HudComplexContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/HUD"]
 layout_mode = 2
 theme_override_constants/separation = 0
 
-[node name="Label" type="Label" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/HudComplexContainer"]
+[node name="Label" type="Label" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/HUD/HudComplexContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
 theme_override_font_sizes/font_size = 18
-text = "HUD / Complex plane"
+text = "Complex plane"
 
-[node name="HudComplexCheckbox" type="CheckBox" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/HudComplexContainer"]
+[node name="HudComplexCheckbox" type="CheckBox" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/HUD/HudComplexContainer"]
 custom_minimum_size = Vector2(10, 10)
 layout_mode = 2
 size_flags_vertical = 4
@@ -714,18 +719,18 @@ theme_override_styles/pressed = SubResource("StyleBoxFlat_checkbox")
 theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_checkbox_hover")
 theme_override_styles/focus = SubResource("StyleBoxFlat_checkbox")
 
-[node name="HudNavigationContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING"]
+[node name="HudNavigationContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/HUD"]
 layout_mode = 2
 theme_override_constants/separation = 0
 
-[node name="Label" type="Label" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/HudNavigationContainer"]
+[node name="Label" type="Label" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/HUD/HudNavigationContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
 theme_override_font_sizes/font_size = 18
-text = "HUD / Navigation"
+text = "Navigation"
 
-[node name="HudNavigationCheckbox" type="CheckBox" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/HudNavigationContainer"]
+[node name="HudNavigationCheckbox" type="CheckBox" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/HUD/HudNavigationContainer"]
 custom_minimum_size = Vector2(10, 10)
 layout_mode = 2
 size_flags_vertical = 4
@@ -737,18 +742,18 @@ theme_override_styles/pressed = SubResource("StyleBoxFlat_checkbox")
 theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_checkbox_hover")
 theme_override_styles/focus = SubResource("StyleBoxFlat_checkbox")
 
-[node name="HudZetaZerosContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING"]
+[node name="HudZetaZerosContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/HUD"]
 layout_mode = 2
 theme_override_constants/separation = 0
 
-[node name="Label" type="Label" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/HudZetaZerosContainer"]
+[node name="Label" type="Label" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/HUD/HudZetaZerosContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
 theme_override_font_sizes/font_size = 18
-text = "HUD / Zeta zeros"
+text = "Zeta zeros"
 
-[node name="HudZetaZerosCheckbox" type="CheckBox" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/HudZetaZerosContainer"]
+[node name="HudZetaZerosCheckbox" type="CheckBox" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/HUD/HudZetaZerosContainer"]
 custom_minimum_size = Vector2(10, 10)
 layout_mode = 2
 size_flags_vertical = 4
