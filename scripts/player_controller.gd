@@ -76,6 +76,12 @@ func _physics_process(delta):
 			auto_walk_state = AutoWalkState.NONE
 
 	var current_speed = Field.movement_speed
+
+	# Speed reduction near zeros
+	var current_f = Field.get_field(global_position.x, global_position.z)
+	if current_f.length() < Field.zero_threshold:
+		current_speed *= (Field.speed_near_zeros / 100.0)
+
 	if auto_walk_state == AutoWalkState.NONE:
 		if Input.is_key_pressed(KEY_SHIFT):
 			current_speed *= 2.0
@@ -163,9 +169,9 @@ func _physics_process(delta):
 			var t = t_history[1] # Current minima t-value
 
 			# Check if this zero is far enough from the last detected one to avoid duplicates
-			# also check if the magnitude is reasonably low (e.g. < 0.5) to avoid false positives
+			# also check if the magnitude is reasonably low (e.g. < zero_threshold) to avoid false positives
 			# from tiny oscillations far from zeros
-			if abs(t - last_detected_t) > 0.1 and mag_history[1] < 0.5:
+			if abs(t - last_detected_t) > 0.1 and mag_history[1] < Field.zero_threshold:
 				Field.visited_zeros.push_back(t)
 				last_detected_t = t
 
