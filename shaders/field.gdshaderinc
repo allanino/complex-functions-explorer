@@ -24,7 +24,7 @@ vec2 complex_mul(vec2 a, vec2 b) {
 
 vec2 complex_div(vec2 a, vec2 b) {
 
-    float denom = b.x * b.x + b.y * b.y;
+    float denom = b.x * b.x + b.y * b.y + 1e-12;
 
     return vec2(
         (a.x * b.x + a.y * b.y) / denom,
