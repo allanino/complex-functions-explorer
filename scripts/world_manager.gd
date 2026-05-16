@@ -142,11 +142,7 @@ func _process(delta):
 		if lod_changed:
 			_update_lod_subs()
 			_lod_mesh_cache.clear()
-			var player_chunk_coord = Vector2i(player_chunk_x, player_chunk_z)
-			for coord in chunks.keys():
-				var chunk = chunks[coord]
-				var desired_lod = _get_lod_level(coord, player_chunk_coord)
-				_update_chunk_lod(chunk, desired_lod)
+			_update_all_chunks_lod(true)
 		else:
 			# Update uniforms in all existing chunks
 			for chunk in chunks.values():
@@ -154,14 +150,16 @@ func _process(delta):
 
 	# LOD Dynamic Update
 	if player_chunk_x != _last_player_chunk.x or player_chunk_z != _last_player_chunk.y:
-		var player_chunk_coord = Vector2i(player_chunk_x, player_chunk_z)
-		_last_player_chunk = player_chunk_coord
+		_last_player_chunk = Vector2i(player_chunk_x, player_chunk_z)
+		_update_all_chunks_lod()
 
-		for coord in chunks.keys():
-			var chunk = chunks[coord]
-			var desired_lod = _get_lod_level(coord, player_chunk_coord)
-			if chunk.get_meta("lod_level", -1) != desired_lod:
-				_update_chunk_lod(chunk, desired_lod)
+func _update_all_chunks_lod(force: bool = false):
+	var player_chunk_coord = _last_player_chunk
+	for coord in chunks.keys():
+		var chunk = chunks[coord]
+		var desired_lod = _get_lod_level(coord, player_chunk_coord)
+		if force or chunk.get_meta("lod_level", -1) != desired_lod:
+			_update_chunk_lod(chunk, desired_lod)
 
 func _update_lod_subs():
 	match Field.terrain_detail:
