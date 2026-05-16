@@ -71,8 +71,13 @@ void vertex() {
         dh_dz = dmag_dz;
     }
 
-    v_normal = normalize(vec3(-dh_dx, 1.0, -dh_dz));
-    NORMAL = (MODEL_NORMAL_MATRIX * v_normal);
+    if (COLOR.b > 0.5) {
+        v_normal = normalize(vec3(-dh_dx, 1.0, -dh_dz));
+        NORMAL = (MODEL_NORMAL_MATRIX * v_normal);
+    } else {
+        v_normal = NORMAL;
+        // Use mesh NORMAL for the skirt
+    }
 }
 
 void fragment() {

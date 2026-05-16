@@ -196,13 +196,13 @@ func _create_lod_mesh(size: float, subdivisions: int) -> Mesh:
 	var grid_to_skirt_bottom = {}
 	var perimeter_indices = []
 
-	# Top edge
+	# Top edge (z=0)
 	for x in range(vert_count): perimeter_indices.append(x)
-	# Right edge
+	# Right edge (x=subdivisions)
 	for z in range(1, vert_count): perimeter_indices.append(z * vert_count + subdivisions)
-	# Bottom edge
+	# Bottom edge (z=subdivisions)
 	for x in range(subdivisions - 1, -1, -1): perimeter_indices.append(subdivisions * vert_count + x)
-	# Left edge
+	# Left edge (x=0)
 	for z in range(subdivisions - 1, 0, -1): perimeter_indices.append(z * vert_count)
 
 	var current_v_idx = vert_count * vert_count
@@ -211,16 +211,15 @@ func _create_lod_mesh(size: float, subdivisions: int) -> Mesh:
 		var z = g_idx / vert_count
 		var uv = Vector2(float(x) / subdivisions, float(z) / subdivisions)
 
-		# Skirt top vertex (Color.WHITE -> no displacement)
-		# We duplicate these vertices to avoid normal bleeding between terrain and skirt
-		st.set_color(Color.WHITE)
+		# Skirt top vertex (Color.RED: r=1 -> no displacement, b=0 -> mesh normal)
+		st.set_color(Color(1, 0, 0))
 		st.set_uv(uv)
 		st.add_vertex(Vector3(x * step - half_size, 0, z * step - half_size))
 		grid_to_skirt_top[g_idx] = current_v_idx
 		current_v_idx += 1
 
-		# Skirt bottom vertex (Color.BLACK -> 100.0 displacement in shader)
-		st.set_color(Color.BLACK)
+		# Skirt bottom vertex (Color.BLACK: r=0 -> displacement, b=0 -> mesh normal)
+		st.set_color(Color(0, 0, 0))
 		st.set_uv(uv)
 		st.add_vertex(Vector3(x * step - half_size, -0.01, z * step - half_size))
 		grid_to_skirt_bottom[g_idx] = current_v_idx
@@ -257,7 +256,6 @@ func _update_chunk_uniforms(chunk: MeshInstance3D):
 
 		chunk.material_override.set_shader_parameter("lod_level", lod)
 		chunk.material_override.set_shader_parameter("iterations", iterations)
-		chunk.material_override.set_shader_parameter("iterations", Field.iterations)
 		chunk.material_override.set_shader_parameter("show_curves", Field.show_curves)
 		chunk.material_override.set_shader_parameter("show_critical_stripe", Field.show_critical_stripe)
 		chunk.material_override.set_shader_parameter("function_type", Field.function_type)
@@ -287,8 +285,8 @@ func _load_chunk(coord: Vector2i):
 	)
 
 	chunk.custom_aabb = AABB(
-		Vector3(-chunk_size * 0.5, -50, -chunk_size * 0.5),
-		Vector3(chunk_size, 100, chunk_size)
+		Vector3(-chunk_size * 0.5, -110, -chunk_size * 0.5),
+		Vector3(chunk_size, 220, chunk_size)
 	)
 
 	chunks[coord] = chunk
