@@ -110,8 +110,14 @@ func _physics_process(delta):
 	if auto_walk_state == AutoWalkState.MOVING_TO_LINE:
 		var target_x = CRITICAL_LINE_X
 
-		# Smoothly rotate to face forward (-Z)
-		rotation.y = lerp_angle(rotation.y, 0.0, 5.0 * delta)
+		var target_yaw = 0.0
+		if global_position.x > 10.0:
+			target_yaw = PI/2
+		elif global_position.x < 0.0:
+			target_yaw = -PI/2
+
+		# Smoothly rotate to the target yaw
+		rotation.y = lerp_angle(rotation.y, target_yaw, 5.0 * delta)
 
 		# Smoothly transition camera to horizontal
 		rotation_x = lerp(rotation_x, 0.0, 5.0 * delta)
