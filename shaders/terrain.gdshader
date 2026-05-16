@@ -7,8 +7,8 @@ varying vec3 v_normal;
 varying vec2 field_val;
 
 uniform int lod_level = 0;
-uniform bool show_curves = true;
-uniform bool show_critical_stripe = true;
+global uniform bool show_curves;
+global uniform bool show_critical_stripe;
 
 // Helper function to convert HSV to RGB
 vec3 hsv2rgb(vec3 c) {
@@ -22,7 +22,14 @@ void vertex() {
     vec3 local_pos = VERTEX;
     vec3 world_v_pos = (MODEL_MATRIX * vec4(local_pos, 1.0)).xyz;
 
-    FieldData fd = get_field_with_derivatives(world_v_pos.x, world_v_pos.z);
+    int iters = iterations;
+    if (function_type == 0) {
+        if (lod_level == 1) iters = int(float(iters) * 0.8);
+        else if (lod_level == 2) iters = int(float(iters) * 0.6);
+        else if (lod_level == 3) iters = int(float(iters) * 0.4);
+    }
+
+    FieldData fd = get_field_with_derivatives(world_v_pos.x, world_v_pos.z, iters);
     field_val = fd.value;
 
     float mag = length(field_val);

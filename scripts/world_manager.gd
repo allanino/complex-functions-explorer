@@ -13,6 +13,26 @@ const LOD_SUBS = [256, 128, 64, 32]
 var _lod_mesh_cache = {}
 var _last_player_chunk = Vector2i(9999, 9999)
 
+func _pack_coeffs(coeffs: PackedFloat32Array) -> Projection:
+	var p = Projection()
+	# Row major to Column major for mat4
+	for i in range(10):
+		var row = i / 4
+		var col = i % 4
+		p[row][col] = coeffs[i]
+	return p
+
+func _set_global_field_parameters():
+	RenderingServer.global_shader_parameter_set("iterations", Field.iterations)
+	RenderingServer.global_shader_parameter_set("function_type", Field.function_type)
+	RenderingServer.global_shader_parameter_set("height_type", Field.height_type)
+	RenderingServer.global_shader_parameter_set("height_a", Field.height_a)
+	RenderingServer.global_shader_parameter_set("height_epsilon", Field.height_epsilon)
+	RenderingServer.global_shader_parameter_set("show_curves", Field.show_curves)
+	RenderingServer.global_shader_parameter_set("show_critical_stripe", Field.show_critical_stripe)
+	RenderingServer.global_shader_parameter_set("rational_num_mat", _pack_coeffs(Field.rational_num_coeffs))
+	RenderingServer.global_shader_parameter_set("rational_den_mat", _pack_coeffs(Field.rational_den_coeffs))
+
 @onready var sun = get_node("../DirectionalLight3D")
 @onready var moon = get_node("../MoonLight")
 @onready var world_environment = get_node("../WorldEnvironment")
@@ -22,8 +42,9 @@ var _day_night_time: float = 0.0
 var _sun_color = Color("#fc9500")
 
 # Uncomment this to debug the mesh wireframe
-# func _ready():
-# 	get_viewport().debug_draw = Viewport.DEBUG_DRAW_WIREFRAME
+func _ready():
+	# get_viewport().debug_draw = Viewport.DEBUG_DRAW_WIREFRAME
+	_set_global_field_parameters()
 
 func _process(delta):
 	if not player:
@@ -112,11 +133,8 @@ func _process(delta):
 
 		night_factor = 0.0
 
-	if world_environment and world_environment.environment and world_environment.environment.sky:
-		var sky_mat = world_environment.environment.sky.sky_material as ShaderMaterial
-		if sky_mat:
-			sky_mat.set_shader_parameter("golden_hour_factor", _golden_hour_transition)
-			sky_mat.set_shader_parameter("night_factor", night_factor)
+	RenderingServer.global_shader_parameter_set("golden_hour_factor", _golden_hour_transition)
+	RenderingServer.global_shader_parameter_set("night_factor", night_factor)
 
 	# Check if any field properties have changed
 	var current_field_state = {
@@ -135,9 +153,7 @@ func _process(delta):
 
 	if state_changed:
 		_last_field_state = current_field_state
-		# Update uniforms in all existing chunks
-		for chunk in chunks.values():
-			_update_chunk_uniforms(chunk)
+		_set_global_field_parameters()
 
 	# LOD Dynamic Update
 	if player_chunk_x != _last_player_chunk.x or player_chunk_z != _last_player_chunk.y:
@@ -174,23 +190,7 @@ func _create_lod_mesh(size: float, subdivisions: int) -> Mesh:
 func _update_chunk_uniforms(chunk: MeshInstance3D):
 	if chunk.material_override:
 		var lod = chunk.get_meta("lod_level", 0)
-		var iterations = Field.iterations
-		if Field.function_type == 0:
-			if lod == 1: iterations = int(iterations * 0.8)
-			elif lod == 2: iterations = int(iterations * 0.6)
-			elif lod == 3: iterations = int(iterations * 0.4)
-
 		chunk.material_override.set_shader_parameter("lod_level", lod)
-		chunk.material_override.set_shader_parameter("iterations", iterations)
-		chunk.material_override.set_shader_parameter("iterations", Field.iterations)
-		chunk.material_override.set_shader_parameter("show_curves", Field.show_curves)
-		chunk.material_override.set_shader_parameter("show_critical_stripe", Field.show_critical_stripe)
-		chunk.material_override.set_shader_parameter("function_type", Field.function_type)
-		chunk.material_override.set_shader_parameter("height_type", Field.height_type)
-		chunk.material_override.set_shader_parameter("height_a", Field.height_a)
-		chunk.material_override.set_shader_parameter("height_epsilon", Field.height_epsilon)
-		chunk.material_override.set_shader_parameter("rational_num_coeffs", Field.rational_num_coeffs)
-		chunk.material_override.set_shader_parameter("rational_den_coeffs", Field.rational_den_coeffs)
 
 func _load_chunk(coord: Vector2i):
 	var chunk = chunk_scene.instantiate()

@@ -276,9 +276,8 @@ func _process(_delta):
 		zeros_list_label.text = last_zeros_text
 
 	# Update shader uniforms
-	var material = complex_rect.material as ShaderMaterial
-	material.set_shader_parameter("current_f", f)
-	material.set_shader_parameter("scale", current_scale)
+	RenderingServer.global_shader_parameter_set("current_f", f)
+	RenderingServer.global_shader_parameter_set("complex_scale", current_scale)
 
 	domain_label.text = "Re = %.3f\nIm = %.3f" % [x * 0.1, -z * 0.1]
 	target_label.text = "Re = %.3f\nIm = %.3f\n|f| = %.3f" % [f.x, f.y, f.length()]
