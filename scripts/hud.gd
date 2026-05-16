@@ -32,7 +32,6 @@ extends CanvasLayer
 @onready var camera_height_input = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/CameraHeightContainer/CameraHeightInput
 @onready var auto_walk_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/AutoWalkCheckbox
 
-@onready var normals_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/ShadingContainer/NormalsButton
 @onready var curves_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/CurvesCheckbox
 @onready var critical_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/CriticalCheckbox
 @onready var golden_hour_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/GoldenHourCheckbox
@@ -73,11 +72,6 @@ func _ready():
 	height_button.add_item("Logarithmic (a*log(ε + abs))")
 	height_button.add_item("Absolute")
 
-	normals_button.clear()
-	normals_button.add_item("Disabled")
-	normals_button.add_item("Estimated")
-	normals_button.add_item("Precise")
-
 func toggle_menu():
 	menu_overlay.visible = !menu_overlay.visible
 	if menu_overlay.visible:
@@ -91,7 +85,6 @@ func toggle_menu():
 		camera_height_input.text = str(Field.camera_height)
 		height_a_input.text = str(Field.height_a)
 		height_eps_input.text = str(Field.height_epsilon)
-		normals_button.selected = Field.surface_shading_mode
 		curves_checkbox.button_pressed = Field.show_curves
 		critical_checkbox.button_pressed = Field.show_critical_stripe
 		golden_hour_checkbox.button_pressed = Field.golden_hour
@@ -169,7 +162,6 @@ func _on_set_pos_pressed():
 	Field.camera_height = c_height
 	Field.height_a = h_a
 	Field.height_epsilon = h_eps
-	Field.surface_shading_mode = normals_button.selected
 	Field.show_curves = curves_checkbox.button_pressed
 	Field.show_critical_stripe = critical_checkbox.button_pressed
 	Field.golden_hour = golden_hour_checkbox.button_pressed
