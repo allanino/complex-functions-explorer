@@ -19,6 +19,16 @@ The explorer uses **domain coloring** to visualize complex-valued functions. Eac
   <img src="docs/images/terrain.png" width="300" alt="Terrain Magnitude">
 </p>
 
+### Curve Levels
+
+Superimposed on the terrain are contour lines, or **curve levels**, which provide a geometric reference for the values of the function. These curves make it possible to trace how the real and imaginary components evolve across the complex plane.
+
+*   **Black Curves (Real Part):** These correspond to level sets where the real part of the function, $ \text{Re}(f(s)) $, takes integer values. They reveal the underlying structure of the function’s real transformation.
+    
+*   **White Curves (Imaginary Part):** These correspond to level sets where the imaginary part, $ \text{Im}(f(s)) $, takes integer values. Together with the black curves, they form a curvilinear grid that reflects the conformal character of the mapping.
+
+When a black curve and a white curve intersect at the base of the terrain, the point may correspond to a **zero** of the function, where both the real and imaginary parts vanish simultaneously.
+
 ### Supported Functions
 The explorer supports various standard complex functions, including trigonometric, exponential, and logarithmic functions. The centerpiece is the **Riemann zeta function** $\zeta(s)$.
 
