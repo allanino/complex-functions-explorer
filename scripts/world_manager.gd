@@ -205,6 +205,7 @@ func _create_lod_mesh(size: float, subdivisions: int) -> Mesh:
 	# Left edge
 	for z in range(subdivisions - 1, 0, -1): perimeter_indices.append(z * vert_count)
 
+	var current_v_idx = vert_count * vert_count
 	for g_idx in perimeter_indices:
 		var x = g_idx % vert_count
 		var z = g_idx / vert_count
@@ -215,13 +216,15 @@ func _create_lod_mesh(size: float, subdivisions: int) -> Mesh:
 		st.set_color(Color.WHITE)
 		st.set_uv(uv)
 		st.add_vertex(Vector3(x * step - half_size, 0, z * step - half_size))
-		grid_to_skirt_top[g_idx] = st.get_vertex_count() - 1
+		grid_to_skirt_top[g_idx] = current_v_idx
+		current_v_idx += 1
 
 		# Skirt bottom vertex (Color.BLACK -> 100.0 displacement in shader)
 		st.set_color(Color.BLACK)
 		st.set_uv(uv)
 		st.add_vertex(Vector3(x * step - half_size, -0.01, z * step - half_size))
-		grid_to_skirt_bottom[g_idx] = st.get_vertex_count() - 1
+		grid_to_skirt_bottom[g_idx] = current_v_idx
+		current_v_idx += 1
 
 	for i in range(perimeter_indices.size()):
 		var g1 = perimeter_indices[i]
