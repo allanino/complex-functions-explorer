@@ -22,7 +22,7 @@ void vertex() {
     vec3 local_pos = VERTEX;
     vec3 world_v_pos = (MODEL_MATRIX * vec4(local_pos, 1.0)).xyz;
 
-    ZetaData fd = get_field_with_derivatives(world_v_pos.x, world_v_pos.z);
+    FieldData fd = get_field_with_derivatives(world_v_pos.x, world_v_pos.z);
     field_val = fd.value;
 
     float mag = length(field_val);

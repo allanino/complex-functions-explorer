@@ -9,7 +9,7 @@ uniform float height_epsilon = 1.0;
 uniform float rational_num_coeffs[10];
 uniform float rational_den_coeffs[10];
 
-struct ZetaData {
+struct FieldData {
     vec2 value;    // The actual complex f(sigma, t)
     vec2 d_sigma;  // Partial derivative with respect to sigma
     vec2 d_t;      // Partial derivative with respect to t
@@ -102,7 +102,7 @@ vec2 zeta(float sigma, float t) {
     return complex_div(eta, denom);
 }
 
-ZetaData zeta_with_derivatives(float sigma, float t, int iters) {
+FieldData zeta_with_derivatives(float sigma, float t, int iters) {
     vec2 eta = vec2(0.0);
     vec2 deta_dsigma = vec2(0.0);
 
@@ -130,7 +130,7 @@ ZetaData zeta_with_derivatives(float sigma, float t, int iters) {
     vec2 denom = vec2(1.0, 0.0) - two_term;
     vec2 ddenom_dsigma = log_2 * two_term;
 
-    ZetaData result;
+    FieldData result;
     result.value = complex_div(eta, denom);
 
     vec2 denom_sqr = complex_mul(denom, denom);
@@ -197,8 +197,8 @@ vec2 get_rational(float sigma, float t) {
     return complex_div(num, den);
 }
 
-ZetaData complex_sin_with_derivatives(float sigma, float t) {
-    ZetaData res;
+FieldData complex_sin_with_derivatives(float sigma, float t) {
+    FieldData res;
     res.value = complex_sin(sigma, t);
     vec2 deriv = complex_cos(sigma, t);
     res.d_sigma = deriv;
@@ -206,8 +206,8 @@ ZetaData complex_sin_with_derivatives(float sigma, float t) {
     return res;
 }
 
-ZetaData complex_cos_with_derivatives(float sigma, float t) {
-    ZetaData res;
+FieldData complex_cos_with_derivatives(float sigma, float t) {
+    FieldData res;
     res.value = complex_cos(sigma, t);
     vec2 deriv = -complex_sin(sigma, t);
     res.d_sigma = deriv;
@@ -215,8 +215,8 @@ ZetaData complex_cos_with_derivatives(float sigma, float t) {
     return res;
 }
 
-ZetaData complex_tan_with_derivatives(float sigma, float t) {
-    ZetaData res;
+FieldData complex_tan_with_derivatives(float sigma, float t) {
+    FieldData res;
     res.value = complex_tan(sigma, t);
     vec2 cos_z = complex_cos(sigma, t);
     vec2 cos_z_sqr = complex_mul(cos_z, cos_z);
@@ -226,8 +226,8 @@ ZetaData complex_tan_with_derivatives(float sigma, float t) {
     return res;
 }
 
-ZetaData complex_exp_with_derivatives(float sigma, float t) {
-    ZetaData res;
+FieldData complex_exp_with_derivatives(float sigma, float t) {
+    FieldData res;
     res.value = complex_exp(sigma, t);
     vec2 deriv = res.value;
     res.d_sigma = deriv;
@@ -235,8 +235,8 @@ ZetaData complex_exp_with_derivatives(float sigma, float t) {
     return res;
 }
 
-ZetaData complex_log_with_derivatives(float sigma, float t) {
-    ZetaData res;
+FieldData complex_log_with_derivatives(float sigma, float t) {
+    FieldData res;
     res.value = complex_log(sigma, t);
     vec2 z = vec2(sigma, t);
     vec2 deriv = complex_div(vec2(1.0, 0.0), z);
@@ -245,7 +245,7 @@ ZetaData complex_log_with_derivatives(float sigma, float t) {
     return res;
 }
 
-ZetaData evaluate_poly_with_derivatives(float sigma, float t, float coeffs[10]) {
+FieldData evaluate_poly_with_derivatives(float sigma, float t, float coeffs[10]) {
     vec2 z = vec2(sigma, t);
     vec2 val = vec2(0.0);
     vec2 deriv = vec2(0.0);
@@ -259,18 +259,18 @@ ZetaData evaluate_poly_with_derivatives(float sigma, float t, float coeffs[10]) 
         z_pow = complex_mul(z_pow, z);
     }
 
-    ZetaData res;
+    FieldData res;
     res.value = val;
     res.d_sigma = deriv;
     res.d_t = vec2(-deriv.y, deriv.x);
     return res;
 }
 
-ZetaData get_rational_with_derivatives(float sigma, float t) {
-    ZetaData num = evaluate_poly_with_derivatives(sigma, t, rational_num_coeffs);
-    ZetaData den = evaluate_poly_with_derivatives(sigma, t, rational_den_coeffs);
+FieldData get_rational_with_derivatives(float sigma, float t) {
+    FieldData num = evaluate_poly_with_derivatives(sigma, t, rational_num_coeffs);
+    FieldData den = evaluate_poly_with_derivatives(sigma, t, rational_den_coeffs);
 
-    ZetaData res;
+    FieldData res;
     res.value = complex_div(num.value, den.value);
 
     vec2 den_sqr = complex_mul(den.value, den.value);
@@ -286,7 +286,7 @@ ZetaData get_rational_with_derivatives(float sigma, float t) {
     return res;
 }
 
-ZetaData get_field_with_derivatives(float x, float z) {
+FieldData get_field_with_derivatives(float x, float z) {
 	float sigma = x * 0.1;
 	float t = -z * 0.1;
 
@@ -306,7 +306,7 @@ ZetaData get_field_with_derivatives(float x, float z) {
         return get_rational_with_derivatives(sigma, t);
     }
 
-    ZetaData res;
+    FieldData res;
     res.value = vec2(0.0);
     res.d_sigma = vec2(0.0);
     res.d_t = vec2(0.0);
