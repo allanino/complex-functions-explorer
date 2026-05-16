@@ -33,6 +33,9 @@ void vertex() {
         h = mag;
     }
     local_pos.y += h;
+    if (COLOR.r < 0.5) {
+        local_pos.y -= 100.0;
+    }
     VERTEX = local_pos;
     world_pos = (MODEL_MATRIX * vec4(local_pos, 1.0)).xyz;
 

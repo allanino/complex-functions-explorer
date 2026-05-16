@@ -165,11 +165,83 @@ func _get_lod_level(coord: Vector2i, player_coord: Vector2i) -> int:
 		return 3
 
 func _create_lod_mesh(size: float, subdivisions: int) -> Mesh:
-	var plane = PlaneMesh.new()
-	plane.size = Vector2(size, size)
-	plane.subdivide_width = subdivisions
-	plane.subdivide_depth = subdivisions
-	return plane
+	var st = SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+
+	var vert_count = subdivisions + 1
+	var half_size = size * 0.5
+	var step = size / subdivisions
+
+	# Create grid vertices
+	for z in range(vert_count):
+		for x in range(vert_count):
+			st.set_color(Color.WHITE)
+			st.set_uv(Vector2(float(x) / subdivisions, float(z) / subdivisions))
+			st.add_vertex(Vector3(x * step - half_size, 0, z * step - half_size))
+
+	# Create grid indices (CCW)
+	for z in range(subdivisions):
+		for x in range(subdivisions):
+			var i = z * vert_count + x
+			st.add_index(i)
+			st.add_index((z + 1) * vert_count + x)
+			st.add_index(i + 1)
+
+			st.add_index(i + 1)
+			st.add_index((z + 1) * vert_count + x)
+			st.add_index((z + 1) * vert_count + x + 1)
+
+	# Create skirts
+	var grid_to_skirt_top = {}
+	var grid_to_skirt_bottom = {}
+	var perimeter_indices = []
+
+	# Top edge
+	for x in range(vert_count): perimeter_indices.append(x)
+	# Right edge
+	for z in range(1, vert_count): perimeter_indices.append(z * vert_count + subdivisions)
+	# Bottom edge
+	for x in range(subdivisions - 1, -1, -1): perimeter_indices.append(subdivisions * vert_count + x)
+	# Left edge
+	for z in range(subdivisions - 1, 0, -1): perimeter_indices.append(z * vert_count)
+
+	for g_idx in perimeter_indices:
+		var x = g_idx % vert_count
+		var z = g_idx / vert_count
+		var uv = Vector2(float(x) / subdivisions, float(z) / subdivisions)
+
+		# Skirt top vertex (Color.WHITE -> no displacement)
+		# We duplicate these vertices to avoid normal bleeding between terrain and skirt
+		st.set_color(Color.WHITE)
+		st.set_uv(uv)
+		st.add_vertex(Vector3(x * step - half_size, 0, z * step - half_size))
+		grid_to_skirt_top[g_idx] = st.get_vertex_count() - 1
+
+		# Skirt bottom vertex (Color.BLACK -> 100.0 displacement in shader)
+		st.set_color(Color.BLACK)
+		st.set_uv(uv)
+		st.add_vertex(Vector3(x * step - half_size, -0.01, z * step - half_size))
+		grid_to_skirt_bottom[g_idx] = st.get_vertex_count() - 1
+
+	for i in range(perimeter_indices.size()):
+		var g1 = perimeter_indices[i]
+		var g2 = perimeter_indices[(i + 1) % perimeter_indices.size()]
+		var s1t = grid_to_skirt_top[g1]
+		var s1b = grid_to_skirt_bottom[g1]
+		var s2t = grid_to_skirt_top[g2]
+		var s2b = grid_to_skirt_bottom[g2]
+
+		# Outward facing triangles (CCW)
+		st.add_index(s1t)
+		st.add_index(s2t)
+		st.add_index(s1b)
+
+		st.add_index(s2t)
+		st.add_index(s2b)
+		st.add_index(s1b)
+
+	st.generate_normals()
+	return st.commit()
 
 func _update_chunk_uniforms(chunk: MeshInstance3D):
 	if chunk.material_override:
