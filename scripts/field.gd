@@ -1,7 +1,7 @@
 # Shared field and height functions for GDScript
 class_name Field
 
-static var iterations: int = 120
+static var iterations: int = 300
 static var show_curves: bool = true
 static var show_critical_stripe: bool = true
 static var golden_hour: bool = false
