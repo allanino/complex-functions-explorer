@@ -9,11 +9,24 @@ global uniform float height_epsilon = 1.0;
 global uniform mat4 rational_num_mat;
 global uniform mat4 rational_den_mat;
 
+// Local uniform to allow per-chunk LOD iteration scaling
+uniform int lod_level = 0;
+
 struct FieldData {
     vec2 value;    // The actual complex f(sigma, t)
     vec2 d_sigma;  // Partial derivative with respect to sigma
     vec2 d_t;      // Partial derivative with respect to t
 };
+
+int get_scaled_iterations() {
+    int iters = iterations;
+    if (function_type == 0) { // Zeta
+        if (lod_level == 1) iters = int(float(iterations) * 0.8);
+        else if (lod_level == 2) iters = int(float(iterations) * 0.6);
+        else if (lod_level == 3) iters = int(float(iterations) * 0.4);
+    }
+    return iters;
+}
 
 vec2 complex_mul(vec2 a, vec2 b) {
     return vec2(
@@ -32,77 +45,32 @@ vec2 complex_div(vec2 a, vec2 b) {
     );
 }
 
-vec2 zeta(float sigma, float t, int iters) {
-
-    //----------------------------------------
-    // STEP 1: Compute eta(s)
-    //----------------------------------------
-
+vec2 zeta(float sigma, float t) {
+    int iters = get_scaled_iterations();
     vec2 eta = vec2(0.0);
 
     for (int n = 1; n <= iters; n++) {
-
         float nf = float(n);
-
-        //----------------------------------------
-        // amplitude = n^{-sigma}
-        //----------------------------------------
-
         float amp = pow(nf, -sigma);
-
         if (amp < 1e-6) {
             break;
         }
 
-        //----------------------------------------
-        // phase = -t log n
-        //----------------------------------------
-
         float theta = -t * log(nf);
-
-        //----------------------------------------
-        // alternating sign
-        //----------------------------------------
-
-        float _sign = (mod(float(n), 2.0) < 0.5)
-            ? -1.0
-            : 1.0;
-
-        //----------------------------------------
-        // term = sign * n^{-s}
-        //----------------------------------------
-
-        eta += _sign * amp * vec2(
-            cos(theta),
-            sin(theta)
-        );
+        float _sign = (mod(float(n), 2.0) < 0.5) ? -1.0 : 1.0;
+        eta += _sign * amp * vec2(cos(theta), sin(theta));
     }
 
-    //----------------------------------------
-    // STEP 2: Compute denominator
-    //
-    // d = 1 - 2^{1-s}
-    //----------------------------------------
-
     float amp2 = pow(2.0, 1.0 - sigma);
-
     float theta2 = -t * log(2.0);
-
-    vec2 two_term = amp2 * vec2(
-        cos(theta2),
-        sin(theta2)
-    );
-
+    vec2 two_term = amp2 * vec2(cos(theta2), sin(theta2));
     vec2 denom = vec2(1.0, 0.0) - two_term;
-
-    //----------------------------------------
-    // STEP 3: zeta = eta / denom
-    //----------------------------------------
 
     return complex_div(eta, denom);
 }
 
-FieldData zeta_with_derivatives(float sigma, float t, int iters) {
+FieldData zeta_with_derivatives(float sigma, float t) {
+    int iters = get_scaled_iterations();
     vec2 eta = vec2(0.0);
     vec2 deta_dsigma = vec2(0.0);
 
@@ -289,12 +257,12 @@ FieldData get_rational_with_derivatives(float sigma, float t) {
     return res;
 }
 
-FieldData get_field_with_derivatives(float x, float z, int iters) {
+FieldData get_field_with_derivatives(float x, float z) {
 	float sigma = x * 0.1;
 	float t = -z * 0.1;
 
     if (function_type == 0) {
-        return zeta_with_derivatives(sigma, t, iters);
+        return zeta_with_derivatives(sigma, t);
     } else if (function_type == 1) {
         return complex_sin_with_derivatives(sigma, t);
     } else if (function_type == 2) {
@@ -316,12 +284,12 @@ FieldData get_field_with_derivatives(float x, float z, int iters) {
     return res;
 }
 
-vec2 get_field(float x, float z, int iters) {
+vec2 get_field(float x, float z) {
 	float sigma = x * 0.1;
 	float t = -z * 0.1;
 
     if (function_type == 0) {
-        return zeta(sigma, t, iters);
+        return zeta(sigma, t);
     } else if (function_type == 1) {
         return complex_sin(sigma, t);
     } else if (function_type == 2) {
@@ -339,8 +307,8 @@ vec2 get_field(float x, float z, int iters) {
     return vec2(0.0);
 }
 
-float get_height(float x, float z, int iters) {
-    vec2 f = get_field(x, z, iters);
+float get_height(float x, float z) {
+    vec2 f = get_field(x, z);
     float mag = length(f);
 
     if (height_type == 0) {

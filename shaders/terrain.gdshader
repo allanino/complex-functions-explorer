@@ -6,7 +6,6 @@ varying vec3 world_pos;
 varying vec3 v_normal;
 varying vec2 field_val;
 
-uniform int lod_level = 0;
 global uniform bool show_curves = true;
 global uniform bool show_critical_stripe = true;
 
@@ -22,7 +21,7 @@ void vertex() {
     vec3 local_pos = VERTEX;
     vec3 world_v_pos = (MODEL_MATRIX * vec4(local_pos, 1.0)).xyz;
 
-    FieldData fd = get_field_with_derivatives(world_v_pos.x, world_v_pos.z, iterations);
+    FieldData fd = get_field_with_derivatives(world_v_pos.x, world_v_pos.z);
     field_val = fd.value;
 
     float mag = length(field_val);

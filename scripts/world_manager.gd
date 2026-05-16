@@ -16,7 +16,7 @@ var _last_player_chunk = Vector2i(9999, 9999)
 # We increase our chunks by this to make junctions more seamless
 # To test this, look at the right of zeta, the pole has a junction
 # along t = 0.00.
-const chunk_leeway = 0.3;
+const chunk_leeway = 0.02;
 
 @onready var sun = get_node("../DirectionalLight3D")
 @onready var moon = get_node("../MoonLight")
