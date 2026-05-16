@@ -182,7 +182,6 @@ func _update_chunk_uniforms(chunk: MeshInstance3D):
 
 		chunk.material_override.set_shader_parameter("lod_level", lod)
 		chunk.material_override.set_shader_parameter("iterations", iterations)
-		chunk.material_override.set_shader_parameter("surface_shading_mode", Field.surface_shading_mode)
 		chunk.material_override.set_shader_parameter("iterations", Field.iterations)
 		chunk.material_override.set_shader_parameter("show_curves", Field.show_curves)
 		chunk.material_override.set_shader_parameter("show_critical_stripe", Field.show_critical_stripe)
