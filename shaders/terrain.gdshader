@@ -90,7 +90,7 @@ void fragment() {
         float density_re = 1.0 / (1.0 + 20.0 * w_re);
         line_re *= density_re;
 
-        base *= 1.0 - line_re * 0.75;
+        base *= 1.0 - line_re * 0.8;
 
         // Compute countour lines where f.y is integer
         float d_im = abs(f.y - round(f.y));
@@ -100,15 +100,15 @@ void fragment() {
         float density_im = 1.0 / (1.0 + 20.0 * w_im);
         line_im *= density_im;
 
-        base *= 1.0 + line_im * 0.75;
+        base *= 1.0 + line_im * 0.8;
 
         // Apply to base and emission
         // (Note: ALBEDO and base emission use the modified base)
     }
 
 
-    ALBEDO = base * 0.5;
-    vec3 final_emission = base * 0.05;
+    ALBEDO = base * 0.15;
+    vec3 final_emission = base * 0.1;
 
     // Only apply the lines rendering for zeta (at x = 0, x = 5.0, x = 10.0)
     // which corresponds to Re = 0.0, Re = 0.5, Re = 1.0
@@ -141,11 +141,8 @@ void fragment() {
         final_emission += white_line_color * (core_10 * 0.5 + glow_10 * glow * 1.0);
     }
 
-    float fresnel = pow(1.0 - dot(NORMAL, VIEW), 3.0);
-    final_emission += fresnel * 0.03;
-
     EMISSION = final_emission;
-	ROUGHNESS = 0.05;
-	METALLIC = 0.4;
-	SPECULAR = 0.2;
+	ROUGHNESS = 0.1;
+	METALLIC = 0.7;
+	SPECULAR = 0.1;
 }
