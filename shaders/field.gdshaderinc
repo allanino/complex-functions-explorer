@@ -50,10 +50,6 @@ vec2 zeta(float sigma, float t) {
 
         float amp = pow(nf, -sigma);
 
-        if (amp < 1e-6) {
-            break;
-        }
-
         //----------------------------------------
         // phase = -t log n
         //----------------------------------------
@@ -109,9 +105,6 @@ FieldData zeta_with_derivatives(float sigma, float t, int iters) {
     for (int n = 1; n <= iters; n++) {
         float nf = float(n);
         float amp = pow(nf, -sigma);
-        if (amp < 1e-6) {
-            break;
-        }
 
         float log_n = log(nf);
         float theta = -t * log_n;
