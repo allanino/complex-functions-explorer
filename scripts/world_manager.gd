@@ -121,7 +121,6 @@ func _process(delta):
 	# Check if any field properties have changed
 	var current_field_state = {
 		"iterations": Field.iterations,
-		"surface_shading_mode": Field.surface_shading_mode,
 		"show_curves": Field.show_curves,
 		"show_critical_stripe": Field.show_critical_stripe,
 		"function_type": Field.function_type,
@@ -184,6 +183,7 @@ func _update_chunk_uniforms(chunk: MeshInstance3D):
 		chunk.material_override.set_shader_parameter("lod_level", lod)
 		chunk.material_override.set_shader_parameter("iterations", iterations)
 		chunk.material_override.set_shader_parameter("surface_shading_mode", Field.surface_shading_mode)
+		chunk.material_override.set_shader_parameter("iterations", Field.iterations)
 		chunk.material_override.set_shader_parameter("show_curves", Field.show_curves)
 		chunk.material_override.set_shader_parameter("show_critical_stripe", Field.show_critical_stripe)
 		chunk.material_override.set_shader_parameter("function_type", Field.function_type)

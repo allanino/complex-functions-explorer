@@ -5,7 +5,7 @@ const DOUBLE_PRESS_TIME = 0.3
 const CRITICAL_LINE_X = 5.0
 const AUTO_WALK_PITCH = -0.523598776 # -30 degrees in radians
 
-enum AutoWalkState { NONE, MOVING_TO_LINE, ALIGNING, WALKING }
+enum AutoWalkState { NONE, MOVING_TO_LINE, WALKING }
 
 var rotation_x = 0.0
 var auto_walk_state = AutoWalkState.NONE
@@ -82,6 +82,9 @@ func _physics_process(delta):
 	if current_f.length() < Field.zero_threshold:
 		current_speed *= (Field.speed_near_zeros / 100.0)
 
+	if auto_walk_state != AutoWalkState.NONE:
+		current_speed = min(current_speed, 50.0)
+
 	if auto_walk_state == AutoWalkState.NONE:
 		if Input.is_key_pressed(KEY_SHIFT):
 			current_speed *= 2.0
@@ -106,38 +109,29 @@ func _physics_process(delta):
 
 	if auto_walk_state == AutoWalkState.MOVING_TO_LINE:
 		var target_x = CRITICAL_LINE_X
-		var diff_x = target_x - global_position.x
 
-		if abs(diff_x) < 0.1:
-			auto_walk_state = AutoWalkState.ALIGNING
-			direction = Vector3.ZERO
-		else:
-			var walk_dir = Vector3(sign(diff_x), 0, 0)
-			# Face the walk direction
-			var target_angle = atan2(-walk_dir.x, -walk_dir.z)
-			rotation.y = lerp_angle(rotation.y, target_angle, 5.0 * delta)
+		# Smoothly rotate to face forward (-Z)
+		rotation.y = lerp_angle(rotation.y, 0.0, 5.0 * delta)
 
-			# Face camera forward (relative to player)
-			rotation_x = lerp(rotation_x, AUTO_WALK_PITCH, 5.0 * delta)
-			camera.rotation.x = rotation_x
-
-			direction = walk_dir
-
-	elif auto_walk_state == AutoWalkState.ALIGNING:
-		# Target is facing forward (-Z)
-		var target_angle = 0.0
-		rotation.y = lerp_angle(rotation.y, target_angle, 5.0 * delta)
-		rotation_x = lerp(rotation_x, AUTO_WALK_PITCH, 5.0 * delta)
+		# Smoothly transition camera to horizontal
+		rotation_x = lerp(rotation_x, 0.0, 5.0 * delta)
 		camera.rotation.x = rotation_x
+
+		# Smoothly move to the critical line X
+		global_position.x = move_toward(global_position.x, target_x, current_speed * delta)
 
 		direction = Vector3.ZERO
 
-		if abs(angle_difference(rotation.y, target_angle)) < 0.01 and abs(rotation_x - AUTO_WALK_PITCH) < 0.01:
+		if abs(global_position.x - target_x) < 0.01 and abs(angle_difference(rotation.y, 0.0)) < 0.01 and abs(rotation_x) < 0.01:
 			auto_walk_state = AutoWalkState.WALKING
 
 	elif auto_walk_state == AutoWalkState.WALKING:
 		direction = Vector3(0, 0, -1)
 		global_position.x = move_toward(global_position.x, CRITICAL_LINE_X, 2.0 * delta)
+
+		# Smoothly transition to downward tilt only after positioning
+		rotation_x = lerp(rotation_x, AUTO_WALK_PITCH, 5.0 * delta)
+		camera.rotation.x = rotation_x
 
 	if direction != Vector3.ZERO:
 		velocity.x = direction.x * current_speed

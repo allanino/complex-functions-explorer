@@ -7,7 +7,6 @@ varying vec3 v_normal;
 varying vec2 field_val;
 
 uniform int lod_level = 0;
-uniform int surface_shading_mode = 2; // 0: Disabled, 1: Estimated, 2: Precise
 uniform bool show_curves = true;
 uniform bool show_critical_stripe = true;
 
@@ -23,7 +22,9 @@ void vertex() {
     vec3 local_pos = VERTEX;
     vec3 world_v_pos = (MODEL_MATRIX * vec4(local_pos, 1.0)).xyz;
 
-    field_val = get_field(world_v_pos.x, world_v_pos.z);
+    FieldData fd = get_field_with_derivatives(world_v_pos.x, world_v_pos.z);
+    field_val = fd.value;
+
     float mag = length(field_val);
     float h = 0.0;
     if (height_type == 0) {
@@ -35,18 +36,39 @@ void vertex() {
     VERTEX = local_pos;
     world_pos = (MODEL_MATRIX * vec4(local_pos, 1.0)).xyz;
 
-    if (surface_shading_mode == 2) {
-        // Precise normals using finite differences
-        float delta = 0.01;
-        float h_right = get_height(world_v_pos.x + delta, world_v_pos.z);
-        float h_forward = get_height(world_v_pos.x, world_v_pos.z + delta);
+    // Analytical normals using derivatives
+    float u = field_val.x;
+    float v = field_val.y;
 
-        vec3 v_right = vec3(delta, h_right - h, 0.0);
-        vec3 v_forward = vec3(0.0, h_forward - h, delta);
-        v_normal = normalize(cross(v_forward, v_right));
+    // sigma = x * 0.1, t = -z * 0.1
+    // d_sigma/dx = 0.1, dt/dz = -0.1
+    vec2 du_dsigma_v = fd.d_sigma; // (du/dsigma, dv/dsigma)
+    vec2 du_dt_v = fd.d_t;         // (du/dt, dv/dt)
+
+    float du_dx = 0.1 * du_dsigma_v.x;
+    float dv_dx = 0.1 * du_dsigma_v.y;
+    float du_dz = -0.1 * du_dt_v.x;
+    float dv_dz = -0.1 * du_dt_v.y;
+
+    float mag_sq = u*u + v*v + 1e-12;
+    float dmag_dx = (u * du_dx + v * dv_dx) / sqrt(mag_sq);
+    float dmag_dz = (u * du_dz + v * dv_dz) / sqrt(mag_sq);
+
+    float dh_dx = 0.0;
+    float dh_dz = 0.0;
+
+    if (height_type == 0) {
+        // h = height_a * log(height_epsilon + mag)
+        float denom = height_epsilon + mag;
+        dh_dx = (height_a / denom) * dmag_dx;
+        dh_dz = (height_a / denom) * dmag_dz;
     } else {
-        v_normal = vec3(0.0, 1.0, 0.0);
+        // h = mag
+        dh_dx = dmag_dx;
+        dh_dz = dmag_dz;
     }
+
+    v_normal = normalize(vec3(-dh_dx, 1.0, -dh_dz));
     NORMAL = (MODEL_NORMAL_MATRIX * v_normal);
 }
 
@@ -84,9 +106,6 @@ void fragment() {
         // (Note: ALBEDO and base emission use the modified base)
     }
 
-    if (surface_shading_mode == 1) {
-        NORMAL = normalize(cross(dFdy(VERTEX), dFdx(VERTEX)));
-    }
 
     ALBEDO = base * 0.5;
     vec3 final_emission = base * 0.05;
