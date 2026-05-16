@@ -27,9 +27,63 @@ var _day_night_time: float = 0.0
 var _sun_color = Color("#fc9500")
 
 func _ready():
+	_register_global_shader_parameters()
 	_update_lod_subs()
+	_update_global_shader_parameters()
 	# Uncomment this to debug the mesh wireframe
 	# get_viewport().debug_draw = Viewport.DEBUG_DRAW_WIREFRAME
+
+func _register_global_shader_parameters():
+	# Field parameters
+	RenderingServer.global_shader_parameter_add("iterations", RenderingServer.GLOBAL_VAR_TYPE_INT, 120)
+	RenderingServer.global_shader_parameter_add("function_type", RenderingServer.GLOBAL_VAR_TYPE_INT, 0)
+	RenderingServer.global_shader_parameter_add("height_type", RenderingServer.GLOBAL_VAR_TYPE_INT, 0)
+	RenderingServer.global_shader_parameter_add("height_a", RenderingServer.GLOBAL_VAR_TYPE_FLOAT, 3.0)
+	RenderingServer.global_shader_parameter_add("height_epsilon", RenderingServer.GLOBAL_VAR_TYPE_FLOAT, 1.0)
+	RenderingServer.global_shader_parameter_add("rational_num_mat", RenderingServer.GLOBAL_VAR_TYPE_MAT4, Projection())
+	RenderingServer.global_shader_parameter_add("rational_den_mat", RenderingServer.GLOBAL_VAR_TYPE_MAT4, Projection())
+
+	# Terrain specific
+	RenderingServer.global_shader_parameter_add("show_curves", RenderingServer.GLOBAL_VAR_TYPE_BOOL, true)
+	RenderingServer.global_shader_parameter_add("show_critical_stripe", RenderingServer.GLOBAL_VAR_TYPE_BOOL, true)
+
+	# Sky specific
+	RenderingServer.global_shader_parameter_add("golden_hour_factor", RenderingServer.GLOBAL_VAR_TYPE_FLOAT, 0.0)
+	RenderingServer.global_shader_parameter_add("night_factor", RenderingServer.GLOBAL_VAR_TYPE_FLOAT, 0.0)
+
+	# HUD specific
+	RenderingServer.global_shader_parameter_add("current_f", RenderingServer.GLOBAL_VAR_TYPE_VEC2, Vector2.ZERO)
+	RenderingServer.global_shader_parameter_add("complex_scale", RenderingServer.GLOBAL_VAR_TYPE_FLOAT, 2.0)
+
+func _update_global_shader_parameters():
+	RenderingServer.global_shader_parameter_set("iterations", Field.iterations)
+	RenderingServer.global_shader_parameter_set("function_type", Field.function_type)
+	RenderingServer.global_shader_parameter_set("height_type", Field.height_type)
+	RenderingServer.global_shader_parameter_set("height_a", Field.height_a)
+	RenderingServer.global_shader_parameter_set("height_epsilon", Field.height_epsilon)
+	RenderingServer.global_shader_parameter_set("show_curves", Field.show_curves)
+	RenderingServer.global_shader_parameter_set("show_critical_stripe", Field.show_critical_stripe)
+
+	# Pack rational coefficients into mat4
+	var num_mat = Projection()
+	var den_mat = Projection()
+
+	# Godot 4 Projection is 4x4 matrix, column-major access.
+	# num_mat[i / 4] returns a copy of the column Vector4.
+	for i in range(10):
+		var col_idx = i / 4
+		var row_idx = i % 4
+
+		var num_col = num_mat[col_idx]
+		num_col[row_idx] = Field.rational_num_coeffs[i]
+		num_mat[col_idx] = num_col
+
+		var den_col = den_mat[col_idx]
+		den_col[row_idx] = Field.rational_den_coeffs[i]
+		den_mat[col_idx] = den_col
+
+	RenderingServer.global_shader_parameter_set("rational_num_mat", num_mat)
+	RenderingServer.global_shader_parameter_set("rational_den_mat", den_mat)
 
 func _process(delta):
 	if not player:
@@ -65,9 +119,6 @@ func _process(delta):
 		var progress = _day_night_time / day_night_cycle_duration
 		var angle = progress * TAU
 
-		# Rotate in YZ plane
-		# var south_north_dir = Vector3(0, -sin(angle), -cos(angle)).normalized()
-	
 		# Rotate in YX plane
 		var east_west_dir = Vector3(sin(angle), -cos(angle), 0).normalized()
 
@@ -118,11 +169,9 @@ func _process(delta):
 
 		night_factor = 0.0
 
-	if world_environment and world_environment.environment and world_environment.environment.sky:
-		var sky_mat = world_environment.environment.sky.sky_material as ShaderMaterial
-		if sky_mat:
-			sky_mat.set_shader_parameter("golden_hour_factor", _golden_hour_transition)
-			sky_mat.set_shader_parameter("night_factor", night_factor)
+	# Update sky factors globally
+	RenderingServer.global_shader_parameter_set("golden_hour_factor", _golden_hour_transition)
+	RenderingServer.global_shader_parameter_set("night_factor", night_factor)
 
 	# Check if any field properties have changed
 	var current_field_state = {
@@ -148,10 +197,8 @@ func _process(delta):
 			_update_lod_subs()
 			_lod_mesh_cache.clear()
 			_update_all_chunks_lod(true)
-		else:
-			# Update uniforms in all existing chunks
-			for chunk in chunks.values():
-				_update_chunk_uniforms(chunk)
+
+		_update_global_shader_parameters()
 
 	# LOD Dynamic Update
 	if player_chunk_x != _last_player_chunk.x or player_chunk_z != _last_player_chunk.y:
@@ -201,17 +248,7 @@ func _create_lod_mesh(size: float, subdivisions: int) -> Mesh:
 func _update_chunk_uniforms(chunk: MeshInstance3D):
 	if chunk.material_override:
 		var lod = chunk.get_meta("lod_level", 0)
-
 		chunk.material_override.set_shader_parameter("lod_level", lod)
-		chunk.material_override.set_shader_parameter("iterations", Field.iterations)
-		chunk.material_override.set_shader_parameter("show_curves", Field.show_curves)
-		chunk.material_override.set_shader_parameter("show_critical_stripe", Field.show_critical_stripe)
-		chunk.material_override.set_shader_parameter("function_type", Field.function_type)
-		chunk.material_override.set_shader_parameter("height_type", Field.height_type)
-		chunk.material_override.set_shader_parameter("height_a", Field.height_a)
-		chunk.material_override.set_shader_parameter("height_epsilon", Field.height_epsilon)
-		chunk.material_override.set_shader_parameter("rational_num_coeffs", Field.rational_num_coeffs)
-		chunk.material_override.set_shader_parameter("rational_den_coeffs", Field.rational_den_coeffs)
 
 func _load_chunk(coord: Vector2i):
 	var chunk = chunk_scene.instantiate()

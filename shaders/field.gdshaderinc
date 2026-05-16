@@ -1,13 +1,13 @@
 // Shared field and height functions for shaders
 
-uniform int iterations = 120;
-uniform int function_type = 0; // 0: Zeta, 1: Sin, 2: Cos, 3: Tan, 4: Exp, 5: Log, 6: Rational
-uniform int height_type = 0;   // 0: Log, 1: Abs
-uniform float height_a = 3.0;
-uniform float height_epsilon = 1.0;
+global uniform int iterations = 120;
+global uniform int function_type = 0; // 0: Zeta, 1: Sin, 2: Cos, 3: Tan, 4: Exp, 5: Log, 6: Rational
+global uniform int height_type = 0;   // 0: Log, 1: Abs
+global uniform float height_a = 3.0;
+global uniform float height_epsilon = 1.0;
 
-uniform float rational_num_coeffs[10];
-uniform float rational_den_coeffs[10];
+global uniform mat4 rational_num_mat;
+global uniform mat4 rational_den_mat;
 
 struct FieldData {
     vec2 value;    // The actual complex f(sigma, t)
@@ -32,7 +32,7 @@ vec2 complex_div(vec2 a, vec2 b) {
     );
 }
 
-vec2 zeta(float sigma, float t) {
+vec2 zeta(float sigma, float t, int iters) {
 
     //----------------------------------------
     // STEP 1: Compute eta(s)
@@ -40,7 +40,7 @@ vec2 zeta(float sigma, float t) {
 
     vec2 eta = vec2(0.0);
 
-    for (int n = 1; n <= iterations; n++) {
+    for (int n = 1; n <= iters; n++) {
 
         float nf = float(n);
 
@@ -178,13 +178,14 @@ vec2 complex_log(float sigma, float t) {
     );
 }
 
-vec2 evaluate_poly(float sigma, float t, float coeffs[10]) {
+vec2 evaluate_poly(float sigma, float t, mat4 coeffs_mat) {
     vec2 z = vec2(sigma, t);
     vec2 res = vec2(0.0);
     vec2 z_pow = vec2(1.0, 0.0);
 
     for (int i = 0; i < 10; i++) {
-        res += coeffs[i] * z_pow;
+        float coeff = coeffs_mat[i / 4][i % 4];
+        res += coeff * z_pow;
         z_pow = complex_mul(z_pow, z);
     }
 
@@ -192,8 +193,8 @@ vec2 evaluate_poly(float sigma, float t, float coeffs[10]) {
 }
 
 vec2 get_rational(float sigma, float t) {
-    vec2 num = evaluate_poly(sigma, t, rational_num_coeffs);
-    vec2 den = evaluate_poly(sigma, t, rational_den_coeffs);
+    vec2 num = evaluate_poly(sigma, t, rational_num_mat);
+    vec2 den = evaluate_poly(sigma, t, rational_den_mat);
     return complex_div(num, den);
 }
 
@@ -245,16 +246,18 @@ FieldData complex_log_with_derivatives(float sigma, float t) {
     return res;
 }
 
-FieldData evaluate_poly_with_derivatives(float sigma, float t, float coeffs[10]) {
+FieldData evaluate_poly_with_derivatives(float sigma, float t, mat4 coeffs_mat) {
     vec2 z = vec2(sigma, t);
     vec2 val = vec2(0.0);
     vec2 deriv = vec2(0.0);
     vec2 z_pow = vec2(1.0, 0.0);
 
     for (int i = 0; i < 10; i++) {
-        val += coeffs[i] * z_pow;
+        float coeff = coeffs_mat[i / 4][i % 4];
+        val += coeff * z_pow;
         if (i < 9) {
-            deriv += float(i + 1) * coeffs[i+1] * z_pow;
+            float next_coeff = coeffs_mat[(i + 1) / 4][(i + 1) % 4];
+            deriv += float(i + 1) * next_coeff * z_pow;
         }
         z_pow = complex_mul(z_pow, z);
     }
@@ -267,8 +270,8 @@ FieldData evaluate_poly_with_derivatives(float sigma, float t, float coeffs[10])
 }
 
 FieldData get_rational_with_derivatives(float sigma, float t) {
-    FieldData num = evaluate_poly_with_derivatives(sigma, t, rational_num_coeffs);
-    FieldData den = evaluate_poly_with_derivatives(sigma, t, rational_den_coeffs);
+    FieldData num = evaluate_poly_with_derivatives(sigma, t, rational_num_mat);
+    FieldData den = evaluate_poly_with_derivatives(sigma, t, rational_den_mat);
 
     FieldData res;
     res.value = complex_div(num.value, den.value);
@@ -286,12 +289,12 @@ FieldData get_rational_with_derivatives(float sigma, float t) {
     return res;
 }
 
-FieldData get_field_with_derivatives(float x, float z) {
+FieldData get_field_with_derivatives(float x, float z, int iters) {
 	float sigma = x * 0.1;
 	float t = -z * 0.1;
 
     if (function_type == 0) {
-        return zeta_with_derivatives(sigma, t, iterations);
+        return zeta_with_derivatives(sigma, t, iters);
     } else if (function_type == 1) {
         return complex_sin_with_derivatives(sigma, t);
     } else if (function_type == 2) {
@@ -313,12 +316,12 @@ FieldData get_field_with_derivatives(float x, float z) {
     return res;
 }
 
-vec2 get_field(float x, float z) {
+vec2 get_field(float x, float z, int iters) {
 	float sigma = x * 0.1;
 	float t = -z * 0.1;
 
     if (function_type == 0) {
-        return zeta(sigma, t);
+        return zeta(sigma, t, iters);
     } else if (function_type == 1) {
         return complex_sin(sigma, t);
     } else if (function_type == 2) {
@@ -336,8 +339,8 @@ vec2 get_field(float x, float z) {
     return vec2(0.0);
 }
 
-float get_height(float x, float z) {
-    vec2 f = get_field(x, z);
+float get_height(float x, float z, int iters) {
+    vec2 f = get_field(x, z, iters);
     float mag = length(f);
 
     if (height_type == 0) {

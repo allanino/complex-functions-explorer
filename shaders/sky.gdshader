@@ -3,8 +3,8 @@ shader_type sky;
 uniform vec3 sky_color : source_color = vec3(0.3, 0.6, 0.9);
 uniform vec3 horizon_color : source_color = vec3(0.6, 0.8, 1.0);
 uniform vec3 cloud_color : source_color = vec3(1.0, 1.0, 1.0);
-uniform float golden_hour_factor = 0.0;
-uniform float night_factor = 0.0;
+global uniform float golden_hour_factor = 0.0;
+global uniform float night_factor = 0.0;
 
 // Dave Hoskins' hash (2D to 1D)
 float hash(vec2 p) {

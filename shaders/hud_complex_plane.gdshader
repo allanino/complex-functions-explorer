@@ -1,7 +1,7 @@
 shader_type canvas_item;
 
-uniform vec2 current_f; // Current value of f(x,z)
-uniform float scale = 2.0; // Current scale of the complex plane view
+global uniform vec2 current_f; // Current value of f(x,z)
+global uniform float complex_scale = 2.0; // Current scale of the complex plane view
 
 // Helper function to convert HSV to RGB
 vec3 hsv2rgb(vec3 c) {
@@ -20,7 +20,7 @@ float sdSegment(vec2 p, vec2 a, vec2 b) {
 void fragment() {
     // Map UV to complex plane [-scale, scale]
     // Invert Y so that positive imaginary values are at the top
-    vec2 z = (vec2(UV.x, 1.0 - UV.y) - 0.5) * 2.0 * scale;
+    vec2 z = (vec2(UV.x, 1.0 - UV.y) - 0.5) * 2.0 * complex_scale;
 
     // Calculate phase and magnitude
     float phase = atan(z.y, z.x);
@@ -32,7 +32,7 @@ void fragment() {
 
     // Draw unit circle
     float unit_circle = abs(mag - 1.0);
-    float circle_mask = smoothstep(0.02 * scale, 0.0, unit_circle);
+    float circle_mask = smoothstep(0.02 * complex_scale, 0.0, unit_circle);
     color = mix(color, vec3(0.9), circle_mask);
 
     // Draw arrow for phase
@@ -46,11 +46,11 @@ void fragment() {
 
         // Arrow head
         vec2 perp = vec2(-dir.y, dir.x);
-        vec2 head_base = tip - 0.15 * dir * (scale / 2.0); // Adjust size by scale
-        d = min(d, sdSegment(z, tip, head_base + 0.08 * perp * (scale / 2.0)));
-        d = min(d, sdSegment(z, tip, head_base - 0.08 * perp * (scale / 2.0)));
+        vec2 head_base = tip - 0.15 * dir * (complex_scale / 2.0); // Adjust size by scale
+        d = min(d, sdSegment(z, tip, head_base + 0.08 * perp * (complex_scale / 2.0)));
+        d = min(d, sdSegment(z, tip, head_base - 0.08 * perp * (complex_scale / 2.0)));
 
-        float arrow_mask = smoothstep(0.02 * scale, 0.0, d);
+        float arrow_mask = smoothstep(0.02 * complex_scale, 0.0, d);
         color = mix(color, vec3(1.0), arrow_mask);
     }
 
