@@ -9,7 +9,7 @@ var chunks = {}
 var _last_field_state = {}
 var day_night_cycle_duration = 500.0;
 
-const LOD_SUBS = [256, 128, 64, 32]
+var LOD_SUBS = [256, 128, 64, 32]
 var _lod_mesh_cache = {}
 var _last_player_chunk = Vector2i(9999, 9999)
 
@@ -21,9 +21,10 @@ var _golden_hour_transition: float = 0.0
 var _day_night_time: float = 0.0
 var _sun_color = Color("#fc9500")
 
-# Uncomment this to debug the mesh wireframe
-# func _ready():
-# 	get_viewport().debug_draw = Viewport.DEBUG_DRAW_WIREFRAME
+func _ready():
+	_update_lod_subs()
+	# Uncomment this to debug the mesh wireframe
+	# get_viewport().debug_draw = Viewport.DEBUG_DRAW_WIREFRAME
 
 func _process(delta):
 	if not player:
@@ -121,6 +122,7 @@ func _process(delta):
 	# Check if any field properties have changed
 	var current_field_state = {
 		"iterations": Field.iterations,
+		"terrain_detail": Field.terrain_detail,
 		"show_curves": Field.show_curves,
 		"show_critical_stripe": Field.show_critical_stripe,
 		"function_type": Field.function_type,
@@ -134,21 +136,39 @@ func _process(delta):
 	var state_changed = current_field_state != _last_field_state
 
 	if state_changed:
+		var lod_changed = _last_field_state.get("terrain_detail", -1) != Field.terrain_detail
 		_last_field_state = current_field_state
-		# Update uniforms in all existing chunks
-		for chunk in chunks.values():
-			_update_chunk_uniforms(chunk)
+
+		if lod_changed:
+			_update_lod_subs()
+			_lod_mesh_cache.clear()
+			_update_all_chunks_lod(true)
+		else:
+			# Update uniforms in all existing chunks
+			for chunk in chunks.values():
+				_update_chunk_uniforms(chunk)
 
 	# LOD Dynamic Update
 	if player_chunk_x != _last_player_chunk.x or player_chunk_z != _last_player_chunk.y:
-		var player_chunk_coord = Vector2i(player_chunk_x, player_chunk_z)
-		_last_player_chunk = player_chunk_coord
+		_last_player_chunk = Vector2i(player_chunk_x, player_chunk_z)
+		_update_all_chunks_lod()
 
-		for coord in chunks.keys():
-			var chunk = chunks[coord]
-			var desired_lod = _get_lod_level(coord, player_chunk_coord)
-			if chunk.get_meta("lod_level", -1) != desired_lod:
-				_update_chunk_lod(chunk, desired_lod)
+func _update_all_chunks_lod(force: bool = false):
+	var player_chunk_coord = _last_player_chunk
+	for coord in chunks.keys():
+		var chunk = chunks[coord]
+		var desired_lod = _get_lod_level(coord, player_chunk_coord)
+		if force or chunk.get_meta("lod_level", -1) != desired_lod:
+			_update_chunk_lod(chunk, desired_lod)
+
+func _update_lod_subs():
+	match Field.terrain_detail:
+		0: # High
+			LOD_SUBS = [256, 128, 64, 32]
+		1: # Medium
+			LOD_SUBS = [256, 64, 32, 16]
+		2: # Low
+			LOD_SUBS = [128, 64, 32, 16]
 
 func _get_lod_level(coord: Vector2i, player_coord: Vector2i) -> int:
 	var dx = abs(coord.x - player_coord.x)
@@ -182,7 +202,6 @@ func _update_chunk_uniforms(chunk: MeshInstance3D):
 
 		chunk.material_override.set_shader_parameter("lod_level", lod)
 		chunk.material_override.set_shader_parameter("iterations", iterations)
-		chunk.material_override.set_shader_parameter("iterations", Field.iterations)
 		chunk.material_override.set_shader_parameter("show_curves", Field.show_curves)
 		chunk.material_override.set_shader_parameter("show_critical_stripe", Field.show_critical_stripe)
 		chunk.material_override.set_shader_parameter("function_type", Field.function_type)
