@@ -6,6 +6,7 @@ varying vec3 world_pos;
 varying vec3 v_normal;
 varying vec2 field_val;
 
+uniform int lod_level = 0;
 uniform int surface_shading_mode = 2; // 0: Disabled, 1: Estimated, 2: Precise
 uniform bool show_curves = true;
 uniform bool show_critical_stripe = true;
@@ -31,6 +32,11 @@ void vertex() {
         h = mag;
     }
     local_pos.y += h;
+
+    if (COLOR.r > 0.5) {
+        local_pos.y -= 10.0;
+    }
+
     VERTEX = local_pos;
     world_pos = (MODEL_MATRIX * vec4(local_pos, 1.0)).xyz;
 
