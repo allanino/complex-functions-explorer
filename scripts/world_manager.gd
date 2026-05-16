@@ -9,7 +9,7 @@ var chunks = {}
 var _last_field_state = {}
 var day_night_cycle_duration = 500.0;
 
-var LOD_SUBS = [256, 128, 64, 32]
+var LOD_SUBS = [] # This will be set in code
 var _lod_mesh_cache = {}
 var _last_player_chunk = Vector2i(9999, 9999)
 
