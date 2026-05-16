@@ -32,6 +32,7 @@ extends CanvasLayer
 @onready var camera_height_input = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/CameraHeightContainer/CameraHeightInput
 @onready var auto_walk_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/AutoWalkCheckbox
 
+@onready var terrain_detail_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/TerrainDetailContainer/TerrainDetailButton
 @onready var aa_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/AAContainer/AAButton
 @onready var curves_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/CurvesCheckbox
 @onready var critical_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/CriticalCheckbox
@@ -73,6 +74,11 @@ func _ready():
 	height_button.add_item("Logarithmic (a*log(ε + abs))")
 	height_button.add_item("Absolute")
 
+	terrain_detail_button.clear()
+	terrain_detail_button.add_item("High")
+	terrain_detail_button.add_item("Medium")
+	terrain_detail_button.add_item("Low")
+
 	aa_button.clear()
 	aa_button.add_item("Disabled (fastest)")
 	aa_button.add_item("MSAA 3D x2 (average)")
@@ -109,6 +115,7 @@ func toggle_menu():
 		camera_height_input.text = str(Field.camera_height)
 		height_a_input.text = str(Field.height_a)
 		height_eps_input.text = str(Field.height_epsilon)
+		terrain_detail_button.selected = Field.terrain_detail
 		aa_button.selected = Field.antialiasing_mode
 		curves_checkbox.button_pressed = Field.show_curves
 		critical_checkbox.button_pressed = Field.show_critical_stripe
@@ -187,6 +194,7 @@ func _on_set_pos_pressed():
 	Field.camera_height = c_height
 	Field.height_a = h_a
 	Field.height_epsilon = h_eps
+	Field.terrain_detail = terrain_detail_button.selected
 	Field.antialiasing_mode = aa_button.selected
 	Field.show_curves = curves_checkbox.button_pressed
 	Field.show_critical_stripe = critical_checkbox.button_pressed
