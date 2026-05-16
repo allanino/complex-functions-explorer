@@ -32,6 +32,7 @@ extends CanvasLayer
 @onready var camera_height_input = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/CameraHeightContainer/CameraHeightInput
 @onready var auto_walk_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/AutoWalkCheckbox
 
+@onready var aa_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/AAContainer/AAButton
 @onready var curves_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/CurvesCheckbox
 @onready var critical_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/CriticalCheckbox
 @onready var golden_hour_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/GoldenHourCheckbox
@@ -72,6 +73,29 @@ func _ready():
 	height_button.add_item("Logarithmic (a*log(ε + abs))")
 	height_button.add_item("Absolute")
 
+	aa_button.clear()
+	aa_button.add_item("Disabled (fastest)")
+	aa_button.add_item("MSAA 3D x2 (average)")
+	aa_button.add_item("MSAA 3D x4 (slow)")
+	aa_button.add_item("MSAA 3D x8 (slowest)")
+	aa_button.add_item("FXAA (fast)")
+	aa_button.add_item("SMAA (average)")
+
+	apply_aa()
+
+func apply_aa():
+	var vp = get_viewport()
+	# Reset both
+	vp.msaa_3d = Viewport.MSAA_DISABLED
+	vp.screen_space_aa = Viewport.SCREEN_SPACE_AA_DISABLED
+
+	match Field.antialiasing_mode:
+		1: vp.msaa_3d = Viewport.MSAA_2X
+		2: vp.msaa_3d = Viewport.MSAA_4X
+		3: vp.msaa_3d = Viewport.MSAA_8X
+		4: vp.screen_space_aa = Viewport.SCREEN_SPACE_AA_FXAA
+		5: vp.screen_space_aa = Viewport.SCREEN_SPACE_AA_SMAA
+
 func toggle_menu():
 	menu_overlay.visible = !menu_overlay.visible
 	if menu_overlay.visible:
@@ -85,6 +109,7 @@ func toggle_menu():
 		camera_height_input.text = str(Field.camera_height)
 		height_a_input.text = str(Field.height_a)
 		height_eps_input.text = str(Field.height_epsilon)
+		aa_button.selected = Field.antialiasing_mode
 		curves_checkbox.button_pressed = Field.show_curves
 		critical_checkbox.button_pressed = Field.show_critical_stripe
 		golden_hour_checkbox.button_pressed = Field.golden_hour
@@ -162,6 +187,7 @@ func _on_set_pos_pressed():
 	Field.camera_height = c_height
 	Field.height_a = h_a
 	Field.height_epsilon = h_eps
+	Field.antialiasing_mode = aa_button.selected
 	Field.show_curves = curves_checkbox.button_pressed
 	Field.show_critical_stripe = critical_checkbox.button_pressed
 	Field.golden_hour = golden_hour_checkbox.button_pressed
@@ -175,6 +201,8 @@ func _on_set_pos_pressed():
 	Field.drone_volume = drone_slider.value
 	Field.function_type = func_button.selected
 	Field.height_type = height_button.selected
+
+	apply_aa()
 
 	if Field.function_type == 6:
 		var expr = rational_input.text.replace(" ", "")
