@@ -16,7 +16,7 @@ var _last_player_chunk = Vector2i(9999, 9999)
 # We increase our chunks by this to make junctions more seamless
 # To test this, look at the right of zeta, the pole has a junction
 # along t = 0.00.
-const chunk_leeway = 0.02;
+const chunk_leeway = 0.3;
 
 @onready var sun = get_node("../DirectionalLight3D")
 @onready var moon = get_node("../MoonLight")
@@ -245,16 +245,15 @@ func _create_lod_mesh(size: float, subdivisions: int) -> Mesh:
 	plane.subdivide_depth = subdivisions
 	return plane
 
-func _update_chunk_uniforms(chunk: MeshInstance3D):
-	if chunk.material_override:
-		var lod = chunk.get_meta("lod_level", 0)
-		chunk.material_override.set_shader_parameter("lod_level", lod)
+func _update_chunk_uniforms(_chunk: MeshInstance3D):
+	# Removed lod_level uniform setting as it's no longer used in shaders
+	pass
 
 func _load_chunk(coord: Vector2i):
 	var chunk = chunk_scene.instantiate()
 	add_child(chunk)
 
-	# Ensure unique material so we can set LOD-specific uniforms
+	# Ensure unique material so we can set uniforms if needed
 	chunk.material_override = chunk.material_override.duplicate()
 
 	var player_pos = player.global_position

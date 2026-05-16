@@ -9,24 +9,11 @@ global uniform float height_epsilon = 1.0;
 global uniform mat4 rational_num_mat;
 global uniform mat4 rational_den_mat;
 
-// Local uniform to allow per-chunk LOD iteration scaling
-uniform int lod_level = 0;
-
 struct FieldData {
     vec2 value;    // The actual complex f(sigma, t)
     vec2 d_sigma;  // Partial derivative with respect to sigma
     vec2 d_t;      // Partial derivative with respect to t
 };
-
-int get_scaled_iterations() {
-    int iters = iterations;
-    if (function_type == 0) { // Zeta
-        if (lod_level == 1) iters = int(float(iterations) * 0.8);
-        else if (lod_level == 2) iters = int(float(iterations) * 0.6);
-        else if (lod_level == 3) iters = int(float(iterations) * 0.4);
-    }
-    return iters;
-}
 
 vec2 complex_mul(vec2 a, vec2 b) {
     return vec2(
@@ -46,10 +33,9 @@ vec2 complex_div(vec2 a, vec2 b) {
 }
 
 vec2 zeta(float sigma, float t) {
-    int iters = get_scaled_iterations();
     vec2 eta = vec2(0.0);
 
-    for (int n = 1; n <= iters; n++) {
+    for (int n = 1; n <= iterations; n++) {
         float nf = float(n);
         float amp = pow(nf, -sigma);
         if (amp < 1e-6) {
@@ -70,11 +56,10 @@ vec2 zeta(float sigma, float t) {
 }
 
 FieldData zeta_with_derivatives(float sigma, float t) {
-    int iters = get_scaled_iterations();
     vec2 eta = vec2(0.0);
     vec2 deta_dsigma = vec2(0.0);
 
-    for (int n = 1; n <= iters; n++) {
+    for (int n = 1; n <= iterations; n++) {
         float nf = float(n);
         float amp = pow(nf, -sigma);
         if (amp < 1e-6) {
