@@ -2,8 +2,8 @@ extends Node3D
 
 @export var chunk_scene: PackedScene = preload("res://scenes/chunk.tscn")
 @export var player: Node3D
-@export var chunk_size: float = 64.0
-@export var view_distance: int = 3
+@export var chunk_size: float = 32.0
+@export var view_distance: int = 6
 
 var chunks = {}
 var _last_field_state = {}
@@ -12,6 +12,11 @@ var day_night_cycle_duration = 500.0;
 var LOD_SUBS = [256, 128, 64, 32]
 var _lod_mesh_cache = {}
 var _last_player_chunk = Vector2i(9999, 9999)
+
+# We increase our chunks by this to make junctions more seamless
+# To test this, look at the right of zeta, the pole has a junction
+# along t = 0.00.
+const chunk_leeway = 0.02;
 
 @onready var sun = get_node("../DirectionalLight3D")
 @onready var moon = get_node("../MoonLight")
@@ -164,29 +169,31 @@ func _update_all_chunks_lod(force: bool = false):
 func _update_lod_subs():
 	match Field.terrain_detail:
 		0: # High
-			LOD_SUBS = [256, 128, 64, 32]
+			LOD_SUBS = [512, 256, 128, 64]
 		1: # Medium
-			LOD_SUBS = [256, 64, 32, 16]
+			LOD_SUBS = [256, 128, 64, 32]
 		2: # Low
 			LOD_SUBS = [128, 64, 32, 16]
+		3: # Lowest
+			LOD_SUBS = [64, 32, 16, 8]
 
 func _get_lod_level(coord: Vector2i, player_coord: Vector2i) -> int:
 	var dx = abs(coord.x - player_coord.x)
 	var dz = abs(coord.y - player_coord.y)
 	var dist = max(dx, dz)
 
-	if dist <= 1:
+	if dist <= 0:
 		return 0
-	elif dist <= 3:
+	elif dist <= 1:
 		return 1
-	elif dist <= 5:
+	elif dist <= 2:
 		return 2
 	else:
 		return 3
 
 func _create_lod_mesh(size: float, subdivisions: int) -> Mesh:
 	var plane = PlaneMesh.new()
-	plane.size = Vector2(size, size)
+	plane.size = Vector2(size + chunk_leeway, size + chunk_leeway)
 	plane.subdivide_width = subdivisions
 	plane.subdivide_depth = subdivisions
 	return plane
@@ -194,14 +201,9 @@ func _create_lod_mesh(size: float, subdivisions: int) -> Mesh:
 func _update_chunk_uniforms(chunk: MeshInstance3D):
 	if chunk.material_override:
 		var lod = chunk.get_meta("lod_level", 0)
-		var iterations = Field.iterations
-		if Field.function_type == 0:
-			if lod == 1: iterations = int(iterations * 0.8)
-			elif lod == 2: iterations = int(iterations * 0.6)
-			elif lod == 3: iterations = int(iterations * 0.4)
 
 		chunk.material_override.set_shader_parameter("lod_level", lod)
-		chunk.material_override.set_shader_parameter("iterations", iterations)
+		chunk.material_override.set_shader_parameter("iterations", Field.iterations)
 		chunk.material_override.set_shader_parameter("show_curves", Field.show_curves)
 		chunk.material_override.set_shader_parameter("show_critical_stripe", Field.show_critical_stripe)
 		chunk.material_override.set_shader_parameter("function_type", Field.function_type)
