@@ -6,6 +6,7 @@ varying vec3 world_pos;
 varying vec3 v_normal;
 varying vec2 field_val;
 
+uniform int lod_level = 0;
 uniform bool show_curves = true;
 uniform bool show_critical_stripe = true;
 

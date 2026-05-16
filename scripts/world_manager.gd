@@ -9,6 +9,10 @@ var chunks = {}
 var _last_field_state = {}
 var day_night_cycle_duration = 500.0;
 
+const LOD_SUBS = [256, 128, 64, 32]
+var _lod_mesh_cache = {}
+var _last_player_chunk = Vector2i(9999, 9999)
+
 @onready var sun = get_node("../DirectionalLight3D")
 @onready var moon = get_node("../MoonLight")
 @onready var world_environment = get_node("../WorldEnvironment")
@@ -135,8 +139,49 @@ func _process(delta):
 		for chunk in chunks.values():
 			_update_chunk_uniforms(chunk)
 
+	# LOD Dynamic Update
+	if player_chunk_x != _last_player_chunk.x or player_chunk_z != _last_player_chunk.y:
+		var player_chunk_coord = Vector2i(player_chunk_x, player_chunk_z)
+		_last_player_chunk = player_chunk_coord
+
+		for coord in chunks.keys():
+			var chunk = chunks[coord]
+			var desired_lod = _get_lod_level(coord, player_chunk_coord)
+			if chunk.get_meta("lod_level", -1) != desired_lod:
+				_update_chunk_lod(chunk, desired_lod)
+
+func _get_lod_level(coord: Vector2i, player_coord: Vector2i) -> int:
+	var dx = abs(coord.x - player_coord.x)
+	var dz = abs(coord.y - player_coord.y)
+	var dist = max(dx, dz)
+
+	if dist <= 1:
+		return 0
+	elif dist <= 3:
+		return 1
+	elif dist <= 5:
+		return 2
+	else:
+		return 3
+
+func _create_lod_mesh(size: float, subdivisions: int) -> Mesh:
+	var plane = PlaneMesh.new()
+	plane.size = Vector2(size, size)
+	plane.subdivide_width = subdivisions
+	plane.subdivide_depth = subdivisions
+	return plane
+
 func _update_chunk_uniforms(chunk: MeshInstance3D):
 	if chunk.material_override:
+		var lod = chunk.get_meta("lod_level", 0)
+		var iterations = Field.iterations
+		if Field.function_type == 0:
+			if lod == 1: iterations = int(iterations * 0.8)
+			elif lod == 2: iterations = int(iterations * 0.6)
+			elif lod == 3: iterations = int(iterations * 0.4)
+
+		chunk.material_override.set_shader_parameter("lod_level", lod)
+		chunk.material_override.set_shader_parameter("iterations", iterations)
 		chunk.material_override.set_shader_parameter("iterations", Field.iterations)
 		chunk.material_override.set_shader_parameter("show_curves", Field.show_curves)
 		chunk.material_override.set_shader_parameter("show_critical_stripe", Field.show_critical_stripe)
@@ -149,32 +194,16 @@ func _update_chunk_uniforms(chunk: MeshInstance3D):
 
 func _load_chunk(coord: Vector2i):
 	var chunk = chunk_scene.instantiate()
-
 	add_child(chunk)
 
-	# Example: distance from critical line
-	var distance_from_center = abs(coord.x)
+	# Ensure unique material so we can set LOD-specific uniforms
+	chunk.material_override = chunk.material_override.duplicate()
 
-	# Decide subdivision dynamically
-	var subdivisions = 256
-	
-	# If zeta function, tune mesh for performance
-	if Field.function_type == 0:
-		if distance_from_center < 1:
-			subdivisions = 256
-		elif distance_from_center < 5:
-			subdivisions = 128
-		else:
-			subdivisions = 64
+	var player_pos = player.global_position
+	var player_chunk_coord = Vector2i(floor(player_pos.x / chunk_size), floor(player_pos.z / chunk_size))
+	var lod = _get_lod_level(coord, player_chunk_coord)
 
-	# Create mesh dynamically
-	var plane = PlaneMesh.new()
-	plane.size = Vector2(chunk_size, chunk_size)
-	plane.subdivide_width = subdivisions
-	plane.subdivide_depth = subdivisions
-
-	# Assign mesh
-	chunk.mesh = plane
+	_update_chunk_lod(chunk, lod)
 
 	chunk.global_position = Vector3(
 		coord.x * chunk_size + chunk_size * 0.5,
@@ -187,9 +216,17 @@ func _load_chunk(coord: Vector2i):
 		Vector3(chunk_size, 100, chunk_size)
 	)
 
-	_update_chunk_uniforms(chunk)
-
 	chunks[coord] = chunk
+
+func _update_chunk_lod(chunk: MeshInstance3D, lod: int):
+	var subdivisions = LOD_SUBS[lod]
+
+	if not _lod_mesh_cache.has(subdivisions):
+		_lod_mesh_cache[subdivisions] = _create_lod_mesh(chunk_size, subdivisions)
+
+	chunk.mesh = _lod_mesh_cache[subdivisions]
+	chunk.set_meta("lod_level", lod)
+	_update_chunk_uniforms(chunk)
 
 func _unload_chunk(coord: Vector2i):
 	var chunk = chunks[coord]
