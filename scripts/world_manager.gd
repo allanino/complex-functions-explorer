@@ -245,16 +245,9 @@ func _create_lod_mesh(size: float, subdivisions: int) -> Mesh:
 	plane.subdivide_depth = subdivisions
 	return plane
 
-func _update_chunk_uniforms(_chunk: MeshInstance3D):
-	# Removed lod_level uniform setting as it's no longer used in shaders
-	pass
-
 func _load_chunk(coord: Vector2i):
 	var chunk = chunk_scene.instantiate()
 	add_child(chunk)
-
-	# Ensure unique material so we can set uniforms if needed
-	chunk.material_override = chunk.material_override.duplicate()
 
 	var player_pos = player.global_position
 	var player_chunk_coord = Vector2i(floor(player_pos.x / chunk_size), floor(player_pos.z / chunk_size))
@@ -283,7 +276,6 @@ func _update_chunk_lod(chunk: MeshInstance3D, lod: int):
 
 	chunk.mesh = _lod_mesh_cache[subdivisions]
 	chunk.set_meta("lod_level", lod)
-	_update_chunk_uniforms(chunk)
 
 func _unload_chunk(coord: Vector2i):
 	var chunk = chunks[coord]
