@@ -29,11 +29,14 @@ extends CanvasLayer
 @onready var im_input = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/ImContainer/ImInput
 @onready var speed_input = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/SpeedContainer/SpeedInput
 @onready var zero_speed_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/ZeroSpeedContainer/ZeroSpeedSlider
+@onready var zero_speed_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/ZeroSpeedContainer/ZeroSpeedValue
 @onready var camera_height_input = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/CameraHeightContainer/CameraHeightInput
 @onready var auto_walk_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/AutoWalkCheckbox
 
 @onready var terrain_detail_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/TerrainDetailContainer/TerrainDetailButton
 @onready var aa_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/AAContainer/AAButton
+@onready var view_distance_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/ViewDistanceContainer/ViewDistanceSlider
+@onready var view_distance_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/ViewDistanceContainer/ViewDistanceValue
 @onready var curves_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/CurvesCheckbox
 @onready var critical_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/CriticalCheckbox
 @onready var golden_hour_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/GoldenHourCheckbox
@@ -46,13 +49,17 @@ extends CanvasLayer
 @onready var rvm_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/HUD/RvmCheckbox
 
 @onready var bg_music_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/AUDIO/BgMusicContainer/BgMusicSlider
+@onready var bg_music_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/AUDIO/BgMusicContainer/BgMusicValue
 @onready var drone_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/AUDIO/DroneContainer/DroneSlider
+@onready var drone_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/AUDIO/DroneContainer/DroneValue
 
 @onready var apply_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/ButtonsHBox/ApplyButton
 @onready var close_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/ButtonsHBox/CloseButton
 @onready var quit_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/ButtonsHBox/QuitContainer/QuitButton
 
 var current_scale = 2.0
+var _initial_bg_music_volume: float
+var _initial_drone_volume: float
 
 func _ready():
 	apply_button.pressed.connect(_on_set_pos_pressed)
@@ -60,6 +67,11 @@ func _ready():
 	quit_button.pressed.connect(_on_quit_pressed)
 	func_button.item_selected.connect(_on_func_selected)
 	height_button.item_selected.connect(_on_height_selected)
+
+	bg_music_slider.value_changed.connect(_on_bg_music_value_changed)
+	drone_slider.value_changed.connect(_on_drone_value_changed)
+	zero_speed_slider.value_changed.connect(_on_zero_speed_value_changed)
+	view_distance_slider.value_changed.connect(_on_view_distance_value_changed)
 
 	func_button.clear()
 	func_button.add_item("Zeta")
@@ -102,21 +114,27 @@ func apply_aa():
 		4: vp.screen_space_aa = Viewport.SCREEN_SPACE_AA_FXAA
 		5: vp.screen_space_aa = Viewport.SCREEN_SPACE_AA_SMAA
 
-func toggle_menu():
+func toggle_menu(applied: bool = false):
 	menu_overlay.visible = !menu_overlay.visible
 	if menu_overlay.visible:
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+		_initial_bg_music_volume = Field.bg_music_volume
+		_initial_drone_volume = Field.drone_volume
+
 		if player:
 			re_input.text = "%.3f" % (player.global_position.x * 0.1)
 			im_input.text = "%.3f" % (-player.global_position.z * 0.1)
 		iter_input.text = str(Field.iterations)
 		speed_input.text = "%.1f" % (Field.movement_speed * 0.1)
 		zero_speed_slider.value = Field.speed_near_zeros
+		_on_zero_speed_value_changed(Field.speed_near_zeros)
 		camera_height_input.text = str(Field.camera_height)
 		height_a_input.text = str(Field.height_a)
 		height_eps_input.text = str(Field.height_epsilon)
 		terrain_detail_button.selected = Field.terrain_detail
 		aa_button.selected = Field.antialiasing_mode
+		view_distance_slider.value = Field.view_distance
+		_on_view_distance_value_changed(Field.view_distance)
 		curves_checkbox.button_pressed = Field.show_curves
 		critical_checkbox.button_pressed = Field.show_critical_stripe
 		golden_hour_checkbox.button_pressed = Field.golden_hour
@@ -129,7 +147,9 @@ func toggle_menu():
 		if player:
 			auto_walk_checkbox.button_pressed = (player.auto_walk_state != 0) # 0 is AutoWalkState.NONE
 		bg_music_slider.value = Field.bg_music_volume
+		_on_bg_music_value_changed(Field.bg_music_volume)
 		drone_slider.value = Field.drone_volume
+		_on_drone_value_changed(Field.drone_volume)
 
 		func_button.selected = Field.function_type
 		height_button.selected = Field.height_type
@@ -137,6 +157,9 @@ func toggle_menu():
 		_on_height_selected(Field.height_type)
 	else:
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+		if not applied:
+			Field.bg_music_volume = _initial_bg_music_volume
+			Field.drone_volume = _initial_drone_volume
 
 func _on_func_selected(index):
 	rational_container.visible = (index == 6)
@@ -150,6 +173,20 @@ func _on_height_selected(index):
 	var is_log = (index == 0)
 	height_a_container.visible = is_log
 	height_eps_container.visible = is_log
+
+func _on_bg_music_value_changed(value):
+	Field.bg_music_volume = value
+	bg_music_value.text = str(int(value)) + "%"
+
+func _on_drone_value_changed(value):
+	Field.drone_volume = value
+	drone_value.text = str(int(value)) + "%"
+
+func _on_zero_speed_value_changed(value):
+	zero_speed_value.text = str(int(value)) + "%"
+
+func _on_view_distance_value_changed(value):
+	view_distance_value.text = str(int(value))
 
 func _parse_poly(text: String) -> PackedFloat32Array:
 	var coeffs = PackedFloat32Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
@@ -207,6 +244,7 @@ func _on_set_pos_pressed():
 	Field.show_rvm = rvm_checkbox.button_pressed
 	Field.bg_music_volume = bg_music_slider.value
 	Field.drone_volume = drone_slider.value
+	Field.view_distance = int(view_distance_slider.value)
 	Field.function_type = func_button.selected
 	Field.height_type = height_button.selected
 
@@ -236,7 +274,7 @@ func _on_set_pos_pressed():
 		else:
 			player.auto_walk_state = 0 # NONE
 
-	toggle_menu()
+	toggle_menu(true)
 
 func _on_quit_pressed():
 	get_tree().quit()
