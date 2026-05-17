@@ -10,6 +10,7 @@ static var golden_hour: bool = false
 static var day_night_cycle: bool = false
 static var shadows_enabled: bool = false
 static var function_type: int = 0 # 0: Zeta, 1: Dedekind Eta, 2: Sin, 3: Cos, 4: Tan, 5: Exp, 6: Log, 7: Rational
+static var view_distance: int = 7
 static var height_type: int = 0 # 0: Log, 1: Abs
 static var height_a: float = 3.0
 static var height_epsilon: float = 1.0
