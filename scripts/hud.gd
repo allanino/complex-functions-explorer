@@ -60,7 +60,6 @@ extends CanvasLayer
 var current_scale = 2.0
 var _initial_bg_music_volume: float
 var _initial_drone_volume: float
-var _initial_view_distance: int
 
 func _ready():
 	apply_button.pressed.connect(_on_set_pos_pressed)
@@ -122,7 +121,6 @@ func toggle_menu(applied: bool = false):
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 		_initial_bg_music_volume = Field.bg_music_volume
 		_initial_drone_volume = Field.drone_volume
-		_initial_view_distance = Field.view_distance
 
 		if player:
 			var re_val = player.global_position.x * 0.1
@@ -167,7 +165,6 @@ func toggle_menu(applied: bool = false):
 		if not applied:
 			Field.bg_music_volume = _initial_bg_music_volume
 			Field.drone_volume = _initial_drone_volume
-			Field.view_distance = _initial_view_distance
 
 func _on_func_selected(index):
 	if index == 1 and Field.function_type != 1:
