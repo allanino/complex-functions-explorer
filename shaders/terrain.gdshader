@@ -131,10 +131,8 @@ void fragment() {
         ROUGHNESS = 1.0;
         METALLIC = 0.0;
         SPECULAR = 0.0;
-        return;
-    }
-
-    float x = world_pos.x;
+    } else {
+        float x = world_pos.x;
     float z = world_pos.z;
 	
 	vec2 f = field_val;
@@ -202,8 +200,9 @@ void fragment() {
         final_emission += white_line_color * (core_10 * 0.5 + glow_10 * glow * 1.0);
     }
 
-    EMISSION = final_emission;
-	ROUGHNESS = 0.1;
-	METALLIC = 0.7;
-	SPECULAR = 0.1;
+        EMISSION = final_emission;
+        ROUGHNESS = 0.1;
+        METALLIC = 0.7;
+        SPECULAR = 0.1;
+    }
 }
