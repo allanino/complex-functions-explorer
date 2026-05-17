@@ -64,9 +64,9 @@ void vertex() {
         float du_dz = -0.1 * du_dt_v.x;
         float dv_dz = -0.1 * du_dt_v.y;
 
-        float mag_sq = u*u + v*v + 1e-12;
-        float dmag_dx = (u * du_dx + v * dv_dx) / sqrt(mag_sq);
-        float dmag_dz = (u * du_dz + v * dv_dz) / sqrt(mag_sq);
+        float mag = length(field_val);
+        float dmag_dx = (mag > 1e-12) ? (u * du_dx + v * dv_dx) / mag : 0.0;
+        float dmag_dz = (mag > 1e-12) ? (u * du_dz + v * dv_dz) / mag : 0.0;
 
         float dh_dx = 0.0;
         float dh_dz = 0.0;
@@ -140,7 +140,7 @@ void fragment() {
     float hue = (phase + PI) / (2.0 * PI);
     vec3 base = hsv2rgb(vec3(hue, 0.85, 1.0));
 
-    if (show_curves) {
+    if (show_curves && length(f) > 0.01) {
         // Compute countour lines where f.x is integer
         float d_re = abs(f.x - round(f.x));
         float w_re = clamp(fwidth(f.x), 0.000005, 0.001) + 0.02;

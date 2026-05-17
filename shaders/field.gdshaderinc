@@ -27,7 +27,7 @@ vec2 complex_mul(vec2 a, vec2 b) {
 }
 
 vec2 complex_div(vec2 a, vec2 b) {
-    float denom = b.x * b.x + b.y * b.y + 1e-12;
+    float denom = b.x * b.x + b.y * b.y + 1e-24;
     return vec2(
         (a.x * b.x + a.y * b.y) / denom,
         (a.y * b.x - a.x * b.y) / denom
@@ -44,8 +44,8 @@ vec2 complex_exp(float sigma, float t) {
 
 vec2 complex_log(float sigma, float t) {
     float mag = length(vec2(sigma, t));
-    if (mag < 1e-9) {
-        return vec2(-10.0, 0.0);
+    if (mag < 1e-24) {
+        return vec2(-60.0, 0.0);
     }
     return vec2(
         log(mag),
@@ -191,11 +191,24 @@ FieldData lanczos_gamma_with_derivatives(vec2 z_orig) {
 FieldData complex_gamma_with_derivatives(float sigma, float t) {
     if (sigma < 0.5) {
         vec2 pi_z = vec2(PI * sigma, PI * t);
+        // Gamma(z) = pi / (sin(pi z) * Gamma(1-z))
+        // d/dz log Gamma(z) = -pi cot(pi z) - d/dz log Gamma(1-z)
+        // d/dz log Gamma(1-z) = -psi(1-z)
+        // So d/dz log Gamma(z) = -pi cot(pi z) + psi(1-z)
+
         FieldData g1z = lanczos_gamma_with_derivatives(vec2(1.0 - sigma, -t));
-        vec2 cot_pi_z = complex_div(complex_cos(pi_z.x, pi_z.y), complex_sin(pi_z.x, pi_z.y));
+        vec2 sin_pi_z = complex_sin(pi_z.x, pi_z.y);
+        vec2 cot_pi_z = complex_div(complex_cos(pi_z.x, pi_z.y), sin_pi_z);
+
+        // d/dz ln Gamma(1-z) = [Gamma'(1-z)/Gamma(1-z)] * (-1) = -psi(1-z)
+        // g1z.d_sigma is Gamma'(1-z)
+        // psi(1-z) = g1z.d_sigma / g1z.value
+        // ratio = -pi cot(pi z) - (-psi(1-z)) = -pi cot(pi z) + psi(1-z)
+
         vec2 ratio = -PI * cot_pi_z + complex_div(g1z.d_sigma, g1z.value);
+
         FieldData res;
-        res.value = complex_div(vec2(PI, 0.0), complex_mul(complex_sin(pi_z.x, pi_z.y), g1z.value));
+        res.value = complex_div(vec2(PI, 0.0), complex_mul(sin_pi_z, g1z.value));
         res.d_sigma = complex_mul(res.value, ratio);
         res.d_t = vec2(-res.d_sigma.y, res.d_sigma.x);
         return res;
@@ -211,19 +224,26 @@ vec2 lanczos_log_gamma(vec2 z) {
         x += complex_div(vec2(LANCZOS_P[i], 0.0), z_m1 + vec2(float(i), 0.0));
     }
     vec2 tmp = z_m1 + vec2(9.5, 0.0);
-    return vec2(log(SQRT_2PI), 0.0)
+    vec2 res = vec2(log(SQRT_2PI), 0.0)
            + complex_mul(z - vec2(0.5, 0.0), complex_log(tmp.x, tmp.y))
            - tmp
            + complex_log(x.x, x.y);
+    // Keep imaginary part (phase) continuous by wrapping to principal branch of the result
+    res.y = mod(res.y + PI, TAU) - PI;
+    return res;
 }
 
 vec2 complex_log_gamma(float sigma, float t) {
+    vec2 res;
     if (sigma < 0.5) {
         vec2 pi_z = vec2(PI * sigma, PI * t);
         vec2 s = complex_sin(pi_z.x, pi_z.y);
-        return vec2(log(PI), 0.0) - complex_log(s.x, s.y) - lanczos_log_gamma(vec2(1.0 - sigma, -t));
+        res = vec2(log(PI), 0.0) - complex_log(s.x, s.y) - lanczos_log_gamma(vec2(1.0 - sigma, -t));
+    } else {
+        res = lanczos_log_gamma(vec2(sigma, t));
     }
-    return lanczos_log_gamma(vec2(sigma, t));
+    res.y = mod(res.y + PI, TAU) - PI;
+    return res;
 }
 
 FieldData lanczos_log_gamma_with_derivatives(vec2 z) {
@@ -242,6 +262,7 @@ FieldData lanczos_log_gamma_with_derivatives(vec2 z) {
                + complex_mul(z - vec2(0.5, 0.0), log_tmp)
                - tmp
                + complex_log(x.x, x.y);
+    value.y = mod(value.y + PI, TAU) - PI;
 
     vec2 psi = log_tmp + complex_div(z - vec2(0.5, 0.0), tmp) - vec2(1.0, 0.0) + complex_div(dx, x);
 
@@ -253,24 +274,26 @@ FieldData lanczos_log_gamma_with_derivatives(vec2 z) {
 }
 
 FieldData complex_log_gamma_with_derivatives(float sigma, float t) {
+    FieldData res;
     if (sigma < 0.5) {
         vec2 pi_z = vec2(PI * sigma, PI * t);
+        // ln Gamma(z) = ln pi - ln sin(pi z) - ln Gamma(1-z)
+        // d/dz = -pi cot(pi z) - (-psi(1-z)) = -pi cot(pi z) + psi(1-z)
+
         FieldData lg1z = lanczos_log_gamma_with_derivatives(vec2(1.0 - sigma, -t));
         vec2 sin_pi_z = complex_sin(pi_z.x, pi_z.y);
         vec2 log_sin_pi_z = complex_log(sin_pi_z.x, sin_pi_z.y);
 
-        vec2 value = vec2(log(PI), 0.0) - log_sin_pi_z - lg1z.value;
+        res.value = vec2(log(PI), 0.0) - log_sin_pi_z - lg1z.value;
+        res.value.y = mod(res.value.y + PI, TAU) - PI;
 
         vec2 cot_pi_z = complex_div(complex_cos(pi_z.x, pi_z.y), sin_pi_z);
-        vec2 psi = -PI * cot_pi_z + lg1z.d_sigma;
-
-        FieldData res;
-        res.value = value;
-        res.d_sigma = psi;
-        res.d_t = vec2(-psi.y, psi.x);
-        return res;
+        res.d_sigma = -PI * cot_pi_z + lg1z.d_sigma;
+    } else {
+        res = lanczos_log_gamma_with_derivatives(vec2(sigma, t));
     }
-    return lanczos_log_gamma_with_derivatives(vec2(sigma, t));
+    res.d_t = vec2(-res.d_sigma.y, res.d_sigma.x);
+    return res;
 }
 
 // 4. Dedekind Eta

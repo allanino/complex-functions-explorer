@@ -148,17 +148,23 @@ static func lanczos_log_gamma(z: Vector2) -> Vector2:
 	for i in range(1, 11):
 		x += complex_div(Vector2(LANCZOS_P[i], 0.0), z_m1 + Vector2(float(i), 0.0))
 	var tmp = z_m1 + Vector2(9.5, 0.0)
-	return (Vector2(log(SQRT_2PI), 0.0)
+	var res = (Vector2(log(SQRT_2PI), 0.0)
 		+ complex_mul(z - Vector2(0.5, 0.0), complex_log(tmp.x, tmp.y))
 		- tmp
 		+ complex_log(x.x, x.y))
+	res.y = posmod(res.y + PI, TAU) - PI
+	return res
 
 static func complex_log_gamma(sigma: float, t: float) -> Vector2:
+	var res: Vector2
 	if sigma < 0.5:
 		var pi_z = Vector2(PI * sigma, PI * t)
 		var s = complex_sin(pi_z.x, pi_z.y)
-		return Vector2(log(PI), 0.0) - complex_log(s.x, s.y) - lanczos_log_gamma(Vector2(1.0 - sigma, -t))
-	return lanczos_log_gamma(Vector2(sigma, t))
+		res = Vector2(log(PI), 0.0) - complex_log(s.x, s.y) - lanczos_log_gamma(Vector2(1.0 - sigma, -t))
+	else:
+		res = lanczos_log_gamma(Vector2(sigma, t))
+	res.y = posmod(res.y + PI, TAU) - PI
+	return res
 
 static func dedekind_eta(sigma: float, t: float) -> Vector2:
 	var factor = complex_exp(-PI * t / 12.0, PI * sigma / 12.0)
