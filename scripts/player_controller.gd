@@ -70,6 +70,10 @@ func get_terrain_height(x: float, z: float) -> float:
 	return Field.get_height(x, z)
 
 func _physics_process(delta):
+	if not is_finite(global_position.x) or not is_finite(global_position.y) or not is_finite(global_position.z):
+		velocity = Vector3.ZERO
+		global_position = Vector3(CRITICAL_LINE_X, 0.0, 0.0)
+
 	if auto_walk_state != AutoWalkState.NONE:
 		var manual_input = Input.get_vector("move_left", "move_right", "move_forward", "move_backward")
 		if manual_input != Vector2.ZERO or Input.is_key_pressed(KEY_SPACE):

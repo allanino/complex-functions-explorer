@@ -197,9 +197,17 @@ static func get_field(x: float, z: float) -> Vector2:
 
 static func get_height(x: float, z: float) -> float:
 	var f = get_field(x, z)
-	var mag = f.length()
+	if not is_finite(f.x) or not is_finite(f.y):
+		return 0.0
 
+	var mag = f.length()
+	if not is_finite(mag):
+		return 0.0
+
+	var h: float
 	if height_type == 0:
-		return height_a * log(height_epsilon + mag)
+		h = height_a * log(height_epsilon + mag)
 	else:
-		return mag
+		h = mag
+
+	return h if is_finite(h) else 0.0
