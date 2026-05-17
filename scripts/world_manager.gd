@@ -6,6 +6,7 @@ extends Node3D
 
 var chunks = {}
 var _last_field_state = {}
+var day_night_cycle_duration = 500.0;
 
 var LOD_SUBS = [] # This will be set in code
 var _lod_mesh_cache = {}
@@ -20,10 +21,8 @@ const chunk_leeway = 0.3;
 @onready var moon = get_node("../MoonLight")
 @onready var world_environment = get_node("../WorldEnvironment")
 
-# Day night cycle variables
-var day_night_cycle_duration = 500.0;
 var _golden_hour_transition: float = 0.0
-var _day_night_time: float = 360.0
+var _day_night_time: float = 0.0
 var _sun_color = Color("#fc9500")
 
 func _ready():
