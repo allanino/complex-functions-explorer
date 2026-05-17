@@ -114,7 +114,7 @@ void fragment() {
         trail = pow(trail, 4.0) * 2.5;
 
         // Character flickering/selection
-        float char_vis = step(0.4, char_rand);
+        float char_vis = step(0.9997, char_rand);
 
         // Character shape (simple blocky approximation)
         float char_shape = smoothstep(0.1, 0.2, fpos.x) * smoothstep(0.9, 0.8, fpos.x) *
