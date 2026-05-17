@@ -5,6 +5,7 @@ shader_type spatial;
 varying vec3 world_pos;
 varying vec3 v_normal;
 varying vec2 field_val;
+varying float v_nan;
 
 uniform int lod_level = 0;
 uniform bool show_curves = true;
@@ -17,62 +18,122 @@ vec3 hsv2rgb(vec3 c) {
     return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
 }
 
+float matrix_hash(vec2 p) {
+    return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
+}
 
 void vertex() {
     vec3 local_pos = VERTEX;
     vec3 world_v_pos = (MODEL_MATRIX * vec4(local_pos, 1.0)).xyz;
 
     FieldData fd = get_field_with_derivatives(world_v_pos.x, world_v_pos.z);
-    field_val = fd.value;
 
-    float mag = length(field_val);
-    float h = 0.0;
-    if (height_type == 0) {
-        h = height_a * log(height_epsilon + mag);
+    bool is_invalid = any(isnan(fd.value)) || any(isinf(fd.value)) ||
+                      any(isnan(fd.d_sigma)) || any(isinf(fd.d_sigma)) ||
+                      any(isnan(fd.d_t)) || any(isinf(fd.d_t));
+
+    if (is_invalid) {
+        v_nan = 1.0;
+        field_val = vec2(0.0);
+        v_normal = vec3(0.0, 1.0, 0.0);
+        // local_pos.y remains 0.0
     } else {
-        h = mag;
+        v_nan = 0.0;
+        field_val = fd.value;
+
+        float mag = length(field_val);
+        float h = 0.0;
+        if (height_type == 0) {
+            h = height_a * log(height_epsilon + mag);
+        } else {
+            h = mag;
+        }
+        local_pos.y += h;
+
+        // Analytical normals using derivatives
+        float u = field_val.x;
+        float v = field_val.y;
+
+        // sigma = x * 0.1, t = -z * 0.1
+        // d_sigma/dx = 0.1, dt/dz = -0.1
+        vec2 du_dsigma_v = fd.d_sigma; // (du/dsigma, dv/dsigma)
+        vec2 du_dt_v = fd.d_t;         // (du/dt, dv/dt)
+
+        float du_dx = 0.1 * du_dsigma_v.x;
+        float dv_dx = 0.1 * du_dsigma_v.y;
+        float du_dz = -0.1 * du_dt_v.x;
+        float dv_dz = -0.1 * du_dt_v.y;
+
+        float mag_sq = u*u + v*v + 1e-12;
+        float dmag_dx = (u * du_dx + v * dv_dx) / sqrt(mag_sq);
+        float dmag_dz = (u * du_dz + v * dv_dz) / sqrt(mag_sq);
+
+        float dh_dx = 0.0;
+        float dh_dz = 0.0;
+
+        if (height_type == 0) {
+            // h = height_a * log(height_epsilon + mag)
+            float denom = height_epsilon + mag;
+            dh_dx = (height_a / denom) * dmag_dx;
+            dh_dz = (height_a / denom) * dmag_dz;
+        } else {
+            // h = mag
+            dh_dx = dmag_dx;
+            dh_dz = dmag_dz;
+        }
+
+        v_normal = normalize(vec3(-dh_dx, 1.0, -dh_dz));
     }
-    local_pos.y += h;
+
     VERTEX = local_pos;
     world_pos = (MODEL_MATRIX * vec4(local_pos, 1.0)).xyz;
-
-    // Analytical normals using derivatives
-    float u = field_val.x;
-    float v = field_val.y;
-
-    // sigma = x * 0.1, t = -z * 0.1
-    // d_sigma/dx = 0.1, dt/dz = -0.1
-    vec2 du_dsigma_v = fd.d_sigma; // (du/dsigma, dv/dsigma)
-    vec2 du_dt_v = fd.d_t;         // (du/dt, dv/dt)
-
-    float du_dx = 0.1 * du_dsigma_v.x;
-    float dv_dx = 0.1 * du_dsigma_v.y;
-    float du_dz = -0.1 * du_dt_v.x;
-    float dv_dz = -0.1 * du_dt_v.y;
-
-    float mag_sq = u*u + v*v + 1e-12;
-    float dmag_dx = (u * du_dx + v * dv_dx) / sqrt(mag_sq);
-    float dmag_dz = (u * du_dz + v * dv_dz) / sqrt(mag_sq);
-
-    float dh_dx = 0.0;
-    float dh_dz = 0.0;
-
-    if (height_type == 0) {
-        // h = height_a * log(height_epsilon + mag)
-        float denom = height_epsilon + mag;
-        dh_dx = (height_a / denom) * dmag_dx;
-        dh_dz = (height_a / denom) * dmag_dz;
-    } else {
-        // h = mag
-        dh_dx = dmag_dx;
-        dh_dz = dmag_dz;
-    }
-
-    v_normal = normalize(vec3(-dh_dx, 1.0, -dh_dz));
     NORMAL = (MODEL_NORMAL_MATRIX * v_normal);
 }
 
 void fragment() {
+    if (v_nan > 0.5) {
+        ALBEDO = vec3(0.0);
+
+        // Matrix Effect
+        vec2 grid = world_pos.xz * 5.0;
+        vec2 ipos = floor(grid);
+        vec2 fpos = fract(grid);
+
+        float col_rand = matrix_hash(vec2(ipos.x, 0.0));
+        float speed = 2.0 + col_rand * 4.0;
+        float y_offset = TIME * speed;
+
+        // Flow downwards (in Z)
+        float row = ipos.y + y_offset;
+        float irow = floor(row);
+
+        float char_rand = matrix_hash(vec2(ipos.x, irow));
+
+        // Droplet trail
+        float trail = fract(-grid.y * 0.15 + TIME * speed * 0.05 + col_rand * 10.0);
+        trail = pow(trail, 4.0) * 2.5;
+
+        // Character flickering/selection
+        float char_vis = step(0.4, char_rand);
+
+        // Character shape (simple blocky approximation)
+        float char_shape = smoothstep(0.1, 0.2, fpos.x) * smoothstep(0.9, 0.8, fpos.x) *
+                           smoothstep(0.1, 0.2, fpos.y) * smoothstep(0.9, 0.8, fpos.y);
+
+        vec3 matrix_color = vec3(0.0, 0.8, 0.2);
+
+        // Glowy head of the trail
+        if (trail > 2.0) {
+            matrix_color = vec3(0.7, 1.0, 0.7);
+        }
+
+        EMISSION = matrix_color * trail * char_shape * char_vis;
+        ROUGHNESS = 1.0;
+        METALLIC = 0.0;
+        SPECULAR = 0.0;
+        return;
+    }
+
     float x = world_pos.x;
     float z = world_pos.z;
 	
