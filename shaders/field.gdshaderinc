@@ -102,6 +102,14 @@ vec2 zeta(float sigma, float t) {
     return complex_div(eta, denom);
 }
 
+vec2 complex_exp(float sigma, float t) {
+    float amp = exp(sigma);
+    return vec2(
+        amp * cos(t),
+        amp * sin(t)
+    );
+}
+
 vec2 dedekind_eta(float sigma, float t) {
     // eta(tau) = exp(pi * i * tau / 12) * product_{n=1}^inf (1 - exp(2 * pi * i * n * tau))
     // Let tau = sigma + i*t
@@ -223,14 +231,6 @@ vec2 complex_cos(float sigma, float t) {
 
 vec2 complex_tan(float sigma, float t) {
     return complex_div(complex_sin(sigma, t), complex_cos(sigma, t));
-}
-
-vec2 complex_exp(float sigma, float t) {
-    float amp = exp(sigma);
-    return vec2(
-        amp * cos(t),
-        amp * sin(t)
-    );
 }
 
 vec2 complex_log(float sigma, float t) {
