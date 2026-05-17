@@ -1,7 +1,7 @@
 // Shared field and height functions for shaders
 
 uniform int iterations = 120;
-uniform int function_type = 0; // 0: Zeta, 1: Gamma, 2: Dedekind Eta, 3: Sin, 4: Cos, 5: Tan, 6: Exp, 7: Log, 8: Rational
+uniform int function_type = 0; // 0: Zeta, 1: Zeta continuation, 2: Gamma, 3: Dedekind Eta, 4: Sin, 5: Cos, 6: Tan, 7: Exp, 8: Log, 9: Rational
 uniform int height_type = 0;   // 0: Log, 1: Abs
 uniform float height_a = 3.0;
 uniform float height_epsilon = 1.0;
@@ -153,6 +153,63 @@ FieldData complex_gamma_with_derivatives(float sigma, float t) {
         return res;
     }
     return lanczos_gamma_with_derivatives(vec2(sigma, t));
+}
+
+vec2 zeta_continuation(float sigma, float t, int iters) {
+    if (sigma >= 0.5) {
+        return zeta(sigma, t);
+    }
+
+    vec2 s = vec2(sigma, t);
+    vec2 s1 = vec2(1.0 - sigma, -t);
+
+    vec2 a = complex_pow(vec2(2.0, 0.0), s);
+    vec2 b = complex_pow(vec2(PI, 0.0), s - vec2(1.0, 0.0));
+
+    vec2 pi_s_2 = (PI * 0.5) * s;
+    vec2 c = complex_sin(pi_s_2.x, pi_s_2.y);
+
+    vec2 d = complex_gamma(s1.x, s1.y);
+    vec2 e = zeta(s1.x, s1.y);
+
+    return complex_mul(complex_mul(complex_mul(complex_mul(a, b), c), d), e);
+}
+
+FieldData zeta_continuation_with_derivatives(float sigma, float t, int iters) {
+    if (sigma >= 0.5) {
+        return zeta_with_derivatives(sigma, t, iters);
+    }
+
+    vec2 s = vec2(sigma, t);
+    vec2 s1 = vec2(1.0 - sigma, -t);
+
+    vec2 a = complex_pow(vec2(2.0, 0.0), s);
+    vec2 b = complex_pow(vec2(PI, 0.0), s - vec2(1.0, 0.0));
+
+    vec2 pi_s_2 = (PI * 0.5) * s;
+    vec2 c = complex_sin(pi_s_2.x, pi_s_2.y);
+    vec2 dc_ds = (PI * 0.5) * complex_cos(pi_s_2.x, pi_s_2.y);
+
+    FieldData d_data = complex_gamma_with_derivatives(s1.x, s1.y);
+    vec2 d = d_data.value;
+    vec2 dd_ds = -d_data.d_sigma;
+
+    FieldData e_data = zeta_with_derivatives(s1.x, s1.y, iters);
+    vec2 e = e_data.value;
+    vec2 de_ds = -e_data.d_sigma;
+
+    vec2 value = complex_mul(complex_mul(complex_mul(complex_mul(a, b), c), d), e);
+
+    vec2 ratio = vec2(log(2.0) + log(PI), 0.0)
+               + complex_div(dc_ds, c)
+               + complex_div(dd_ds, d)
+               + complex_div(de_ds, e);
+
+    FieldData res;
+    res.value = value;
+    res.d_sigma = complex_mul(value, ratio);
+    res.d_t = vec2(-res.d_sigma.y, res.d_sigma.x);
+    return res;
 }
 
 vec2 zeta(float sigma, float t) {
@@ -450,20 +507,22 @@ FieldData get_field_with_derivatives(float x, float z) {
     if (function_type == 0) {
         return zeta_with_derivatives(sigma, t, iterations);
     } else if (function_type == 1) {
-        return complex_gamma_with_derivatives(sigma, t);
+        return zeta_continuation_with_derivatives(sigma, t, iterations);
     } else if (function_type == 2) {
-        return dedekind_eta_with_derivatives(sigma, t, iterations);
+        return complex_gamma_with_derivatives(sigma, t);
     } else if (function_type == 3) {
-        return complex_sin_with_derivatives(sigma, t);
+        return dedekind_eta_with_derivatives(sigma, t, iterations);
     } else if (function_type == 4) {
-        return complex_cos_with_derivatives(sigma, t);
+        return complex_sin_with_derivatives(sigma, t);
     } else if (function_type == 5) {
-        return complex_tan_with_derivatives(sigma, t);
+        return complex_cos_with_derivatives(sigma, t);
     } else if (function_type == 6) {
-        return complex_exp_with_derivatives(sigma, t);
+        return complex_tan_with_derivatives(sigma, t);
     } else if (function_type == 7) {
-        return complex_log_with_derivatives(sigma, t);
+        return complex_exp_with_derivatives(sigma, t);
     } else if (function_type == 8) {
+        return complex_log_with_derivatives(sigma, t);
+    } else if (function_type == 9) {
         return get_rational_with_derivatives(sigma, t);
     }
 
@@ -481,20 +540,22 @@ vec2 get_field(float x, float z) {
     if (function_type == 0) {
         return zeta(sigma, t);
     } else if (function_type == 1) {
-        return complex_gamma(sigma, t);
+        return zeta_continuation(sigma, t, iterations);
     } else if (function_type == 2) {
-        return dedekind_eta(sigma, t);
+        return complex_gamma(sigma, t);
     } else if (function_type == 3) {
-        return complex_sin(sigma, t);
+        return dedekind_eta(sigma, t);
     } else if (function_type == 4) {
-        return complex_cos(sigma, t);
+        return complex_sin(sigma, t);
     } else if (function_type == 5) {
-        return complex_tan(sigma, t);
+        return complex_cos(sigma, t);
     } else if (function_type == 6) {
-        return complex_exp(sigma, t);
+        return complex_tan(sigma, t);
     } else if (function_type == 7) {
-        return complex_log(sigma, t);
+        return complex_exp(sigma, t);
     } else if (function_type == 8) {
+        return complex_log(sigma, t);
+    } else if (function_type == 9) {
         return get_rational(sigma, t);
     }
 

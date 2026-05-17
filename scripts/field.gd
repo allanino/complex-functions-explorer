@@ -9,7 +9,7 @@ static var show_critical_stripe: bool = true
 static var golden_hour: bool = false
 static var day_night_cycle: bool = false
 static var shadows_enabled: bool = false
-static var function_type: int = 0 # 0: Zeta, 1: Gamma, 2: Dedekind Eta, 3: Sin, 4: Cos, 5: Tan, 6: Exp, 7: Log, 8: Rational
+static var function_type: int = 0 # 0: Zeta, 1: Zeta continuation, 2: Gamma, 3: Dedekind Eta, 4: Sin, 5: Cos, 6: Tan, 7: Exp, 8: Log, 9: Rational
 static var view_distance: int = 7
 static var height_type: int = 0 # 0: Log, 1: Abs
 static var height_a: float = 3.0
@@ -141,6 +141,24 @@ static func complex_gamma(sigma: float, t: float) -> Vector2:
 		return complex_div(Vector2(PI, 0.0), complex_mul(sin_pi_z, g1z))
 	return lanczos_gamma(Vector2(sigma, t))
 
+static func zeta_continuation(sigma: float, t: float) -> Vector2:
+	if sigma >= 0.5:
+		return zeta(sigma, t)
+
+	var s = Vector2(sigma, t)
+	var s1 = Vector2(1.0 - sigma, -t)
+
+	var a = complex_pow(Vector2(2.0, 0.0), s)
+	var b = complex_pow(Vector2(PI, 0.0), s - Vector2(1.0, 0.0))
+
+	var pi_s_2 = (PI * 0.5) * s
+	var c = complex_sin(pi_s_2.x, pi_s_2.y)
+
+	var d = complex_gamma(s1.x, s1.y)
+	var e = zeta(s1.x, s1.y)
+
+	return complex_mul(complex_mul(complex_mul(complex_mul(a, b), c), d), e)
+
 static func dedekind_eta(sigma: float, t: float) -> Vector2:
 	# eta(tau) = exp(pi * i * tau / 12) * product_{n=1}^inf (1 - exp(2 * pi * i * n * tau))
 	# Let tau = sigma + i*t
@@ -218,20 +236,22 @@ static func get_field(x: float, z: float) -> Vector2:
 	if function_type == 0:
 		return zeta(sigma, t)
 	elif function_type == 1:
-		return complex_gamma(sigma, t)
+		return zeta_continuation(sigma, t)
 	elif function_type == 2:
-		return dedekind_eta(sigma, t)
+		return complex_gamma(sigma, t)
 	elif function_type == 3:
-		return complex_sin(sigma, t)
+		return dedekind_eta(sigma, t)
 	elif function_type == 4:
-		return complex_cos(sigma, t)
+		return complex_sin(sigma, t)
 	elif function_type == 5:
-		return complex_tan(sigma, t)
+		return complex_cos(sigma, t)
 	elif function_type == 6:
-		return complex_exp(sigma, t)
+		return complex_tan(sigma, t)
 	elif function_type == 7:
-		return complex_log(sigma, t)
+		return complex_exp(sigma, t)
 	elif function_type == 8:
+		return complex_log(sigma, t)
+	elif function_type == 9:
 		return get_rational(sigma, t)
 
 	return Vector2.ZERO
