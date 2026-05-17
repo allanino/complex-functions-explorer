@@ -63,6 +63,7 @@ func _ready():
 
 	func_button.clear()
 	func_button.add_item("Zeta")
+	func_button.add_item("Dedekind Eta")
 	func_button.add_item("Sin")
 	func_button.add_item("Cos")
 	func_button.add_item("Tan")
@@ -139,8 +140,8 @@ func toggle_menu():
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 func _on_func_selected(index):
-	rational_container.visible = (index == 6)
-	iter_container.visible = (index == 0)
+	rational_container.visible = (index == 7)
+	iter_container.visible = (index == 0 or index == 1)
 	critical_checkbox.visible = (index == 0)
 	hud_zeros_checkbox.visible = (index == 0)
 	auto_walk_checkbox.visible = (index == 0)
@@ -212,7 +213,7 @@ func _on_set_pos_pressed():
 
 	apply_aa()
 
-	if Field.function_type == 6:
+	if Field.function_type == 7:
 		var expr = rational_input.text.replace(" ", "")
 		if "/" in expr:
 			var parts = expr.split("/")
