@@ -45,6 +45,25 @@ const float LANCZOS_P[9] = float[](
 );
 const float SQRT_2PI = 2.5066282746310005;
 
+vec2 complex_exp(float sigma, float t) {
+    float amp = exp(sigma);
+    return vec2(
+        amp * cos(t),
+        amp * sin(t)
+    );
+}
+
+vec2 complex_log(float sigma, float t) {
+    float mag = length(vec2(sigma, t));
+    if (mag < 1e-9) {
+        return vec2(-10.0, 0.0);
+    }
+    return vec2(
+        log(mag),
+        atan(t, sigma)
+    );
+}
+
 vec2 complex_pow(vec2 z, vec2 w) {
     vec2 lz = complex_log(z.x, z.y);
     vec2 res_log = complex_mul(w, lz);
@@ -63,6 +82,20 @@ vec2 lanczos_gamma(vec2 z_orig) {
     vec2 etmp = complex_exp(-tmp.x, -tmp.y);
 
     return SQRT_2PI * complex_mul(complex_mul(p, etmp), x);
+}
+
+vec2 complex_sin(float sigma, float t) {
+    return vec2(
+        sin(sigma) * cosh(t),
+        cos(sigma) * sinh(t)
+    );
+}
+
+vec2 complex_cos(float sigma, float t) {
+    return vec2(
+        cos(sigma) * cosh(t),
+        -sin(sigma) * sinh(t)
+    );
 }
 
 vec2 complex_gamma(float sigma, float t) {
@@ -192,13 +225,6 @@ vec2 zeta(float sigma, float t) {
     return complex_div(eta, denom);
 }
 
-vec2 complex_exp(float sigma, float t) {
-    float amp = exp(sigma);
-    return vec2(
-        amp * cos(t),
-        amp * sin(t)
-    );
-}
 
 vec2 dedekind_eta(float sigma, float t) {
     // eta(tau) = exp(pi * i * tau / 12) * product_{n=1}^inf (1 - exp(2 * pi * i * n * tau))
@@ -305,33 +331,8 @@ FieldData zeta_with_derivatives(float sigma, float t, int iters) {
     return result;
 }
 
-vec2 complex_sin(float sigma, float t) {
-    return vec2(
-        sin(sigma) * cosh(t),
-        cos(sigma) * sinh(t)
-    );
-}
-
-vec2 complex_cos(float sigma, float t) {
-    return vec2(
-        cos(sigma) * cosh(t),
-        -sin(sigma) * sinh(t)
-    );
-}
-
 vec2 complex_tan(float sigma, float t) {
     return complex_div(complex_sin(sigma, t), complex_cos(sigma, t));
-}
-
-vec2 complex_log(float sigma, float t) {
-    float mag = length(vec2(sigma, t));
-    if (mag < 1e-9) {
-        return vec2(-10.0, 0.0);
-    }
-    return vec2(
-        log(mag),
-        atan(t, sigma)
-    );
 }
 
 vec2 evaluate_poly(float sigma, float t, float coeffs[10]) {
