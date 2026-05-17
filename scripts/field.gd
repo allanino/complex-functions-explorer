@@ -128,8 +128,8 @@ static func zeta_continuation(sigma: float, t: float) -> Vector2:
 	var s = Vector2(sigma, t)
 	var s1 = Vector2(1.0 - sigma, -t)
 
-	var log_sum = complex_mul(s, Vector2(log(2.0), 0.0)) \
-				+ complex_mul(s - Vector2(1.0, 0.0), Vector2(log(PI), 0.0))
+	var log_sum = (complex_mul(s, Vector2(log(2.0), 0.0))
+				+ complex_mul(s - Vector2(1.0, 0.0), Vector2(log(PI), 0.0)))
 
 	var pi_s_2 = (PI * 0.5) * s
 	var sin_part = complex_sin(pi_s_2.x, pi_s_2.y)
@@ -148,10 +148,10 @@ static func lanczos_log_gamma(z: Vector2) -> Vector2:
 	for i in range(1, 11):
 		x += complex_div(Vector2(LANCZOS_P[i], 0.0), z_m1 + Vector2(float(i), 0.0))
 	var tmp = z_m1 + Vector2(9.5, 0.0)
-	return Vector2(log(SQRT_2PI), 0.0) \
-		+ complex_mul(z - Vector2(0.5, 0.0), complex_log(tmp.x, tmp.y)) \
-		- tmp \
-		+ complex_log(x.x, x.y)
+	return (Vector2(log(SQRT_2PI), 0.0)
+		+ complex_mul(z - Vector2(0.5, 0.0), complex_log(tmp.x, tmp.y))
+		- tmp
+		+ complex_log(x.x, x.y))
 
 static func complex_log_gamma(sigma: float, t: float) -> Vector2:
 	if sigma < 0.5:
