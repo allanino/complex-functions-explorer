@@ -1,29 +1,29 @@
 # Shared field and height functions for GDScript
 class_name Field
 
-static var iterations: int = 300
+static var iterations: int = 2200
 static var terrain_detail: int = 1
 static var antialiasing_mode: int = 1
 static var show_curves: bool = true
 static var show_critical_stripe: bool = true
 static var golden_hour: bool = false
-static var day_night_cycle: bool = false
+static var day_night_cycle: bool = true
 static var shadows_enabled: bool = false
 static var function_type: int = 0 # 0: Zeta, 1: Zeta continuation, 2: Gamma, 3: Dedekind Eta, 4: Sin, 5: Cos, 6: Tan, 7: Exp, 8: Log, 9: Rational
-static var view_distance: int = 7
-static var height_type: int = 0 # 0: Log, 1: Abs
+static var view_distance: int = 8
+static var height_type: int = 1 # 0: Log, 1: Abs
 static var height_a: float = 3.0
 static var height_epsilon: float = 1.0
 static var movement_speed: float = 10.0
-static var speed_near_zeros: float = 100.0
+static var speed_near_zeros: float = 50.0
 static var zero_threshold: float = 0.5
-static var camera_height: float = 1.8
+static var camera_height: float = 3.5
 static var show_hud_complex: bool = true
 static var show_hud_navigation: bool = true
 static var show_hud_zeros: bool = true
 static var show_rvm: bool = true
-static var bg_music_volume: float = 100.0
-static var drone_volume: float = 100.0
+static var bg_music_volume: float = 50.0
+static var drone_volume: float = 80.0
 
 static var visited_zeros: Array[float] = []
 
