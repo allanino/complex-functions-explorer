@@ -30,107 +30,89 @@ static var visited_zeros: Array[float] = []
 static var rational_num_coeffs: PackedFloat32Array = PackedFloat32Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 static var rational_den_coeffs: PackedFloat32Array = PackedFloat32Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 
+//-------------------------------------------------------------------------
+// Complex Arithmetic
+//-------------------------------------------------------------------------
+
 static func complex_mul(a: Vector2, b: Vector2) -> Vector2:
 	return Vector2(
 		a.x * b.x - a.y * b.y,
 		a.x * b.y + a.y * b.x
 	)
 
-
 static func complex_div(a: Vector2, b: Vector2) -> Vector2:
-
 	var denom = b.x * b.x + b.y * b.y
-
-	if denom == 0.0:
-		return Vector2.ZERO
-
+	if denom == 0.0: return Vector2.ZERO
 	return Vector2(
 		(a.x * b.x + a.y * b.y) / denom,
 		(a.y * b.x - a.x * b.y) / denom
 	)
 
+static func complex_exp(sigma: float, t: float) -> Vector2:
+	var amp = exp(sigma)
+	return Vector2(amp * cos(t), amp * sin(t))
 
-static func zeta(sigma: float, t: float) -> Vector2:
-
-	#----------------------------------------
-	# STEP 1: Compute eta(s)
-	#----------------------------------------
-
-	var eta = Vector2.ZERO
-
-	for n in range(1, iterations + 1):
-
-		var nf = float(n)
-
-		# amplitude = n^{-sigma}
-		var amp = pow(nf, -sigma)
-		
-		if (amp < 1e-6):
-			break
-
-		# phase = -t log n
-		var theta = -t * log(nf)
-
-		# alternating sign
-		var _sign = 1.0 if (n % 2 == 1) else -1.0
-
-		# term = sign * n^{-s}
-		eta += _sign * amp * Vector2(
-			cos(theta),
-			sin(theta)
-		)
-
-	#----------------------------------------
-	# STEP 2: Compute denominator
-	#
-	# d = 1 - 2^{1-s}
-	#----------------------------------------
-
-	var amp2 = pow(2.0, 1.0 - sigma)
-
-	var theta2 = -t * log(2.0)
-
-	var two_term = amp2 * Vector2(
-		cos(theta2),
-		sin(theta2)
-	)
-
-	var denom = Vector2(1.0, 0.0) - two_term
-
-	#----------------------------------------
-	# STEP 3: zeta = eta / denom
-	#----------------------------------------
-
-	return complex_div(eta, denom)
-
-const LANCZOS_P = [
-	0.99999999999980993,
-	676.5203681218851,
-	-1259.1392167224028,
-	771.32342877765313,
-	-176.61502916214059,
-	12.507343278686905,
-	-0.13857109526572012,
-	9.9843695780195716e-6,
-	1.5056327351493116e-7
-]
-const SQRT_2PI = 2.5066282746310005
+static func complex_log(sigma: float, t: float) -> Vector2:
+	var mag = sqrt(sigma * sigma + t * t)
+	if mag < 1e-9: return Vector2(-10.0, 0.0)
+	return Vector2(log(mag), atan2(t, sigma))
 
 static func complex_pow(z: Vector2, w: Vector2) -> Vector2:
 	var lz = complex_log(z.x, z.y)
 	var res_log = complex_mul(w, lz)
 	return complex_exp(res_log.x, res_log.y)
 
+static func complex_sin(sigma: float, t: float) -> Vector2:
+	return Vector2(sin(sigma) * cosh(t), cos(sigma) * sinh(t))
+
+static func complex_cos(sigma: float, t: float) -> Vector2:
+	return Vector2(cos(sigma) * cosh(t), -sin(sigma) * sinh(t))
+
+static func complex_tan(sigma: float, t: float) -> Vector2:
+	return complex_div(complex_sin(sigma, t), complex_cos(sigma, t))
+
+//-------------------------------------------------------------------------
+// Component Functions: Zeta, Gamma, Dedekind Eta
+//-------------------------------------------------------------------------
+
+static func zeta(sigma: float, t: float) -> Vector2:
+	var eta = Vector2.ZERO
+	for n in range(1, iterations + 1):
+		var nf = float(n)
+		var amp = pow(nf, -sigma)
+		if amp < 1e-6: break
+		var theta = -t * log(nf)
+		var _sign = 1.0 if (n % 2 == 1) else -1.0
+		eta += _sign * amp * Vector2(cos(theta), sin(theta))
+	var amp2 = pow(2.0, 1.0 - sigma)
+	var theta2 = -t * log(2.0)
+	var two_term = amp2 * Vector2(cos(theta2), sin(theta2))
+	var denom = Vector2(1.0, 0.0) - two_term
+	return complex_div(eta, denom)
+
+const LANCZOS_P = [
+	1.000000000000000174663,
+	5716.400188274341379136,
+	-14815.30426768413909044,
+	14291.49277657478554025,
+	-6348.160217641458813289,
+	1301.608286058321874105,
+	-108.1767053514369634679,
+	2.605696505611755827729,
+	0.7423452510201416151527e-2,
+	0.5384136432509564062961e-7,
+	-0.4023533141268236372067e-8
+]
+const SQRT_2PI = 2.5066282746310005
+
 static func lanczos_gamma(z_orig: Vector2) -> Vector2:
 	var z = z_orig - Vector2(1.0, 0.0)
 	var x = Vector2(LANCZOS_P[0], 0.0)
-	for i in range(1, 9):
+	for i in range(1, 11):
 		x += complex_div(Vector2(LANCZOS_P[i], 0.0), z + Vector2(float(i), 0.0))
-
-	var tmp = z + Vector2(7.5, 0.0)
+	var tmp = z + Vector2(9.5, 0.0)
 	var p = complex_pow(tmp, z + Vector2(0.5, 0.0))
 	var etmp = complex_exp(-tmp.x, -tmp.y)
-
 	return SQRT_2PI * complex_mul(complex_mul(p, etmp), x)
 
 static func complex_gamma(sigma: float, t: float) -> Vector2:
@@ -142,86 +124,41 @@ static func complex_gamma(sigma: float, t: float) -> Vector2:
 	return lanczos_gamma(Vector2(sigma, t))
 
 static func zeta_continuation(sigma: float, t: float) -> Vector2:
-	if sigma >= 0.5:
-		return zeta(sigma, t)
-
+	if sigma >= 0.5: return zeta(sigma, t)
 	var s = Vector2(sigma, t)
 	var s1 = Vector2(1.0 - sigma, -t)
-
 	var a = complex_pow(Vector2(2.0, 0.0), s)
 	var b = complex_pow(Vector2(PI, 0.0), s - Vector2(1.0, 0.0))
-
 	var pi_s_2 = (PI * 0.5) * s
 	var c = complex_sin(pi_s_2.x, pi_s_2.y)
-
 	var d = complex_gamma(s1.x, s1.y)
 	var e = zeta(s1.x, s1.y)
-
 	return complex_mul(complex_mul(complex_mul(complex_mul(a, b), c), d), e)
 
 static func dedekind_eta(sigma: float, t: float) -> Vector2:
-	# eta(tau) = exp(pi * i * tau / 12) * product_{n=1}^inf (1 - exp(2 * pi * i * n * tau))
-	# Let tau = sigma + i*t
-	# pi * i * tau / 12 = pi * i * (sigma + i*t) / 12 = (-pi * t / 12) + i * (pi * sigma / 12)
 	var factor = complex_exp(-PI * t / 12.0, PI * sigma / 12.0)
-
 	var prod = Vector2(1.0, 0.0)
 	var q_re_base = -2.0 * PI * t
 	var q_im_base = 2.0 * PI * sigma
-
 	for n in range(1, iterations + 1):
 		var nf = float(n)
 		var term_exp = complex_exp(nf * q_re_base, nf * q_im_base)
 		var term = Vector2(1.0, 0.0) - term_exp
 		prod = complex_mul(prod, term)
-
-		# Convergence check: if q^n is extremely small, 1-q^n is basically 1
-		if nf > 10 and term_exp.length() < 1e-12:
-			break
-
+		if nf > 10 and term_exp.length() < 1e-12: break
 	return complex_mul(factor, prod)
 
-static func complex_sin(sigma: float, t: float) -> Vector2:
-	return Vector2(
-		sin(sigma) * cosh(t),
-		cos(sigma) * sinh(t)
-	)
-
-static func complex_cos(sigma: float, t: float) -> Vector2:
-	return Vector2(
-		cos(sigma) * cosh(t),
-		-sin(sigma) * sinh(t)
-	)
-
-static func complex_tan(sigma: float, t: float) -> Vector2:
-	return complex_div(complex_sin(sigma, t), complex_cos(sigma, t))
-
-static func complex_exp(sigma: float, t: float) -> Vector2:
-	var amp = exp(sigma)
-	return Vector2(
-		amp * cos(t),
-		amp * sin(t)
-	)
-
-static func complex_log(sigma: float, t: float) -> Vector2:
-	# Principal branch
-	var mag = sqrt(sigma * sigma + t * t)
-	if mag < 1e-9:
-		return Vector2(-10.0, 0.0) # avoid singularity
-	return Vector2(
-		log(mag),
-		atan2(t, sigma)
-	)
+//-------------------------------------------------------------------------
+// Rational Functions
+//-------------------------------------------------------------------------
 
 static func evaluate_poly(sigma: float, t: float, coeffs: PackedFloat32Array) -> Vector2:
 	var z = Vector2(sigma, t)
 	var res = Vector2.ZERO
 	var z_pow = Vector2(1.0, 0.0)
-
 	for i in range(10):
 		res += coeffs[i] * z_pow
 		z_pow = complex_mul(z_pow, z)
-
 	return res
 
 static func get_rational(sigma: float, t: float) -> Vector2:
@@ -229,46 +166,31 @@ static func get_rational(sigma: float, t: float) -> Vector2:
 	var den = evaluate_poly(sigma, t, rational_den_coeffs)
 	return complex_div(num, den)
 
+//-------------------------------------------------------------------------
+// Dispatchers
+//-------------------------------------------------------------------------
+
 static func get_field(x: float, z: float) -> Vector2:
 	var sigma: float = x * 0.1
 	var t: float = -z * 0.1
-
-	if function_type == 0:
-		return zeta(sigma, t)
-	elif function_type == 1:
-		return zeta_continuation(sigma, t)
-	elif function_type == 2:
-		return complex_gamma(sigma, t)
-	elif function_type == 3:
-		return dedekind_eta(sigma, t)
-	elif function_type == 4:
-		return complex_sin(sigma, t)
-	elif function_type == 5:
-		return complex_cos(sigma, t)
-	elif function_type == 6:
-		return complex_tan(sigma, t)
-	elif function_type == 7:
-		return complex_exp(sigma, t)
-	elif function_type == 8:
-		return complex_log(sigma, t)
-	elif function_type == 9:
-		return get_rational(sigma, t)
-
+	if function_type == 0: return zeta(sigma, t)
+	elif function_type == 1: return zeta_continuation(sigma, t)
+	elif function_type == 2: return complex_gamma(sigma, t)
+	elif function_type == 3: return dedekind_eta(sigma, t)
+	elif function_type == 4: return complex_sin(sigma, t)
+	elif function_type == 5: return complex_cos(sigma, t)
+	elif function_type == 6: return complex_tan(sigma, t)
+	elif function_type == 7: return complex_exp(sigma, t)
+	elif function_type == 8: return complex_log(sigma, t)
+	elif function_type == 9: return get_rational(sigma, t)
 	return Vector2.ZERO
 
 static func get_height(x: float, z: float) -> float:
 	var f = get_field(x, z)
-	if not is_finite(f.x) or not is_finite(f.y):
-		return 0.0
-
+	if not is_finite(f.x) or not is_finite(f.y): return 0.0
 	var mag = f.length()
-	if not is_finite(mag):
-		return 0.0
-
+	if not is_finite(mag): return 0.0
 	var h: float
-	if height_type == 0:
-		h = height_a * log(height_epsilon + mag)
-	else:
-		h = mag
-
+	if height_type == 0: h = height_a * log(height_epsilon + mag)
+	else: h = mag
 	return h if is_finite(h) else 0.0
