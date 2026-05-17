@@ -156,6 +156,7 @@ func _connect_tooltips_recursive(node: Node):
 func _on_tooltip_mouse_entered(key: String):
 	tooltip_label.text = DESCRIPTIONS[key]
 	tooltip.visible = true
+	tooltip.size = Vector2.ZERO # Force height update based on content
 	_update_tooltip_position()
 
 func _on_tooltip_mouse_exited():
