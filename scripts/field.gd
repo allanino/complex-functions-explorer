@@ -30,9 +30,9 @@ static var visited_zeros: Array[float] = []
 static var rational_num_coeffs: PackedFloat32Array = PackedFloat32Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 static var rational_den_coeffs: PackedFloat32Array = PackedFloat32Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 
-//-------------------------------------------------------------------------
-// Complex Arithmetic
-//-------------------------------------------------------------------------
+#-------------------------------------------------------------------------
+# Complex Arithmetic
+#-------------------------------------------------------------------------
 
 static func complex_mul(a: Vector2, b: Vector2) -> Vector2:
 	return Vector2(
@@ -71,9 +71,9 @@ static func complex_cos(sigma: float, t: float) -> Vector2:
 static func complex_tan(sigma: float, t: float) -> Vector2:
 	return complex_div(complex_sin(sigma, t), complex_cos(sigma, t))
 
-//-------------------------------------------------------------------------
-// Component Functions: Zeta, Gamma, Dedekind Eta
-//-------------------------------------------------------------------------
+#-------------------------------------------------------------------------
+# Component Functions: Zeta, Gamma, Dedekind Eta
+#-------------------------------------------------------------------------
 
 static func zeta(sigma: float, t: float) -> Vector2:
 	var eta = Vector2.ZERO
@@ -173,9 +173,9 @@ static func dedekind_eta(sigma: float, t: float) -> Vector2:
 		if nf > 10 and term_exp.length() < 1e-12: break
 	return complex_mul(factor, prod)
 
-//-------------------------------------------------------------------------
-// Rational Functions
-//-------------------------------------------------------------------------
+#-------------------------------------------------------------------------
+# Rational Functions
+#-------------------------------------------------------------------------
 
 static func evaluate_poly(sigma: float, t: float, coeffs: PackedFloat32Array) -> Vector2:
 	var z = Vector2(sigma, t)
@@ -191,9 +191,9 @@ static func get_rational(sigma: float, t: float) -> Vector2:
 	var den = evaluate_poly(sigma, t, rational_den_coeffs)
 	return complex_div(num, den)
 
-//-------------------------------------------------------------------------
-// Dispatchers
-//-------------------------------------------------------------------------
+#-------------------------------------------------------------------------
+# Dispatchers
+#-------------------------------------------------------------------------
 
 static func get_field(x: float, z: float) -> Vector2:
 	var sigma: float = x * 0.1
