@@ -3,7 +3,7 @@ class_name Field
 
 static var iterations: int = 300
 static var terrain_detail: int = 1
-static var antialiasing_mode: int = 4
+static var antialiasing_mode: int = 1
 static var show_curves: bool = true
 static var show_critical_stripe: bool = true
 static var golden_hour: bool = false
