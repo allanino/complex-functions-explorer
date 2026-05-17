@@ -168,8 +168,9 @@ func _physics_process(delta):
 		   mag_history[2] < mag_history[3] and mag_history[3] < mag_history[4]:
 			var t = t_history[2] # Middle value is the reported zero
 
-			# Check if this zero is far enough from the last detected one to avoid duplicates
-			if abs(t - last_detected_t) > 0.1:
+			# Check if the magnitude is reasonably low (e.g. < zero_threshold) to avoid false positives
+			# from tiny oscillations far from zeros
+			if mag_history[2] < Field.zero_threshold:
 				Field.visited_zeros.push_back(t)
 				last_detected_t = t
 
