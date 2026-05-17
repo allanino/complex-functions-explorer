@@ -122,8 +122,12 @@ func toggle_menu(applied: bool = false):
 		_initial_drone_volume = Field.drone_volume
 
 		if player:
-			re_input.text = "%.3f" % (player.global_position.x * 0.1)
-			im_input.text = "%.3f" % (-player.global_position.z * 0.1)
+			var re_val = player.global_position.x * 0.1
+			var im_val = -player.global_position.z * 0.1
+			if not is_finite(re_val): re_val = 0.5
+			if not is_finite(im_val): im_val = 0.0
+			re_input.text = "%.3f" % re_val
+			im_input.text = "%.3f" % im_val
 		iter_input.text = str(Field.iterations)
 		speed_input.text = "%.1f" % (Field.movement_speed * 0.1)
 		zero_speed_slider.value = Field.speed_near_zeros
@@ -219,11 +223,18 @@ func _parse_poly(text: String) -> PackedFloat32Array:
 func _on_set_pos_pressed():
 	var re = float(re_input.text)
 	var im = float(im_input.text)
+	if not is_finite(re): re = 0.5
+	if not is_finite(im): im = 0.0
+
 	var iters = int(iter_input.text)
 	var h_a = float(height_a_input.text)
+	if not is_finite(h_a): h_a = 3.0
 	var h_eps = float(height_eps_input.text)
+	if not is_finite(h_eps): h_eps = 1.0
 	var m_speed = float(speed_input.text) * 10.0
+	if not is_finite(m_speed): m_speed = 100.0
 	var c_height = float(camera_height_input.text)
+	if not is_finite(c_height): c_height = 1.8
 
 	Field.iterations = iters
 	Field.movement_speed = m_speed
@@ -261,8 +272,12 @@ func _on_set_pos_pressed():
 			Field.rational_den_coeffs = PackedFloat32Array([1, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 
 	if player:
-		player.global_position.x = 10.0 * re
-		player.global_position.z = -10.0 * im
+		if not is_finite(player.global_position.x) or not is_finite(player.global_position.y) or not is_finite(player.global_position.z):
+			player.velocity = Vector3.ZERO
+			player.global_position = Vector3(10.0 * re, 0.0, -10.0 * im)
+		else:
+			player.global_position.x = 10.0 * re
+			player.global_position.z = -10.0 * im
 
 		# Update auto-walk state
 		if auto_walk_checkbox.button_pressed:
