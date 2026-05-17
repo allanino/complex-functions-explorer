@@ -9,8 +9,7 @@ static var show_critical_stripe: bool = true
 static var golden_hour: bool = false
 static var day_night_cycle: bool = false
 static var shadows_enabled: bool = false
-static var view_distance: int = 7
-static var function_type: int = 0 # 0: Zeta, 1: Sin, 2: Cos, 3: Tan, 4: Exp, 5: Log, 6: Rational
+static var function_type: int = 0 # 0: Zeta, 1: Dedekind Eta, 2: Sin, 3: Cos, 4: Tan, 5: Exp, 6: Log, 7: Rational
 static var height_type: int = 0 # 0: Log, 1: Abs
 static var height_a: float = 3.0
 static var height_epsilon: float = 1.0
@@ -103,6 +102,28 @@ static func zeta(sigma: float, t: float) -> Vector2:
 
 	return complex_div(eta, denom)
 
+static func dedekind_eta(sigma: float, t: float) -> Vector2:
+	# eta(tau) = exp(pi * i * tau / 12) * product_{n=1}^inf (1 - exp(2 * pi * i * n * tau))
+	# Let tau = sigma + i*t
+	# pi * i * tau / 12 = pi * i * (sigma + i*t) / 12 = (-pi * t / 12) + i * (pi * sigma / 12)
+	var factor = complex_exp(-PI * t / 12.0, PI * sigma / 12.0)
+
+	var prod = Vector2(1.0, 0.0)
+	var q_re_base = -2.0 * PI * t
+	var q_im_base = 2.0 * PI * sigma
+
+	for n in range(1, iterations + 1):
+		var nf = float(n)
+		var term_exp = complex_exp(nf * q_re_base, nf * q_im_base)
+		var term = Vector2(1.0, 0.0) - term_exp
+		prod = complex_mul(prod, term)
+
+		# Convergence check: if q^n is extremely small, 1-q^n is basically 1
+		if nf > 10 and term_exp.length() < 1e-12:
+			break
+
+	return complex_mul(factor, prod)
+
 static func complex_sin(sigma: float, t: float) -> Vector2:
 	return Vector2(
 		sin(sigma) * cosh(t),
@@ -158,16 +179,18 @@ static func get_field(x: float, z: float) -> Vector2:
 	if function_type == 0:
 		return zeta(sigma, t)
 	elif function_type == 1:
-		return complex_sin(sigma, t)
+		return dedekind_eta(sigma, t)
 	elif function_type == 2:
-		return complex_cos(sigma, t)
+		return complex_sin(sigma, t)
 	elif function_type == 3:
-		return complex_tan(sigma, t)
+		return complex_cos(sigma, t)
 	elif function_type == 4:
-		return complex_exp(sigma, t)
+		return complex_tan(sigma, t)
 	elif function_type == 5:
-		return complex_log(sigma, t)
+		return complex_exp(sigma, t)
 	elif function_type == 6:
+		return complex_log(sigma, t)
+	elif function_type == 7:
 		return get_rational(sigma, t)
 
 	return Vector2.ZERO

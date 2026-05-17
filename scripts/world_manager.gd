@@ -3,6 +3,7 @@ extends Node3D
 @export var chunk_scene: PackedScene = preload("res://scenes/chunk.tscn")
 @export var player: Node3D
 @export var chunk_size: float = 32.0
+@export var view_distance: int = 6
 
 var chunks = {}
 var _last_field_state = {}
@@ -39,8 +40,8 @@ func _process(delta):
 	var player_chunk_z = floor(player_pos.z / chunk_size)
 
 	# Load new chunks
-	for x in range(player_chunk_x - Field.view_distance, player_chunk_x + Field.view_distance + 1):
-		for z in range(player_chunk_z - Field.view_distance, player_chunk_z + Field.view_distance + 1):
+	for x in range(player_chunk_x - view_distance, player_chunk_x + view_distance + 1):
+		for z in range(player_chunk_z - view_distance, player_chunk_z + view_distance + 1):
 			var chunk_coord = Vector2i(x, z)
 			if not chunks.has(chunk_coord):
 				_load_chunk(chunk_coord)
@@ -48,7 +49,7 @@ func _process(delta):
 	# Unload distant chunks
 	var chunks_to_remove = []
 	for chunk_coord in chunks.keys():
-		if abs(chunk_coord.x - player_chunk_x) > Field.view_distance or abs(chunk_coord.y - player_chunk_z) > Field.view_distance:
+		if abs(chunk_coord.x - player_chunk_x) > view_distance or abs(chunk_coord.y - player_chunk_z) > view_distance:
 			chunks_to_remove.append(chunk_coord)
 
 	for chunk_coord in chunks_to_remove:
