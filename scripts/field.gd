@@ -127,13 +127,20 @@ static func zeta_continuation(sigma: float, t: float) -> Vector2:
 	if sigma >= 0.5: return zeta(sigma, t)
 	var s = Vector2(sigma, t)
 	var s1 = Vector2(1.0 - sigma, -t)
-	var a = complex_pow(Vector2(2.0, 0.0), s)
-	var b = complex_pow(Vector2(PI, 0.0), s - Vector2(1.0, 0.0))
+
+	var log_sum = complex_mul(s, Vector2(log(2.0), 0.0)) \
+				+ complex_mul(s - Vector2(1.0, 0.0), Vector2(log(PI), 0.0))
+
 	var pi_s_2 = (PI * 0.5) * s
-	var c = complex_sin(pi_s_2.x, pi_s_2.y)
-	var d = complex_gamma(s1.x, s1.y)
-	var e = zeta(s1.x, s1.y)
-	return complex_mul(complex_mul(complex_mul(complex_mul(a, b), c), d), e)
+	var sin_part = complex_sin(pi_s_2.x, pi_s_2.y)
+	log_sum += complex_log(sin_part.x, sin_part.y)
+
+	log_sum += complex_log_gamma(s1.x, s1.y)
+
+	var zeta_part = zeta(s1.x, s1.y)
+	log_sum += complex_log(zeta_part.x, zeta_part.y)
+
+	return complex_exp(log_sum.x, log_sum.y)
 
 static func lanczos_log_gamma(z: Vector2) -> Vector2:
 	var z_m1 = z - Vector2(1.0, 0.0)

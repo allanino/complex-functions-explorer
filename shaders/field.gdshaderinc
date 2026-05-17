@@ -316,43 +316,53 @@ FieldData dedekind_eta_with_derivatives(float sigma, float t, int iters) {
 // Composite Functions
 //-------------------------------------------------------------------------
 
-// Zeta Continuation using functional equation
+// Zeta Continuation using functional equation via log-sum
 vec2 zeta_continuation(float sigma, float t, int iters) {
     if (sigma >= 0.5) return zeta(sigma, t);
     vec2 s = vec2(sigma, t);
     vec2 s1 = vec2(1.0 - sigma, -t);
-    vec2 a = complex_pow(vec2(2.0, 0.0), s);
-    vec2 b = complex_pow(vec2(PI, 0.0), s - vec2(1.0, 0.0));
+
+    vec2 log_sum = complex_mul(s, vec2(log(2.0), 0.0))
+                 + complex_mul(s - vec2(1.0, 0.0), vec2(log(PI), 0.0));
+
     vec2 pi_s_2 = (PI * 0.5) * s;
-    vec2 c = complex_sin(pi_s_2.x, pi_s_2.y);
-    vec2 d = complex_gamma(s1.x, s1.y);
-    vec2 e = zeta(s1.x, s1.y);
-    return complex_mul(complex_mul(complex_mul(complex_mul(a, b), c), d), e);
+    vec2 sin_part = complex_sin(pi_s_2.x, pi_s_2.y);
+    log_sum += complex_log(sin_part.x, sin_part.y);
+
+    log_sum += complex_log_gamma(s1.x, s1.y);
+
+    vec2 zeta_part = zeta(s1.x, s1.y);
+    log_sum += complex_log(zeta_part.x, zeta_part.y);
+
+    return complex_exp(log_sum.x, log_sum.y);
 }
 
 FieldData zeta_continuation_with_derivatives(float sigma, float t, int iters) {
     if (sigma >= 0.5) return zeta_with_derivatives(sigma, t, iters);
     vec2 s = vec2(sigma, t);
     vec2 s1 = vec2(1.0 - sigma, -t);
-    vec2 a = complex_pow(vec2(2.0, 0.0), s);
-    vec2 b = complex_pow(vec2(PI, 0.0), s - vec2(1.0, 0.0));
+
+    vec2 log_sum = complex_mul(s, vec2(log(2.0), 0.0))
+                 + complex_mul(s - vec2(1.0, 0.0), vec2(log(PI), 0.0));
+    vec2 ratio = vec2(log(2.0) + log(PI), 0.0);
+
     vec2 pi_s_2 = (PI * 0.5) * s;
-    vec2 c = complex_sin(pi_s_2.x, pi_s_2.y);
-    vec2 dc_ds = (PI * 0.5) * complex_cos(pi_s_2.x, pi_s_2.y);
-    FieldData d_data = complex_gamma_with_derivatives(s1.x, s1.y);
-    vec2 d = d_data.value;
-    vec2 dd_ds = -d_data.d_sigma;
-    FieldData e_data = zeta_with_derivatives(s1.x, s1.y, iters);
-    vec2 e = e_data.value;
-    vec2 de_ds = -e_data.d_sigma;
-    vec2 value = complex_mul(complex_mul(complex_mul(complex_mul(a, b), c), d), e);
-    vec2 ratio = vec2(log(2.0) + log(PI), 0.0)
-               + complex_div(dc_ds, c)
-               + complex_div(dd_ds, d)
-               + complex_div(de_ds, e);
+    vec2 sin_part = complex_sin(pi_s_2.x, pi_s_2.y);
+    vec2 cos_part = complex_cos(pi_s_2.x, pi_s_2.y);
+    log_sum += complex_log(sin_part.x, sin_part.y);
+    ratio += (PI * 0.5) * complex_div(cos_part, sin_part);
+
+    FieldData lg_data = complex_log_gamma_with_derivatives(s1.x, s1.y);
+    log_sum += lg_data.value;
+    ratio -= lg_data.d_sigma; // d/ds log Gamma(1-s) = -psi(1-s)
+
+    FieldData z_data = zeta_with_derivatives(s1.x, s1.y, iters);
+    log_sum += complex_log(z_data.value.x, z_data.value.y);
+    ratio -= complex_div(z_data.d_sigma, z_data.value); // d/ds log zeta(1-s) = -zeta'(1-s)/zeta(1-s)
+
     FieldData res;
-    res.value = value;
-    res.d_sigma = complex_mul(value, ratio);
+    res.value = complex_exp(log_sum.x, log_sum.y);
+    res.d_sigma = complex_mul(res.value, ratio);
     res.d_t = vec2(-res.d_sigma.y, res.d_sigma.x);
     return res;
 }
