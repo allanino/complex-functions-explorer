@@ -15,8 +15,8 @@ var space_held_time = 0.0
 var is_resetting_height = false
 
 # Zero detection history
-var mag_history: Array[float] = [1.0, 1.0, 1.0]
-var t_history: Array[float] = [0.0, 0.0, 0.0]
+var mag_history: Array[float] = [1.0, 1.0, 1.0, 1.0, 1.0]
+var t_history: Array[float] = [0.0, 0.0, 0.0, 0.0, 0.0]
 var last_detected_t = -1.0
 
 @onready var camera = $Camera3D
@@ -70,10 +70,6 @@ func get_terrain_height(x: float, z: float) -> float:
 	return Field.get_height(x, z)
 
 func _physics_process(delta):
-	if not is_finite(global_position.x) or not is_finite(global_position.y) or not is_finite(global_position.z):
-		velocity = Vector3.ZERO
-		global_position = Vector3(CRITICAL_LINE_X, 0.0, 0.0)
-
 	if auto_walk_state != AutoWalkState.NONE:
 		var manual_input = Input.get_vector("move_left", "move_right", "move_forward", "move_backward")
 		if manual_input != Vector2.ZERO or Input.is_key_pressed(KEY_SPACE):
@@ -167,15 +163,14 @@ func _physics_process(delta):
 		mag_history.push_back(current_mag)
 		mag_history.pop_front()
 
-		# Check for local minimum: f[1] < f[0] and f[1] < f[2]
-		# We use the 3-frame approach suggested by the user.
-		if mag_history[1] < mag_history[0] and mag_history[1] < mag_history[2]:
-			var t = t_history[1] # Current minima t-value
+		# Check for local minimum: f[0] > f[1] > f[2] < f[3] < f[4]
+		if mag_history[0] > mag_history[1] and mag_history[1] > mag_history[2] and \
+		   mag_history[2] < mag_history[3] and mag_history[3] < mag_history[4]:
+			var t = t_history[2] # Middle value is the reported zero
 
-			# Check if this zero is far enough from the last detected one to avoid duplicates
-			# also check if the magnitude is reasonably low (e.g. < zero_threshold) to avoid false positives
+			# Check if the magnitude is reasonably low (e.g. < zero_threshold) to avoid false positives
 			# from tiny oscillations far from zeros
-			if abs(t - last_detected_t) > 0.1 and mag_history[1] < Field.zero_threshold:
+			if mag_history[2] < Field.zero_threshold:
 				Field.visited_zeros.push_back(t)
 				last_detected_t = t
 
