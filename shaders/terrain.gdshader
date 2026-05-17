@@ -64,7 +64,6 @@ void vertex() {
         float du_dz = -0.1 * du_dt_v.x;
         float dv_dz = -0.1 * du_dt_v.y;
 
-        float mag = length(field_val);
         float dmag_dx = (mag > 1e-12) ? (u * du_dx + v * dv_dx) / mag : 0.0;
         float dmag_dz = (mag > 1e-12) ? (u * du_dz + v * dv_dz) / mag : 0.0;
 

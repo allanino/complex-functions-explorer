@@ -41,8 +41,7 @@ static func complex_mul(a: Vector2, b: Vector2) -> Vector2:
 	)
 
 static func complex_div(a: Vector2, b: Vector2) -> Vector2:
-	var denom = b.x * b.x + b.y * b.y
-	if denom == 0.0: return Vector2.ZERO
+	var denom = b.x * b.x + b.y * b.y + 1e-24
 	return Vector2(
 		(a.x * b.x + a.y * b.y) / denom,
 		(a.y * b.x - a.x * b.y) / denom
@@ -54,7 +53,7 @@ static func complex_exp(sigma: float, t: float) -> Vector2:
 
 static func complex_log(sigma: float, t: float) -> Vector2:
 	var mag = sqrt(sigma * sigma + t * t)
-	if mag < 1e-9: return Vector2(-10.0, 0.0)
+	if mag < 1e-24: return Vector2(-60.0, 0.0)
 	return Vector2(log(mag), atan2(t, sigma))
 
 static func complex_pow(z: Vector2, w: Vector2) -> Vector2:
