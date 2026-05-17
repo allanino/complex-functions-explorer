@@ -76,6 +76,7 @@ func _ready():
 
 	func_button.clear()
 	func_button.add_item("Zeta")
+	func_button.add_item("Gamma")
 	func_button.add_item("Dedekind Eta")
 	func_button.add_item("Sin")
 	func_button.add_item("Cos")
@@ -170,11 +171,11 @@ func toggle_menu(applied: bool = false):
 			Field.view_distance = _initial_view_distance
 
 func _on_func_selected(index):
-	if index == 1 and Field.function_type != 1:
+	if index == 2 and Field.function_type != 2:
 		iter_input.text = "10"
 
-	rational_container.visible = (index == 7)
-	iter_container.visible = (index == 0 or index == 1)
+	rational_container.visible = (index == 8)
+	iter_container.visible = (index == 0 or index == 2)
 	critical_checkbox.visible = (index == 0)
 	hud_zeros_checkbox.visible = (index == 0)
 	auto_walk_checkbox.visible = (index == 0)
@@ -268,7 +269,7 @@ func _on_set_pos_pressed():
 
 	apply_aa()
 
-	if Field.function_type == 7:
+	if Field.function_type == 8:
 		var expr = rational_input.text.replace(" ", "")
 		if "/" in expr:
 			var parts = expr.split("/")

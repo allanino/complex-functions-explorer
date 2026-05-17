@@ -9,7 +9,7 @@ static var show_critical_stripe: bool = true
 static var golden_hour: bool = false
 static var day_night_cycle: bool = false
 static var shadows_enabled: bool = false
-static var function_type: int = 0 # 0: Zeta, 1: Dedekind Eta, 2: Sin, 3: Cos, 4: Tan, 5: Exp, 6: Log, 7: Rational
+static var function_type: int = 0 # 0: Zeta, 1: Gamma, 2: Dedekind Eta, 3: Sin, 4: Cos, 5: Tan, 6: Exp, 7: Log, 8: Rational
 static var view_distance: int = 7
 static var height_type: int = 0 # 0: Log, 1: Abs
 static var height_a: float = 3.0
@@ -103,6 +103,44 @@ static func zeta(sigma: float, t: float) -> Vector2:
 
 	return complex_div(eta, denom)
 
+const LANCZOS_P = [
+	0.99999999999980993,
+	676.5203681218851,
+	-1259.1392167224028,
+	771.32342877765313,
+	-176.61502916214059,
+	12.507343278686905,
+	-0.13857109526572012,
+	9.9843695780195716e-6,
+	1.5056327351493116e-7
+]
+const SQRT_2PI = 2.5066282746310005
+
+static func complex_pow(z: Vector2, w: Vector2) -> Vector2:
+	var lz = complex_log(z.x, z.y)
+	var res_log = complex_mul(w, lz)
+	return complex_exp(res_log.x, res_log.y)
+
+static func lanczos_gamma(z_orig: Vector2) -> Vector2:
+	var z = z_orig - Vector2(1.0, 0.0)
+	var x = Vector2(LANCZOS_P[0], 0.0)
+	for i in range(1, 9):
+		x += complex_div(Vector2(LANCZOS_P[i], 0.0), z + Vector2(float(i), 0.0))
+
+	var tmp = z + Vector2(7.5, 0.0)
+	var p = complex_pow(tmp, z + Vector2(0.5, 0.0))
+	var etmp = complex_exp(-tmp.x, -tmp.y)
+
+	return SQRT_2PI * complex_mul(complex_mul(p, etmp), x)
+
+static func complex_gamma(sigma: float, t: float) -> Vector2:
+	if sigma < 0.5:
+		var z = Vector2(sigma, t)
+		var sin_pi_z = complex_sin(PI * sigma, PI * t)
+		var g1z = lanczos_gamma(Vector2(1.0 - sigma, -t))
+		return complex_div(Vector2(PI, 0.0), complex_mul(sin_pi_z, g1z))
+	return lanczos_gamma(Vector2(sigma, t))
+
 static func dedekind_eta(sigma: float, t: float) -> Vector2:
 	# eta(tau) = exp(pi * i * tau / 12) * product_{n=1}^inf (1 - exp(2 * pi * i * n * tau))
 	# Let tau = sigma + i*t
@@ -180,18 +218,20 @@ static func get_field(x: float, z: float) -> Vector2:
 	if function_type == 0:
 		return zeta(sigma, t)
 	elif function_type == 1:
-		return dedekind_eta(sigma, t)
+		return complex_gamma(sigma, t)
 	elif function_type == 2:
-		return complex_sin(sigma, t)
+		return dedekind_eta(sigma, t)
 	elif function_type == 3:
-		return complex_cos(sigma, t)
+		return complex_sin(sigma, t)
 	elif function_type == 4:
-		return complex_tan(sigma, t)
+		return complex_cos(sigma, t)
 	elif function_type == 5:
-		return complex_exp(sigma, t)
+		return complex_tan(sigma, t)
 	elif function_type == 6:
-		return complex_log(sigma, t)
+		return complex_exp(sigma, t)
 	elif function_type == 7:
+		return complex_log(sigma, t)
+	elif function_type == 8:
 		return get_rational(sigma, t)
 
 	return Vector2.ZERO
