@@ -78,6 +78,7 @@ func _ready():
 	func_button.add_item("Zeta")
 	func_button.add_item("Zeta continuation")
 	func_button.add_item("Gamma")
+	func_button.add_item("Log Gamma")
 	func_button.add_item("Dedekind Eta")
 	func_button.add_item("Sin")
 	func_button.add_item("Cos")
@@ -174,11 +175,11 @@ func toggle_menu(applied: bool = false):
 func _on_func_selected(index):
 	var is_zeta_variant = (index == 0 or index == 1)
 
-	if index == 3 and Field.function_type != 3:
+	if index == 4 and Field.function_type != 4:
 		iter_input.text = "10"
 
-	rational_container.visible = (index == 9)
-	iter_container.visible = (is_zeta_variant or index == 3)
+	rational_container.visible = (index == 10)
+	iter_container.visible = (is_zeta_variant or index == 4)
 	critical_checkbox.visible = is_zeta_variant
 	hud_zeros_checkbox.visible = is_zeta_variant
 	auto_walk_checkbox.visible = is_zeta_variant
@@ -272,7 +273,7 @@ func _on_set_pos_pressed():
 
 	apply_aa()
 
-	if Field.function_type == 9:
+	if Field.function_type == 10:
 		var expr = rational_input.text.replace(" ", "")
 		if "/" in expr:
 			var parts = expr.split("/")
