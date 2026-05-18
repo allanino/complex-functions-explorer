@@ -59,6 +59,9 @@ extends CanvasLayer
 
 @onready var tooltip = $TooltipLayer/Tooltip
 @onready var tooltip_label = $TooltipLayer/Tooltip/MarginContainer/Label
+@onready var tooltip_timer = $TooltipTimer
+
+var _pending_tooltip_key: String = ""
 
 const DESCRIPTIONS = {
 	"Function": "Select the complex function to visualize on the terrain.",
@@ -135,6 +138,7 @@ func _ready():
 
 	apply_aa()
 	_setup_tooltips()
+	tooltip_timer.timeout.connect(_on_tooltip_timer_timeout)
 
 func _setup_tooltips():
 	# We want to find all Labels and CheckBoxes in the menu tabs
@@ -154,13 +158,20 @@ func _connect_tooltips_recursive(node: Node):
 		_connect_tooltips_recursive(child)
 
 func _on_tooltip_mouse_entered(key: String):
-	tooltip_label.text = DESCRIPTIONS[key]
-	tooltip.visible = true
-	tooltip.size = Vector2.ZERO # Force height update based on content
-	_update_tooltip_position()
+	_pending_tooltip_key = key
+	tooltip_timer.start()
 
 func _on_tooltip_mouse_exited():
+	tooltip_timer.stop()
 	tooltip.visible = false
+	_pending_tooltip_key = ""
+
+func _on_tooltip_timer_timeout():
+	if _pending_tooltip_key != "":
+		tooltip_label.text = DESCRIPTIONS[_pending_tooltip_key]
+		tooltip.visible = true
+		tooltip.size = Vector2.ZERO # Force height update based on content
+		_update_tooltip_position()
 
 func _update_tooltip_position():
 	var mouse_pos = get_viewport().get_mouse_position()
@@ -228,6 +239,8 @@ func toggle_menu(applied: bool = false):
 		_on_height_selected(Field.height_type)
 	else:
 		tooltip.visible = false
+		tooltip_timer.stop()
+		_pending_tooltip_key = ""
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 		if not applied:
 			Field.bg_music_volume = _initial_bg_music_volume
