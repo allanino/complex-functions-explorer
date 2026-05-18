@@ -153,7 +153,7 @@ func _physics_process(delta):
 	global_position.y = terrain_h + Field.camera_height + height_offset
 
 	# Zeta zero detection during auto-walk
-	if auto_walk_state == AutoWalkState.WALKING and (Field.function_type == 0 or Field.function_type == 1):
+	if auto_walk_state == AutoWalkState.WALKING and Field.function_type == 0:
 		var f = Field.get_field(global_position.x, global_position.z)
 		var current_mag = f.length()
 

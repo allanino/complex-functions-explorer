@@ -76,9 +76,6 @@ func _ready():
 
 	func_button.clear()
 	func_button.add_item("Zeta")
-	func_button.add_item("Zeta Continuation")
-	func_button.add_item("Gamma")
-	func_button.add_item("Log Gamma")
 	func_button.add_item("Dedekind Eta")
 	func_button.add_item("Sin")
 	func_button.add_item("Cos")
@@ -172,15 +169,15 @@ func toggle_menu(applied: bool = false):
 			Field.drone_volume = _initial_drone_volume
 
 func _on_func_selected(index):
-	if index == 4 and Field.function_type != 4: # Dedekind Eta
+	if index == 1 and Field.function_type != 1:
 		iter_input.text = "10"
 
-	rational_container.visible = (index == 10)
-	iter_container.visible = (index == 0 or index == 1 or index == 4)
-	critical_checkbox.visible = (index == 0 or index == 1)
-	hud_zeros_checkbox.visible = (index == 0 or index == 1)
-	auto_walk_checkbox.visible = (index == 0 or index == 1)
-	rvm_checkbox.visible = (index == 0 or index == 1)
+	rational_container.visible = (index == 7)
+	iter_container.visible = (index == 0 or index == 1)
+	critical_checkbox.visible = (index == 0)
+	hud_zeros_checkbox.visible = (index == 0)
+	auto_walk_checkbox.visible = (index == 0)
+	rvm_checkbox.visible = (index == 0)
 
 func _on_height_selected(index):
 	var is_log = (index == 0)
@@ -271,7 +268,7 @@ func _on_set_pos_pressed():
 
 	apply_aa()
 
-	if Field.function_type == 10:
+	if Field.function_type == 7:
 		var expr = rational_input.text.replace(" ", "")
 		if "/" in expr:
 			var parts = expr.split("/")
@@ -318,7 +315,7 @@ func _process(_delta):
 	if player and "auto_walk_state" in player:
 		is_auto_walking = player.auto_walk_state != 0 # 0 is AutoWalkState.NONE
 
-	var show_zeros = ((Field.function_type == 0 or Field.function_type == 1) and is_auto_walking and Field.show_hud_zeros)
+	var show_zeros = (Field.function_type == 0 and is_auto_walking and Field.show_hud_zeros)
 	zeros_panel.visible = show_zeros
 
 	if show_zeros:
