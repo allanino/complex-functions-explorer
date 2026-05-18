@@ -90,26 +90,24 @@ static func zeta(sigma: float, t: float) -> Vector2:
 	return complex_div(eta, denom)
 
 const LANCZOS_P = [
-	1.000000000000000174663,
-	5716.400188274341379136,
-	-14815.30426768413909044,
-	14291.49277657478554025,
-	-6348.160217641458813289,
-	1301.608286058321874105,
-	-108.1767053514369634679,
-	2.605696505611755827729,
-	0.7423452510201416151527e-2,
-	0.5384136432509564062961e-7,
-	-0.4023533141268236372067e-8
+	0.99999999999980993,
+	676.5203681218851,
+	-1259.1392167224028,
+	771.32342877765313,
+	-176.61502916214059,
+	12.507343278686905,
+	-0.13857109526572012,
+	9.9843695780195716e-6,
+	1.5056327351493116e-7
 ]
 const SQRT_2PI = 2.5066282746310005
 
 static func lanczos_gamma(z_orig: Vector2) -> Vector2:
 	var z = z_orig - Vector2(1.0, 0.0)
 	var x = Vector2(LANCZOS_P[0], 0.0)
-	for i in range(1, 11):
+	for i in range(1, 9):
 		x += complex_div(Vector2(LANCZOS_P[i], 0.0), z + Vector2(float(i), 0.0))
-	var tmp = z + Vector2(9.5, 0.0)
+	var tmp = z + Vector2(7.5, 0.0)
 	var p = complex_pow(tmp, z + Vector2(0.5, 0.0))
 	var etmp = complex_exp(-tmp.x, -tmp.y)
 	return SQRT_2PI * complex_mul(complex_mul(p, etmp), x)
@@ -144,9 +142,9 @@ static func zeta_continuation(sigma: float, t: float) -> Vector2:
 static func lanczos_log_gamma(z: Vector2) -> Vector2:
 	var z_m1 = z - Vector2(1.0, 0.0)
 	var x = Vector2(LANCZOS_P[0], 0.0)
-	for i in range(1, 11):
+	for i in range(1, 9):
 		x += complex_div(Vector2(LANCZOS_P[i], 0.0), z_m1 + Vector2(float(i), 0.0))
-	var tmp = z_m1 + Vector2(9.5, 0.0)
+	var tmp = z_m1 + Vector2(7.5, 0.0)
 	var res = (Vector2(log(SQRT_2PI), 0.0)
 		+ complex_mul(z - Vector2(0.5, 0.0), complex_log(tmp.x, tmp.y))
 		- tmp
