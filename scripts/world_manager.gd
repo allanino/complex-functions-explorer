@@ -98,7 +98,7 @@ func _process(delta):
 		if moon:
 			moon.basis = Basis.looking_at(moon_dir, Vector3.UP if abs(moon_dir.y) < 0.99 else Vector3.FORWARD)
 			var moon_elevation = -moon_dir.y
-			moon.light_energy = smoothstep(-0.02, 0.02, moon_elevation) * 0.4
+			moon.light_energy = smoothstep(-0.02, 0.02, moon_elevation) * 0.8
 			moon.shadow_enabled = Field.shadows_enabled and moon_elevation > 0.01
 	else:
 		if moon:
