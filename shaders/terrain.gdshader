@@ -87,7 +87,7 @@ void vertex() {
 
     VERTEX = local_pos;
     world_pos = (MODEL_MATRIX * vec4(local_pos, 1.0)).xyz;
-    NORMAL = (MODEL_NORMAL_MATRIX * v_normal);
+    NORMAL = (VIEW_MATRIX * vec4(v_normal, 0.0)).xyz;
 }
 
 void fragment() {
@@ -173,7 +173,7 @@ void fragment() {
     }
 
 
-    ALBEDO = base * 0.15;
+    ALBEDO = base * 0.4;
     vec3 final_emission = base * 0.1;
 
     // Only apply the lines rendering for zeta (at x = 0, x = 5.0, x = 10.0)
@@ -208,8 +208,8 @@ void fragment() {
     }
 
         EMISSION = final_emission;
-        ROUGHNESS = 0.1;
-        METALLIC = 0.7;
+        ROUGHNESS = 0.02;
+        METALLIC = 1.0;
         SPECULAR = 0.1;
     }
 }

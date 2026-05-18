@@ -96,13 +96,13 @@ void sky() {
             float dist = distance(star_dir, normalize(cell_center));
 
             // Very sharp point-like falloff
-            float star = smoothstep(0.0015, 0.0005, dist);
+            float star = smoothstep(0.003, 0.001, dist);
 
             // Random brightness and subtle flicker
             float flicker = 0.8 + 0.2 * sin(TIME * 2.0 + h * 100.0);
             float brightness = fract(h * 10.0);
 
-            final_color += vec3(star * brightness * flicker * night_factor);
+            final_color += vec3(star * brightness * flicker * night_factor * 50.0);
         }
     }
 
