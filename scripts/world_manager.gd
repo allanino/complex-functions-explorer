@@ -42,7 +42,7 @@ func _setup_baker():
 	_baker_viewport.size = Vector2i(128, 128)
 	_baker_viewport.render_target_update_mode = SubViewport.UPDATE_DISABLED
 	_baker_viewport.render_target_clear_mode = SubViewport.CLEAR_MODE_ALWAYS
-	_baker_viewport.hdr = true
+	_baker_viewport.use_hdr_2d = true
 	add_child(_baker_viewport)
 
 	_baker_rect = ColorRect.new()
@@ -225,6 +225,12 @@ func _bake_chunk_texture(chunk: MeshInstance3D, coord: Vector2i):
 
 	_baker_mat.set_shader_parameter("chunk_center", Vector2(center_x, center_z))
 	_baker_mat.set_shader_parameter("chunk_size_with_leeway", chunk_size + chunk_leeway)
+
+	# Synchronize baker uniforms with current config
+	_baker_mat.set_shader_parameter("iterations", Config.iterations)
+	_baker_mat.set_shader_parameter("function_type", Config.function_type)
+	_baker_mat.set_shader_parameter("rational_num_coeffs", Config.rational_num_coeffs)
+	_baker_mat.set_shader_parameter("rational_den_coeffs", Config.rational_den_coeffs)
 
 	# Force one-time render
 	_baker_viewport.render_target_update_mode = SubViewport.UPDATE_ONCE
