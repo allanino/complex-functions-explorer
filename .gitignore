@@ -42,3 +42,7 @@ desktop.ini
 # Godot exported game/project files
 *.import
 *.godot_exported
+
+# Binaries
+*.sh
+*.x86*
