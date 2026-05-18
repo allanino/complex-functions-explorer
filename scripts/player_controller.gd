@@ -54,10 +54,16 @@ func _unhandled_input(event):
 
 	if event is InputEventKey and event.pressed and event.ctrl_pressed:
 		if event.keycode == KEY_G:
-			Config.golden_hour = !Config.golden_hour
+			if Config.environment_type == 1:
+				Config.environment_type = 0
+			else:
+				Config.environment_type = 1
 			Config.save_settings()
 		elif event.keycode == KEY_N:
-			Config.day_night_cycle = !Config.day_night_cycle
+			if Config.environment_type == 2:
+				Config.environment_type = 0
+			else:
+				Config.environment_type = 2
 			Config.save_settings()
 		elif event.keycode == KEY_C:
 			if auto_walk_state == AutoWalkState.NONE:

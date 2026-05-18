@@ -55,9 +55,13 @@ func _process(delta):
 	for chunk_coord in chunks_to_remove:
 		_unload_chunk(chunk_coord)
 
-	# Day/Night Cycle vs Manual Golden Hour
+	# Environment logic
 	var night_factor = 0.0
-	if Config.day_night_cycle:
+	var sunrise_rad = deg_to_rad(Config.sunrise_direction)
+	# Orbit axis is perpendicular to sunrise vector (cos, 0, sin) and zenith (0, 1, 0)
+	var orbit_axis = Vector3(sin(sunrise_rad), 0, -cos(sunrise_rad))
+
+	if Config.environment_type == 2: # Dynamic sun and moon
 		_day_night_time += delta
 		if _day_night_time >= day_night_cycle_duration:
 			_day_night_time -= day_night_cycle_duration
@@ -65,24 +69,13 @@ func _process(delta):
 		var progress = _day_night_time / day_night_cycle_duration
 		var angle = progress * TAU
 
-		# Rotate in YZ plane
-		# var south_north_dir = Vector3(0, -sin(angle), -cos(angle)).normalized()
-	
-		# Rotate in YX plane
-		var east_west_dir = Vector3(sin(angle), -cos(angle), 0).normalized()
-
-		var sun_dir = east_west_dir
+		# Sun direction: rotate Noon (0, -1, 0) around orbit axis
+		var sun_dir = Quaternion(orbit_axis, angle) * Vector3.DOWN
 		var moon_dir = -sun_dir
 
-		var sun_elevation = -sun_dir.y # Positive when above horizon
-		# Golden hour peaks at horizon (elevation 0)
-		# Starts at 30 deg (0.5 elevation)
+		var sun_elevation = -sun_dir.y
 		_golden_hour_transition = clamp((0.5 - sun_elevation) / 0.5, 0.0, 1.0)
 
-		# Night factor:
-		# 0.0 at horizon (0.0 elevation)
-		# 0.5 at blue hour peak (-0.1 elevation)
-		# 1.0 at full night (-0.3 elevation)
 		if sun_elevation < 0.0:
 			night_factor = clamp(-sun_elevation / 0.3, 0.0, 1.0)
 		else:
@@ -90,7 +83,6 @@ func _process(delta):
 
 		if sun:
 			sun.basis = Basis.looking_at(sun_dir, Vector3.UP if abs(sun_dir.y) < 0.99 else Vector3.FORWARD)
-			# Keep energy at 1.0 until sun is half-submerged, then fade quickly
 			sun.light_energy = smoothstep(-0.02, 0.02, sun_elevation)
 			sun.light_color = lerp(_sun_color, Color(1.0, 0.5, 0.2), _golden_hour_transition)
 			sun.shadow_enabled = Config.shadows_enabled and sun_elevation > 0.01
@@ -104,14 +96,16 @@ func _process(delta):
 		if moon:
 			moon.light_energy = 0.0
 
-		if Config.golden_hour:
-			_golden_hour_transition = min(_golden_hour_transition + delta * 0.5, 1.0)
-		else:
-			_golden_hour_transition = max(_golden_hour_transition - delta * 0.5, 0.0)
+		var target_transition = 1.0 if Config.environment_type == 1 else 0.0
+		_golden_hour_transition = move_toward(_golden_hour_transition, target_transition, delta * 0.5)
 
 		if sun:
-			var target_dir = lerp(Vector3.DOWN, Vector3(-1.0, -0.1, 0.0).normalized(), _golden_hour_transition)
-			sun.basis = Basis.looking_at(target_dir, Vector3.UP if abs(target_dir.normalized().y) < 0.5 else Vector3.FORWARD)
+			# Target direction for golden hour: 0.1 radians above horizon at Sunrise
+			# Angle -PI/2 is Sunrise, so we use -(PI/2 - 0.1)
+			var sunrise_angle = -(PI/2 - 0.1) * _golden_hour_transition
+			var target_dir = Quaternion(orbit_axis, sunrise_angle) * Vector3.DOWN
+
+			sun.basis = Basis.looking_at(target_dir, Vector3.UP if abs(target_dir.y) < 0.99 else Vector3.FORWARD)
 			sun.light_color = lerp(_sun_color, Color(1.0, 0.5, 0.2), _golden_hour_transition)
 			sun.light_energy = lerp(1.0, 1.5, _golden_hour_transition)
 			sun.shadow_enabled = Config.shadows_enabled
