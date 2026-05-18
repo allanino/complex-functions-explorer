@@ -261,9 +261,8 @@ func _update_fog(night_factor: float):
 	if not fog_volume or not player:
 		return
 
-	# Match the FogVolume's position to the player's horizontal position
-	var player_pos = player.global_position
-	fog_volume.global_position = Vector3(player_pos.x, 0, player_pos.z)
+	# Match the FogVolume's position to the player's position
+	fog_volume.global_position = player.global_position
 
 	var fog_mat = fog_volume.material as ShaderMaterial
 	if not fog_mat:
@@ -274,6 +273,16 @@ func _update_fog(night_factor: float):
 	var max_dist = Field.view_distance * chunk_size
 	var start_dist = max_dist * 0.7
 	var end_dist = max_dist * 0.95
+
+	# Ensure the FogVolume is large enough to cover the end distance
+	# We use a bit of extra padding
+	var volume_size = end_dist * 2.2
+	fog_volume.size = Vector3(volume_size, volume_size, volume_size)
+
+	# CRITICAL: The environment's volumetric fog length determines the max
+	# distance any volumetric fog (including FogVolumes) is rendered.
+	if world_environment and world_environment.environment:
+		world_environment.environment.volumetric_fog_length = end_dist * 1.2
 
 	fog_mat.set_shader_parameter("start_dist", start_dist)
 	fog_mat.set_shader_parameter("end_dist", end_dist)
