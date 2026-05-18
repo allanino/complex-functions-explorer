@@ -57,6 +57,41 @@ extends CanvasLayer
 @onready var close_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/ButtonsHBox/CloseButton
 @onready var quit_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/ButtonsHBox/QuitContainer/QuitButton
 
+@onready var tooltip = $TooltipLayer/Tooltip
+@onready var tooltip_label = $TooltipLayer/Tooltip/MarginContainer/Label
+@onready var tooltip_timer = $TooltipTimer
+
+var _pending_tooltip_key: String = ""
+
+const DESCRIPTIONS = {
+	"Function": "Select the complex function to visualize on the terrain.",
+	"Height Map": "Choose how the function's magnitude is mapped to terrain height.",
+	"Parameter a": "Scaling factor for logarithmic height mapping.",
+	"Parameter ε": "Small offset in logarithmic mapping to prevent log(0) at zeros.",
+	"Iterations": "Number of terms used in the summation for Zeta and Eta functions.",
+	"Expression": "Enter a rational function expression using 'z' as variable (e.g., z^2 - 1).",
+	"Real (σ)": "Manually set the real part of the player's position in the complex plane.",
+	"Imaginary (t)": "Manually set the imaginary part of the player's position.",
+	"Camera Height": "Vertical height of the player's camera above the terrain.",
+	"Move Speed": "Horizontal movement speed when navigating the complex plane.",
+	"Speed near Zeros": "Slows down movement speed near function zeros to allow closer inspection.",
+	"Automatic Walking": "Automatically follow the critical line (Re = 0.5) to find Riemann Zeta zeros.",
+	"Terrain Details": "Quality and subdivision level of the procedurally generated terrain meshes.",
+	"Antialiasing": "Choose a technique to reduce jagged edges in the 3D view.",
+	"View Distance": "Number of terrain chunks loaded around the player.",
+	"Level Curves": "Overlay contour lines for integer values of Re(f) (black) and Im(f) (white).",
+	"Critical Stripe": "Visual guide indicating the 0 < Re < 1 region where non-trivial zeros reside.",
+	"Golden Hour": "Enable cinematic lighting transitions between day and night.",
+	"Day & Night Cycle": "Enable the dynamic sun and moon rotation system.",
+	"Shadows": "Enable real-time directional shadows for terrain features.",
+	"Complex plane": "Show the domain coloring map of the current position on the HUD.",
+	"Navigation": "Show coordinate and magnitude information on the HUD.",
+	"Zeta zeros": "Show the list of discovered zeros during automatic walking.",
+	"Riemann–von Mangoldt": "Show the estimated number of zeros N(t) based on the Riemann–von Mangoldt formula.",
+	"Background Music": "Adjust the volume of the ambient mathematical soundscape.",
+	"Topographic Drone": "Adjust the volume of the terrain-responsive spatial audio."
+}
+
 var current_scale = 2.0
 var _initial_bg_music_volume: float
 var _initial_drone_volume: float
@@ -101,6 +136,61 @@ func _ready():
 	aa_button.add_item("SMAA (average)")
 
 	apply_aa()
+	_setup_tooltips()
+	tooltip_timer.timeout.connect(_on_tooltip_timer_timeout)
+
+func _setup_tooltips():
+	# We want to find all Labels and CheckBoxes in the menu tabs
+	var tabs = tab_container.get_children()
+	for tab in tabs:
+		_connect_tooltips_recursive(tab)
+
+func _connect_tooltips_recursive(node: Node):
+	if node is Label or node is CheckBox:
+		var text = node.text
+		if text in DESCRIPTIONS:
+			node.mouse_entered.connect(_on_tooltip_mouse_entered.bind(text))
+			node.mouse_exited.connect(_on_tooltip_mouse_exited)
+			node.mouse_filter = Control.MOUSE_FILTER_STOP
+
+	for child in node.get_children():
+		_connect_tooltips_recursive(child)
+
+func _on_tooltip_mouse_entered(key: String):
+	_pending_tooltip_key = key
+	tooltip_timer.start()
+
+func _on_tooltip_mouse_exited():
+	tooltip_timer.stop()
+	tooltip.visible = false
+	_pending_tooltip_key = ""
+
+func _any_dropdown_popup():
+	return (
+		func_button.get_popup().visible
+		|| height_button.get_popup().visible
+		|| terrain_detail_button.get_popup().visible
+		|| aa_button.get_popup().visible
+	)
+
+func _on_tooltip_timer_timeout():
+	# Do not draw tooltip behind the dropdown lists
+	if _any_dropdown_popup():
+		return
+
+	if _pending_tooltip_key != "":
+		tooltip_label.custom_minimum_size.x = 250
+		tooltip_label.text = DESCRIPTIONS[_pending_tooltip_key]
+		tooltip.visible = true
+		# Force a complete layout recalculation to fix the first-render height bug
+		tooltip.size = Vector2.ZERO
+		tooltip.reset_size()
+		_update_tooltip_position()
+
+func _update_tooltip_position():
+	var mouse_pos = get_viewport().get_mouse_position()
+	# Position at the tip of the mouse
+	tooltip.global_position = mouse_pos + Vector2(5, 5)
 
 func apply_aa():
 	var vp = get_viewport()
@@ -161,6 +251,9 @@ func toggle_menu(applied: bool = false):
 		_on_func_selected(Field.function_type)
 		_on_height_selected(Field.height_type)
 	else:
+		tooltip.visible = false
+		tooltip_timer.stop()
+		_pending_tooltip_key = ""
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 		if not applied:
 			Field.bg_music_volume = _initial_bg_music_volume
@@ -299,6 +392,9 @@ func _on_quit_pressed():
 	get_tree().quit()
 
 func _process(_delta):
+	if tooltip.visible:
+		_update_tooltip_position()
+
 	if not player:
 		return
 
