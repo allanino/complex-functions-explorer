@@ -11,17 +11,15 @@ var LOD_SUBS = [] # This will be set in code
 var _lod_mesh_cache = {}
 var _last_player_chunk = Vector2i(9999, 9999)
 
-var _bake_viewport: SubViewport
-var _bake_rect: ColorRect
-var _bake_material: ShaderMaterial
 var _bake_queue = []
 var _is_baking = false
-var _bake_frame_count = 0
 var _current_bake_coord = Vector2i(0, 0)
+var _current_bake_image: Image
+var _current_bake_y = 0
+const BAKE_RES = 128
+const BAKE_LINES_PER_FRAME = 4
 
 # We increase our chunks by this to make junctions more seamless
-# To test this, look at the right of zeta, the pole has a junction
-# along t = 0.00.
 const chunk_leeway = 0.3;
 
 @onready var sun = get_node("../DirectionalLight3D")
@@ -36,26 +34,6 @@ var _sun_color = Color("#fc9500")
 
 func _ready():
 	_update_lod_subs()
-	_setup_baking_infrastructure()
-	# Uncomment this to debug the mesh wireframe
-	# get_viewport().debug_draw = Viewport.DEBUG_DRAW_WIREFRAME
-
-func _setup_baking_infrastructure():
-	_bake_viewport = SubViewport.new()
-	_bake_viewport.size = Vector2i(128, 128) # Higher performance
-	_bake_viewport.use_hdr_2d = true
-	_bake_viewport.disable_3d = true
-	_bake_viewport.transparent_bg = true
-	_bake_viewport.render_target_update_mode = SubViewport.UPDATE_DISABLED # We update manually
-	add_child(_bake_viewport)
-
-	_bake_rect = ColorRect.new()
-	_bake_rect.size = Vector2(128, 128)
-	_bake_viewport.add_child(_bake_rect)
-
-	_bake_material = ShaderMaterial.new()
-	_bake_material.shader = preload("res://shaders/bake.gdshader")
-	_bake_rect.material = _bake_material
 
 func _process(delta):
 	if not player:
@@ -90,25 +68,12 @@ func _process(delta):
 
 		var progress = _day_night_time / day_night_cycle_duration
 		var angle = progress * TAU
-
-		# Rotate in YZ plane
-		# var south_north_dir = Vector3(0, -sin(angle), -cos(angle)).normalized()
-	
-		# Rotate in YX plane
 		var east_west_dir = Vector3(sin(angle), -cos(angle), 0).normalized()
-
 		var sun_dir = east_west_dir
 		var moon_dir = -sun_dir
-
-		var sun_elevation = -sun_dir.y # Positive when above horizon
-		# Golden hour peaks at horizon (elevation 0)
-		# Starts at 30 deg (0.5 elevation)
+		var sun_elevation = -sun_dir.y
 		_golden_hour_transition = clamp((0.5 - sun_elevation) / 0.5, 0.0, 1.0)
 
-		# Night factor:
-		# 0.0 at horizon (0.0 elevation)
-		# 0.5 at blue hour peak (-0.1 elevation)
-		# 1.0 at full night (-0.3 elevation)
 		if sun_elevation < 0.0:
 			night_factor = clamp(-sun_elevation / 0.3, 0.0, 1.0)
 		else:
@@ -116,7 +81,6 @@ func _process(delta):
 
 		if sun:
 			sun.basis = Basis.looking_at(sun_dir, Vector3.UP if abs(sun_dir.y) < 0.99 else Vector3.FORWARD)
-			# Keep energy at 1.0 until sun is half-submerged, then fade quickly
 			sun.light_energy = smoothstep(-0.02, 0.02, sun_elevation)
 			sun.light_color = lerp(_sun_color, Color(1.0, 0.5, 0.2), _golden_hour_transition)
 			sun.shadow_enabled = Field.shadows_enabled and sun_elevation > 0.01
@@ -129,19 +93,16 @@ func _process(delta):
 	else:
 		if moon:
 			moon.light_energy = 0.0
-
 		if Field.golden_hour:
 			_golden_hour_transition = min(_golden_hour_transition + delta * 0.5, 1.0)
 		else:
 			_golden_hour_transition = max(_golden_hour_transition - delta * 0.5, 0.0)
-
 		if sun:
 			var target_dir = lerp(Vector3.DOWN, Vector3(-1.0, -0.1, 0.0).normalized(), _golden_hour_transition)
 			sun.basis = Basis.looking_at(target_dir, Vector3.UP if abs(target_dir.normalized().y) < 0.5 else Vector3.FORWARD)
 			sun.light_color = lerp(_sun_color, Color(1.0, 0.5, 0.2), _golden_hour_transition)
 			sun.light_energy = lerp(1.0, 1.5, _golden_hour_transition)
 			sun.shadow_enabled = Field.shadows_enabled
-
 		night_factor = 0.0
 
 	if world_environment and world_environment.environment and world_environment.environment.sky:
@@ -150,17 +111,10 @@ func _process(delta):
 			sky_mat.set_shader_parameter("golden_hour_factor", _golden_hour_transition)
 			sky_mat.set_shader_parameter("night_factor", night_factor)
 
-	# Check if any field properties have changed
 	var current_field_state = {
 		"iterations": Field.iterations,
 		"terrain_detail": Field.terrain_detail,
-		"show_curves": Field.show_curves,
-		"show_critical_stripe": Field.show_critical_stripe,
-		"debug_view_texture": Field.debug_view_texture,
 		"function_type": Field.function_type,
-		"height_type": Field.height_type,
-		"height_a": Field.height_a,
-		"height_epsilon": Field.height_epsilon,
 		"rational_num_coeffs": Field.rational_num_coeffs,
 		"rational_den_coeffs": Field.rational_den_coeffs
 	}
@@ -176,7 +130,6 @@ func _process(delta):
 			_lod_mesh_cache.clear()
 			_update_all_chunks_lod(true)
 
-		# Reset use_texture and queue re-bake for all chunks on state change
 		_bake_queue.clear()
 		_is_baking = false
 		for coord in chunks.keys():
@@ -184,15 +137,10 @@ func _process(delta):
 			chunk.set_meta("is_baked", false)
 			if chunk.material_override:
 				chunk.material_override.set_shader_parameter("use_texture", false)
+				_update_chunk_uniforms(chunk)
 			if not coord in _bake_queue:
 				_bake_queue.append(coord)
 
-		if not lod_changed:
-			# Update uniforms in all existing chunks
-			for chunk in chunks.values():
-				_update_chunk_uniforms(chunk)
-
-	# LOD Dynamic Update
 	if player_chunk_x != _last_player_chunk.x or player_chunk_z != _last_player_chunk.y:
 		_last_player_chunk = Vector2i(player_chunk_x, player_chunk_z)
 		_update_all_chunks_lod()
@@ -204,7 +152,6 @@ func _process_bake_queue(px: int, pz: int):
 		return
 
 	if not _is_baking:
-		# Sort queue by distance to player so closest chunks bake first
 		var p_coord = Vector2i(px, pz)
 		_bake_queue.sort_custom(func(a, b):
 			return p_coord.distance_squared_to(a) < p_coord.distance_squared_to(b)
@@ -214,40 +161,43 @@ func _process_bake_queue(px: int, pz: int):
 		if not chunks.has(_current_bake_coord):
 			return
 
+		_current_bake_image = Image.create(BAKE_RES, BAKE_RES, false, Image.FORMAT_RGBAF)
+		_current_bake_y = 0
+		_is_baking = true
+	else:
+		# Bake some lines
 		var center = Vector2(_current_bake_coord.x * chunk_size + chunk_size * 0.5, _current_bake_coord.y * chunk_size + chunk_size * 0.5)
 		var half_size = (chunk_size + chunk_leeway) * 0.5
 		var chunk_min = center - Vector2(half_size, half_size)
 		var chunk_max = center + Vector2(half_size, half_size)
 
-		_bake_material.set_shader_parameter("chunk_min", chunk_min)
-		_bake_material.set_shader_parameter("chunk_max", chunk_max)
+		var end_y = min(_current_bake_y + BAKE_LINES_PER_FRAME, BAKE_RES)
+		for py in range(_current_bake_y, end_y):
+			var uv_y = float(py) / float(BAKE_RES - 1)
+			var world_z = lerp(chunk_min.y, chunk_max.y, uv_y)
+			for px_img in range(BAKE_RES):
+				var uv_x = float(px_img) / float(BAKE_RES - 1)
+				var world_x = lerp(chunk_min.x, chunk_max.x, uv_x)
 
-		# Synchronize global parameters to baking material
-		_bake_material.set_shader_parameter("iterations", Field.iterations)
-		_bake_material.set_shader_parameter("function_type", Field.function_type)
-		_bake_material.set_shader_parameter("rational_num_coeffs", Field.rational_num_coeffs)
-		_bake_material.set_shader_parameter("rational_den_coeffs", Field.rational_den_coeffs)
+				var f = Field.get_field(world_x, world_z)
 
-		_bake_viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
-		_is_baking = true
-		_bake_frame_count = 0
-	else:
-		_bake_frame_count += 1
-		# Wait 2 frames to be sure the GPU has finished rendering to the viewport
-		if _bake_frame_count >= 2:
-			_bake_viewport.render_target_update_mode = SubViewport.UPDATE_DISABLED
-			var img = _bake_viewport.get_texture().get_image()
-			if img:
-				img.flip_y() # Viewport textures are flipped
-			var tex = ImageTexture.create_from_image(img)
+				# Finite differences for derivatives
+				var eps = 0.0001
+				var f_dx = Field.get_field(world_x + eps, world_z)
+				var d_sigma = (f_dx - f) * (10.0 / eps)
 
+				_current_bake_image.set_pixel(px_img, py, Color(f.x, f.y, d_sigma.x, d_sigma.y))
+
+		_current_bake_y = end_y
+		if _current_bake_y >= BAKE_RES:
+			var tex = ImageTexture.create_from_image(_current_bake_image)
 			if chunks.has(_current_bake_coord):
 				var chunk = chunks[_current_bake_coord]
 				if chunk.material_override:
 					chunk.material_override.set_shader_parameter("field_texture", tex)
 					chunk.material_override.set_shader_parameter("use_texture", true)
 					chunk.set_meta("is_baked", true)
-
+					_update_chunk_uniforms(chunk)
 			_is_baking = false
 
 func _update_all_chunks_lod(force: bool = false):
@@ -260,28 +210,17 @@ func _update_all_chunks_lod(force: bool = false):
 
 func _update_lod_subs():
 	match Field.terrain_detail:
-		0: # High
-			LOD_SUBS = [512, 256, 128, 64]
-		1: # Medium
-			LOD_SUBS = [256, 128, 64, 32]
-		2: # Low
-			LOD_SUBS = [128, 64, 32, 16]
-		3: # Lowest
-			LOD_SUBS = [64, 32, 16, 8]
+		0: LOD_SUBS = [512, 256, 128, 64]
+		1: LOD_SUBS = [256, 128, 64, 32]
+		2: LOD_SUBS = [128, 64, 32, 16]
+		3: LOD_SUBS = [64, 32, 16, 8]
 
 func _get_lod_level(coord: Vector2i, player_coord: Vector2i) -> int:
-	var dx = abs(coord.x - player_coord.x)
-	var dz = abs(coord.y - player_coord.y)
-	var dist = max(dx, dz)
-
-	if dist <= 0:
-		return 0
-	elif dist <= 1:
-		return 1
-	elif dist <= 2:
-		return 2
-	else:
-		return 3
+	var dist = max(abs(coord.x - player_coord.x), abs(coord.y - player_coord.y))
+	if dist <= 0: return 0
+	elif dist <= 1: return 1
+	elif dist <= 2: return 2
+	else: return 3
 
 func _create_lod_mesh(size: float, subdivisions: int) -> Mesh:
 	var plane = PlaneMesh.new()
@@ -294,7 +233,6 @@ func _update_chunk_uniforms(chunk: MeshInstance3D):
 	if chunk.material_override:
 		var lod = chunk.get_meta("lod_level", 0)
 		var is_baked = chunk.get_meta("is_baked", false)
-
 		chunk.material_override.set_shader_parameter("use_texture", is_baked)
 		chunk.material_override.set_shader_parameter("lod_level", lod)
 		chunk.material_override.set_shader_parameter("iterations", Field.iterations)
@@ -311,27 +249,13 @@ func _update_chunk_uniforms(chunk: MeshInstance3D):
 func _load_chunk(coord: Vector2i):
 	var chunk = chunk_scene.instantiate()
 	add_child(chunk)
-
-	# Ensure unique material so we can set LOD-specific uniforms
 	chunk.material_override = chunk.material_override.duplicate()
-
 	var player_pos = player.global_position
 	var player_chunk_coord = Vector2i(floor(player_pos.x / chunk_size), floor(player_pos.z / chunk_size))
 	var lod = _get_lod_level(coord, player_chunk_coord)
-
 	_update_chunk_lod(chunk, lod)
-
-	chunk.global_position = Vector3(
-		coord.x * chunk_size + chunk_size * 0.5,
-		0,
-		coord.y * chunk_size + chunk_size * 0.5
-	)
-
-	chunk.custom_aabb = AABB(
-		Vector3(-chunk_size * 0.5, -150, -chunk_size * 0.5),
-		Vector3(chunk_size, 300, chunk_size)
-	)
-
+	chunk.global_position = Vector3(coord.x * chunk_size + chunk_size * 0.5, 0, coord.y * chunk_size + chunk_size * 0.5)
+	chunk.custom_aabb = AABB(Vector3(-chunk_size * 0.5, -150, -chunk_size * 0.5), Vector3(chunk_size, 300, chunk_size))
 	chunks[coord] = chunk
 	chunk.set_meta("is_baked", false)
 	if not coord in _bake_queue:
@@ -339,10 +263,8 @@ func _load_chunk(coord: Vector2i):
 
 func _update_chunk_lod(chunk: MeshInstance3D, lod: int):
 	var subdivisions = LOD_SUBS[lod]
-
 	if not _lod_mesh_cache.has(subdivisions):
 		_lod_mesh_cache[subdivisions] = _create_lod_mesh(chunk_size, subdivisions)
-
 	chunk.mesh = _lod_mesh_cache[subdivisions]
 	chunk.set_meta("lod_level", lod)
 	_update_chunk_uniforms(chunk)
@@ -351,8 +273,5 @@ func _unload_chunk(coord: Vector2i):
 	var chunk = chunks[coord]
 	chunk.queue_free()
 	chunks.erase(coord)
-
-	# Remove from bake queue if present
 	var idx = _bake_queue.find(coord)
-	if idx != -1:
-		_bake_queue.remove_at(idx)
+	if idx != -1: _bake_queue.remove_at(idx)
