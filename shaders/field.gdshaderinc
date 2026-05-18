@@ -129,28 +129,26 @@ FieldData zeta_with_derivatives(float sigma, float t, int iters) {
 }
 
 // 2. Gamma
-const float LANCZOS_P[11] = float[](
-    1.000000000000000174663,
-    5716.400188274341379136,
-    -14815.30426768413909044,
-    14291.49277657478554025,
-    -6348.160217641458813289,
-    1301.608286058321874105,
-    -108.1767053514369634679,
-    2.605696505611755827729,
-    0.7423452510201416151527e-2,
-    0.5384136432509564062961e-7,
-    -0.4023533141268236372067e-8
+const float LANCZOS_P[9] = float[](
+    0.99999999999980993,
+    676.5203681218851,
+    -1259.1392167224028,
+    771.32342877765313,
+    -176.61502916214059,
+    12.507343278686905,
+    -0.13857109526572012,
+    9.9843695780195716e-6,
+    1.5056327351493116e-7
 );
 const float SQRT_2PI = 2.5066282746310005;
 
 vec2 lanczos_gamma(vec2 z_orig) {
     vec2 z = z_orig - vec2(1.0, 0.0);
     vec2 x = vec2(LANCZOS_P[0], 0.0);
-    for (int i = 1; i < 11; i++) {
+    for (int i = 1; i < 9; i++) {
         x += complex_div(vec2(LANCZOS_P[i], 0.0), z + vec2(float(i), 0.0));
     }
-    vec2 tmp = z + vec2(9.5, 0.0);
+    vec2 tmp = z + vec2(7.5, 0.0);
     vec2 p = complex_pow(tmp, z + vec2(0.5, 0.0));
     vec2 etmp = complex_exp(-tmp.x, -tmp.y);
     return SQRT_2PI * complex_mul(complex_mul(p, etmp), x);
@@ -170,12 +168,12 @@ FieldData lanczos_gamma_with_derivatives(vec2 z_orig) {
     vec2 z = z_orig - vec2(1.0, 0.0);
     vec2 x = vec2(LANCZOS_P[0], 0.0);
     vec2 dx = vec2(0.0, 0.0);
-    for (int i = 1; i < 11; i++) {
+    for (int i = 1; i < 9; i++) {
         vec2 denom = z + vec2(float(i), 0.0);
         x += complex_div(vec2(LANCZOS_P[i], 0.0), denom);
         dx -= complex_div(vec2(LANCZOS_P[i], 0.0), complex_mul(denom, denom));
     }
-    vec2 tmp = z + vec2(9.5, 0.0);
+    vec2 tmp = z + vec2(7.5, 0.0);
     vec2 p = complex_pow(tmp, z + vec2(0.5, 0.0));
     vec2 etmp = complex_exp(-tmp.x, -tmp.y);
     vec2 value = SQRT_2PI * complex_mul(complex_mul(p, etmp), x);
@@ -220,10 +218,10 @@ FieldData complex_gamma_with_derivatives(float sigma, float t) {
 vec2 lanczos_log_gamma(vec2 z) {
     vec2 z_m1 = z - vec2(1.0, 0.0);
     vec2 x = vec2(LANCZOS_P[0], 0.0);
-    for (int i = 1; i < 11; i++) {
+    for (int i = 1; i < 9; i++) {
         x += complex_div(vec2(LANCZOS_P[i], 0.0), z_m1 + vec2(float(i), 0.0));
     }
-    vec2 tmp = z_m1 + vec2(9.5, 0.0);
+    vec2 tmp = z_m1 + vec2(7.5, 0.0);
     vec2 res = vec2(log(SQRT_2PI), 0.0)
            + complex_mul(z - vec2(0.5, 0.0), complex_log(tmp.x, tmp.y))
            - tmp
@@ -250,12 +248,12 @@ FieldData lanczos_log_gamma_with_derivatives(vec2 z) {
     vec2 z_m1 = z - vec2(1.0, 0.0);
     vec2 x = vec2(LANCZOS_P[0], 0.0);
     vec2 dx = vec2(0.0, 0.0);
-    for (int i = 1; i < 11; i++) {
+    for (int i = 1; i < 9; i++) {
         vec2 denom = z_m1 + vec2(float(i), 0.0);
         x += complex_div(vec2(LANCZOS_P[i], 0.0), denom);
         dx -= complex_div(vec2(LANCZOS_P[i], 0.0), complex_mul(denom, denom));
     }
-    vec2 tmp = z_m1 + vec2(9.5, 0.0);
+    vec2 tmp = z_m1 + vec2(7.5, 0.0);
     vec2 log_tmp = complex_log(tmp.x, tmp.y);
 
     vec2 value = vec2(log(SQRT_2PI), 0.0)
