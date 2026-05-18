@@ -1,13 +1,13 @@
 // Shared field and height functions for shaders
 
-uniform int iterations = 120;
-uniform int function_type = 0; // 0: Zeta, 1: Zeta continuation, 2: Gamma, 3: Log Gamma, 4: Dedekind Eta, 5: Sin, 6: Cos, 7: Tan, 8: Exp, 9: Log, 10: Rational
-uniform int height_type = 0;   // 0: Log, 1: Abs
-uniform float height_a = 3.0;
-uniform float height_epsilon = 1.0;
+global uniform int iterations;
+global uniform int function_type; // 0: Zeta, 1: Zeta continuation, 2: Gamma, 3: Log Gamma, 4: Dedekind Eta, 5: Sin, 6: Cos, 7: Tan, 8: Exp, 9: Log, 10: Rational
+global uniform int height_type;   // 0: Log, 1: Abs
+global uniform float height_a;
+global uniform float height_epsilon;
 
-uniform float rational_num_coeffs[10];
-uniform float rational_den_coeffs[10];
+global uniform mat4 rational_num_mat;
+global uniform mat4 rational_den_mat;
 
 struct FieldData {
     vec2 value;    // The actual complex f(sigma, t)
@@ -442,31 +442,36 @@ FieldData complex_log_with_derivatives(float sigma, float t) {
     return res;
 }
 
-vec2 evaluate_poly(float sigma, float t, float coeffs[10]) {
+vec2 evaluate_poly(float sigma, float t, mat4 coeffs) {
     vec2 z = vec2(sigma, t);
     vec2 res = vec2(0.0);
     vec2 z_pow = vec2(1.0, 0.0);
     for (int i = 0; i < 10; i++) {
-        res += coeffs[i] * z_pow;
+        float c = coeffs[i / 4][i % 4];
+        res += c * z_pow;
         z_pow = complex_mul(z_pow, z);
     }
     return res;
 }
 
 vec2 get_rational(float sigma, float t) {
-    vec2 num = evaluate_poly(sigma, t, rational_num_coeffs);
-    vec2 den = evaluate_poly(sigma, t, rational_den_coeffs);
+    vec2 num = evaluate_poly(sigma, t, rational_num_mat);
+    vec2 den = evaluate_poly(sigma, t, rational_den_mat);
     return complex_div(num, den);
 }
 
-FieldData evaluate_poly_with_derivatives(float sigma, float t, float coeffs[10]) {
+FieldData evaluate_poly_with_derivatives(float sigma, float t, mat4 coeffs) {
     vec2 z = vec2(sigma, t);
     vec2 val = vec2(0.0);
     vec2 deriv = vec2(0.0);
     vec2 z_pow = vec2(1.0, 0.0);
     for (int i = 0; i < 10; i++) {
-        val += coeffs[i] * z_pow;
-        if (i < 9) deriv += float(i + 1) * coeffs[i+1] * z_pow;
+        float c = coeffs[i / 4][i % 4];
+        val += c * z_pow;
+        if (i < 9) {
+            float c_next = coeffs[(i + 1) / 4][(i + 1) % 4];
+            deriv += float(i + 1) * c_next * z_pow;
+        }
         z_pow = complex_mul(z_pow, z);
     }
     FieldData res;
@@ -477,8 +482,8 @@ FieldData evaluate_poly_with_derivatives(float sigma, float t, float coeffs[10])
 }
 
 FieldData get_rational_with_derivatives(float sigma, float t) {
-    FieldData num = evaluate_poly_with_derivatives(sigma, t, rational_num_coeffs);
-    FieldData den = evaluate_poly_with_derivatives(sigma, t, rational_den_coeffs);
+    FieldData num = evaluate_poly_with_derivatives(sigma, t, rational_num_mat);
+    FieldData den = evaluate_poly_with_derivatives(sigma, t, rational_den_mat);
     FieldData res;
     res.value = complex_div(num.value, den.value);
     vec2 den_sqr = complex_mul(den.value, den.value);

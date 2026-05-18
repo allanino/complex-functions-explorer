@@ -32,21 +32,59 @@ var _baker_rect: ColorRect
 var _baker_mat: ShaderMaterial
 
 func _ready():
+	_setup_global_shader_parameters()
+	_update_global_shader_parameters()
 	_setup_baker()
 	_update_lod_subs()
 	# Uncomment this to debug the mesh wireframe
 	# get_viewport().debug_draw = Viewport.DEBUG_DRAW_WIREFRAME
 
+func _setup_global_shader_parameters():
+	RenderingServer.global_shader_parameter_add("iterations", RenderingServer.GLOBAL_VAR_TYPE_INT, 300)
+	RenderingServer.global_shader_parameter_add("function_type", RenderingServer.GLOBAL_VAR_TYPE_INT, 5)
+	RenderingServer.global_shader_parameter_add("height_type", RenderingServer.GLOBAL_VAR_TYPE_INT, 0)
+	RenderingServer.global_shader_parameter_add("height_a", RenderingServer.GLOBAL_VAR_TYPE_FLOAT, 3.0)
+	RenderingServer.global_shader_parameter_add("height_epsilon", RenderingServer.GLOBAL_VAR_TYPE_FLOAT, 1.0)
+	RenderingServer.global_shader_parameter_add("rational_num_mat", RenderingServer.GLOBAL_VAR_TYPE_MAT4, Projection())
+	RenderingServer.global_shader_parameter_add("rational_den_mat", RenderingServer.GLOBAL_VAR_TYPE_MAT4, Projection())
+
+func _update_global_shader_parameters():
+	RenderingServer.global_shader_parameter_set("iterations", Config.iterations)
+	RenderingServer.global_shader_parameter_set("function_type", Config.function_type)
+	RenderingServer.global_shader_parameter_set("height_type", Config.height_type)
+	RenderingServer.global_shader_parameter_set("height_a", Config.height_a)
+	RenderingServer.global_shader_parameter_set("height_epsilon", Config.height_epsilon)
+
+	var num_proj = Projection()
+	for col in range(4):
+		var v = Vector4()
+		for row in range(4):
+			var idx = col * 4 + row
+			if idx < 10:
+				v[row] = Config.rational_num_coeffs[idx]
+		num_proj[col] = v
+	RenderingServer.global_shader_parameter_set("rational_num_mat", num_proj)
+
+	var den_proj = Projection()
+	for col in range(4):
+		var v = Vector4()
+		for row in range(4):
+			var idx = col * 4 + row
+			if idx < 10:
+				v[row] = Config.rational_den_coeffs[idx]
+		den_proj[col] = v
+	RenderingServer.global_shader_parameter_set("rational_den_mat", den_proj)
+
 func _setup_baker():
 	_baker_viewport = SubViewport.new()
-	_baker_viewport.size = Vector2i(128, 128)
+	_baker_viewport.size = Vector2i(512, 512)
 	_baker_viewport.render_target_update_mode = SubViewport.UPDATE_DISABLED
 	_baker_viewport.render_target_clear_mode = SubViewport.CLEAR_MODE_ALWAYS
 	_baker_viewport.use_hdr_2d = true
 	add_child(_baker_viewport)
 
 	_baker_rect = ColorRect.new()
-	_baker_rect.size = Vector2(128, 128)
+	_baker_rect.size = Vector2(512, 512)
 	_baker_viewport.add_child(_baker_rect)
 
 	_baker_mat = ShaderMaterial.new()
@@ -167,6 +205,8 @@ func _process(delta):
 		_update_lod_subs()
 		_lod_mesh_cache.clear()
 
+		_update_global_shader_parameters()
+
 		var current_player_chunk = Vector2i(player_chunk_x, player_chunk_z)
 		for coord in chunks.keys():
 			var chunk = chunks[coord]
@@ -226,12 +266,6 @@ func _bake_chunk_texture(chunk: MeshInstance3D, coord: Vector2i):
 	_baker_mat.set_shader_parameter("chunk_center", Vector2(center_x, center_z))
 	_baker_mat.set_shader_parameter("chunk_size_with_leeway", chunk_size + chunk_leeway)
 
-	# Synchronize baker uniforms with current config
-	_baker_mat.set_shader_parameter("iterations", Config.iterations)
-	_baker_mat.set_shader_parameter("function_type", Config.function_type)
-	_baker_mat.set_shader_parameter("rational_num_coeffs", Config.rational_num_coeffs)
-	_baker_mat.set_shader_parameter("rational_den_coeffs", Config.rational_den_coeffs)
-
 	# Force one-time render
 	_baker_viewport.render_target_update_mode = SubViewport.UPDATE_ONCE
 	RenderingServer.force_draw(false)
@@ -250,15 +284,8 @@ func _update_chunk_uniforms(chunk: MeshInstance3D):
 		var lod = chunk.get_meta("lod_level", 0)
 
 		chunk.material_override.set_shader_parameter("lod_level", lod)
-		chunk.material_override.set_shader_parameter("iterations", Config.iterations)
 		chunk.material_override.set_shader_parameter("show_curves", Config.show_curves)
 		chunk.material_override.set_shader_parameter("show_critical_stripe", Config.show_critical_stripe)
-		chunk.material_override.set_shader_parameter("function_type", Config.function_type)
-		chunk.material_override.set_shader_parameter("height_type", Config.height_type)
-		chunk.material_override.set_shader_parameter("height_a", Config.height_a)
-		chunk.material_override.set_shader_parameter("height_epsilon", Config.height_epsilon)
-		chunk.material_override.set_shader_parameter("rational_num_coeffs", Config.rational_num_coeffs)
-		chunk.material_override.set_shader_parameter("rational_den_coeffs", Config.rational_den_coeffs)
 		chunk.material_override.set_shader_parameter("chunk_size_with_leeway", chunk_size + chunk_leeway)
 
 		if chunk.has_meta("field_texture"):

@@ -6,6 +6,7 @@ varying vec3 world_pos;
 varying vec3 v_normal;
 varying vec2 field_val;
 varying float v_nan;
+varying vec2 v_uv;
 
 uniform int lod_level = 0;
 uniform bool show_curves = true;
@@ -29,8 +30,8 @@ void vertex() {
 
     // UV is mapping local plane (size: chunk_size_with_leeway) to [0, 1]
     // The mesh is centered at local origin (0, 0, 0)
-    vec2 uv = (local_pos.xz / chunk_size_with_leeway) + 0.5;
-    vec4 tex_data = texture(field_texture, uv);
+    v_uv = (local_pos.xz / chunk_size_with_leeway) + 0.5;
+    vec4 tex_data = textureLod(field_texture, v_uv, 0.0);
 
     FieldData fd;
     fd.value = tex_data.rg;
@@ -143,7 +144,9 @@ void fragment() {
         float x = world_pos.x;
     float z = world_pos.z;
 	
-	vec2 f = field_val;
+    // Smooth interpolation by sampling per-pixel in fragment
+    vec4 tex_data = texture(field_texture, v_uv);
+	vec2 f = tex_data.rg;
     float phase = atan(f.y, f.x);
     float hue = (phase + PI) / (2.0 * PI);
     vec3 base = hsv2rgb(vec3(hue, 0.85, 1.0));
