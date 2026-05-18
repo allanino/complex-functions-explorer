@@ -7,9 +7,11 @@ uniform vec3 albedo : source_color = vec3(1.0);
 uniform vec3 emission : source_color = vec3(0.0);
 
 void fog() {
-	// RELATIVE_POSITION is position relative to the FogVolume's center.
-	// If we move the FogVolume with the player, this is distance from the player.
-	float dist = length(RELATIVE_POSITION.xz);
+	// UVW is the 3D texture coordinate within the FogVolume (0.0 to 1.0).
+	// SIZE is the size of the FogVolume.
+	// (UVW - 0.5) * SIZE gives the position relative to the volume center.
+	vec3 rel_pos = (UVW - 0.5) * SIZE;
+	float dist = length(rel_pos.xz);
 	float d = smoothstep(start_dist, end_dist, dist);
 
 	// Increase density as we get further away to hide chunk edges
