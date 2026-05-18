@@ -18,8 +18,8 @@ var antialiasing_mode: int = 1
 var show_curves: bool = true
 var show_critical_stripe: bool = true
 var view_distance: int = 7
-var golden_hour: bool = false
-var day_night_cycle: bool = false
+var environment_type: int = 0
+var sunrise_direction: float = 0.0
 var shadows_enabled: bool = false
 
 # Player parameters
@@ -60,8 +60,8 @@ func save_settings():
 	config.set_value("rendering", "show_curves", show_curves)
 	config.set_value("rendering", "show_critical_stripe", show_critical_stripe)
 	config.set_value("rendering", "view_distance", view_distance)
-	config.set_value("rendering", "golden_hour", golden_hour)
-	config.set_value("rendering", "day_night_cycle", day_night_cycle)
+	config.set_value("rendering", "environment_type", environment_type)
+	config.set_value("rendering", "sunrise_direction", sunrise_direction)
 	config.set_value("rendering", "shadows_enabled", shadows_enabled)
 
 	config.set_value("player", "movement_speed", movement_speed)
@@ -100,8 +100,8 @@ func load_settings():
 	show_curves = config.get_value("rendering", "show_curves", show_curves)
 	show_critical_stripe = config.get_value("rendering", "show_critical_stripe", show_critical_stripe)
 	view_distance = config.get_value("rendering", "view_distance", view_distance)
-	golden_hour = config.get_value("rendering", "golden_hour", golden_hour)
-	day_night_cycle = config.get_value("rendering", "day_night_cycle", day_night_cycle)
+	environment_type = config.get_value("rendering", "environment_type", environment_type)
+	sunrise_direction = config.get_value("rendering", "sunrise_direction", sunrise_direction)
 	shadows_enabled = config.get_value("rendering", "shadows_enabled", shadows_enabled)
 
 	movement_speed = config.get_value("player", "movement_speed", movement_speed)

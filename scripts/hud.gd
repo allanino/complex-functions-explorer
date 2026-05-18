@@ -39,8 +39,9 @@ extends CanvasLayer
 @onready var view_distance_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/ViewDistanceContainer/ViewDistanceValue
 @onready var curves_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/CurvesCheckbox
 @onready var critical_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/CriticalCheckbox
-@onready var golden_hour_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/GoldenHourCheckbox
-@onready var day_night_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/DayNightCheckbox
+@onready var environment_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/EnvironmentContainer/EnvironmentButton
+@onready var sunrise_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/SunriseContainer/SunriseSlider
+@onready var sunrise_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/SunriseContainer/SunriseValue
 @onready var shadows_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/ShadowsCheckbox
 
 @onready var hud_complex_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/HUD/HudComplexCheckbox
@@ -81,8 +82,8 @@ const DESCRIPTIONS = {
 	"View Distance": "Number of terrain chunks loaded around the player.",
 	"Level Curves": "Overlay contour lines for integer values of Re(f) (black) and Im(f) (white).",
 	"Critical Stripe": "Visual guide indicating the 0 < Re < 1 region where non-trivial zeros reside.",
-	"Golden Hour": "Enable cinematic lighting transitions between day and night.",
-	"Day & Night Cycle": "Enable the dynamic sun and moon rotation system.",
+	"Environment": "Select between a static sun at noon, a static sun at golden hour, or a dynamic day/night cycle.",
+	"Sunrise Direction": "Adjust the angle from which the sun rises (0° is towards +σ).",
 	"Shadows": "Enable real-time directional shadows for terrain features.",
 	"Complex plane": "Show the domain coloring map of the current position on the HUD.",
 	"Navigation": "Show coordinate and magnitude information on the HUD.",
@@ -107,6 +108,12 @@ func _ready():
 	drone_slider.value_changed.connect(_on_drone_value_changed)
 	zero_speed_slider.value_changed.connect(_on_zero_speed_value_changed)
 	view_distance_slider.value_changed.connect(_on_view_distance_value_changed)
+	sunrise_slider.value_changed.connect(_on_sunrise_value_changed)
+
+	environment_button.clear()
+	environment_button.add_item("Sun at noon")
+	environment_button.add_item("Sun at golden hour")
+	environment_button.add_item("Dynamic sun and moon")
 
 	func_button.clear()
 	func_button.add_item("Zeta (σ > 0)")
@@ -236,8 +243,9 @@ func toggle_menu(applied: bool = false):
 		_on_view_distance_value_changed(Config.view_distance)
 		curves_checkbox.button_pressed = Config.show_curves
 		critical_checkbox.button_pressed = Config.show_critical_stripe
-		golden_hour_checkbox.button_pressed = Config.golden_hour
-		day_night_checkbox.button_pressed = Config.day_night_cycle
+		environment_button.selected = Config.environment_type
+		sunrise_slider.value = Config.sunrise_direction
+		_on_sunrise_value_changed(Config.sunrise_direction)
 		shadows_checkbox.button_pressed = Config.shadows_enabled
 		hud_complex_checkbox.button_pressed = Config.show_hud_complex
 		hud_navigation_checkbox.button_pressed = Config.show_hud_navigation
@@ -295,6 +303,9 @@ func _on_zero_speed_value_changed(value):
 func _on_view_distance_value_changed(value):
 	view_distance_value.text = str(int(value))
 
+func _on_sunrise_value_changed(value):
+	sunrise_value.text = str(int(value)) + "°"
+
 func _parse_poly(text: String) -> PackedFloat32Array:
 	var coeffs = PackedFloat32Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 	text = text.replace(" ", "").replace("-", "+-")
@@ -349,8 +360,8 @@ func _on_set_pos_pressed():
 	Config.antialiasing_mode = aa_button.selected
 	Config.show_curves = curves_checkbox.button_pressed
 	Config.show_critical_stripe = critical_checkbox.button_pressed
-	Config.golden_hour = golden_hour_checkbox.button_pressed
-	Config.day_night_cycle = day_night_checkbox.button_pressed
+	Config.environment_type = environment_button.selected
+	Config.sunrise_direction = sunrise_slider.value
 	Config.shadows_enabled = shadows_checkbox.button_pressed
 	Config.show_hud_complex = hud_complex_checkbox.button_pressed
 	Config.show_hud_navigation = hud_navigation_checkbox.button_pressed
