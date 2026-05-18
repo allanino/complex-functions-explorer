@@ -23,7 +23,7 @@ const chunk_leeway = 0.3
 # Day night cycle variables
 var day_night_cycle_duration = 500.0
 var _golden_hour_transition: float = 0.0
-var _day_night_time: float = 360.0
+var _day_night_time: float = 0.0
 var _sun_color = Color("#fc9500")
 
 func _ready():

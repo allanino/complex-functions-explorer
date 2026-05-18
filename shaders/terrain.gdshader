@@ -64,9 +64,8 @@ void vertex() {
         float du_dz = -0.1 * du_dt_v.x;
         float dv_dz = -0.1 * du_dt_v.y;
 
-        float mag_sq = u*u + v*v + 1e-12;
-        float dmag_dx = (u * du_dx + v * dv_dx) / sqrt(mag_sq);
-        float dmag_dz = (u * du_dz + v * dv_dz) / sqrt(mag_sq);
+        float dmag_dx = (mag > 1e-12) ? (u * du_dx + v * dv_dx) / mag : 0.0;
+        float dmag_dz = (mag > 1e-12) ? (u * du_dz + v * dv_dz) / mag : 0.0;
 
         float dh_dx = 0.0;
         float dh_dz = 0.0;
@@ -178,7 +177,7 @@ void fragment() {
 
     // Only apply the lines rendering for zeta (at x = 0, x = 5.0, x = 10.0)
     // which corresponds to Re = 0.0, Re = 0.5, Re = 1.0
-    if (show_critical_stripe && function_type == 0) {
+    if (show_critical_stripe && (function_type == 0 || function_type == 1)) {
         // Periodic glow factor
         float glow = 0.5 + 0.5 * sin(TIME * 2.0);
         float line_width = 0.05;
