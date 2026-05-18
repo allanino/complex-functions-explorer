@@ -5,6 +5,7 @@
 [ext_resource type="PackedScene" path="res://scenes/hud.tscn" id="3_hud"]
 [ext_resource type="Shader" path="res://shaders/sky.gdshader" id="4_sky"]
 [ext_resource type="PackedScene" path="res://scenes/audio/SpatialAudio.tscn" id="5_audio"]
+[ext_resource type="Shader" path="res://shaders/distant_fog.gdshader" id="6_fog"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_1"]
 shader = ExtResource("4_sky")
@@ -13,11 +14,21 @@ shader = ExtResource("4_sky")
 process_mode = 3
 sky_material = SubResource("ShaderMaterial_1")
 
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_2"]
+shader = ExtResource("6_fog")
+shader_parameter/start_dist = 100.0
+shader_parameter/end_dist = 250.0
+shader_parameter/max_density = 2.0
+shader_parameter/albedo = Color(1, 1, 1, 1)
+shader_parameter/emission = Color(0, 0, 0, 1)
+
 [sub_resource type="Environment" id="Environment_1"]
 background_mode = 2
 sky = SubResource("Sky_1")
 tonemap_mode = 2
 glow_enabled = true
+volumetric_fog_enabled = true
+volumetric_fog_density = 0.0
 
 [node name="Main" type="Node3D"]
 
@@ -51,9 +62,14 @@ directional_shadow_blend_splits = true
 [node name="Player" parent="." instance=ExtResource("2_player")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, 0)
 
-[node name="WorldManager" type="Node3D" parent="." node_paths=PackedStringArray("player")]
+[node name="WorldManager" type="Node3D" parent="." node_paths=PackedStringArray("player", "fog_volume")]
 script = ExtResource("1_world")
 player = NodePath("../Player")
+fog_volume = NodePath("../FogVolume")
+
+[node name="FogVolume" type="FogVolume" parent="."]
+size = Vector3(2000, 200, 2000)
+material = SubResource("ShaderMaterial_2")
 
 [node name="HUD" parent="." node_paths=PackedStringArray("player") instance=ExtResource("3_hud")]
 player = NodePath("../Player")

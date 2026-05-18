@@ -2,6 +2,7 @@ extends Node3D
 
 @export var chunk_scene: PackedScene = preload("res://scenes/chunk.tscn")
 @export var player: Node3D
+@export var fog_volume: FogVolume
 @export var chunk_size: float = 32.0
 
 var chunks = {}
@@ -123,6 +124,8 @@ func _process(delta):
 		if sky_mat:
 			sky_mat.set_shader_parameter("golden_hour_factor", _golden_hour_transition)
 			sky_mat.set_shader_parameter("night_factor", night_factor)
+
+	_update_fog(night_factor)
 
 	# Check if any field properties have changed
 	var current_field_state = {
@@ -253,3 +256,46 @@ func _unload_chunk(coord: Vector2i):
 	var chunk = chunks[coord]
 	chunk.queue_free()
 	chunks.erase(coord)
+
+func _update_fog(night_factor: float):
+	if not fog_volume or not player:
+		return
+
+	# Match the FogVolume's position to the player's horizontal position
+	var player_pos = player.global_position
+	fog_volume.global_position = Vector3(player_pos.x, 0, player_pos.z)
+
+	var fog_mat = fog_volume.material as ShaderMaterial
+	if not fog_mat:
+		return
+
+	# Calculate fog distances based on view distance
+	# We want fog to start a bit before the last chunk ends
+	var max_dist = Field.view_distance * chunk_size
+	var start_dist = max_dist * 0.7
+	var end_dist = max_dist * 0.95
+
+	fog_mat.set_shader_parameter("start_dist", start_dist)
+	fog_mat.set_shader_parameter("end_dist", end_dist)
+
+	# Colors for fog to match the sky
+	var day_albedo = Color(0.6, 0.8, 1.0) # Light blue
+	var golden_albedo = Color(1.0, 0.4, 0.1) # Orange
+	var blue_hour_albedo = Color(0.05, 0.1, 0.3) # Deep blue
+	var night_albedo = Color(0.01, 0.02, 0.05) # Very dark
+
+	var current_albedo = lerp(day_albedo, golden_albedo, _golden_hour_transition)
+	current_albedo = lerp(current_albedo, blue_hour_albedo, smoothstep(0.0, 0.5, night_factor))
+	current_albedo = lerp(current_albedo, night_albedo, smoothstep(0.5, 1.0, night_factor))
+
+	fog_mat.set_shader_parameter("albedo", current_albedo)
+
+	# Emission to make fog feel more like part of the sky/atmosphere
+	var day_emission = Color(0.0, 0.0, 0.0)
+	var golden_emission = Color(0.2, 0.1, 0.0)
+	var night_emission = Color(0.0, 0.0, 0.0)
+
+	var current_emission = lerp(day_emission, golden_emission, _golden_hour_transition)
+	current_emission = lerp(current_emission, night_emission, night_factor)
+
+	fog_mat.set_shader_parameter("emission", current_emission)
