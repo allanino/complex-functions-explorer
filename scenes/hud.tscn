@@ -1,4 +1,4 @@
-[gd_scene load_steps=19 format=3]
+[gd_scene load_steps=20 format=3]
 
 [ext_resource type="Script" path="res://scripts/hud.gd" id="1_script"]
 [ext_resource type="Shader" path="res://shaders/hud_complex_plane.gdshader" id="2_shader"]
@@ -69,6 +69,20 @@ corner_radius_top_left = 4
 corner_radius_top_right = 4
 corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tooltip"]
+bg_color = Color(0.01, 0.01, 0.01, 0.8)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.2)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+shadow_color = Color(0, 0, 0, 0.5)
+shadow_size = 10
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_btn"]
 
@@ -201,7 +215,12 @@ corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
 
 [node name="HUD" type="CanvasLayer"]
+layer = 1
 script = ExtResource("1_script")
+
+[node name="TooltipTimer" type="Timer" parent="."]
+wait_time = 0.4
+one_shot = true
 
 [node name="Control" type="Control" parent="."]
 layout_mode = 3
@@ -413,7 +432,7 @@ theme_override_constants/separation = 20
 layout_mode = 2
 
 [node name="Label" type="Label" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/FuncContainer"]
-custom_minimum_size = Vector2(140, 0)
+custom_minimum_size = Vector2(160, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
 theme_override_font_sizes/font_size = 18
@@ -432,7 +451,7 @@ theme_override_styles/focus = SubResource("StyleBoxFlat_btn_normal")
 layout_mode = 2
 
 [node name="Label" type="Label" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/HeightContainer"]
-custom_minimum_size = Vector2(140, 0)
+custom_minimum_size = Vector2(160, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
 theme_override_font_sizes/font_size = 18
@@ -451,7 +470,7 @@ theme_override_styles/focus = SubResource("StyleBoxFlat_btn_normal")
 layout_mode = 2
 
 [node name="Label" type="Label" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/HeightAContainer"]
-custom_minimum_size = Vector2(140, 0)
+custom_minimum_size = Vector2(160, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
 theme_override_font_sizes/font_size = 18
@@ -470,7 +489,7 @@ alignment = 1
 layout_mode = 2
 
 [node name="Label" type="Label" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/HeightEpsContainer"]
-custom_minimum_size = Vector2(140, 0)
+custom_minimum_size = Vector2(160, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
 theme_override_font_sizes/font_size = 18
@@ -489,7 +508,7 @@ alignment = 1
 layout_mode = 2
 
 [node name="Label" type="Label" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/IterContainer"]
-custom_minimum_size = Vector2(140, 0)
+custom_minimum_size = Vector2(160, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
 theme_override_font_sizes/font_size = 18
@@ -508,7 +527,7 @@ alignment = 1
 layout_mode = 2
 
 [node name="Label" type="Label" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/RationalContainer"]
-custom_minimum_size = Vector2(140, 0)
+custom_minimum_size = Vector2(160, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
 theme_override_font_sizes/font_size = 18
@@ -533,7 +552,7 @@ theme_override_constants/separation = 20
 layout_mode = 2
 
 [node name="Label" type="Label" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/ReContainer"]
-custom_minimum_size = Vector2(140, 0)
+custom_minimum_size = Vector2(160, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
 theme_override_font_sizes/font_size = 18
@@ -552,7 +571,7 @@ alignment = 1
 layout_mode = 2
 
 [node name="Label" type="Label" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/ImContainer"]
-custom_minimum_size = Vector2(140, 0)
+custom_minimum_size = Vector2(160, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
 theme_override_font_sizes/font_size = 18
@@ -571,7 +590,7 @@ alignment = 1
 layout_mode = 2
 
 [node name="Label" type="Label" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/CameraHeightContainer"]
-custom_minimum_size = Vector2(140, 0)
+custom_minimum_size = Vector2(160, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
 theme_override_font_sizes/font_size = 18
@@ -590,7 +609,7 @@ alignment = 1
 layout_mode = 2
 
 [node name="Label" type="Label" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/SpeedContainer"]
-custom_minimum_size = Vector2(140, 0)
+custom_minimum_size = Vector2(160, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
 theme_override_font_sizes/font_size = 18
@@ -609,12 +628,11 @@ alignment = 1
 layout_mode = 2
 
 [node name="Label" type="Label" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/ZeroSpeedContainer"]
-custom_minimum_size = Vector2(140, 0)
+custom_minimum_size = Vector2(160, 0)
 layout_mode = 2
-size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
 theme_override_font_sizes/font_size = 18
-text = "Speed near Zeros (%)"
+text = "Speed near Zeros"
 
 [node name="ZeroSpeedSlider" type="HSlider" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/ZeroSpeedContainer"]
 custom_minimum_size = Vector2(100, 20)
@@ -653,7 +671,7 @@ theme_override_constants/separation = 15
 layout_mode = 2
 
 [node name="Label" type="Label" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/TerrainDetailContainer"]
-custom_minimum_size = Vector2(140, 0)
+custom_minimum_size = Vector2(160, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
 theme_override_font_sizes/font_size = 18
@@ -672,7 +690,7 @@ theme_override_styles/focus = SubResource("StyleBoxFlat_btn_normal")
 layout_mode = 2
 
 [node name="Label" type="Label" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/AAContainer"]
-custom_minimum_size = Vector2(140, 0)
+custom_minimum_size = Vector2(160, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
 theme_override_font_sizes/font_size = 18
@@ -691,7 +709,7 @@ theme_override_styles/focus = SubResource("StyleBoxFlat_btn_normal")
 layout_mode = 2
 
 [node name="Label" type="Label" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/ViewDistanceContainer"]
-custom_minimum_size = Vector2(140, 0)
+custom_minimum_size = Vector2(160, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
 theme_override_font_sizes/font_size = 18
@@ -846,8 +864,8 @@ layout_mode = 2
 theme_override_constants/separation = 0
 
 [node name="Label" type="Label" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/AUDIO/BgMusicContainer"]
+custom_minimum_size = Vector2(180, 20)
 layout_mode = 2
-size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
 theme_override_font_sizes/font_size = 18
 text = "Background Music"
@@ -872,8 +890,8 @@ layout_mode = 2
 theme_override_constants/separation = 0
 
 [node name="Label" type="Label" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/AUDIO/DroneContainer"]
+custom_minimum_size = Vector2(180, 20)
 layout_mode = 2
-size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
 theme_override_font_sizes/font_size = 18
 text = "Topographic Drone"
@@ -938,3 +956,26 @@ theme_override_styles/hover = SubResource("StyleBoxEmpty_btn")
 theme_override_styles/pressed = SubResource("StyleBoxEmpty_btn")
 theme_override_styles/focus = SubResource("StyleBoxEmpty_btn")
 text = "Quit"
+
+[node name="TooltipLayer" type="CanvasLayer" parent="."]
+layer = 128
+
+[node name="Tooltip" type="PanelContainer" parent="TooltipLayer"]
+visible = false
+layout_mode = 0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_tooltip")
+
+[node name="MarginContainer" type="MarginContainer" parent="TooltipLayer/Tooltip"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="Label" type="Label" parent="TooltipLayer/Tooltip/MarginContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.9, 0.9, 1)
+theme_override_font_sizes/font_size = 14
+autowrap_mode = 3

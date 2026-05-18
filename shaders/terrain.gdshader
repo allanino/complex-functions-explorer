@@ -139,29 +139,36 @@ void fragment() {
     float hue = (phase + PI) / (2.0 * PI);
     vec3 base = hsv2rgb(vec3(hue, 0.85, 1.0));
 
-    if (show_curves && length(f) > 0.01) {
-        // Compute countour lines where f.x is integer
+    if (show_curves) {
+        // 1. Get raw pixel derivatives (true density indicators)
+        float raw_w_re = fwidth(f.x);
+        float raw_w_im = fwidth(f.y);
+
+        // 2. Define a density threshold where curves should completely disappear.
+        // Adjust this value: lower means it fades out sooner/farther away.
+        float max_density_threshold = 0.2; 
+
+        // 3. Compute contour lines using your padded width for rendering stability
         float d_re = abs(f.x - round(f.x));
-        float w_re = clamp(fwidth(f.x), 0.000005, 0.001) + 0.02;
+        float w_re = clamp(raw_w_re, 0.000005, 0.001) + 0.02;
         float line_re = smoothstep(w_re, 0.0, d_re);
 
-        float density_re = 1.0 / (1.0 + 20.0 * w_re);
+        // Smoothly fade to 0.0 as raw_w_re approaches the threshold
+        float density_re = smoothstep(max_density_threshold, max_density_threshold * 0.7, raw_w_re);
         line_re *= density_re;
 
-        base *= 1.0 - line_re * 0.8;
+        base *= 1.0 - line_re * 0.3;
 
-        // Compute countour lines where f.y is integer
+        // 4. Compute contour lines for f.y
         float d_im = abs(f.y - round(f.y));
-        float w_im = clamp(fwidth(f.y), 0.000005, 0.001) + 0.02;
+        float w_im = clamp(raw_w_im, 0.000005, 0.001) + 0.02;
         float line_im = smoothstep(w_im, 0.0, d_im);
 
-        float density_im = 1.0 / (1.0 + 20.0 * w_im);
+        // Smoothly fade to 0.0 as raw_w_im approaches the threshold
+        float density_im = smoothstep(max_density_threshold, max_density_threshold * 0.7, raw_w_im);
         line_im *= density_im;
 
-        base *= 1.0 + line_im * 0.8;
-
-        // Apply to base and emission
-        // (Note: ALBEDO and base emission use the modified base)
+        base *= 1.0 + line_im * 0.3; 
     }
 
 
