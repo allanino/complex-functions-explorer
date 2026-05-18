@@ -4,7 +4,7 @@ const SAVE_PATH = "user://settings.cfg"
 
 # Field parameters
 var iterations: int = 300
-var function_type: int = 0
+var function_type: int = 5
 var height_type: int = 0
 var height_a: float = 3.0
 var height_epsilon: float = 1.0

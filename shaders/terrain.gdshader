@@ -10,6 +10,8 @@ varying float v_nan;
 uniform int lod_level = 0;
 uniform bool show_curves = true;
 uniform bool show_critical_stripe = true;
+uniform float chunk_size_with_leeway;
+uniform sampler2D field_texture : filter_linear;
 
 // Helper function to convert HSV to RGB
 vec3 hsv2rgb(vec3 c) {
@@ -24,13 +26,20 @@ float matrix_hash(vec2 p) {
 
 void vertex() {
     vec3 local_pos = VERTEX;
-    vec3 world_v_pos = (MODEL_MATRIX * vec4(local_pos, 1.0)).xyz;
 
-    FieldData fd = get_field_with_derivatives(world_v_pos.x, world_v_pos.z);
+    // UV is mapping local plane (size: chunk_size_with_leeway) to [0, 1]
+    // The mesh is centered at local origin (0, 0, 0)
+    vec2 uv = (local_pos.xz / chunk_size_with_leeway) + 0.5;
+    vec4 tex_data = texture(field_texture, uv);
+
+    FieldData fd;
+    fd.value = tex_data.rg;
+    fd.d_sigma = tex_data.ba;
+    // Reconstruct d_t using Cauchy-Riemann
+    fd.d_t = vec2(-fd.d_sigma.y, fd.d_sigma.x);
 
     bool is_invalid = any(isnan(fd.value)) || any(isinf(fd.value)) ||
-                      any(isnan(fd.d_sigma)) || any(isinf(fd.d_sigma)) ||
-                      any(isnan(fd.d_t)) || any(isinf(fd.d_t));
+                      any(isnan(fd.d_sigma)) || any(isinf(fd.d_sigma));
 
     if (is_invalid) {
         v_nan = 1.0;

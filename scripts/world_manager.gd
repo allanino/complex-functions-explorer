@@ -141,17 +141,16 @@ func _process(delta):
 	var state_changed = current_field_state != _last_field_state
 
 	if state_changed:
-		var lod_changed = _last_field_state.get("terrain_detail", -1) != Config.terrain_detail
 		_last_field_state = current_field_state
+		_update_lod_subs()
+		_lod_mesh_cache.clear()
 
-		if lod_changed:
-			_update_lod_subs()
-			_lod_mesh_cache.clear()
-			_update_all_chunks_lod(true)
-		else:
-			# Update uniforms in all existing chunks
-			for chunk in chunks.values():
-				_update_chunk_uniforms(chunk)
+		var current_player_chunk = Vector2i(player_chunk_x, player_chunk_z)
+		for coord in chunks.keys():
+			var chunk = chunks[coord]
+			_bake_chunk_texture(chunk, coord)
+			var desired_lod = _get_lod_level(coord, current_player_chunk)
+			_update_chunk_lod(chunk, desired_lod)
 
 	# LOD Dynamic Update
 	if player_chunk_x != _last_player_chunk.x or player_chunk_z != _last_player_chunk.y:
@@ -198,6 +197,31 @@ func _create_lod_mesh(size: float, subdivisions: int) -> Mesh:
 	plane.subdivide_depth = subdivisions
 	return plane
 
+func _bake_chunk_texture(chunk: MeshInstance3D, coord: Vector2i):
+	var res = 128
+	var image = Image.create(res, res, false, Image.FORMAT_RGBAF)
+
+	var s_with_leeway = chunk_size + chunk_leeway
+	var s_half = s_with_leeway * 0.5
+	var center_x = coord.x * chunk_size + chunk_size * 0.5
+	var center_z = coord.y * chunk_size + chunk_size * 0.5
+
+	var start_x = center_x - s_half
+	var start_z = center_z - s_half
+	var step = s_with_leeway / float(res - 1)
+
+	for j in range(res):
+		for i in range(res):
+			var world_x = start_x + i * step
+			var world_z = start_z + j * step
+			var data = Field.get_field_with_derivatives(world_x, world_z)
+			var val = data["value"]
+			var d_sigma = data["d_sigma"]
+			image.set_pixel(i, j, Color(val.x, val.y, d_sigma.x, d_sigma.y))
+
+	var tex = ImageTexture.create_from_image(image)
+	chunk.set_meta("field_texture", tex)
+
 func _update_chunk_uniforms(chunk: MeshInstance3D):
 	if chunk.material_override:
 		var lod = chunk.get_meta("lod_level", 0)
@@ -212,6 +236,10 @@ func _update_chunk_uniforms(chunk: MeshInstance3D):
 		chunk.material_override.set_shader_parameter("height_epsilon", Config.height_epsilon)
 		chunk.material_override.set_shader_parameter("rational_num_coeffs", Config.rational_num_coeffs)
 		chunk.material_override.set_shader_parameter("rational_den_coeffs", Config.rational_den_coeffs)
+		chunk.material_override.set_shader_parameter("chunk_size_with_leeway", chunk_size + chunk_leeway)
+
+		if chunk.has_meta("field_texture"):
+			chunk.material_override.set_shader_parameter("field_texture", chunk.get_meta("field_texture"))
 
 func _load_chunk(coord: Vector2i):
 	var chunk = chunk_scene.instantiate()
@@ -224,6 +252,7 @@ func _load_chunk(coord: Vector2i):
 	var player_chunk_coord = Vector2i(floor(player_pos.x / chunk_size), floor(player_pos.z / chunk_size))
 	var lod = _get_lod_level(coord, player_chunk_coord)
 
+	_bake_chunk_texture(chunk, coord)
 	_update_chunk_lod(chunk, lod)
 
 	chunk.global_position = Vector3(

@@ -35,6 +35,12 @@ static func complex_pow(z: Vector2, w: Vector2) -> Vector2:
 static func complex_sin(sigma: float, t: float) -> Vector2:
 	return Vector2(sin(sigma) * cosh(t), cos(sigma) * sinh(t))
 
+static func complex_sin_with_derivatives(sigma: float, t: float) -> Dictionary:
+	return {
+		"value": complex_sin(sigma, t),
+		"d_sigma": complex_cos(sigma, t)
+	}
+
 static func complex_cos(sigma: float, t: float) -> Vector2:
 	return Vector2(cos(sigma) * cosh(t), -sin(sigma) * sinh(t))
 
@@ -190,6 +196,19 @@ static func get_field(x: float, z: float) -> Vector2:
 	elif function_type == 9: return complex_log(sigma, t)
 	elif function_type == 10: return get_rational(sigma, t)
 	return Vector2.ZERO
+
+static func get_field_with_derivatives(x: float, z: float) -> Dictionary:
+	var sigma: float = x * 0.1
+	var t: float = -z * 0.1
+	var function_type = Config.function_type
+
+	if function_type == 5:
+		return complex_sin_with_derivatives(sigma, t)
+
+	return {
+		"value": get_field(x, z),
+		"d_sigma": Vector2.ZERO
+	}
 
 static func get_height(x: float, z: float) -> float:
 	var f = get_field(x, z)
