@@ -171,7 +171,7 @@ func _update_lod_subs():
 		0: # High
 			LOD_SUBS = [512, 256, 128, 64]
 		1: # Medium
-			LOD_SUBS = [256, 128, 64, 32]
+			LOD_SUBS = [256, 128, 32, 16]
 		2: # Low
 			LOD_SUBS = [128, 64, 32, 16]
 		3: # Lowest
