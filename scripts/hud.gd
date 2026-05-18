@@ -201,7 +201,7 @@ func apply_aa():
 	vp.msaa_3d = Viewport.MSAA_DISABLED
 	vp.screen_space_aa = Viewport.SCREEN_SPACE_AA_DISABLED
 
-	match Field.antialiasing_mode:
+	match Config.antialiasing_mode:
 		1: vp.msaa_3d = Viewport.MSAA_2X
 		2: vp.msaa_3d = Viewport.MSAA_4X
 		3: vp.msaa_3d = Viewport.MSAA_8X
@@ -212,8 +212,8 @@ func toggle_menu(applied: bool = false):
 	menu_overlay.visible = !menu_overlay.visible
 	if menu_overlay.visible:
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-		_initial_bg_music_volume = Field.bg_music_volume
-		_initial_drone_volume = Field.drone_volume
+		_initial_bg_music_volume = Config.bg_music_volume
+		_initial_drone_volume = Config.drone_volume
 
 		if player:
 			var re_val = player.global_position.x * 0.1
@@ -222,50 +222,50 @@ func toggle_menu(applied: bool = false):
 			if not is_finite(im_val): im_val = 0.0
 			re_input.text = "%.3f" % re_val
 			im_input.text = "%.3f" % im_val
-		iter_input.text = str(Field.iterations)
-		speed_input.text = "%.1f" % (Field.movement_speed * 0.1)
-		zero_speed_slider.value = Field.speed_near_zeros
-		_on_zero_speed_value_changed(Field.speed_near_zeros)
-		camera_height_input.text = str(Field.camera_height)
-		height_a_input.text = str(Field.height_a)
-		height_eps_input.text = str(Field.height_epsilon)
-		terrain_detail_button.selected = Field.terrain_detail
-		aa_button.selected = Field.antialiasing_mode
-		view_distance_slider.value = Field.view_distance
-		_on_view_distance_value_changed(Field.view_distance)
-		curves_checkbox.button_pressed = Field.show_curves
-		critical_checkbox.button_pressed = Field.show_critical_stripe
-		golden_hour_checkbox.button_pressed = Field.golden_hour
-		day_night_checkbox.button_pressed = Field.day_night_cycle
-		shadows_checkbox.button_pressed = Field.shadows_enabled
-		hud_complex_checkbox.button_pressed = Field.show_hud_complex
-		hud_navigation_checkbox.button_pressed = Field.show_hud_navigation
-		hud_zeros_checkbox.button_pressed = Field.show_hud_zeros
-		rvm_checkbox.button_pressed = Field.show_rvm
+		iter_input.text = str(Config.iterations)
+		speed_input.text = "%.1f" % (Config.movement_speed * 0.1)
+		zero_speed_slider.value = Config.speed_near_zeros
+		_on_zero_speed_value_changed(Config.speed_near_zeros)
+		camera_height_input.text = str(Config.camera_height)
+		height_a_input.text = str(Config.height_a)
+		height_eps_input.text = str(Config.height_epsilon)
+		terrain_detail_button.selected = Config.terrain_detail
+		aa_button.selected = Config.antialiasing_mode
+		view_distance_slider.value = Config.view_distance
+		_on_view_distance_value_changed(Config.view_distance)
+		curves_checkbox.button_pressed = Config.show_curves
+		critical_checkbox.button_pressed = Config.show_critical_stripe
+		golden_hour_checkbox.button_pressed = Config.golden_hour
+		day_night_checkbox.button_pressed = Config.day_night_cycle
+		shadows_checkbox.button_pressed = Config.shadows_enabled
+		hud_complex_checkbox.button_pressed = Config.show_hud_complex
+		hud_navigation_checkbox.button_pressed = Config.show_hud_navigation
+		hud_zeros_checkbox.button_pressed = Config.show_hud_zeros
+		rvm_checkbox.button_pressed = Config.show_rvm
 		if player:
 			auto_walk_checkbox.button_pressed = (player.auto_walk_state != 0) # 0 is AutoWalkState.NONE
-		bg_music_slider.value = Field.bg_music_volume
-		_on_bg_music_value_changed(Field.bg_music_volume)
-		drone_slider.value = Field.drone_volume
-		_on_drone_value_changed(Field.drone_volume)
+		bg_music_slider.value = Config.bg_music_volume
+		_on_bg_music_value_changed(Config.bg_music_volume)
+		drone_slider.value = Config.drone_volume
+		_on_drone_value_changed(Config.drone_volume)
 
-		func_button.selected = Field.function_type
-		height_button.selected = Field.height_type
-		_on_func_selected(Field.function_type)
-		_on_height_selected(Field.height_type)
+		func_button.selected = Config.function_type
+		height_button.selected = Config.height_type
+		_on_func_selected(Config.function_type)
+		_on_height_selected(Config.height_type)
 	else:
 		tooltip.visible = false
 		tooltip_timer.stop()
 		_pending_tooltip_key = ""
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 		if not applied:
-			Field.bg_music_volume = _initial_bg_music_volume
-			Field.drone_volume = _initial_drone_volume
+			Config.bg_music_volume = _initial_bg_music_volume
+			Config.drone_volume = _initial_drone_volume
 
 func _on_func_selected(index):
 	var is_zeta_variant = (index == 0 or index == 1)
 
-	if index == 4 and Field.function_type != 4:
+	if index == 4 and Config.function_type != 4:
 		iter_input.text = "10"
 
 	rational_container.visible = (index == 10)
@@ -281,11 +281,11 @@ func _on_height_selected(index):
 	height_eps_container.visible = is_log
 
 func _on_bg_music_value_changed(value):
-	Field.bg_music_volume = value
+	Config.bg_music_volume = value
 	bg_music_value.text = str(int(value)) + "%"
 
 func _on_drone_value_changed(value):
-	Field.drone_volume = value
+	Config.drone_volume = value
 	drone_value.text = str(int(value)) + "%"
 
 func _on_zero_speed_value_changed(value):
@@ -338,40 +338,42 @@ func _on_set_pos_pressed():
 	var c_height = float(camera_height_input.text)
 	if not is_finite(c_height): c_height = 1.8
 
-	Field.iterations = iters
-	Field.movement_speed = m_speed
-	Field.speed_near_zeros = zero_speed_slider.value
-	Field.camera_height = c_height
-	Field.height_a = h_a
-	Field.height_epsilon = h_eps
-	Field.terrain_detail = terrain_detail_button.selected
-	Field.antialiasing_mode = aa_button.selected
-	Field.show_curves = curves_checkbox.button_pressed
-	Field.show_critical_stripe = critical_checkbox.button_pressed
-	Field.golden_hour = golden_hour_checkbox.button_pressed
-	Field.day_night_cycle = day_night_checkbox.button_pressed
-	Field.shadows_enabled = shadows_checkbox.button_pressed
-	Field.show_hud_complex = hud_complex_checkbox.button_pressed
-	Field.show_hud_navigation = hud_navigation_checkbox.button_pressed
-	Field.show_hud_zeros = hud_zeros_checkbox.button_pressed
-	Field.show_rvm = rvm_checkbox.button_pressed
-	Field.bg_music_volume = bg_music_slider.value
-	Field.drone_volume = drone_slider.value
-	Field.view_distance = int(view_distance_slider.value)
-	Field.function_type = func_button.selected
-	Field.height_type = height_button.selected
+	Config.iterations = iters
+	Config.movement_speed = m_speed
+	Config.speed_near_zeros = zero_speed_slider.value
+	Config.camera_height = c_height
+	Config.height_a = h_a
+	Config.height_epsilon = h_eps
+	Config.terrain_detail = terrain_detail_button.selected
+	Config.antialiasing_mode = aa_button.selected
+	Config.show_curves = curves_checkbox.button_pressed
+	Config.show_critical_stripe = critical_checkbox.button_pressed
+	Config.golden_hour = golden_hour_checkbox.button_pressed
+	Config.day_night_cycle = day_night_checkbox.button_pressed
+	Config.shadows_enabled = shadows_checkbox.button_pressed
+	Config.show_hud_complex = hud_complex_checkbox.button_pressed
+	Config.show_hud_navigation = hud_navigation_checkbox.button_pressed
+	Config.show_hud_zeros = hud_zeros_checkbox.button_pressed
+	Config.show_rvm = rvm_checkbox.button_pressed
+	Config.bg_music_volume = bg_music_slider.value
+	Config.drone_volume = drone_slider.value
+	Config.view_distance = int(view_distance_slider.value)
+	Config.function_type = func_button.selected
+	Config.height_type = height_button.selected
 
 	apply_aa()
 
-	if Field.function_type == 10:
+	if Config.function_type == 10:
 		var expr = rational_input.text.replace(" ", "")
 		if "/" in expr:
 			var parts = expr.split("/")
-			Field.rational_num_coeffs = _parse_poly(parts[0].replace("(", "").replace(")", ""))
-			Field.rational_den_coeffs = _parse_poly(parts[1].replace("(", "").replace(")", ""))
+			Config.rational_num_coeffs = _parse_poly(parts[0].replace("(", "").replace(")", ""))
+			Config.rational_den_coeffs = _parse_poly(parts[1].replace("(", "").replace(")", ""))
 		else:
-			Field.rational_num_coeffs = _parse_poly(expr)
-			Field.rational_den_coeffs = PackedFloat32Array([1, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+			Config.rational_num_coeffs = _parse_poly(expr)
+			Config.rational_den_coeffs = PackedFloat32Array([1, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+
+	Config.save_settings()
 
 	if player:
 		if not is_finite(player.global_position.x) or not is_finite(player.global_position.y) or not is_finite(player.global_position.z):
@@ -385,7 +387,7 @@ func _on_set_pos_pressed():
 		if auto_walk_checkbox.button_pressed:
 			if player.auto_walk_state == 0: # NONE
 				player.auto_walk_state = 1 # MOVING_TO_LINE
-				Field.visited_zeros.clear()
+				Config.visited_zeros.clear()
 				if "last_detected_t" in player:
 					player.last_detected_t = -1.0
 		else:
@@ -413,23 +415,23 @@ func _process(_delta):
 	if player and "auto_walk_state" in player:
 		is_auto_walking = player.auto_walk_state != 0 # 0 is AutoWalkState.NONE
 
-	var show_zeros = ((Field.function_type == 0 or Field.function_type == 1) and is_auto_walking and Field.show_hud_zeros)
+	var show_zeros = ((Config.function_type == 0 or Config.function_type == 1) and is_auto_walking and Config.show_hud_zeros)
 	zeros_panel.visible = show_zeros
 
 	if show_zeros:
-		var total_count = Field.visited_zeros.size()
+		var total_count = Config.visited_zeros.size()
 		var last_zeros_text = ""
 
 		# Show all visited zeros in the scrolling list
 		for i in range(total_count - 1, -1, -1):
-			last_zeros_text += "t = %.3f\n" % Field.visited_zeros[i]
+			last_zeros_text += "t = %.3f\n" % Config.visited_zeros[i]
 
 		zeros_count_label.text = "Count: %d" % total_count
 
 		# Riemann-von Mangoldt formula: N(T) ≈ (T/2π) log(T/2πe) + 7/8
 		# For small T, it's roughly (T/2π) * (log(T/2π) - 1)
 		# A slightly more accurate version for visualization:
-		if Field.show_rvm:
+		if Config.show_rvm:
 			var T = abs(z * 0.1)
 			var val = 0.0
 			if T > 0.1:
@@ -449,5 +451,5 @@ func _process(_delta):
 	domain_label.text = "Re = %.3f\nIm = %.3f" % [x * 0.1, -z * 0.1]
 	target_label.text = "Re = %.3f\nIm = %.3f\n|f| = %.3f" % [f.x, f.y, f.length()]
 
-	complex_panel.visible = Field.show_hud_complex
-	info_panel.visible = Field.show_hud_navigation
+	complex_panel.visible = Config.show_hud_complex
+	info_panel.visible = Config.show_hud_navigation

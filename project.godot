@@ -14,6 +14,10 @@ config/name="First Person Exploration"
 run/main_scene="res://scenes/main.tscn"
 config/features=PackedStringArray("4.6", "Forward Plus")
 
+[autoload]
+
+Config="*res://scripts/config_manager.gd"
+
 [display]
 
 window/size/viewport_width=1920
