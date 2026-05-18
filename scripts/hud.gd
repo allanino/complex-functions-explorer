@@ -166,7 +166,19 @@ func _on_tooltip_mouse_exited():
 	tooltip.visible = false
 	_pending_tooltip_key = ""
 
+func _any_dropdown_popup():
+	return (
+		func_button.get_popup().visible
+		|| height_button.get_popup().visible
+		|| terrain_detail_button.get_popup().visible
+		|| aa_button.get_popup().visible
+	)
+
 func _on_tooltip_timer_timeout():
+	# Do not draw tooltip behind the dropdown lists
+	if _any_dropdown_popup():
+		return
+
 	if _pending_tooltip_key != "":
 		tooltip_label.custom_minimum_size.x = 250
 		tooltip_label.text = DESCRIPTIONS[_pending_tooltip_key]
