@@ -42,7 +42,7 @@ func _ready():
 
 func _setup_baking_infrastructure():
 	_bake_viewport = SubViewport.new()
-	_bake_viewport.size = Vector2i(128, 128) # Higher performance
+	_bake_viewport.size = Vector2i(256, 256) # Increased resolution for better detail
 	_bake_viewport.use_hdr_2d = true
 	_bake_viewport.disable_3d = true
 	_bake_viewport.transparent_bg = true
@@ -50,7 +50,7 @@ func _setup_baking_infrastructure():
 	add_child(_bake_viewport)
 
 	_bake_rect = ColorRect.new()
-	_bake_rect.size = Vector2(128, 128)
+	_bake_rect.size = Vector2(256, 256)
 	_bake_viewport.add_child(_bake_rect)
 
 	_bake_material = ShaderMaterial.new()
@@ -225,8 +225,27 @@ func _process_bake_queue(px: int, pz: int):
 		# Synchronize global parameters to baking material
 		_bake_material.set_shader_parameter("iterations", Field.iterations)
 		_bake_material.set_shader_parameter("function_type", Field.function_type)
-		_bake_material.set_shader_parameter("rational_num_coeffs", Field.rational_num_coeffs)
-		_bake_material.set_shader_parameter("rational_den_coeffs", Field.rational_den_coeffs)
+
+		# Pack rational coefficients into mat4
+		var num_mat = Projection()
+		var den_mat = Projection()
+		for i in range(3): # 4 components each, 3*4=12 > 10
+			var v_num = Vector4(
+				Field.rational_num_coeffs[i*4] if i*4 < 10 else 0.0,
+				Field.rational_num_coeffs[i*4+1] if i*4+1 < 10 else 0.0,
+				Field.rational_num_coeffs[i*4+2] if i*4+2 < 10 else 0.0,
+				Field.rational_num_coeffs[i*4+3] if i*4+3 < 10 else 0.0
+			)
+			var v_den = Vector4(
+				Field.rational_den_coeffs[i*4] if i*4 < 10 else 0.0,
+				Field.rational_den_coeffs[i*4+1] if i*4+1 < 10 else 0.0,
+				Field.rational_den_coeffs[i*4+2] if i*4+2 < 10 else 0.0,
+				Field.rational_den_coeffs[i*4+3] if i*4+3 < 10 else 0.0
+			)
+			num_mat[i] = v_num
+			den_mat[i] = v_den
+		_bake_material.set_shader_parameter("rational_num_mat", num_mat)
+		_bake_material.set_shader_parameter("rational_den_mat", den_mat)
 
 		_bake_viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 		_is_baking = true
@@ -237,8 +256,7 @@ func _process_bake_queue(px: int, pz: int):
 		if _bake_frame_count >= 2:
 			_bake_viewport.render_target_update_mode = SubViewport.UPDATE_DISABLED
 			var img = _bake_viewport.get_texture().get_image()
-			if img:
-				img.flip_y() # Viewport textures are flipped
+			# DO NOT flip_y here. Coordinate misalignment (Z dislocation) was caused by flip_y.
 			var tex = ImageTexture.create_from_image(img)
 
 			if chunks.has(_current_bake_coord):
@@ -305,8 +323,26 @@ func _update_chunk_uniforms(chunk: MeshInstance3D):
 		chunk.material_override.set_shader_parameter("height_type", Field.height_type)
 		chunk.material_override.set_shader_parameter("height_a", Field.height_a)
 		chunk.material_override.set_shader_parameter("height_epsilon", Field.height_epsilon)
-		chunk.material_override.set_shader_parameter("rational_num_coeffs", Field.rational_num_coeffs)
-		chunk.material_override.set_shader_parameter("rational_den_coeffs", Field.rational_den_coeffs)
+
+		var num_mat = Projection()
+		var den_mat = Projection()
+		for i in range(3):
+			var v_num = Vector4(
+				Field.rational_num_coeffs[i*4] if i*4 < 10 else 0.0,
+				Field.rational_num_coeffs[i*4+1] if i*4+1 < 10 else 0.0,
+				Field.rational_num_coeffs[i*4+2] if i*4+2 < 10 else 0.0,
+				Field.rational_num_coeffs[i*4+3] if i*4+3 < 10 else 0.0
+			)
+			var v_den = Vector4(
+				Field.rational_den_coeffs[i*4] if i*4 < 10 else 0.0,
+				Field.rational_den_coeffs[i*4+1] if i*4+1 < 10 else 0.0,
+				Field.rational_den_coeffs[i*4+2] if i*4+2 < 10 else 0.0,
+				Field.rational_den_coeffs[i*4+3] if i*4+3 < 10 else 0.0
+			)
+			num_mat[i] = v_num
+			den_mat[i] = v_den
+		chunk.material_override.set_shader_parameter("rational_num_mat", num_mat)
+		chunk.material_override.set_shader_parameter("rational_den_mat", den_mat)
 
 func _load_chunk(coord: Vector2i):
 	var chunk = chunk_scene.instantiate()
