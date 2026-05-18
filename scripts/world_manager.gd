@@ -44,10 +44,10 @@ func _setup_baking_infrastructure():
 	_bake_viewport = SubViewport.new()
 	_bake_viewport.size = Vector2i(128, 128) # Higher performance
 	_bake_viewport.use_hdr_2d = true
-	_bake_viewport.render_target_format = SubViewport.RENDER_TARGET_FORMAT_RGBA32F
+	_bake_viewport.render_target_format = Viewport.RENDER_TARGET_FORMAT_RGBAF
 	_bake_viewport.disable_3d = true
 	_bake_viewport.transparent_bg = true
-	_bake_viewport.render_target_update_mode = SubViewport.UPDATE_DISABLED # We update manually
+	_bake_viewport.render_target_update_mode = Viewport.UPDATE_DISABLED # We update manually
 	add_child(_bake_viewport)
 
 	_bake_rect = ColorRect.new()
@@ -222,16 +222,17 @@ func _process_bake_queue():
 		_bake_material.set_shader_parameter("rational_num_coeffs", Field.rational_num_coeffs)
 		_bake_material.set_shader_parameter("rational_den_coeffs", Field.rational_den_coeffs)
 
-		_bake_viewport.render_target_update_mode = SubViewport.UPDATE_ONCE
+		_bake_viewport.render_target_update_mode = Viewport.UPDATE_ALWAYS
 		_is_baking = true
 		_bake_frame_count = 0
 	else:
 		_bake_frame_count += 1
 		# Wait 2 frames to be sure the GPU has finished rendering to the viewport
 		if _bake_frame_count >= 2:
-			_bake_viewport.render_target_update_mode = SubViewport.UPDATE_DISABLED
+			_bake_viewport.render_target_update_mode = Viewport.UPDATE_DISABLED
 			var img = _bake_viewport.get_texture().get_image()
-			img.flip_y() # Viewport textures are flipped
+			if img:
+				img.flip_y() # Viewport textures are flipped
 			var tex = ImageTexture.create_from_image(img)
 
 			if chunks.has(_current_bake_coord):
