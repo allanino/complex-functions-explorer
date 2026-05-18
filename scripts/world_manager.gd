@@ -59,7 +59,7 @@ func _process(delta):
 	var night_factor = 0.0
 	var sunrise_rad = deg_to_rad(Config.sunrise_direction)
 	# Orbit axis is perpendicular to sunrise vector (cos, 0, sin) and zenith (0, 1, 0)
-	var orbit_axis = Vector3(-sin(sunrise_rad), 0, cos(sunrise_rad))
+	var orbit_axis = Vector3(sin(sunrise_rad), 0, -cos(sunrise_rad))
 
 	if Config.environment_type == 2: # Dynamic sun and moon
 		_day_night_time += delta
@@ -100,13 +100,10 @@ func _process(delta):
 		_golden_hour_transition = move_toward(_golden_hour_transition, target_transition, delta * 0.5)
 
 		if sun:
-			# Target direction for golden hour: 0.1 radians above horizon (PI/2 - 0.1 along orbit)
-			# We use -orbit_axis because PI/2 rotation around orbit_axis gives sunrise (if angle starts at noon=0)
-			# Wait, if angle=0 is noon, angle=PI/2 is sunset?
-			# Let's check α=0: axis=(0,0,1). Rotate (0,-1,0) around Z by PI/2 -> (1,0,0).
-			# So positive rotation by PI/2 is sunset.
-			var sunset_angle = (PI/2 - 0.1) * _golden_hour_transition
-			var target_dir = Quaternion(orbit_axis, sunset_angle) * Vector3.DOWN
+			# Target direction for golden hour: 0.1 radians above horizon at Sunrise
+			# Angle -PI/2 is Sunrise, so we use -(PI/2 - 0.1)
+			var sunrise_angle = -(PI/2 - 0.1) * _golden_hour_transition
+			var target_dir = Quaternion(orbit_axis, sunrise_angle) * Vector3.DOWN
 
 			sun.basis = Basis.looking_at(target_dir, Vector3.UP if abs(target_dir.y) < 0.99 else Vector3.FORWARD)
 			sun.light_color = lerp(_sun_color, Color(1.0, 0.5, 0.2), _golden_hour_transition)
