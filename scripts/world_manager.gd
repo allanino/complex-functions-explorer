@@ -6,7 +6,6 @@ extends Node3D
 
 var chunks = {}
 var _last_field_state = {}
-var day_night_cycle_duration = 500.0;
 
 var LOD_SUBS = [] # This will be set in code
 var _lod_mesh_cache = {}
