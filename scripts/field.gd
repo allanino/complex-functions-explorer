@@ -6,6 +6,7 @@ static var terrain_detail: int = 1
 static var antialiasing_mode: int = 1
 static var show_curves: bool = true
 static var show_critical_stripe: bool = true
+static var debug_view_texture: bool = false
 static var golden_hour: bool = false
 static var day_night_cycle: bool = true
 static var shadows_enabled: bool = false

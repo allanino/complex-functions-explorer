@@ -44,10 +44,9 @@ func _setup_baking_infrastructure():
 	_bake_viewport = SubViewport.new()
 	_bake_viewport.size = Vector2i(128, 128) # Higher performance
 	_bake_viewport.use_hdr_2d = true
-	_bake_viewport.render_target_format = Viewport.RENDER_TARGET_FORMAT_RGBAF
 	_bake_viewport.disable_3d = true
 	_bake_viewport.transparent_bg = true
-	_bake_viewport.render_target_update_mode = Viewport.UPDATE_DISABLED # We update manually
+	_bake_viewport.render_target_update_mode = SubViewport.UPDATE_DISABLED # We update manually
 	add_child(_bake_viewport)
 
 	_bake_rect = ColorRect.new()
@@ -157,6 +156,7 @@ func _process(delta):
 		"terrain_detail": Field.terrain_detail,
 		"show_curves": Field.show_curves,
 		"show_critical_stripe": Field.show_critical_stripe,
+		"debug_view_texture": Field.debug_view_texture,
 		"function_type": Field.function_type,
 		"height_type": Field.height_type,
 		"height_a": Field.height_a,
@@ -197,13 +197,19 @@ func _process(delta):
 		_last_player_chunk = Vector2i(player_chunk_x, player_chunk_z)
 		_update_all_chunks_lod()
 
-	_process_bake_queue()
+	_process_bake_queue(player_chunk_x, player_chunk_z)
 
-func _process_bake_queue():
+func _process_bake_queue(px: int, pz: int):
 	if _bake_queue.is_empty() and not _is_baking:
 		return
 
 	if not _is_baking:
+		# Sort queue by distance to player so closest chunks bake first
+		var p_coord = Vector2i(px, pz)
+		_bake_queue.sort_custom(func(a, b):
+			return p_coord.distance_squared_to(a) < p_coord.distance_squared_to(b)
+		)
+
 		_current_bake_coord = _bake_queue.pop_front()
 		if not chunks.has(_current_bake_coord):
 			return
@@ -222,14 +228,14 @@ func _process_bake_queue():
 		_bake_material.set_shader_parameter("rational_num_coeffs", Field.rational_num_coeffs)
 		_bake_material.set_shader_parameter("rational_den_coeffs", Field.rational_den_coeffs)
 
-		_bake_viewport.render_target_update_mode = Viewport.UPDATE_ALWAYS
+		_bake_viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 		_is_baking = true
 		_bake_frame_count = 0
 	else:
 		_bake_frame_count += 1
 		# Wait 2 frames to be sure the GPU has finished rendering to the viewport
 		if _bake_frame_count >= 2:
-			_bake_viewport.render_target_update_mode = Viewport.UPDATE_DISABLED
+			_bake_viewport.render_target_update_mode = SubViewport.UPDATE_DISABLED
 			var img = _bake_viewport.get_texture().get_image()
 			if img:
 				img.flip_y() # Viewport textures are flipped
@@ -294,6 +300,7 @@ func _update_chunk_uniforms(chunk: MeshInstance3D):
 		chunk.material_override.set_shader_parameter("iterations", Field.iterations)
 		chunk.material_override.set_shader_parameter("show_curves", Field.show_curves)
 		chunk.material_override.set_shader_parameter("show_critical_stripe", Field.show_critical_stripe)
+		chunk.material_override.set_shader_parameter("debug_view_texture", Field.debug_view_texture)
 		chunk.material_override.set_shader_parameter("function_type", Field.function_type)
 		chunk.material_override.set_shader_parameter("height_type", Field.height_type)
 		chunk.material_override.set_shader_parameter("height_a", Field.height_a)
@@ -344,3 +351,8 @@ func _unload_chunk(coord: Vector2i):
 	var chunk = chunks[coord]
 	chunk.queue_free()
 	chunks.erase(coord)
+
+	# Remove from bake queue if present
+	var idx = _bake_queue.find(coord)
+	if idx != -1:
+		_bake_queue.remove_at(idx)

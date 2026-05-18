@@ -12,6 +12,7 @@ uniform bool show_curves = true;
 uniform bool show_critical_stripe = true;
 uniform sampler2D field_texture : repeat_disable, filter_linear;
 uniform bool use_texture = false;
+uniform bool debug_view_texture = false;
 
 // Helper function to convert HSV to RGB
 vec3 hsv2rgb(vec3 c) {
@@ -186,6 +187,12 @@ void fragment() {
 
     ALBEDO = base * 0.15;
     vec3 final_emission = base * 0.1;
+
+    if (debug_view_texture && use_texture) {
+        vec4 tex = texture(field_texture, UV);
+        ALBEDO = vec3(tex.rg * 0.5 + 0.5, 0.0);
+        final_emission = vec3(0.0);
+    }
 
     // Only apply the lines rendering for zeta (at x = 0, x = 5.0, x = 10.0)
     // which corresponds to Re = 0.0, Re = 0.5, Re = 1.0
