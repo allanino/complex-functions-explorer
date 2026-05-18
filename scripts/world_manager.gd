@@ -72,7 +72,7 @@ func _process(delta):
 		var east_west_dir = Vector3(sin(angle), -cos(angle), 0).normalized()
 
 		var sun_dir = east_west_dir
-		var moon_dir = -sun_dir
+		var moon_dir = Vector3(0, cos(angle), -sin(angle)).normalized()
 
 		var sun_elevation = -sun_dir.y # Positive when above horizon
 		# Golden hour peaks at horizon (elevation 0)
