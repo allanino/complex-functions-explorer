@@ -168,6 +168,7 @@ func _on_tooltip_mouse_exited():
 
 func _on_tooltip_timer_timeout():
 	if _pending_tooltip_key != "":
+		tooltip_label.custom_minimum_size.x = 250
 		tooltip_label.text = DESCRIPTIONS[_pending_tooltip_key]
 		tooltip.visible = true
 		# Force a complete layout recalculation to fix the first-render height bug
