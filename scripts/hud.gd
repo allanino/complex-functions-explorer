@@ -74,7 +74,7 @@ const DESCRIPTIONS = {
 	"Imaginary (t)": "Manually set the imaginary part of the player's position.",
 	"Camera Height": "Vertical height of the player's camera above the terrain.",
 	"Move Speed": "Horizontal movement speed when navigating the complex plane.",
-	"Speed near Zeros (%)": "Slows down movement speed near function zeros to allow closer inspection.",
+	"Speed near Zeros": "Slows down movement speed near function zeros to allow closer inspection.",
 	"Automatic Walking": "Automatically follow the critical line (Re = 0.5) to find Riemann Zeta zeros.",
 	"Terrain Details": "Quality and subdivision level of the procedurally generated terrain meshes.",
 	"Antialiasing": "Choose a technique to reduce jagged edges in the 3D view.",
