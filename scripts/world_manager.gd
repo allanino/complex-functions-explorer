@@ -5,6 +5,8 @@ extends Node3D
 @export var chunk_size: float = 32.0
 
 var chunks = {}
+var field_cache = {} # Dictionary<Vector2i, PackedFloat64Array>
+var texture_cache = {} # Dictionary<Vector2i, ImageTexture>
 var _last_field_state = {}
 
 var LOD_SUBS = [] # This will be set in code
@@ -149,6 +151,13 @@ func _process(delta):
 			_lod_mesh_cache.clear()
 			_update_all_chunks_lod(true)
 		else:
+			# If function or iterations changed, we must re-bake EVERYTHING
+			field_cache.clear()
+			texture_cache.clear()
+			for coord in chunks.keys():
+				_bake_chunk_data(coord)
+				_update_texture_from_cache(coord)
+
 			# Update uniforms in all existing chunks
 			for chunk in chunks.values():
 				_update_chunk_uniforms(chunk)
@@ -201,6 +210,14 @@ func _create_lod_mesh(size: float, subdivisions: int) -> Mesh:
 func _update_chunk_uniforms(chunk: MeshInstance3D):
 	if chunk.material_override:
 		var lod = chunk.get_meta("lod_level", 0)
+		var coord = chunk.get_meta("chunk_coord", Vector2i(999, 999))
+
+		var tex = texture_cache.get(coord)
+		if tex:
+			chunk.material_override.set_shader_parameter("field_texture", tex)
+			chunk.material_override.set_shader_parameter("use_field_texture", true)
+		else:
+			chunk.material_override.set_shader_parameter("use_field_texture", false)
 
 		chunk.material_override.set_shader_parameter("lod_level", lod)
 		chunk.material_override.set_shader_parameter("iterations", Field.iterations)
@@ -215,7 +232,12 @@ func _update_chunk_uniforms(chunk: MeshInstance3D):
 
 func _load_chunk(coord: Vector2i):
 	var chunk = chunk_scene.instantiate()
+	chunk.set_meta("chunk_coord", coord)
 	add_child(chunk)
+
+	# Compute data on CPU
+	_bake_chunk_data(coord)
+	_update_texture_from_cache(coord)
 
 	# Ensure unique material so we can set LOD-specific uniforms
 	chunk.material_override = chunk.material_override.duplicate()
@@ -253,3 +275,48 @@ func _unload_chunk(coord: Vector2i):
 	var chunk = chunks[coord]
 	chunk.queue_free()
 	chunks.erase(coord)
+
+func _bake_chunk_data(coord: Vector2i):
+	if field_cache.has(coord):
+		return
+
+	var res = 128
+	var data = PackedFloat64Array()
+	data.resize(res * res * 4)
+
+	var total_size = chunk_size + chunk_leeway
+	var start_x = coord.x * chunk_size - chunk_leeway * 0.5
+	var start_z = coord.y * chunk_size - chunk_leeway * 0.5
+
+	for y in range(res):
+		var world_z = start_z + (float(y) / (res - 1)) * total_size
+		for x in range(res):
+			var world_x = start_x + (float(x) / (res - 1)) * total_size
+			var fd = Field.get_field_with_derivatives(world_x, world_z)
+			var idx = (y * res + x) * 4
+			data[idx + 0] = fd[0].x
+			data[idx + 1] = fd[0].y
+			data[idx + 2] = fd[1].x
+			data[idx + 3] = fd[1].y
+
+	field_cache[coord] = data
+
+func _update_texture_from_cache(coord: Vector2i):
+	if texture_cache.has(coord):
+		return
+
+	if not field_cache.has(coord):
+		return
+
+	var res = 128
+	var packed_data = field_cache[coord]
+	var byte_data = PackedByteArray()
+	byte_data.resize(packed_data.size() * 4) # 4 bytes per float (32-bit)
+
+	# Convert 64-bit to 32-bit floats for the texture
+	for i in range(packed_data.size()):
+		var f32 = float(packed_data[i])
+		byte_data.encode_float(i * 4, f32)
+
+	var img = Image.create_from_data(res, res, false, Image.FORMAT_RGBAF, byte_data)
+	texture_cache[coord] = ImageTexture.create_from_image(img)

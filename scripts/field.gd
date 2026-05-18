@@ -89,6 +89,35 @@ static func zeta(sigma: float, t: float) -> Vector2:
 	var denom = Vector2(1.0, 0.0) - two_term
 	return complex_div(eta, denom)
 
+static func zeta_with_derivatives(sigma: float, t: float) -> Array[Vector2]:
+	var eta = Vector2.ZERO
+	var deta_dsigma = Vector2.ZERO
+	for n in range(1, iterations + 1):
+		var nf = float(n)
+		var amp = pow(nf, -sigma)
+		if amp < 1e-6: break
+		var log_n = log(nf)
+		var theta = -t * log_n
+		var _sign = 1.0 if (n % 2 == 1) else -1.0
+		var term = _sign * amp * Vector2(cos(theta), sin(theta))
+		eta += term
+		deta_dsigma += -log_n * term
+
+	var log_2 = log(2.0)
+	var amp2 = pow(2.0, 1.0 - sigma)
+	var theta2 = -t * log_2
+	var two_term = amp2 * Vector2(cos(theta2), sin(theta2))
+	var denom = Vector2(1.0, 0.0) - two_term
+	var ddenom_dsigma = log_2 * two_term
+
+	var value = complex_div(eta, denom)
+	var denom_sqr = complex_mul(denom, denom)
+	var num_sigma = complex_mul(deta_dsigma, denom) - complex_mul(eta, ddenom_dsigma)
+	var d_sigma = complex_div(num_sigma, denom_sqr)
+	var d_t = Vector2(-d_sigma.y, d_sigma.x)
+
+	return [value, d_sigma, d_t]
+
 const LANCZOS_P = [
 	1.000000000000000174663,
 	5716.400188274341379136,
@@ -215,6 +244,16 @@ static func get_field(x: float, z: float) -> Vector2:
 	elif function_type == 9: return complex_log(sigma, t)
 	elif function_type == 10: return get_rational(sigma, t)
 	return Vector2.ZERO
+
+static func get_field_with_derivatives(x: float, z: float) -> Array[Vector2]:
+	var sigma: float = x * 0.1
+	var t: float = -z * 0.1
+	if function_type == 0:
+		return zeta_with_derivatives(sigma, t)
+
+	# Fallback for others (returning zero derivatives for now)
+	var val = get_field(x, z)
+	return [val, Vector2.ZERO, Vector2.ZERO]
 
 static func get_height(x: float, z: float) -> float:
 	var f = get_field(x, z)

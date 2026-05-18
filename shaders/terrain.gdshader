@@ -11,6 +11,9 @@ uniform int lod_level = 0;
 uniform bool show_curves = true;
 uniform bool show_critical_stripe = true;
 
+uniform sampler2D field_texture : hint_default_black;
+uniform bool use_field_texture = false;
+
 // Helper function to convert HSV to RGB
 vec3 hsv2rgb(vec3 c) {
     vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
@@ -26,7 +29,15 @@ void vertex() {
     vec3 local_pos = VERTEX;
     vec3 world_v_pos = (MODEL_MATRIX * vec4(local_pos, 1.0)).xyz;
 
-    FieldData fd = get_field_with_derivatives(world_v_pos.x, world_v_pos.z);
+    FieldData fd;
+    if (use_field_texture) {
+        vec4 sampled = texture(field_texture, UV);
+        fd.value = sampled.rg;
+        fd.d_sigma = sampled.ba;
+        fd.d_t = vec2(-fd.d_sigma.y, fd.d_sigma.x);
+    } else {
+        fd = get_field_with_derivatives(world_v_pos.x, world_v_pos.z);
+    }
 
     bool is_invalid = any(isnan(fd.value)) || any(isinf(fd.value)) ||
                       any(isnan(fd.d_sigma)) || any(isinf(fd.d_sigma)) ||
