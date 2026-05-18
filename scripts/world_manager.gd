@@ -42,15 +42,16 @@ func _ready():
 
 func _setup_baking_infrastructure():
 	_bake_viewport = SubViewport.new()
-	_bake_viewport.size = Vector2i(256, 256)
-	_bake_viewport.hdr = true
+	_bake_viewport.size = Vector2i(128, 128) # Higher performance
+	_bake_viewport.use_hdr_2d = true
+	_bake_viewport.render_target_format = SubViewport.RENDER_TARGET_FORMAT_RGBA32F
 	_bake_viewport.disable_3d = true
 	_bake_viewport.transparent_bg = true
-	_bake_viewport.render_target_update_mode = SubViewport.UPDATE_WHEN_PARENT_VISIBLE
+	_bake_viewport.render_target_update_mode = SubViewport.UPDATE_DISABLED # We update manually
 	add_child(_bake_viewport)
 
 	_bake_rect = ColorRect.new()
-	_bake_rect.size = Vector2(256, 256)
+	_bake_rect.size = Vector2(128, 128)
 	_bake_viewport.add_child(_bake_rect)
 
 	_bake_material = ShaderMaterial.new()
@@ -180,7 +181,9 @@ func _process(delta):
 		_is_baking = false
 		for coord in chunks.keys():
 			var chunk = chunks[coord]
-			chunk.material_override.set_shader_parameter("use_texture", false)
+			chunk.set_meta("is_baked", false)
+			if chunk.material_override:
+				chunk.material_override.set_shader_parameter("use_texture", false)
 			if not coord in _bake_queue:
 				_bake_queue.append(coord)
 
@@ -205,8 +208,10 @@ func _process_bake_queue():
 		if not chunks.has(_current_bake_coord):
 			return
 
-		var chunk_min = Vector2(_current_bake_coord.x * chunk_size, _current_bake_coord.y * chunk_size)
-		var chunk_max = chunk_min + Vector2(chunk_size, chunk_size)
+		var center = Vector2(_current_bake_coord.x * chunk_size + chunk_size * 0.5, _current_bake_coord.y * chunk_size + chunk_size * 0.5)
+		var half_size = (chunk_size + chunk_leeway) * 0.5
+		var chunk_min = center - Vector2(half_size, half_size)
+		var chunk_max = center + Vector2(half_size, half_size)
 
 		_bake_material.set_shader_parameter("chunk_min", chunk_min)
 		_bake_material.set_shader_parameter("chunk_max", chunk_max)
@@ -224,7 +229,9 @@ func _process_bake_queue():
 		_bake_frame_count += 1
 		# Wait 2 frames to be sure the GPU has finished rendering to the viewport
 		if _bake_frame_count >= 2:
+			_bake_viewport.render_target_update_mode = SubViewport.UPDATE_DISABLED
 			var img = _bake_viewport.get_texture().get_image()
+			img.flip_y() # Viewport textures are flipped
 			var tex = ImageTexture.create_from_image(img)
 
 			if chunks.has(_current_bake_coord):
@@ -232,6 +239,7 @@ func _process_bake_queue():
 				if chunk.material_override:
 					chunk.material_override.set_shader_parameter("field_texture", tex)
 					chunk.material_override.set_shader_parameter("use_texture", true)
+					chunk.set_meta("is_baked", true)
 
 			_is_baking = false
 
@@ -278,7 +286,9 @@ func _create_lod_mesh(size: float, subdivisions: int) -> Mesh:
 func _update_chunk_uniforms(chunk: MeshInstance3D):
 	if chunk.material_override:
 		var lod = chunk.get_meta("lod_level", 0)
+		var is_baked = chunk.get_meta("is_baked", false)
 
+		chunk.material_override.set_shader_parameter("use_texture", is_baked)
 		chunk.material_override.set_shader_parameter("lod_level", lod)
 		chunk.material_override.set_shader_parameter("iterations", Field.iterations)
 		chunk.material_override.set_shader_parameter("show_curves", Field.show_curves)
@@ -310,11 +320,12 @@ func _load_chunk(coord: Vector2i):
 	)
 
 	chunk.custom_aabb = AABB(
-		Vector3(-chunk_size * 0.5, -50, -chunk_size * 0.5),
-		Vector3(chunk_size, 100, chunk_size)
+		Vector3(-chunk_size * 0.5, -150, -chunk_size * 0.5),
+		Vector3(chunk_size, 300, chunk_size)
 	)
 
 	chunks[coord] = chunk
+	chunk.set_meta("is_baked", false)
 	if not coord in _bake_queue:
 		_bake_queue.append(coord)
 

@@ -97,7 +97,8 @@ void vertex() {
 
     VERTEX = local_pos;
     world_pos = (MODEL_MATRIX * vec4(local_pos, 1.0)).xyz;
-    NORMAL = (MODEL_NORMAL_MATRIX * v_normal);
+    // v_normal is in world space, spatial shader expects view space NORMAL
+    NORMAL = (VIEW_MATRIX * vec4(v_normal, 0.0)).xyz;
 }
 
 void fragment() {
