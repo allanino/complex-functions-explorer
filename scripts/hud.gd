@@ -57,8 +57,8 @@ extends CanvasLayer
 @onready var close_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/ButtonsHBox/CloseButton
 @onready var quit_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/ButtonsHBox/QuitContainer/QuitButton
 
-@onready var tooltip = $Control/Tooltip
-@onready var tooltip_label = $Control/Tooltip/MarginContainer/Label
+@onready var tooltip = $TooltipLayer/Tooltip
+@onready var tooltip_label = $TooltipLayer/Tooltip/MarginContainer/Label
 
 const DESCRIPTIONS = {
 	"Function": "Select the complex function to visualize on the terrain.",
