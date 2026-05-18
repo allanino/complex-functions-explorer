@@ -11,6 +11,14 @@ var LOD_SUBS = [] # This will be set in code
 var _lod_mesh_cache = {}
 var _last_player_chunk = Vector2i(9999, 9999)
 
+var _bake_viewport: SubViewport
+var _bake_rect: ColorRect
+var _bake_material: ShaderMaterial
+var _bake_queue = []
+var _is_baking = false
+var _bake_frame_count = 0
+var _current_bake_coord = Vector2i(0, 0)
+
 # We increase our chunks by this to make junctions more seamless
 # To test this, look at the right of zeta, the pole has a junction
 # along t = 0.00.
@@ -28,8 +36,26 @@ var _sun_color = Color("#fc9500")
 
 func _ready():
 	_update_lod_subs()
+	_setup_baking_infrastructure()
 	# Uncomment this to debug the mesh wireframe
 	# get_viewport().debug_draw = Viewport.DEBUG_DRAW_WIREFRAME
+
+func _setup_baking_infrastructure():
+	_bake_viewport = SubViewport.new()
+	_bake_viewport.size = Vector2i(256, 256)
+	_bake_viewport.hdr = true
+	_bake_viewport.disable_3d = true
+	_bake_viewport.transparent_bg = true
+	_bake_viewport.render_target_update_mode = SubViewport.UPDATE_WHEN_PARENT_VISIBLE
+	add_child(_bake_viewport)
+
+	_bake_rect = ColorRect.new()
+	_bake_rect.size = Vector2(256, 256)
+	_bake_viewport.add_child(_bake_rect)
+
+	_bake_material = ShaderMaterial.new()
+	_bake_material.shader = preload("res://shaders/bake.gdshader")
+	_bake_rect.material = _bake_material
 
 func _process(delta):
 	if not player:
@@ -148,7 +174,17 @@ func _process(delta):
 			_update_lod_subs()
 			_lod_mesh_cache.clear()
 			_update_all_chunks_lod(true)
-		else:
+
+		# Reset use_texture and queue re-bake for all chunks on state change
+		_bake_queue.clear()
+		_is_baking = false
+		for coord in chunks.keys():
+			var chunk = chunks[coord]
+			chunk.material_override.set_shader_parameter("use_texture", false)
+			if not coord in _bake_queue:
+				_bake_queue.append(coord)
+
+		if not lod_changed:
 			# Update uniforms in all existing chunks
 			for chunk in chunks.values():
 				_update_chunk_uniforms(chunk)
@@ -157,6 +193,47 @@ func _process(delta):
 	if player_chunk_x != _last_player_chunk.x or player_chunk_z != _last_player_chunk.y:
 		_last_player_chunk = Vector2i(player_chunk_x, player_chunk_z)
 		_update_all_chunks_lod()
+
+	_process_bake_queue()
+
+func _process_bake_queue():
+	if _bake_queue.is_empty() and not _is_baking:
+		return
+
+	if not _is_baking:
+		_current_bake_coord = _bake_queue.pop_front()
+		if not chunks.has(_current_bake_coord):
+			return
+
+		var chunk_min = Vector2(_current_bake_coord.x * chunk_size, _current_bake_coord.y * chunk_size)
+		var chunk_max = chunk_min + Vector2(chunk_size, chunk_size)
+
+		_bake_material.set_shader_parameter("chunk_min", chunk_min)
+		_bake_material.set_shader_parameter("chunk_max", chunk_max)
+
+		# Synchronize global parameters to baking material
+		_bake_material.set_shader_parameter("iterations", Field.iterations)
+		_bake_material.set_shader_parameter("function_type", Field.function_type)
+		_bake_material.set_shader_parameter("rational_num_coeffs", Field.rational_num_coeffs)
+		_bake_material.set_shader_parameter("rational_den_coeffs", Field.rational_den_coeffs)
+
+		_bake_viewport.render_target_update_mode = SubViewport.UPDATE_ONCE
+		_is_baking = true
+		_bake_frame_count = 0
+	else:
+		_bake_frame_count += 1
+		# Wait 2 frames to be sure the GPU has finished rendering to the viewport
+		if _bake_frame_count >= 2:
+			var img = _bake_viewport.get_texture().get_image()
+			var tex = ImageTexture.create_from_image(img)
+
+			if chunks.has(_current_bake_coord):
+				var chunk = chunks[_current_bake_coord]
+				if chunk.material_override:
+					chunk.material_override.set_shader_parameter("field_texture", tex)
+					chunk.material_override.set_shader_parameter("use_texture", true)
+
+			_is_baking = false
 
 func _update_all_chunks_lod(force: bool = false):
 	var player_chunk_coord = _last_player_chunk
@@ -238,6 +315,8 @@ func _load_chunk(coord: Vector2i):
 	)
 
 	chunks[coord] = chunk
+	if not coord in _bake_queue:
+		_bake_queue.append(coord)
 
 func _update_chunk_lod(chunk: MeshInstance3D, lod: int):
 	var subdivisions = LOD_SUBS[lod]
