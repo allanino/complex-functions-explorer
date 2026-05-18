@@ -126,6 +126,7 @@ func _ready():
 	height_button.add_item("Absolute")
 
 	terrain_detail_button.clear()
+	terrain_detail_button.add_item("Highest")
 	terrain_detail_button.add_item("High")
 	terrain_detail_button.add_item("Medium")
 	terrain_detail_button.add_item("Low")
