@@ -109,8 +109,8 @@ func _ready():
 	view_distance_slider.value_changed.connect(_on_view_distance_value_changed)
 
 	func_button.clear()
-	func_button.add_item("Zeta")
-	func_button.add_item("Zeta continuation")
+	func_button.add_item("Zeta (σ > 0)")
+	func_button.add_item("Zeta (reflection formula)")
 	func_button.add_item("Gamma")
 	func_button.add_item("Log Gamma")
 	func_button.add_item("Dedekind Eta")
