@@ -215,6 +215,7 @@ corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
 
 [node name="HUD" type="CanvasLayer"]
+layer = 1
 script = ExtResource("1_script")
 
 [node name="TooltipTimer" type="Timer" parent="."]
@@ -958,11 +959,12 @@ theme_override_styles/focus = SubResource("StyleBoxEmpty_btn")
 text = "Quit"
 
 [node name="TooltipLayer" type="CanvasLayer" parent="."]
-layer = 100
+layer = 128
 
 [node name="Tooltip" type="PanelContainer" parent="TooltipLayer"]
 visible = false
 custom_minimum_size = Vector2(250, 0)
+layout_mode = 0
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_tooltip")
 
@@ -978,5 +980,4 @@ theme_override_constants/margin_bottom = 12
 layout_mode = 2
 theme_override_colors/font_color = Color(0.9, 0.9, 0.9, 1)
 theme_override_font_sizes/font_size = 14
-text = "Explanation goes here..."
 autowrap_mode = 3

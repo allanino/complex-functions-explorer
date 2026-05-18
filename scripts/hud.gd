@@ -170,7 +170,9 @@ func _on_tooltip_timer_timeout():
 	if _pending_tooltip_key != "":
 		tooltip_label.text = DESCRIPTIONS[_pending_tooltip_key]
 		tooltip.visible = true
-		tooltip.reset_size() # Force layout update based on content
+		# Force a complete layout recalculation to fix the first-render height bug
+		tooltip.size = Vector2.ZERO
+		tooltip.reset_size()
 		_update_tooltip_position()
 
 func _update_tooltip_position():
