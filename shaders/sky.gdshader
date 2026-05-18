@@ -82,7 +82,7 @@ void sky() {
         // Project onto a sphere-like coordinate for more uniform distribution
         vec3 star_dir = normalize(EYEDIR);
         // Using a high frequency grid for stars
-        float star_res = 200.0;
+        float star_res = 500.0;
         vec3 star_grid = floor(star_dir * star_res);
 
         // 3D Hash for star position and properties
@@ -90,19 +90,19 @@ void sky() {
         p3 += dot(p3, p3.yxz + 33.33);
         float h = fract((p3.x + p3.y) * p3.z);
 
-        if (h > 0.995) {
+        if (h > 0.99) {
             // Calculate center of the cell in star_dir space
             vec3 cell_center = (star_grid + 0.5) / star_res;
             float dist = distance(star_dir, normalize(cell_center));
 
-            // Very sharp point-like falloff
-            float star = smoothstep(0.003, 0.001, dist);
+            // Much smaller, point-like falloff to prevent cell boundary clipping (square stars)
+            float star = smoothstep(0.0007, 0.0002, dist);
 
             // Random brightness and subtle flicker
             float flicker = 0.8 + 0.2 * sin(TIME * 2.0 + h * 100.0);
-            float brightness = fract(h * 10.0);
+            float brightness = 0.5 + 0.5 * fract(h * 10.0); // Less variation in brightness
 
-            final_color += vec3(star * brightness * flicker * night_factor * 50.0);
+            final_color += vec3(star * brightness * flicker * night_factor * 80.0);
         }
     }
 
