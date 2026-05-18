@@ -46,11 +46,11 @@ void sky() {
     vec3 golden_hour_horizon = vec3(1.0, 0.4, 0.1); // Deep orange
     vec3 golden_hour_cloud = vec3(1.0, 0.7, 0.5); // Golden/Pinkish
 
-    vec3 blue_hour_sky = vec3(0.02, 0.05, 0.15); // Rich blue
-    vec3 blue_hour_horizon = vec3(0.05, 0.1, 0.3); // Deep blue horizon
-
     vec3 night_sky = vec3(0.005, 0.01, 0.02);
     vec3 night_horizon = vec3(0.01, 0.02, 0.05);
+
+    vec3 blue_hour_sky = night_sky; // Rich blue
+    vec3 blue_hour_horizon = night_horizon; // Deep blue horizon
 
     // Blue hour factor: peaks at night_factor 0.5
     float blue_hour_factor = smoothstep(0.0, 0.5, night_factor) * (1.0 - smoothstep(0.5, 1.0, night_factor)) * 2.0;
@@ -68,11 +68,12 @@ void sky() {
     current_horizon = mix(current_horizon, blue_hour_horizon, smoothstep(0.0, 0.5, night_factor));
     current_horizon = mix(current_horizon, night_horizon, full_night_factor);
 
-    vec3 blue_hour_cloud = vec3(0.15, 0.2, 0.4);
+    vec3 night_cloud = vec3(0.15, 0.2, 0.4);
+    vec3 blue_hour_cloud = night_cloud;
 
     vec3 current_cloud = mix(cloud_color, golden_hour_cloud, golden_hour_factor);
     current_cloud = mix(current_cloud, blue_hour_cloud, smoothstep(0.0, 0.5, night_factor));
-    current_cloud = mix(current_cloud, vec3(0.05, 0.08, 0.15), full_night_factor);
+    current_cloud = mix(current_cloud, night_cloud, full_night_factor);
 
     // Sky gradient
     vec3 final_color = mix(current_horizon, current_sky, clamp(eye_alt * 2.0, 0.0, 1.0));
@@ -159,6 +160,9 @@ void sky() {
 
     // Moon
     if (LIGHT1_ENERGY > 0.01) {
+        // Subtle whole-sky diffuse contribution from moon
+        cloud_final_color += LIGHT1_COLOR * 0.05 * LIGHT1_ENERGY;
+
         float moon_dist = distance(EYEDIR, LIGHT1_DIRECTION);
         // Moon disk: Match sun size
         float moon_size = 0.05;
