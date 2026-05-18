@@ -40,8 +40,8 @@ func _process(delta):
 	var player_chunk_z = floor(player_pos.z / chunk_size)
 
 	# Load new chunks
-	for x in range(player_chunk_x - Field.view_distance, player_chunk_x + Field.view_distance + 1):
-		for z in range(player_chunk_z - Field.view_distance, player_chunk_z + Field.view_distance + 1):
+	for x in range(player_chunk_x - Config.view_distance, player_chunk_x + Config.view_distance + 1):
+		for z in range(player_chunk_z - Config.view_distance, player_chunk_z + Config.view_distance + 1):
 			var chunk_coord = Vector2i(x, z)
 			if not chunks.has(chunk_coord):
 				_load_chunk(chunk_coord)
@@ -49,7 +49,7 @@ func _process(delta):
 	# Unload distant chunks
 	var chunks_to_remove = []
 	for chunk_coord in chunks.keys():
-		if abs(chunk_coord.x - player_chunk_x) > Field.view_distance or abs(chunk_coord.y - player_chunk_z) > Field.view_distance:
+		if abs(chunk_coord.x - player_chunk_x) > Config.view_distance or abs(chunk_coord.y - player_chunk_z) > Config.view_distance:
 			chunks_to_remove.append(chunk_coord)
 
 	for chunk_coord in chunks_to_remove:
@@ -57,7 +57,7 @@ func _process(delta):
 
 	# Day/Night Cycle vs Manual Golden Hour
 	var night_factor = 0.0
-	if Field.day_night_cycle:
+	if Config.day_night_cycle:
 		_day_night_time += delta
 		if _day_night_time >= day_night_cycle_duration:
 			_day_night_time -= day_night_cycle_duration
@@ -93,18 +93,18 @@ func _process(delta):
 			# Keep energy at 1.0 until sun is half-submerged, then fade quickly
 			sun.light_energy = smoothstep(-0.02, 0.02, sun_elevation)
 			sun.light_color = lerp(_sun_color, Color(1.0, 0.5, 0.2), _golden_hour_transition)
-			sun.shadow_enabled = Field.shadows_enabled and sun_elevation > 0.01
+			sun.shadow_enabled = Config.shadows_enabled and sun_elevation > 0.01
 
 		if moon:
 			moon.basis = Basis.looking_at(moon_dir, Vector3.UP if abs(moon_dir.y) < 0.99 else Vector3.FORWARD)
 			var moon_elevation = -moon_dir.y
 			moon.light_energy = smoothstep(-0.02, 0.02, moon_elevation) * 0.4
-			moon.shadow_enabled = Field.shadows_enabled and moon_elevation > 0.01
+			moon.shadow_enabled = Config.shadows_enabled and moon_elevation > 0.01
 	else:
 		if moon:
 			moon.light_energy = 0.0
 
-		if Field.golden_hour:
+		if Config.golden_hour:
 			_golden_hour_transition = min(_golden_hour_transition + delta * 0.5, 1.0)
 		else:
 			_golden_hour_transition = max(_golden_hour_transition - delta * 0.5, 0.0)
@@ -114,7 +114,7 @@ func _process(delta):
 			sun.basis = Basis.looking_at(target_dir, Vector3.UP if abs(target_dir.normalized().y) < 0.5 else Vector3.FORWARD)
 			sun.light_color = lerp(_sun_color, Color(1.0, 0.5, 0.2), _golden_hour_transition)
 			sun.light_energy = lerp(1.0, 1.5, _golden_hour_transition)
-			sun.shadow_enabled = Field.shadows_enabled
+			sun.shadow_enabled = Config.shadows_enabled
 
 		night_factor = 0.0
 
@@ -126,22 +126,22 @@ func _process(delta):
 
 	# Check if any field properties have changed
 	var current_field_state = {
-		"iterations": Field.iterations,
-		"terrain_detail": Field.terrain_detail,
-		"show_curves": Field.show_curves,
-		"show_critical_stripe": Field.show_critical_stripe,
-		"function_type": Field.function_type,
-		"height_type": Field.height_type,
-		"height_a": Field.height_a,
-		"height_epsilon": Field.height_epsilon,
-		"rational_num_coeffs": Field.rational_num_coeffs,
-		"rational_den_coeffs": Field.rational_den_coeffs
+		"iterations": Config.iterations,
+		"terrain_detail": Config.terrain_detail,
+		"show_curves": Config.show_curves,
+		"show_critical_stripe": Config.show_critical_stripe,
+		"function_type": Config.function_type,
+		"height_type": Config.height_type,
+		"height_a": Config.height_a,
+		"height_epsilon": Config.height_epsilon,
+		"rational_num_coeffs": Config.rational_num_coeffs,
+		"rational_den_coeffs": Config.rational_den_coeffs
 	}
 
 	var state_changed = current_field_state != _last_field_state
 
 	if state_changed:
-		var lod_changed = _last_field_state.get("terrain_detail", -1) != Field.terrain_detail
+		var lod_changed = _last_field_state.get("terrain_detail", -1) != Config.terrain_detail
 		_last_field_state = current_field_state
 
 		if lod_changed:
@@ -167,7 +167,7 @@ func _update_all_chunks_lod(force: bool = false):
 			_update_chunk_lod(chunk, desired_lod)
 
 func _update_lod_subs():
-	match Field.terrain_detail:
+	match Config.terrain_detail:
 		0: # High
 			LOD_SUBS = [512, 256, 128, 64]
 		1: # Medium
@@ -203,15 +203,15 @@ func _update_chunk_uniforms(chunk: MeshInstance3D):
 		var lod = chunk.get_meta("lod_level", 0)
 
 		chunk.material_override.set_shader_parameter("lod_level", lod)
-		chunk.material_override.set_shader_parameter("iterations", Field.iterations)
-		chunk.material_override.set_shader_parameter("show_curves", Field.show_curves)
-		chunk.material_override.set_shader_parameter("show_critical_stripe", Field.show_critical_stripe)
-		chunk.material_override.set_shader_parameter("function_type", Field.function_type)
-		chunk.material_override.set_shader_parameter("height_type", Field.height_type)
-		chunk.material_override.set_shader_parameter("height_a", Field.height_a)
-		chunk.material_override.set_shader_parameter("height_epsilon", Field.height_epsilon)
-		chunk.material_override.set_shader_parameter("rational_num_coeffs", Field.rational_num_coeffs)
-		chunk.material_override.set_shader_parameter("rational_den_coeffs", Field.rational_den_coeffs)
+		chunk.material_override.set_shader_parameter("iterations", Config.iterations)
+		chunk.material_override.set_shader_parameter("show_curves", Config.show_curves)
+		chunk.material_override.set_shader_parameter("show_critical_stripe", Config.show_critical_stripe)
+		chunk.material_override.set_shader_parameter("function_type", Config.function_type)
+		chunk.material_override.set_shader_parameter("height_type", Config.height_type)
+		chunk.material_override.set_shader_parameter("height_a", Config.height_a)
+		chunk.material_override.set_shader_parameter("height_epsilon", Config.height_epsilon)
+		chunk.material_override.set_shader_parameter("rational_num_coeffs", Config.rational_num_coeffs)
+		chunk.material_override.set_shader_parameter("rational_den_coeffs", Config.rational_den_coeffs)
 
 func _load_chunk(coord: Vector2i):
 	var chunk = chunk_scene.instantiate()

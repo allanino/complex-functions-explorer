@@ -1,35 +1,6 @@
 # Shared field and height functions for GDScript
 class_name Field
 
-static var iterations: int = 300
-static var terrain_detail: int = 1
-static var antialiasing_mode: int = 1
-static var show_curves: bool = true
-static var show_critical_stripe: bool = true
-static var golden_hour: bool = false
-static var day_night_cycle: bool = false
-static var shadows_enabled: bool = false
-static var function_type: int = 0 # 0: Zeta, 1: Zeta continuation, 2: Gamma, 3: Log Gamma, 4: Dedekind Eta, 5: Sin, 6: Cos, 7: Tan, 8: Exp, 9: Log, 10: Rational
-static var view_distance: int = 7
-static var height_type: int = 0 # 0: Log, 1: Abs
-static var height_a: float = 3.0
-static var height_epsilon: float = 1.0
-static var movement_speed: float = 10.0
-static var speed_near_zeros: float = 100.0
-static var zero_threshold: float = 0.5
-static var camera_height: float = 1.8
-static var show_hud_complex: bool = true
-static var show_hud_navigation: bool = true
-static var show_hud_zeros: bool = true
-static var show_rvm: bool = true
-static var bg_music_volume: float = 100.0
-static var drone_volume: float = 100.0
-
-static var visited_zeros: Array[float] = []
-
-static var rational_num_coeffs: PackedFloat32Array = PackedFloat32Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
-static var rational_den_coeffs: PackedFloat32Array = PackedFloat32Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
-
 #-------------------------------------------------------------------------
 # Complex Arithmetic
 #-------------------------------------------------------------------------
@@ -76,6 +47,8 @@ static func complex_tan(sigma: float, t: float) -> Vector2:
 
 static func zeta(sigma: float, t: float) -> Vector2:
 	var eta = Vector2.ZERO
+	var iterations = Config.iterations
+
 	for n in range(1, iterations + 1):
 		var nf = float(n)
 		var amp = pow(nf, -sigma)
@@ -170,6 +143,7 @@ static func dedekind_eta(sigma: float, t: float) -> Vector2:
 	var prod = Vector2(1.0, 0.0)
 	var q_re_base = -2.0 * PI * t
 	var q_im_base = 2.0 * PI * sigma
+	var iterations = Config.iterations
 	for n in range(1, iterations + 1):
 		var nf = float(n)
 		var term_exp = complex_exp(nf * q_re_base, nf * q_im_base)
@@ -192,8 +166,8 @@ static func evaluate_poly(sigma: float, t: float, coeffs: PackedFloat32Array) ->
 	return res
 
 static func get_rational(sigma: float, t: float) -> Vector2:
-	var num = evaluate_poly(sigma, t, rational_num_coeffs)
-	var den = evaluate_poly(sigma, t, rational_den_coeffs)
+	var num = evaluate_poly(sigma, t, Config.rational_num_coeffs)
+	var den = evaluate_poly(sigma, t, Config.rational_den_coeffs)
 	return complex_div(num, den)
 
 #-------------------------------------------------------------------------
@@ -203,6 +177,7 @@ static func get_rational(sigma: float, t: float) -> Vector2:
 static func get_field(x: float, z: float) -> Vector2:
 	var sigma: float = x * 0.1
 	var t: float = -z * 0.1
+	var function_type = Config.function_type
 	if function_type == 0: return zeta(sigma, t)
 	elif function_type == 1: return zeta_continuation(sigma, t)
 	elif function_type == 2: return complex_gamma(sigma, t)
@@ -222,6 +197,6 @@ static func get_height(x: float, z: float) -> float:
 	var mag = f.length()
 	if not is_finite(mag): return 0.0
 	var h: float
-	if height_type == 0: h = height_a * log(height_epsilon + mag)
+	if Config.height_type == 0: h = Config.height_a * log(Config.height_epsilon + mag)
 	else: h = mag
 	return h if is_finite(h) else 0.0

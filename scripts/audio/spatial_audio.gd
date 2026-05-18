@@ -159,7 +159,7 @@ func _process(delta):
 
 	# Frequency: C2 by default, jumps to G2 near zeros
 	# Avoid the fake zeros for x < 0
-	if mag < Field.zero_threshold and pos.x > 0:
+	if mag < Config.zero_threshold and pos.x > 0:
 		target_frequency = 88.0 # G2
 	else:
 		target_frequency = BASE_FREQUENCY # C2
@@ -254,7 +254,7 @@ func fill_buffer():
 
 		if not is_finite(sample): sample = 0.0
 
-		var drone_vol_scale = Field.drone_volume / 100.0
+		var drone_vol_scale = Config.drone_volume / 100.0
 		var frame = Vector2.ONE * sample * current_volume * drone_vol_scale
 
 		# Apply Stereo Panning
@@ -274,11 +274,11 @@ func _process_audio_toggles():
 	# 1. Background Music
 	var music = get_node_or_null("BackgroundMusic")
 	if music:
-		if Field.bg_music_volume > 0:
+		if Config.bg_music_volume > 0:
 			if not music.playing:
 				music.play()
 			# Map 0-100 to dB. 100 -> -12dB (original), 1 -> -52dB, 0 -> stop
-			var volume_linear = Field.bg_music_volume / 100.0
+			var volume_linear = Config.bg_music_volume / 100.0
 			music.volume_db = linear_to_db(volume_linear) - 12.0
 		else:
 			if music.playing:
@@ -286,7 +286,7 @@ func _process_audio_toggles():
 
 	# 2. Topographic Drone
 	var drone = $AudioStreamPlayer
-	if Field.drone_volume > 0:
+	if Config.drone_volume > 0:
 		if not drone.playing:
 			drone.play()
 			# When resuming, we might need to re-fetch playback

@@ -54,14 +54,16 @@ func _unhandled_input(event):
 
 	if event is InputEventKey and event.pressed and event.ctrl_pressed:
 		if event.keycode == KEY_G:
-			Field.golden_hour = !Field.golden_hour
+			Config.golden_hour = !Config.golden_hour
+			Config.save_settings()
 		elif event.keycode == KEY_N:
-			Field.day_night_cycle = !Field.day_night_cycle
+			Config.day_night_cycle = !Config.day_night_cycle
+			Config.save_settings()
 		elif event.keycode == KEY_C:
 			if auto_walk_state == AutoWalkState.NONE:
 				auto_walk_state = AutoWalkState.MOVING_TO_LINE
 				# Reset zero counter when starting auto-walk
-				Field.visited_zeros.clear()
+				Config.visited_zeros.clear()
 				last_detected_t = -1.0
 			else:
 				auto_walk_state = AutoWalkState.NONE
@@ -75,12 +77,12 @@ func _physics_process(delta):
 		if manual_input != Vector2.ZERO or Input.is_key_pressed(KEY_SPACE):
 			auto_walk_state = AutoWalkState.NONE
 
-	var current_speed = Field.movement_speed
+	var current_speed = Config.movement_speed
 
 	# Speed reduction near zeros
 	var current_f = Field.get_field(global_position.x, global_position.z)
-	if current_f.length() < Field.zero_threshold:
-		current_speed *= (Field.speed_near_zeros / 100.0)
+	if current_f.length() < Config.zero_threshold:
+		current_speed *= (Config.speed_near_zeros / 100.0)
 
 	if auto_walk_state != AutoWalkState.NONE:
 		current_speed = min(current_speed, 50.0)
@@ -150,10 +152,10 @@ func _physics_process(delta):
 	var terrain_h = get_terrain_height(global_position.x, global_position.z)
 
 	# Snap player to terrain height + offset
-	global_position.y = terrain_h + Field.camera_height + height_offset
+	global_position.y = terrain_h + Config.camera_height + height_offset
 
 	# Zeta zero detection during auto-walk
-	if auto_walk_state == AutoWalkState.WALKING and (Field.function_type == 0 or Field.function_type == 1):
+	if auto_walk_state == AutoWalkState.WALKING and (Config.function_type == 0 or Config.function_type == 1):
 		var f = Field.get_field(global_position.x, global_position.z)
 		var current_mag = f.length()
 
@@ -170,8 +172,8 @@ func _physics_process(delta):
 
 			# Check if the magnitude is reasonably low (e.g. < zero_threshold) to avoid false positives
 			# from tiny oscillations far from zeros
-			if mag_history[2] < Field.zero_threshold:
-				Field.visited_zeros.push_back(t)
+			if mag_history[2] < Config.zero_threshold:
+				Config.visited_zeros.push_back(t)
 				last_detected_t = t
 
 	move_and_slide()
