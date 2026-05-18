@@ -26,10 +26,32 @@ var _golden_hour_transition: float = 0.0
 var _day_night_time: float = 0.0
 var _sun_color = Color("#fc9500")
 
+# Baker nodes
+var _baker_viewport: SubViewport
+var _baker_rect: ColorRect
+var _baker_mat: ShaderMaterial
+
 func _ready():
+	_setup_baker()
 	_update_lod_subs()
 	# Uncomment this to debug the mesh wireframe
 	# get_viewport().debug_draw = Viewport.DEBUG_DRAW_WIREFRAME
+
+func _setup_baker():
+	_baker_viewport = SubViewport.new()
+	_baker_viewport.size = Vector2i(128, 128)
+	_baker_viewport.render_target_update_mode = SubViewport.UPDATE_DISABLED
+	_baker_viewport.render_target_clear_mode = SubViewport.CLEAR_MODE_ALWAYS
+	_baker_viewport.hdr = true
+	add_child(_baker_viewport)
+
+	_baker_rect = ColorRect.new()
+	_baker_rect.size = Vector2(128, 128)
+	_baker_viewport.add_child(_baker_rect)
+
+	_baker_mat = ShaderMaterial.new()
+	_baker_mat.shader = preload("res://shaders/baker.gdshader")
+	_baker_rect.material = _baker_mat
 
 func _process(delta):
 	if not player:
@@ -198,26 +220,21 @@ func _create_lod_mesh(size: float, subdivisions: int) -> Mesh:
 	return plane
 
 func _bake_chunk_texture(chunk: MeshInstance3D, coord: Vector2i):
-	var res = 128
-	var image = Image.create(res, res, false, Image.FORMAT_RGBAF)
-
-	var s_with_leeway = chunk_size + chunk_leeway
-	var s_half = s_with_leeway * 0.5
 	var center_x = coord.x * chunk_size + chunk_size * 0.5
 	var center_z = coord.y * chunk_size + chunk_size * 0.5
 
-	var start_x = center_x - s_half
-	var start_z = center_z - s_half
-	var step = s_with_leeway / float(res - 1)
+	_baker_mat.set_shader_parameter("chunk_center", Vector2(center_x, center_z))
+	_baker_mat.set_shader_parameter("chunk_size_with_leeway", chunk_size + chunk_leeway)
 
-	for j in range(res):
-		for i in range(res):
-			var world_x = start_x + i * step
-			var world_z = start_z + j * step
-			var data = Field.get_field_with_derivatives(world_x, world_z)
-			var val = data["value"]
-			var d_sigma = data["d_sigma"]
-			image.set_pixel(i, j, Color(val.x, val.y, d_sigma.x, d_sigma.y))
+	# Force one-time render
+	_baker_viewport.render_target_update_mode = SubViewport.UPDATE_ONCE
+	RenderingServer.force_draw(false)
+
+	var texture = _baker_viewport.get_texture()
+	var image = texture.get_image()
+
+	if image.get_format() != Image.FORMAT_RGBAF:
+		image.convert(Image.FORMAT_RGBAF)
 
 	var tex = ImageTexture.create_from_image(image)
 	chunk.set_meta("field_texture", tex)
