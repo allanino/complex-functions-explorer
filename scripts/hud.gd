@@ -58,6 +58,7 @@ extends CanvasLayer
 @onready var apply_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/ButtonsHBox/ApplyButton
 @onready var close_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/ButtonsHBox/CloseButton
 @onready var quit_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/ButtonsHBox/QuitContainer/QuitButton
+@onready var perf_label = $Control/HUDStack/PerfProtectionLabel
 
 @onready var tooltip = $TooltipLayer/Tooltip
 @onready var tooltip_label = $TooltipLayer/Tooltip/MarginContainer/Label
@@ -343,6 +344,7 @@ func _parse_poly(text: String) -> PackedFloat32Array:
 	return coeffs
 
 func _on_set_pos_pressed():
+	Config.performance_protection_active = false
 	var re = float(re_input.text)
 	var im = float(im_input.text)
 	if not is_finite(re): re = 0.5
@@ -423,6 +425,8 @@ func _process(_delta):
 	if tooltip.visible:
 		_update_tooltip_position()
 
+	perf_label.visible = Config.performance_protection_active
+
 	if not player:
 		return
 
@@ -469,6 +473,7 @@ func _process(_delta):
 	material.set_shader_parameter("current_f", f)
 	material.set_shader_parameter("color_scheme", Config.color_scheme)
 	material.set_shader_parameter("scale", current_scale)
+	material.set_shader_parameter("performance_protection_active", Config.performance_protection_active)
 
 	domain_label.text = "Re = %.3f\nIm = %.3f" % [x * 0.1, -z * 0.1]
 	target_label.text = "Re = %.3f\nIm = %.3f\n|f| = %.3f" % [f.x, f.y, f.length()]

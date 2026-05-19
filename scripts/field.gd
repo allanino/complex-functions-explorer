@@ -173,6 +173,9 @@ static func get_rational(sigma: float, t: float) -> Vector2:
 #-------------------------------------------------------------------------
 
 static func get_field(x: float, z: float) -> Vector2:
+	if Config.performance_protection_active:
+		return Vector2.ZERO
+
 	var sigma: float = x * 0.1
 	var t: float = -z * 0.1
 	var function_type = Config.function_type
@@ -190,6 +193,9 @@ static func get_field(x: float, z: float) -> Vector2:
 	return Vector2.ZERO
 
 static func get_height(x: float, z: float) -> float:
+	if Config.performance_protection_active:
+		return 0.0
+
 	var f = get_field(x, z)
 	if not is_finite(f.x) or not is_finite(f.y): return 0.0
 	var mag = f.length()

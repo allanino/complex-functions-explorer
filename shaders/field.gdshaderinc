@@ -5,6 +5,7 @@ uniform int function_type = 0; // 0: Zeta, 1: Zeta continuation, 2: Gamma, 3: Lo
 uniform int height_type = 0;   // 0: Log, 1: Abs
 uniform float height_a = 3.0;
 uniform float height_epsilon = 1.0;
+uniform bool performance_protection_active = false;
 
 uniform float rational_num_coeffs[10];
 uniform float rational_den_coeffs[10];
