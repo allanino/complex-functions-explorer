@@ -28,6 +28,11 @@ var current_resonance: float = 0.0
 var target_fm_index: float = 0.0
 var current_fm_index: float = 0.0
 
+# --- FPS GUARD ---
+var low_fps_counter: int = 0
+var stable_fps_counter: int = 0
+var is_suppressed: bool = false
+
 # --- EFFECT REFS ---
 var pitch_shift_effect: AudioEffectPitchShift
 var reverb_effect: AudioEffectReverb
@@ -120,6 +125,22 @@ func setup_audio_bus_and_effects():
 	$AudioStreamPlayer.bus = bus_name
 
 func _process(delta):
+	# --- FPS GUARD ---
+	var fps = 1.0 / delta if delta > 0 else 60.0
+	if fps < 15:
+		low_fps_counter += 1
+		stable_fps_counter = 0
+		if low_fps_counter >= 2:
+			is_suppressed = true
+	elif fps >= 20:
+		stable_fps_counter += 1
+		low_fps_counter = 0
+		if stable_fps_counter >= 60:
+			is_suppressed = false
+	else:
+		low_fps_counter = 0
+		stable_fps_counter = 0
+
 	_process_audio_toggles()
 
 	if playback == null:
@@ -274,7 +295,7 @@ func _process_audio_toggles():
 	# 1. Background Music
 	var music = get_node_or_null("BackgroundMusic")
 	if music:
-		if Config.bg_music_volume > 0:
+		if Config.bg_music_volume > 0 and not is_suppressed:
 			if not music.playing:
 				music.play()
 			# Map 0-100 to dB. 100 -> -12dB (original), 1 -> -52dB, 0 -> stop
@@ -286,7 +307,7 @@ func _process_audio_toggles():
 
 	# 2. Topographic Drone
 	var drone = $AudioStreamPlayer
-	if Config.drone_volume > 0:
+	if Config.drone_volume > 0 and not is_suppressed:
 		if not drone.playing:
 			drone.play()
 			# When resuming, we might need to re-fetch playback
