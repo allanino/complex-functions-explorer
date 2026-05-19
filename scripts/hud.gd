@@ -35,6 +35,7 @@ extends CanvasLayer
 
 @onready var terrain_detail_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/TerrainDetailContainer/TerrainDetailButton
 @onready var aa_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/AAContainer/AAButton
+@onready var color_scheme_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/ColorSchemeContainer/ColorSchemeButton
 @onready var view_distance_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/ViewDistanceContainer/ViewDistanceSlider
 @onready var view_distance_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/ViewDistanceContainer/ViewDistanceValue
 @onready var curves_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/CurvesCheckbox
@@ -79,6 +80,7 @@ const DESCRIPTIONS = {
 	"Automatic Walking": "Automatically follow the critical line (Re = 0.5) to find Riemann Zeta zeros.",
 	"Terrain Details": "Quality and subdivision level of the procedurally generated terrain meshes.",
 	"Antialiasing": "Choose a technique to reduce jagged edges in the 3D view.",
+	"Color Scheme": "Select the color mapping for the complex plane (Flipped: x>0 is green/cyan, Usual: x>0 is red).",
 	"View Distance": "Number of terrain chunks loaded around the player.",
 	"Level Curves": "Overlay contour lines for integer values of Re(f) (black) and Im(f) (white).",
 	"Critical Stripe": "Visual guide indicating the 0 < Re < 1 region where non-trivial zeros reside.",
@@ -145,6 +147,10 @@ func _ready():
 	aa_button.add_item("FXAA (fast)")
 	aa_button.add_item("SMAA (average)")
 
+	color_scheme_button.clear()
+	color_scheme_button.add_item("Flipped")
+	color_scheme_button.add_item("Usual")
+
 	apply_aa()
 	_setup_tooltips()
 	tooltip_timer.timeout.connect(_on_tooltip_timer_timeout)
@@ -181,6 +187,8 @@ func _any_dropdown_popup():
 		|| height_button.get_popup().visible
 		|| terrain_detail_button.get_popup().visible
 		|| aa_button.get_popup().visible
+		|| color_scheme_button.get_popup().visible
+		|| environment_button.get_popup().visible
 	)
 
 func _on_tooltip_timer_timeout():
@@ -238,6 +246,7 @@ func toggle_menu(applied: bool = false):
 		height_eps_input.text = str(Config.height_epsilon)
 		terrain_detail_button.selected = Config.terrain_detail
 		aa_button.selected = Config.antialiasing_mode
+		color_scheme_button.selected = Config.color_scheme
 		view_distance_slider.value = Config.view_distance
 		_on_view_distance_value_changed(Config.view_distance)
 		curves_checkbox.button_pressed = Config.show_curves
@@ -357,6 +366,7 @@ func _on_set_pos_pressed():
 	Config.height_epsilon = h_eps
 	Config.terrain_detail = terrain_detail_button.selected
 	Config.antialiasing_mode = aa_button.selected
+	Config.color_scheme = color_scheme_button.selected
 	Config.show_curves = curves_checkbox.button_pressed
 	Config.show_critical_stripe = critical_checkbox.button_pressed
 	Config.environment_type = environment_button.selected
@@ -457,6 +467,7 @@ func _process(_delta):
 	# Update shader uniforms
 	var material = complex_rect.material as ShaderMaterial
 	material.set_shader_parameter("current_f", f)
+	material.set_shader_parameter("color_scheme", Config.color_scheme)
 	material.set_shader_parameter("scale", current_scale)
 
 	domain_label.text = "Re = %.3f\nIm = %.3f" % [x * 0.1, -z * 0.1]

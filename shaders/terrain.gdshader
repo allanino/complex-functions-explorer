@@ -8,6 +8,7 @@ varying vec2 field_val;
 varying float v_nan;
 
 uniform int lod_level = 0;
+uniform int color_scheme = 0;
 uniform bool show_curves = true;
 uniform bool show_critical_stripe = true;
 
@@ -137,6 +138,9 @@ void fragment() {
 	vec2 f = field_val;
     float phase = atan(f.y, f.x);
     float hue = (phase + PI) / (2.0 * PI);
+    if (color_scheme == 1) {
+        hue = fract(hue + 0.5);
+    }
     vec3 base = hsv2rgb(vec3(hue, 0.85, 1.0));
 
     if (show_curves) {
