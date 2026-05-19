@@ -148,8 +148,8 @@ func _ready():
 	aa_button.add_item("SMAA (average)")
 
 	color_scheme_button.clear()
-	color_scheme_button.add_item("Flipped")
-	color_scheme_button.add_item("Usual")
+	color_scheme_button.add_item("Cyan real line (flipped)")
+	color_scheme_button.add_item("Red real line (typical)")
 
 	apply_aa()
 	_setup_tooltips()
