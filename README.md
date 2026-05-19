@@ -27,9 +27,9 @@ The explorer uses **domain coloring** to visualize complex-valued functions. Eac
 
 Superimposed on the terrain are contour lines, or **curve levels**, which provide a geometric reference for the values of the function. These curves make it possible to trace how the real and imaginary components evolve across the complex plane.
 
-*   **Black Curves (Real Part):** These correspond to level sets where the real part of the function, $ \operatorname{Re}(f(s)) $, takes integer values. They reveal the underlying structure of the function’s real transformation.
+*   **Black Curves (Real Part):** These correspond to level sets where the real part of the function takes integer values. They reveal the underlying structure of the function’s real transformation.
     
-*   **White Curves (Imaginary Part):** These correspond to level sets where the imaginary part, $ \operatorname{Im}(f(s)) $, takes integer values. Together with the black curves, they form a curvilinear grid that reflects the conformal character of the mapping.
+*   **White Curves (Imaginary Part):** These correspond to level sets where the imaginary part takes integer values. Together with the black curves, they form a curvilinear grid that reflects the conformal character of the mapping.
 
 <p align="center">
   <img src="docs/images/curve_levels.png" width="400" alt="Curve Levels">
