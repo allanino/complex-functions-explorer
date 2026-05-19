@@ -175,6 +175,8 @@
 
         .domain-images {
             display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
             flex-direction: column;
             gap: 1rem;
             align-items: center;
@@ -194,6 +196,25 @@
             box-shadow:
                 0 10px 40px rgba(0,0,0,0.45),
                 0 0 30px rgba(255,255,255,0.03);
+        }
+
+        @media (max-width: 600px) {
+            .domain-section {
+                justify-content: center;
+                text-align: center;
+            }
+
+            .domain-text {
+                flex: unset;
+                width: 100%;
+            }
+
+            .domain-images {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                gap: 1rem;
+                width: 100%;
+            }
         }
     </style>
 </head>
