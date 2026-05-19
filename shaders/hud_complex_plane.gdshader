@@ -3,7 +3,6 @@ shader_type canvas_item;
 uniform vec2 current_f; // Current value of f(x,z)
 uniform int color_scheme = 0;
 uniform float scale = 2.0; // Current scale of the complex plane view
-uniform bool performance_protection_active = false;
 
 // Helper function to convert HSV to RGB
 vec3 hsv2rgb(vec3 c) {
@@ -20,10 +19,6 @@ float sdSegment(vec2 p, vec2 a, vec2 b) {
 }
 
 void fragment() {
-    if (performance_protection_active) {
-        COLOR = vec4(0.01, 0.02, 0.03, 1.0);
-        return;
-    }
     // Map UV to complex plane [-scale, scale]
     // Invert Y so that positive imaginary values are at the top
     vec2 z = (vec2(UV.x, 1.0 - UV.y) - 0.5) * 2.0 * scale;

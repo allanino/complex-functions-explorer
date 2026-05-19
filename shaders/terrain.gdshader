@@ -32,71 +32,71 @@ void vertex() {
         NORMAL = (MODEL_NORMAL_MATRIX * v_normal);
         v_nan = 0.0;
         field_val = vec2(0.0);
-        return;
-    }
-    vec3 world_v_pos = (MODEL_MATRIX * vec4(local_pos, 1.0)).xyz;
-
-    FieldData fd = get_field_with_derivatives(world_v_pos.x, world_v_pos.z);
-
-    bool is_invalid = any(isnan(fd.value)) || any(isinf(fd.value)) ||
-                      any(isnan(fd.d_sigma)) || any(isinf(fd.d_sigma)) ||
-                      any(isnan(fd.d_t)) || any(isinf(fd.d_t));
-
-    if (is_invalid) {
-        v_nan = 1.0;
-        field_val = vec2(0.0);
-        v_normal = vec3(0.0, 1.0, 0.0);
-        // local_pos.y remains 0.0
     } else {
-        v_nan = 0.0;
-        field_val = fd.value;
+        vec3 world_v_pos = (MODEL_MATRIX * vec4(local_pos, 1.0)).xyz;
 
-        float mag = length(field_val);
-        float h = 0.0;
-        if (height_type == 0) {
-            h = height_a * log(height_epsilon + mag);
+        FieldData fd = get_field_with_derivatives(world_v_pos.x, world_v_pos.z);
+
+        bool is_invalid = any(isnan(fd.value)) || any(isinf(fd.value)) ||
+                        any(isnan(fd.d_sigma)) || any(isinf(fd.d_sigma)) ||
+                        any(isnan(fd.d_t)) || any(isinf(fd.d_t));
+
+        if (is_invalid) {
+            v_nan = 1.0;
+            field_val = vec2(0.0);
+            v_normal = vec3(0.0, 1.0, 0.0);
+            // local_pos.y remains 0.0
         } else {
-            h = mag;
+            v_nan = 0.0;
+            field_val = fd.value;
+
+            float mag = length(field_val);
+            float h = 0.0;
+            if (height_type == 0) {
+                h = height_a * log(height_epsilon + mag);
+            } else {
+                h = mag;
+            }
+            local_pos.y += h;
+
+            // Analytical normals using derivatives
+            float u = field_val.x;
+            float v = field_val.y;
+
+            // sigma = x * 0.1, t = -z * 0.1
+            // d_sigma/dx = 0.1, dt/dz = -0.1
+            vec2 du_dsigma_v = fd.d_sigma; // (du/dsigma, dv/dsigma)
+            vec2 du_dt_v = fd.d_t;         // (du/dt, dv/dt)
+
+            float du_dx = 0.1 * du_dsigma_v.x;
+            float dv_dx = 0.1 * du_dsigma_v.y;
+            float du_dz = -0.1 * du_dt_v.x;
+            float dv_dz = -0.1 * du_dt_v.y;
+
+            float dmag_dx = (mag > 1e-12) ? (u * du_dx + v * dv_dx) / mag : 0.0;
+            float dmag_dz = (mag > 1e-12) ? (u * du_dz + v * dv_dz) / mag : 0.0;
+
+            float dh_dx = 0.0;
+            float dh_dz = 0.0;
+
+            if (height_type == 0) {
+                // h = height_a * log(height_epsilon + mag)
+                float denom = height_epsilon + mag;
+                dh_dx = (height_a / denom) * dmag_dx;
+                dh_dz = (height_a / denom) * dmag_dz;
+            } else {
+                // h = mag
+                dh_dx = dmag_dx;
+                dh_dz = dmag_dz;
+            }
+
+            v_normal = normalize(vec3(-dh_dx, 1.0, -dh_dz));
         }
-        local_pos.y += h;
 
-        // Analytical normals using derivatives
-        float u = field_val.x;
-        float v = field_val.y;
-
-        // sigma = x * 0.1, t = -z * 0.1
-        // d_sigma/dx = 0.1, dt/dz = -0.1
-        vec2 du_dsigma_v = fd.d_sigma; // (du/dsigma, dv/dsigma)
-        vec2 du_dt_v = fd.d_t;         // (du/dt, dv/dt)
-
-        float du_dx = 0.1 * du_dsigma_v.x;
-        float dv_dx = 0.1 * du_dsigma_v.y;
-        float du_dz = -0.1 * du_dt_v.x;
-        float dv_dz = -0.1 * du_dt_v.y;
-
-        float dmag_dx = (mag > 1e-12) ? (u * du_dx + v * dv_dx) / mag : 0.0;
-        float dmag_dz = (mag > 1e-12) ? (u * du_dz + v * dv_dz) / mag : 0.0;
-
-        float dh_dx = 0.0;
-        float dh_dz = 0.0;
-
-        if (height_type == 0) {
-            // h = height_a * log(height_epsilon + mag)
-            float denom = height_epsilon + mag;
-            dh_dx = (height_a / denom) * dmag_dx;
-            dh_dz = (height_a / denom) * dmag_dz;
-        } else {
-            // h = mag
-            dh_dx = dmag_dx;
-            dh_dz = dmag_dz;
-        }
-
-        v_normal = normalize(vec3(-dh_dx, 1.0, -dh_dz));
+        VERTEX = local_pos;
+        world_pos = (MODEL_MATRIX * vec4(local_pos, 1.0)).xyz;
+        NORMAL = (MODEL_NORMAL_MATRIX * v_normal);
     }
-
-    VERTEX = local_pos;
-    world_pos = (MODEL_MATRIX * vec4(local_pos, 1.0)).xyz;
-    NORMAL = (MODEL_NORMAL_MATRIX * v_normal);
 }
 
 void fragment() {
@@ -104,9 +104,7 @@ void fragment() {
         ALBEDO = vec3(0.01, 0.02, 0.03);
         ROUGHNESS = 1.0;
         METALLIC = 0.0;
-        return;
-    }
-    if (v_nan > 0.5) {
+    } else if (v_nan > 0.5) {
         ALBEDO = vec3(0.0);
 
         // Matrix Effect
@@ -148,82 +146,82 @@ void fragment() {
         SPECULAR = 0.0;
     } else {
         float x = world_pos.x;
-    float z = world_pos.z;
-	
-	vec2 f = field_val;
-    float phase = atan(f.y, f.x);
-    float hue = (phase + PI) / (2.0 * PI);
-    if (color_scheme == 1) {
-        hue = fract(hue + 0.5);
-    }
-    vec3 base = hsv2rgb(vec3(hue, 0.85, 1.0));
+        float z = world_pos.z;
+        
+        vec2 f = field_val;
+        float phase = atan(f.y, f.x);
+        float hue = (phase + PI) / (2.0 * PI);
+        if (color_scheme == 1) {
+            hue = fract(hue + 0.5);
+        }
+        vec3 base = hsv2rgb(vec3(hue, 0.85, 1.0));
 
-    if (show_curves) {
-        // 1. Get raw pixel derivatives (true density indicators)
-        float raw_w_re = fwidth(f.x);
-        float raw_w_im = fwidth(f.y);
+        if (show_curves) {
+            // 1. Get raw pixel derivatives (true density indicators)
+            float raw_w_re = fwidth(f.x);
+            float raw_w_im = fwidth(f.y);
 
-        // 2. Define a density threshold where curves should completely disappear.
-        // Adjust this value: lower means it fades out sooner/farther away.
-        float max_density_threshold = 0.2; 
+            // 2. Define a density threshold where curves should completely disappear.
+            // Adjust this value: lower means it fades out sooner/farther away.
+            float max_density_threshold = 0.2; 
 
-        // 3. Compute contour lines using your padded width for rendering stability
-        float d_re = abs(f.x - round(f.x));
-        float w_re = clamp(raw_w_re, 0.000005, 0.001) + 0.02;
-        float line_re = smoothstep(w_re, 0.0, d_re);
+            // 3. Compute contour lines using your padded width for rendering stability
+            float d_re = abs(f.x - round(f.x));
+            float w_re = clamp(raw_w_re, 0.000005, 0.001) + 0.02;
+            float line_re = smoothstep(w_re, 0.0, d_re);
 
-        // Smoothly fade to 0.0 as raw_w_re approaches the threshold
-        float density_re = smoothstep(max_density_threshold, max_density_threshold * 0.7, raw_w_re);
-        line_re *= density_re;
+            // Smoothly fade to 0.0 as raw_w_re approaches the threshold
+            float density_re = smoothstep(max_density_threshold, max_density_threshold * 0.7, raw_w_re);
+            line_re *= density_re;
 
-        base *= 1.0 - line_re * 0.3;
+            base *= 1.0 - line_re * 0.3;
 
-        // 4. Compute contour lines for f.y
-        float d_im = abs(f.y - round(f.y));
-        float w_im = clamp(raw_w_im, 0.000005, 0.001) + 0.02;
-        float line_im = smoothstep(w_im, 0.0, d_im);
+            // 4. Compute contour lines for f.y
+            float d_im = abs(f.y - round(f.y));
+            float w_im = clamp(raw_w_im, 0.000005, 0.001) + 0.02;
+            float line_im = smoothstep(w_im, 0.0, d_im);
 
-        // Smoothly fade to 0.0 as raw_w_im approaches the threshold
-        float density_im = smoothstep(max_density_threshold, max_density_threshold * 0.7, raw_w_im);
-        line_im *= density_im;
+            // Smoothly fade to 0.0 as raw_w_im approaches the threshold
+            float density_im = smoothstep(max_density_threshold, max_density_threshold * 0.7, raw_w_im);
+            line_im *= density_im;
 
-        base *= 1.0 + line_im * 0.3; 
-    }
+            base *= 1.0 + line_im * 0.3; 
+        }
 
 
-    ALBEDO = base * 0.15;
-    vec3 final_emission = base * 0.1;
+        ALBEDO = base * 0.15;
+        vec3 final_emission = base * 0.1;
 
-    // Only apply the lines rendering for zeta (at x = 0, x = 5.0, x = 10.0)
-    // which corresponds to Re = 0.0, Re = 0.5, Re = 1.0
-    if (show_critical_stripe && (function_type == 0 || function_type == 1)) {
-        // Periodic glow factor
-        float glow = 0.5 + 0.5 * sin(TIME * 2.0);
-        float line_width = 0.05;
+        // Only apply the lines rendering for zeta (at x = 0, x = 5.0, x = 10.0)
+        // which corresponds to Re = 0.0, Re = 0.5, Re = 1.0
+        if (show_critical_stripe && (function_type == 0 || function_type == 1)) {
+            // Periodic glow factor
+            float glow = 0.5 + 0.5 * sin(TIME * 2.0);
+            float line_width = 0.05;
 
-        // Critical line at x = 5.0 (HUD x = 0.5)
-        float dist_to_critical = abs(world_pos.x - 5.0);
-        float core_critical = 1.0 - smoothstep(0.0, line_width, dist_to_critical);
-        float glow_critical = 1.0 - smoothstep(0.0, 0.1, dist_to_critical);
-        vec3 line_color = vec3(1.0, 1.0, 0.0); // Yellow
+            // Critical line at x = 5.0 (HUD x = 0.5)
+            float dist_to_critical = abs(world_pos.x - 5.0);
+            float core_critical = 1.0 - smoothstep(0.0, line_width, dist_to_critical);
+            float glow_critical = 1.0 - smoothstep(0.0, 0.1, dist_to_critical);
+            vec3 line_color = vec3(1.0, 1.0, 0.0); // Yellow
 
-        // Critical stripe boundaries at x = 0.0 and x = 10.0
-        float dist_to_0 = abs(world_pos.x - 0.0);
-        float core_0 = 1.0 - smoothstep(0.0, line_width, dist_to_0);
-        float glow_0 = 1.0 - smoothstep(0.0, 0.1, dist_to_0);
+            // Critical stripe boundaries at x = 0.0 and x = 10.0
+            float dist_to_0 = abs(world_pos.x - 0.0);
+            float core_0 = 1.0 - smoothstep(0.0, line_width, dist_to_0);
+            float glow_0 = 1.0 - smoothstep(0.0, 0.1, dist_to_0);
 
-        float dist_to_10 = abs(world_pos.x - 10.0);
-        float core_10 = 1.0 - smoothstep(0.0, line_width, dist_to_10);
-        float glow_10 = 1.0 - smoothstep(0.0, 0.1, dist_to_10);
+            float dist_to_10 = abs(world_pos.x - 10.0);
+            float core_10 = 1.0 - smoothstep(0.0, line_width, dist_to_10);
+            float glow_10 = 1.0 - smoothstep(0.0, 0.1, dist_to_10);
 
-        vec3 white_line_color = vec3(1.0, 1.0, 1.0);
+            vec3 white_line_color = vec3(1.0, 1.0, 1.0);
 
-        // Combine core (sharp, steady) and glow (wide, oscillating) using additive blending
-        // to prevent dark shadows when glow is low.
-        final_emission += line_color * (core_critical * 0.5 + glow_critical * glow * 1.0);
-        final_emission += white_line_color * (core_0 * 0.5 + glow_0 * glow * 1.0);
-        final_emission += white_line_color * (core_10 * 0.5 + glow_10 * glow * 1.0);
-    }
+            // Combine core (sharp, steady) and glow (wide, oscillating) using additive blending
+            // to prevent dark shadows when glow is low.
+            final_emission += line_color * (core_critical * 0.5 + glow_critical * glow * 1.0);
+            final_emission += white_line_color * (core_0 * 0.5 + glow_0 * glow * 1.0);
+            final_emission += white_line_color * (core_10 * 0.5 + glow_10 * glow * 1.0);
+        }
 
         EMISSION = final_emission;
         ROUGHNESS = 0.1;
