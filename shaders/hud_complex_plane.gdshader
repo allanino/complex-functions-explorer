@@ -1,6 +1,7 @@
 shader_type canvas_item;
 
 uniform vec2 current_f; // Current value of f(x,z)
+uniform int color_scheme = 0;
 uniform float scale = 2.0; // Current scale of the complex plane view
 
 // Helper function to convert HSV to RGB
@@ -28,6 +29,9 @@ void fragment() {
 
     // Background color based on phase
     float hue = (phase + PI) / (2.0 * PI);
+    if (color_scheme == 1) {
+        hue = fract(hue + 0.5);
+    }
     vec3 color = hsv2rgb(vec3(hue, 0.6, 0.7)); // Brighter background
 
     // Draw unit circle
