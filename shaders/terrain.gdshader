@@ -13,8 +13,8 @@ uniform bool show_curves = true;
 uniform bool show_critical_stripe = true;
 
 uniform vec3 atmosphere_color;
-uniform float atmosphere_density = 0.00012;
-uniform float atmosphere_desaturation = 0.8;
+uniform float atmosphere_density = 0.025;
+uniform float atmosphere_desaturation = 0.5;
 uniform float atmosphere_height_falloff = 0.015;
 
 // Helper function to convert HSV to RGB
@@ -226,7 +226,7 @@ void fragment() {
     // if we don't have it, we could pass it or use (INV_VIEW_MATRIX * vec4(0.0, 0.0, 0.0, 1.0)).xyz
     vec3 cam_pos = (INV_VIEW_MATRIX * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
     float dist = distance(cam_pos, world_pos);
-    float haze = 1.0 - exp(-dist * atmosphere_density * 100.0);
+    float haze = 1.0 - exp(-dist * atmosphere_density);
     haze = pow(haze, 10.0);
 
     float height_factor = exp(-world_pos.y * atmosphere_height_falloff);

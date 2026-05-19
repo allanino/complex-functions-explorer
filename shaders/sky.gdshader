@@ -3,6 +3,7 @@ shader_type sky;
 uniform vec3 sky_color : source_color = vec3(0.3, 0.6, 0.9);
 uniform vec3 horizon_color : source_color = vec3(0.6, 0.8, 1.0);
 uniform vec3 cloud_color : source_color = vec3(1.0, 1.0, 1.0);
+uniform vec3 atmosphere_color;
 uniform float golden_hour_factor = 0.0;
 uniform float night_factor = 0.0;
 
@@ -195,16 +196,6 @@ void sky() {
         sun_haze = pow(sun_dot, 3.0);   
     }
 
-    // Atmospheric color
-    vec3 haze_color = mix(
-        vec3(0.55, 0.65, 0.8), // bluish daytime haze
-        LIGHT0_COLOR * vec3(1.0, 0.7, 0.4), // warm sunset haze
-        golden_hour_factor
-    );
-
-    // Add subtle sun scattering
-    haze_color += LIGHT0_COLOR * sun_haze * 0.2;
-
     // Final intensity (decrease with night)
     float night_haze_factor = 1.0 - smoothstep(0.05, 1.0, night_factor);
     float final_haze =
@@ -212,11 +203,8 @@ void sky() {
         sun_haze * 0.08)
         * night_haze_factor;
 
-    cloud_final_color = mix(
-        cloud_final_color,
-        haze_color,
-        clamp(final_haze, 0.0, 1.0)
-    );
+    cloud_final_color = mix(cloud_final_color, atmosphere_color, final_haze);
+    cloud_final_color += LIGHT0_COLOR * sun_haze * 0.2;
 
     COLOR = cloud_final_color;
 }
