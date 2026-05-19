@@ -1,10 +1,31 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scripts/player_controller.gd" id="1_script"]
+[ext_resource type="Shader" path="res://shaders/dust.gdshader" id="2_shader"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_1"]
 radius = 0.4
 height = 1.8
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_2"]
+render_priority = 0
+shader = ExtResource("2_shader")
+shader_parameter/sun_direction = Vector3(0, -1, 0)
+shader_parameter/player_height = 0.0
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_1"]
+emission_shape = 3
+emission_box_extents = Vector3(4, 2, 4)
+gravity = Vector3(0, 0.01, 0)
+initial_velocity_min = 0.01
+initial_velocity_max = 0.05
+scale_min = 0.01
+scale_max = 0.03
+color = Color(1, 0.95, 0.9, 0.03)
+
+[sub_resource type="QuadMesh" id="QuadMesh_1"]
+material = SubResource("ShaderMaterial_2")
+size = Vector2(0.1, 0.1)
 
 [node name="Player" type="CharacterBody3D"]
 script = ExtResource("1_script")
@@ -16,3 +37,10 @@ shape = SubResource("CapsuleShape3D_1")
 [node name="Camera3D" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.7, 0)
 current = true
+
+[node name="DustParticles" type="GPUParticles3D" parent="Camera3D"]
+top_level = true
+amount = 200
+lifetime = 8.0
+process_material = SubResource("ParticleProcessMaterial_1")
+draw_pass_1 = SubResource("QuadMesh_1")
