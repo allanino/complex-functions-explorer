@@ -33,17 +33,17 @@ extends CanvasLayer
 @onready var camera_height_input = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/CameraHeightContainer/CameraHeightInput
 @onready var auto_walk_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/AutoWalkCheckbox
 
-@onready var terrain_detail_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/TerrainDetailContainer/TerrainDetailButton
-@onready var aa_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/AAContainer/AAButton
-@onready var color_scheme_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/ColorSchemeContainer/ColorSchemeButton
-@onready var view_distance_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/ViewDistanceContainer/ViewDistanceSlider
-@onready var view_distance_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/ViewDistanceContainer/ViewDistanceValue
-@onready var curves_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/CurvesCheckbox
-@onready var critical_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/CriticalCheckbox
-@onready var environment_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/EnvironmentContainer/EnvironmentButton
-@onready var sunrise_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/SunriseContainer/SunriseSlider
-@onready var sunrise_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/SunriseContainer/SunriseValue
-@onready var shadows_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/ShadowsCheckbox
+@onready var terrain_detail_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/GRAPHICS/TerrainDetailContainer/TerrainDetailButton
+@onready var aa_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/GRAPHICS/AAContainer/AAButton
+@onready var color_scheme_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/ColorSchemeContainer/ColorSchemeButton
+@onready var view_distance_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/GRAPHICS/ViewDistanceContainer/ViewDistanceSlider
+@onready var view_distance_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/GRAPHICS/ViewDistanceContainer/ViewDistanceValue
+@onready var curves_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/CurvesCheckbox
+@onready var critical_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/CriticalCheckbox
+@onready var environment_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/EnvironmentContainer/EnvironmentButton
+@onready var sunrise_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/SunriseContainer/SunriseSlider
+@onready var sunrise_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/SunriseContainer/SunriseValue
+@onready var shadows_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/GRAPHICS/ShadowsCheckbox
 
 @onready var hud_complex_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/HUD/HudComplexCheckbox
 @onready var hud_navigation_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/HUD/HudNavigationCheckbox
@@ -84,8 +84,8 @@ const DESCRIPTIONS = {
 	"View Distance": "Number of terrain chunks loaded around the player.",
 	"Level Curves": "Overlay contour lines for integer values of Re(f) (black) and Im(f) (white).",
 	"Critical Stripe": "Visual guide indicating the 0 < Re < 1 region where non-trivial zeros reside.",
-	"Environment": "Select between a static sun at noon, a static sun at golden hour, or a dynamic day/night cycle.",
-	"Sunrise Direction": "Adjust the angle from which the sun rises (0° is towards +σ).",
+	"Sun Position": "Select between a static sun at noon, a static sun at golden hour, or a dynamic day/night cycle.",
+	"Sunrise Direction": "Adjust the angle from which the sun rises (180° is towards +σ).",
 	"Shadows": "Enable real-time directional shadows for terrain features.",
 	"Complex plane": "Show the domain coloring map of the current position on the HUD.",
 	"Navigation": "Show coordinate and magnitude information on the HUD.",
@@ -113,8 +113,8 @@ func _ready():
 	sunrise_slider.value_changed.connect(_on_sunrise_value_changed)
 
 	environment_button.clear()
-	environment_button.add_item("Sun at noon")
-	environment_button.add_item("Sun at golden hour")
+	environment_button.add_item("Noon")
+	environment_button.add_item("Sunrise golden hour")
 	environment_button.add_item("Dynamic sun and moon")
 
 	func_button.clear()
@@ -148,8 +148,8 @@ func _ready():
 	aa_button.add_item("SMAA (average)")
 
 	color_scheme_button.clear()
-	color_scheme_button.add_item("Flipped")
-	color_scheme_button.add_item("Usual")
+	color_scheme_button.add_item("Cyan real line (flipped)")
+	color_scheme_button.add_item("Red real line (standard)")
 
 	apply_aa()
 	_setup_tooltips()
