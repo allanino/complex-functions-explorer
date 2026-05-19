@@ -80,7 +80,7 @@ const DESCRIPTIONS = {
 	"Automatic Walking": "Automatically follow the critical line (Re = 0.5) to find Riemann Zeta zeros.",
 	"Terrain Details": "Quality and subdivision level of the procedurally generated terrain meshes.",
 	"Antialiasing": "Choose a technique to reduce jagged edges in the 3D view.",
-	"Color Scheme": "Select the color mapping for the complex plane (Flipped: x>0 is green/cyan, Usual: x>0 is red).",
+	"Color Scheme": "Select the color mapping for the complex plane of the target function.",
 	"View Distance": "Number of terrain chunks loaded around the player.",
 	"Level Curves": "Overlay contour lines for integer values of Re(f) (black) and Im(f) (white).",
 	"Critical Stripe": "Visual guide indicating the 0 < Re < 1 region where non-trivial zeros reside.",
@@ -148,8 +148,8 @@ func _ready():
 	aa_button.add_item("SMAA (average)")
 
 	color_scheme_button.clear()
-	color_scheme_button.add_item("Cyan real line (flipped)")
-	color_scheme_button.add_item("Red real line (typical)")
+	color_scheme_button.add_item("Flipped")
+	color_scheme_button.add_item("Usual")
 
 	apply_aa()
 	_setup_tooltips()
