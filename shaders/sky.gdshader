@@ -205,10 +205,12 @@ void sky() {
     // Add subtle sun scattering
     haze_color += LIGHT0_COLOR * sun_haze * 0.2;
 
-    // Final intensity
+    // Final intensity (decrease with night)
+    float night_haze_factor = 1.0 - smoothstep(0.05, 1.0, night_factor);
     float final_haze =
-        haze_amount * 0.1 +
-        sun_haze * 0.08;
+        (haze_amount * 0.1 +
+        sun_haze * 0.08)
+        * night_haze_factor;
 
     cloud_final_color = mix(
         cloud_final_color,
