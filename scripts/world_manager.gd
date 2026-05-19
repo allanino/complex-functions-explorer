@@ -215,6 +215,7 @@ func _create_lod_mesh(size: float, subdivisions: int) -> Mesh:
 func _apply_performance_protection(active: bool):
 	_shaders_stopped = active
 	for chunk in chunks.values():
+		chunk.visible = !active
 		if chunk.material_override:
 			chunk.material_override.set_shader_parameter("performance_protection_active", active)
 
@@ -243,6 +244,7 @@ func _update_chunk_uniforms(chunk: MeshInstance3D):
 func _load_chunk(coord: Vector2i):
 	var chunk = chunk_scene.instantiate()
 	add_child(chunk)
+	chunk.visible = !Config.performance_protection_active
 
 	# Ensure unique material so we can set LOD-specific uniforms
 	chunk.material_override = chunk.material_override.duplicate()
