@@ -6,13 +6,17 @@
 
 **Complex Functions Explorer** is an interactive 3D visualization tool that brings the abstract beauty of complex analysis to life. By mapping complex numbers into a navigable three-dimensional landscape, the software allows users to explore the intricate structures of functions such as the Riemann zeta function, including zeros, poles, and the critical line, within an immersive environment.
 
+Whether you are a student of mathematics, a researcher, or simply someone who appreciates the visual elegance of mathematical structures, this tool provides a unique perspective on how complex functions transform and shape the complex plane.
+
+The project is intended not only as a mathematical visualization tool, but also as an invitation to contemplate the hidden geometries of the complex plane.
+
 ## Features
 
 ### Domain Coloring
 The explorer uses **domain coloring** to visualize complex-valued functions. Each point in the complex plane is assigned a color according to the phase (argument) of the function, while the magnitude determines the height of the terrain.
 
-*   **Phase to Color:** The color cycle represents the angle of the complex value.
-*   **Magnitude to Height:** Peaks and valleys represent high and low magnitudes, respectively. Zeros are visible as deep pits that reach the "floor" of the domain.
+*   **Phase to Color:** The color cycle (typically a rainbow or HSV wheel) represents the angle of the complex value. Purely real positive values are often mapped to green, while purely imaginary positive values map to purple, and so on.
+*   **Magnitude to Height:** Peaks and valleys represent high and low magnitudes, respectively. This makes zeros clearly visible as deep pits that reach the "floor" of the domain.
 
 <p align="center">
   <img src="docs/images/domain.png" width="300" alt="Domain Coloring">
@@ -23,9 +27,13 @@ The explorer uses **domain coloring** to visualize complex-valued functions. Eac
 
 Superimposed on the terrain are contour lines, or **curve levels**, which provide a geometric reference for the values of the function. These curves make it possible to trace how the real and imaginary components evolve across the complex plane.
 
-*   **Black Curves (Real Part):** These correspond to level sets where the real part of the function, $ \text{Re}(f(s)) $, takes integer values. They reveal the underlying structure of the function’s real transformation.
+*   **Black Curves (Real Part):** These correspond to level sets where the real part of the function, $ \operatorname{Re}(f(s)) $, takes integer values. They reveal the underlying structure of the function’s real transformation.
     
-*   **White Curves (Imaginary Part):** These correspond to level sets where the imaginary part, $ \text{Im}(f(s)) $, takes integer values. Together with the black curves, they form a curvilinear grid that reflects the conformal character of the mapping.
+*   **White Curves (Imaginary Part):** These correspond to level sets where the imaginary part, $ \operatorname{Im}(f(s)) $, takes integer values. Together with the black curves, they form a curvilinear grid that reflects the conformal character of the mapping.
+
+<p align="center">
+  <img src="docs/images/curve_levels.png" width="400" alt="Curve Levels">
+</p>
 
 When a black curve and a white curve intersect at the base of the terrain, the point may correspond to a **zero** of the function, where both the real and imaginary parts vanish simultaneously.
 
@@ -35,15 +43,15 @@ The explorer supports various standard complex functions, including trigonometri
 #### The Riemann Zeta Function
 
 ##### Eta function analytical continuation
-Implementation uses the **Dirichlet Eta representation** for numerical stability when $\text{Re}(s) > 0.5$:
+Implementation uses the **Dirichlet Eta representation** for numerical stability when $\operatorname{Re}(s) > 0.5$:
 $$\zeta(s) = \frac{1}{1 - 2^{1-s}} \sum_{n=1}^\infty \frac{(-1)^{n-1}}{n^s}$$
 
 ##### Reflection formula analytical continuation
-For $\text{Re}(s) < 0.5$, the explorer utilizes the **reflection formula** to achieve analytical continuation to the entire complex plane:
+For $\operatorname{Re}(s) < 0.5$, the explorer utilizes the **reflection formula** to achieve analytical continuation to the entire complex plane:
 $$\zeta(s) = 2^s \pi^{s-1} \sin\left(\frac{\pi s}{2}\right) \Gamma(1-s) \zeta(1-s)$$
-In this calculation, the term $\zeta(1-s)$ is evaluated using the Dirichlet Eta representation, since for $\text{Re}(s) < 0.5$, the reflected point $1-s$ has a real part greater than $0.5$. This allows evaluation across the critical strip and beyond.
+In this calculation, the term $\zeta(1-s)$ is evaluated using the Dirichlet Eta representation, since for $\operatorname{Re}(s) < 0.5$, the reflected point $1-s$ has a real part greater than $0.5$. This allows evaluation across the critical strip and beyond.
 
-> **Note on Precision:** Calculations are performed in GPU shaders using `float32` arithmetic. This introduces numerical limitations and potential artifacts as the magnitude of the imaginary part $|t|$ increases, due to the rapid oscillation and growth of the terms involved.
+> **Note on Precision:** Calculations are performed in GPU shaders using `float32` arithmetic. This introduces numerical limitations and potential artifacts as the magnitude of the imaginary part $|t|$ increases, due to the rapid oscillation and large intermediate values of the functions involved. These effects are especially pronounced in the $\sin$ and $\Gamma$ terms of the reflection formula, both of which can grow rapidly in magnitude.
 
 #### The Gamma Function
 The Gamma function $\Gamma(z)$ is implemented using the **Lanczos approximation** ($g=7, N=9$):
@@ -60,6 +68,15 @@ using the following coefficients:
 * $p_6 = -0.13857109526572012$
 * $p_7 = 9.9843695780195716 \times 10^{-6}$
 * $p_8 = 1.5056327351493116 \times 10^{-7}$
+
+In practice, the rendered landscape is only an approximation of these functions. Numerical accuracy gradually decreases for larger imaginary values, particularly when using `float32` arithmetic on the GPU. Rapid oscillations, large intermediate values, and accumulated floating-point error can introduce visual artifacts and loss of precision at high magnitudes. Nevertheless, the global structure of the functions remains visually recognizable far beyond the region where the approximation is strictly reliable.
+
+### Numerical Singularities
+Regions where the function evaluation produces `NaN` or infinite values are rendered as a dark terrain covered with green grid-like squares reminiscent of *The Matrix*. These regions typically arise near overflow conditions, or severe floating-point instability in the GPU shaders. Rather than hiding such failures, the visualization exposes them directly as part of the numerical structure of the computation.
+
+<p align="center">
+  <img src="docs/images/overflow.png" width="400" alt="Numerical Overflow">
+</p>
 
 ## Technical Details
 
