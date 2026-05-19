@@ -143,6 +143,9 @@ func _process(delta):
 
 	_process_audio_toggles()
 
+	if Config.performance_protection_active:
+		is_suppressed = true
+
 	if playback == null:
 		var stream_player = $AudioStreamPlayer
 		if stream_player.playing:

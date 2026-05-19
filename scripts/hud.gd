@@ -473,6 +473,7 @@ func _process(_delta):
 	material.set_shader_parameter("current_f", f)
 	material.set_shader_parameter("color_scheme", Config.color_scheme)
 	material.set_shader_parameter("scale", current_scale)
+	material.set_shader_parameter("performance_protection_active", Config.performance_protection_active)
 
 	domain_label.text = "Re = %.3f\nIm = %.3f" % [x * 0.1, -z * 0.1]
 	target_label.text = "Re = %.3f\nIm = %.3f\n|f| = %.3f" % [f.x, f.y, f.length()]

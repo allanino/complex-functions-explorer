@@ -11,6 +11,7 @@ var LOD_SUBS = [] # This will be set in code
 var _lod_mesh_cache = {}
 var _last_player_chunk = Vector2i(9999, 9999)
 var slow_frame_counter: int = 0
+var _shaders_stopped: bool = false
 
 # We increase our chunks by this to make junctions more seamless
 # To test this, look at the right of zeta, the pole has a junction
@@ -46,7 +47,12 @@ func _process(delta):
 		slow_frame_counter = 0
 
 	if Config.performance_protection_active:
+		if not _shaders_stopped:
+			_apply_performance_protection(true)
 		return
+
+	if _shaders_stopped:
+		_apply_performance_protection(false)
 
 	var player_pos = player.global_position
 	var player_chunk_x = floor(player_pos.x / chunk_size)
@@ -206,10 +212,22 @@ func _create_lod_mesh(size: float, subdivisions: int) -> Mesh:
 	plane.subdivide_depth = subdivisions
 	return plane
 
+func _apply_performance_protection(active: bool):
+	_shaders_stopped = active
+	for chunk in chunks.values():
+		if chunk.material_override:
+			chunk.material_override.set_shader_parameter("performance_protection_active", active)
+
+	if world_environment and world_environment.environment and world_environment.environment.sky:
+		var sky_mat = world_environment.environment.sky.sky_material as ShaderMaterial
+		if sky_mat:
+			sky_mat.set_shader_parameter("performance_protection_active", active)
+
 func _update_chunk_uniforms(chunk: MeshInstance3D):
 	if chunk.material_override:
 		var lod = chunk.get_meta("lod_level", 0)
 
+		chunk.material_override.set_shader_parameter("performance_protection_active", Config.performance_protection_active)
 		chunk.material_override.set_shader_parameter("lod_level", lod)
 		chunk.material_override.set_shader_parameter("color_scheme", Config.color_scheme)
 		chunk.material_override.set_shader_parameter("iterations", Config.iterations)

@@ -25,6 +25,15 @@ float matrix_hash(vec2 p) {
 
 void vertex() {
     vec3 local_pos = VERTEX;
+    if (performance_protection_active) {
+        VERTEX = local_pos;
+        world_pos = (MODEL_MATRIX * vec4(local_pos, 1.0)).xyz;
+        v_normal = vec3(0.0, 1.0, 0.0);
+        NORMAL = (MODEL_NORMAL_MATRIX * v_normal);
+        v_nan = 0.0;
+        field_val = vec2(0.0);
+        return;
+    }
     vec3 world_v_pos = (MODEL_MATRIX * vec4(local_pos, 1.0)).xyz;
 
     FieldData fd = get_field_with_derivatives(world_v_pos.x, world_v_pos.z);
@@ -91,6 +100,12 @@ void vertex() {
 }
 
 void fragment() {
+    if (performance_protection_active) {
+        ALBEDO = vec3(0.01, 0.02, 0.03);
+        ROUGHNESS = 1.0;
+        METALLIC = 0.0;
+        return;
+    }
     if (v_nan > 0.5) {
         ALBEDO = vec3(0.0);
 
