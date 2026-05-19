@@ -80,7 +80,7 @@ const DESCRIPTIONS = {
 	"Automatic Walking": "Automatically follow the critical line (Re = 0.5) to find Riemann Zeta zeros.",
 	"Terrain Details": "Quality and subdivision level of the procedurally generated terrain meshes.",
 	"Antialiasing": "Choose a technique to reduce jagged edges in the 3D view.",
-	"Resolution": "Adjust the game window resolution (Height x Width).",
+	"Resolution": "Adjust the game window resolution (Width x Height).",
 	"View Distance": "Number of terrain chunks loaded around the player.",
 	"Level Curves": "Overlay contour lines for integer values of Re(f) (black) and Im(f) (white).",
 	"Critical Stripe": "Visual guide indicating the 0 < Re < 1 region where non-trivial zeros reside.",
@@ -148,10 +148,10 @@ func _ready():
 	aa_button.add_item("SMAA (average)")
 
 	resolution_button.clear()
-	resolution_button.add_item("720 x 1280")
-	resolution_button.add_item("1080 x 1920")
-	resolution_button.add_item("1440 x 2560")
-	resolution_button.add_item("2160 x 3840")
+	resolution_button.add_item("1280 x 720")
+	resolution_button.add_item("1920 x 1080")
+	resolution_button.add_item("2560 x 1440")
+	resolution_button.add_item("3840 x 2160")
 
 	apply_aa()
 	_apply_resolution()
