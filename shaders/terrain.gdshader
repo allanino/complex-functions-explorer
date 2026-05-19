@@ -13,7 +13,7 @@ uniform bool show_curves = true;
 uniform bool show_critical_stripe = true;
 
 uniform vec3 atmosphere_color;
-uniform float atmosphere_density = 0.025;
+uniform float atmosphere_density = 0.015;
 uniform float atmosphere_desaturation = 0.5;
 uniform float atmosphere_height_falloff = 0.015;
 
@@ -227,7 +227,7 @@ void fragment() {
     vec3 cam_pos = (INV_VIEW_MATRIX * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
     float dist = distance(cam_pos, world_pos);
     float haze = 1.0 - exp(-dist * atmosphere_density);
-    haze = pow(haze, 10.0);
+    haze = pow(haze, 9.0);
 
     float height_factor = exp(-world_pos.y * atmosphere_height_falloff);
     haze *= height_factor;
