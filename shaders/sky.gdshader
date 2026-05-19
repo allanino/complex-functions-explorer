@@ -3,7 +3,6 @@ shader_type sky;
 uniform vec3 sky_color : source_color = vec3(0.3, 0.6, 0.9);
 uniform vec3 horizon_color : source_color = vec3(0.6, 0.8, 1.0);
 uniform vec3 cloud_color : source_color = vec3(1.0, 1.0, 1.0);
-uniform vec3 atmosphere_color;
 uniform float golden_hour_factor = 0.0;
 uniform float night_factor = 0.0;
 
@@ -180,19 +179,44 @@ void sky() {
     // Haze
     //----------------
 
-    // Exponential haze near horizon to match terrain
+    // Stronger near horizon
     float horizon = 1.0 - clamp(EYEDIR.y, 0.0, 1.0);
-    float haze_amount = 1.0 - exp(-horizon * 3.0);
 
-    // Subtle sun scattering
+    // Exponential falloff feels more natural
+    float haze_amount = 1.0 - exp(-horizon * 4.0);
+
+    // Slightly stronger near sun
     float sun_haze = 0.0;
+
     if (LIGHT0_ENABLED) {
         float sun_dot = max(dot(EYEDIR, LIGHT0_DIRECTION), 0.0);
-        sun_haze = pow(sun_dot, 4.0) * 0.2 * (1.0 - night_factor);
+
+        // Wide forward scattering
+        sun_haze = pow(sun_dot, 3.0);   
     }
 
-    cloud_final_color = mix(cloud_final_color, atmosphere_color, haze_amount);
-    cloud_final_color += LIGHT0_COLOR * sun_haze;
+    // Atmospheric color
+    vec3 haze_color = mix(
+        vec3(0.55, 0.65, 0.8), // bluish daytime haze
+        LIGHT0_COLOR * vec3(1.0, 0.7, 0.4), // warm sunset haze
+        golden_hour_factor
+    );
+
+    // Add subtle sun scattering
+    haze_color += LIGHT0_COLOR * sun_haze * 0.2;
+
+    // Final intensity (decrease with night)
+    float night_haze_factor = 1.0 - smoothstep(0.05, 1.0, night_factor);
+    float final_haze =
+        (haze_amount * 0.1 +
+        sun_haze * 0.08)
+        * night_haze_factor;
+
+    cloud_final_color = mix(
+        cloud_final_color,
+        haze_color,
+        clamp(final_haze, 0.0, 1.0)
+    );
 
     COLOR = cloud_final_color;
 }
