@@ -164,28 +164,6 @@ func _physics_process(delta):
 	# Snap player to terrain height + offset
 	global_position.y = terrain_h + Config.camera_height + height_offset
 
-	# Dust particle management
-	if dust_particles:
-		# Lagging follow logic
-		dust_particles.global_position = dust_particles.global_position.lerp(
-			camera.global_position,
-			delta * 0.5
-		)
-
-		# Update shader uniforms
-		var dust_material = dust_particles.draw_pass_1.material as ShaderMaterial
-		if dust_material:
-			# Get sun direction from world manager or similar if possible
-			# For now, we can try to find the sun in the scene
-			var sun = get_node_or_null("/root/Main/DirectionalLight3D")
-			if sun:
-				# DirectionalLight3D's forward vector (negative Z in local space)
-				# is the direction the light is pointing.
-				var sun_dir = -sun.global_transform.basis.z
-				dust_material.set_shader_parameter("sun_direction", sun_dir)
-
-			dust_material.set_shader_parameter("player_height", global_position.y)
-
 	# Zeta zero detection during auto-walk
 	if auto_walk_state == AutoWalkState.WALKING and (Config.function_type == 0 or Config.function_type == 1):
 		var f = Field.get_field(global_position.x, global_position.z)
@@ -209,3 +187,25 @@ func _physics_process(delta):
 				last_detected_t = t
 
 	move_and_slide()
+
+func _process(delta):
+	# Dust particle management
+	if dust_particles:
+		# Target is slightly in front of the camera to ensure visibility and "distance"
+		var target_pos = camera.global_position - camera.global_transform.basis.z * 3.0
+
+		# Lagging follow logic (moved to _process for visual smoothness)
+		dust_particles.global_position = dust_particles.global_position.lerp(
+			target_pos,
+			delta * 2.0
+		)
+
+		# Update shader uniforms
+		var dust_material = dust_particles.draw_pass_1.material as ShaderMaterial
+		if dust_material:
+			var sun = get_node_or_null("/root/Main/DirectionalLight3D")
+			if sun:
+				var sun_dir = -sun.global_transform.basis.z
+				dust_material.set_shader_parameter("sun_direction", sun_dir)
+
+			dust_material.set_shader_parameter("player_height", global_position.y)
