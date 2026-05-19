@@ -84,8 +84,8 @@ const DESCRIPTIONS = {
 	"View Distance": "Number of terrain chunks loaded around the player.",
 	"Level Curves": "Overlay contour lines for integer values of Re(f) (black) and Im(f) (white).",
 	"Critical Stripe": "Visual guide indicating the 0 < Re < 1 region where non-trivial zeros reside.",
-	"Environment": "Select between a static sun at noon, a static sun at golden hour, or a dynamic day/night cycle.",
-	"Sunrise Direction": "Adjust the angle from which the sun rises (0° is towards +σ).",
+	"Sun Position": "Select between a static sun at noon, a static sun at golden hour, or a dynamic day/night cycle.",
+	"Sunrise Direction": "Adjust the angle from which the sun rises (180° is towards +σ).",
 	"Shadows": "Enable real-time directional shadows for terrain features.",
 	"Complex plane": "Show the domain coloring map of the current position on the HUD.",
 	"Navigation": "Show coordinate and magnitude information on the HUD.",
@@ -113,8 +113,8 @@ func _ready():
 	sunrise_slider.value_changed.connect(_on_sunrise_value_changed)
 
 	environment_button.clear()
-	environment_button.add_item("Sun at noon")
-	environment_button.add_item("Sun at golden hour")
+	environment_button.add_item("Noon")
+	environment_button.add_item("Sunrise golden hour")
 	environment_button.add_item("Dynamic sun and moon")
 
 	func_button.clear()
@@ -148,8 +148,8 @@ func _ready():
 	aa_button.add_item("SMAA (average)")
 
 	color_scheme_button.clear()
-	color_scheme_button.add_item("Flipped")
-	color_scheme_button.add_item("Usual")
+	color_scheme_button.add_item("Cyan real line (flipped)")
+	color_scheme_button.add_item("Red real line (standard)")
 
 	apply_aa()
 	_setup_tooltips()
