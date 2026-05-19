@@ -33,18 +33,24 @@ When a black curve and a white curve intersect at the base of the terrain, the p
 The explorer supports various standard complex functions, including trigonometric, exponential, and logarithmic functions. The centerpiece is the **Riemann zeta function** $\zeta(s)$.
 
 #### The Riemann Zeta Function
+
+##### Eta function analytical continuation
 Implementation uses the **Dirichlet Eta representation** for numerical stability when $\text{Re}(s) > 0.5$:
 $$\zeta(s) = \frac{1}{1 - 2^{1-s}} \sum_{n=1}^\infty \frac{(-1)^{n-1}}{n^s}$$
+
+##### Reflection formula analytical continuation
 For $\text{Re}(s) < 0.5$, the explorer utilizes the **reflection formula** to achieve analytical continuation to the entire complex plane:
 $$\zeta(s) = 2^s \pi^{s-1} \sin\left(\frac{\pi s}{2}\right) \Gamma(1-s) \zeta(1-s)$$
-This allows evaluation across the critical strip and beyond.
+In this calculation, the term $\zeta(1-s)$ is evaluated using the Dirichlet Eta representation, since for $\text{Re}(s) < 0.5$, the reflected point $1-s$ has a real part greater than $0.5$. This allows evaluation across the critical strip and beyond.
 
 > **Note on Precision:** Calculations are performed in GPU shaders using `float32` arithmetic. This introduces numerical limitations and potential artifacts as the magnitude of the imaginary part $|t|$ increases, due to the rapid oscillation and growth of the terms involved.
 
 #### The Gamma Function
 The Gamma function $\Gamma(z)$ is implemented using the **Lanczos approximation** ($g=7, N=9$):
 $$\Gamma(z) \approx \sqrt{2\pi} (z+g-0.5)^{z-0.5} e^{-(z+g-0.5)} A_g(z-1)$$
-where $A_g(z)$ is a power series using the following coefficients:
+where $A_g(z)$ is the partial fraction expansion:
+$$A_g(z) = p_0 + \sum_{n=1}^8 \frac{p_n}{z+n}$$
+using the following coefficients:
 * $p_0 = 0.99999999999980993$
 * $p_1 = 676.5203681218851$
 * $p_2 = -1259.1392167224028$
