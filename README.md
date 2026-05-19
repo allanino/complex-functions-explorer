@@ -33,9 +33,27 @@ When a black curve and a white curve intersect at the base of the terrain, the p
 The explorer supports various standard complex functions, including trigonometric, exponential, and logarithmic functions. The centerpiece is the **Riemann zeta function** $\zeta(s)$.
 
 #### The Riemann Zeta Function
-Implementation uses the **Dirichlet Eta representation** for numerical stability:
+Implementation uses the **Dirichlet Eta representation** for numerical stability when $\text{Re}(s) > 0.5$:
 $$\zeta(s) = \frac{1}{1 - 2^{1-s}} \sum_{n=1}^\infty \frac{(-1)^{n-1}}{n^s}$$
-This allows evaluation across the critical strip, essential for visualizing the region related to the Riemann Hypothesis.
+For $\text{Re}(s) < 0.5$, the explorer utilizes the **reflection formula** to achieve analytical continuation to the entire complex plane:
+$$\zeta(s) = 2^s \pi^{s-1} \sin\left(\frac{\pi s}{2}\right) \Gamma(1-s) \zeta(1-s)$$
+This allows evaluation across the critical strip and beyond.
+
+> **Note on Precision:** Calculations are performed in GPU shaders using `float32` arithmetic. This introduces numerical limitations and potential artifacts as the magnitude of the imaginary part $|t|$ increases, due to the rapid oscillation and growth of the terms involved.
+
+#### The Gamma Function
+The Gamma function $\Gamma(z)$ is implemented using the **Lanczos approximation** ($g=7, N=9$):
+$$\Gamma(z) \approx \sqrt{2\pi} (z+g-0.5)^{z-0.5} e^{-(z+g-0.5)} A_g(z-1)$$
+where $A_g(z)$ is a power series using the following coefficients:
+* $p_0 = 0.99999999999980993$
+* $p_1 = 676.5203681218851$
+* $p_2 = -1259.1392167224028$
+* $p_3 = 771.32342877765313$
+* $p_4 = -176.61502916214059$
+* $p_5 = 12.507343278686905$
+* $p_6 = -0.13857109526572012$
+* $p_7 = 9.9843695780195716 \times 10^{-6}$
+* $p_8 = 1.5056327351493116 \times 10^{-7}$
 
 ## Technical Details
 
