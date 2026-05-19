@@ -18,6 +18,7 @@ var antialiasing_mode: int = 1
 var show_curves: bool = true
 var show_critical_stripe: bool = true
 var view_distance: int = 7
+var resolution_index: int = 1
 var environment_type: int = 0
 var sunrise_direction: float = 0.0
 var shadows_enabled: bool = false
@@ -60,6 +61,7 @@ func save_settings():
 	config.set_value("rendering", "show_curves", show_curves)
 	config.set_value("rendering", "show_critical_stripe", show_critical_stripe)
 	config.set_value("rendering", "view_distance", view_distance)
+	config.set_value("rendering", "resolution_index", resolution_index)
 	config.set_value("rendering", "environment_type", environment_type)
 	config.set_value("rendering", "sunrise_direction", sunrise_direction)
 	config.set_value("rendering", "shadows_enabled", shadows_enabled)
@@ -100,6 +102,7 @@ func load_settings():
 	show_curves = config.get_value("rendering", "show_curves", show_curves)
 	show_critical_stripe = config.get_value("rendering", "show_critical_stripe", show_critical_stripe)
 	view_distance = config.get_value("rendering", "view_distance", view_distance)
+	resolution_index = config.get_value("rendering", "resolution_index", resolution_index)
 	environment_type = config.get_value("rendering", "environment_type", environment_type)
 	sunrise_direction = config.get_value("rendering", "sunrise_direction", sunrise_direction)
 	shadows_enabled = config.get_value("rendering", "shadows_enabled", shadows_enabled)

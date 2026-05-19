@@ -35,6 +35,7 @@ extends CanvasLayer
 
 @onready var terrain_detail_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/TerrainDetailContainer/TerrainDetailButton
 @onready var aa_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/AAContainer/AAButton
+@onready var resolution_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/ResolutionContainer/ResolutionButton
 @onready var view_distance_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/ViewDistanceContainer/ViewDistanceSlider
 @onready var view_distance_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/ViewDistanceContainer/ViewDistanceValue
 @onready var curves_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/RENDERING/CurvesCheckbox
@@ -79,6 +80,7 @@ const DESCRIPTIONS = {
 	"Automatic Walking": "Automatically follow the critical line (Re = 0.5) to find Riemann Zeta zeros.",
 	"Terrain Details": "Quality and subdivision level of the procedurally generated terrain meshes.",
 	"Antialiasing": "Choose a technique to reduce jagged edges in the 3D view.",
+	"Resolution": "Adjust the game window resolution (Height x Width).",
 	"View Distance": "Number of terrain chunks loaded around the player.",
 	"Level Curves": "Overlay contour lines for integer values of Re(f) (black) and Im(f) (white).",
 	"Critical Stripe": "Visual guide indicating the 0 < Re < 1 region where non-trivial zeros reside.",
@@ -145,7 +147,14 @@ func _ready():
 	aa_button.add_item("FXAA (fast)")
 	aa_button.add_item("SMAA (average)")
 
+	resolution_button.clear()
+	resolution_button.add_item("720 x 1280")
+	resolution_button.add_item("1080 x 1920")
+	resolution_button.add_item("1440 x 2560")
+	resolution_button.add_item("2160 x 3840")
+
 	apply_aa()
+	_apply_resolution()
 	_setup_tooltips()
 	tooltip_timer.timeout.connect(_on_tooltip_timer_timeout)
 
@@ -215,6 +224,16 @@ func apply_aa():
 		4: vp.screen_space_aa = Viewport.SCREEN_SPACE_AA_FXAA
 		5: vp.screen_space_aa = Viewport.SCREEN_SPACE_AA_SMAA
 
+func _apply_resolution():
+	var size = Vector2i(1920, 1080)
+	match Config.resolution_index:
+		0: size = Vector2i(1280, 720)
+		1: size = Vector2i(1920, 1080)
+		2: size = Vector2i(2560, 1440)
+		3: size = Vector2i(3840, 2160)
+
+	DisplayServer.window_set_size(size)
+
 func toggle_menu(applied: bool = false):
 	menu_overlay.visible = !menu_overlay.visible
 	if menu_overlay.visible:
@@ -238,6 +257,7 @@ func toggle_menu(applied: bool = false):
 		height_eps_input.text = str(Config.height_epsilon)
 		terrain_detail_button.selected = Config.terrain_detail
 		aa_button.selected = Config.antialiasing_mode
+		resolution_button.selected = Config.resolution_index
 		view_distance_slider.value = Config.view_distance
 		_on_view_distance_value_changed(Config.view_distance)
 		curves_checkbox.button_pressed = Config.show_curves
@@ -357,6 +377,7 @@ func _on_set_pos_pressed():
 	Config.height_epsilon = h_eps
 	Config.terrain_detail = terrain_detail_button.selected
 	Config.antialiasing_mode = aa_button.selected
+	Config.resolution_index = resolution_button.selected
 	Config.show_curves = curves_checkbox.button_pressed
 	Config.show_critical_stripe = critical_checkbox.button_pressed
 	Config.environment_type = environment_button.selected
@@ -373,6 +394,7 @@ func _on_set_pos_pressed():
 	Config.height_type = height_button.selected
 
 	apply_aa()
+	_apply_resolution()
 
 	if Config.function_type == 10:
 		var expr = rational_input.text.replace(" ", "")
