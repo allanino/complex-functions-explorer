@@ -10,6 +10,7 @@ var _last_field_state = {}
 var LOD_SUBS = [] # This will be set in code
 var _lod_mesh_cache = {}
 var _last_player_chunk = Vector2i(9999, 9999)
+var slow_frame_counter: int = 0
 
 # We increase our chunks by this to make junctions more seamless
 # To test this, look at the right of zeta, the pole has a junction
@@ -33,6 +34,18 @@ func _ready():
 
 func _process(delta):
 	if not player:
+		return
+
+	# --- PERFORMANCE GUARD ---
+	var frame_time_ms = delta * 1000.0
+	if frame_time_ms > 100.0:
+		slow_frame_counter += 1
+		if slow_frame_counter >= 5:
+			Config.performance_protection_active = true
+	else:
+		slow_frame_counter = 0
+
+	if Config.performance_protection_active:
 		return
 
 	var player_pos = player.global_position

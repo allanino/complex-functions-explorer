@@ -58,6 +58,7 @@ extends CanvasLayer
 @onready var apply_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/ButtonsHBox/ApplyButton
 @onready var close_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/ButtonsHBox/CloseButton
 @onready var quit_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/ButtonsHBox/QuitContainer/QuitButton
+@onready var perf_label = $Control/HUDStack/PerfProtectionLabel
 
 @onready var tooltip = $TooltipLayer/Tooltip
 @onready var tooltip_label = $TooltipLayer/Tooltip/MarginContainer/Label
@@ -343,6 +344,7 @@ func _parse_poly(text: String) -> PackedFloat32Array:
 	return coeffs
 
 func _on_set_pos_pressed():
+	Config.performance_protection_active = false
 	var re = float(re_input.text)
 	var im = float(im_input.text)
 	if not is_finite(re): re = 0.5
@@ -422,6 +424,8 @@ func _on_quit_pressed():
 func _process(_delta):
 	if tooltip.visible:
 		_update_tooltip_position()
+
+	perf_label.visible = Config.performance_protection_active
 
 	if not player:
 		return

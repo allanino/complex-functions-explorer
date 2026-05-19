@@ -40,6 +40,7 @@ var drone_volume: float = 100.0
 
 # Session state (not saved)
 var visited_zeros: Array[float] = []
+var performance_protection_active: bool = false
 
 func _ready():
 	load_settings()

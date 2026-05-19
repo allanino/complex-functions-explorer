@@ -247,6 +247,15 @@ grow_vertical = 0
 theme_override_constants/separation = 10
 alignment = 2
 
+[node name="PerfProtectionLabel" type="Label" parent="Control/HUDStack"]
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.8, 0, 1)
+theme_override_font_sizes/font_size = 14
+text = "Performance protection activated, adjust settings."
+horizontal_alignment = 1
+autowrap_mode = 3
+
 [node name="ZerosPanel" type="PanelContainer" parent="Control/HUDStack"]
 visible = false
 custom_minimum_size = Vector2(0, 200)

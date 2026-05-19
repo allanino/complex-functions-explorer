@@ -125,14 +125,14 @@ func setup_audio_bus_and_effects():
 	$AudioStreamPlayer.bus = bus_name
 
 func _process(delta):
-	# --- FPS GUARD ---
-	var fps = 1.0 / delta if delta > 0 else 60.0
-	if fps < 15:
+	# --- PERFORMANCE GUARD ---
+	var frame_time_ms = delta * 1000.0
+	if frame_time_ms > 66.67: # < 15 FPS
 		low_fps_counter += 1
 		stable_fps_counter = 0
 		if low_fps_counter >= 2:
 			is_suppressed = true
-	elif fps >= 20:
+	elif frame_time_ms <= 50.0: # >= 20 FPS
 		stable_fps_counter += 1
 		low_fps_counter = 0
 		if stable_fps_counter >= 60:
