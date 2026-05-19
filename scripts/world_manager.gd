@@ -25,6 +25,7 @@ var day_night_cycle_duration = 500.0
 var _golden_hour_transition: float = 0.0
 var _day_night_time: float = 0.0
 var _sun_color = Color("#fc9500")
+var _current_atmosphere_color: Color = Color(0.6, 0.8, 1.0)
 
 func _ready():
 	_update_lod_subs()
@@ -112,11 +113,25 @@ func _process(delta):
 
 		night_factor = 0.0
 
+	# Compute current atmospheric color to sync sky and terrain
+	var h_day = Color(0.6, 0.8, 1.0)
+	var h_golden = Color(1.0, 0.4, 0.1)
+	var h_night = Color(0.01, 0.02, 0.05)
+
+	_current_atmosphere_color = h_day.lerp(h_golden, _golden_hour_transition)
+	_current_atmosphere_color = _current_atmosphere_color.lerp(h_night, night_factor)
+
 	if world_environment and world_environment.environment and world_environment.environment.sky:
 		var sky_mat = world_environment.environment.sky.sky_material as ShaderMaterial
 		if sky_mat:
 			sky_mat.set_shader_parameter("golden_hour_factor", _golden_hour_transition)
 			sky_mat.set_shader_parameter("night_factor", night_factor)
+			sky_mat.set_shader_parameter("atmosphere_color", _current_atmosphere_color)
+
+	# Update atmosphere color for all active chunks every frame
+	for chunk in chunks.values():
+		if chunk.material_override:
+			chunk.material_override.set_shader_parameter("atmosphere_color", _current_atmosphere_color)
 
 	# Check if any field properties have changed
 	var current_field_state = {
@@ -208,6 +223,7 @@ func _update_chunk_uniforms(chunk: MeshInstance3D):
 		chunk.material_override.set_shader_parameter("height_epsilon", Config.height_epsilon)
 		chunk.material_override.set_shader_parameter("rational_num_coeffs", Config.rational_num_coeffs)
 		chunk.material_override.set_shader_parameter("rational_den_coeffs", Config.rational_den_coeffs)
+		chunk.material_override.set_shader_parameter("atmosphere_color", _current_atmosphere_color)
 
 func _load_chunk(coord: Vector2i):
 	var chunk = chunk_scene.instantiate()

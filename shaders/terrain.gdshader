@@ -12,6 +12,11 @@ uniform int color_scheme = 0;
 uniform bool show_curves = true;
 uniform bool show_critical_stripe = true;
 
+uniform vec3 atmosphere_color;
+uniform float atmosphere_density = 0.00012;
+uniform float atmosphere_desaturation = 0.4;
+uniform float atmosphere_height_falloff = 0.015;
+
 // Helper function to convert HSV to RGB
 vec3 hsv2rgb(vec3 c) {
     vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
@@ -215,4 +220,25 @@ void fragment() {
         METALLIC = 0.7;
         SPECULAR = 0.1;
     }
+
+    // Aerial Perspective (Haze)
+    // CAMERA_POSITION_WORLD is for Godot 4.3+, let's use a safer version for compatibility
+    // if we don't have it, we could pass it or use (INV_VIEW_MATRIX * vec4(0.0, 0.0, 0.0, 1.0)).xyz
+    vec3 cam_pos = (INV_VIEW_MATRIX * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
+    float dist = distance(cam_pos, world_pos);
+    float haze = 1.0 - exp(-dist * atmosphere_density);
+    haze = pow(haze, 1.5);
+
+    float height_factor = exp(-world_pos.y * atmosphere_height_falloff);
+    haze *= height_factor;
+
+    // Apply to both ALBEDO and EMISSION to blend everything toward the horizon color
+    float albedo_lum = dot(ALBEDO, vec3(0.299, 0.587, 0.114));
+    ALBEDO = mix(ALBEDO, vec3(albedo_lum), haze * atmosphere_desaturation);
+    // At distance, we want it to be unshaded and match the sky exactly
+    ALBEDO = mix(ALBEDO, vec3(0.0), haze);
+
+    float emission_lum = dot(EMISSION, vec3(0.299, 0.587, 0.114));
+    EMISSION = mix(EMISSION, vec3(emission_lum), haze * atmosphere_desaturation);
+    EMISSION = mix(EMISSION, atmosphere_color, haze);
 }
