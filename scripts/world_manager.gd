@@ -124,6 +124,7 @@ func _process(delta):
 		"terrain_detail": Config.terrain_detail,
 		"show_curves": Config.show_curves,
 		"show_critical_stripe": Config.show_critical_stripe,
+		"color_scheme": Config.color_scheme,
 		"function_type": Config.function_type,
 		"height_type": Config.height_type,
 		"height_a": Config.height_a,
@@ -197,6 +198,7 @@ func _update_chunk_uniforms(chunk: MeshInstance3D):
 		var lod = chunk.get_meta("lod_level", 0)
 
 		chunk.material_override.set_shader_parameter("lod_level", lod)
+		chunk.material_override.set_shader_parameter("color_scheme", Config.color_scheme)
 		chunk.material_override.set_shader_parameter("iterations", Config.iterations)
 		chunk.material_override.set_shader_parameter("show_curves", Config.show_curves)
 		chunk.material_override.set_shader_parameter("show_critical_stripe", Config.show_critical_stripe)
