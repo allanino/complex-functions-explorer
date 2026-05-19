@@ -1,7 +1,7 @@
 # Complex Functions Explorer
 
 <p align="center">
-  <img src="docs/images/background.png" width="800" alt="Complex Functions Explorer Background">
+  <img src="docs/images/hero.png" width="800" alt="Complex Functions Explorer Zeta">
 </p>
 
 **Complex Functions Explorer** is an interactive 3D visualization tool that brings the abstract beauty of complex analysis to life. By mapping complex numbers into a navigable three-dimensional landscape, the software allows users to explore the intricate structures of functions such as the Riemann zeta function, including zeros, poles, and the critical line, within an immersive environment.
