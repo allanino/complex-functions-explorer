@@ -183,13 +183,13 @@
         }
 
         .domain-image {
-            flex: 0 1 150px;
+            flex: 0 1 200px;
             display: flex;
             justify-content: center;
         }
 
         .domain-image img {
-            width: 150px;
+            width: 200px;
             height: auto;
             border-radius: 24px;
             border: 1px solid rgba(255,255,255,0.08);
@@ -298,25 +298,34 @@
 
             <section id="curve-levels">
                 <h2>Curve Levels</h2>
-            
                 <p>
                     Superimposed on the terrain are contour lines, or <strong>curve levels</strong>, which provide a geometric reference for the values of the function. These curves make it possible to trace how the real and imaginary components evolve across the complex plane.
                 </p>
-            
-                <ul>
-                    <li>
-                        <strong>Black Curves (Real Part):</strong>
-                        These correspond to level sets where the real part of the function,
-                        \( \text{Re}(f(s)) \), takes integer values. They reveal the underlying structure of the function’s real transformation.
-                    </li>
-            
-                    <li>
-                        <strong>White Curves (Imaginary Part):</strong>
-                        These correspond to level sets where the imaginary part,
-                        \( \text{Im}(f(s)) \), takes integer values. Together with the black curves, they form a curvilinear grid that reflects the conformal character of the mapping.
-                    </li>
-                </ul>
-            
+
+                <div class="domain-section">
+                    <div class="domain-text">
+                        <ul>
+                            <li>
+                                <strong>Black Curves (Real Part):</strong>
+                                These correspond to level sets where the real part of the function,
+                                \( \operatorname{Re}(f(s)) \), takes integer values. They reveal the underlying structure of the function’s real transformation.
+                            </li>
+                    
+                            <li>
+                                <strong>White Curves (Imaginary Part):</strong>
+                                These correspond to level sets where the imaginary part,
+                                \( \operatorname{Im}(f(s)) \), takes integer values. Together with the black curves, they form a curvilinear grid that reflects the conformal character of the mapping.
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="domain-images">
+                        <div class="domain-image">
+                            <img src="images/curve_levels.png" alt="Example of curve levels">
+                        </div>
+                    </div>
+                </div>
+    
                 <p>
                     When a black curve and a white curve intersect at the base of the terrain, the point may correspond to a <strong>zero</strong> of the function, where both the real and imaginary parts vanish simultaneously.
                 </p>
@@ -330,25 +339,92 @@
                 </p>
 
                 <h3>The Riemann zeta function</h3>
+
+                <h4>Eta function analytical continuation</h4>
                 <p>
-                    Defined as \( \zeta(s) = \sum_{n=1}^\infty n^{-s} \) for \( \text{Re}(s) > 1 \), it is analytically continued to the rest of the complex plane. Our implementation uses the <strong>Dirichlet Eta representation</strong>, which provides improved numerical stability and allows evaluation across the critical strip.
+                    Defined as \( \zeta(s) = \sum_{n=1}^\infty n^{-s} \) for \( \operatorname{Re}(s) > 1 \), it is analytically continued to the rest of the complex plane. Our implementation uses the <strong>Dirichlet eta representation</strong> for numerical stability:
                 </p>
 
                 <div class="math-block">
-                    <p>The Dirichlet Eta function \( \eta(s) \) is defined as:</p>
-                    \[ \eta(s) = \sum_{n=1}^\infty \frac{(-1)^{n-1}}{n^s} \]
-                    <p>It is related to the zeta function by the following identity:</p>
-                    \[ \eta(s) = (1 - 2^{1-s})\zeta(s) \]
-                    <p>From this, we derive the representation used in our explorer:</p>
-                    \[ \zeta(s) = \frac{\eta(s)}{1 - 2^{1-s}} = \frac{1}{1 - 2^{1-s}} \sum_{n=1}^\infty \frac{(-1)^{n-1}}{n^s} \]
+                    \[ \zeta(s) = \frac{1}{1 - 2^{1-s}} \sum_{n=1}^\infty \frac{(-1)^{n-1}}{n^s} \]
                 </div>
                 <p>
-                    This alternating series converges for all \( s \) with \( \text{Re}(s) > 0 \), which is essential for visualizing the critical strip where the most famous unsolved problem in mathematics, the Riemann Hypothesis, resides.
+                    This alternating series converges for all \( s \) with \( \operatorname{Re}(s) > 0 \), which is essential for visualizing the critical strip where the most famous unsolved problem in mathematics, the Riemann Hypothesis, resides.
                 </p>
 
+                <h4>Reflection formula analytical continuation</h4>
                 <p>
-                    In practice, the landscape is only an approximation of the Riemann zeta function, since the underlying series must be truncated after a finite number of terms using the Iterations parameter. Accuracy gradually decreases for larger imaginary values, though the overall structure of the function remains visible far beyond the region where the approximation is strictly reliable.
+                    In this case we use the <strong>Dirichlet eta representation</strong> from the previous section for \( \operatorname{Re}(s) > 0.5 \), but for \( \operatorname{Re}(s) <= 0.5 \) the explorer utilizes the <strong>reflection formula</strong> to achieve analytical continuation to the entire complex plane:
                 </p>
+                <div class="math-block">
+                    \[ \zeta(s) = 2^s \pi^{s-1} \sin\left(\frac{\pi s}{2}\right) \Gamma(1-s) \zeta(1-s) \]
+                </div>
+                <p>
+                    In this calculation, the term \( \zeta(1-s) \) is evaluated using the Dirichlet Eta representation, since for \( \operatorname{Re}(s) < 0.5 \), the reflected point \( 1-s \) has a real part greater than \( 0.5 \). This allows evaluation across the critical strip and beyond.
+                </p>
+
+                <div class="math-block" style="border-left: 4px solid var(--accent-color);">
+                    <p><strong>Note on Precision:</strong> Calculations are performed in GPU shaders using <code>float32</code> arithmetic.
+                        This introduces numerical limitations and potential artifacts as the magnitude of the imaginary part \( |t| \) increases,
+                        due to the rapid oscillation and large intermediate values of the functions involved.
+                        These 
+                        effects are especially pronounced in the \( \sin \) and \( \Gamma \) terms 
+                        of the reflection formula, both of which can grow rapidly in magnitude.
+                    </div>
+
+                <h3>The Gamma function</h3>
+                <p>
+                    The Gamma function \( \Gamma(z) \) is implemented using the <strong>Lanczos approximation</strong> (\( g=7, N=9 \)):
+                </p>
+                <div class="math-block">
+                    \[ \Gamma(z) \approx \sqrt{2\pi} (z+g-0.5)^{z-0.5} e^{-(z+g-0.5)} A_g(z-1) \]
+                    <p>where \( A_g(z) \) is the partial fraction expansion:</p>
+                    \[ A_g(z) = p_0 + \sum_{n=1}^8 \frac{p_n}{z+n} \]
+                </div>
+                <p>using the following coefficients:</p>
+                <ul>
+                    <li>\( p_0 = 0.99999999999980993 \)</li>
+                    <li>\( p_1 = 676.5203681218851 \)</li>
+                    <li>\( p_2 = -1259.1392167224028 \)</li>
+                    <li>\( p_3 = 771.32342877765313 \)</li>
+                    <li>\( p_4 = -176.61502916214059 \)</li>
+                    <li>\( p_5 = 12.507343278686905 \)</li>
+                    <li>\( p_6 = -0.13857109526572012 \)</li>
+                    <li>\( p_7 = 9.9843695780195716 \times 10^{-6} \)</li>
+                    <li>\( p_8 = 1.5056327351493116 \times 10^{-7} \)</li>
+                </ul>
+
+                <p>
+                    In practice, the rendered landscape is only an approximation of these functions.
+                    Numerical accuracy gradually decreases for larger imaginary values,
+                    particularly when using <code>float32</code> arithmetic on the GPU.
+                    Rapid oscillations, large intermediate values, and accumulated floating-point
+                    error can introduce visual artifacts and loss of precision at high magnitudes.
+                    Nevertheless, the global structure of the functions remains visually recognizable
+                    far beyond the region where the approximation is strictly reliable.
+                </p>
+
+                <div class="math-block" style="border-left: 4px solid var(--accent-color);">
+                    <div class="domain-section">
+                        <div class="domain-text">
+                            <p>
+                                <strong>Numerical Singularities:</strong>
+                                Regions where the function evaluation produces 
+                                <code>NaN</code> or infinite values are rendered as a dark terrain 
+                                covered with green grid-like squares reminiscent of <em>The Matrix</em>. 
+                                These regions typically arise near overflow conditions, or severe floating-point instability in the GPU shaders.
+                                Rather than hiding such failures, the visualization exposes them directly 
+                                as part of the numerical structure of the computation.
+                            </p>
+                        </div>
+                        
+                        <div class="domain-images">
+                            <div class="domain-image">
+                                <img src="images/overflow.png" alt="Example of overflow">
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </section>
 
             <section id="options">
