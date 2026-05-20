@@ -76,7 +76,11 @@ using the following coefficients:
 #### The Mandelbrot Function
 The explorer visualizes the **Mandelbrot function** by computing the sequence $z_{n+1} = z_n^2 + c$ recursively, starting at $z_0 = 0$, where $c$ represents the position in the complex plane. The `iterations` parameter controls the maximum depth of the recursion. The final value of $z_n$ is used for domain coloring and height mapping.
 
-In practice, the rendered landscape is only an approximation of these functions. Numerical accuracy gradually decreases for larger imaginary values, particularly when using `float32` arithmetic on the GPU. Rapid oscillations, large intermediate values, and accumulated floating-point error can introduce visual artifacts and loss of precision at high magnitudes. Nevertheless, the global structure of the functions remains visually recognizable far beyond the region where the approximation is strictly reliable.
+<p align="center">
+  <img src="docs/images/mandelbrot.png" width="800" alt="Mandelbrot">
+</p>
+
+> ** Using the Zoom Factor: ** The `Zoom Factor` controls the scale of the visible region in the complex plane. Larger zoom values progressively magnify smaller portions of the function, revealing increasingly intricate structures and fine details that are not visible at larger scales. As the zoom increases, the explorer rescales the domain coordinates before evaluating the function. This effectively allows navigation through smaller regions of the complex plane while preserving the same rendering pipeline. In the Mandelbrot visualization, deep zooms expose self-similar formations, filamentary boundaries, and highly complex recursive structures characteristic of fractal geometry.
 
 ### Numerical Singularities
 Regions where the function evaluation produces `NaN` or infinite values are rendered as a dark terrain covered with green grid-like squares reminiscent of *The Matrix*. These regions typically arise near overflow conditions, or severe floating-point instability in the GPU shaders. Rather than hiding such failures, the visualization exposes them directly as part of the numerical structure of the computation.
