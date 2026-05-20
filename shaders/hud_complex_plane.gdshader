@@ -4,6 +4,12 @@ uniform vec2 current_f; // Current value of f(x,z)
 uniform int color_scheme = 0;
 uniform float scale = 2.0; // Current scale of the complex plane view
 
+uniform float brightness = 1.0;
+uniform float saturation = 0.85;
+uniform float albedo = 0.15;
+uniform float emission = 0.1;
+uniform bool performance_protection_active = false;
+
 // Helper function to convert HSV to RGB
 vec3 hsv2rgb(vec3 c) {
     vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
@@ -19,43 +25,51 @@ float sdSegment(vec2 p, vec2 a, vec2 b) {
 }
 
 void fragment() {
-    // Map UV to complex plane [-scale, scale]
-    // Invert Y so that positive imaginary values are at the top
-    vec2 z = (vec2(UV.x, 1.0 - UV.y) - 0.5) * 2.0 * scale;
+    vec3 color;
 
-    // Calculate phase and magnitude
-    float phase = atan(z.y, z.x);
-    float mag = length(z);
+    if (performance_protection_active) {
+        color = vec3(0.01, 0.02, 0.03);
+    } else {
+        // Map UV to complex plane [-scale, scale]
+        // Invert Y so that positive imaginary values are at the top
+        vec2 z = (vec2(UV.x, 1.0 - UV.y) - 0.5) * 2.0 * scale;
 
-    // Background color based on phase
-    float hue = (phase + PI) / (2.0 * PI);
-    if (color_scheme == 1) {
-        hue = fract(hue + 0.5);
-    }
-    vec3 color = hsv2rgb(vec3(hue, 0.6, 0.7)); // Brighter background
+        // Calculate phase and magnitude
+        float phase = atan(z.y, z.x);
+        float mag = length(z);
 
-    // Draw unit circle
-    float unit_circle = abs(mag - 1.0);
-    float circle_mask = smoothstep(0.02 * scale, 0.0, unit_circle);
-    color = mix(color, vec3(0.9), circle_mask);
+        // Background color based on phase
+        float hue = (phase + PI) / (2.0 * PI);
+        if (color_scheme == 1) {
+            hue = fract(hue + 0.5);
+        }
 
-    // Draw arrow for phase
-    float f_mag = length(current_f);
-    if (f_mag > 0.001) {
-        vec2 dir = current_f / f_mag;
-        vec2 tip = dir; // Pointing to unit circle
+        vec3 base = hsv2rgb(vec3(hue, saturation, brightness));
+        color = base * (albedo + emission);
 
-        // Shaft
-        float d = sdSegment(z, vec2(0.0), tip);
+        // Draw unit circle
+        float unit_circle = abs(mag - 1.0);
+        float circle_mask = smoothstep(0.02 * scale, 0.0, unit_circle);
+        color = mix(color, vec3(0.9), circle_mask);
 
-        // Arrow head
-        vec2 perp = vec2(-dir.y, dir.x);
-        vec2 head_base = tip - 0.15 * dir * (scale / 2.0); // Adjust size by scale
-        d = min(d, sdSegment(z, tip, head_base + 0.08 * perp * (scale / 2.0)));
-        d = min(d, sdSegment(z, tip, head_base - 0.08 * perp * (scale / 2.0)));
+        // Draw arrow for phase
+        float f_mag = length(current_f);
+        if (f_mag > 0.001) {
+            vec2 dir = current_f / f_mag;
+            vec2 tip = dir; // Pointing to unit circle
 
-        float arrow_mask = smoothstep(0.02 * scale, 0.0, d);
-        color = mix(color, vec3(1.0), arrow_mask);
+            // Shaft
+            float d = sdSegment(z, vec2(0.0), tip);
+
+            // Arrow head
+            vec2 perp = vec2(-dir.y, dir.x);
+            vec2 head_base = tip - 0.15 * dir * (scale / 2.0); // Adjust size by scale
+            d = min(d, sdSegment(z, tip, head_base + 0.08 * perp * (scale / 2.0)));
+            d = min(d, sdSegment(z, tip, head_base - 0.08 * perp * (scale / 2.0)));
+
+            float arrow_mask = smoothstep(0.02 * scale, 0.0, d);
+            color = mix(color, vec3(1.0), arrow_mask);
+        }
     }
 
     COLOR = vec4(color, 1.0);
