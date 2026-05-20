@@ -3,7 +3,10 @@ extends CanvasLayer
 @export var player: Node3D
 @onready var complex_panel = $Control/HUDStack/ComplexAspect
 @onready var info_panel = $Control/HUDStack/InfoPanel
+@onready var monitor_panel = $Control/HUDStack/MonitorPanel
+@onready var fps_label = $Control/HUDStack/MonitorPanel/MarginContainer/VBox/FpsLabel
 @onready var complex_rect = $Control/HUDStack/ComplexAspect/ComplexPanel/MarginContainer/ClipPanel/ComplexPlane
+@onready var world_manager = get_node("../WorldManager")
 @onready var domain_label = $Control/HUDStack/InfoPanel/MarginContainer/VBox/DomainLabel
 @onready var target_label = $Control/HUDStack/InfoPanel/MarginContainer/VBox/TargetLabel
 @onready var zeros_panel = $Control/HUDStack/ZerosPanel
@@ -49,6 +52,7 @@ extends CanvasLayer
 @onready var hud_navigation_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/HUD/HudNavigationCheckbox
 @onready var hud_zeros_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/HUD/HudZetaZerosCheckbox
 @onready var rvm_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/HUD/RvmCheckbox
+@onready var hud_monitor_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/HUD/HudMonitorCheckbox
 
 @onready var bg_music_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/AUDIO/BgMusicContainer/BgMusicSlider
 @onready var bg_music_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/AUDIO/BgMusicContainer/BgMusicValue
@@ -92,6 +96,7 @@ const DESCRIPTIONS = {
 	"Navigation": "Show coordinate and magnitude information on the HUD.",
 	"Zeta zeros": "Show the list of discovered zeros during automatic walking.",
 	"Riemann–von Mangoldt": "Show the estimated number of zeros N(t) based on the Riemann–von Mangoldt formula.",
+	"Monitor": "Show real-time performance metrics (FPS) on the HUD.",
 	"Background Music": "Adjust the volume of the ambient mathematical soundscape.",
 	"Topographic Drone": "Adjust the volume of the terrain-responsive spatial audio."
 }
@@ -260,6 +265,7 @@ func toggle_menu(applied: bool = false):
 		hud_navigation_checkbox.button_pressed = Config.show_hud_navigation
 		hud_zeros_checkbox.button_pressed = Config.show_hud_zeros
 		rvm_checkbox.button_pressed = Config.show_rvm
+		hud_monitor_checkbox.button_pressed = Config.show_hud_monitor
 		if player:
 			auto_walk_checkbox.button_pressed = (player.auto_walk_state != 0) # 0 is AutoWalkState.NONE
 		bg_music_slider.value = Config.bg_music_volume
@@ -378,6 +384,7 @@ func _on_set_pos_pressed():
 	Config.show_hud_navigation = hud_navigation_checkbox.button_pressed
 	Config.show_hud_zeros = hud_zeros_checkbox.button_pressed
 	Config.show_rvm = rvm_checkbox.button_pressed
+	Config.show_hud_monitor = hud_monitor_checkbox.button_pressed
 	Config.bg_music_volume = bg_music_slider.value
 	Config.drone_volume = drone_slider.value
 	Config.view_distance = int(view_distance_slider.value)
@@ -480,3 +487,23 @@ func _process(_delta):
 
 	complex_panel.visible = Config.show_hud_complex
 	info_panel.visible = Config.show_hud_navigation
+	monitor_panel.visible = Config.show_hud_monitor
+	if Config.show_hud_monitor:
+		var monitor_text = "FPS: %d" % Engine.get_frames_per_second()
+		if world_manager:
+			monitor_text += "\n\nChunks"
+			var num_lods = world_manager.LOD_SUBS.size()
+			var lod_counts = []
+			lod_counts.resize(num_lods)
+			lod_counts.fill(0)
+
+			for chunk in world_manager.chunks.values():
+				var lod = chunk.get_meta("lod_level", 0)
+				if lod >= 0 and lod < num_lods:
+					lod_counts[lod] += 1
+
+			for i in range(num_lods):
+				if lod_counts[i] > 0:
+					monitor_text += "\n%d: %d" % [world_manager.LOD_SUBS[i], lod_counts[i]]
+
+		fps_label.text = monitor_text
