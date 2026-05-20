@@ -5,7 +5,7 @@ const DOUBLE_PRESS_TIME = 0.3
 const CRITICAL_LINE_X = 5.0
 const AUTO_WALK_PITCH = -0.523598776 # -30 degrees in radians
 const STEEP_SLOPE_THRESHOLD = 1.732 # tan(60 degrees)
-const REPULSION_STRENGTH = 2.0
+const REPULSION_STRENGTH = 1.0
 
 enum AutoWalkState { NONE, MOVING_TO_LINE, WALKING }
 
@@ -179,7 +179,9 @@ func _physics_process(delta):
 	var grad = _get_terrain_gradient(global_position.x, global_position.z)
 	var slope = grad.length()
 	if slope > STEEP_SLOPE_THRESHOLD:
-		var repulsion_factor = (slope - STEEP_SLOPE_THRESHOLD) * REPULSION_STRENGTH
+		# Soft repulsion: allow climbing but push back to maintain space.
+		# Clamp factor to ensure user can always overcome it with forward input.
+		var repulsion_factor = clamp((slope - STEEP_SLOPE_THRESHOLD) * REPULSION_STRENGTH, 0.0, 0.8)
 		var repulsion_dir = grad.normalized()
 		velocity.x -= repulsion_dir.x * repulsion_factor * current_speed
 		velocity.z -= repulsion_dir.y * repulsion_factor * current_speed
