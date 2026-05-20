@@ -46,16 +46,16 @@ The explorer supports various standard complex functions, including trigonometri
 Implementation uses the **Dirichlet Eta representation** for numerical stability when $\mathrm{Re}(s) > 0.5$:
 $$\zeta(s) = \frac{1}{1 - 2^{1-s}} \sum_{n=1}^\infty \frac{(-1)^{n-1}}{n^s}$$
 
-#### The Dirichlet Beta Function
-The explorer implements the **Dirichlet beta function** $\beta(s)$ using its series representation, which converges for $\mathrm{Re}(s) > 0$:
-$$\beta(s) = \sum_{n=0}^\infty \frac{(-1)^n}{(2n+1)^s}$$
-
 ##### Reflection formula analytical continuation
 For $\mathrm{Re}(s) < 0.5$, the explorer utilizes the **reflection formula** to achieve analytical continuation to the entire complex plane:
 $$\zeta(s) = 2^s \pi^{s-1} \sin\left(\frac{\pi s}{2}\right) \Gamma(1-s) \zeta(1-s)$$
 In this calculation, the term $\zeta(1-s)$ is evaluated using the Dirichlet Eta representation, since for $\mathrm{Re}(s) < 0.5$, the reflected point $1-s$ has a real part greater than $0.5$. This allows evaluation across the critical strip and beyond.
 
 > **Note on Precision:** Calculations are performed in GPU shaders using `float32` arithmetic. This introduces numerical limitations and potential artifacts as the magnitude of the imaginary part $|t|$ increases, due to the rapid oscillation and large intermediate values of the functions involved. These effects are especially pronounced in the $\sin$ and $\Gamma$ terms of the reflection formula, both of which can grow rapidly in magnitude.
+
+#### The Dirichlet Beta Function
+The explorer implements the **Dirichlet beta function** $\beta(s)$ using its series representation, which converges for $\mathrm{Re}(s) > 0$:
+$$\beta(s) = \sum_{n=0}^\infty \frac{(-1)^n}{(2n+1)^s}$$
 
 #### The Gamma Function
 The Gamma function $\Gamma(z)$ is implemented using the **Lanczos approximation** ($g=7, N=9$):
