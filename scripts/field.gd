@@ -56,6 +56,17 @@ static func dirichlet_eta(sigma: float, t: float, iterations: int) -> Vector2:
 		eta += _sign * amp * Vector2(cos(theta), sin(theta))
 	return eta
 
+static func dirichlet_beta(sigma: float, t: float, iterations: int) -> Vector2:
+	var beta = Vector2.ZERO
+	for n in range(iterations):
+		var k = 2.0 * float(n) + 1.0
+		var amp = pow(k, -sigma)
+		if amp < 1e-6: break
+		var theta = -t * log(k)
+		var _sign = 1.0 if (n % 2 == 0) else -1.0
+		beta += _sign * amp * Vector2(cos(theta), sin(theta))
+	return beta
+
 static func zeta(sigma: float, t: float) -> Vector2:
 	var iterations = Config.iterations
 	var eta = dirichlet_eta(sigma, t, iterations)
@@ -186,15 +197,16 @@ static func get_field(x: float, z: float) -> Vector2:
 	if function_type == 0: return zeta(sigma, t)
 	elif function_type == 1: return zeta_continuation(sigma, t)
 	elif function_type == 2: return dirichlet_eta(sigma, t, Config.iterations)
-	elif function_type == 3: return complex_gamma(sigma, t)
-	elif function_type == 4: return complex_log_gamma(sigma, t)
-	elif function_type == 5: return dedekind_eta(sigma, t)
-	elif function_type == 6: return complex_sin(sigma, t)
-	elif function_type == 7: return complex_cos(sigma, t)
-	elif function_type == 8: return complex_tan(sigma, t)
-	elif function_type == 9: return complex_exp(sigma, t)
-	elif function_type == 10: return complex_log(sigma, t)
-	elif function_type == 11: return get_rational(sigma, t)
+	elif function_type == 3: return dirichlet_beta(sigma, t, Config.iterations)
+	elif function_type == 4: return complex_gamma(sigma, t)
+	elif function_type == 5: return complex_log_gamma(sigma, t)
+	elif function_type == 6: return dedekind_eta(sigma, t)
+	elif function_type == 7: return complex_sin(sigma, t)
+	elif function_type == 8: return complex_cos(sigma, t)
+	elif function_type == 9: return complex_tan(sigma, t)
+	elif function_type == 10: return complex_exp(sigma, t)
+	elif function_type == 11: return complex_log(sigma, t)
+	elif function_type == 12: return get_rational(sigma, t)
 	return Vector2.ZERO
 
 static func get_height(x: float, z: float) -> float:

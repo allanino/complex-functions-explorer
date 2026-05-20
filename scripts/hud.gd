@@ -127,6 +127,7 @@ func _ready():
 	func_button.add_item("Zeta (σ > 0)")
 	func_button.add_item("Zeta (reflection formula)")
 	func_button.add_item("Dirichlet Eta (σ > 0)")
+	func_button.add_item("Dirichlet Beta (σ > 0)")
 	func_button.add_item("Gamma")
 	func_button.add_item("Log Gamma")
 	func_button.add_item("Dedekind Eta")
@@ -288,13 +289,13 @@ func toggle_menu(applied: bool = false):
 			Config.drone_volume = _initial_drone_volume
 
 func _on_func_selected(index):
-	var is_zeta_variant = (index == 0 or index == 1 or index == 2)
+	var is_zeta_variant = (index >= 0 and index <= 3)
 
-	if index == 5 and Config.function_type != 5:
+	if index == 6 and Config.function_type != 6:
 		iter_input.text = "10"
 
-	rational_container.visible = (index == 11)
-	iter_container.visible = (is_zeta_variant or index == 5)
+	rational_container.visible = (index == 12)
+	iter_container.visible = (is_zeta_variant or index == 6)
 	critical_checkbox.visible = is_zeta_variant
 	hud_zeros_checkbox.visible = is_zeta_variant
 	auto_walk_checkbox.visible = is_zeta_variant
@@ -394,7 +395,7 @@ func _on_set_pos_pressed():
 
 	apply_aa()
 
-	if Config.function_type == 11:
+	if Config.function_type == 12:
 		var expr = rational_input.text.replace(" ", "")
 		if "/" in expr:
 			var parts = expr.split("/")
@@ -448,7 +449,7 @@ func _process(_delta):
 	if player and "auto_walk_state" in player:
 		is_auto_walking = player.auto_walk_state != 0 # 0 is AutoWalkState.NONE
 
-	var show_zeros = ((Config.function_type == 0 or Config.function_type == 1 or Config.function_type == 2) and is_auto_walking and Config.show_hud_zeros)
+	var show_zeros = ((Config.function_type >= 0 and Config.function_type <= 3) and is_auto_walking and Config.show_hud_zeros)
 	zeros_panel.visible = show_zeros
 
 	if show_zeros:
