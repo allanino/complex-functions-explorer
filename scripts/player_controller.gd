@@ -103,12 +103,12 @@ func _physics_process(delta):
 		space_held_time += delta
 		if space_held_time > DOUBLE_PRESS_TIME:
 			is_resetting_height = false
-			height_offset += 10.0 * delta
+			height_offset += delta * current_speed
 	else:
 		space_held_time = 0.0
 
 	if is_resetting_height:
-		height_offset = move_toward(height_offset, 0.0, 20.0 * delta)
+		height_offset = move_toward(height_offset, 0.0, delta * current_speed)
 		if height_offset <= 0.0:
 			is_resetting_height = false
 
