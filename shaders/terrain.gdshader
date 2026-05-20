@@ -12,6 +12,13 @@ uniform int color_scheme = 0;
 uniform bool show_curves = true;
 uniform bool show_critical_stripe = true;
 
+uniform float brightness : hint_range(0.0, 2.0) = 1.0;
+uniform float saturation : hint_range(0.3, 1.0) = 0.85;
+uniform float albedo : hint_range(0.0, 1.0) = 0.15;
+uniform float emission : hint_range(0.0, 1.0) = 0.1;
+uniform float metallic : hint_range(0.0, 1.0) = 0.7;
+uniform float roughness : hint_range(0.0, 1.0) = 0.1;
+
 // Helper function to convert HSV to RGB
 vec3 hsv2rgb(vec3 c) {
     vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
@@ -154,7 +161,7 @@ void fragment() {
         if (color_scheme == 1) {
             hue = fract(hue + 0.5);
         }
-        vec3 base = hsv2rgb(vec3(hue, 0.85, 1.0));
+        vec3 base = hsv2rgb(vec3(hue, saturation, brightness));
 
         if (show_curves) {
             // 1. Get raw pixel derivatives (true density indicators)
@@ -189,8 +196,8 @@ void fragment() {
         }
 
 
-        ALBEDO = base * 0.15;
-        vec3 final_emission = base * 0.1;
+        ALBEDO = base * albedo;
+        vec3 final_emission = base * emission;
 
         // Only apply the lines rendering for zeta (at x = 0, x = 5.0, x = 10.0)
         // which corresponds to Re = 0.0, Re = 0.5, Re = 1.0
@@ -225,8 +232,8 @@ void fragment() {
         }
 
         EMISSION = final_emission;
-        ROUGHNESS = 0.1;
-        METALLIC = 0.7;
+        ROUGHNESS = roughness;
+        METALLIC = metallic;
         SPECULAR = 0.1;
     }
 }
