@@ -158,7 +158,7 @@ func _physics_process(delta):
 	var terrain_h = get_terrain_height(global_position.x, global_position.z)
 
 	# Snap player to terrain height + offset
-	global_position.y = terrain_h + Config.camera_height + height_offset
+	global_position.y = terrain_h + Config.camera_height / Config.zoom_factor + height_offset
 
 	# Zeta zero detection during auto-walk
 	if auto_walk_state == AutoWalkState.WALKING and (Config.function_type >= 0 and Config.function_type <= 3):
