@@ -310,6 +310,38 @@ theme_override_font_sizes/font_size = 12
 horizontal_alignment = 1
 autowrap_mode = 3
 
+[node name="MonitorPanel" type="PanelContainer" parent="Control/HUDStack"]
+visible = false
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_glass")
+
+[node name="MarginContainer" type="MarginContainer" parent="Control/HUDStack/MonitorPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="VBox" type="VBoxContainer" parent="Control/HUDStack/MonitorPanel/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 5
+
+[node name="TitleLabel" type="Label" parent="Control/HUDStack/MonitorPanel/MarginContainer/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "MONITOR"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="Control/HUDStack/MonitorPanel/MarginContainer/VBox"]
+layout_mode = 2
+
+[node name="FpsLabel" type="Label" parent="Control/HUDStack/MonitorPanel/MarginContainer/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "FPS: 60"
+horizontal_alignment = 1
+
 [node name="InfoPanel" type="PanelContainer" parent="Control/HUDStack"]
 custom_minimum_size = Vector2(0, 200)
 layout_mode = 2
@@ -904,6 +936,19 @@ theme_override_styles/pressed = SubResource("StyleBoxFlat_checkbox")
 theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_checkbox_hover")
 theme_override_styles/focus = SubResource("StyleBoxFlat_checkbox")
 text = "Riemann–von Mangoldt"
+
+[node name="HudMonitorCheckbox" type="CheckBox" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/HUD"]
+layout_mode = 2
+focus_mode = 0
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_constants/h_separation = 15
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_checkbox")
+theme_override_styles/hover = SubResource("StyleBoxFlat_checkbox_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_checkbox")
+theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_checkbox_hover")
+theme_override_styles/focus = SubResource("StyleBoxFlat_checkbox")
+text = "Performance Monitor"
 
 [node name="AUDIO" type="VBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer"]
 visible = false
