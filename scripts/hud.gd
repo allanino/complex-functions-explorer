@@ -96,7 +96,7 @@ const DESCRIPTIONS = {
 	"Navigation": "Show coordinate and magnitude information on the HUD.",
 	"Zeta zeros": "Show the list of discovered zeros during automatic walking.",
 	"Riemann–von Mangoldt": "Show the estimated number of zeros N(t) based on the Riemann–von Mangoldt formula.",
-	"Monitor": "Show real-time performance metrics (FPS) on the HUD.",
+	"Performance Monitor": "Show real-time performance metrics (FPS) and chunks statistics on the HUD.",
 	"Background Music": "Adjust the volume of the ambient mathematical soundscape.",
 	"Topographic Drone": "Adjust the volume of the terrain-responsive spatial audio."
 }

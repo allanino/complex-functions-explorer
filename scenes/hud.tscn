@@ -948,7 +948,7 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_checkbox_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_checkbox")
 theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_checkbox_hover")
 theme_override_styles/focus = SubResource("StyleBoxFlat_checkbox")
-text = "Monitor"
+text = "Performance Monitor"
 
 [node name="AUDIO" type="VBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer"]
 visible = false
