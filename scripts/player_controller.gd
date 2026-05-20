@@ -4,6 +4,8 @@ const MOUSE_SENSITIVITY = 0.002
 const DOUBLE_PRESS_TIME = 0.3
 const CRITICAL_LINE_X = 5.0
 const AUTO_WALK_PITCH = -0.523598776 # -30 degrees in radians
+const STEEP_SLOPE_THRESHOLD = 1.732 # tan(60 degrees)
+const REPULSION_STRENGTH = 2.0
 
 enum AutoWalkState { NONE, MOVING_TO_LINE, WALKING }
 
@@ -89,6 +91,13 @@ func _unhandled_input(event):
 func get_terrain_height(x: float, z: float) -> float:
 	return Field.get_height(x, z)
 
+func _get_terrain_gradient(x: float, z: float) -> Vector2:
+	var eps = 0.01
+	var h_base = get_terrain_height(x, z)
+	var h_x = get_terrain_height(x + eps, z)
+	var h_z = get_terrain_height(x, z + eps)
+	return Vector2((h_x - h_base) / eps, (h_z - h_base) / eps)
+
 func _physics_process(delta):
 	if auto_walk_state != AutoWalkState.NONE:
 		var manual_input = Input.get_vector("move_left", "move_right", "move_forward", "move_backward")
@@ -165,6 +174,15 @@ func _physics_process(delta):
 	else:
 		velocity.x = move_toward(velocity.x, 0, current_speed)
 		velocity.z = move_toward(velocity.z, 0, current_speed)
+
+	# Slope repulsion to avoid clipping into steep terrain
+	var grad = _get_terrain_gradient(global_position.x, global_position.z)
+	var slope = grad.length()
+	if slope > STEEP_SLOPE_THRESHOLD:
+		var repulsion_factor = (slope - STEEP_SLOPE_THRESHOLD) * REPULSION_STRENGTH
+		var repulsion_dir = grad.normalized()
+		velocity.x -= repulsion_dir.x * repulsion_factor * current_speed
+		velocity.z -= repulsion_dir.y * repulsion_factor * current_speed
 
 	# Calculate current terrain height
 	var terrain_h = get_terrain_height(global_position.x, global_position.z)
