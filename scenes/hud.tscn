@@ -737,7 +737,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 4
 min_value = 2.0
-max_value = 15.0
+max_value = 50.0
 value = 7.0
 
 [node name="ViewDistanceValue" type="Label" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/GRAPHICS/ViewDistanceContainer"]
@@ -858,7 +858,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 4
 min_value = 1.0
-max_value = 1000.0
+max_value = 100.0
 value = 1.0
 
 [node name="ZoomValue" type="Label" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/ZoomContainer"]
