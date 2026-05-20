@@ -1,7 +1,7 @@
 // Shared field and height functions for shaders
 
 uniform int iterations = 120;
-uniform int function_type = 0; // 0: Zeta, 1: Zeta continuation, 2: Dirichlet Eta, 3: Gamma, 4: Log Gamma, 5: Dedekind Eta, 6: Sin, 7: Cos, 8: Tan, 9: Exp, 10: Log, 11: Rational
+uniform int function_type = 0; // 0: Zeta, 1: Zeta continuation, 2: Dirichlet Eta, 3: Dirichlet Beta, 4: Gamma, 5: Log Gamma, 6: Dedekind Eta, 7: Sin, 8: Cos, 9: Tan, 10: Exp, 11: Log, 12: Rational
 uniform int height_type = 0;   // 0: Log, 1: Abs
 uniform float height_a = 3.0;
 uniform float height_epsilon = 1.0;
@@ -113,6 +113,40 @@ FieldData dirichlet_eta_with_derivatives(float sigma, float t, int iters) {
     FieldData result;
     result.value = eta;
     result.d_sigma = deta_dsigma;
+    result.d_t = vec2(-result.d_sigma.y, result.d_sigma.x);
+    return result;
+}
+
+vec2 dirichlet_beta(float sigma, float t, int iters) {
+    vec2 beta = vec2(0.0);
+    for (int n = 0; n < iters; n++) {
+        float k = 2.0 * float(n) + 1.0;
+        float amp = pow(k, -sigma);
+        if (amp < 1e-6) break;
+        float theta = -t * log(k);
+        float _sign = (mod(float(n), 2.0) < 0.5) ? 1.0 : -1.0;
+        beta += _sign * amp * vec2(cos(theta), sin(theta));
+    }
+    return beta;
+}
+
+FieldData dirichlet_beta_with_derivatives(float sigma, float t, int iters) {
+    vec2 beta = vec2(0.0);
+    vec2 dbeta_dsigma = vec2(0.0);
+    for (int n = 0; n < iters; n++) {
+        float k = 2.0 * float(n) + 1.0;
+        float amp = pow(k, -sigma);
+        if (amp < 1e-6) break;
+        float log_k = log(k);
+        float theta = -t * log_k;
+        float _sign = (mod(float(n), 2.0) < 0.5) ? 1.0 : -1.0;
+        vec2 term = _sign * amp * vec2(cos(theta), sin(theta));
+        beta += term;
+        dbeta_dsigma += -log_k * term;
+    }
+    FieldData result;
+    result.value = beta;
+    result.d_sigma = dbeta_dsigma;
     result.d_t = vec2(-result.d_sigma.y, result.d_sigma.x);
     return result;
 }
@@ -514,15 +548,16 @@ FieldData get_field_with_derivatives(float x, float z) {
     if (function_type == 0) return zeta_with_derivatives(sigma, t, iterations);
     if (function_type == 1) return zeta_continuation_with_derivatives(sigma, t, iterations);
     if (function_type == 2) return dirichlet_eta_with_derivatives(sigma, t, iterations);
-    if (function_type == 3) return complex_gamma_with_derivatives(sigma, t);
-    if (function_type == 4) return complex_log_gamma_with_derivatives(sigma, t);
-    if (function_type == 5) return dedekind_eta_with_derivatives(sigma, t, iterations);
-    if (function_type == 6) return complex_sin_with_derivatives(sigma, t);
-    if (function_type == 7) return complex_cos_with_derivatives(sigma, t);
-    if (function_type == 8) return complex_tan_with_derivatives(sigma, t);
-    if (function_type == 9) return complex_exp_with_derivatives(sigma, t);
-    if (function_type == 10) return complex_log_with_derivatives(sigma, t);
-    if (function_type == 11) return get_rational_with_derivatives(sigma, t);
+    if (function_type == 3) return dirichlet_beta_with_derivatives(sigma, t, iterations);
+    if (function_type == 4) return complex_gamma_with_derivatives(sigma, t);
+    if (function_type == 5) return complex_log_gamma_with_derivatives(sigma, t);
+    if (function_type == 6) return dedekind_eta_with_derivatives(sigma, t, iterations);
+    if (function_type == 7) return complex_sin_with_derivatives(sigma, t);
+    if (function_type == 8) return complex_cos_with_derivatives(sigma, t);
+    if (function_type == 9) return complex_tan_with_derivatives(sigma, t);
+    if (function_type == 10) return complex_exp_with_derivatives(sigma, t);
+    if (function_type == 11) return complex_log_with_derivatives(sigma, t);
+    if (function_type == 12) return get_rational_with_derivatives(sigma, t);
     FieldData res;
     res.value = vec2(0.0);
     res.d_sigma = vec2(0.0);
@@ -536,15 +571,16 @@ vec2 get_field(float x, float z) {
     if (function_type == 0) return zeta(sigma, t, iterations);
     if (function_type == 1) return zeta_continuation(sigma, t, iterations);
     if (function_type == 2) return dirichlet_eta(sigma, t, iterations);
-    if (function_type == 3) return complex_gamma(sigma, t);
-    if (function_type == 4) return complex_log_gamma(sigma, t);
-    if (function_type == 5) return dedekind_eta(sigma, t);
-    if (function_type == 6) return complex_sin(sigma, t);
-    if (function_type == 7) return complex_cos(sigma, t);
-    if (function_type == 8) return complex_tan(sigma, t);
-    if (function_type == 9) return complex_exp(sigma, t);
-    if (function_type == 10) return complex_log(sigma, t);
-    if (function_type == 11) return get_rational(sigma, t);
+    if (function_type == 3) return dirichlet_beta(sigma, t, iterations);
+    if (function_type == 4) return complex_gamma(sigma, t);
+    if (function_type == 5) return complex_log_gamma(sigma, t);
+    if (function_type == 6) return dedekind_eta(sigma, t);
+    if (function_type == 7) return complex_sin(sigma, t);
+    if (function_type == 8) return complex_cos(sigma, t);
+    if (function_type == 9) return complex_tan(sigma, t);
+    if (function_type == 10) return complex_exp(sigma, t);
+    if (function_type == 11) return complex_log(sigma, t);
+    if (function_type == 12) return get_rational(sigma, t);
     return vec2(0.0);
 }
 

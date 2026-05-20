@@ -53,6 +53,10 @@ In this calculation, the term $\zeta(1-s)$ is evaluated using the Dirichlet Eta 
 
 > **Note on Precision:** Calculations are performed in GPU shaders using `float32` arithmetic. This introduces numerical limitations and potential artifacts as the magnitude of the imaginary part $|t|$ increases, due to the rapid oscillation and large intermediate values of the functions involved. These effects are especially pronounced in the $\sin$ and $\Gamma$ terms of the reflection formula, both of which can grow rapidly in magnitude.
 
+#### The Dirichlet Beta Function
+The explorer implements the **Dirichlet beta function** $\beta(s)$ using its series representation, which converges for $\mathrm{Re}(s) > 0$:
+$$\beta(s) = \sum_{n=0}^\infty \frac{(-1)^n}{(2n+1)^s}$$
+
 #### The Gamma Function
 The Gamma function $\Gamma(z)$ is implemented using the **Lanczos approximation** ($g=7, N=9$):
 $$\Gamma(z) \approx \sqrt{2\pi} (z+g-0.5)^{z-0.5} e^{-(z+g-0.5)} A_g(z-1)$$
