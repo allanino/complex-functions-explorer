@@ -352,6 +352,17 @@
                     This alternating series converges for all \( s \) with \( \operatorname{Re}(s) > 0 \), which is essential for visualizing the critical strip where the most famous unsolved problem in mathematics, the Riemann Hypothesis, resides.
                 </p>
 
+                <h3>The Dirichlet beta function</h3>
+                <p>
+                    The explorer implements the <strong>Dirichlet beta function</strong> \( \beta(s) \) using its series representation:
+                </p>
+                <div class="math-block">
+                    \[ \beta(s) = \sum_{n=0}^\infty \frac{(-1)^n}{(2n+1)^s} \]
+                </div>
+                <p>
+                    Similar to the eta function, this series converges for \( \operatorname{Re}(s) > 0 \).
+                </p>
+
                 <h4>Reflection formula analytical continuation</h4>
                 <p>
                     In this case we use the <strong>Dirichlet eta representation</strong> from the previous section for \( \operatorname{Re}(s) > 0.5 \), but for \( \operatorname{Re}(s) <= 0.5 \) the explorer utilizes the <strong>reflection formula</strong> to achieve analytical continuation to the entire complex plane:

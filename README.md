@@ -46,6 +46,10 @@ The explorer supports various standard complex functions, including trigonometri
 Implementation uses the **Dirichlet Eta representation** for numerical stability when $\mathrm{Re}(s) > 0.5$:
 $$\zeta(s) = \frac{1}{1 - 2^{1-s}} \sum_{n=1}^\infty \frac{(-1)^{n-1}}{n^s}$$
 
+#### The Dirichlet Beta Function
+The explorer implements the **Dirichlet beta function** $\beta(s)$ using its series representation, which converges for $\mathrm{Re}(s) > 0$:
+$$\beta(s) = \sum_{n=0}^\infty \frac{(-1)^n}{(2n+1)^s}$$
+
 ##### Reflection formula analytical continuation
 For $\mathrm{Re}(s) < 0.5$, the explorer utilizes the **reflection formula** to achieve analytical continuation to the entire complex plane:
 $$\zeta(s) = 2^s \pi^{s-1} \sin\left(\frac{\pi s}{2}\right) \Gamma(1-s) \zeta(1-s)$$
