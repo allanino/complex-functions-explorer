@@ -737,7 +737,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 4
 min_value = 2.0
-max_value = 15.0
+max_value = 50.0
 value = 7.0
 
 [node name="ViewDistanceValue" type="Label" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/GRAPHICS/ViewDistanceContainer"]
@@ -841,6 +841,33 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_input")
 theme_override_styles/focus = SubResource("StyleBoxFlat_input")
 text = "10.0"
 alignment = 1
+
+[node name="ZoomContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/ZoomContainer"]
+custom_minimum_size = Vector2(160, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 18
+text = "Zoom Factor"
+
+[node name="ZoomSlider" type="HSlider" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/ZoomContainer"]
+custom_minimum_size = Vector2(100, 20)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+min_value = 1.0
+max_value = 100.0
+value = 1.0
+
+[node name="ZoomValue" type="Label" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/ZoomContainer"]
+custom_minimum_size = Vector2(50, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 18
+text = "x1"
+horizontal_alignment = 2
 
 [node name="ZeroSpeedContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION"]
 layout_mode = 2

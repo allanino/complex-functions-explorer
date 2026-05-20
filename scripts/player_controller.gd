@@ -83,7 +83,7 @@ func _physics_process(delta):
 		if manual_input != Vector2.ZERO or Input.is_key_pressed(KEY_SPACE):
 			auto_walk_state = AutoWalkState.NONE
 
-	var current_speed = Config.movement_speed
+	var current_speed = Config.movement_speed * Config.zoom_factor
 
 	# Speed reduction near zeros
 	var current_f = Field.get_field(global_position.x, global_position.z)
@@ -103,12 +103,12 @@ func _physics_process(delta):
 		space_held_time += delta
 		if space_held_time > DOUBLE_PRESS_TIME:
 			is_resetting_height = false
-			height_offset += 10.0 * delta
+			height_offset += delta * current_speed
 	else:
 		space_held_time = 0.0
 
 	if is_resetting_height:
-		height_offset = move_toward(height_offset, 0.0, 20.0 * delta)
+		height_offset = move_toward(height_offset, 0.0, delta * current_speed)
 		if height_offset <= 0.0:
 			is_resetting_height = false
 
@@ -116,10 +116,10 @@ func _physics_process(delta):
 	var direction = (transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
 
 	if auto_walk_state == AutoWalkState.MOVING_TO_LINE:
-		var target_x = CRITICAL_LINE_X
+		var target_x = CRITICAL_LINE_X * float(Config.zoom_factor)
 
 		var target_yaw = 0.0
-		if global_position.x > 10.0:
+		if global_position.x > 10.0 * float(Config.zoom_factor):
 			target_yaw = PI/2
 		elif global_position.x < 0.0:
 			target_yaw = -PI/2
@@ -141,7 +141,7 @@ func _physics_process(delta):
 
 	elif auto_walk_state == AutoWalkState.WALKING:
 		direction = Vector3(0, 0, -1)
-		global_position.x = move_toward(global_position.x, CRITICAL_LINE_X, 2.0 * delta)
+		global_position.x = move_toward(global_position.x, CRITICAL_LINE_X * float(Config.zoom_factor), 2.0 * delta)
 
 		# Smoothly transition to downward tilt only after positioning
 		rotation_x = lerp(rotation_x, AUTO_WALK_PITCH, 5.0 * delta)
@@ -158,14 +158,15 @@ func _physics_process(delta):
 	var terrain_h = get_terrain_height(global_position.x, global_position.z)
 
 	# Snap player to terrain height + offset
-	global_position.y = terrain_h + Config.camera_height + height_offset
+	global_position.y = terrain_h + Config.camera_height / Config.zoom_factor + height_offset
 
 	# Zeta zero detection during auto-walk
 	if auto_walk_state == AutoWalkState.WALKING and (Config.function_type >= 0 and Config.function_type <= 3):
 		var f = Field.get_field(global_position.x, global_position.z)
 		var current_mag = f.length()
 
-		t_history.push_back(-global_position.z*0.1)
+		var scale_factor = 1.0 / float(Config.zoom_factor)
+		t_history.push_back(-global_position.z * 0.1 * scale_factor)
 		t_history.pop_front()
 
 		mag_history.push_back(current_mag)

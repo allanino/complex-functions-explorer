@@ -148,6 +148,7 @@ func _process(delta):
 		"height_type": Config.height_type,
 		"height_a": Config.height_a,
 		"height_epsilon": Config.height_epsilon,
+		"zoom_factor": Config.zoom_factor,
 		"rational_num_coeffs": Config.rational_num_coeffs,
 		"rational_den_coeffs": Config.rational_den_coeffs
 	}
@@ -238,6 +239,7 @@ func _update_chunk_uniforms(chunk: MeshInstance3D):
 		chunk.material_override.set_shader_parameter("height_type", Config.height_type)
 		chunk.material_override.set_shader_parameter("height_a", Config.height_a)
 		chunk.material_override.set_shader_parameter("height_epsilon", Config.height_epsilon)
+		chunk.material_override.set_shader_parameter("zoom_factor", Config.zoom_factor)
 		chunk.material_override.set_shader_parameter("rational_num_coeffs", Config.rational_num_coeffs)
 		chunk.material_override.set_shader_parameter("rational_den_coeffs", Config.rational_den_coeffs)
 
