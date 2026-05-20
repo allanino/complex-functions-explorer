@@ -42,13 +42,11 @@ static func complex_tan(sigma: float, t: float) -> Vector2:
 	return complex_div(complex_sin(sigma, t), complex_cos(sigma, t))
 
 #-------------------------------------------------------------------------
-# Component Functions: Zeta, Gamma, Dedekind Eta
+# Component Functions: Zeta, Eta, Gamma, Dedekind Eta
 #-------------------------------------------------------------------------
 
-static func zeta(sigma: float, t: float) -> Vector2:
+static func dirichlet_eta(sigma: float, t: float, iterations: int) -> Vector2:
 	var eta = Vector2.ZERO
-	var iterations = Config.iterations
-
 	for n in range(1, iterations + 1):
 		var nf = float(n)
 		var amp = pow(nf, -sigma)
@@ -56,6 +54,12 @@ static func zeta(sigma: float, t: float) -> Vector2:
 		var theta = -t * log(nf)
 		var _sign = 1.0 if (n % 2 == 1) else -1.0
 		eta += _sign * amp * Vector2(cos(theta), sin(theta))
+	return eta
+
+static func zeta(sigma: float, t: float) -> Vector2:
+	var iterations = Config.iterations
+	var eta = dirichlet_eta(sigma, t, iterations)
+
 	var amp2 = pow(2.0, 1.0 - sigma)
 	var theta2 = -t * log(2.0)
 	var two_term = amp2 * Vector2(cos(theta2), sin(theta2))
@@ -181,15 +185,16 @@ static func get_field(x: float, z: float) -> Vector2:
 	var function_type = Config.function_type
 	if function_type == 0: return zeta(sigma, t)
 	elif function_type == 1: return zeta_continuation(sigma, t)
-	elif function_type == 2: return complex_gamma(sigma, t)
-	elif function_type == 3: return complex_log_gamma(sigma, t)
-	elif function_type == 4: return dedekind_eta(sigma, t)
-	elif function_type == 5: return complex_sin(sigma, t)
-	elif function_type == 6: return complex_cos(sigma, t)
-	elif function_type == 7: return complex_tan(sigma, t)
-	elif function_type == 8: return complex_exp(sigma, t)
-	elif function_type == 9: return complex_log(sigma, t)
-	elif function_type == 10: return get_rational(sigma, t)
+	elif function_type == 2: return dirichlet_eta(sigma, t, Config.iterations)
+	elif function_type == 3: return complex_gamma(sigma, t)
+	elif function_type == 4: return complex_log_gamma(sigma, t)
+	elif function_type == 5: return dedekind_eta(sigma, t)
+	elif function_type == 6: return complex_sin(sigma, t)
+	elif function_type == 7: return complex_cos(sigma, t)
+	elif function_type == 8: return complex_tan(sigma, t)
+	elif function_type == 9: return complex_exp(sigma, t)
+	elif function_type == 10: return complex_log(sigma, t)
+	elif function_type == 11: return get_rational(sigma, t)
 	return Vector2.ZERO
 
 static func get_height(x: float, z: float) -> float:
