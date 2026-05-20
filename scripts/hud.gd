@@ -75,7 +75,7 @@ const DESCRIPTIONS = {
 	"Height Map": "Choose how the function's magnitude is mapped to terrain height.",
 	"Parameter a": "Scaling factor for logarithmic height mapping.",
 	"Parameter ε": "Small offset in logarithmic mapping to prevent log(0) at zeros.",
-	"Iterations": "Number of terms used in the summation for Zeta and Eta functions.",
+	"Iterations": "Number of terms used in the summation for Zeta and Eta functions, or steps for Mandelbrot recursion.",
 	"Expression": "Enter a rational function expression using 'z' as variable (e.g., z^2 - 1).",
 	"Real (σ)": "Manually set the real part of the player's position in the complex plane.",
 	"Imaginary (t)": "Manually set the imaginary part of the player's position.",
@@ -131,6 +131,7 @@ func _ready():
 	func_button.add_item("Gamma")
 	func_button.add_item("Log Gamma")
 	func_button.add_item("Dedekind Eta")
+	func_button.add_item("Mandelbrot")
 	func_button.add_item("Sin")
 	func_button.add_item("Cos")
 	func_button.add_item("Tan")
@@ -294,8 +295,8 @@ func _on_func_selected(index):
 	if index == 6 and Config.function_type != 6:
 		iter_input.text = "10"
 
-	rational_container.visible = (index == 12)
-	iter_container.visible = (is_zeta_variant or index == 6)
+	rational_container.visible = (index == 13)
+	iter_container.visible = (is_zeta_variant or index == 6 or index == 7)
 	critical_checkbox.visible = is_zeta_variant
 	hud_zeros_checkbox.visible = is_zeta_variant
 	auto_walk_checkbox.visible = is_zeta_variant
@@ -395,7 +396,7 @@ func _on_set_pos_pressed():
 
 	apply_aa()
 
-	if Config.function_type == 12:
+	if Config.function_type == 13:
 		var expr = rational_input.text.replace(" ", "")
 		if "/" in expr:
 			var parts = expr.split("/")

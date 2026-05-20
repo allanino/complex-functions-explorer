@@ -165,6 +165,14 @@ static func dedekind_eta(sigma: float, t: float) -> Vector2:
 		if nf > 10 and term_exp.length() < 1e-12: break
 	return complex_mul(factor, prod)
 
+static func mandelbrot(sigma: float, t: float, iterations: int) -> Vector2:
+	var c = Vector2(sigma, t)
+	var z = Vector2.ZERO
+	for i in range(iterations):
+		z = complex_mul(z, z) + c
+		if z.length_squared() > 100.0: break
+	return z
+
 #-------------------------------------------------------------------------
 # Rational Functions
 #-------------------------------------------------------------------------
@@ -201,12 +209,13 @@ static func get_field(x: float, z: float) -> Vector2:
 	elif function_type == 4: return complex_gamma(sigma, t)
 	elif function_type == 5: return complex_log_gamma(sigma, t)
 	elif function_type == 6: return dedekind_eta(sigma, t)
-	elif function_type == 7: return complex_sin(sigma, t)
-	elif function_type == 8: return complex_cos(sigma, t)
-	elif function_type == 9: return complex_tan(sigma, t)
-	elif function_type == 10: return complex_exp(sigma, t)
-	elif function_type == 11: return complex_log(sigma, t)
-	elif function_type == 12: return get_rational(sigma, t)
+	elif function_type == 7: return mandelbrot(sigma, t, Config.iterations)
+	elif function_type == 8: return complex_sin(sigma, t)
+	elif function_type == 9: return complex_cos(sigma, t)
+	elif function_type == 10: return complex_tan(sigma, t)
+	elif function_type == 11: return complex_exp(sigma, t)
+	elif function_type == 12: return complex_log(sigma, t)
+	elif function_type == 13: return get_rational(sigma, t)
 	return Vector2.ZERO
 
 static func get_height(x: float, z: float) -> float:

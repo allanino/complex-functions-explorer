@@ -73,6 +73,9 @@ using the following coefficients:
 * $p_7 = 9.9843695780195716 \times 10^{-6}$
 * $p_8 = 1.5056327351493116 \times 10^{-7}$
 
+#### The Mandelbrot Function
+The explorer visualizes the **Mandelbrot function** by computing the sequence $z_{n+1} = z_n^2 + c$ recursively, starting at $z_0 = 0$, where $c$ represents the position in the complex plane. The `iterations` parameter controls the maximum depth of the recursion. The final value of $z_n$ is used for domain coloring and height mapping.
+
 In practice, the rendered landscape is only an approximation of these functions. Numerical accuracy gradually decreases for larger imaginary values, particularly when using `float32` arithmetic on the GPU. Rapid oscillations, large intermediate values, and accumulated floating-point error can introduce visual artifacts and loss of precision at high magnitudes. Nevertheless, the global structure of the functions remains visually recognizable far beyond the region where the approximation is strictly reliable.
 
 ### Numerical Singularities
