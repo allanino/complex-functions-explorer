@@ -83,20 +83,6 @@ vec2 complex_tan(float sigma, float t) {
 // Component Functions: Zeta, Gamma, Dedekind Eta
 //-------------------------------------------------------------------------
 
-// 1. Zeta & Eta
-vec2 dirichlet_eta(float sigma, float t, int iters) {
-    vec2 eta = vec2(0.0);
-    for (int n = 1; n <= iters; n++) {
-        float nf = float(n);
-        float amp = pow(nf, -sigma);
-        if (amp < 1e-6) break;
-        float theta = -t * log(nf);
-        float _sign = (mod(float(n), 2.0) < 0.5) ? -1.0 : 1.0;
-        eta += _sign * amp * vec2(cos(theta), sin(theta));
-    }
-    return eta;
-}
-
 FieldData dirichlet_eta_with_derivatives(float sigma, float t, int iters) {
     vec2 eta = vec2(0.0);
     vec2 deta_dsigma = vec2(0.0);
@@ -118,19 +104,6 @@ FieldData dirichlet_eta_with_derivatives(float sigma, float t, int iters) {
     return result;
 }
 
-vec2 dirichlet_beta(float sigma, float t, int iters) {
-    vec2 beta = vec2(0.0);
-    for (int n = 0; n < iters; n++) {
-        float k = 2.0 * float(n) + 1.0;
-        float amp = pow(k, -sigma);
-        if (amp < 1e-6) break;
-        float theta = -t * log(k);
-        float _sign = (mod(float(n), 2.0) < 0.5) ? 1.0 : -1.0;
-        beta += _sign * amp * vec2(cos(theta), sin(theta));
-    }
-    return beta;
-}
-
 FieldData dirichlet_beta_with_derivatives(float sigma, float t, int iters) {
     vec2 beta = vec2(0.0);
     vec2 dbeta_dsigma = vec2(0.0);
@@ -150,15 +123,6 @@ FieldData dirichlet_beta_with_derivatives(float sigma, float t, int iters) {
     result.d_sigma = dbeta_dsigma;
     result.d_t = vec2(-result.d_sigma.y, result.d_sigma.x);
     return result;
-}
-
-vec2 zeta(float sigma, float t, int iters) {
-    vec2 eta = dirichlet_eta(sigma, t, iters);
-    float amp2 = pow(2.0, 1.0 - sigma);
-    float theta2 = -t * log(2.0);
-    vec2 two_term = amp2 * vec2(cos(theta2), sin(theta2));
-    vec2 denom = vec2(1.0, 0.0) - two_term;
-    return complex_div(eta, denom);
 }
 
 FieldData zeta_with_derivatives(float sigma, float t, int iters) {
@@ -194,28 +158,6 @@ const float LANCZOS_P[9] = float[](
     1.5056327351493116e-7
 );
 const float SQRT_2PI = 2.5066282746310005;
-
-vec2 lanczos_gamma(vec2 z_orig) {
-    vec2 z = z_orig - vec2(1.0, 0.0);
-    vec2 x = vec2(LANCZOS_P[0], 0.0);
-    for (int i = 1; i < 9; i++) {
-        x += complex_div(vec2(LANCZOS_P[i], 0.0), z + vec2(float(i), 0.0));
-    }
-    vec2 tmp = z + vec2(7.5, 0.0);
-    vec2 p = complex_pow(tmp, z + vec2(0.5, 0.0));
-    vec2 etmp = complex_exp(-tmp.x, -tmp.y);
-    return SQRT_2PI * complex_mul(complex_mul(p, etmp), x);
-}
-
-vec2 complex_gamma(float sigma, float t) {
-    if (sigma < 0.5) {
-        vec2 z = vec2(sigma, t);
-        vec2 sin_pi_z = complex_sin(PI * sigma, PI * t);
-        vec2 g1z = lanczos_gamma(vec2(1.0 - sigma, -t));
-        return complex_div(vec2(PI, 0.0), complex_mul(sin_pi_z, g1z));
-    }
-    return lanczos_gamma(vec2(sigma, t));
-}
 
 FieldData lanczos_gamma_with_derivatives(vec2 z_orig) {
     vec2 z = z_orig - vec2(1.0, 0.0);
@@ -268,35 +210,6 @@ FieldData complex_gamma_with_derivatives(float sigma, float t) {
 }
 
 // 3. Log Gamma
-vec2 lanczos_log_gamma(vec2 z) {
-    vec2 z_m1 = z - vec2(1.0, 0.0);
-    vec2 x = vec2(LANCZOS_P[0], 0.0);
-    for (int i = 1; i < 9; i++) {
-        x += complex_div(vec2(LANCZOS_P[i], 0.0), z_m1 + vec2(float(i), 0.0));
-    }
-    vec2 tmp = z_m1 + vec2(7.5, 0.0);
-    vec2 res = vec2(log(SQRT_2PI), 0.0)
-           + complex_mul(z - vec2(0.5, 0.0), complex_log(tmp.x, tmp.y))
-           - tmp
-           + complex_log(x.x, x.y);
-    // Keep imaginary part (phase) continuous by wrapping to principal branch of the result
-    res.y = mod(res.y + PI, TAU) - PI;
-    return res;
-}
-
-vec2 complex_log_gamma(float sigma, float t) {
-    vec2 res;
-    if (sigma < 0.5) {
-        vec2 pi_z = vec2(PI * sigma, PI * t);
-        vec2 s = complex_sin(pi_z.x, pi_z.y);
-        res = vec2(log(PI), 0.0) - complex_log(s.x, s.y) - lanczos_log_gamma(vec2(1.0 - sigma, -t));
-    } else {
-        res = lanczos_log_gamma(vec2(sigma, t));
-    }
-    res.y = mod(res.y + PI, TAU) - PI;
-    return res;
-}
-
 FieldData lanczos_log_gamma_with_derivatives(vec2 z) {
     vec2 z_m1 = z - vec2(1.0, 0.0);
     vec2 x = vec2(LANCZOS_P[0], 0.0);
@@ -346,21 +259,6 @@ FieldData complex_log_gamma_with_derivatives(float sigma, float t) {
 }
 
 // 4. Dedekind Eta
-vec2 dedekind_eta(float sigma, float t) {
-    vec2 factor = complex_exp(-PI * t / 12.0, PI * sigma / 12.0);
-    vec2 prod = vec2(1.0, 0.0);
-    float q_re_base = -2.0 * PI * t;
-    float q_im_base = 2.0 * PI * sigma;
-    for (int n = 1; n <= iterations; n++) {
-        float nf = float(n);
-        vec2 term_exp = complex_exp(nf * q_re_base, nf * q_im_base);
-        vec2 term = vec2(1.0, 0.0) - term_exp;
-        prod = complex_mul(prod, term);
-        if (nf > 10.0 && length(term_exp) < 1e-12) break;
-    }
-    return complex_mul(factor, prod);
-}
-
 FieldData dedekind_eta_with_derivatives(float sigma, float t, int iters) {
     vec2 factor = complex_exp(-PI * t / 12.0, PI * sigma / 12.0);
     vec2 d_factor_dsigma = complex_mul(vec2(0.0, PI / 12.0), factor);
@@ -385,16 +283,6 @@ FieldData dedekind_eta_with_derivatives(float sigma, float t, int iters) {
 }
 
 // 5. Mandelbrot
-vec2 mandelbrot(float sigma, float t, int iters) {
-    vec2 c = vec2(sigma, t);
-    vec2 z = vec2(0.0);
-    for (int i = 0; i < iters; i++) {
-        z = complex_mul(z, z) + c;
-        if (dot(z, z) > 100.0) break;
-    }
-    return z;
-}
-
 FieldData mandelbrot_with_derivatives(float sigma, float t, int iters) {
     vec2 c = vec2(sigma, t);
     vec2 z = vec2(0.0);
@@ -414,27 +302,6 @@ FieldData mandelbrot_with_derivatives(float sigma, float t, int iters) {
 //-------------------------------------------------------------------------
 // Composite Functions
 //-------------------------------------------------------------------------
-
-// Zeta Continuation using functional equation via log-sum
-vec2 zeta_continuation(float sigma, float t, int iters) {
-    if (sigma >= 0.5) return zeta(sigma, t, iters);
-    vec2 s = vec2(sigma, t);
-    vec2 s1 = vec2(1.0 - sigma, -t);
-
-    vec2 log_sum = complex_mul(s, vec2(log(2.0), 0.0))
-                 + complex_mul(s - vec2(1.0, 0.0), vec2(log(PI), 0.0));
-
-    vec2 pi_s_2 = (PI * 0.5) * s;
-    vec2 sin_part = complex_sin(pi_s_2.x, pi_s_2.y);
-    log_sum += complex_log(sin_part.x, sin_part.y);
-
-    log_sum += complex_log_gamma(s1.x, s1.y);
-
-    vec2 zeta_part = zeta(s1.x, s1.y, iters);
-    log_sum += complex_log(zeta_part.x, zeta_part.y);
-
-    return complex_exp(log_sum.x, log_sum.y);
-}
 
 FieldData zeta_continuation_with_derivatives(float sigma, float t, int iters) {
     if (sigma >= 0.5) return zeta_with_derivatives(sigma, t, iters);
@@ -591,32 +458,4 @@ FieldData get_field_with_derivatives(float x, float z) {
     res.d_sigma = vec2(0.0);
     res.d_t = vec2(0.0);
     return res;
-}
-
-vec2 get_field(float x, float z) {
-    float zoom = 1.0 / float(zoom_factor);
-    float sigma = x * 0.1 * zoom;
-    float t = -z * 0.1 * zoom;
-    if (function_type == 0) return zeta(sigma, t, iterations);
-    if (function_type == 1) return zeta_continuation(sigma, t, iterations);
-    if (function_type == 2) return dirichlet_eta(sigma, t, iterations);
-    if (function_type == 3) return dirichlet_beta(sigma, t, iterations);
-    if (function_type == 4) return complex_gamma(sigma, t);
-    if (function_type == 5) return complex_log_gamma(sigma, t);
-    if (function_type == 6) return dedekind_eta(sigma, t);
-    if (function_type == 7) return mandelbrot(sigma, t, iterations);
-    if (function_type == 8) return complex_sin(sigma, t);
-    if (function_type == 9) return complex_cos(sigma, t);
-    if (function_type == 10) return complex_tan(sigma, t);
-    if (function_type == 11) return complex_exp(sigma, t);
-    if (function_type == 12) return complex_log(sigma, t);
-    if (function_type == 13) return get_rational(sigma, t);
-    return vec2(0.0);
-}
-
-float get_height(float x, float z) {
-    vec2 f = get_field(x, z);
-    float mag = length(f);
-    if (height_type == 0) return height_a * log(height_epsilon + mag);
-    return mag;
 }
