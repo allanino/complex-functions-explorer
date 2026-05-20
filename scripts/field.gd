@@ -199,8 +199,9 @@ static func get_field(x: float, z: float) -> Vector2:
 	if Config.performance_protection_active:
 		return Vector2.ZERO
 
-	var sigma: float = x * 0.1
-	var t: float = -z * 0.1
+	var zoom: float = 1.0 / float(Config.zoom_factor)
+	var sigma: float = x * 0.1 * zoom
+	var t: float = -z * 0.1 * zoom
 	var function_type = Config.function_type
 	if function_type == 0: return zeta(sigma, t)
 	elif function_type == 1: return zeta_continuation(sigma, t)

@@ -116,10 +116,10 @@ func _physics_process(delta):
 	var direction = (transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
 
 	if auto_walk_state == AutoWalkState.MOVING_TO_LINE:
-		var target_x = CRITICAL_LINE_X
+		var target_x = CRITICAL_LINE_X * float(Config.zoom_factor)
 
 		var target_yaw = 0.0
-		if global_position.x > 10.0:
+		if global_position.x > 10.0 * float(Config.zoom_factor):
 			target_yaw = PI/2
 		elif global_position.x < 0.0:
 			target_yaw = -PI/2
@@ -141,7 +141,7 @@ func _physics_process(delta):
 
 	elif auto_walk_state == AutoWalkState.WALKING:
 		direction = Vector3(0, 0, -1)
-		global_position.x = move_toward(global_position.x, CRITICAL_LINE_X, 2.0 * delta)
+		global_position.x = move_toward(global_position.x, CRITICAL_LINE_X * float(Config.zoom_factor), 2.0 * delta)
 
 		# Smoothly transition to downward tilt only after positioning
 		rotation_x = lerp(rotation_x, AUTO_WALK_PITCH, 5.0 * delta)
@@ -165,7 +165,8 @@ func _physics_process(delta):
 		var f = Field.get_field(global_position.x, global_position.z)
 		var current_mag = f.length()
 
-		t_history.push_back(-global_position.z*0.1)
+		var scale_factor = 1.0 / float(Config.zoom_factor)
+		t_history.push_back(-global_position.z * 0.1 * scale_factor)
 		t_history.pop_front()
 
 		mag_history.push_back(current_mag)

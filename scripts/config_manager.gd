@@ -11,6 +11,7 @@ var height_epsilon: float = 1.0
 var rational_num_coeffs: PackedFloat32Array = PackedFloat32Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 var rational_den_coeffs: PackedFloat32Array = PackedFloat32Array([1, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 var zero_threshold: float = 0.5
+var zoom_factor: int = 1
 
 # Rendering parameters
 var terrain_detail: int = 1
@@ -57,6 +58,7 @@ func save_settings():
 	config.set_value("field", "rational_num_coeffs", rational_num_coeffs)
 	config.set_value("field", "rational_den_coeffs", rational_den_coeffs)
 	config.set_value("field", "zero_threshold", zero_threshold)
+	config.set_value("field", "zoom_factor", zoom_factor)
 
 	config.set_value("rendering", "terrain_detail", terrain_detail)
 	config.set_value("rendering", "antialiasing_mode", antialiasing_mode)
@@ -99,6 +101,7 @@ func load_settings():
 	rational_num_coeffs = config.get_value("field", "rational_num_coeffs", rational_num_coeffs)
 	rational_den_coeffs = config.get_value("field", "rational_den_coeffs", rational_den_coeffs)
 	zero_threshold = config.get_value("field", "zero_threshold", zero_threshold)
+	zoom_factor = config.get_value("field", "zoom_factor", zoom_factor)
 
 	terrain_detail = config.get_value("rendering", "terrain_detail", terrain_detail)
 	antialiasing_mode = config.get_value("rendering", "antialiasing_mode", antialiasing_mode)

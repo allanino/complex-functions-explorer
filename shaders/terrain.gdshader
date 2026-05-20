@@ -195,24 +195,25 @@ void fragment() {
         // Only apply the lines rendering for zeta (at x = 0, x = 5.0, x = 10.0)
         // which corresponds to Re = 0.0, Re = 0.5, Re = 1.0
         if (show_critical_stripe && (function_type >= 0 && function_type <= 3)) {
+            float zoom = float(zoom_factor);
             // Periodic glow factor
             float glow = 0.5 + 0.5 * sin(TIME * 2.0);
-            float line_width = 0.05;
+            float line_width = 0.05 * zoom;
 
-            // Critical line at x = 5.0 (HUD x = 0.5)
-            float dist_to_critical = abs(world_pos.x - 5.0);
+            // Critical line at x = 5.0 * zoom (HUD x = 0.5)
+            float dist_to_critical = abs(world_pos.x - 5.0 * zoom);
             float core_critical = 1.0 - smoothstep(0.0, line_width, dist_to_critical);
-            float glow_critical = 1.0 - smoothstep(0.0, 0.1, dist_to_critical);
+            float glow_critical = 1.0 - smoothstep(0.0, 0.1 * zoom, dist_to_critical);
             vec3 line_color = vec3(1.0, 1.0, 0.0); // Yellow
 
-            // Critical stripe boundaries at x = 0.0 and x = 10.0
+            // Critical stripe boundaries at x = 0.0 and x = 10.0 * zoom
             float dist_to_0 = abs(world_pos.x - 0.0);
             float core_0 = 1.0 - smoothstep(0.0, line_width, dist_to_0);
-            float glow_0 = 1.0 - smoothstep(0.0, 0.1, dist_to_0);
+            float glow_0 = 1.0 - smoothstep(0.0, 0.1 * zoom, dist_to_0);
 
-            float dist_to_10 = abs(world_pos.x - 10.0);
+            float dist_to_10 = abs(world_pos.x - 10.0 * zoom);
             float core_10 = 1.0 - smoothstep(0.0, line_width, dist_to_10);
-            float glow_10 = 1.0 - smoothstep(0.0, 0.1, dist_to_10);
+            float glow_10 = 1.0 - smoothstep(0.0, 0.1 * zoom, dist_to_10);
 
             vec3 white_line_color = vec3(1.0, 1.0, 1.0);
 

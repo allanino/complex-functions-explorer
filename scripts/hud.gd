@@ -31,6 +31,8 @@ extends CanvasLayer
 @onready var re_input = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/ReContainer/ReInput
 @onready var im_input = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/ImContainer/ImInput
 @onready var speed_input = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/SpeedContainer/SpeedInput
+@onready var zoom_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/ZoomContainer/ZoomSlider
+@onready var zoom_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/ZoomContainer/ZoomValue
 @onready var zero_speed_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/ZeroSpeedContainer/ZeroSpeedSlider
 @onready var zero_speed_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/ZeroSpeedContainer/ZeroSpeedValue
 @onready var camera_height_input = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/CameraHeightContainer/CameraHeightInput
@@ -81,6 +83,7 @@ const DESCRIPTIONS = {
 	"Imaginary (t)": "Manually set the imaginary part of the player's position.",
 	"Camera Height": "Vertical height of the player's camera above the terrain.",
 	"Move Speed": "Horizontal movement speed when navigating the complex plane.",
+	"Zoom Factor": "Increase detail by scaling coordinates (1.0 / Zoom).",
 	"Speed near Zeros": "Slows down movement speed near function zeros to allow closer inspection.",
 	"Automatic Walking": "Automatically follow the critical line (Re = 0.5) to find Riemann Zeta zeros.",
 	"Terrain Details": "Quality and subdivision level of the procedurally generated terrain meshes.",
@@ -114,6 +117,7 @@ func _ready():
 
 	bg_music_slider.value_changed.connect(_on_bg_music_value_changed)
 	drone_slider.value_changed.connect(_on_drone_value_changed)
+	zoom_slider.value_changed.connect(_on_zoom_value_changed)
 	zero_speed_slider.value_changed.connect(_on_zero_speed_value_changed)
 	view_distance_slider.value_changed.connect(_on_view_distance_value_changed)
 	sunrise_slider.value_changed.connect(_on_sunrise_value_changed)
@@ -240,14 +244,17 @@ func toggle_menu(applied: bool = false):
 		_initial_drone_volume = Config.drone_volume
 
 		if player:
-			var re_val = player.global_position.x * 0.1
-			var im_val = -player.global_position.z * 0.1
+			var scale_factor = 1.0 / float(Config.zoom_factor)
+			var re_val = player.global_position.x * 0.1 * scale_factor
+			var im_val = -player.global_position.z * 0.1 * scale_factor
 			if not is_finite(re_val): re_val = 0.5
 			if not is_finite(im_val): im_val = 0.0
 			re_input.text = "%.3f" % re_val
 			im_input.text = "%.3f" % im_val
 		iter_input.text = str(Config.iterations)
 		speed_input.text = "%.1f" % (Config.movement_speed * 0.1)
+		zoom_slider.value = Config.zoom_factor
+		_on_zoom_value_changed(Config.zoom_factor)
 		zero_speed_slider.value = Config.speed_near_zeros
 		_on_zero_speed_value_changed(Config.speed_near_zeros)
 		camera_height_input.text = str(Config.camera_height)
@@ -315,6 +322,9 @@ func _on_drone_value_changed(value):
 	Config.drone_volume = value
 	drone_value.text = str(int(value)) + "%"
 
+func _on_zoom_value_changed(value):
+	zoom_value.text = "x" + str(int(value))
+
 func _on_zero_speed_value_changed(value):
 	zero_speed_value.text = str(int(value)) + "%"
 
@@ -371,6 +381,7 @@ func _on_set_pos_pressed():
 
 	Config.iterations = iters
 	Config.movement_speed = m_speed
+	Config.zoom_factor = int(zoom_slider.value)
 	Config.speed_near_zeros = zero_speed_slider.value
 	Config.camera_height = c_height
 	Config.height_a = h_a
@@ -409,12 +420,13 @@ func _on_set_pos_pressed():
 	Config.save_settings()
 
 	if player:
+		var zoom_mult = float(Config.zoom_factor)
 		if not is_finite(player.global_position.x) or not is_finite(player.global_position.y) or not is_finite(player.global_position.z):
 			player.velocity = Vector3.ZERO
-			player.global_position = Vector3(10.0 * re, 0.0, -10.0 * im)
+			player.global_position = Vector3(10.0 * re * zoom_mult, 0.0, -10.0 * im * zoom_mult)
 		else:
-			player.global_position.x = 10.0 * re
-			player.global_position.z = -10.0 * im
+			player.global_position.x = 10.0 * re * zoom_mult
+			player.global_position.z = -10.0 * im * zoom_mult
 
 		# Update auto-walk state
 		if auto_walk_checkbox.button_pressed:
@@ -485,7 +497,8 @@ func _process(_delta):
 	material.set_shader_parameter("scale", current_scale)
 	material.set_shader_parameter("performance_protection_active", Config.performance_protection_active)
 
-	domain_label.text = "Re = %.3f\nIm = %.3f" % [x * 0.1, -z * 0.1]
+	var scale_factor = 1.0 / float(Config.zoom_factor)
+	domain_label.text = "Re = %.3f\nIm = %.3f" % [x * 0.1 * scale_factor, -z * 0.1 * scale_factor]
 	target_label.text = "Re = %.3f\nIm = %.3f\n|f| = %.3f" % [f.x, f.y, f.length()]
 
 	complex_panel.visible = Config.show_hud_complex
