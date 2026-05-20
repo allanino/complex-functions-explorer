@@ -313,7 +313,6 @@ FieldData lanczos_log_gamma_with_derivatives(vec2 z) {
                + complex_mul(z - vec2(0.5, 0.0), log_tmp)
                - tmp
                + complex_log(x.x, x.y);
-    value.y = mod(value.y + PI, TAU) - PI;
 
     vec2 psi = log_tmp + complex_div(z - vec2(0.5, 0.0), tmp) - vec2(1.0, 0.0) + complex_div(dx, x);
 
@@ -336,7 +335,6 @@ FieldData complex_log_gamma_with_derivatives(float sigma, float t) {
         vec2 log_sin_pi_z = complex_log(sin_pi_z.x, sin_pi_z.y);
 
         res.value = vec2(log(PI), 0.0) - log_sin_pi_z - lg1z.value;
-        res.value.y = mod(res.value.y + PI, TAU) - PI;
 
         vec2 cot_pi_z = complex_div(complex_cos(pi_z.x, pi_z.y), sin_pi_z);
         res.d_sigma = -PI * cot_pi_z + lg1z.d_sigma;

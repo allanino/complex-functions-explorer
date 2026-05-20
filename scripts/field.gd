@@ -137,7 +137,6 @@ static func lanczos_log_gamma(z: Vector2) -> Vector2:
 		+ complex_mul(z - Vector2(0.5, 0.0), complex_log(tmp.x, tmp.y))
 		- tmp
 		+ complex_log(x.x, x.y))
-	res.y = posmod(res.y + PI, TAU) - PI
 	return res
 
 static func complex_log_gamma(sigma: float, t: float) -> Vector2:
@@ -148,7 +147,6 @@ static func complex_log_gamma(sigma: float, t: float) -> Vector2:
 		res = Vector2(log(PI), 0.0) - complex_log(s.x, s.y) - lanczos_log_gamma(Vector2(1.0 - sigma, -t))
 	else:
 		res = lanczos_log_gamma(Vector2(sigma, t))
-	res.y = posmod(res.y + PI, TAU) - PI
 	return res
 
 static func dedekind_eta(sigma: float, t: float) -> Vector2:
