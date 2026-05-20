@@ -202,7 +202,7 @@ void fragment() {
         // Only apply the lines rendering for zeta (at x = 0, x = 5.0, x = 10.0)
         // which corresponds to Re = 0.0, Re = 0.5, Re = 1.0
         if (show_critical_stripe && (function_type >= 0 && function_type <= 3)) {
-            float zoom = float(zoom_factor);
+            float zoom = zoom_factor;
             // Periodic glow factor
             float glow = 0.5 + 0.5 * sin(TIME * 2.0);
             float line_width = 0.05 * zoom;

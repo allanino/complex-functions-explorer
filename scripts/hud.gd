@@ -282,7 +282,7 @@ func toggle_menu(applied: bool = false):
 		_initial_terrain_roughness = Config.terrain_roughness
 
 		if player:
-			var scale_factor = 1.0 / float(Config.zoom_factor)
+			var scale_factor = 1.0 / Config.effective_zoom
 			var re_val = player.global_position.x * 0.1 * scale_factor
 			var im_val = -player.global_position.z * 0.1 * scale_factor
 			if not is_finite(re_val): re_val = 0.5
@@ -463,6 +463,7 @@ func _on_set_pos_pressed():
 	Config.iterations = iters
 	Config.movement_speed = m_speed
 	Config.zoom_factor = int(zoom_slider.value)
+	Config.effective_zoom = float(Config.zoom_factor)
 	Config.speed_near_zeros = zero_speed_slider.value
 	Config.camera_height = c_height
 	Config.height_a = h_a
@@ -589,7 +590,7 @@ func _process(_delta):
 	material.set_shader_parameter("scale", current_scale)
 	material.set_shader_parameter("performance_protection_active", Config.performance_protection_active)
 
-	var scale_factor = 1.0 / float(Config.zoom_factor)
+	var scale_factor = 1.0 / Config.effective_zoom
 	domain_label.text = "Re = %.3f\nIm = %.3f" % [x * 0.1 * scale_factor, -z * 0.1 * scale_factor]
 	target_label.text = "Re = %.3f\nIm = %.3f\n|f| = %.3f" % [f.x, f.y, f.length()]
 

@@ -1,7 +1,7 @@
 // Shared field and height functions for shaders
 
 uniform int iterations = 120;
-uniform int zoom_factor = 1;
+uniform float zoom_factor = 1.0;
 uniform int function_type = 0; // 0: Zeta, 1: Zeta continuation, 2: Dirichlet Eta, 3: Dirichlet Beta, 4: Gamma, 5: Log Gamma, 6: Dedekind Eta, 7: Mandelbrot, 8: Sin, 9: Cos, 10: Tan, 11: Exp, 12: Log, 13: Rational
 uniform int height_type = 0;   // 0: Log, 1: Abs
 uniform float height_a = 3.0;
@@ -436,7 +436,7 @@ FieldData get_rational_with_derivatives(float sigma, float t) {
 //-------------------------------------------------------------------------
 
 FieldData get_field_with_derivatives(float x, float z) {
-    float zoom = 1.0 / float(zoom_factor);
+    float zoom = 1.0 / zoom_factor;
     float sigma = x * 0.1 * zoom;
     float t = -z * 0.1 * zoom;
     if (function_type == 0) return zeta_with_derivatives(sigma, t, iterations);
