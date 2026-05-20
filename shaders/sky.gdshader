@@ -117,12 +117,18 @@ void sky() {
         if (eye_alt > -0.1) {
             // Use a more balanced projection for coverage across the entire sky
             // Adding a smaller offset to the denominator to keep clouds visible at zenith
-            vec2 cloud_uv = EYEDIR.xz / (max(eye_alt, 0.01) + 0.05);
-            cloud_uv += TIME * 0.015;
 
-            float cloud_fbm = fbm(cloud_uv * 0.3);
+            vec2 cloud_uv =EYEDIR.xz / (max(eye_alt, 0.01) + 0.05);
+
+            vec2 uv1 = cloud_uv + vec2(TIME * 0.002, TIME * 0.001);
+            vec2 uv2 = cloud_uv + vec2(TIME * -0.0007, TIME * 0.0015);
+
+            float cloud_fbm =
+                fbm(uv1 * 0.3) * 0.7 +
+                fbm(uv2 * 0.6) * 0.3;
+                
             // Lower threshold for more cloud coverage across the sky
-            float cloud_density = smoothstep(0.3, 0.8, cloud_fbm);
+            float cloud_density = smoothstep(0.4, 0.8, cloud_fbm);
 
             // Add detail noise without over-thinning
             float detail_noise = fbm(cloud_uv * 1.5 + vec2(TIME * 0.005));
