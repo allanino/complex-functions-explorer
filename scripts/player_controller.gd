@@ -35,6 +35,18 @@ func _unhandled_input(event):
 			rotation_x = clamp(rotation_x, -PI/2, PI/2)
 			camera.rotation.x = rotation_x
 
+	if event is InputEventMouseButton and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+		var old_zoom = Config.zoom_factor
+		if event.button_index == MOUSE_BUTTON_WHEEL_UP and event.pressed:
+			Config.zoom_factor = clampi(Config.zoom_factor + 1, 1, 1000)
+		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN and event.pressed:
+			Config.zoom_factor = clampi(Config.zoom_factor - 1, 1, 1000)
+
+		if Config.zoom_factor != old_zoom:
+			var zoom_ratio = float(Config.zoom_factor) / float(old_zoom)
+			global_position.x *= zoom_ratio
+			global_position.z *= zoom_ratio
+
 	if event.is_action_pressed("ui_cancel"):
 		var hud = get_node_or_null("/root/Main/HUD")
 		if hud:
