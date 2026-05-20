@@ -447,6 +447,11 @@ func _process(_delta):
 	if tooltip.visible:
 		_update_tooltip_position()
 
+	if menu_overlay.visible:
+		if int(zoom_slider.value) != Config.zoom_factor:
+			zoom_slider.value = Config.zoom_factor
+			_on_zoom_value_changed(Config.zoom_factor)
+
 	perf_label.visible = Config.performance_protection_active
 
 	if not player:
