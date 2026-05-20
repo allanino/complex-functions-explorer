@@ -428,7 +428,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0, 0, 0, 0.4)
+color = Color(0, 0, 0, 0)
 
 [node name="CenterContainer" type="CenterContainer" parent="Control/MenuOverlay"]
 layout_mode = 1
@@ -676,6 +676,167 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
 theme_override_font_sizes/font_size = 18
 text = "0°"
+horizontal_alignment = 2
+
+[node name="TERRAIN" type="VBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="BrightnessContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/BrightnessContainer"]
+custom_minimum_size = Vector2(160, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 18
+text = "Brightness"
+
+[node name="BrightnessSlider" type="HSlider" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/BrightnessContainer"]
+custom_minimum_size = Vector2(100, 20)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+max_value = 100.0
+value = 50.0
+
+[node name="BrightnessValue" type="Label" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/BrightnessContainer"]
+custom_minimum_size = Vector2(50, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 18
+text = "50%"
+horizontal_alignment = 2
+
+[node name="SaturationContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/SaturationContainer"]
+custom_minimum_size = Vector2(160, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 18
+text = "Saturation"
+
+[node name="SaturationSlider" type="HSlider" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/SaturationContainer"]
+custom_minimum_size = Vector2(100, 20)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+max_value = 100.0
+value = 78.0
+
+[node name="SaturationValue" type="Label" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/SaturationContainer"]
+custom_minimum_size = Vector2(50, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 18
+text = "78%"
+horizontal_alignment = 2
+
+[node name="AlbedoContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/AlbedoContainer"]
+custom_minimum_size = Vector2(160, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 18
+text = "Albedo"
+
+[node name="AlbedoSlider" type="HSlider" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/AlbedoContainer"]
+custom_minimum_size = Vector2(100, 20)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+max_value = 100.0
+value = 15.0
+
+[node name="AlbedoValue" type="Label" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/AlbedoContainer"]
+custom_minimum_size = Vector2(50, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 18
+text = "15%"
+horizontal_alignment = 2
+
+[node name="EmissionContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/EmissionContainer"]
+custom_minimum_size = Vector2(160, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 18
+text = "Emission"
+
+[node name="EmissionSlider" type="HSlider" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/EmissionContainer"]
+custom_minimum_size = Vector2(100, 20)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+max_value = 100.0
+value = 10.0
+
+[node name="EmissionValue" type="Label" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/EmissionContainer"]
+custom_minimum_size = Vector2(50, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 18
+text = "10%"
+horizontal_alignment = 2
+
+[node name="MetallicContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/MetallicContainer"]
+custom_minimum_size = Vector2(160, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 18
+text = "Metallic"
+
+[node name="MetallicSlider" type="HSlider" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/MetallicContainer"]
+custom_minimum_size = Vector2(100, 20)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+max_value = 100.0
+value = 70.0
+
+[node name="MetallicValue" type="Label" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/MetallicContainer"]
+custom_minimum_size = Vector2(50, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 18
+text = "70%"
+horizontal_alignment = 2
+
+[node name="RoughnessContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/RoughnessContainer"]
+custom_minimum_size = Vector2(160, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 18
+text = "Roughness"
+
+[node name="RoughnessSlider" type="HSlider" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/RoughnessContainer"]
+custom_minimum_size = Vector2(100, 20)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+max_value = 100.0
+value = 10.0
+
+[node name="RoughnessValue" type="Label" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/RoughnessContainer"]
+custom_minimum_size = Vector2(50, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 18
+text = "10%"
 horizontal_alignment = 2
 
 [node name="GRAPHICS" type="VBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer"]

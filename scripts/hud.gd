@@ -61,6 +61,19 @@ extends CanvasLayer
 @onready var drone_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/AUDIO/DroneContainer/DroneSlider
 @onready var drone_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/AUDIO/DroneContainer/DroneValue
 
+@onready var brightness_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/BrightnessContainer/BrightnessSlider
+@onready var brightness_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/BrightnessContainer/BrightnessValue
+@onready var saturation_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/SaturationContainer/SaturationSlider
+@onready var saturation_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/SaturationContainer/SaturationValue
+@onready var albedo_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/AlbedoContainer/AlbedoSlider
+@onready var albedo_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/AlbedoContainer/AlbedoValue
+@onready var emission_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/EmissionContainer/EmissionSlider
+@onready var emission_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/EmissionContainer/EmissionValue
+@onready var metallic_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/MetallicContainer/MetallicSlider
+@onready var metallic_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/MetallicContainer/MetallicValue
+@onready var roughness_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/RoughnessContainer/RoughnessSlider
+@onready var roughness_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/RoughnessContainer/RoughnessValue
+
 @onready var apply_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/ButtonsHBox/ApplyButton
 @onready var close_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/ButtonsHBox/CloseButton
 @onready var quit_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/ButtonsHBox/QuitContainer/QuitButton
@@ -101,12 +114,24 @@ const DESCRIPTIONS = {
 	"Riemann–von Mangoldt": "Show the estimated number of zeros N(t) based on the Riemann–von Mangoldt formula.",
 	"Performance Monitor": "Show real-time performance metrics (FPS) and chunks statistics on the HUD.",
 	"Background Music": "Adjust the volume of the ambient mathematical soundscape.",
-	"Topographic Drone": "Adjust the volume of the terrain-responsive spatial audio."
+	"Topographic Drone": "Adjust the volume of the terrain-responsive spatial audio.",
+	"Brightness": "Adjust the overall brightness of the terrain surface.",
+	"Saturation": "Control the intensity of the domain colors on the terrain.",
+	"Albedo": "Base reflectivity of the terrain material.",
+	"Emission": "Intensity of the self-illumination of the terrain.",
+	"Metallic": "Adjust how metallic the terrain surface appears.",
+	"Roughness": "Control the surface smoothness; lower values are glossier."
 }
 
 var current_scale = 2.0
 var _initial_bg_music_volume: float
 var _initial_drone_volume: float
+var _initial_terrain_brightness: float
+var _initial_terrain_saturation: float
+var _initial_terrain_albedo: float
+var _initial_terrain_emission: float
+var _initial_terrain_metallic: float
+var _initial_terrain_roughness: float
 
 func _ready():
 	apply_button.pressed.connect(_on_set_pos_pressed)
@@ -121,6 +146,13 @@ func _ready():
 	zero_speed_slider.value_changed.connect(_on_zero_speed_value_changed)
 	view_distance_slider.value_changed.connect(_on_view_distance_value_changed)
 	sunrise_slider.value_changed.connect(_on_sunrise_value_changed)
+
+	brightness_slider.value_changed.connect(_on_terrain_brightness_value_changed)
+	saturation_slider.value_changed.connect(_on_terrain_saturation_value_changed)
+	albedo_slider.value_changed.connect(_on_terrain_albedo_value_changed)
+	emission_slider.value_changed.connect(_on_terrain_emission_value_changed)
+	metallic_slider.value_changed.connect(_on_terrain_metallic_value_changed)
+	roughness_slider.value_changed.connect(_on_terrain_roughness_value_changed)
 
 	environment_button.clear()
 	environment_button.add_item("Noon")
@@ -242,6 +274,12 @@ func toggle_menu(applied: bool = false):
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 		_initial_bg_music_volume = Config.bg_music_volume
 		_initial_drone_volume = Config.drone_volume
+		_initial_terrain_brightness = Config.terrain_brightness
+		_initial_terrain_saturation = Config.terrain_saturation
+		_initial_terrain_albedo = Config.terrain_albedo
+		_initial_terrain_emission = Config.terrain_emission
+		_initial_terrain_metallic = Config.terrain_metallic
+		_initial_terrain_roughness = Config.terrain_roughness
 
 		if player:
 			var scale_factor = 1.0 / float(Config.zoom_factor)
@@ -283,6 +321,19 @@ func toggle_menu(applied: bool = false):
 		drone_slider.value = Config.drone_volume
 		_on_drone_value_changed(Config.drone_volume)
 
+		brightness_slider.value = Config.terrain_brightness * 50.0
+		_on_terrain_brightness_value_changed(brightness_slider.value)
+		saturation_slider.value = (Config.terrain_saturation - 0.3) / 0.7 * 100.0
+		_on_terrain_saturation_value_changed(saturation_slider.value)
+		albedo_slider.value = Config.terrain_albedo * 100.0
+		_on_terrain_albedo_value_changed(albedo_slider.value)
+		emission_slider.value = Config.terrain_emission * 100.0
+		_on_terrain_emission_value_changed(emission_slider.value)
+		metallic_slider.value = Config.terrain_metallic * 100.0
+		_on_terrain_metallic_value_changed(metallic_slider.value)
+		roughness_slider.value = Config.terrain_roughness * 100.0
+		_on_terrain_roughness_value_changed(roughness_slider.value)
+
 		func_button.selected = Config.function_type
 		height_button.selected = Config.height_type
 		_on_func_selected(Config.function_type)
@@ -295,6 +346,12 @@ func toggle_menu(applied: bool = false):
 		if not applied:
 			Config.bg_music_volume = _initial_bg_music_volume
 			Config.drone_volume = _initial_drone_volume
+			Config.terrain_brightness = _initial_terrain_brightness
+			Config.terrain_saturation = _initial_terrain_saturation
+			Config.terrain_albedo = _initial_terrain_albedo
+			Config.terrain_emission = _initial_terrain_emission
+			Config.terrain_metallic = _initial_terrain_metallic
+			Config.terrain_roughness = _initial_terrain_roughness
 
 func _on_func_selected(index):
 	var is_zeta_variant = (index >= 0 and index <= 3)
@@ -333,6 +390,30 @@ func _on_view_distance_value_changed(value):
 
 func _on_sunrise_value_changed(value):
 	sunrise_value.text = str(int(value)) + "°"
+
+func _on_terrain_brightness_value_changed(value):
+	Config.terrain_brightness = value / 50.0
+	brightness_value.text = str(int(value)) + "%"
+
+func _on_terrain_saturation_value_changed(value):
+	Config.terrain_saturation = 0.3 + (value / 100.0) * 0.7
+	saturation_value.text = str(int(value)) + "%"
+
+func _on_terrain_albedo_value_changed(value):
+	Config.terrain_albedo = value / 100.0
+	albedo_value.text = str(int(value)) + "%"
+
+func _on_terrain_emission_value_changed(value):
+	Config.terrain_emission = value / 100.0
+	emission_value.text = str(int(value)) + "%"
+
+func _on_terrain_metallic_value_changed(value):
+	Config.terrain_metallic = value / 100.0
+	metallic_value.text = str(int(value)) + "%"
+
+func _on_terrain_roughness_value_changed(value):
+	Config.terrain_roughness = value / 100.0
+	roughness_value.text = str(int(value)) + "%"
 
 func _parse_poly(text: String) -> PackedFloat32Array:
 	var coeffs = PackedFloat32Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
@@ -401,6 +482,12 @@ func _on_set_pos_pressed():
 	Config.show_hud_monitor = hud_monitor_checkbox.button_pressed
 	Config.bg_music_volume = bg_music_slider.value
 	Config.drone_volume = drone_slider.value
+	Config.terrain_brightness = brightness_slider.value / 50.0
+	Config.terrain_saturation = 0.3 + (saturation_slider.value / 100.0) * 0.7
+	Config.terrain_albedo = albedo_slider.value / 100.0
+	Config.terrain_emission = emission_slider.value / 100.0
+	Config.terrain_metallic = metallic_slider.value / 100.0
+	Config.terrain_roughness = roughness_slider.value / 100.0
 	Config.view_distance = int(view_distance_slider.value)
 	Config.function_type = func_button.selected
 	Config.height_type = height_button.selected
