@@ -49,9 +49,11 @@ var drone_volume: float = 100.0
 # Session state (not saved)
 var visited_zeros: Array[float] = []
 var performance_protection_active: bool = false
+var effective_zoom: float = 1.0
 
 func _ready():
 	load_settings()
+	effective_zoom = float(zoom_factor)
 
 func save_settings():
 	var config = ConfigFile.new()

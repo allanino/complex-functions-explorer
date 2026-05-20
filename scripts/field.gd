@@ -197,7 +197,7 @@ static func get_field(x: float, z: float) -> Vector2:
 	if Config.performance_protection_active:
 		return Vector2.ZERO
 
-	var zoom: float = 1.0 / float(Config.zoom_factor)
+	var zoom: float = 1.0 / Config.effective_zoom
 	var sigma: float = x * 0.1 * zoom
 	var t: float = -z * 0.1 * zoom
 	var function_type = Config.function_type

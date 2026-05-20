@@ -151,6 +151,7 @@ func _process(delta):
 		"height_a": Config.height_a,
 		"height_epsilon": Config.height_epsilon,
 		"zoom_factor": Config.zoom_factor,
+		"effective_zoom": Config.effective_zoom,
 		"rational_num_coeffs": Config.rational_num_coeffs,
 		"rational_den_coeffs": Config.rational_den_coeffs,
 		"terrain_brightness": Config.terrain_brightness,
@@ -245,7 +246,7 @@ func _update_terrain_material_uniforms():
 	terrain_material.set_shader_parameter("height_type", Config.height_type)
 	terrain_material.set_shader_parameter("height_a", Config.height_a)
 	terrain_material.set_shader_parameter("height_epsilon", Config.height_epsilon)
-	terrain_material.set_shader_parameter("zoom_factor", Config.zoom_factor)
+	terrain_material.set_shader_parameter("zoom_factor", Config.effective_zoom)
 	terrain_material.set_shader_parameter("rational_num_coeffs", Config.rational_num_coeffs)
 	terrain_material.set_shader_parameter("rational_den_coeffs", Config.rational_den_coeffs)
 	terrain_material.set_shader_parameter("brightness", Config.terrain_brightness)
