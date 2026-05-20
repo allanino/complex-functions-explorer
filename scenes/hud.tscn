@@ -231,15 +231,15 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="HUDStack" type="VBoxContainer" parent="Control"]
+[node name="HUDColumns" type="HBoxContainer" parent="Control"]
 layout_mode = 1
 anchors_preset = 3
 anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -170.0
-offset_top = -630.0
+offset_left = -330.0
+offset_top = -800.0
 offset_right = -20.0
 offset_bottom = -20.0
 grow_horizontal = 0
@@ -247,7 +247,18 @@ grow_vertical = 0
 theme_override_constants/separation = 10
 alignment = 2
 
-[node name="PerfProtectionLabel" type="Label" parent="Control/HUDStack"]
+[node name="HUDStackLeft" type="VBoxContainer" parent="Control/HUDColumns"]
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 2
+
+[node name="HUDStackRight" type="VBoxContainer" parent="Control/HUDColumns"]
+custom_minimum_size = Vector2(150, 0)
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 2
+
+[node name="PerfProtectionLabel" type="Label" parent="Control/HUDColumns/HUDStackRight"]
 visible = false
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.8, 0, 1)
@@ -256,7 +267,7 @@ text = "Performance protection activated, adjust settings."
 horizontal_alignment = 1
 autowrap_mode = 3
 
-[node name="ZerosPanel" type="PanelContainer" parent="Control/HUDStack"]
+[node name="ZerosPanel" type="PanelContainer" parent="Control/HUDColumns/HUDStackRight"]
 visible = false
 custom_minimum_size = Vector2(0, 200)
 layout_mode = 2
@@ -310,7 +321,7 @@ theme_override_font_sizes/font_size = 12
 horizontal_alignment = 1
 autowrap_mode = 3
 
-[node name="MonitorPanel" type="PanelContainer" parent="Control/HUDStack"]
+[node name="MonitorPanel" type="PanelContainer" parent="Control/HUDColumns/HUDStackRight"]
 visible = false
 layout_mode = 2
 size_flags_horizontal = 3
@@ -342,7 +353,7 @@ theme_override_font_sizes/font_size = 12
 text = "FPS: 60"
 horizontal_alignment = 1
 
-[node name="InfoPanel" type="PanelContainer" parent="Control/HUDStack"]
+[node name="InfoPanel" type="PanelContainer" parent="Control/HUDColumns/HUDStackRight"]
 custom_minimum_size = Vector2(0, 200)
 layout_mode = 2
 size_flags_horizontal = 3
@@ -392,7 +403,7 @@ Im = 0.000
 |f| = 0.000"
 horizontal_alignment = 1
 
-[node name="ComplexAspect" type="AspectRatioContainer" parent="Control/HUDStack"]
+[node name="ComplexAspect" type="AspectRatioContainer" parent="Control/HUDColumns/HUDStackRight"]
 custom_minimum_size = Vector2(0, 150)
 layout_mode = 2
 size_flags_horizontal = 3
@@ -1072,6 +1083,34 @@ text = "Automatic Walking"
 visible = false
 layout_mode = 2
 theme_override_constants/separation = 15
+
+[node name="HudScaleContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/HUD"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/HUD/HudScaleContainer"]
+custom_minimum_size = Vector2(160, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 18
+text = "HUD Scale"
+
+[node name="HudScaleSlider" type="HSlider" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/HUD/HudScaleContainer"]
+custom_minimum_size = Vector2(100, 20)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+min_value = 100.0
+max_value = 200.0
+step = 25.0
+value = 100.0
+
+[node name="HudScaleValue" type="Label" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/HUD/HudScaleContainer"]
+custom_minimum_size = Vector2(50, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 18
+text = "100%"
+horizontal_alignment = 2
 
 [node name="HudComplexCheckbox" type="CheckBox" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/HUD"]
 layout_mode = 2

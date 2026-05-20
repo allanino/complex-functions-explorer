@@ -41,6 +41,7 @@ var show_hud_navigation: bool = true
 var show_hud_zeros: bool = true
 var show_rvm: bool = true
 var show_hud_monitor: bool = false
+var hud_scale: float = 1.0
 
 # Audio parameters
 var bg_music_volume: float = 100.0
@@ -91,6 +92,7 @@ func save_settings():
 	config.set_value("ui", "show_hud_zeros", show_hud_zeros)
 	config.set_value("ui", "show_rvm", show_rvm)
 	config.set_value("ui", "show_hud_monitor", show_hud_monitor)
+	config.set_value("ui", "hud_scale", hud_scale)
 
 	config.set_value("audio", "bg_music_volume", bg_music_volume)
 	config.set_value("audio", "drone_volume", drone_volume)
@@ -140,6 +142,7 @@ func load_settings():
 	show_hud_zeros = config.get_value("ui", "show_hud_zeros", show_hud_zeros)
 	show_rvm = config.get_value("ui", "show_rvm", show_rvm)
 	show_hud_monitor = config.get_value("ui", "show_hud_monitor", show_hud_monitor)
+	hud_scale = config.get_value("ui", "hud_scale", hud_scale)
 
 	bg_music_volume = config.get_value("audio", "bg_music_volume", bg_music_volume)
 	drone_volume = config.get_value("audio", "drone_volume", drone_volume)

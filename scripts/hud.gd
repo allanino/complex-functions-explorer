@@ -1,18 +1,21 @@
 extends CanvasLayer
 
 @export var player: Node3D
-@onready var complex_panel = $Control/HUDStack/ComplexAspect
-@onready var info_panel = $Control/HUDStack/InfoPanel
-@onready var monitor_panel = $Control/HUDStack/MonitorPanel
-@onready var fps_label = $Control/HUDStack/MonitorPanel/MarginContainer/VBox/FpsLabel
-@onready var complex_rect = $Control/HUDStack/ComplexAspect/ComplexPanel/MarginContainer/ClipPanel/ComplexPlane
+@onready var hud_columns = $Control/HUDColumns
+@onready var hud_stack_left = $Control/HUDColumns/HUDStackLeft
+@onready var hud_stack_right = $Control/HUDColumns/HUDStackRight
+@onready var complex_panel = $Control/HUDColumns/HUDStackRight/ComplexAspect
+@onready var info_panel = $Control/HUDColumns/HUDStackRight/InfoPanel
+@onready var monitor_panel = $Control/HUDColumns/HUDStackRight/MonitorPanel
+@onready var fps_label = $Control/HUDColumns/HUDStackRight/MonitorPanel/MarginContainer/VBox/FpsLabel
+@onready var complex_rect = $Control/HUDColumns/HUDStackRight/ComplexAspect/ComplexPanel/MarginContainer/ClipPanel/ComplexPlane
 @onready var world_manager = get_node("../WorldManager")
-@onready var domain_label = $Control/HUDStack/InfoPanel/MarginContainer/VBox/DomainLabel
-@onready var target_label = $Control/HUDStack/InfoPanel/MarginContainer/VBox/TargetLabel
-@onready var zeros_panel = $Control/HUDStack/ZerosPanel
-@onready var zeros_count_label = $Control/HUDStack/ZerosPanel/MarginContainer/VBox/CountLabel
-@onready var rvm_label = $Control/HUDStack/ZerosPanel/MarginContainer/VBox/RvmLabel
-@onready var zeros_list_label = $Control/HUDStack/ZerosPanel/MarginContainer/VBox/Scroll/ListLabel
+@onready var domain_label = $Control/HUDColumns/HUDStackRight/InfoPanel/MarginContainer/VBox/DomainLabel
+@onready var target_label = $Control/HUDColumns/HUDStackRight/InfoPanel/MarginContainer/VBox/TargetLabel
+@onready var zeros_panel = $Control/HUDColumns/HUDStackRight/ZerosPanel
+@onready var zeros_count_label = $Control/HUDColumns/HUDStackRight/ZerosPanel/MarginContainer/VBox/CountLabel
+@onready var rvm_label = $Control/HUDColumns/HUDStackRight/ZerosPanel/MarginContainer/VBox/RvmLabel
+@onready var zeros_list_label = $Control/HUDColumns/HUDStackRight/ZerosPanel/MarginContainer/VBox/Scroll/ListLabel
 @onready var menu_overlay = $Control/MenuOverlay
 
 # New UI Node Paths
@@ -55,6 +58,8 @@ extends CanvasLayer
 @onready var hud_zeros_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/HUD/HudZetaZerosCheckbox
 @onready var rvm_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/HUD/RvmCheckbox
 @onready var hud_monitor_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/HUD/HudMonitorCheckbox
+@onready var hud_scale_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/HUD/HudScaleContainer/HudScaleSlider
+@onready var hud_scale_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/HUD/HudScaleContainer/HudScaleValue
 
 @onready var bg_music_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/AUDIO/BgMusicContainer/BgMusicSlider
 @onready var bg_music_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/AUDIO/BgMusicContainer/BgMusicValue
@@ -77,7 +82,7 @@ extends CanvasLayer
 @onready var apply_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/ButtonsHBox/ApplyButton
 @onready var close_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/ButtonsHBox/CloseButton
 @onready var quit_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/ButtonsHBox/QuitContainer/QuitButton
-@onready var perf_label = $Control/HUDStack/PerfProtectionLabel
+@onready var perf_label = $Control/HUDColumns/HUDStackRight/PerfProtectionLabel
 
 @onready var tooltip = $TooltipLayer/Tooltip
 @onready var tooltip_label = $TooltipLayer/Tooltip/MarginContainer/Label
@@ -113,6 +118,7 @@ const DESCRIPTIONS = {
 	"Zeta zeros": "Show the list of discovered zeros during automatic walking.",
 	"Riemann–von Mangoldt": "Show the estimated number of zeros N(t) based on the Riemann–von Mangoldt formula.",
 	"Performance Monitor": "Show real-time performance metrics (FPS) and chunks statistics on the HUD.",
+	"HUD Scale": "Adjust the size of the HUD elements.",
 	"Background Music": "Adjust the volume of the ambient mathematical soundscape.",
 	"Topographic Drone": "Adjust the volume of the terrain-responsive spatial audio.",
 	"Brightness": "Adjust the overall brightness of the terrain surface.",
@@ -146,6 +152,9 @@ func _ready():
 	zero_speed_slider.value_changed.connect(_on_zero_speed_value_changed)
 	view_distance_slider.value_changed.connect(_on_view_distance_value_changed)
 	sunrise_slider.value_changed.connect(_on_sunrise_value_changed)
+	hud_scale_slider.value_changed.connect(_on_hud_scale_value_changed)
+
+	get_viewport().size_changed.connect(_update_hud_layout)
 
 	brightness_slider.value_changed.connect(_on_terrain_brightness_value_changed)
 	saturation_slider.value_changed.connect(_on_terrain_saturation_value_changed)
@@ -314,6 +323,8 @@ func toggle_menu(applied: bool = false):
 		hud_zeros_checkbox.button_pressed = Config.show_hud_zeros
 		rvm_checkbox.button_pressed = Config.show_rvm
 		hud_monitor_checkbox.button_pressed = Config.show_hud_monitor
+		hud_scale_slider.value = Config.hud_scale * 100.0
+		_on_hud_scale_value_changed(hud_scale_slider.value)
 		if player:
 			auto_walk_checkbox.button_pressed = (player.auto_walk_state != 0) # 0 is AutoWalkState.NONE
 		bg_music_slider.value = Config.bg_music_volume
@@ -390,6 +401,9 @@ func _on_view_distance_value_changed(value):
 
 func _on_sunrise_value_changed(value):
 	sunrise_value.text = str(int(value)) + "°"
+
+func _on_hud_scale_value_changed(value):
+	hud_scale_value.text = str(int(value)) + "%"
 
 func _on_terrain_brightness_value_changed(value):
 	Config.terrain_brightness = value / 50.0
@@ -489,6 +503,7 @@ func _on_set_pos_pressed():
 	Config.terrain_metallic = metallic_slider.value / 100.0
 	Config.terrain_roughness = roughness_slider.value / 100.0
 	Config.view_distance = int(view_distance_slider.value)
+	Config.hud_scale = hud_scale_slider.value / 100.0
 	Config.function_type = func_button.selected
 	Config.height_type = height_button.selected
 
@@ -505,6 +520,7 @@ func _on_set_pos_pressed():
 			Config.rational_den_coeffs = PackedFloat32Array([1, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 
 	Config.save_settings()
+	_update_hud_layout()
 
 	if player:
 		var zoom_mult = float(Config.zoom_factor)
@@ -615,3 +631,56 @@ func _process(_delta):
 					monitor_text += "\n%d: %d" % [world_manager.LOD_SUBS[i], lod_counts[i]]
 
 		fps_label.text = monitor_text
+
+	_update_hud_layout()
+
+var _last_hud_state = {}
+
+func _update_hud_layout():
+	if not hud_columns: return
+
+	var cards = [complex_panel, info_panel, monitor_panel, zeros_panel, perf_label]
+	var current_state = {
+		"size": get_viewport().size,
+		"scale": Config.hud_scale,
+		"visibility": cards.map(func(c): return c.visible)
+	}
+
+	if current_state.hash() == _last_hud_state.hash():
+		return
+	_last_hud_state = current_state
+
+	hud_columns.scale = Vector2.ONE * Config.hud_scale
+	hud_columns.pivot_offset = hud_columns.size
+
+	var available_height = (get_viewport().size.y - 40) / Config.hud_scale
+	var current_height = 0.0
+	var separation = 10.0
+
+	var right_cards = []
+	var left_cards = []
+
+	for card in cards:
+		if not card.visible: continue
+		var card_height = card.get_combined_minimum_size().y
+		if current_height + card_height <= available_height:
+			right_cards.push_back(card)
+			current_height += card_height + separation
+		else:
+			left_cards.push_back(card)
+
+	_apply_stack_layout(hud_stack_right, right_cards)
+	_apply_stack_layout(hud_stack_left, left_cards)
+
+func _apply_stack_layout(stack: VBoxContainer, desired_cards: Array):
+	for child in stack.get_children():
+		if not child in desired_cards:
+			stack.remove_child(child)
+
+	for i in range(desired_cards.size()):
+		var card = desired_cards[i]
+		if card.get_parent() != stack:
+			if card.get_parent():
+				card.get_parent().remove_child(card)
+			stack.add_child(card)
+		stack.move_child(card, 0)
