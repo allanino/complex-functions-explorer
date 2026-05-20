@@ -83,7 +83,7 @@ func _physics_process(delta):
 		if manual_input != Vector2.ZERO or Input.is_key_pressed(KEY_SPACE):
 			auto_walk_state = AutoWalkState.NONE
 
-	var current_speed = Config.movement_speed
+	var current_speed = Config.movement_speed * Config.zoom_factor
 
 	# Speed reduction near zeros
 	var current_f = Field.get_field(global_position.x, global_position.z)
