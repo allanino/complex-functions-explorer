@@ -7,7 +7,7 @@ varying vec3 v_normal;
 varying vec2 field_val;
 varying float v_nan;
 
-uniform int lod_level = 0;
+instance uniform int lod_level = 0;
 uniform int color_scheme = 0;
 uniform bool show_curves = true;
 uniform bool show_critical_stripe = true;
