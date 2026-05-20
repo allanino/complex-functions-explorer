@@ -28,6 +28,10 @@ var current_resonance: float = 0.0
 var target_fm_index: float = 0.0
 var current_fm_index: float = 0.0
 
+# --- STARTUP ENVELOPE ---
+var startup_time := 0.0
+var startup_duration := 3.0
+
 # --- FPS GUARD ---
 var low_fps_counter: int = 0
 var stable_fps_counter: int = 0
@@ -60,7 +64,7 @@ func _ready():
 	sample_rate = generator.mix_rate
 
 	# Prefill silence
-	var frames_to_fill = int(sample_rate * 0.1)
+	var frames_to_fill = int(sample_rate)
 
 	for i in frames_to_fill:
 		playback.push_frame(Vector2.ZERO)
@@ -140,6 +144,8 @@ func _process(delta):
 	else:
 		low_fps_counter = 0
 		stable_fps_counter = 0
+
+	startup_time += delta
 
 	_process_audio_toggles()
 
@@ -240,6 +246,9 @@ func fill_buffer():
 	# Safety cap to prevent execution spikes
 	to_fill = min(to_fill, 4410)
 
+	var startup_gain = clamp(startup_time / startup_duration, 0.0, 1.0)
+	startup_gain = startup_gain * startup_gain # smoother fade-in
+
 	while to_fill > 0:
 		# --- PHASE INCREMENTS ---
 
@@ -279,7 +288,7 @@ func fill_buffer():
 		if not is_finite(sample): sample = 0.0
 
 		var drone_vol_scale = Config.drone_volume / 100.0
-		var frame = Vector2.ONE * sample * current_volume * drone_vol_scale
+		var frame = Vector2.ONE * sample * current_volume * drone_vol_scale * startup_gain
 
 		# Apply Stereo Panning
 		var pan_l = clamp(1.0 - current_pan, 0.0, 1.0)
