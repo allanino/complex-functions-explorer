@@ -1,17 +1,24 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene format=3 uid="uid://dvnrtkkwrnoxr"]
 
-[ext_resource type="Script" path="res://scripts/world_manager.gd" id="1_world"]
+[ext_resource type="Script" uid="uid://d1wxji711yhuu" path="res://scripts/world_manager.gd" id="1_world"]
 [ext_resource type="PackedScene" path="res://scenes/player.tscn" id="2_player"]
 [ext_resource type="PackedScene" path="res://scenes/hud.tscn" id="3_hud"]
-[ext_resource type="Shader" path="res://shaders/sky.gdshader" id="4_sky"]
+[ext_resource type="Shader" uid="uid://d3nuaty6clkup" path="res://shaders/sky.gdshader" id="4_sky"]
 [ext_resource type="PackedScene" path="res://scenes/audio/SpatialAudio.tscn" id="5_audio"]
+[ext_resource type="Shader" uid="uid://cnaj2gf03bm06" path="res://shaders/terrain.gdshader" id="6_terrain"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_1"]
 shader = ExtResource("4_sky")
+shader_parameter/sky_color = Color(0.3, 0.6, 0.9, 1)
+shader_parameter/horizon_color = Color(0.6, 0.8, 1, 1)
+shader_parameter/cloud_color = Color(1, 1, 1, 1)
+shader_parameter/golden_hour_factor = 0.0
+shader_parameter/night_factor = 0.0
+shader_parameter/performance_protection_active = false
 
 [sub_resource type="Sky" id="Sky_1"]
-process_mode = 3
 sky_material = SubResource("ShaderMaterial_1")
+process_mode = 3
 
 [sub_resource type="Environment" id="Environment_1"]
 background_mode = 2
@@ -19,43 +26,56 @@ sky = SubResource("Sky_1")
 tonemap_mode = 2
 glow_enabled = true
 
-[node name="Main" type="Node3D"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_2"]
+render_priority = 0
+shader = ExtResource("6_terrain")
+shader_parameter/iterations = 120
+shader_parameter/zoom_factor = 1
+shader_parameter/function_type = 0
+shader_parameter/height_type = 0
+shader_parameter/height_a = 3.0
+shader_parameter/height_epsilon = 1.0
+shader_parameter/performance_protection_active = false
+shader_parameter/rational_num_coeffs = PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+shader_parameter/rational_den_coeffs = PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+shader_parameter/color_scheme = 0
+shader_parameter/show_curves = true
+shader_parameter/show_critical_stripe = true
+shader_parameter/brightness = 1.0
+shader_parameter/saturation = 0.85
+shader_parameter/albedo = 0.15
+shader_parameter/emission = 0.1
+shader_parameter/metallic = 0.7
+shader_parameter/roughness = 0.1
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+[node name="Main" type="Node3D" unique_id=1567576539]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1720021295]
 environment = SubResource("Environment_1")
 
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
-transform = Transform3D(
-    1, 0, 0,
-    0, 0, 1,
-    0, -1, 0,
-    0, 0, 0
-  )
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=972368416]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0)
 shadow_enabled = true
-directional_shadow_max_distance = 1000.0
 directional_shadow_blend_splits = true
+directional_shadow_max_distance = 1000.0
 
-[node name="MoonLight" type="DirectionalLight3D" parent="."]
-transform = Transform3D(
-    1, 0, 0,
-    0, -1, 0,
-    0, 0, -1,
-    0, 0, 0
-)
+[node name="MoonLight" type="DirectionalLight3D" parent="." unique_id=1413863382]
+transform = Transform3D(1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0)
 light_color = Color(0.7, 0.8, 1, 1)
 light_energy = 0.0
 shadow_enabled = true
-directional_shadow_max_distance = 1000.0
 directional_shadow_blend_splits = true
+directional_shadow_max_distance = 1000.0
 
-[node name="Player" parent="." instance=ExtResource("2_player")]
+[node name="Player" parent="." unique_id=40729057 instance=ExtResource("2_player")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, 0)
 
-[node name="WorldManager" type="Node3D" parent="." node_paths=PackedStringArray("player")]
+[node name="WorldManager" type="Node3D" parent="." unique_id=765195964 node_paths=PackedStringArray("player")]
 script = ExtResource("1_world")
+terrain_material = SubResource("ShaderMaterial_2")
 player = NodePath("../Player")
 
-[node name="HUD" parent="." node_paths=PackedStringArray("player") instance=ExtResource("3_hud")]
+[node name="HUD" parent="." unique_id=504229464 node_paths=PackedStringArray("player") instance=ExtResource("3_hud")]
 player = NodePath("../Player")
 
-[node name="SpatialAudio" parent="." instance=ExtResource("5_audio")]
+[node name="SpatialAudio" parent="." unique_id=2057376968 instance=ExtResource("5_audio")]

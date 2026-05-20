@@ -1,6 +1,7 @@
 extends Node3D
 
 @export var chunk_scene: PackedScene = preload("res://scenes/chunk.tscn")
+@export var terrain_material: ShaderMaterial
 @export var player: Node3D
 @export var chunk_size: float = 32.0
 
@@ -30,6 +31,7 @@ var _sun_color = Color("#fc9500")
 
 func _ready():
 	_update_lod_subs()
+	_update_terrain_material_uniforms()
 	# Uncomment this to debug the mesh wireframe
 	# get_viewport().debug_draw = Viewport.DEBUG_DRAW_WIREFRAME
 
@@ -163,10 +165,8 @@ func _process(delta):
 			_update_lod_subs()
 			_lod_mesh_cache.clear()
 			_update_all_chunks_lod(true)
-		else:
-			# Update uniforms in all existing chunks
-			for chunk in chunks.values():
-				_update_chunk_uniforms(chunk)
+
+		_update_terrain_material_uniforms()
 
 	# LOD Dynamic Update
 	if player_chunk_x != _last_player_chunk.x or player_chunk_z != _last_player_chunk.y:
@@ -217,39 +217,42 @@ func _apply_performance_protection(active: bool):
 	_shaders_stopped = active
 	for chunk in chunks.values():
 		chunk.visible = !active
-		if chunk.material_override:
-			chunk.material_override.set_shader_parameter("performance_protection_active", active)
+
+	if terrain_material:
+		terrain_material.set_shader_parameter("performance_protection_active", active)
 
 	if world_environment and world_environment.environment and world_environment.environment.sky:
 		var sky_mat = world_environment.environment.sky.sky_material as ShaderMaterial
 		if sky_mat:
 			sky_mat.set_shader_parameter("performance_protection_active", active)
 
-func _update_chunk_uniforms(chunk: MeshInstance3D):
-	if chunk.material_override:
-		var lod = chunk.get_meta("lod_level", 0)
+func _update_terrain_material_uniforms():
+	if not terrain_material:
+		return
 
-		chunk.material_override.set_shader_parameter("performance_protection_active", Config.performance_protection_active)
-		chunk.material_override.set_shader_parameter("lod_level", lod)
-		chunk.material_override.set_shader_parameter("color_scheme", Config.color_scheme)
-		chunk.material_override.set_shader_parameter("iterations", Config.iterations)
-		chunk.material_override.set_shader_parameter("show_curves", Config.show_curves)
-		chunk.material_override.set_shader_parameter("show_critical_stripe", Config.show_critical_stripe)
-		chunk.material_override.set_shader_parameter("function_type", Config.function_type)
-		chunk.material_override.set_shader_parameter("height_type", Config.height_type)
-		chunk.material_override.set_shader_parameter("height_a", Config.height_a)
-		chunk.material_override.set_shader_parameter("height_epsilon", Config.height_epsilon)
-		chunk.material_override.set_shader_parameter("zoom_factor", Config.zoom_factor)
-		chunk.material_override.set_shader_parameter("rational_num_coeffs", Config.rational_num_coeffs)
-		chunk.material_override.set_shader_parameter("rational_den_coeffs", Config.rational_den_coeffs)
+	terrain_material.set_shader_parameter("performance_protection_active", Config.performance_protection_active)
+	terrain_material.set_shader_parameter("color_scheme", Config.color_scheme)
+	terrain_material.set_shader_parameter("iterations", Config.iterations)
+	terrain_material.set_shader_parameter("show_curves", Config.show_curves)
+	terrain_material.set_shader_parameter("show_critical_stripe", Config.show_critical_stripe)
+	terrain_material.set_shader_parameter("function_type", Config.function_type)
+	terrain_material.set_shader_parameter("height_type", Config.height_type)
+	terrain_material.set_shader_parameter("height_a", Config.height_a)
+	terrain_material.set_shader_parameter("height_epsilon", Config.height_epsilon)
+	terrain_material.set_shader_parameter("zoom_factor", Config.zoom_factor)
+	terrain_material.set_shader_parameter("rational_num_coeffs", Config.rational_num_coeffs)
+	terrain_material.set_shader_parameter("rational_den_coeffs", Config.rational_den_coeffs)
+
+func _update_chunk_uniforms(chunk: MeshInstance3D):
+	var lod = chunk.get_meta("lod_level", 0)
+	chunk.set_instance_shader_parameter("lod_level", lod)
 
 func _load_chunk(coord: Vector2i):
 	var chunk = chunk_scene.instantiate()
 	add_child(chunk)
 	chunk.visible = !Config.performance_protection_active
 
-	# Ensure unique material so we can set LOD-specific uniforms
-	chunk.material_override = chunk.material_override.duplicate()
+	chunk.material_override = terrain_material
 
 	var player_pos = player.global_position
 	var player_chunk_coord = Vector2i(floor(player_pos.x / chunk_size), floor(player_pos.z / chunk_size))
