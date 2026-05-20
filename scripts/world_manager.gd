@@ -152,7 +152,13 @@ func _process(delta):
 		"height_epsilon": Config.height_epsilon,
 		"zoom_factor": Config.zoom_factor,
 		"rational_num_coeffs": Config.rational_num_coeffs,
-		"rational_den_coeffs": Config.rational_den_coeffs
+		"rational_den_coeffs": Config.rational_den_coeffs,
+		"terrain_brightness": Config.terrain_brightness,
+		"terrain_saturation": Config.terrain_saturation,
+		"terrain_albedo": Config.terrain_albedo,
+		"terrain_emission": Config.terrain_emission,
+		"terrain_metallic": Config.terrain_metallic,
+		"terrain_roughness": Config.terrain_roughness
 	}
 
 	var state_changed = current_field_state != _last_field_state
@@ -242,6 +248,12 @@ func _update_terrain_material_uniforms():
 	terrain_material.set_shader_parameter("zoom_factor", Config.zoom_factor)
 	terrain_material.set_shader_parameter("rational_num_coeffs", Config.rational_num_coeffs)
 	terrain_material.set_shader_parameter("rational_den_coeffs", Config.rational_den_coeffs)
+	terrain_material.set_shader_parameter("brightness", Config.terrain_brightness)
+	terrain_material.set_shader_parameter("saturation", Config.terrain_saturation)
+	terrain_material.set_shader_parameter("albedo", Config.terrain_albedo)
+	terrain_material.set_shader_parameter("emission", Config.terrain_emission)
+	terrain_material.set_shader_parameter("metallic", Config.terrain_metallic)
+	terrain_material.set_shader_parameter("roughness", Config.terrain_roughness)
 
 func _update_chunk_uniforms(chunk: MeshInstance3D):
 	var lod = chunk.get_meta("lod_level", 0)

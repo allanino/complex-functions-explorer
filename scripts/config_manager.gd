@@ -23,6 +23,12 @@ var color_scheme: int = 0
 var environment_type: int = 0
 var sunrise_direction: float = 0.0
 var shadows_enabled: bool = false
+var terrain_brightness: float = 1.0
+var terrain_saturation: float = 0.85
+var terrain_albedo: float = 0.15
+var terrain_emission: float = 0.1
+var terrain_metallic: float = 0.7
+var terrain_roughness: float = 0.1
 
 # Player parameters
 var movement_speed: float = 10.0
@@ -69,6 +75,12 @@ func save_settings():
 	config.set_value("rendering", "environment_type", environment_type)
 	config.set_value("rendering", "sunrise_direction", sunrise_direction)
 	config.set_value("rendering", "shadows_enabled", shadows_enabled)
+	config.set_value("rendering", "terrain_brightness", terrain_brightness)
+	config.set_value("rendering", "terrain_saturation", terrain_saturation)
+	config.set_value("rendering", "terrain_albedo", terrain_albedo)
+	config.set_value("rendering", "terrain_emission", terrain_emission)
+	config.set_value("rendering", "terrain_metallic", terrain_metallic)
+	config.set_value("rendering", "terrain_roughness", terrain_roughness)
 
 	config.set_value("player", "movement_speed", movement_speed)
 	config.set_value("player", "speed_near_zeros", speed_near_zeros)
@@ -112,6 +124,12 @@ func load_settings():
 	environment_type = config.get_value("rendering", "environment_type", environment_type)
 	sunrise_direction = config.get_value("rendering", "sunrise_direction", sunrise_direction)
 	shadows_enabled = config.get_value("rendering", "shadows_enabled", shadows_enabled)
+	terrain_brightness = config.get_value("rendering", "terrain_brightness", terrain_brightness)
+	terrain_saturation = config.get_value("rendering", "terrain_saturation", terrain_saturation)
+	terrain_albedo = config.get_value("rendering", "terrain_albedo", terrain_albedo)
+	terrain_emission = config.get_value("rendering", "terrain_emission", terrain_emission)
+	terrain_metallic = config.get_value("rendering", "terrain_metallic", terrain_metallic)
+	terrain_roughness = config.get_value("rendering", "terrain_roughness", terrain_roughness)
 
 	movement_speed = config.get_value("player", "movement_speed", movement_speed)
 	speed_near_zeros = config.get_value("player", "speed_near_zeros", speed_near_zeros)
