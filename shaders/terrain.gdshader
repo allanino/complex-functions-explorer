@@ -9,6 +9,7 @@ varying float v_nan;
 
 instance uniform int lod_level = 0;
 uniform int color_scheme = 0;
+uniform sampler2D cyclic_palette : hint_default_black;
 uniform bool show_curves = true;
 uniform bool show_critical_stripe = true;
 
@@ -18,13 +19,6 @@ uniform float albedo : hint_range(0.0, 1.0) = 0.15;
 uniform float emission : hint_range(0.0, 1.0) = 0.1;
 uniform float metallic : hint_range(0.0, 1.0) = 0.7;
 uniform float roughness : hint_range(0.0, 1.0) = 0.1;
-
-// Helper function to convert HSV to RGB
-vec3 hsv2rgb(vec3 c) {
-    vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
-    vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
-    return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
-}
 
 float matrix_hash(vec2 p) {
     return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
@@ -157,11 +151,13 @@ void fragment() {
         
         vec2 f = field_val;
         float phase = atan(f.y, f.x);
-        float hue = (phase + PI) / (2.0 * PI);
-        if (color_scheme == 1) {
-            hue = fract(hue + 0.5);
-        }
-        vec3 base = hsv2rgb(vec3(hue, saturation, brightness));
+        float palette_v = (float(color_scheme) + 0.5) / float(textureSize(cyclic_palette, 0).y);
+        float palette_u = (phase + PI) / (2.0 * PI);
+
+        vec3 sampled_color = texture(cyclic_palette, vec2(palette_u, palette_v)).rgb;
+        // Apply saturation and brightness.
+        // We mix with white for saturation to match the original hsv2rgb logic's behavior.
+        vec3 base = brightness * mix(vec3(1.0), sampled_color, saturation);
 
         if (show_curves) {
             // 1. Get raw pixel derivatives (true density indicators)

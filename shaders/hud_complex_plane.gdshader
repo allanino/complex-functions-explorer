@@ -2,14 +2,8 @@ shader_type canvas_item;
 
 uniform vec2 current_f; // Current value of f(x,z)
 uniform int color_scheme = 0;
+uniform sampler2D cyclic_palette : hint_default_black;
 uniform float scale = 2.0; // Current scale of the complex plane view
-
-// Helper function to convert HSV to RGB
-vec3 hsv2rgb(vec3 c) {
-    vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
-    vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
-    return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
-}
 
 // Distance to a line segment
 float sdSegment(vec2 p, vec2 a, vec2 b) {
@@ -28,11 +22,10 @@ void fragment() {
     float mag = length(z);
 
     // Background color based on phase
-    float hue = (phase + PI) / (2.0 * PI);
-    if (color_scheme == 1) {
-        hue = fract(hue + 0.5);
-    }
-    vec3 color = hsv2rgb(vec3(hue, 0.6, 0.7)); // Brighter background
+    float palette_v = (float(color_scheme) + 0.5) / float(textureSize(cyclic_palette, 0).y);
+    float palette_u = (phase + PI) / (2.0 * PI);
+    vec3 sampled_color = texture(cyclic_palette, vec2(palette_u, palette_v)).rgb;
+    vec3 color = mix(vec3(1.0), sampled_color, 0.6) * 0.7; // Mimic hsv2rgb(hue, 0.6, 0.7)
 
     // Draw unit circle
     float unit_circle = abs(mag - 1.0);

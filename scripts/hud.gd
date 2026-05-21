@@ -602,6 +602,9 @@ func _process(_delta):
 	var material = complex_rect.material as ShaderMaterial
 	material.set_shader_parameter("current_f", f)
 	material.set_shader_parameter("color_scheme", Config.color_scheme)
+	if world_manager and world_manager.terrain_material:
+		var palette = world_manager.terrain_material.get_shader_parameter("cyclic_palette")
+		material.set_shader_parameter("cyclic_palette", palette)
 	material.set_shader_parameter("scale", current_scale)
 	material.set_shader_parameter("performance_protection_active", Config.performance_protection_active)
 
