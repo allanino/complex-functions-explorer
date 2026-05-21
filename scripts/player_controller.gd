@@ -5,7 +5,8 @@ const DOUBLE_PRESS_TIME = 0.3
 const CRITICAL_LINE_X = 5.0
 const AUTO_WALK_PITCH = -0.523598776 # -30 degrees in radians
 const STEEP_SLOPE_THRESHOLD = 1.732 # tan(60 degrees)
-const REPULSION_STRENGTH = 1.0
+const MAX_CAMERA_DISPLACEMENT = 0.5
+const CAMERA_SMOOTHING = 5.0
 
 enum AutoWalkState { NONE, MOVING_TO_LINE, WALKING }
 
@@ -15,6 +16,7 @@ var height_offset = 0.0
 var last_space_time = 0.0
 var space_held_time = 0.0
 var is_resetting_height = false
+var current_camera_offset_world = Vector2.ZERO
 
 # Zero detection history
 var mag_history: Array[float] = [1.0, 1.0, 1.0, 1.0, 1.0]
@@ -175,17 +177,6 @@ func _physics_process(delta):
 		velocity.x = move_toward(velocity.x, 0, current_speed)
 		velocity.z = move_toward(velocity.z, 0, current_speed)
 
-	# Slope repulsion to avoid clipping into steep terrain
-	var grad = _get_terrain_gradient(global_position.x, global_position.z)
-	var slope = grad.length()
-	if slope > STEEP_SLOPE_THRESHOLD:
-		# Soft repulsion: allow climbing but push back to maintain space.
-		# Clamp factor to ensure user can always overcome it with forward input.
-		var repulsion_factor = clamp((slope - STEEP_SLOPE_THRESHOLD) * REPULSION_STRENGTH, 0.0, 0.8)
-		var repulsion_dir = grad.normalized()
-		velocity.x -= repulsion_dir.x * repulsion_factor * current_speed
-		velocity.z -= repulsion_dir.y * repulsion_factor * current_speed
-
 	# Calculate current terrain height
 	var terrain_h = get_terrain_height(global_position.x, global_position.z)
 
@@ -214,5 +205,31 @@ func _physics_process(delta):
 			if mag_history[2] < Config.zero_threshold:
 				Config.visited_zeros.push_back(t)
 				last_detected_t = t
+
+	# Calculate camera horizontal displacement for steep slopes
+	var grad = _get_terrain_gradient(global_position.x, global_position.z)
+	var slope = grad.length()
+	var target_offset_world = Vector2.ZERO
+
+	if slope > STEEP_SLOPE_THRESHOLD:
+		# Direction is down-slope (opposite to gradient)
+		var dir = -grad.normalized()
+		var strength = min((slope - STEEP_SLOPE_THRESHOLD) * 0.5, MAX_CAMERA_DISPLACEMENT)
+		target_offset_world = dir * strength
+
+	# Smoothly interpolate world-space offset
+	current_camera_offset_world = current_camera_offset_world.lerp(target_offset_world, delta * CAMERA_SMOOTHING)
+
+	# Convert smoothed world-space target offset to local space
+	# Player yaw is rotation.y. Local space displacement needs to account for this.
+	var cos_y = cos(-rotation.y)
+	var sin_y = sin(-rotation.y)
+	var local_offset = Vector2(
+		current_camera_offset_world.x * cos_y - current_camera_offset_world.y * sin_y,
+		current_camera_offset_world.x * sin_y + current_camera_offset_world.y * cos_y
+	)
+
+	camera.position.x = local_offset.x
+	camera.position.z = local_offset.y
 
 	move_and_slide()
