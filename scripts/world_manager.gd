@@ -60,22 +60,6 @@ func _process(delta):
 	var player_chunk_x = floor(player_pos.x / chunk_size)
 	var player_chunk_z = floor(player_pos.z / chunk_size)
 
-	# Load new chunks
-	for x in range(player_chunk_x - Config.view_distance, player_chunk_x + Config.view_distance + 1):
-		for z in range(player_chunk_z - Config.view_distance, player_chunk_z + Config.view_distance + 1):
-			var chunk_coord = Vector2i(x, z)
-			if not chunks.has(chunk_coord):
-				_load_chunk(chunk_coord)
-
-	# Unload distant chunks
-	var chunks_to_remove = []
-	for chunk_coord in chunks.keys():
-		if abs(chunk_coord.x - player_chunk_x) > Config.view_distance or abs(chunk_coord.y - player_chunk_z) > Config.view_distance:
-			chunks_to_remove.append(chunk_coord)
-
-	for chunk_coord in chunks_to_remove:
-		_unload_chunk(chunk_coord)
-
 	# Environment logic
 	var night_factor = 0.0
 	var sunrise_rad = deg_to_rad(Config.sunrise_direction)
@@ -140,13 +124,18 @@ func _process(delta):
 			sky_mat.set_shader_parameter("night_factor", night_factor)
 
 	# Only update branch time on branch functions
-	if Config.function_type == 14:
+	if Config.function_type >= 14 and Config.function_type <= 17:
 		Config.branch_time = Time.get_ticks_msec() / 1000.0
+
+	if terrain_material:
+		terrain_material.set_shader_parameter("branch_time", Config.branch_time)
+		terrain_material.set_shader_parameter("zoom_factor", Config.effective_zoom)
 
 	# Check if any field properties have changed
 	var current_field_state = {
 		"iterations": Config.iterations,
 		"terrain_detail": Config.terrain_detail,
+		"view_distance": Config.view_distance,
 		"show_curves": Config.show_curves,
 		"show_critical_stripe": Config.show_critical_stripe,
 		"show_flow": Config.show_flow,
@@ -156,13 +145,11 @@ func _process(delta):
 		"height_a": Config.height_a,
 		"height_epsilon": Config.height_epsilon,
 		"zoom_factor": Config.zoom_factor,
-		"effective_zoom": Config.effective_zoom,
 		"rational_num_coeffs": Config.rational_num_coeffs,
 		"rational_den_coeffs": Config.rational_den_coeffs,
 		"multivalued_n": Config.multivalued_n,
 		"branch_cycle_speed": Config.branch_cycle_speed,
 		"multivalued_morph_time": Config.multivalued_morph_time,
-		"branch_time": Config.branch_time,
 		"terrain_brightness": Config.terrain_brightness,
 		"terrain_saturation": Config.terrain_saturation,
 		"terrain_albedo": Config.terrain_albedo,
@@ -186,9 +173,26 @@ func _process(delta):
 
 		_update_terrain_material_uniforms()
 
-	# LOD Dynamic Update
+	# Chunk and LOD Dynamic Update
 	if player_chunk_x != _last_player_chunk.x or player_chunk_z != _last_player_chunk.y:
 		_last_player_chunk = Vector2i(player_chunk_x, player_chunk_z)
+
+		# Load new chunks
+		for x in range(player_chunk_x - Config.view_distance, player_chunk_x + Config.view_distance + 1):
+			for z in range(player_chunk_z - Config.view_distance, player_chunk_z + Config.view_distance + 1):
+				var chunk_coord = Vector2i(x, z)
+				if not chunks.has(chunk_coord):
+					_load_chunk(chunk_coord)
+
+		# Unload distant chunks
+		var chunks_to_remove = []
+		for chunk_coord in chunks.keys():
+			if abs(chunk_coord.x - player_chunk_x) > Config.view_distance or abs(chunk_coord.y - player_chunk_z) > Config.view_distance:
+				chunks_to_remove.append(chunk_coord)
+
+		for chunk_coord in chunks_to_remove:
+			_unload_chunk(chunk_coord)
+
 		_update_all_chunks_lod()
 
 func _update_all_chunks_lod(force: bool = false):
@@ -197,7 +201,7 @@ func _update_all_chunks_lod(force: bool = false):
 		var chunk = chunks[coord]
 		var desired_lod = _get_lod_level(coord, player_chunk_coord)
 		if force or chunk.get_meta("lod_level", -1) != desired_lod:
-			_update_chunk_lod(chunk, desired_lod)
+			_update_chunk_lod(chunk, desired_lod, coord)
 
 func _update_lod_subs():
 	match Config.terrain_detail:
@@ -321,7 +325,8 @@ func _load_chunk(coord: Vector2i):
 	var player_chunk_coord = Vector2i(floor(player_pos.x / chunk_size), floor(player_pos.z / chunk_size))
 	var lod = _get_lod_level(coord, player_chunk_coord)
 
-	_update_chunk_lod(chunk, lod)
+	chunks[coord] = chunk
+	_update_chunk_lod(chunk, lod, coord)
 
 	chunk.global_position = Vector3(
 		coord.x * chunk_size + chunk_size * 0.5,
@@ -334,10 +339,7 @@ func _load_chunk(coord: Vector2i):
 		Vector3(chunk_size, 100, chunk_size)
 	)
 
-	chunks[coord] = chunk
-	_update_neighbor_lods(coord)
-
-func _update_chunk_lod(chunk: MeshInstance3D, lod: int):
+func _update_chunk_lod(chunk: MeshInstance3D, lod: int, coord: Vector2i):
 	var subdivisions = LOD_SUBS[lod]
 
 	if not _lod_mesh_cache.has(subdivisions):
@@ -347,11 +349,7 @@ func _update_chunk_lod(chunk: MeshInstance3D, lod: int):
 	chunk.set_meta("lod_level", lod)
 	_update_chunk_uniforms(chunk)
 
-	# Find coord for this chunk to update neighbors
-	for coord in chunks:
-		if chunks[coord] == chunk:
-			_update_neighbor_lods(coord)
-			break
+	_update_neighbor_lods(coord)
 
 func _unload_chunk(coord: Vector2i):
 	var chunk = chunks[coord]

@@ -23,9 +23,9 @@ static func complex_exp(sigma: float, t: float) -> Vector2:
 	return Vector2(amp * cos(t), amp * sin(t))
 
 static func complex_log(sigma: float, t: float) -> Vector2:
-	var mag = sqrt(sigma * sigma + t * t)
-	if mag < 1e-24: return Vector2(-60.0, 0.0)
-	return Vector2(log(mag), atan2(t, sigma))
+	var mag_sq = sigma * sigma + t * t
+	if mag_sq < 1e-48: return Vector2(-60.0, 0.0)
+	return Vector2(0.5 * log(mag_sq), atan2(t, sigma))
 
 static func complex_pow(z: Vector2, w: Vector2) -> Vector2:
 	var lz = complex_log(z.x, z.y)
@@ -45,23 +45,28 @@ static func complex_tan(sigma: float, t: float) -> Vector2:
 # Component Functions: Zeta, Eta, Gamma, Dedekind Eta
 #-------------------------------------------------------------------------
 
+const LOG_2 = 0.6931471805599453
+const LOG_PI = 1.1447298858494002
+
 static func dirichlet_eta(sigma: float, t: float, iterations: int) -> Vector2:
+	if iterations <= 0: return Vector2.ZERO
 	var eta = Vector2.ZERO
 	for n in range(1, iterations + 1):
 		var nf = float(n)
 		var amp = pow(nf, -sigma)
-		if amp < 1e-6: break
+		if amp < 1e-8: break
 		var theta = -t * log(nf)
 		var _sign = 1.0 if (n % 2 == 1) else -1.0
 		eta += _sign * amp * Vector2(cos(theta), sin(theta))
 	return eta
 
 static func dirichlet_beta(sigma: float, t: float, iterations: int) -> Vector2:
+	if iterations <= 0: return Vector2.ZERO
 	var beta = Vector2.ZERO
 	for n in range(iterations):
 		var k = 2.0 * float(n) + 1.0
 		var amp = pow(k, -sigma)
-		if amp < 1e-6: break
+		if amp < 1e-8: break
 		var theta = -t * log(k)
 		var _sign = 1.0 if (n % 2 == 0) else -1.0
 		beta += _sign * amp * Vector2(cos(theta), sin(theta))
@@ -72,7 +77,7 @@ static func zeta(sigma: float, t: float) -> Vector2:
 	var eta = dirichlet_eta(sigma, t, iterations)
 
 	var amp2 = pow(2.0, 1.0 - sigma)
-	var theta2 = -t * log(2.0)
+	var theta2 = -t * LOG_2
 	var two_term = amp2 * Vector2(cos(theta2), sin(theta2))
 	var denom = Vector2(1.0, 0.0) - two_term
 	return complex_div(eta, denom)
@@ -113,8 +118,8 @@ static func zeta_continuation(sigma: float, t: float) -> Vector2:
 	var s = Vector2(sigma, t)
 	var s1 = Vector2(1.0 - sigma, -t)
 
-	var log_sum = (complex_mul(s, Vector2(log(2.0), 0.0))
-				+ complex_mul(s - Vector2(1.0, 0.0), Vector2(log(PI), 0.0)))
+	var log_sum = (complex_mul(s, Vector2(LOG_2, 0.0))
+				+ complex_mul(s - Vector2(1.0, 0.0), Vector2(LOG_PI, 0.0)))
 
 	var pi_s_2 = (PI * 0.5) * s
 	var sin_part = complex_sin(pi_s_2.x, pi_s_2.y)
@@ -178,10 +183,9 @@ static func mandelbrot(sigma: float, t: float, iterations: int) -> Vector2:
 static func evaluate_poly(sigma: float, t: float, coeffs: PackedFloat32Array) -> Vector2:
 	var z = Vector2(sigma, t)
 	var res = Vector2.ZERO
-	var z_pow = Vector2(1.0, 0.0)
-	for i in range(10):
-		res += coeffs[i] * z_pow
-		z_pow = complex_mul(z_pow, z)
+	# Horner's method for polynomial evaluation
+	for i in range(9, -1, -1):
+		res = complex_mul(res, z) + Vector2(coeffs[i], 0.0)
 	return res
 
 static func get_rational(sigma: float, t: float) -> Vector2:
@@ -247,11 +251,7 @@ static func get_field(x: float, z: float) -> Vector2:
 	elif function_type == 14: return multivalued_z_pow_inv_n(sigma, t, Config.multivalued_n, Config.branch_cycle_speed)
 	return Vector2.ZERO
 
-static func get_height(x: float, z: float) -> float:
-	if Config.performance_protection_active:
-		return 0.0
-
-	var f = get_field(x, z)
+static func get_height_from_field(f: Vector2) -> float:
 	if not is_finite(f.x) or not is_finite(f.y): return 0.0
 	var mag = f.length()
 	if not is_finite(mag): return 0.0
@@ -259,3 +259,10 @@ static func get_height(x: float, z: float) -> float:
 	if Config.height_type == 0: h = Config.height_a * log(Config.height_epsilon + mag)
 	else: h = mag
 	return h if is_finite(h) else 0.0
+
+static func get_height(x: float, z: float) -> float:
+	if Config.performance_protection_active:
+		return 0.0
+
+	var f = get_field(x, z)
+	return get_height_from_field(f)

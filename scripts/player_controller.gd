@@ -94,7 +94,9 @@ func _unhandled_input(event):
 			height_offset = 0.0
 			is_resetting_height = false
 
-func get_terrain_height(x: float, z: float) -> float:
+func get_terrain_height(x: float, z: float, field_val: Vector2 = Vector2.INF) -> float:
+	if field_val != Vector2.INF:
+		return Field.get_height_from_field(field_val)
 	return Field.get_height(x, z)
 
 func _physics_process(delta):
@@ -113,6 +115,9 @@ func _physics_process(delta):
 		global_position.x *= zoom_ratio
 		global_position.z *= zoom_ratio
 
+	# Cache current field value for reuse throughout the frame
+	var current_f = Field.get_field(global_position.x, global_position.z)
+
 	if auto_walk_state != AutoWalkState.NONE:
 		var manual_input = Input.get_vector("move_left", "move_right", "move_forward", "move_backward")
 		if manual_input != Vector2.ZERO or Input.is_key_pressed(KEY_SPACE):
@@ -121,7 +126,6 @@ func _physics_process(delta):
 	var current_speed = Config.movement_speed * Config.effective_zoom
 
 	# Speed reduction near zeros
-	var current_f = Field.get_field(global_position.x, global_position.z)
 	if current_f.length() < Config.zero_threshold:
 		current_speed *= (Config.speed_near_zeros / 100.0)
 
@@ -189,16 +193,15 @@ func _physics_process(delta):
 		velocity.x = move_toward(velocity.x, 0, current_speed)
 		velocity.z = move_toward(velocity.z, 0, current_speed)
 
-	# Calculate current terrain height
-	var terrain_h = get_terrain_height(global_position.x, global_position.z)
+	# Calculate current terrain height using cached field
+	var terrain_h = get_terrain_height(global_position.x, global_position.z, current_f)
 
 	# Snap player to terrain height + offset
 	global_position.y = terrain_h + Config.camera_height / Config.effective_zoom + height_offset
 
 	# Zeta zero detection during auto-walk
 	if auto_walk_state == AutoWalkState.WALKING and (Config.function_type >= 0 and Config.function_type <= 3):
-		var f = Field.get_field(global_position.x, global_position.z)
-		var current_mag = f.length()
+		var current_mag = current_f.length()
 
 		var scale_factor = 1.0 / Config.effective_zoom
 		t_history.push_back(-global_position.z * 0.1 * scale_factor)
