@@ -358,23 +358,22 @@ FieldData complex_sin_with_derivatives(float sigma, float t) {
     return res;
 }
 
-FieldData multivalued_log_with_derivatives(float sigma, float t, int n, float cycle_speed) {
+FieldData multivalued_log_with_derivatives(float sigma, float t, float cycle_speed) {
     FieldData res;
     float r_sq = sigma * sigma + t * t;
     float r = sqrt(r_sq);
     float theta = atan(t, sigma);
     if (theta < 0.0) theta += 2.0 * PI;
-    float float_n = float(n);
 
     // Temporal branch selection & blending factor
-    float progress = fract(branch_time * cycle_speed) * float_n;
+    float progress = branch_time * cycle_speed;
     int k_current = int(floor(progress));
     float t_in_branch = fract(progress);
 
     // Non-linear transition: stay on branch, then morph
-    float dwell_time = (1.0 / float_n) - multivalued_morph_time * cycle_speed;
-    dwell_time = max(dwell_time, 0.0);
-    float transition_threshold = dwell_time * float_n;
+    float dwell_time = 1.0 - multivalued_morph_time * cycle_speed;
+    dwell_time = clamp(dwell_time, 0.0, 1.0);
+    float transition_threshold = dwell_time;
     float blend_factor = smoothstep(transition_threshold, 1.0, t_in_branch);
 
     float morphed_phase = theta + 2.0 * PI * (float(k_current) + blend_factor);
@@ -507,7 +506,7 @@ FieldData multivalued_z_pow_inv_n_with_derivatives(float sigma, float t, int n, 
     return res;
 }
 
-FieldData multivalued_arcsin_with_derivatives(float sigma, float t, int n, float cycle_speed) {
+FieldData multivalued_arcsin_with_derivatives(float sigma, float t, float cycle_speed) {
     vec2 z = vec2(sigma, t);
     vec2 z2 = complex_mul(z, z);
     vec2 one_minus_z2 = vec2(1.0, 0.0) - z2;
@@ -515,7 +514,7 @@ FieldData multivalued_arcsin_with_derivatives(float sigma, float t, int n, float
     vec2 iz = vec2(-t, sigma);
     vec2 arg_to_log = iz + sqrt_val;
 
-    FieldData log_data = multivalued_log_with_derivatives(arg_to_log.x, arg_to_log.y, n, cycle_speed);
+    FieldData log_data = multivalued_log_with_derivatives(arg_to_log.x, arg_to_log.y, cycle_speed);
 
     FieldData res;
     res.value = vec2(log_data.value.y, -log_data.value.x);
@@ -527,7 +526,7 @@ FieldData multivalued_arcsin_with_derivatives(float sigma, float t, int n, float
     return res;
 }
 
-FieldData multivalued_arccos_with_derivatives(float sigma, float t, int n, float cycle_speed) {
+FieldData multivalued_arccos_with_derivatives(float sigma, float t, float cycle_speed) {
     vec2 z = vec2(sigma, t);
     vec2 z2 = complex_mul(z, z);
     vec2 one_minus_z2 = vec2(1.0, 0.0) - z2;
@@ -535,7 +534,7 @@ FieldData multivalued_arccos_with_derivatives(float sigma, float t, int n, float
     vec2 isqrt = vec2(-sqrt_val.y, sqrt_val.x);
     vec2 arg_to_log = z + isqrt;
 
-    FieldData log_data = multivalued_log_with_derivatives(arg_to_log.x, arg_to_log.y, n, cycle_speed);
+    FieldData log_data = multivalued_log_with_derivatives(arg_to_log.x, arg_to_log.y, cycle_speed);
 
     FieldData res;
     res.value = vec2(log_data.value.y, -log_data.value.x);
@@ -570,9 +569,9 @@ FieldData get_field_with_derivatives(float x, float z) {
     if (function_type == 12) return complex_log_with_derivatives(sigma, t);
     if (function_type == 13) return get_rational_with_derivatives(sigma, t);
     if (function_type == 14) return multivalued_z_pow_inv_n_with_derivatives(sigma, t, multivalued_n, branch_cycle_speed);
-    if (function_type == 15) return multivalued_log_with_derivatives(sigma, t, multivalued_n, branch_cycle_speed);
-    if (function_type == 16) return multivalued_arcsin_with_derivatives(sigma, t, multivalued_n, branch_cycle_speed);
-    if (function_type == 17) return multivalued_arccos_with_derivatives(sigma, t, multivalued_n, branch_cycle_speed);
+    if (function_type == 15) return multivalued_log_with_derivatives(sigma, t, branch_cycle_speed);
+    if (function_type == 16) return multivalued_arcsin_with_derivatives(sigma, t, branch_cycle_speed);
+    if (function_type == 17) return multivalued_arccos_with_derivatives(sigma, t, branch_cycle_speed);
     FieldData res;
     res.value = vec2(0.0);
     res.d_sigma = vec2(0.0);

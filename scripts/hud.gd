@@ -387,7 +387,7 @@ func _on_func_selected(index):
 		iter_input.text = "10"
 
 	rational_container.visible = (index == 13)
-	multivalued_container.visible = (index >= 14 and index <= 17)
+	multivalued_container.visible = (index == 14)
 	cycle_speed_container.visible = (index >= 14 and index <= 17)
 	morph_time_container.visible = (index >= 14 and index <= 17)
 	iter_container.visible = (is_zeta_variant or index == 6 or index == 7)
@@ -658,8 +658,13 @@ func _process(_delta):
 	var target_text = "Re = %.3f\nIm = %.3f\n|f| = %.3f" % [f.x, f.y, f.length()]
 
 	if Config.function_type >= 14 and Config.function_type <= 17:
-		var float_n = float(Config.multivalued_n)
-		var progress = fmod(Config.branch_time * Config.branch_cycle_speed, 1.0) * float_n
+		var progress = 0.0
+		if Config.function_type == 14:
+			var float_n = float(Config.multivalued_n)
+			progress = fmod(Config.branch_time * Config.branch_cycle_speed, 1.0) * float_n
+		else:
+			progress = Config.branch_time * Config.branch_cycle_speed
+
 		var k_current = int(floor(progress))
 		target_text += "\nBranch: %d" % k_current
 
