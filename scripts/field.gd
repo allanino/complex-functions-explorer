@@ -200,15 +200,32 @@ static func multivalued_z_pow_inv_n(sigma: float, t: float, n: int, cycle_speed:
 	var k_current = floor(progress)
 	var t_in_branch = progress - k_current
 
-	# Non-linear transition
-	var blend_factor = smoothstep(0.9, 1.0, t_in_branch)
+	# Non-linear transition: stay on branch, then morph
+	var morph_time = Config.multivalued_morph_time
+	var transition_fraction = clamp(morph_time * float_n * cycle_speed, 0.0, 1.0)
+	var transition_threshold = 1.0 - transition_fraction
+	var blend_factor = 0.0
+	if transition_threshold < 1.0:
+		blend_factor = smoothstep(transition_threshold, 1.0, t_in_branch)
+	else:
+		blend_factor = 1.0 if t_in_branch >= 1.0 else 0.0
 
-	var morphed_phase = (theta + 2.0 * PI * (k_current + blend_factor)) / float_n
 	var morphed_r = pow(r, 1.0 / float_n)
-	return Vector2(morphed_r * cos(morphed_phase), morphed_r * sin(morphed_phase))
+
+	# Current branch value
+	var phase_curr = (theta + 2.0 * PI * k_current) / float_n
+	var val_curr = Vector2(morphed_r * cos(phase_curr), morphed_r * sin(phase_curr))
+
+	# Next branch value
+	var phase_next = (theta + 2.0 * PI * (k_current + 1)) / float_n
+	var val_next = Vector2(morphed_r * cos(phase_next), morphed_r * sin(phase_next))
+
+	return val_curr.lerp(val_next, blend_factor)
 
 static func smoothstep(edge0: float, edge1: float, x: float) -> float:
-	x = clamp((x - edge0) / (edge1 - edge0), 0.0, 1.0)
+	var d = edge1 - edge0
+	if abs(d) < 1e-8: return 1.0 if x >= edge0 else 0.0
+	x = clamp((x - edge0) / d, 0.0, 1.0)
 	return x * x * (3.0 - 2.0 * x)
 
 #-------------------------------------------------------------------------
