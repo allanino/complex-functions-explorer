@@ -73,41 +73,21 @@ void vertex() {
             horizontal_edge = true;
         }
 
-        FieldData final_fd;
+        vec3 snap_v = VERTEX;
         if (n_lod != -1) {
             float segments = lod_segments[n_lod];
             float s = chunk_size / segments;
-            float t = horizontal_edge ? (VERTEX.x + half_size) / s : (VERTEX.z + half_size) / s;
-            float t1 = floor(t + 0.0001);
-            float w = clamp(t - t1, 0.0, 1.0);
-
-            if (w < 0.0001) {
-                // Exactly on neighbor's grid point, only one math call needed
-                vec3 world_v_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
-                final_fd = get_field_with_derivatives(world_v_pos.x, world_v_pos.z);
+            if (horizontal_edge) {
+                float t = (VERTEX.x + half_size) / s;
+                snap_v.x = floor(t + 0.5) * s - half_size;
             } else {
-                vec3 p1_local, p2_local;
-                if (horizontal_edge) {
-                    p1_local = vec3(t1 * s - half_size, 0.0, VERTEX.z);
-                    p2_local = vec3((t1 + 1.0) * s - half_size, 0.0, VERTEX.z);
-                } else {
-                    p1_local = vec3(VERTEX.x, 0.0, t1 * s - half_size);
-                    p2_local = vec3(VERTEX.x, 0.0, (t1 + 1.0) * s - half_size);
-                }
-                vec3 p1_world = (MODEL_MATRIX * vec4(p1_local, 1.0)).xyz;
-                vec3 p2_world = (MODEL_MATRIX * vec4(p2_local, 1.0)).xyz;
-
-                FieldData fd1 = get_field_with_derivatives(p1_world.x, p1_world.z);
-                FieldData fd2 = get_field_with_derivatives(p2_world.x, p2_world.z);
-
-                final_fd.value = mix(fd1.value, fd2.value, w);
-                final_fd.d_sigma = mix(fd1.d_sigma, fd2.d_sigma, w);
-                final_fd.d_t = mix(fd1.d_t, fd2.d_t, w);
+                float t = (VERTEX.z + half_size) / s;
+                snap_v.z = floor(t + 0.5) * s - half_size;
             }
-        } else {
-            vec3 world_v_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
-            final_fd = get_field_with_derivatives(world_v_pos.x, world_v_pos.z);
         }
+
+        vec3 world_v_pos = (MODEL_MATRIX * vec4(snap_v, 1.0)).xyz;
+        FieldData final_fd = get_field_with_derivatives(world_v_pos.x, world_v_pos.z);
 
         bool is_invalid = any(isnan(final_fd.value)) || any(isinf(final_fd.value)) ||
                         any(isnan(final_fd.d_sigma)) || any(isinf(final_fd.d_sigma)) ||
@@ -117,13 +97,14 @@ void vertex() {
             v_nan = 1.0;
             field_val = vec2(0.0);
             v_normal = vec3(0.0, 1.0, 0.0);
-            local_pos.y = 0.0;
+            local_pos = vec3(snap_v.x, 0.0, snap_v.z);
         } else {
             v_nan = 0.0;
             field_val = final_fd.value;
             float mag = length(field_val);
             float h = (height_type == 0) ? height_a * log(height_epsilon + mag) : mag;
-            local_pos.y += h;
+
+            local_pos = vec3(snap_v.x, snap_v.y + h, snap_v.z);
 
             float u = field_val.x;
             float v = field_val.y;
