@@ -8,6 +8,14 @@ varying vec2 field_val;
 varying float v_nan;
 
 instance uniform int lod_level = 0;
+instance uniform int neighbor_lod_left = -1;
+instance uniform int neighbor_lod_right = -1;
+instance uniform int neighbor_lod_top = -1;
+instance uniform int neighbor_lod_bottom = -1;
+
+uniform float lod_segments[4];
+uniform float chunk_size;
+
 uniform int color_scheme = 0;
 uniform bool show_curves = true;
 uniform bool show_critical_stripe = true;
@@ -47,62 +55,76 @@ void vertex() {
         v_nan = 0.0;
         field_val = vec2(0.0);
     } else {
-        vec3 world_v_pos = (MODEL_MATRIX * vec4(local_pos, 1.0)).xyz;
+        float half_size = chunk_size * 0.5;
+        float eps = 0.01;
 
-        FieldData fd = get_field_with_derivatives(world_v_pos.x, world_v_pos.z);
+        bool on_left = VERTEX.x < -half_size + eps;
+        bool on_right = VERTEX.x > half_size - eps;
+        bool on_top = VERTEX.z < -half_size + eps;
+        bool on_bottom = VERTEX.z > half_size - eps;
 
-        bool is_invalid = any(isnan(fd.value)) || any(isinf(fd.value)) ||
-                        any(isnan(fd.d_sigma)) || any(isinf(fd.d_sigma)) ||
-                        any(isnan(fd.d_t)) || any(isinf(fd.d_t));
+        int n_lod = -1;
+        bool horizontal_edge = false; // edge along X (Top/Bottom)
+
+        if (on_left && neighbor_lod_left > lod_level) {
+            n_lod = neighbor_lod_left;
+            horizontal_edge = false;
+        } else if (on_right && neighbor_lod_right > lod_level) {
+            n_lod = neighbor_lod_right;
+            horizontal_edge = false;
+        } else if (on_top && neighbor_lod_top > lod_level) {
+            n_lod = neighbor_lod_top;
+            horizontal_edge = true;
+        } else if (on_bottom && neighbor_lod_bottom > lod_level) {
+            n_lod = neighbor_lod_bottom;
+            horizontal_edge = true;
+        }
+
+        vec3 snap_v = VERTEX;
+        if (n_lod != -1) {
+            float segments = lod_segments[n_lod];
+            float s = chunk_size / segments;
+            if (horizontal_edge) {
+                float t = (VERTEX.x + half_size) / s;
+                snap_v.x = floor(t + 0.5) * s - half_size;
+            } else {
+                float t = (VERTEX.z + half_size) / s;
+                snap_v.z = floor(t + 0.5) * s - half_size;
+            }
+        }
+
+        vec3 world_v_pos = (MODEL_MATRIX * vec4(snap_v, 1.0)).xyz;
+        FieldData final_fd = get_field_with_derivatives(world_v_pos.x, world_v_pos.z);
+
+        bool is_invalid = any(isnan(final_fd.value)) || any(isinf(final_fd.value)) ||
+                        any(isnan(final_fd.d_sigma)) || any(isinf(final_fd.d_sigma)) ||
+                        any(isnan(final_fd.d_t)) || any(isinf(final_fd.d_t));
 
         if (is_invalid) {
             v_nan = 1.0;
             field_val = vec2(0.0);
             v_normal = vec3(0.0, 1.0, 0.0);
-            // local_pos.y remains 0.0
+            local_pos = vec3(snap_v.x, 0.0, snap_v.z);
         } else {
             v_nan = 0.0;
-            field_val = fd.value;
-
+            field_val = final_fd.value;
             float mag = length(field_val);
-            float h = 0.0;
-            if (height_type == 0) {
-                h = height_a * log(height_epsilon + mag);
-            } else {
-                h = mag;
-            }
-            local_pos.y += h;
+            float h = (height_type == 0) ? height_a * log(height_epsilon + mag) : mag;
 
-            // Analytical normals using derivatives
+            local_pos = vec3(snap_v.x, snap_v.y + h, snap_v.z);
+
             float u = field_val.x;
             float v = field_val.y;
-
-            // sigma = x * 0.1, t = -z * 0.1
-            // d_sigma/dx = 0.1, dt/dz = -0.1
-            vec2 du_dsigma_v = fd.d_sigma; // (du/dsigma, dv/dsigma)
-            vec2 du_dt_v = fd.d_t;         // (du/dt, dv/dt)
-
-            float du_dx = 0.1 * du_dsigma_v.x;
-            float dv_dx = 0.1 * du_dsigma_v.y;
-            float du_dz = -0.1 * du_dt_v.x;
-            float dv_dz = -0.1 * du_dt_v.y;
+            float du_dx = 0.1 * final_fd.d_sigma.x;
+            float dv_dx = 0.1 * final_fd.d_sigma.y;
+            float du_dz = -0.1 * final_fd.d_t.x;
+            float dv_dz = -0.1 * final_fd.d_t.y;
 
             float dmag_dx = (mag > 1e-12) ? (u * du_dx + v * dv_dx) / mag : 0.0;
             float dmag_dz = (mag > 1e-12) ? (u * du_dz + v * dv_dz) / mag : 0.0;
 
-            float dh_dx = 0.0;
-            float dh_dz = 0.0;
-
-            if (height_type == 0) {
-                // h = height_a * log(height_epsilon + mag)
-                float denom = height_epsilon + mag;
-                dh_dx = (height_a / denom) * dmag_dx;
-                dh_dz = (height_a / denom) * dmag_dz;
-            } else {
-                // h = mag
-                dh_dx = dmag_dx;
-                dh_dz = dmag_dz;
-            }
+            float dh_dx = (height_type == 0) ? (height_a / (height_epsilon + mag)) * dmag_dx : dmag_dx;
+            float dh_dz = (height_type == 0) ? (height_a / (height_epsilon + mag)) * dmag_dz : dmag_dz;
 
             v_normal = normalize(vec3(-dh_dx, 1.0, -dh_dz));
         }
