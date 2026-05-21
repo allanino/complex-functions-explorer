@@ -40,6 +40,8 @@ func _unhandled_input(event):
 			Config.zoom_factor = clampf(Config.zoom_factor * 1.1, 0.01, 200.0)
 		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN and event.pressed:
 			Config.zoom_factor = clampf(Config.zoom_factor / 1.1, 0.01, 200.0)
+		elif event.button_index == MOUSE_BUTTON_MIDDLE and event.pressed:
+			Config.zoom_factor = 1.0
 
 	if event.is_action_pressed("ui_cancel"):
 		var hud = get_node_or_null("/root/Main/HUD")
@@ -79,6 +81,13 @@ func _unhandled_input(event):
 				last_detected_t = -1.0
 			else:
 				auto_walk_state = AutoWalkState.NONE
+		elif event.keycode == KEY_R:
+			global_position.x = 0.0
+			global_position.z = 0.0
+			velocity = Vector3.ZERO
+			auto_walk_state = AutoWalkState.NONE
+			height_offset = 0.0
+			is_resetting_height = false
 
 func get_terrain_height(x: float, z: float) -> float:
 	return Field.get_height(x, z)
