@@ -231,15 +231,15 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="HUDStack" type="VBoxContainer" parent="Control"]
+[node name="HUDColumns" type="HBoxContainer" parent="Control"]
 layout_mode = 1
 anchors_preset = 3
 anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -170.0
-offset_top = -630.0
+offset_left = -330.0
+offset_top = -800.0
 offset_right = -20.0
 offset_bottom = -20.0
 grow_horizontal = 0
@@ -247,7 +247,18 @@ grow_vertical = 0
 theme_override_constants/separation = 10
 alignment = 2
 
-[node name="PerfProtectionLabel" type="Label" parent="Control/HUDStack"]
+[node name="HUDStackLeft" type="VBoxContainer" parent="Control/HUDColumns"]
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 2
+
+[node name="HUDStackRight" type="VBoxContainer" parent="Control/HUDColumns"]
+custom_minimum_size = Vector2(150, 0)
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 2
+
+[node name="PerfProtectionLabel" type="Label" parent="Control/HUDColumns/HUDStackRight"]
 visible = false
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.8, 0, 1)
@@ -256,135 +267,135 @@ text = "Performance protection activated, adjust settings."
 horizontal_alignment = 1
 autowrap_mode = 3
 
-[node name="ZerosPanel" type="PanelContainer" parent="Control/HUDStack"]
+[node name="ZerosPanel" type="PanelContainer" parent="Control/HUDColumns/HUDStackRight"]
 visible = false
 custom_minimum_size = Vector2(0, 200)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_styles/panel = SubResource("StyleBoxFlat_glass")
 
-[node name="MarginContainer" type="MarginContainer" parent="Control/HUDStack/ZerosPanel"]
+[node name="MarginContainer" type="MarginContainer" parent="Control/HUDColumns/HUDStackRight/ZerosPanel"]
 layout_mode = 2
 theme_override_constants/margin_left = 10
 theme_override_constants/margin_top = 10
 theme_override_constants/margin_right = 10
 theme_override_constants/margin_bottom = 10
 
-[node name="VBox" type="VBoxContainer" parent="Control/HUDStack/ZerosPanel/MarginContainer"]
+[node name="VBox" type="VBoxContainer" parent="Control/HUDColumns/HUDStackRight/ZerosPanel/MarginContainer"]
 layout_mode = 2
 
-[node name="TitleLabel" type="Label" parent="Control/HUDStack/ZerosPanel/MarginContainer/VBox"]
+[node name="TitleLabel" type="Label" parent="Control/HUDColumns/HUDStackRight/ZerosPanel/MarginContainer/VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
 text = "ZEROS DETECTED"
 horizontal_alignment = 1
 
-[node name="HSeparator" type="HSeparator" parent="Control/HUDStack/ZerosPanel/MarginContainer/VBox"]
+[node name="HSeparator" type="HSeparator" parent="Control/HUDColumns/HUDStackRight/ZerosPanel/MarginContainer/VBox"]
 layout_mode = 2
 
-[node name="CountLabel" type="Label" parent="Control/HUDStack/ZerosPanel/MarginContainer/VBox"]
+[node name="CountLabel" type="Label" parent="Control/HUDColumns/HUDStackRight/ZerosPanel/MarginContainer/VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "Count: 0"
 horizontal_alignment = 1
 
-[node name="RvmLabel" type="Label" parent="Control/HUDStack/ZerosPanel/MarginContainer/VBox"]
+[node name="RvmLabel" type="Label" parent="Control/HUDColumns/HUDStackRight/ZerosPanel/MarginContainer/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
 theme_override_font_sizes/font_size = 12
 text = "N(t) ≈ 0.00"
 horizontal_alignment = 1
 
-[node name="HSeparator2" type="HSeparator" parent="Control/HUDStack/ZerosPanel/MarginContainer/VBox"]
+[node name="HSeparator2" type="HSeparator" parent="Control/HUDColumns/HUDStackRight/ZerosPanel/MarginContainer/VBox"]
 layout_mode = 2
 
-[node name="Scroll" type="ScrollContainer" parent="Control/HUDStack/ZerosPanel/MarginContainer/VBox"]
+[node name="Scroll" type="ScrollContainer" parent="Control/HUDColumns/HUDStackRight/ZerosPanel/MarginContainer/VBox"]
 layout_mode = 2
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
 
-[node name="ListLabel" type="Label" parent="Control/HUDStack/ZerosPanel/MarginContainer/VBox/Scroll"]
+[node name="ListLabel" type="Label" parent="Control/HUDColumns/HUDStackRight/ZerosPanel/MarginContainer/VBox/Scroll"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 12
 horizontal_alignment = 1
 autowrap_mode = 3
 
-[node name="MonitorPanel" type="PanelContainer" parent="Control/HUDStack"]
+[node name="MonitorPanel" type="PanelContainer" parent="Control/HUDColumns/HUDStackRight"]
 visible = false
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_styles/panel = SubResource("StyleBoxFlat_glass")
 
-[node name="MarginContainer" type="MarginContainer" parent="Control/HUDStack/MonitorPanel"]
+[node name="MarginContainer" type="MarginContainer" parent="Control/HUDColumns/HUDStackRight/MonitorPanel"]
 layout_mode = 2
 theme_override_constants/margin_left = 10
 theme_override_constants/margin_top = 10
 theme_override_constants/margin_right = 10
 theme_override_constants/margin_bottom = 10
 
-[node name="VBox" type="VBoxContainer" parent="Control/HUDStack/MonitorPanel/MarginContainer"]
+[node name="VBox" type="VBoxContainer" parent="Control/HUDColumns/HUDStackRight/MonitorPanel/MarginContainer"]
 layout_mode = 2
 theme_override_constants/separation = 5
 
-[node name="TitleLabel" type="Label" parent="Control/HUDStack/MonitorPanel/MarginContainer/VBox"]
+[node name="TitleLabel" type="Label" parent="Control/HUDColumns/HUDStackRight/MonitorPanel/MarginContainer/VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
 text = "MONITOR"
 horizontal_alignment = 1
 
-[node name="HSeparator" type="HSeparator" parent="Control/HUDStack/MonitorPanel/MarginContainer/VBox"]
+[node name="HSeparator" type="HSeparator" parent="Control/HUDColumns/HUDStackRight/MonitorPanel/MarginContainer/VBox"]
 layout_mode = 2
 
-[node name="FpsLabel" type="Label" parent="Control/HUDStack/MonitorPanel/MarginContainer/VBox"]
+[node name="FpsLabel" type="Label" parent="Control/HUDColumns/HUDStackRight/MonitorPanel/MarginContainer/VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "FPS: 60"
 horizontal_alignment = 1
 
-[node name="InfoPanel" type="PanelContainer" parent="Control/HUDStack"]
+[node name="InfoPanel" type="PanelContainer" parent="Control/HUDColumns/HUDStackRight"]
 custom_minimum_size = Vector2(0, 200)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_styles/panel = SubResource("StyleBoxFlat_glass")
 
-[node name="MarginContainer" type="MarginContainer" parent="Control/HUDStack/InfoPanel"]
+[node name="MarginContainer" type="MarginContainer" parent="Control/HUDColumns/HUDStackRight/InfoPanel"]
 layout_mode = 2
 theme_override_constants/margin_left = 10
 theme_override_constants/margin_top = 10
 theme_override_constants/margin_right = 10
 theme_override_constants/margin_bottom = 10
 
-[node name="VBox" type="VBoxContainer" parent="Control/HUDStack/InfoPanel/MarginContainer"]
+[node name="VBox" type="VBoxContainer" parent="Control/HUDColumns/HUDStackRight/InfoPanel/MarginContainer"]
 layout_mode = 2
 theme_override_constants/separation = 5
 
-[node name="DomainTitle" type="Label" parent="Control/HUDStack/InfoPanel/MarginContainer/VBox"]
+[node name="DomainTitle" type="Label" parent="Control/HUDColumns/HUDStackRight/InfoPanel/MarginContainer/VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
 text = "DOMAIN"
 horizontal_alignment = 1
 
-[node name="HSeparator3" type="HSeparator" parent="Control/HUDStack/InfoPanel/MarginContainer/VBox"]
+[node name="HSeparator3" type="HSeparator" parent="Control/HUDColumns/HUDStackRight/InfoPanel/MarginContainer/VBox"]
 layout_mode = 2
 
-[node name="DomainLabel" type="Label" parent="Control/HUDStack/InfoPanel/MarginContainer/VBox"]
+[node name="DomainLabel" type="Label" parent="Control/HUDColumns/HUDStackRight/InfoPanel/MarginContainer/VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "Re = 0.000
 Im = 0.000"
 horizontal_alignment = 1
 
-[node name="TargetTitle" type="Label" parent="Control/HUDStack/InfoPanel/MarginContainer/VBox"]
+[node name="TargetTitle" type="Label" parent="Control/HUDColumns/HUDStackRight/InfoPanel/MarginContainer/VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
 text = "\nTARGET"
 horizontal_alignment = 1
 
-[node name="HSeparator5" type="HSeparator" parent="Control/HUDStack/InfoPanel/MarginContainer/VBox"]
+[node name="HSeparator5" type="HSeparator" parent="Control/HUDColumns/HUDStackRight/InfoPanel/MarginContainer/VBox"]
 layout_mode = 2
 
-[node name="TargetLabel" type="Label" parent="Control/HUDStack/InfoPanel/MarginContainer/VBox"]
+[node name="TargetLabel" type="Label" parent="Control/HUDColumns/HUDStackRight/InfoPanel/MarginContainer/VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "Re = 0.000
@@ -392,33 +403,78 @@ Im = 0.000
 |f| = 0.000"
 horizontal_alignment = 1
 
-[node name="ComplexAspect" type="AspectRatioContainer" parent="Control/HUDStack"]
+[node name="ComplexAspect" type="AspectRatioContainer" parent="Control/HUDColumns/HUDStackRight"]
 custom_minimum_size = Vector2(0, 150)
 layout_mode = 2
 size_flags_horizontal = 3
 ratio = 1.0
 stretch_mode = 0
 
-[node name="ComplexPanel" type="PanelContainer" parent="Control/HUDStack/ComplexAspect"]
+[node name="ComplexPanel" type="PanelContainer" parent="Control/HUDColumns/HUDStackRight/ComplexAspect"]
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_glass")
 
-[node name="MarginContainer" type="MarginContainer" parent="Control/HUDStack/ComplexAspect/ComplexPanel"]
+[node name="MarginContainer" type="MarginContainer" parent="Control/HUDColumns/HUDStackRight/ComplexAspect/ComplexPanel"]
 layout_mode = 2
 theme_override_constants/margin_left = 5
 theme_override_constants/margin_top = 5
 theme_override_constants/margin_right = 5
 theme_override_constants/margin_bottom = 5
 
-[node name="ClipPanel" type="PanelContainer" parent="Control/HUDStack/ComplexAspect/ComplexPanel/MarginContainer"]
+[node name="ClipPanel" type="PanelContainer" parent="Control/HUDColumns/HUDStackRight/ComplexAspect/ComplexPanel/MarginContainer"]
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_mask")
 clip_children = 2
 
-[node name="ComplexPlane" type="ColorRect" parent="Control/HUDStack/ComplexAspect/ComplexPanel/MarginContainer/ClipPanel"]
+[node name="ComplexPlane" type="ColorRect" parent="Control/HUDColumns/HUDStackRight/ComplexAspect/ComplexPanel/MarginContainer/ClipPanel"]
 material = SubResource("ShaderMaterial_1")
 mouse_filter = 2
 layout_mode = 2
+
+[node name="MorphOverlay" type="PanelContainer" parent="Control"]
+visible = false
+custom_minimum_size = Vector2(400, 60)
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -200.0
+offset_top = 20.0
+offset_right = 200.0
+offset_bottom = 80.0
+grow_horizontal = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_glass")
+
+[node name="MarginContainer" type="MarginContainer" parent="Control/MorphOverlay"]
+layout_mode = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_right = 20
+
+[node name="HBox" type="HBoxContainer" parent="Control/MorphOverlay/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="Label" type="Label" parent="Control/MorphOverlay/MarginContainer/HBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Morph"
+
+[node name="MorphSlider" type="HSlider" parent="Control/MorphOverlay/MarginContainer/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+min_value = 0.0
+max_value = 1.0
+step = 0.01
+value = 1.0
+
+[node name="ExitMorphButton" type="Button" parent="Control/MorphOverlay/MarginContainer/HBox"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
+text = "Exit"
 
 [node name="MenuOverlay" type="ColorRect" parent="Control"]
 visible = false
@@ -584,6 +640,87 @@ text = "z^2 - 1"
 placeholder_text = "(z^2 + 1)/(z - 1)"
 alignment = 1
 
+[node name="MultivaluedContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/MultivaluedContainer"]
+custom_minimum_size = Vector2(160, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 18
+text = "Branches (n)"
+
+[node name="MultivaluedSlider" type="HSlider" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/MultivaluedContainer"]
+custom_minimum_size = Vector2(100, 20)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+min_value = 1.0
+max_value = 10.0
+value = 2.0
+
+[node name="MultivaluedValue" type="Label" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/MultivaluedContainer"]
+custom_minimum_size = Vector2(50, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 18
+text = "2"
+horizontal_alignment = 2
+
+[node name="CycleSpeedContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/CycleSpeedContainer"]
+custom_minimum_size = Vector2(160, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 18
+text = "Cycle Speed"
+
+[node name="CycleSpeedSlider" type="HSlider" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/CycleSpeedContainer"]
+custom_minimum_size = Vector2(100, 20)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+max_value = 1.0
+step = 0.1
+value = 0.5
+
+[node name="CycleSpeedValue" type="Label" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/CycleSpeedContainer"]
+custom_minimum_size = Vector2(50, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 18
+text = "0.5"
+horizontal_alignment = 2
+
+[node name="MorphTimeContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/MorphTimeContainer"]
+custom_minimum_size = Vector2(160, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 18
+text = "Morph Time"
+
+[node name="MorphTimeSlider" type="HSlider" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/MorphTimeContainer"]
+custom_minimum_size = Vector2(100, 20)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+max_value = 1.0
+step = 0.05
+value = 0.1
+
+[node name="MorphTimeValue" type="Label" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/MorphTimeContainer"]
+custom_minimum_size = Vector2(50, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 18
+text = "0.1s"
+horizontal_alignment = 2
+
 [node name="ENVIRONMENT" type="VBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer"]
 visible = false
 layout_mode = 2
@@ -633,6 +770,19 @@ theme_override_styles/pressed = SubResource("StyleBoxFlat_checkbox")
 theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_checkbox_hover")
 theme_override_styles/focus = SubResource("StyleBoxFlat_checkbox")
 text = "Critical Stripe"
+
+[node name="FlowCheckbox" type="CheckBox" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT"]
+layout_mode = 2
+focus_mode = 0
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_constants/h_separation = 15
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_checkbox")
+theme_override_styles/hover = SubResource("StyleBoxFlat_checkbox_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_checkbox")
+theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_checkbox_hover")
+theme_override_styles/focus = SubResource("StyleBoxFlat_checkbox")
+text = "Flow"
 
 [node name="EnvironmentContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT"]
 layout_mode = 2
@@ -838,6 +988,25 @@ theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
 theme_override_font_sizes/font_size = 18
 text = "10%"
 horizontal_alignment = 2
+
+[node name="MorphContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/MorphContainer"]
+custom_minimum_size = Vector2(160, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 18
+text = "Terrain Morph"
+
+[node name="MorphButton" type="OptionButton" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/MorphContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
+theme_override_styles/focus = SubResource("StyleBoxFlat_btn_normal")
 
 [node name="GRAPHICS" type="VBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer"]
 visible = false
@@ -1072,6 +1241,34 @@ text = "Automatic Walking"
 visible = false
 layout_mode = 2
 theme_override_constants/separation = 15
+
+[node name="HudScaleContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/HUD"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/HUD/HudScaleContainer"]
+custom_minimum_size = Vector2(160, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 18
+text = "HUD Scale"
+
+[node name="HudScaleSlider" type="HSlider" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/HUD/HudScaleContainer"]
+custom_minimum_size = Vector2(100, 20)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+min_value = 100.0
+max_value = 200.0
+step = 25.0
+value = 100.0
+
+[node name="HudScaleValue" type="Label" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/HUD/HudScaleContainer"]
+custom_minimum_size = Vector2(50, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 18
+text = "100%"
+horizontal_alignment = 2
 
 [node name="HudComplexCheckbox" type="CheckBox" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/HUD"]
 layout_mode = 2

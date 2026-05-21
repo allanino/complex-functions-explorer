@@ -1,18 +1,21 @@
 extends CanvasLayer
 
 @export var player: Node3D
-@onready var complex_panel = $Control/HUDStack/ComplexAspect
-@onready var info_panel = $Control/HUDStack/InfoPanel
-@onready var monitor_panel = $Control/HUDStack/MonitorPanel
-@onready var fps_label = $Control/HUDStack/MonitorPanel/MarginContainer/VBox/FpsLabel
-@onready var complex_rect = $Control/HUDStack/ComplexAspect/ComplexPanel/MarginContainer/ClipPanel/ComplexPlane
+@onready var hud_columns = $Control/HUDColumns
+@onready var hud_stack_left = $Control/HUDColumns/HUDStackLeft
+@onready var hud_stack_right = $Control/HUDColumns/HUDStackRight
+@onready var complex_panel = $Control/HUDColumns/HUDStackRight/ComplexAspect
+@onready var info_panel = $Control/HUDColumns/HUDStackRight/InfoPanel
+@onready var monitor_panel = $Control/HUDColumns/HUDStackRight/MonitorPanel
+@onready var fps_label = $Control/HUDColumns/HUDStackRight/MonitorPanel/MarginContainer/VBox/FpsLabel
+@onready var complex_rect = $Control/HUDColumns/HUDStackRight/ComplexAspect/ComplexPanel/MarginContainer/ClipPanel/ComplexPlane
 @onready var world_manager = get_node("../WorldManager")
-@onready var domain_label = $Control/HUDStack/InfoPanel/MarginContainer/VBox/DomainLabel
-@onready var target_label = $Control/HUDStack/InfoPanel/MarginContainer/VBox/TargetLabel
-@onready var zeros_panel = $Control/HUDStack/ZerosPanel
-@onready var zeros_count_label = $Control/HUDStack/ZerosPanel/MarginContainer/VBox/CountLabel
-@onready var rvm_label = $Control/HUDStack/ZerosPanel/MarginContainer/VBox/RvmLabel
-@onready var zeros_list_label = $Control/HUDStack/ZerosPanel/MarginContainer/VBox/Scroll/ListLabel
+@onready var domain_label = $Control/HUDColumns/HUDStackRight/InfoPanel/MarginContainer/VBox/DomainLabel
+@onready var target_label = $Control/HUDColumns/HUDStackRight/InfoPanel/MarginContainer/VBox/TargetLabel
+@onready var zeros_panel = $Control/HUDColumns/HUDStackRight/ZerosPanel
+@onready var zeros_count_label = $Control/HUDColumns/HUDStackRight/ZerosPanel/MarginContainer/VBox/CountLabel
+@onready var rvm_label = $Control/HUDColumns/HUDStackRight/ZerosPanel/MarginContainer/VBox/RvmLabel
+@onready var zeros_list_label = $Control/HUDColumns/HUDStackRight/ZerosPanel/MarginContainer/VBox/Scroll/ListLabel
 @onready var menu_overlay = $Control/MenuOverlay
 
 # New UI Node Paths
@@ -27,6 +30,15 @@ extends CanvasLayer
 @onready var iter_input = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/IterContainer/IterInput
 @onready var rational_container = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/RationalContainer
 @onready var rational_input = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/RationalContainer/RationalInput
+@onready var multivalued_container = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/MultivaluedContainer
+@onready var multivalued_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/MultivaluedContainer/MultivaluedSlider
+@onready var multivalued_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/MultivaluedContainer/MultivaluedValue
+@onready var cycle_speed_container = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/CycleSpeedContainer
+@onready var cycle_speed_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/CycleSpeedContainer/CycleSpeedSlider
+@onready var cycle_speed_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/CycleSpeedContainer/CycleSpeedValue
+@onready var morph_time_container = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/MorphTimeContainer
+@onready var morph_time_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/MorphTimeContainer/MorphTimeSlider
+@onready var morph_time_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/MorphTimeContainer/MorphTimeValue
 
 @onready var re_input = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/ReContainer/ReInput
 @onready var im_input = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/ImContainer/ImInput
@@ -45,6 +57,7 @@ extends CanvasLayer
 @onready var view_distance_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/GRAPHICS/ViewDistanceContainer/ViewDistanceValue
 @onready var curves_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/CurvesCheckbox
 @onready var critical_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/CriticalCheckbox
+@onready var flow_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/FlowCheckbox
 @onready var environment_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/EnvironmentContainer/EnvironmentButton
 @onready var sunrise_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/SunriseContainer/SunriseSlider
 @onready var sunrise_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/SunriseContainer/SunriseValue
@@ -55,6 +68,8 @@ extends CanvasLayer
 @onready var hud_zeros_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/HUD/HudZetaZerosCheckbox
 @onready var rvm_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/HUD/RvmCheckbox
 @onready var hud_monitor_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/HUD/HudMonitorCheckbox
+@onready var hud_scale_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/HUD/HudScaleContainer/HudScaleSlider
+@onready var hud_scale_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/HUD/HudScaleContainer/HudScaleValue
 
 @onready var bg_music_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/AUDIO/BgMusicContainer/BgMusicSlider
 @onready var bg_music_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/AUDIO/BgMusicContainer/BgMusicValue
@@ -73,11 +88,16 @@ extends CanvasLayer
 @onready var metallic_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/MetallicContainer/MetallicValue
 @onready var roughness_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/RoughnessContainer/RoughnessSlider
 @onready var roughness_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/RoughnessContainer/RoughnessValue
+@onready var morph_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/MorphContainer/MorphButton
+
+@onready var morph_overlay = $Control/MorphOverlay
+@onready var morph_slider = $Control/MorphOverlay/MarginContainer/HBox/MorphSlider
+@onready var exit_morph_button = $Control/MorphOverlay/MarginContainer/HBox/ExitMorphButton
 
 @onready var apply_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/ButtonsHBox/ApplyButton
 @onready var close_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/ButtonsHBox/CloseButton
 @onready var quit_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/ButtonsHBox/QuitContainer/QuitButton
-@onready var perf_label = $Control/HUDStack/PerfProtectionLabel
+@onready var perf_label = $Control/HUDColumns/HUDStackRight/PerfProtectionLabel
 
 @onready var tooltip = $TooltipLayer/Tooltip
 @onready var tooltip_label = $TooltipLayer/Tooltip/MarginContainer/Label
@@ -101,6 +121,9 @@ const DESCRIPTIONS = {
 	"Automatic Walking": "Automatically follow the critical line (Re = 0.5) to find Riemann Zeta zeros.",
 	"Terrain Details": "Quality and subdivision level of the procedurally generated terrain meshes.",
 	"Antialiasing": "Choose a technique to reduce jagged edges in the 3D view.",
+	"Branches (n)": "Number of branches for the multivalued function z^(1/n).",
+	"Cycle Speed": "Temporal branch morphing speed.",
+	"Morph Time": "Duration of the smooth transition between branches.",
 	"Color Scheme": "Select the color mapping for the complex plane of the target function.",
 	"View Distance": "Number of terrain chunks loaded around the player.",
 	"Level Curves": "Overlay contour lines for integer values of Re(f) (black) and Im(f) (white).",
@@ -113,9 +136,12 @@ const DESCRIPTIONS = {
 	"Zeta zeros": "Show the list of discovered zeros during automatic walking.",
 	"Riemann–von Mangoldt": "Show the estimated number of zeros N(t) based on the Riemann–von Mangoldt formula.",
 	"Performance Monitor": "Show real-time performance metrics (FPS) and chunks statistics on the HUD.",
+	"HUD Scale": "Adjust the size of the HUD elements.",
 	"Background Music": "Adjust the volume of the ambient mathematical soundscape.",
 	"Topographic Drone": "Adjust the volume of the terrain-responsive spatial audio.",
 	"Brightness": "Adjust the overall brightness of the terrain surface.",
+	"Terrain Morph": "Transition between the flat complex plane and the 3D terrain.",
+	"Flow": "Overlay flowing arrows that follow the terrain gradient.",
 	"Saturation": "Control the intensity of the domain colors on the terrain.",
 	"Albedo": "Base reflectivity of the terrain material.",
 	"Emission": "Intensity of the self-illumination of the terrain.",
@@ -146,6 +172,12 @@ func _ready():
 	zero_speed_slider.value_changed.connect(_on_zero_speed_value_changed)
 	view_distance_slider.value_changed.connect(_on_view_distance_value_changed)
 	sunrise_slider.value_changed.connect(_on_sunrise_value_changed)
+	hud_scale_slider.value_changed.connect(_on_hud_scale_value_changed)
+
+	get_viewport().size_changed.connect(_update_hud_layout)
+	multivalued_slider.value_changed.connect(_on_multivalued_n_value_changed)
+	cycle_speed_slider.value_changed.connect(_on_cycle_speed_value_changed)
+	morph_time_slider.value_changed.connect(_on_morph_time_value_changed)
 
 	brightness_slider.value_changed.connect(_on_terrain_brightness_value_changed)
 	saturation_slider.value_changed.connect(_on_terrain_saturation_value_changed)
@@ -153,6 +185,9 @@ func _ready():
 	emission_slider.value_changed.connect(_on_terrain_emission_value_changed)
 	metallic_slider.value_changed.connect(_on_terrain_metallic_value_changed)
 	roughness_slider.value_changed.connect(_on_terrain_roughness_value_changed)
+	morph_button.item_selected.connect(_on_morph_selected)
+	morph_slider.value_changed.connect(_on_morph_slider_changed)
+	exit_morph_button.pressed.connect(_on_exit_morph_pressed)
 
 	environment_button.clear()
 	environment_button.add_item("Noon")
@@ -174,6 +209,7 @@ func _ready():
 	func_button.add_item("Exp")
 	func_button.add_item("Log")
 	func_button.add_item("Rational")
+	func_button.add_item("Multivalued z^(1/n)")
 
 	height_button.clear()
 	height_button.add_item("Logarithmic (a*log(ε + abs))")
@@ -196,6 +232,10 @@ func _ready():
 	color_scheme_button.clear()
 	color_scheme_button.add_item("Cyan real line (flipped)")
 	color_scheme_button.add_item("Red real line (standard)")
+
+	morph_button.clear()
+	morph_button.add_item("None")
+	morph_button.add_item("Smooth Morph")
 
 	apply_aa()
 	_setup_tooltips()
@@ -333,8 +373,11 @@ func toggle_menu(applied: bool = false):
 		hud_zeros_checkbox.button_pressed = Config.show_hud_zeros
 		rvm_checkbox.button_pressed = Config.show_rvm
 		hud_monitor_checkbox.button_pressed = Config.show_hud_monitor
+		hud_scale_slider.value = Config.hud_scale * 100.0
+		_on_hud_scale_value_changed(hud_scale_slider.value)
 		if player:
 			auto_walk_checkbox.button_pressed = (player.auto_walk_state != 0) # 0 is AutoWalkState.NONE
+		flow_checkbox.button_pressed = Config.show_flow
 		bg_music_slider.value = Config.bg_music_volume
 		_on_bg_music_value_changed(Config.bg_music_volume)
 		drone_slider.value = Config.drone_volume
@@ -352,6 +395,13 @@ func toggle_menu(applied: bool = false):
 		_on_terrain_metallic_value_changed(metallic_slider.value)
 		roughness_slider.value = Config.terrain_roughness * 100.0
 		_on_terrain_roughness_value_changed(roughness_slider.value)
+
+		multivalued_slider.value = Config.multivalued_n
+		_on_multivalued_n_value_changed(Config.multivalued_n)
+		cycle_speed_slider.value = Config.branch_cycle_speed
+		_on_cycle_speed_value_changed(Config.branch_cycle_speed)
+		morph_time_slider.value = Config.multivalued_morph_time
+		_on_morph_time_value_changed(Config.multivalued_morph_time)
 
 		func_button.selected = Config.function_type
 		height_button.selected = Config.height_type
@@ -379,6 +429,9 @@ func _on_func_selected(index):
 		iter_input.text = "10"
 
 	rational_container.visible = (index == 13)
+	multivalued_container.visible = (index == 14)
+	cycle_speed_container.visible = (index == 14)
+	morph_time_container.visible = (index == 14)
 	iter_container.visible = (is_zeta_variant or index == 6 or index == 7)
 	critical_checkbox.visible = is_zeta_variant
 	hud_zeros_checkbox.visible = is_zeta_variant
@@ -412,6 +465,21 @@ func _on_view_distance_value_changed(value):
 func _on_sunrise_value_changed(value):
 	sunrise_value.text = str(int(value)) + "°"
 
+func _on_hud_scale_value_changed(value):
+	hud_scale_value.text = str(int(value)) + "%"
+
+func _on_multivalued_n_value_changed(value):
+	multivalued_value.text = str(int(value))
+	Config.multivalued_n = int(value)
+
+func _on_cycle_speed_value_changed(value):
+	cycle_speed_value.text = "%.1f" % value
+	Config.branch_cycle_speed = value
+
+func _on_morph_time_value_changed(value):
+	morph_time_value.text = "%.2f" % value
+	Config.multivalued_morph_time = value
+
 func _on_terrain_brightness_value_changed(value):
 	Config.terrain_brightness = value / 50.0
 	brightness_value.text = str(int(value)) + "%"
@@ -435,6 +503,23 @@ func _on_terrain_metallic_value_changed(value):
 func _on_terrain_roughness_value_changed(value):
 	Config.terrain_roughness = value / 100.0
 	roughness_value.text = str(int(value)) + "%"
+
+func _on_morph_selected(index):
+	Config.morph_type = index
+	if index == 1:
+		toggle_menu(true)
+		morph_overlay.visible = true
+		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+
+func _on_morph_slider_changed(value):
+	Config.morph_value = value
+
+func _on_exit_morph_pressed():
+	Config.morph_type = 0
+	Config.morph_value = 1.0
+	morph_overlay.visible = false
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	morph_button.selected = 0
 
 func _parse_poly(text: String) -> PackedFloat32Array:
 	var coeffs = PackedFloat32Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
@@ -514,6 +599,7 @@ func _on_set_pos_pressed():
 	Config.show_hud_zeros = hud_zeros_checkbox.button_pressed
 	Config.show_rvm = rvm_checkbox.button_pressed
 	Config.show_hud_monitor = hud_monitor_checkbox.button_pressed
+	Config.show_flow = flow_checkbox.button_pressed
 	Config.bg_music_volume = bg_music_slider.value
 	Config.drone_volume = drone_slider.value
 	Config.terrain_brightness = brightness_slider.value / 50.0
@@ -523,8 +609,12 @@ func _on_set_pos_pressed():
 	Config.terrain_metallic = metallic_slider.value / 100.0
 	Config.terrain_roughness = roughness_slider.value / 100.0
 	Config.view_distance = int(view_distance_slider.value)
+	Config.hud_scale = hud_scale_slider.value / 100.0
 	Config.function_type = func_button.selected
 	Config.height_type = height_button.selected
+	Config.multivalued_n = int(multivalued_slider.value)
+	Config.branch_cycle_speed = cycle_speed_slider.value
+	Config.multivalued_morph_time = morph_time_slider.value
 
 	apply_aa()
 	_sync_palette()
@@ -540,6 +630,7 @@ func _on_set_pos_pressed():
 			Config.rational_den_coeffs = PackedFloat32Array([1, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 
 	Config.save_settings()
+	_update_hud_layout()
 
 	if player:
 		var zoom_mult = Config.zoom_factor
@@ -620,6 +711,10 @@ func _process(_delta):
 	# Update shader uniforms
 	var material = complex_rect.material as ShaderMaterial
 	material.set_shader_parameter("current_f", f)
+	material.set_shader_parameter("multivalued_n", Config.multivalued_n)
+	material.set_shader_parameter("branch_cycle_speed", Config.branch_cycle_speed)
+	material.set_shader_parameter("multivalued_morph_time", Config.multivalued_morph_time)
+	material.set_shader_parameter("function_type", Config.function_type)
 	material.set_shader_parameter("color_scheme", Config.color_scheme)
 	_sync_palette() # Ensure real-time sync for palette changes
 	material.set_shader_parameter("scale", current_scale)
@@ -651,3 +746,56 @@ func _process(_delta):
 					monitor_text += "\n%d: %d" % [world_manager.LOD_SUBS[i], lod_counts[i]]
 
 		fps_label.text = monitor_text
+
+	_update_hud_layout()
+
+var _last_hud_state = {}
+
+func _update_hud_layout():
+	if not hud_columns: return
+
+	var cards = [complex_panel, info_panel, monitor_panel, zeros_panel, perf_label]
+	var current_state = {
+		"size": get_viewport().size,
+		"scale": Config.hud_scale,
+		"visibility": cards.map(func(c): return c.visible)
+	}
+
+	if current_state.hash() == _last_hud_state.hash():
+		return
+	_last_hud_state = current_state
+
+	hud_columns.scale = Vector2.ONE * Config.hud_scale
+	hud_columns.pivot_offset = hud_columns.size
+
+	var available_height = (get_viewport().size.y - 40) / Config.hud_scale
+	var current_height = 0.0
+	var separation = 10.0
+
+	var right_cards = []
+	var left_cards = []
+
+	for card in cards:
+		if not card.visible: continue
+		var card_height = card.get_combined_minimum_size().y
+		if current_height + card_height <= available_height:
+			right_cards.push_back(card)
+			current_height += card_height + separation
+		else:
+			left_cards.push_back(card)
+
+	_apply_stack_layout(hud_stack_right, right_cards)
+	_apply_stack_layout(hud_stack_left, left_cards)
+
+func _apply_stack_layout(stack: VBoxContainer, desired_cards: Array):
+	for child in stack.get_children():
+		if not child in desired_cards:
+			stack.remove_child(child)
+
+	for i in range(desired_cards.size()):
+		var card = desired_cards[i]
+		if card.get_parent() != stack:
+			if card.get_parent():
+				card.get_parent().remove_child(card)
+			stack.add_child(card)
+		stack.move_child(card, 0)

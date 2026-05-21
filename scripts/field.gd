@@ -189,6 +189,35 @@ static func get_rational(sigma: float, t: float) -> Vector2:
 	var den = evaluate_poly(sigma, t, Config.rational_den_coeffs)
 	return complex_div(num, den)
 
+static func multivalued_z_pow_inv_n(sigma: float, t: float, n: int, cycle_speed: float) -> Vector2:
+	var r = sqrt(sigma * sigma + t * t)
+	var theta = atan2(t, sigma)
+	if theta < 0.0: theta += 2.0 * PI
+	var float_n = float(n)
+
+	var time = Config.branch_time
+	var progress = fmod(time * cycle_speed, 1.0) * float_n
+	var k_current = floor(progress)
+	var t_in_branch = progress - k_current
+
+	# Non-linear transition: stay on branch, then morph
+	var morph_time = Config.multivalued_morph_time
+	var transition_fraction = clamp(morph_time * float_n * cycle_speed, 0.0, 1.0)
+	var transition_threshold = 1.0 - transition_fraction
+	var blend_factor = 0.0
+	if transition_threshold < 1.0:
+		blend_factor = smoothstep(transition_threshold, 1.0, t_in_branch)
+	else:
+		blend_factor = 1.0 if t_in_branch >= 1.0 else 0.0
+
+	var morphed_phase = (theta + 2.0 * PI * (k_current + blend_factor)) / float_n
+	var morphed_r = pow(r, 1.0 / float_n)
+	return Vector2(morphed_r * cos(morphed_phase), morphed_r * sin(morphed_phase))
+
+static func smoothstep(edge0: float, edge1: float, x: float) -> float:
+	x = clamp((x - edge0) / (edge1 - edge0), 0.0, 1.0)
+	return x * x * (3.0 - 2.0 * x)
+
 #-------------------------------------------------------------------------
 # Dispatchers
 #-------------------------------------------------------------------------
@@ -215,6 +244,7 @@ static func get_field(x: float, z: float) -> Vector2:
 	elif function_type == 11: return complex_exp(sigma, t)
 	elif function_type == 12: return complex_log(sigma, t)
 	elif function_type == 13: return get_rational(sigma, t)
+	elif function_type == 14: return multivalued_z_pow_inv_n(sigma, t, Config.multivalued_n, Config.branch_cycle_speed)
 	return Vector2.ZERO
 
 static func get_height(x: float, z: float) -> float:
