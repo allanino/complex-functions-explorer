@@ -145,8 +145,8 @@ void vertex() {
             float v = field_val.y;
 
             // Derivatives of f(z)
-            vec2 df_dsigma = fd.d_sigma; // (du/dsigma, dv/dsigma)
-            vec2 df_dt     = fd.d_t;     // (du/dt, dv/dt)
+            vec2 df_dsigma = final_fd.d_sigma; // (du/dsigma, dv/dsigma)
+            vec2 df_dt     = final_fd.d_t;     // (du/dt, dv/dt)
 
             // Derivatives of identity map z = sigma + i t
             vec2 dz_dsigma = vec2(1.0, 0.0);
