@@ -108,23 +108,24 @@ void vertex() {
             local_pos = vec3(snap_v.x, 0.0, snap_v.z);
         } else {
             v_nan = 0.0;
+            
+            // Here we have some code to allow the morphing terrain
+            // feature. We can use final_fd directly if we want
+            // to remove this feature later on. 
+ 
+            // When running usually, morph = 1.0, s = 1.0, blend = 1.0
 
             // Blend parameter in [0, 1]
-            float s0 = 0.5 - 0.5 * cos(PI * morph);
-            float s = log(1.0 + 8.0 * s0) / log(9.0);
-            float blend = s;
+            float s = 0.5 - 0.5 * cos(PI * morph);
+            float blend = log(1.0 + 8.0 * s) / log(9.0);
 
             // Original function value f(z)
             vec2 fz = final_fd.value;
 
-            // Identity map z = sigma + i t
-            // In your parameterization:
-            // sigma = x * 0.1
-            // tau   = -z * 0.1
-            // so z_id = vec2(sigma, tau)
+            // Identity map
             vec2 z_id = vec2(world_v_pos.x, world_v_pos.z);
 
-            // Blended conformal map:
+            // Blended map:
             // g(z, blend) = (1 - blend) * z + blend * f(z)
             field_val = mix(z_id, fz, blend);
 
