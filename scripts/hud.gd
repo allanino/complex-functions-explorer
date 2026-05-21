@@ -382,6 +382,7 @@ func _on_drone_value_changed(value):
 func _on_zoom_value_changed(value):
 	var z = _slider_to_zoom(value)
 	zoom_value.text = "x%.2f" % z
+	Config.zoom_factor = z
 
 func _on_zero_speed_value_changed(value):
 	zero_speed_value.text = str(int(value)) + "%"
