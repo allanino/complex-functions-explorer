@@ -22,6 +22,13 @@ static func complex_exp(sigma: float, t: float) -> Vector2:
 	var amp = exp(sigma)
 	return Vector2(amp * cos(t), amp * sin(t))
 
+static func complex_sqrt(sigma: float, t: float) -> Vector2:
+	var r = sqrt(sigma * sigma + t * t)
+	var theta = atan2(t, sigma)
+	var res_r = sqrt(r)
+	var res_theta = theta * 0.5
+	return Vector2(res_r * cos(res_theta), res_r * sin(res_theta))
+
 static func complex_log(sigma: float, t: float) -> Vector2:
 	var mag = sqrt(sigma * sigma + t * t)
 	if mag < 1e-24: return Vector2(-60.0, 0.0)
@@ -239,6 +246,26 @@ static func multivalued_log(sigma: float, t: float, n: int, cycle_speed: float) 
 	var log_r = log(max(r, 1e-24))
 	return Vector2(log_r, morphed_phase)
 
+static func multivalued_arcsin(sigma: float, t: float, n: int, cycle_speed: float) -> Vector2:
+	var z = Vector2(sigma, t)
+	var z2 = complex_mul(z, z)
+	var one_minus_z2 = Vector2(1.0, 0.0) - z2
+	var sqrt_val = complex_sqrt(one_minus_z2.x, one_minus_z2.y)
+	var iz = Vector2(-t, sigma)
+	var arg_to_log = iz + sqrt_val
+	var log_val = multivalued_log(arg_to_log.x, arg_to_log.y, n, cycle_speed)
+	return Vector2(log_val.y, -log_val.x)
+
+static func multivalued_arccos(sigma: float, t: float, n: int, cycle_speed: float) -> Vector2:
+	var z = Vector2(sigma, t)
+	var z2 = complex_mul(z, z)
+	var one_minus_z2 = Vector2(1.0, 0.0) - z2
+	var sqrt_val = complex_sqrt(one_minus_z2.x, one_minus_z2.y)
+	var isqrt = Vector2(-sqrt_val.y, sqrt_val.x)
+	var arg_to_log = z + isqrt
+	var log_val = multivalued_log(arg_to_log.x, arg_to_log.y, n, cycle_speed)
+	return Vector2(log_val.y, -log_val.x)
+
 static func smoothstep(edge0: float, edge1: float, x: float) -> float:
 	x = clamp((x - edge0) / (edge1 - edge0), 0.0, 1.0)
 	return x * x * (3.0 - 2.0 * x)
@@ -271,6 +298,8 @@ static func get_field(x: float, z: float) -> Vector2:
 	elif function_type == 13: return get_rational(sigma, t)
 	elif function_type == 14: return multivalued_z_pow_inv_n(sigma, t, Config.multivalued_n, Config.branch_cycle_speed)
 	elif function_type == 15: return multivalued_log(sigma, t, Config.multivalued_n, Config.branch_cycle_speed)
+	elif function_type == 16: return multivalued_arcsin(sigma, t, Config.multivalued_n, Config.branch_cycle_speed)
+	elif function_type == 17: return multivalued_arccos(sigma, t, Config.multivalued_n, Config.branch_cycle_speed)
 	return Vector2.ZERO
 
 static func get_height(x: float, z: float) -> float:

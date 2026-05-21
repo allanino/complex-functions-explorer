@@ -191,6 +191,8 @@ func _ready():
 	func_button.add_item("Rational")
 	func_button.add_item("Multivalued z^(1/n)")
 	func_button.add_item("Branching Logarithm")
+	func_button.add_item("Branching Arcsin")
+	func_button.add_item("Branching Arccos")
 
 	height_button.clear()
 	height_button.add_item("Logarithmic (a*log(ε + abs))")
@@ -385,9 +387,9 @@ func _on_func_selected(index):
 		iter_input.text = "10"
 
 	rational_container.visible = (index == 13)
-	multivalued_container.visible = (index == 14 or index == 15)
-	cycle_speed_container.visible = (index == 14 or index == 15)
-	morph_time_container.visible = (index == 14 or index == 15)
+	multivalued_container.visible = (index >= 14 and index <= 17)
+	cycle_speed_container.visible = (index >= 14 and index <= 17)
+	morph_time_container.visible = (index >= 14 and index <= 17)
 	iter_container.visible = (is_zeta_variant or index == 6 or index == 7)
 	critical_checkbox.visible = is_zeta_variant
 	hud_zeros_checkbox.visible = is_zeta_variant
@@ -655,7 +657,7 @@ func _process(_delta):
 	domain_label.text = "Re = %.3f\nIm = %.3f" % [x * 0.1 * scale_factor, -z * 0.1 * scale_factor]
 	var target_text = "Re = %.3f\nIm = %.3f\n|f| = %.3f" % [f.x, f.y, f.length()]
 
-	if Config.function_type == 14 or Config.function_type == 15:
+	if Config.function_type >= 14 and Config.function_type <= 17:
 		var float_n = float(Config.multivalued_n)
 		var progress = fmod(Config.branch_time * Config.branch_cycle_speed, 1.0) * float_n
 		var k_current = int(floor(progress))

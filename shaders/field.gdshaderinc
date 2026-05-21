@@ -48,6 +48,14 @@ vec2 complex_exp(float sigma, float t) {
     );
 }
 
+vec2 complex_sqrt(float sigma, float t) {
+    float r = length(vec2(sigma, t));
+    float theta = atan(t, sigma);
+    float res_r = sqrt(r);
+    float res_theta = theta * 0.5;
+    return vec2(res_r * cos(res_theta), res_r * sin(res_theta));
+}
+
 vec2 complex_log(float sigma, float t) {
     float mag = length(vec2(sigma, t));
     if (mag < 1e-24) {
@@ -499,6 +507,46 @@ FieldData multivalued_z_pow_inv_n_with_derivatives(float sigma, float t, int n, 
     return res;
 }
 
+FieldData multivalued_arcsin_with_derivatives(float sigma, float t, int n, float cycle_speed) {
+    vec2 z = vec2(sigma, t);
+    vec2 z2 = complex_mul(z, z);
+    vec2 one_minus_z2 = vec2(1.0, 0.0) - z2;
+    vec2 sqrt_val = complex_sqrt(one_minus_z2.x, one_minus_z2.y);
+    vec2 iz = vec2(-t, sigma);
+    vec2 arg_to_log = iz + sqrt_val;
+
+    FieldData log_data = multivalued_log_with_derivatives(arg_to_log.x, arg_to_log.y, n, cycle_speed);
+
+    FieldData res;
+    res.value = vec2(log_data.value.y, -log_data.value.x);
+
+    // d/dz arcsin(z) = 1 / sqrt(1 - z^2)
+    vec2 deriv = complex_div(vec2(1.0, 0.0), sqrt_val);
+    res.d_sigma = deriv;
+    res.d_t = vec2(-deriv.y, deriv.x);
+    return res;
+}
+
+FieldData multivalued_arccos_with_derivatives(float sigma, float t, int n, float cycle_speed) {
+    vec2 z = vec2(sigma, t);
+    vec2 z2 = complex_mul(z, z);
+    vec2 one_minus_z2 = vec2(1.0, 0.0) - z2;
+    vec2 sqrt_val = complex_sqrt(one_minus_z2.x, one_minus_z2.y);
+    vec2 isqrt = vec2(-sqrt_val.y, sqrt_val.x);
+    vec2 arg_to_log = z + isqrt;
+
+    FieldData log_data = multivalued_log_with_derivatives(arg_to_log.x, arg_to_log.y, n, cycle_speed);
+
+    FieldData res;
+    res.value = vec2(log_data.value.y, -log_data.value.x);
+
+    // d/dz arccos(z) = -1 / sqrt(1 - z^2)
+    vec2 deriv = -complex_div(vec2(1.0, 0.0), sqrt_val);
+    res.d_sigma = deriv;
+    res.d_t = vec2(-deriv.y, deriv.x);
+    return res;
+}
+
 //-------------------------------------------------------------------------
 // Dispatchers
 //-------------------------------------------------------------------------
@@ -523,6 +571,8 @@ FieldData get_field_with_derivatives(float x, float z) {
     if (function_type == 13) return get_rational_with_derivatives(sigma, t);
     if (function_type == 14) return multivalued_z_pow_inv_n_with_derivatives(sigma, t, multivalued_n, branch_cycle_speed);
     if (function_type == 15) return multivalued_log_with_derivatives(sigma, t, multivalued_n, branch_cycle_speed);
+    if (function_type == 16) return multivalued_arcsin_with_derivatives(sigma, t, multivalued_n, branch_cycle_speed);
+    if (function_type == 17) return multivalued_arccos_with_derivatives(sigma, t, multivalued_n, branch_cycle_speed);
     FieldData res;
     res.value = vec2(0.0);
     res.d_sigma = vec2(0.0);
