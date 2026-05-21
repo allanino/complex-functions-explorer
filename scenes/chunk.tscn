@@ -11,3 +11,9 @@ shader = ExtResource("1_shader")
 [node name="Chunk" type="MeshInstance3D"]
 material_override = SubResource("ShaderMaterial_1")
 mesh = SubResource("PlaneMesh_1")
+
+[node name="StaticBody3D" type="StaticBody3D" parent="."]
+collision_layer = 2
+collision_mask = 0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D"]

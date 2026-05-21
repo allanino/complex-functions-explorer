@@ -173,11 +173,13 @@ func _process(delta):
 			_update_all_chunks_lod(true)
 
 		_update_terrain_material_uniforms()
+		_update_all_chunks_collision()
 
 	# LOD Dynamic Update
 	if player_chunk_x != _last_player_chunk.x or player_chunk_z != _last_player_chunk.y:
 		_last_player_chunk = Vector2i(player_chunk_x, player_chunk_z)
 		_update_all_chunks_lod()
+		_update_all_chunks_collision()
 
 func _update_all_chunks_lod(force: bool = false):
 	var player_chunk_coord = _last_player_chunk
@@ -186,6 +188,10 @@ func _update_all_chunks_lod(force: bool = false):
 		var desired_lod = _get_lod_level(coord, player_chunk_coord)
 		if force or chunk.get_meta("lod_level", -1) != desired_lod:
 			_update_chunk_lod(chunk, desired_lod)
+
+func _update_all_chunks_collision():
+	for coord in chunks.keys():
+		_update_chunk_collision(chunks[coord], coord)
 
 func _update_lod_subs():
 	match Config.terrain_detail:
@@ -284,6 +290,7 @@ func _load_chunk(coord: Vector2i):
 	)
 
 	chunks[coord] = chunk
+	_update_chunk_collision(chunk, coord)
 
 func _update_chunk_lod(chunk: MeshInstance3D, lod: int):
 	var subdivisions = LOD_SUBS[lod]
@@ -294,6 +301,39 @@ func _update_chunk_lod(chunk: MeshInstance3D, lod: int):
 	chunk.mesh = _lod_mesh_cache[subdivisions]
 	chunk.set_meta("lod_level", lod)
 	_update_chunk_uniforms(chunk)
+
+func _update_chunk_collision(chunk: MeshInstance3D, coord: Vector2i):
+	var player_chunk_x = floor(player.global_position.x / chunk_size)
+	var player_chunk_z = floor(player.global_position.z / chunk_size)
+
+	var dist = max(abs(coord.x - player_chunk_x), abs(coord.y - player_chunk_z))
+	var static_body = chunk.get_node("StaticBody3D")
+	var collision_shape = static_body.get_node("CollisionShape3D")
+
+	if dist > 1:
+		collision_shape.shape = null
+		return
+
+	var shape = HeightMapShape3D.new()
+	var res = 33 # Match standard subdivisions for high detail
+	shape.map_width = res
+	shape.map_depth = res
+
+	var heights = PackedFloat32Array()
+	heights.resize(res * res)
+
+	var step = chunk_size / float(res - 1)
+	var start_x = coord.x * chunk_size
+	var start_z = coord.y * chunk_size
+
+	for z in range(res):
+		for x in range(res):
+			var world_x = start_x + x * step
+			var world_z = start_z + z * step
+			heights[z * res + x] = Field.get_height(world_x, world_z)
+
+	shape.map_data = heights
+	collision_shape.shape = shape
 
 func _unload_chunk(coord: Vector2i):
 	var chunk = chunks[coord]

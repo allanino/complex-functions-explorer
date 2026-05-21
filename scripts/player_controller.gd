@@ -4,9 +4,6 @@ const MOUSE_SENSITIVITY = 0.002
 const DOUBLE_PRESS_TIME = 0.3
 const CRITICAL_LINE_X = 5.0
 const AUTO_WALK_PITCH = -0.523598776 # -30 degrees in radians
-const STEEP_SLOPE_THRESHOLD = 1.732 # tan(60 degrees)
-const MAX_CAMERA_DISPLACEMENT = 0.5
-const CAMERA_SMOOTHING = 5.0
 
 enum AutoWalkState { NONE, MOVING_TO_LINE, WALKING }
 
@@ -16,14 +13,14 @@ var height_offset = 0.0
 var last_space_time = 0.0
 var space_held_time = 0.0
 var is_resetting_height = false
-var current_camera_offset_world = Vector2.ZERO
 
 # Zero detection history
 var mag_history: Array[float] = [1.0, 1.0, 1.0, 1.0, 1.0]
 var t_history: Array[float] = [0.0, 0.0, 0.0, 0.0, 0.0]
 var last_detected_t = -1.0
 
-@onready var camera = $Camera3D
+@onready var camera_pivot = $CameraPivot
+@onready var camera = $CameraPivot/SpringArm3D/Camera3D
 
 func _ready():
 	# Set the global position directly using a Vector3(x, y, z)
@@ -37,7 +34,7 @@ func _unhandled_input(event):
 			rotate_y(-event.relative.x * MOUSE_SENSITIVITY)
 			rotation_x -= event.relative.y * MOUSE_SENSITIVITY
 			rotation_x = clamp(rotation_x, -PI/2, PI/2)
-			camera.rotation.x = rotation_x
+			camera_pivot.rotation.x = rotation_x
 
 	if event is InputEventMouseButton and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		var old_zoom = Config.zoom_factor
@@ -93,13 +90,6 @@ func _unhandled_input(event):
 func get_terrain_height(x: float, z: float) -> float:
 	return Field.get_height(x, z)
 
-func _get_terrain_gradient(x: float, z: float) -> Vector2:
-	var eps = 0.01
-	var h_base = get_terrain_height(x, z)
-	var h_x = get_terrain_height(x + eps, z)
-	var h_z = get_terrain_height(x, z + eps)
-	return Vector2((h_x - h_base) / eps, (h_z - h_base) / eps)
-
 func _physics_process(delta):
 	if auto_walk_state != AutoWalkState.NONE:
 		var manual_input = Input.get_vector("move_left", "move_right", "move_forward", "move_backward")
@@ -152,7 +142,7 @@ func _physics_process(delta):
 
 		# Smoothly transition camera to horizontal
 		rotation_x = lerp(rotation_x, 0.0, 5.0 * delta)
-		camera.rotation.x = rotation_x
+		camera_pivot.rotation.x = rotation_x
 
 		# Smoothly move to the critical line X
 		global_position.x = move_toward(global_position.x, target_x, current_speed * delta)
@@ -168,7 +158,7 @@ func _physics_process(delta):
 
 		# Smoothly transition to downward tilt only after positioning
 		rotation_x = lerp(rotation_x, AUTO_WALK_PITCH, 5.0 * delta)
-		camera.rotation.x = rotation_x
+		camera_pivot.rotation.x = rotation_x
 
 	if direction != Vector3.ZERO:
 		velocity.x = direction.x * current_speed
@@ -205,31 +195,5 @@ func _physics_process(delta):
 			if mag_history[2] < Config.zero_threshold:
 				Config.visited_zeros.push_back(t)
 				last_detected_t = t
-
-	# Calculate camera horizontal displacement for steep slopes
-	var grad = _get_terrain_gradient(global_position.x, global_position.z)
-	var slope = grad.length()
-	var target_offset_world = Vector2.ZERO
-
-	if slope > STEEP_SLOPE_THRESHOLD:
-		# Direction is down-slope (opposite to gradient)
-		var dir = -grad.normalized()
-		var strength = min((slope - STEEP_SLOPE_THRESHOLD) * 0.5, MAX_CAMERA_DISPLACEMENT)
-		target_offset_world = dir * strength
-
-	# Smoothly interpolate world-space offset
-	current_camera_offset_world = current_camera_offset_world.lerp(target_offset_world, delta * CAMERA_SMOOTHING)
-
-	# Convert smoothed world-space target offset to local space
-	# Player yaw is rotation.y. Local space displacement needs to account for this.
-	var cos_y = cos(-rotation.y)
-	var sin_y = sin(-rotation.y)
-	var local_offset = Vector2(
-		current_camera_offset_world.x * cos_y - current_camera_offset_world.y * sin_y,
-		current_camera_offset_world.x * sin_y + current_camera_offset_world.y * cos_y
-	)
-
-	camera.position.x = local_offset.x
-	camera.position.z = local_offset.y
 
 	move_and_slide()
