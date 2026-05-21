@@ -208,7 +208,7 @@ func _ready():
 
 	morph_button.clear()
 	morph_button.add_item("None")
-	morph_button.add_item("Linear Morph")
+	morph_button.add_item("Smooth Morph")
 
 	apply_aa()
 	_setup_tooltips()

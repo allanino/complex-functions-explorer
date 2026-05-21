@@ -55,34 +55,74 @@ void vertex() {
             v_normal = vec3(0.0, 1.0, 0.0);
             // local_pos.y remains 0.0
         } else {
-            v_nan = 0.0;
-            field_val = fd.value;
 
-            float mag = length(field_val);
+            v_nan = 0.0;
+
+            // Blend parameter in [0, 1]
+            float s0 = 0.5 - 0.5 * cos(PI * morph);
+            float s = log(1.0 + 8.0 * s0) / log(9.0);
+            float blend = s;
+
+            // Original function value f(z)
+            vec2 fz = fd.value;
+
+            // Identity map z = sigma + i t
+            // In your parameterization:
+            // sigma = x * 0.1
+            // tau   = -z * 0.1
+            // so z_id = vec2(sigma, tau)
+            vec2 z_id = vec2(world_v_pos.x, world_v_pos.z);
+
+            // Blended conformal map:
+            // g(z, blend) = (1 - blend) * z + blend * f(z)
+            field_val = mix(z_id, fz, blend);
+
+            float mag = length(fz);
             float h = 0.0;
+
             if (height_type == 0) {
                 h = height_a * log(height_epsilon + mag);
             } else {
                 h = mag;
             }
-            local_pos.y += h * morph;
+
+            h *= blend;
+
+            local_pos.y += h * 1.0; // use this if you want the full height
 
             // Analytical normals using derivatives
             float u = field_val.x;
             float v = field_val.y;
 
-            // sigma = x * 0.1, t = -z * 0.1
-            // d_sigma/dx = 0.1, dt/dz = -0.1
-            vec2 du_dsigma_v = fd.d_sigma; // (du/dsigma, dv/dsigma)
-            vec2 du_dt_v = fd.d_t;         // (du/dt, dv/dt)
+            // Derivatives of f(z)
+            vec2 df_dsigma = fd.d_sigma; // (du/dsigma, dv/dsigma)
+            vec2 df_dt     = fd.d_t;     // (du/dt, dv/dt)
 
-            float du_dx = 0.1 * du_dsigma_v.x;
-            float dv_dx = 0.1 * du_dsigma_v.y;
-            float du_dz = -0.1 * du_dt_v.x;
-            float dv_dz = -0.1 * du_dt_v.y;
+            // Derivatives of identity map z = sigma + i t
+            vec2 dz_dsigma = vec2(1.0, 0.0);
+            vec2 dz_dt     = vec2(0.0, 1.0);
 
-            float dmag_dx = (mag > 1e-12) ? (u * du_dx + v * dv_dx) / mag : 0.0;
-            float dmag_dz = (mag > 1e-12) ? (u * du_dz + v * dv_dz) / mag : 0.0;
+            // Chain rule for g = (1-blend) z + blend f(z)
+            vec2 dg_dsigma = (1.0 - blend) * dz_dsigma + blend * df_dsigma;
+            vec2 dg_dt     = (1.0 - blend) * dz_dt     + blend * df_dt;
+
+            // Convert from (sigma, t) derivatives to world (x, z) derivatives
+            // sigma = 0.1 * x
+            // t     = -0.1 * z
+            float d_sigma_dx = 0.1;
+            float d_t_dx     = 0.0;
+            float d_sigma_dz = 0.0;
+            float d_t_dz     = -0.1;
+
+            float du_dx = dg_dsigma.x * d_sigma_dx + dg_dt.x * d_t_dx;
+            float dv_dx = dg_dsigma.y * d_sigma_dx + dg_dt.y * d_t_dx;
+
+            float du_dz = dg_dsigma.x * d_sigma_dz + dg_dt.x * d_t_dz;
+            float dv_dz = dg_dsigma.y * d_sigma_dz + dg_dt.y * d_t_dz;
+
+            float safe_mag = max(mag, 1e-12);
+            float dmag_dx = (u * du_dx + v * dv_dx) / safe_mag;
+            float dmag_dz = (u * du_dz + v * dv_dz) / safe_mag;
 
             float dh_dx = 0.0;
             float dh_dz = 0.0;
@@ -98,10 +138,9 @@ void vertex() {
                 dh_dz = dmag_dz;
             }
 
-            dh_dx *= morph;
-            dh_dz *= morph;
-
             v_normal = normalize(vec3(-dh_dx, 1.0, -dh_dz));
+
+
         }
 
         VERTEX = local_pos;
