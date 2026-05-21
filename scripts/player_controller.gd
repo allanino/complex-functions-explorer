@@ -37,9 +37,9 @@ func _unhandled_input(event):
 
 	if event is InputEventMouseButton and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		if event.button_index == MOUSE_BUTTON_WHEEL_UP and event.pressed:
-			Config.zoom_factor = clampi(Config.zoom_factor + 1, 1, 1000)
+			Config.zoom_factor = clampf(Config.zoom_factor * 1.1, 0.01, 200.0)
 		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN and event.pressed:
-			Config.zoom_factor = clampi(Config.zoom_factor - 1, 1, 1000)
+			Config.zoom_factor = clampf(Config.zoom_factor / 1.1, 0.01, 200.0)
 
 	if event.is_action_pressed("ui_cancel"):
 		var hud = get_node_or_null("/root/Main/HUD")
