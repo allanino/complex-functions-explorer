@@ -3,6 +3,7 @@ shader_type canvas_item;
 uniform vec2 current_f; // Current value of f(x,z)
 uniform int color_scheme = 0;
 uniform sampler2D cyclic_palette : hint_default_black;
+uniform float inv_palette_height = 0.5;
 uniform float scale = 2.0; // Current scale of the complex plane view
 
 // Distance to a line segment
@@ -22,7 +23,7 @@ void fragment() {
     float mag = length(z);
 
     // Background color based on phase
-    float palette_v = (float(color_scheme) + 0.5) / float(textureSize(cyclic_palette, 0).y);
+    float palette_v = (float(color_scheme) + 0.5) * inv_palette_height;
     float palette_u = (phase + PI) / (2.0 * PI);
     vec3 sampled_color = texture(cyclic_palette, vec2(palette_u, palette_v)).rgb;
     vec3 color = mix(vec3(1.0), sampled_color, 0.6) * 0.7; // Mimic hsv2rgb(hue, 0.6, 0.7)

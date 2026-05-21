@@ -10,6 +10,7 @@ varying float v_nan;
 instance uniform int lod_level = 0;
 uniform int color_scheme = 0;
 uniform sampler2D cyclic_palette : hint_default_black;
+uniform float inv_palette_height = 0.5;
 uniform bool show_curves = true;
 uniform bool show_critical_stripe = true;
 
@@ -151,7 +152,7 @@ void fragment() {
         
         vec2 f = field_val;
         float phase = atan(f.y, f.x);
-        float palette_v = (float(color_scheme) + 0.5) / float(textureSize(cyclic_palette, 0).y);
+        float palette_v = (float(color_scheme) + 0.5) * inv_palette_height;
         float palette_u = (phase + PI) / (2.0 * PI);
 
         vec3 sampled_color = texture(cyclic_palette, vec2(palette_u, palette_v)).rgb;

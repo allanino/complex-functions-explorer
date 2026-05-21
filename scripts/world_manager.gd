@@ -239,6 +239,11 @@ func _update_terrain_material_uniforms():
 
 	terrain_material.set_shader_parameter("performance_protection_active", Config.performance_protection_active)
 	terrain_material.set_shader_parameter("color_scheme", Config.color_scheme)
+
+	var palette = terrain_material.get_shader_parameter("cyclic_palette")
+	if palette:
+		terrain_material.set_shader_parameter("inv_palette_height", 1.0 / float(palette.get_height()))
+
 	terrain_material.set_shader_parameter("iterations", Config.iterations)
 	terrain_material.set_shader_parameter("show_curves", Config.show_curves)
 	terrain_material.set_shader_parameter("show_critical_stripe", Config.show_critical_stripe)

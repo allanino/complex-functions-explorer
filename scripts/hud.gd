@@ -201,6 +201,24 @@ func _ready():
 	_setup_tooltips()
 	tooltip_timer.timeout.connect(_on_tooltip_timer_timeout)
 
+	_sync_palette()
+
+var _last_palette_resource_id = 0
+
+func _sync_palette():
+	if world_manager and world_manager.terrain_material:
+		var palette = world_manager.terrain_material.get_shader_parameter("cyclic_palette")
+		var current_id = palette.get_instance_id() if palette else 0
+
+		# Only update if the resource itself changed (efficient)
+		if current_id != _last_palette_resource_id:
+			_last_palette_resource_id = current_id
+			var material = complex_rect.material as ShaderMaterial
+			if material:
+				material.set_shader_parameter("cyclic_palette", palette)
+				if palette:
+					material.set_shader_parameter("inv_palette_height", 1.0 / float(palette.get_height()))
+
 func _setup_tooltips():
 	# We want to find all Labels and CheckBoxes in the menu tabs
 	var tabs = tab_container.get_children()
@@ -509,6 +527,7 @@ func _on_set_pos_pressed():
 	Config.height_type = height_button.selected
 
 	apply_aa()
+	_sync_palette()
 
 	if Config.function_type == 13:
 		var expr = rational_input.text.replace(" ", "")
@@ -602,9 +621,7 @@ func _process(_delta):
 	var material = complex_rect.material as ShaderMaterial
 	material.set_shader_parameter("current_f", f)
 	material.set_shader_parameter("color_scheme", Config.color_scheme)
-	if world_manager and world_manager.terrain_material:
-		var palette = world_manager.terrain_material.get_shader_parameter("cyclic_palette")
-		material.set_shader_parameter("cyclic_palette", palette)
+	_sync_palette() # Ensure real-time sync for palette changes
 	material.set_shader_parameter("scale", current_scale)
 	material.set_shader_parameter("performance_protection_active", Config.performance_protection_active)
 
