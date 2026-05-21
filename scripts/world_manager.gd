@@ -154,6 +154,8 @@ func _process(delta):
 		"effective_zoom": Config.effective_zoom,
 		"rational_num_coeffs": Config.rational_num_coeffs,
 		"rational_den_coeffs": Config.rational_den_coeffs,
+		"multivalued_n": Config.multivalued_n,
+		"branch_cycle_speed": Config.branch_cycle_speed,
 		"terrain_brightness": Config.terrain_brightness,
 		"terrain_saturation": Config.terrain_saturation,
 		"terrain_albedo": Config.terrain_albedo,

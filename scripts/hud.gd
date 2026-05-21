@@ -30,6 +30,9 @@ extends CanvasLayer
 @onready var multivalued_container = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/MultivaluedContainer
 @onready var multivalued_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/MultivaluedContainer/MultivaluedSlider
 @onready var multivalued_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/MultivaluedContainer/MultivaluedValue
+@onready var cycle_speed_container = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/CycleSpeedContainer
+@onready var cycle_speed_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/CycleSpeedContainer/CycleSpeedSlider
+@onready var cycle_speed_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/CycleSpeedContainer/CycleSpeedValue
 
 @onready var re_input = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/ReContainer/ReInput
 @onready var im_input = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/ImContainer/ImInput
@@ -105,6 +108,7 @@ const DESCRIPTIONS = {
 	"Terrain Details": "Quality and subdivision level of the procedurally generated terrain meshes.",
 	"Antialiasing": "Choose a technique to reduce jagged edges in the 3D view.",
 	"Branches (n)": "Number of branches for the multivalued function z^(1/n).",
+	"Cycle Speed": "Temporal branch morphing speed.",
 	"Color Scheme": "Select the color mapping for the complex plane of the target function.",
 	"View Distance": "Number of terrain chunks loaded around the player.",
 	"Level Curves": "Overlay contour lines for integer values of Re(f) (black) and Im(f) (white).",
@@ -151,6 +155,7 @@ func _ready():
 	view_distance_slider.value_changed.connect(_on_view_distance_value_changed)
 	sunrise_slider.value_changed.connect(_on_sunrise_value_changed)
 	multivalued_slider.value_changed.connect(_on_multivalued_n_value_changed)
+	cycle_speed_slider.value_changed.connect(_on_cycle_speed_value_changed)
 
 	brightness_slider.value_changed.connect(_on_terrain_brightness_value_changed)
 	saturation_slider.value_changed.connect(_on_terrain_saturation_value_changed)
@@ -343,6 +348,8 @@ func toggle_menu(applied: bool = false):
 
 		multivalued_slider.value = Config.multivalued_n
 		_on_multivalued_n_value_changed(Config.multivalued_n)
+		cycle_speed_slider.value = Config.branch_cycle_speed
+		_on_cycle_speed_value_changed(Config.branch_cycle_speed)
 
 		func_button.selected = Config.function_type
 		height_button.selected = Config.height_type
@@ -371,6 +378,7 @@ func _on_func_selected(index):
 
 	rational_container.visible = (index == 13)
 	multivalued_container.visible = (index == 14)
+	cycle_speed_container.visible = (index == 14)
 	iter_container.visible = (is_zeta_variant or index == 6 or index == 7)
 	critical_checkbox.visible = is_zeta_variant
 	hud_zeros_checkbox.visible = is_zeta_variant
@@ -406,6 +414,9 @@ func _on_sunrise_value_changed(value):
 
 func _on_multivalued_n_value_changed(value):
 	multivalued_value.text = str(int(value))
+
+func _on_cycle_speed_value_changed(value):
+	cycle_speed_value.text = "%.1f" % value
 
 func _on_terrain_brightness_value_changed(value):
 	Config.terrain_brightness = value / 50.0
@@ -521,6 +532,7 @@ func _on_set_pos_pressed():
 	Config.function_type = func_button.selected
 	Config.height_type = height_button.selected
 	Config.multivalued_n = int(multivalued_slider.value)
+	Config.branch_cycle_speed = cycle_speed_slider.value
 
 	apply_aa()
 
