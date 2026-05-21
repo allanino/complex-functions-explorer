@@ -28,25 +28,6 @@ func _ready():
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 func _unhandled_input(event):
-	if event is InputEventMouseMotion:
-		if auto_walk_state == AutoWalkState.NONE or auto_walk_state == AutoWalkState.WALKING:
-			rotate_y(-event.relative.x * MOUSE_SENSITIVITY)
-			rotation_x -= event.relative.y * MOUSE_SENSITIVITY
-			rotation_x = clamp(rotation_x, -PI/2, PI/2)
-			camera.rotation.x = rotation_x
-
-	if event is InputEventMouseButton and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-		var old_zoom = Config.zoom_factor
-		if event.button_index == MOUSE_BUTTON_WHEEL_UP and event.pressed:
-			Config.zoom_factor = clampi(Config.zoom_factor + 1, 1, 1000)
-		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN and event.pressed:
-			Config.zoom_factor = clampi(Config.zoom_factor - 1, 1, 1000)
-
-		if Config.zoom_factor != old_zoom:
-			var zoom_ratio = float(Config.zoom_factor) / float(old_zoom)
-			global_position.x *= zoom_ratio
-			global_position.z *= zoom_ratio
-
 	if event.is_action_pressed("ui_cancel"):
 		var hud = get_node_or_null("/root/Main/HUD")
 		if hud:
@@ -57,6 +38,26 @@ func _unhandled_input(event):
 				Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 			else:
 				Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+		return
+
+	if Config.morph_type != 0:
+		return
+
+	if event is InputEventMouseMotion:
+		if auto_walk_state == AutoWalkState.NONE or auto_walk_state == AutoWalkState.WALKING:
+			rotate_y(-event.relative.x * MOUSE_SENSITIVITY)
+			rotation_x -= event.relative.y * MOUSE_SENSITIVITY
+			rotation_x = clamp(rotation_x, -PI/2, PI/2)
+			camera.rotation.x = rotation_x
+
+	if event is InputEventMouseButton and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+		if event.button_index == MOUSE_BUTTON_WHEEL_UP and event.pressed:
+			Config.zoom_factor = clampf(Config.zoom_factor * 1.1, 0.01, 200.0)
+		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN and event.pressed:
+			Config.zoom_factor = clampf(Config.zoom_factor / 1.1, 0.01, 200.0)
+		elif event.button_index == MOUSE_BUTTON_MIDDLE and event.pressed:
+			Config.zoom_factor = 1.0
+
 
 	if event is InputEventKey and event.pressed and event.keycode == KEY_SPACE and not event.echo:
 		var current_time = Time.get_ticks_msec() / 1000.0
@@ -85,17 +86,39 @@ func _unhandled_input(event):
 				last_detected_t = -1.0
 			else:
 				auto_walk_state = AutoWalkState.NONE
+		elif event.keycode == KEY_R:
+			global_position.x = 0.0
+			global_position.z = 0.0
+			velocity = Vector3.ZERO
+			auto_walk_state = AutoWalkState.NONE
+			height_offset = 0.0
+			is_resetting_height = false
 
 func get_terrain_height(x: float, z: float) -> float:
 	return Field.get_height(x, z)
 
 func _physics_process(delta):
+	if Config.morph_type != 0:
+		velocity = Vector3.ZERO
+		return
+
+	# Smooth zoom interpolation
+	var old_ez = Config.effective_zoom
+	Config.effective_zoom = lerp(Config.effective_zoom, float(Config.zoom_factor), delta * 8.0)
+	if abs(Config.effective_zoom - Config.zoom_factor) < 0.001:
+		Config.effective_zoom = float(Config.zoom_factor)
+
+	if Config.effective_zoom != old_ez:
+		var zoom_ratio = Config.effective_zoom / old_ez
+		global_position.x *= zoom_ratio
+		global_position.z *= zoom_ratio
+
 	if auto_walk_state != AutoWalkState.NONE:
 		var manual_input = Input.get_vector("move_left", "move_right", "move_forward", "move_backward")
 		if manual_input != Vector2.ZERO or Input.is_key_pressed(KEY_SPACE):
 			auto_walk_state = AutoWalkState.NONE
 
-	var current_speed = Config.movement_speed * Config.zoom_factor
+	var current_speed = Config.movement_speed * Config.effective_zoom
 
 	# Speed reduction near zeros
 	var current_f = Field.get_field(global_position.x, global_position.z)
@@ -128,10 +151,10 @@ func _physics_process(delta):
 	var direction = (transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
 
 	if auto_walk_state == AutoWalkState.MOVING_TO_LINE:
-		var target_x = CRITICAL_LINE_X * float(Config.zoom_factor)
+		var target_x = CRITICAL_LINE_X * Config.effective_zoom
 
 		var target_yaw = 0.0
-		if global_position.x > 10.0 * float(Config.zoom_factor):
+		if global_position.x > 10.0 * Config.effective_zoom:
 			target_yaw = PI/2
 		elif global_position.x < 0.0:
 			target_yaw = -PI/2
@@ -153,7 +176,7 @@ func _physics_process(delta):
 
 	elif auto_walk_state == AutoWalkState.WALKING:
 		direction = Vector3(0, 0, -1)
-		global_position.x = move_toward(global_position.x, CRITICAL_LINE_X * float(Config.zoom_factor), 2.0 * delta)
+		global_position.x = move_toward(global_position.x, CRITICAL_LINE_X * Config.effective_zoom, 2.0 * delta)
 
 		# Smoothly transition to downward tilt only after positioning
 		rotation_x = lerp(rotation_x, AUTO_WALK_PITCH, 5.0 * delta)
@@ -170,14 +193,14 @@ func _physics_process(delta):
 	var terrain_h = get_terrain_height(global_position.x, global_position.z)
 
 	# Snap player to terrain height + offset
-	global_position.y = terrain_h + Config.camera_height / Config.zoom_factor + height_offset
+	global_position.y = terrain_h + Config.camera_height / Config.effective_zoom + height_offset
 
 	# Zeta zero detection during auto-walk
 	if auto_walk_state == AutoWalkState.WALKING and (Config.function_type >= 0 and Config.function_type <= 3):
 		var f = Field.get_field(global_position.x, global_position.z)
 		var current_mag = f.length()
 
-		var scale_factor = 1.0 / float(Config.zoom_factor)
+		var scale_factor = 1.0 / Config.effective_zoom
 		t_history.push_back(-global_position.z * 0.1 * scale_factor)
 		t_history.pop_front()
 

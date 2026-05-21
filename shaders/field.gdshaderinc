@@ -1,8 +1,8 @@
 // Shared field and height functions for shaders
 
 uniform int iterations = 120;
-uniform int zoom_factor = 1;
-uniform int function_type = 0; // 0: Zeta, 1: Zeta continuation, 2: Dirichlet Eta, 3: Dirichlet Beta, 4: Gamma, 5: Log Gamma, 6: Dedekind Eta, 7: Mandelbrot, 8: Sin, 9: Cos, 10: Tan, 11: Exp, 12: Log, 13: Rational
+uniform float zoom_factor = 1.0;
+uniform int function_type = 0; // 0: Zeta, 1: Zeta continuation, 2: Dirichlet Eta, 3: Dirichlet Beta, 4: Gamma, 5: Log Gamma, 6: Dedekind Eta, 7: Mandelbrot, 8: Sin, 9: Cos, 10: Tan, 11: Exp, 12: Log, 13: Rational, 14: Multivalued
 uniform int height_type = 0;   // 0: Log, 1: Abs
 uniform float height_a = 3.0;
 uniform float height_epsilon = 1.0;
@@ -10,6 +10,10 @@ uniform bool performance_protection_active = false;
 
 uniform float rational_num_coeffs[10];
 uniform float rational_den_coeffs[10];
+uniform int multivalued_n = 2;
+uniform float branch_cycle_speed = 0.5;
+uniform float multivalued_morph_time = 0.1;
+uniform float branch_time = 0.0;
 
 struct FieldData {
     vec2 value;    // The actual complex f(sigma, t)
@@ -431,12 +435,44 @@ FieldData get_rational_with_derivatives(float sigma, float t) {
     return res;
 }
 
+FieldData multivalued_z_pow_inv_n_with_derivatives(float sigma, float t, int n, float cycle_speed) {
+    FieldData res;
+    float r_sq = sigma * sigma + t * t;
+    float r = sqrt(r_sq);
+    float theta = atan(t, sigma);
+    if (theta < 0.0) theta += 2.0 * PI;
+    float float_n = float(n);
+
+    // Temporal branch selection & blending factor
+    float progress = fract(branch_time * cycle_speed) * float_n;
+    int k_current = int(floor(progress));
+    float t_in_branch = fract(progress);
+
+    // Non-linear transition: stay on branch, then morph
+    float dwell_time = (1.0 / float_n) - multivalued_morph_time * cycle_speed;
+    dwell_time = max(dwell_time, 0.0);
+    float transition_threshold = dwell_time * float_n;
+    float blend_factor = smoothstep(transition_threshold, 1.0, t_in_branch);
+
+    float morphed_phase = (theta + 2.0 * PI * (float(k_current) + blend_factor)) / float_n;
+    float morphed_r = pow(r, 1.0 / float_n);
+    res.value = vec2(morphed_r * cos(morphed_phase), morphed_r * sin(morphed_phase));
+
+    // dW/dZ = (1/n) * W / Z
+    vec2 z = vec2(sigma, t);
+    vec2 deriv = complex_div(res.value, float_n * z);
+
+    res.d_sigma = deriv;
+    res.d_t = vec2(-deriv.y, deriv.x);
+    return res;
+}
+
 //-------------------------------------------------------------------------
 // Dispatchers
 //-------------------------------------------------------------------------
 
 FieldData get_field_with_derivatives(float x, float z) {
-    float zoom = 1.0 / float(zoom_factor);
+    float zoom = 1.0 / zoom_factor;
     float sigma = x * 0.1 * zoom;
     float t = -z * 0.1 * zoom;
     if (function_type == 0) return zeta_with_derivatives(sigma, t, iterations);
@@ -453,6 +489,7 @@ FieldData get_field_with_derivatives(float x, float z) {
     if (function_type == 11) return complex_exp_with_derivatives(sigma, t);
     if (function_type == 12) return complex_log_with_derivatives(sigma, t);
     if (function_type == 13) return get_rational_with_derivatives(sigma, t);
+    if (function_type == 14) return multivalued_z_pow_inv_n_with_derivatives(sigma, t, multivalued_n, branch_cycle_speed);
     FieldData res;
     res.value = vec2(0.0);
     res.d_sigma = vec2(0.0);

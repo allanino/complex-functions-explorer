@@ -176,7 +176,7 @@ func _process(delta):
 	if not is_finite(mag): mag = 0.0
 
 	var arg = atan2(f.y, f.x)
-	var sigma = pos.x * 0.1
+	var sigma = pos.x * 0.1 / Config.effective_zoom
 
 	# --- MAPPINGS ---
 

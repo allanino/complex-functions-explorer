@@ -30,6 +30,15 @@ extends CanvasLayer
 @onready var iter_input = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/IterContainer/IterInput
 @onready var rational_container = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/RationalContainer
 @onready var rational_input = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/RationalContainer/RationalInput
+@onready var multivalued_container = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/MultivaluedContainer
+@onready var multivalued_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/MultivaluedContainer/MultivaluedSlider
+@onready var multivalued_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/MultivaluedContainer/MultivaluedValue
+@onready var cycle_speed_container = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/CycleSpeedContainer
+@onready var cycle_speed_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/CycleSpeedContainer/CycleSpeedSlider
+@onready var cycle_speed_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/CycleSpeedContainer/CycleSpeedValue
+@onready var morph_time_container = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/MorphTimeContainer
+@onready var morph_time_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/MorphTimeContainer/MorphTimeSlider
+@onready var morph_time_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/MorphTimeContainer/MorphTimeValue
 
 @onready var re_input = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/ReContainer/ReInput
 @onready var im_input = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/ImContainer/ImInput
@@ -48,6 +57,7 @@ extends CanvasLayer
 @onready var view_distance_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/GRAPHICS/ViewDistanceContainer/ViewDistanceValue
 @onready var curves_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/CurvesCheckbox
 @onready var critical_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/CriticalCheckbox
+@onready var flow_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/FlowCheckbox
 @onready var environment_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/EnvironmentContainer/EnvironmentButton
 @onready var sunrise_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/SunriseContainer/SunriseSlider
 @onready var sunrise_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/SunriseContainer/SunriseValue
@@ -78,6 +88,11 @@ extends CanvasLayer
 @onready var metallic_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/MetallicContainer/MetallicValue
 @onready var roughness_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/RoughnessContainer/RoughnessSlider
 @onready var roughness_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/RoughnessContainer/RoughnessValue
+@onready var morph_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/MorphContainer/MorphButton
+
+@onready var morph_overlay = $Control/MorphOverlay
+@onready var morph_slider = $Control/MorphOverlay/MarginContainer/HBox/MorphSlider
+@onready var exit_morph_button = $Control/MorphOverlay/MarginContainer/HBox/ExitMorphButton
 
 @onready var apply_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/ButtonsHBox/ApplyButton
 @onready var close_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/ButtonsHBox/CloseButton
@@ -106,6 +121,9 @@ const DESCRIPTIONS = {
 	"Automatic Walking": "Automatically follow the critical line (Re = 0.5) to find Riemann Zeta zeros.",
 	"Terrain Details": "Quality and subdivision level of the procedurally generated terrain meshes.",
 	"Antialiasing": "Choose a technique to reduce jagged edges in the 3D view.",
+	"Branches (n)": "Number of branches for the multivalued function z^(1/n).",
+	"Cycle Speed": "Temporal branch morphing speed.",
+	"Morph Time": "Duration of the smooth transition between branches.",
 	"Color Scheme": "Select the color mapping for the complex plane of the target function.",
 	"View Distance": "Number of terrain chunks loaded around the player.",
 	"Level Curves": "Overlay contour lines for integer values of Re(f) (black) and Im(f) (white).",
@@ -122,6 +140,8 @@ const DESCRIPTIONS = {
 	"Background Music": "Adjust the volume of the ambient mathematical soundscape.",
 	"Topographic Drone": "Adjust the volume of the terrain-responsive spatial audio.",
 	"Brightness": "Adjust the overall brightness of the terrain surface.",
+	"Terrain Morph": "Transition between the flat complex plane and the 3D terrain.",
+	"Flow": "Overlay flowing arrows that follow the terrain gradient.",
 	"Saturation": "Control the intensity of the domain colors on the terrain.",
 	"Albedo": "Base reflectivity of the terrain material.",
 	"Emission": "Intensity of the self-illumination of the terrain.",
@@ -155,6 +175,9 @@ func _ready():
 	hud_scale_slider.value_changed.connect(_on_hud_scale_value_changed)
 
 	get_viewport().size_changed.connect(_update_hud_layout)
+	multivalued_slider.value_changed.connect(_on_multivalued_n_value_changed)
+	cycle_speed_slider.value_changed.connect(_on_cycle_speed_value_changed)
+	morph_time_slider.value_changed.connect(_on_morph_time_value_changed)
 
 	brightness_slider.value_changed.connect(_on_terrain_brightness_value_changed)
 	saturation_slider.value_changed.connect(_on_terrain_saturation_value_changed)
@@ -162,6 +185,9 @@ func _ready():
 	emission_slider.value_changed.connect(_on_terrain_emission_value_changed)
 	metallic_slider.value_changed.connect(_on_terrain_metallic_value_changed)
 	roughness_slider.value_changed.connect(_on_terrain_roughness_value_changed)
+	morph_button.item_selected.connect(_on_morph_selected)
+	morph_slider.value_changed.connect(_on_morph_slider_changed)
+	exit_morph_button.pressed.connect(_on_exit_morph_pressed)
 
 	environment_button.clear()
 	environment_button.add_item("Noon")
@@ -183,6 +209,7 @@ func _ready():
 	func_button.add_item("Exp")
 	func_button.add_item("Log")
 	func_button.add_item("Rational")
+	func_button.add_item("Multivalued z^(1/n)")
 
 	height_button.clear()
 	height_button.add_item("Logarithmic (a*log(ε + abs))")
@@ -192,6 +219,7 @@ func _ready():
 	terrain_detail_button.add_item("High")
 	terrain_detail_button.add_item("Medium")
 	terrain_detail_button.add_item("Low")
+	terrain_detail_button.add_item("Lowest")
 
 	aa_button.clear()
 	aa_button.add_item("Disabled (fastest)")
@@ -204,6 +232,10 @@ func _ready():
 	color_scheme_button.clear()
 	color_scheme_button.add_item("Cyan real line (flipped)")
 	color_scheme_button.add_item("Red real line (standard)")
+
+	morph_button.clear()
+	morph_button.add_item("None")
+	morph_button.add_item("Smooth Morph")
 
 	apply_aa()
 	_setup_tooltips()
@@ -291,7 +323,7 @@ func toggle_menu(applied: bool = false):
 		_initial_terrain_roughness = Config.terrain_roughness
 
 		if player:
-			var scale_factor = 1.0 / float(Config.zoom_factor)
+			var scale_factor = 1.0 / Config.effective_zoom
 			var re_val = player.global_position.x * 0.1 * scale_factor
 			var im_val = -player.global_position.z * 0.1 * scale_factor
 			if not is_finite(re_val): re_val = 0.5
@@ -300,8 +332,8 @@ func toggle_menu(applied: bool = false):
 			im_input.text = "%.3f" % im_val
 		iter_input.text = str(Config.iterations)
 		speed_input.text = "%.1f" % (Config.movement_speed * 0.1)
-		zoom_slider.value = Config.zoom_factor
-		_on_zoom_value_changed(Config.zoom_factor)
+		zoom_slider.value = _zoom_to_slider(Config.zoom_factor)
+		_on_zoom_value_changed(zoom_slider.value)
 		zero_speed_slider.value = Config.speed_near_zeros
 		_on_zero_speed_value_changed(Config.speed_near_zeros)
 		camera_height_input.text = str(Config.camera_height)
@@ -327,6 +359,7 @@ func toggle_menu(applied: bool = false):
 		_on_hud_scale_value_changed(hud_scale_slider.value)
 		if player:
 			auto_walk_checkbox.button_pressed = (player.auto_walk_state != 0) # 0 is AutoWalkState.NONE
+		flow_checkbox.button_pressed = Config.show_flow
 		bg_music_slider.value = Config.bg_music_volume
 		_on_bg_music_value_changed(Config.bg_music_volume)
 		drone_slider.value = Config.drone_volume
@@ -344,6 +377,13 @@ func toggle_menu(applied: bool = false):
 		_on_terrain_metallic_value_changed(metallic_slider.value)
 		roughness_slider.value = Config.terrain_roughness * 100.0
 		_on_terrain_roughness_value_changed(roughness_slider.value)
+
+		multivalued_slider.value = Config.multivalued_n
+		_on_multivalued_n_value_changed(Config.multivalued_n)
+		cycle_speed_slider.value = Config.branch_cycle_speed
+		_on_cycle_speed_value_changed(Config.branch_cycle_speed)
+		morph_time_slider.value = Config.multivalued_morph_time
+		_on_morph_time_value_changed(Config.multivalued_morph_time)
 
 		func_button.selected = Config.function_type
 		height_button.selected = Config.height_type
@@ -371,6 +411,9 @@ func _on_func_selected(index):
 		iter_input.text = "10"
 
 	rational_container.visible = (index == 13)
+	multivalued_container.visible = (index == 14)
+	cycle_speed_container.visible = (index == 14)
+	morph_time_container.visible = (index == 14)
 	iter_container.visible = (is_zeta_variant or index == 6 or index == 7)
 	critical_checkbox.visible = is_zeta_variant
 	hud_zeros_checkbox.visible = is_zeta_variant
@@ -391,7 +434,9 @@ func _on_drone_value_changed(value):
 	drone_value.text = str(int(value)) + "%"
 
 func _on_zoom_value_changed(value):
-	zoom_value.text = "x" + str(int(value))
+	var z = _slider_to_zoom(value)
+	zoom_value.text = "x%.2f" % z
+	Config.zoom_factor = z
 
 func _on_zero_speed_value_changed(value):
 	zero_speed_value.text = str(int(value)) + "%"
@@ -404,6 +449,18 @@ func _on_sunrise_value_changed(value):
 
 func _on_hud_scale_value_changed(value):
 	hud_scale_value.text = str(int(value)) + "%"
+
+func _on_multivalued_n_value_changed(value):
+	multivalued_value.text = str(int(value))
+	Config.multivalued_n = int(value)
+
+func _on_cycle_speed_value_changed(value):
+	cycle_speed_value.text = "%.1f" % value
+	Config.branch_cycle_speed = value
+
+func _on_morph_time_value_changed(value):
+	morph_time_value.text = "%.2f" % value
+	Config.multivalued_morph_time = value
 
 func _on_terrain_brightness_value_changed(value):
 	Config.terrain_brightness = value / 50.0
@@ -428,6 +485,23 @@ func _on_terrain_metallic_value_changed(value):
 func _on_terrain_roughness_value_changed(value):
 	Config.terrain_roughness = value / 100.0
 	roughness_value.text = str(int(value)) + "%"
+
+func _on_morph_selected(index):
+	Config.morph_type = index
+	if index == 1:
+		toggle_menu(true)
+		morph_overlay.visible = true
+		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+
+func _on_morph_slider_changed(value):
+	Config.morph_value = value
+
+func _on_exit_morph_pressed():
+	Config.morph_type = 0
+	Config.morph_value = 1.0
+	morph_overlay.visible = false
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	morph_button.selected = 0
 
 func _parse_poly(text: String) -> PackedFloat32Array:
 	var coeffs = PackedFloat32Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
@@ -457,6 +531,18 @@ func _parse_poly(text: String) -> PackedFloat32Array:
 
 	return coeffs
 
+func _zoom_to_slider(zoom: float) -> float:
+	var min_zoom = 0.01
+	var max_zoom = 200.0
+	var b = (log(max_zoom) - log(min_zoom)) / 100.0
+	return (log(zoom) - log(min_zoom)) / b
+
+func _slider_to_zoom(value: float) -> float:
+	var min_zoom = 0.01
+	var max_zoom = 200.0
+	var b = (log(max_zoom) - log(min_zoom)) / 100.0
+	return exp(log(min_zoom) + value * b)
+
 func _on_set_pos_pressed():
 	Config.performance_protection_active = false
 	var re = float(re_input.text)
@@ -476,7 +562,8 @@ func _on_set_pos_pressed():
 
 	Config.iterations = iters
 	Config.movement_speed = m_speed
-	Config.zoom_factor = int(zoom_slider.value)
+	Config.zoom_factor = _slider_to_zoom(zoom_slider.value)
+	Config.effective_zoom = float(Config.zoom_factor)
 	Config.speed_near_zeros = zero_speed_slider.value
 	Config.camera_height = c_height
 	Config.height_a = h_a
@@ -494,6 +581,7 @@ func _on_set_pos_pressed():
 	Config.show_hud_zeros = hud_zeros_checkbox.button_pressed
 	Config.show_rvm = rvm_checkbox.button_pressed
 	Config.show_hud_monitor = hud_monitor_checkbox.button_pressed
+	Config.show_flow = flow_checkbox.button_pressed
 	Config.bg_music_volume = bg_music_slider.value
 	Config.drone_volume = drone_slider.value
 	Config.terrain_brightness = brightness_slider.value / 50.0
@@ -506,6 +594,9 @@ func _on_set_pos_pressed():
 	Config.hud_scale = hud_scale_slider.value / 100.0
 	Config.function_type = func_button.selected
 	Config.height_type = height_button.selected
+	Config.multivalued_n = int(multivalued_slider.value)
+	Config.branch_cycle_speed = cycle_speed_slider.value
+	Config.multivalued_morph_time = morph_time_slider.value
 
 	apply_aa()
 
@@ -523,7 +614,7 @@ func _on_set_pos_pressed():
 	_update_hud_layout()
 
 	if player:
-		var zoom_mult = float(Config.zoom_factor)
+		var zoom_mult = Config.zoom_factor
 		if not is_finite(player.global_position.x) or not is_finite(player.global_position.y) or not is_finite(player.global_position.z):
 			player.velocity = Vector3.ZERO
 			player.global_position = Vector3(10.0 * re * zoom_mult, 0.0, -10.0 * im * zoom_mult)
@@ -551,9 +642,9 @@ func _process(_delta):
 		_update_tooltip_position()
 
 	if menu_overlay.visible:
-		if int(zoom_slider.value) != Config.zoom_factor:
-			zoom_slider.value = Config.zoom_factor
-			_on_zoom_value_changed(Config.zoom_factor)
+		if abs(_slider_to_zoom(zoom_slider.value) - Config.zoom_factor) > 0.001:
+			zoom_slider.value = _zoom_to_slider(Config.zoom_factor)
+			_on_zoom_value_changed(zoom_slider.value)
 
 	perf_label.visible = Config.performance_protection_active
 
@@ -601,11 +692,15 @@ func _process(_delta):
 	# Update shader uniforms
 	var material = complex_rect.material as ShaderMaterial
 	material.set_shader_parameter("current_f", f)
+	material.set_shader_parameter("multivalued_n", Config.multivalued_n)
+	material.set_shader_parameter("branch_cycle_speed", Config.branch_cycle_speed)
+	material.set_shader_parameter("multivalued_morph_time", Config.multivalued_morph_time)
+	material.set_shader_parameter("function_type", Config.function_type)
 	material.set_shader_parameter("color_scheme", Config.color_scheme)
 	material.set_shader_parameter("scale", current_scale)
 	material.set_shader_parameter("performance_protection_active", Config.performance_protection_active)
 
-	var scale_factor = 1.0 / float(Config.zoom_factor)
+	var scale_factor = 1.0 / Config.effective_zoom
 	domain_label.text = "Re = %.3f\nIm = %.3f" % [x * 0.1 * scale_factor, -z * 0.1 * scale_factor]
 	target_label.text = "Re = %.3f\nIm = %.3f\n|f| = %.3f" % [f.x, f.y, f.length()]
 
