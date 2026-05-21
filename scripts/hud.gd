@@ -807,7 +807,7 @@ func _rescale_ui_recursive(node: Node, scale: float):
 
 		# Font size scaling
 		for type in types_to_check:
-			for key in node.get_theme_font_size_list(type):
+			for key in node.get_theme_item_list(Theme.DATA_TYPE_FONT_SIZE, type):
 				var base_key = "base_font_size_" + key
 				var base_val = 0
 				if node.has_meta(base_key):
@@ -819,7 +819,7 @@ func _rescale_ui_recursive(node: Node, scale: float):
 
 		# Constants (separation, margins, etc.)
 		for type in types_to_check:
-			for key in node.get_theme_constant_list(type):
+			for key in node.get_theme_item_list(Theme.DATA_TYPE_CONSTANT, type):
 				var base_key = "base_constant_" + key
 				var base_val = 0
 				if node.has_meta(base_key):
