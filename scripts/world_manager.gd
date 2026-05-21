@@ -193,7 +193,8 @@ func _update_all_chunks_collision(force: bool = false):
 	for coord in chunks.keys():
 		var chunk = chunks[coord]
 		if force:
-			var collision_shape = chunk.get_node("StaticBody3D/CollisionShape3D")
+			var static_body = chunk.get_node("StaticBody3D")
+			var collision_shape = static_body.get_node("CollisionShape3D")
 			collision_shape.shape = null
 		_update_chunk_collision(chunk, coord)
 
@@ -311,7 +312,8 @@ func _update_chunk_collision(chunk: MeshInstance3D, coord: Vector2i):
 	var player_chunk = Vector2i(floor(player.global_position.x / chunk_size), floor(player.global_position.z / chunk_size))
 	var dist = max(abs(coord.x - player_chunk.x), abs(coord.y - player_chunk.y))
 
-	var collision_shape = chunk.get_node("StaticBody3D/CollisionShape3D")
+	var static_body = chunk.get_node("StaticBody3D")
+	var collision_shape = static_body.get_node("CollisionShape3D")
 
 	# 1. Unload if too far away
 	if dist > 1:
@@ -322,8 +324,31 @@ func _update_chunk_collision(chunk: MeshInstance3D, coord: Vector2i):
 	if collision_shape.shape != null:
 		return
 
-	# 3. HIGH-LEVEL MAGIC: Instantly bakes the visual mesh into a physical collider
-	collision_shape.shape = chunk.mesh.create_trimesh_shape()
+	# 3. Create HeightMapShape3D
+	var shape = HeightMapShape3D.new()
+	var res = 65 # Higher resolution for better walls
+	shape.map_width = res
+	shape.map_depth = res
+
+	var heights = PackedFloat32Array()
+	heights.resize(res * res)
+
+	var step = chunk_size / float(res - 1)
+	var start_x = coord.x * chunk_size
+	var start_z = coord.y * chunk_size
+
+	for z in range(res):
+		for x in range(res):
+			var world_x = start_x + x * step
+			var world_z = start_z + z * step
+			heights[z * res + x] = Field.get_height(world_x, world_z)
+
+	shape.map_data = heights
+	collision_shape.shape = shape
+
+	# Position the collider locally to match the mesh
+	# HeightMapShape3D is centered around its own local origin.
+	static_body.position = Vector3(0, 0, 0)
 
 func _unload_chunk(coord: Vector2i):
 	var chunk = chunks[coord]
