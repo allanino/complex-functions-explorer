@@ -300,6 +300,7 @@ func _load_chunk(coord: Vector2i):
 	var player_chunk_coord = Vector2i(floor(player_pos.x / chunk_size), floor(player_pos.z / chunk_size))
 	var lod = _get_lod_level(coord, player_chunk_coord)
 
+	chunk.set_meta("coord", coord)
 	_update_chunk_lod(chunk, lod)
 
 	chunk.global_position = Vector3(
@@ -326,11 +327,8 @@ func _update_chunk_lod(chunk: MeshInstance3D, lod: int):
 	chunk.set_meta("lod_level", lod)
 	_update_chunk_uniforms(chunk)
 
-	# Find coord for this chunk to update neighbors
-	for coord in chunks:
-		if chunks[coord] == chunk:
-			_update_neighbor_lods(coord)
-			break
+	if chunk.has_meta("coord"):
+		_update_neighbor_lods(chunk.get_meta("coord"))
 
 func _unload_chunk(coord: Vector2i):
 	var chunk = chunks[coord]
