@@ -140,7 +140,7 @@ func _process(delta):
 			sky_mat.set_shader_parameter("night_factor", night_factor)
 
 	# Only update branch time on branch functions
-	if Config.function_type == 14:
+	if Config.function_type == 14 or Config.function_type == 15:
 		Config.branch_time = Time.get_ticks_msec() / 1000.0
 
 	# Check if any field properties have changed
