@@ -159,7 +159,9 @@ func _process(delta):
 		"terrain_albedo": Config.terrain_albedo,
 		"terrain_emission": Config.terrain_emission,
 		"terrain_metallic": Config.terrain_metallic,
-		"terrain_roughness": Config.terrain_roughness
+		"terrain_roughness": Config.terrain_roughness,
+		"morph_type": Config.morph_type,
+		"morph_value": Config.morph_value
 	}
 
 	var state_changed = current_field_state != _last_field_state
@@ -255,6 +257,11 @@ func _update_terrain_material_uniforms():
 	terrain_material.set_shader_parameter("emission", Config.terrain_emission)
 	terrain_material.set_shader_parameter("metallic", Config.terrain_metallic)
 	terrain_material.set_shader_parameter("roughness", Config.terrain_roughness)
+
+	var morph_param = 1.0
+	if Config.morph_type == 1:
+		morph_param = Config.morph_value
+	terrain_material.set_shader_parameter("morph", morph_param)
 
 func _update_chunk_uniforms(chunk: MeshInstance3D):
 	var lod = chunk.get_meta("lod_level", 0)

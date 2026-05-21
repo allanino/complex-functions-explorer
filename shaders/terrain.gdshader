@@ -18,6 +18,7 @@ uniform float albedo : hint_range(0.0, 1.0) = 0.15;
 uniform float emission : hint_range(0.0, 1.0) = 0.1;
 uniform float metallic : hint_range(0.0, 1.0) = 0.7;
 uniform float roughness : hint_range(0.0, 1.0) = 0.1;
+uniform float morph : hint_range(0.0, 1.0) = 1.0;
 
 // Helper function to convert HSV to RGB
 vec3 hsv2rgb(vec3 c) {
@@ -64,7 +65,7 @@ void vertex() {
             } else {
                 h = mag;
             }
-            local_pos.y += h;
+            local_pos.y += h * morph;
 
             // Analytical normals using derivatives
             float u = field_val.x;
@@ -96,6 +97,9 @@ void vertex() {
                 dh_dx = dmag_dx;
                 dh_dz = dmag_dz;
             }
+
+            dh_dx *= morph;
+            dh_dz *= morph;
 
             v_normal = normalize(vec3(-dh_dx, 1.0, -dh_dz));
         }

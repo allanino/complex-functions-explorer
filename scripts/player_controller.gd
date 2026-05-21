@@ -28,6 +28,21 @@ func _ready():
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 func _unhandled_input(event):
+	if event.is_action_pressed("ui_cancel"):
+		var hud = get_node_or_null("/root/Main/HUD")
+		if hud:
+			hud.toggle_menu()
+		else:
+			# Fallback if HUD is not found
+			if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+				Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+			else:
+				Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+		return
+
+	if Config.morph_type != 0:
+		return
+
 	if event is InputEventMouseMotion:
 		if auto_walk_state == AutoWalkState.NONE or auto_walk_state == AutoWalkState.WALKING:
 			rotate_y(-event.relative.x * MOUSE_SENSITIVITY)
@@ -43,16 +58,6 @@ func _unhandled_input(event):
 		elif event.button_index == MOUSE_BUTTON_MIDDLE and event.pressed:
 			Config.zoom_factor = 1.0
 
-	if event.is_action_pressed("ui_cancel"):
-		var hud = get_node_or_null("/root/Main/HUD")
-		if hud:
-			hud.toggle_menu()
-		else:
-			# Fallback if HUD is not found
-			if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-				Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-			else:
-				Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 	if event is InputEventKey and event.pressed and event.keycode == KEY_SPACE and not event.echo:
 		var current_time = Time.get_ticks_msec() / 1000.0
@@ -93,6 +98,10 @@ func get_terrain_height(x: float, z: float) -> float:
 	return Field.get_height(x, z)
 
 func _physics_process(delta):
+	if Config.morph_type != 0:
+		velocity = Vector3.ZERO
+		return
+
 	# Smooth zoom interpolation
 	var old_ez = Config.effective_zoom
 	Config.effective_zoom = lerp(Config.effective_zoom, float(Config.zoom_factor), delta * 8.0)
