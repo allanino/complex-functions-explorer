@@ -8,9 +8,18 @@ varying vec2 field_val;
 varying float v_nan;
 
 instance uniform int lod_level = 0;
+instance uniform int neighbor_lod_left = -1;
+instance uniform int neighbor_lod_right = -1;
+instance uniform int neighbor_lod_top = -1;
+instance uniform int neighbor_lod_bottom = -1;
+
+uniform float lod_segments[4];
+uniform float chunk_size;
+
 uniform int color_scheme = 0;
 uniform bool show_curves = true;
 uniform bool show_critical_stripe = true;
+uniform bool show_flow = false;
 
 uniform float brightness : hint_range(0.0, 2.0) = 1.0;
 uniform float saturation : hint_range(0.3, 1.0) = 0.85;
@@ -31,6 +40,12 @@ float matrix_hash(vec2 p) {
     return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
 }
 
+float sdLine(vec2 p, vec2 a, vec2 b) {
+    vec2 pa = p - a, ba = b - a;
+    float h = clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0);
+    return length(pa - ba * h);
+}
+
 void vertex() {
     vec3 local_pos = VERTEX;
     if (performance_protection_active) {
@@ -41,21 +56,57 @@ void vertex() {
         v_nan = 0.0;
         field_val = vec2(0.0);
     } else {
-        vec3 world_v_pos = (MODEL_MATRIX * vec4(local_pos, 1.0)).xyz;
+        float half_size = chunk_size * 0.5;
+        float eps = 0.01;
 
-        FieldData fd = get_field_with_derivatives(world_v_pos.x, world_v_pos.z);
+        bool on_left = VERTEX.x < -half_size + eps;
+        bool on_right = VERTEX.x > half_size - eps;
+        bool on_top = VERTEX.z < -half_size + eps;
+        bool on_bottom = VERTEX.z > half_size - eps;
 
-        bool is_invalid = any(isnan(fd.value)) || any(isinf(fd.value)) ||
-                        any(isnan(fd.d_sigma)) || any(isinf(fd.d_sigma)) ||
-                        any(isnan(fd.d_t)) || any(isinf(fd.d_t));
+        int n_lod = -1;
+        bool horizontal_edge = false; // edge along X (Top/Bottom)
+
+        if (on_left && neighbor_lod_left > lod_level) {
+            n_lod = neighbor_lod_left;
+            horizontal_edge = false;
+        } else if (on_right && neighbor_lod_right > lod_level) {
+            n_lod = neighbor_lod_right;
+            horizontal_edge = false;
+        } else if (on_top && neighbor_lod_top > lod_level) {
+            n_lod = neighbor_lod_top;
+            horizontal_edge = true;
+        } else if (on_bottom && neighbor_lod_bottom > lod_level) {
+            n_lod = neighbor_lod_bottom;
+            horizontal_edge = true;
+        }
+
+        vec3 snap_v = VERTEX;
+        if (n_lod != -1) {
+            float segments = lod_segments[n_lod];
+            float s = chunk_size / segments;
+            if (horizontal_edge) {
+                float t = (VERTEX.x + half_size) / s;
+                snap_v.x = floor(t + 0.5) * s - half_size;
+            } else {
+                float t = (VERTEX.z + half_size) / s;
+                snap_v.z = floor(t + 0.5) * s - half_size;
+            }
+        }
+
+        vec3 world_v_pos = (MODEL_MATRIX * vec4(snap_v, 1.0)).xyz;
+        FieldData final_fd = get_field_with_derivatives(world_v_pos.x, world_v_pos.z);
+
+        bool is_invalid = any(isnan(final_fd.value)) || any(isinf(final_fd.value)) ||
+                        any(isnan(final_fd.d_sigma)) || any(isinf(final_fd.d_sigma)) ||
+                        any(isnan(final_fd.d_t)) || any(isinf(final_fd.d_t));
 
         if (is_invalid) {
             v_nan = 1.0;
             field_val = vec2(0.0);
             v_normal = vec3(0.0, 1.0, 0.0);
-            // local_pos.y remains 0.0
+            local_pos = vec3(snap_v.x, 0.0, snap_v.z);
         } else {
-
             v_nan = 0.0;
 
             // Blend parameter in [0, 1]
@@ -64,7 +115,7 @@ void vertex() {
             float blend = s;
 
             // Original function value f(z)
-            vec2 fz = fd.value;
+            vec2 fz = final_fd.value;
 
             // Identity map z = sigma + i t
             // In your parameterization:
@@ -88,9 +139,8 @@ void vertex() {
 
             h *= blend;
 
-            local_pos.y += h * 1.0; // use this if you want the full height
+            local_pos = vec3(snap_v.x, snap_v.y + h, snap_v.z);
 
-            // Analytical normals using derivatives
             float u = field_val.x;
             float v = field_val.y;
 
@@ -124,19 +174,8 @@ void vertex() {
             float dmag_dx = (u * du_dx + v * dv_dx) / safe_mag;
             float dmag_dz = (u * du_dz + v * dv_dz) / safe_mag;
 
-            float dh_dx = 0.0;
-            float dh_dz = 0.0;
-
-            if (height_type == 0) {
-                // h = height_a * log(height_epsilon + mag)
-                float denom = height_epsilon + mag;
-                dh_dx = (height_a / denom) * dmag_dx;
-                dh_dz = (height_a / denom) * dmag_dz;
-            } else {
-                // h = mag
-                dh_dx = dmag_dx;
-                dh_dz = dmag_dz;
-            }
+            float dh_dx = (height_type == 0) ? (height_a / (height_epsilon + mag)) * dmag_dx : dmag_dx;
+            float dh_dz = (height_type == 0) ? (height_a / (height_epsilon + mag)) * dmag_dz : dmag_dz;
 
             v_normal = normalize(vec3(-dh_dx, 1.0, -dh_dz));
 
@@ -272,6 +311,47 @@ void fragment() {
             final_emission += line_color * (core_critical * 0.5 + glow_critical * glow * 1.0);
             final_emission += white_line_color * (core_0 * 0.5 + glow_0 * glow * 1.0);
             final_emission += white_line_color * (core_10 * 0.5 + glow_10 * glow * 1.0);
+        }
+
+        if (show_flow) {
+            float g_size = 1.25;
+            vec2 cell_id = floor(world_pos.xz / g_size);
+            vec2 grid_uv = fract(world_pos.xz / g_size) - 0.5;
+
+            // Get gradient from normal (change the sign to change flow direction)
+            vec2 grad = v_normal.xz;
+            float grad_mag = length(grad);
+
+            if (grad_mag > 0.001) {
+                vec2 dir = grad / grad_mag;
+
+                // Rotate grid_uv to align with gradient (pointing along +X)
+                vec2 p = vec2(grid_uv.x * dir.x + grid_uv.y * dir.y, -grid_uv.x * dir.y + grid_uv.y * dir.x);
+
+                float arrow_len = clamp(grad_mag * g_size * 2.0, 0.1 * g_size, 0.7 * g_size);
+                float thickness = 0.02 * g_size;
+
+                // Body
+                float d_body = sdLine(p, vec2(-arrow_len * 0.5, 0.0), vec2(arrow_len * 0.5, 0.0));
+
+                // Head
+                vec2 head_base = vec2(arrow_len * 0.5, 0.0);
+                float head_size = clamp(arrow_len * 0.2, 0.0075 * g_size, 0.1 * g_size);
+                float d_head = sdLine(p, head_base, head_base + vec2(-head_size, head_size * 0.6));
+                d_head = min(d_head, sdLine(p, head_base, head_base + vec2(-head_size, -head_size * 0.6)));
+
+                float arrow_dist = min(d_body, d_head);
+                float arrow_mask = smoothstep(thickness, thickness * 0.5, arrow_dist);
+
+                // Pulse emission: sync across all arrows
+                float pulse_time = fract(TIME * 1.2);
+                float p_coord = (p.x / arrow_len) + 0.5; // 0 (tail) to 1 (tip)
+                float pulse = smoothstep(pulse_time - 0.3, pulse_time, p_coord) * smoothstep(pulse_time + 0.05, pulse_time, p_coord);
+
+                vec3 flow_color = vec3(1.0) * arrow_mask * (0.1 + 0.9 * pulse);
+                final_emission += flow_color * 0.5;
+                ALBEDO = mix(ALBEDO, vec3(1.0), arrow_mask * 0.15);
+            }
         }
 
         EMISSION = final_emission;
