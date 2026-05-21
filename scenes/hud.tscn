@@ -1018,8 +1018,7 @@ custom_minimum_size = Vector2(100, 20)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 4
-min_value = 1.0
-max_value = 100.0
+step = 0.01
 value = 1.0
 
 [node name="ZoomValue" type="Label" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/ZoomContainer"]

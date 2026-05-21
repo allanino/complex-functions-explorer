@@ -11,7 +11,7 @@ var height_epsilon: float = 1.0
 var rational_num_coeffs: PackedFloat32Array = PackedFloat32Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 var rational_den_coeffs: PackedFloat32Array = PackedFloat32Array([1, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 var zero_threshold: float = 0.5
-var zoom_factor: int = 1
+var zoom_factor: float = 1.0
 
 # Rendering parameters
 var terrain_detail: int = 1

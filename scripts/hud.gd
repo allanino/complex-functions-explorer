@@ -291,8 +291,8 @@ func toggle_menu(applied: bool = false):
 			im_input.text = "%.3f" % im_val
 		iter_input.text = str(Config.iterations)
 		speed_input.text = "%.1f" % (Config.movement_speed * 0.1)
-		zoom_slider.value = Config.zoom_factor
-		_on_zoom_value_changed(Config.zoom_factor)
+		zoom_slider.value = _zoom_to_slider(Config.zoom_factor)
+		_on_zoom_value_changed(zoom_slider.value)
 		zero_speed_slider.value = Config.speed_near_zeros
 		_on_zero_speed_value_changed(Config.speed_near_zeros)
 		camera_height_input.text = str(Config.camera_height)
@@ -380,7 +380,8 @@ func _on_drone_value_changed(value):
 	drone_value.text = str(int(value)) + "%"
 
 func _on_zoom_value_changed(value):
-	zoom_value.text = "x" + str(int(value))
+	var z = _slider_to_zoom(value)
+	zoom_value.text = "x%.2f" % z
 
 func _on_zero_speed_value_changed(value):
 	zero_speed_value.text = str(int(value)) + "%"
@@ -443,6 +444,18 @@ func _parse_poly(text: String) -> PackedFloat32Array:
 
 	return coeffs
 
+func _zoom_to_slider(zoom: float) -> float:
+	var min_zoom = 0.01
+	var max_zoom = 200.0
+	var b = (log(max_zoom) - log(min_zoom)) / 100.0
+	return (log(zoom) - log(min_zoom)) / b
+
+func _slider_to_zoom(value: float) -> float:
+	var min_zoom = 0.01
+	var max_zoom = 200.0
+	var b = (log(max_zoom) - log(min_zoom)) / 100.0
+	return exp(log(min_zoom) + value * b)
+
 func _on_set_pos_pressed():
 	Config.performance_protection_active = false
 	var re = float(re_input.text)
@@ -462,7 +475,7 @@ func _on_set_pos_pressed():
 
 	Config.iterations = iters
 	Config.movement_speed = m_speed
-	Config.zoom_factor = int(zoom_slider.value)
+	Config.zoom_factor = _slider_to_zoom(zoom_slider.value)
 	Config.effective_zoom = float(Config.zoom_factor)
 	Config.speed_near_zeros = zero_speed_slider.value
 	Config.camera_height = c_height
@@ -508,7 +521,7 @@ func _on_set_pos_pressed():
 	Config.save_settings()
 
 	if player:
-		var zoom_mult = float(Config.zoom_factor)
+		var zoom_mult = Config.zoom_factor
 		if not is_finite(player.global_position.x) or not is_finite(player.global_position.y) or not is_finite(player.global_position.z):
 			player.velocity = Vector3.ZERO
 			player.global_position = Vector3(10.0 * re * zoom_mult, 0.0, -10.0 * im * zoom_mult)
@@ -536,9 +549,9 @@ func _process(_delta):
 		_update_tooltip_position()
 
 	if menu_overlay.visible:
-		if int(zoom_slider.value) != Config.zoom_factor:
-			zoom_slider.value = Config.zoom_factor
-			_on_zoom_value_changed(Config.zoom_factor)
+		if abs(_slider_to_zoom(zoom_slider.value) - Config.zoom_factor) > 0.001:
+			zoom_slider.value = _zoom_to_slider(Config.zoom_factor)
+			_on_zoom_value_changed(zoom_slider.value)
 
 	perf_label.visible = Config.performance_protection_active
 
