@@ -82,6 +82,7 @@ extends CanvasLayer
 @onready var metallic_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/MetallicContainer/MetallicValue
 @onready var roughness_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/RoughnessContainer/RoughnessSlider
 @onready var roughness_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/RoughnessContainer/RoughnessValue
+@onready var flow_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/FlowCheckbox
 
 @onready var apply_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/ButtonsHBox/ApplyButton
 @onready var close_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/ButtonsHBox/CloseButton
@@ -128,6 +129,7 @@ const DESCRIPTIONS = {
 	"Background Music": "Adjust the volume of the ambient mathematical soundscape.",
 	"Topographic Drone": "Adjust the volume of the terrain-responsive spatial audio.",
 	"Brightness": "Adjust the overall brightness of the terrain surface.",
+	"Flow": "Overlay flowing arrows that follow the terrain gradient.",
 	"Saturation": "Control the intensity of the domain colors on the terrain.",
 	"Albedo": "Base reflectivity of the terrain material.",
 	"Emission": "Intensity of the self-illumination of the terrain.",
@@ -333,6 +335,7 @@ func toggle_menu(applied: bool = false):
 		hud_monitor_checkbox.button_pressed = Config.show_hud_monitor
 		if player:
 			auto_walk_checkbox.button_pressed = (player.auto_walk_state != 0) # 0 is AutoWalkState.NONE
+		flow_checkbox.button_pressed = Config.show_flow
 		bg_music_slider.value = Config.bg_music_volume
 		_on_bg_music_value_changed(Config.bg_music_volume)
 		drone_slider.value = Config.drone_volume
@@ -534,6 +537,7 @@ func _on_set_pos_pressed():
 	Config.show_hud_zeros = hud_zeros_checkbox.button_pressed
 	Config.show_rvm = rvm_checkbox.button_pressed
 	Config.show_hud_monitor = hud_monitor_checkbox.button_pressed
+	Config.show_flow = flow_checkbox.button_pressed
 	Config.bg_music_volume = bg_music_slider.value
 	Config.drone_volume = drone_slider.value
 	Config.terrain_brightness = brightness_slider.value / 50.0
