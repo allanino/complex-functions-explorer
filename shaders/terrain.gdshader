@@ -239,14 +239,12 @@ void fragment() {
         }
 
         if (show_flow) {
-            float g_size = 1.5 * zoom_factor;
+            float g_size = 1.25;
             vec2 cell_id = floor(world_pos.xz / g_size);
             vec2 grid_uv = fract(world_pos.xz / g_size) - 0.5;
 
-            // Get gradient from normal
-            // v_normal = normalize(vec3(-dh_dx, 1.0, -dh_dz))
-            // The gradient is (dh_dx, dh_dz), so it's proportional to -v_normal.xz
-            vec2 grad = -v_normal.xz;
+            // Get gradient from normal (change the sign to change flow direction)
+            vec2 grad = v_normal.xz;
             float grad_mag = length(grad);
 
             if (grad_mag > 0.001) {
@@ -263,7 +261,7 @@ void fragment() {
 
                 // Head
                 vec2 head_base = vec2(arrow_len * 0.5, 0.0);
-                float head_size = clamp(arrow_len * 0.4, 0.05 * g_size, 0.2 * g_size);
+                float head_size = clamp(arrow_len * 0.2, 0.0075 * g_size, 0.1 * g_size);
                 float d_head = sdLine(p, head_base, head_base + vec2(-head_size, head_size * 0.6));
                 d_head = min(d_head, sdLine(p, head_base, head_base + vec2(-head_size, -head_size * 0.6)));
 
