@@ -429,7 +429,7 @@ func _on_cycle_speed_value_changed(value):
 	Config.branch_cycle_speed = value
 
 func _on_morph_time_value_changed(value):
-	morph_time_value.text = "%.2fs" % value
+	morph_time_value.text = "%.2f" % value
 	Config.multivalued_morph_time = value
 
 func _on_terrain_brightness_value_changed(value):

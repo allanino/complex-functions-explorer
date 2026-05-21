@@ -195,7 +195,7 @@ static func multivalued_z_pow_inv_n(sigma: float, t: float, n: int, cycle_speed:
 	if theta < 0.0: theta += 2.0 * PI
 	var float_n = float(n)
 
-	var time = Time.get_ticks_msec() / 1000.0
+	var time = Config.branch_time
 	var progress = fmod(time * cycle_speed, 1.0) * float_n
 	var k_current = floor(progress)
 	var t_in_branch = progress - k_current
@@ -210,22 +210,12 @@ static func multivalued_z_pow_inv_n(sigma: float, t: float, n: int, cycle_speed:
 	else:
 		blend_factor = 1.0 if t_in_branch >= 1.0 else 0.0
 
+	var morphed_phase = (theta + 2.0 * PI * (k_current + blend_factor)) / float_n
 	var morphed_r = pow(r, 1.0 / float_n)
-
-	# Current branch value
-	var phase_curr = (theta + 2.0 * PI * k_current) / float_n
-	var val_curr = Vector2(morphed_r * cos(phase_curr), morphed_r * sin(phase_curr))
-
-	# Next branch value
-	var phase_next = (theta + 2.0 * PI * (k_current + 1)) / float_n
-	var val_next = Vector2(morphed_r * cos(phase_next), morphed_r * sin(phase_next))
-
-	return val_curr.lerp(val_next, blend_factor)
+	return Vector2(morphed_r * cos(morphed_phase), morphed_r * sin(morphed_phase))
 
 static func smoothstep(edge0: float, edge1: float, x: float) -> float:
-	var d = edge1 - edge0
-	if abs(d) < 1e-8: return 1.0 if x >= edge0 else 0.0
-	x = clamp((x - edge0) / d, 0.0, 1.0)
+	x = clamp((x - edge0) / (edge1 - edge0), 0.0, 1.0)
 	return x * x * (3.0 - 2.0 * x)
 
 #-------------------------------------------------------------------------

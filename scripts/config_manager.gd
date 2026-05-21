@@ -13,6 +13,7 @@ var rational_den_coeffs: PackedFloat32Array = PackedFloat32Array([1, 0, 0, 0, 0,
 var multivalued_n: int = 2
 var branch_cycle_speed: float = 0.5
 var multivalued_morph_time: float = 0.1
+var branch_time: float = 0.0
 var zero_threshold: float = 0.5
 var zoom_factor: float = 1.0
 

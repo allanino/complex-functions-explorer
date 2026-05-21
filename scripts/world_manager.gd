@@ -139,6 +139,10 @@ func _process(delta):
 			sky_mat.set_shader_parameter("golden_hour_factor", _golden_hour_transition)
 			sky_mat.set_shader_parameter("night_factor", night_factor)
 
+	# Only update branch time on branch functions
+	if Config.function_type == 14:
+		Config.branch_time = Time.get_ticks_msec() / 1000.0
+
 	# Check if any field properties have changed
 	var current_field_state = {
 		"iterations": Config.iterations,
@@ -157,6 +161,7 @@ func _process(delta):
 		"multivalued_n": Config.multivalued_n,
 		"branch_cycle_speed": Config.branch_cycle_speed,
 		"multivalued_morph_time": Config.multivalued_morph_time,
+		"branch_time": Config.branch_time,
 		"terrain_brightness": Config.terrain_brightness,
 		"terrain_saturation": Config.terrain_saturation,
 		"terrain_albedo": Config.terrain_albedo,
@@ -261,6 +266,7 @@ func _update_terrain_material_uniforms():
 	terrain_material.set_shader_parameter("emission", Config.terrain_emission)
 	terrain_material.set_shader_parameter("metallic", Config.terrain_metallic)
 	terrain_material.set_shader_parameter("roughness", Config.terrain_roughness)
+	terrain_material.set_shader_parameter("branch_time", Config.branch_time)
 
 func _update_chunk_uniforms(chunk: MeshInstance3D):
 	var lod = chunk.get_meta("lod_level", 0)

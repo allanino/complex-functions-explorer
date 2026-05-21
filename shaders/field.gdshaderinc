@@ -13,6 +13,7 @@ uniform float rational_den_coeffs[10];
 uniform int multivalued_n = 2;
 uniform float branch_cycle_speed = 0.5;
 uniform float multivalued_morph_time = 0.1;
+uniform float branch_time = 0.0;
 
 struct FieldData {
     vec2 value;    // The actual complex f(sigma, t)
@@ -443,7 +444,7 @@ FieldData multivalued_z_pow_inv_n_with_derivatives(float sigma, float t, int n, 
     float float_n = float(n);
 
     // Temporal branch selection & blending factor
-    float progress = fract(TIME * cycle_speed) * float_n;
+    float progress = fract(branch_time * cycle_speed) * float_n;
     int k_current = int(floor(progress));
     float t_in_branch = fract(progress);
 
@@ -453,28 +454,13 @@ FieldData multivalued_z_pow_inv_n_with_derivatives(float sigma, float t, int n, 
     float transition_threshold = dwell_time * float_n;
     float blend_factor = smoothstep(transition_threshold, 1.0, t_in_branch);
 
+    float morphed_phase = (theta + 2.0 * PI * (float(k_current) + blend_factor)) / float_n;
     float morphed_r = pow(r, 1.0 / float_n);
-
-    // Value of current branch
-    float phase_curr = (theta + 2.0 * PI * float(k_current)) / float_n;
-    vec2 val_curr = vec2(morphed_r * cos(phase_curr), morphed_r * sin(phase_curr));
-
-    // Value of next branch (with wrap around)
-    float phase_next = (theta + 2.0 * PI * float(k_current + 1)) / float_n;
-    vec2 val_next = vec2(morphed_r * cos(phase_next), morphed_r * sin(phase_next));
-
-    // Morph between colors (values) instead of phases
-    res.value = mix(val_curr, val_next, blend_factor);
+    res.value = vec2(morphed_r * cos(morphed_phase), morphed_r * sin(morphed_phase));
 
     // dW/dZ = (1/n) * W / Z
     vec2 z = vec2(sigma, t);
-    vec2 deriv = vec2(0.0);
-    float z_mag_sq = dot(z, z);
-    if (z_mag_sq > 1e-12) {
-        vec2 deriv_curr = complex_div(val_curr, float_n * z);
-        vec2 deriv_next = complex_div(val_next, float_n * z);
-        deriv = mix(deriv_curr, deriv_next, blend_factor);
-    }
+    vec2 deriv = complex_div(res.value, float_n * z);
 
     res.d_sigma = deriv;
     res.d_t = vec2(-deriv.y, deriv.x);
