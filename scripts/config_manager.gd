@@ -10,6 +10,8 @@ var height_a: float = 3.0
 var height_epsilon: float = 1.0
 var rational_num_coeffs: PackedFloat32Array = PackedFloat32Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 var rational_den_coeffs: PackedFloat32Array = PackedFloat32Array([1, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+var multivalued_n: int = 2
+var branch_cycle_speed: float = 0.5
 var zero_threshold: float = 0.5
 var zoom_factor: float = 1.0
 
@@ -65,6 +67,8 @@ func save_settings():
 	config.set_value("field", "height_epsilon", height_epsilon)
 	config.set_value("field", "rational_num_coeffs", rational_num_coeffs)
 	config.set_value("field", "rational_den_coeffs", rational_den_coeffs)
+	config.set_value("field", "multivalued_n", multivalued_n)
+	config.set_value("field", "branch_cycle_speed", branch_cycle_speed)
 	config.set_value("field", "zero_threshold", zero_threshold)
 	config.set_value("field", "zoom_factor", zoom_factor)
 
@@ -114,6 +118,8 @@ func load_settings():
 	height_epsilon = config.get_value("field", "height_epsilon", height_epsilon)
 	rational_num_coeffs = config.get_value("field", "rational_num_coeffs", rational_num_coeffs)
 	rational_den_coeffs = config.get_value("field", "rational_den_coeffs", rational_den_coeffs)
+	multivalued_n = config.get_value("field", "multivalued_n", multivalued_n)
+	branch_cycle_speed = config.get_value("field", "branch_cycle_speed", branch_cycle_speed)
 	zero_threshold = config.get_value("field", "zero_threshold", zero_threshold)
 	zoom_factor = config.get_value("field", "zoom_factor", zoom_factor)
 

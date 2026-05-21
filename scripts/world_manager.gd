@@ -249,6 +249,8 @@ func _update_terrain_material_uniforms():
 	terrain_material.set_shader_parameter("zoom_factor", Config.effective_zoom)
 	terrain_material.set_shader_parameter("rational_num_coeffs", Config.rational_num_coeffs)
 	terrain_material.set_shader_parameter("rational_den_coeffs", Config.rational_den_coeffs)
+	terrain_material.set_shader_parameter("multivalued_n", Config.multivalued_n)
+	terrain_material.set_shader_parameter("branch_cycle_speed", Config.branch_cycle_speed)
 	terrain_material.set_shader_parameter("brightness", Config.terrain_brightness)
 	terrain_material.set_shader_parameter("saturation", Config.terrain_saturation)
 	terrain_material.set_shader_parameter("albedo", Config.terrain_albedo)
