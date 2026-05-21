@@ -204,11 +204,11 @@ func _get_lod_level(coord: Vector2i, player_coord: Vector2i) -> int:
 	var dz = abs(coord.y - player_coord.y)
 	var dist = max(dx, dz)
 
-	if dist <= 0:
+	if dist <= 1:
 		return 0
-	elif dist <= 1:
-		return 1
 	elif dist <= 2:
+		return 1
+	elif dist <= 4:
 		return 2
 	else:
 		return 3
