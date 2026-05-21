@@ -83,6 +83,11 @@ extends CanvasLayer
 @onready var metallic_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/MetallicContainer/MetallicValue
 @onready var roughness_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/RoughnessContainer/RoughnessSlider
 @onready var roughness_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/RoughnessContainer/RoughnessValue
+@onready var morph_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/MorphContainer/MorphButton
+
+@onready var morph_overlay = $Control/MorphOverlay
+@onready var morph_slider = $Control/MorphOverlay/MarginContainer/HBox/MorphSlider
+@onready var exit_morph_button = $Control/MorphOverlay/MarginContainer/HBox/ExitMorphButton
 
 @onready var apply_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/ButtonsHBox/ApplyButton
 @onready var close_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/ButtonsHBox/CloseButton
@@ -129,6 +134,7 @@ const DESCRIPTIONS = {
 	"Background Music": "Adjust the volume of the ambient mathematical soundscape.",
 	"Topographic Drone": "Adjust the volume of the terrain-responsive spatial audio.",
 	"Brightness": "Adjust the overall brightness of the terrain surface.",
+	"Terrain Morph": "Transition between the flat complex plane and the 3D terrain.",
 	"Flow": "Overlay flowing arrows that follow the terrain gradient.",
 	"Saturation": "Control the intensity of the domain colors on the terrain.",
 	"Albedo": "Base reflectivity of the terrain material.",
@@ -170,6 +176,9 @@ func _ready():
 	emission_slider.value_changed.connect(_on_terrain_emission_value_changed)
 	metallic_slider.value_changed.connect(_on_terrain_metallic_value_changed)
 	roughness_slider.value_changed.connect(_on_terrain_roughness_value_changed)
+	morph_button.item_selected.connect(_on_morph_selected)
+	morph_slider.value_changed.connect(_on_morph_slider_changed)
+	exit_morph_button.pressed.connect(_on_exit_morph_pressed)
 
 	environment_button.clear()
 	environment_button.add_item("Noon")
@@ -214,6 +223,10 @@ func _ready():
 	color_scheme_button.clear()
 	color_scheme_button.add_item("Cyan real line (flipped)")
 	color_scheme_button.add_item("Red real line (standard)")
+
+	morph_button.clear()
+	morph_button.add_item("None")
+	morph_button.add_item("Smooth Morph")
 
 	apply_aa()
 	_setup_tooltips()
@@ -458,6 +471,23 @@ func _on_terrain_metallic_value_changed(value):
 func _on_terrain_roughness_value_changed(value):
 	Config.terrain_roughness = value / 100.0
 	roughness_value.text = str(int(value)) + "%"
+
+func _on_morph_selected(index):
+	Config.morph_type = index
+	if index == 1:
+		toggle_menu(true)
+		morph_overlay.visible = true
+		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+
+func _on_morph_slider_changed(value):
+	Config.morph_value = value
+
+func _on_exit_morph_pressed():
+	Config.morph_type = 0
+	Config.morph_value = 1.0
+	morph_overlay.visible = false
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	morph_button.selected = 0
 
 func _parse_poly(text: String) -> PackedFloat32Array:
 	var coeffs = PackedFloat32Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])

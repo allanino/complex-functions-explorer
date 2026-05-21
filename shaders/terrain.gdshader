@@ -27,6 +27,7 @@ uniform float albedo : hint_range(0.0, 1.0) = 0.15;
 uniform float emission : hint_range(0.0, 1.0) = 0.1;
 uniform float metallic : hint_range(0.0, 1.0) = 0.7;
 uniform float roughness : hint_range(0.0, 1.0) = 0.1;
+uniform float morph : hint_range(0.0, 1.0) = 1.0;
 
 // Helper function to convert HSV to RGB
 vec3 hsv2rgb(vec3 c) {
@@ -107,26 +108,78 @@ void vertex() {
             local_pos = vec3(snap_v.x, 0.0, snap_v.z);
         } else {
             v_nan = 0.0;
-            field_val = final_fd.value;
-            float mag = length(field_val);
-            float h = (height_type == 0) ? height_a * log(height_epsilon + mag) : mag;
+
+            // Blend parameter in [0, 1]
+            float s0 = 0.5 - 0.5 * cos(PI * morph);
+            float s = log(1.0 + 8.0 * s0) / log(9.0);
+            float blend = s;
+
+            // Original function value f(z)
+            vec2 fz = final_fd.value;
+
+            // Identity map z = sigma + i t
+            // In your parameterization:
+            // sigma = x * 0.1
+            // tau   = -z * 0.1
+            // so z_id = vec2(sigma, tau)
+            vec2 z_id = vec2(world_v_pos.x, world_v_pos.z);
+
+            // Blended conformal map:
+            // g(z, blend) = (1 - blend) * z + blend * f(z)
+            field_val = mix(z_id, fz, blend);
+
+            float mag = length(fz);
+            float h = 0.0;
+
+            if (height_type == 0) {
+                h = height_a * log(height_epsilon + mag);
+            } else {
+                h = mag;
+            }
+
+            h *= blend;
 
             local_pos = vec3(snap_v.x, snap_v.y + h, snap_v.z);
 
             float u = field_val.x;
             float v = field_val.y;
-            float du_dx = 0.1 * final_fd.d_sigma.x;
-            float dv_dx = 0.1 * final_fd.d_sigma.y;
-            float du_dz = -0.1 * final_fd.d_t.x;
-            float dv_dz = -0.1 * final_fd.d_t.y;
 
-            float dmag_dx = (mag > 1e-12) ? (u * du_dx + v * dv_dx) / mag : 0.0;
-            float dmag_dz = (mag > 1e-12) ? (u * du_dz + v * dv_dz) / mag : 0.0;
+            // Derivatives of f(z)
+            vec2 df_dsigma = final_fd.d_sigma; // (du/dsigma, dv/dsigma)
+            vec2 df_dt     = final_fd.d_t;     // (du/dt, dv/dt)
+
+            // Derivatives of identity map z = sigma + i t
+            vec2 dz_dsigma = vec2(1.0, 0.0);
+            vec2 dz_dt     = vec2(0.0, 1.0);
+
+            // Chain rule for g = (1-blend) z + blend f(z)
+            vec2 dg_dsigma = (1.0 - blend) * dz_dsigma + blend * df_dsigma;
+            vec2 dg_dt     = (1.0 - blend) * dz_dt     + blend * df_dt;
+
+            // Convert from (sigma, t) derivatives to world (x, z) derivatives
+            // sigma = 0.1 * x
+            // t     = -0.1 * z
+            float d_sigma_dx = 0.1;
+            float d_t_dx     = 0.0;
+            float d_sigma_dz = 0.0;
+            float d_t_dz     = -0.1;
+
+            float du_dx = dg_dsigma.x * d_sigma_dx + dg_dt.x * d_t_dx;
+            float dv_dx = dg_dsigma.y * d_sigma_dx + dg_dt.y * d_t_dx;
+
+            float du_dz = dg_dsigma.x * d_sigma_dz + dg_dt.x * d_t_dz;
+            float dv_dz = dg_dsigma.y * d_sigma_dz + dg_dt.y * d_t_dz;
+
+            float safe_mag = max(mag, 1e-12);
+            float dmag_dx = (u * du_dx + v * dv_dx) / safe_mag;
+            float dmag_dz = (u * du_dz + v * dv_dz) / safe_mag;
 
             float dh_dx = (height_type == 0) ? (height_a / (height_epsilon + mag)) * dmag_dx : dmag_dx;
             float dh_dz = (height_type == 0) ? (height_a / (height_epsilon + mag)) * dmag_dz : dmag_dz;
 
             v_normal = normalize(vec3(-dh_dx, 1.0, -dh_dz));
+
+
         }
 
         VERTEX = local_pos;

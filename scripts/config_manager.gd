@@ -34,6 +34,8 @@ var terrain_albedo: float = 0.15
 var terrain_emission: float = 0.1
 var terrain_metallic: float = 0.7
 var terrain_roughness: float = 0.1
+var morph_type: int = 0
+var morph_value: float = 1.0
 
 # Player parameters
 var movement_speed: float = 10.0
@@ -92,6 +94,8 @@ func save_settings():
 	config.set_value("rendering", "terrain_emission", terrain_emission)
 	config.set_value("rendering", "terrain_metallic", terrain_metallic)
 	config.set_value("rendering", "terrain_roughness", terrain_roughness)
+	config.set_value("rendering", "morph_type", morph_type)
+	config.set_value("rendering", "morph_value", morph_value)
 
 	config.set_value("player", "movement_speed", movement_speed)
 	config.set_value("player", "speed_near_zeros", speed_near_zeros)
@@ -145,6 +149,8 @@ func load_settings():
 	terrain_emission = config.get_value("rendering", "terrain_emission", terrain_emission)
 	terrain_metallic = config.get_value("rendering", "terrain_metallic", terrain_metallic)
 	terrain_roughness = config.get_value("rendering", "terrain_roughness", terrain_roughness)
+	morph_type = config.get_value("rendering", "morph_type", morph_type)
+	morph_value = config.get_value("rendering", "morph_value", morph_value)
 
 	movement_speed = config.get_value("player", "movement_speed", movement_speed)
 	speed_near_zeros = config.get_value("player", "speed_near_zeros", speed_near_zeros)
