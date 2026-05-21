@@ -8,6 +8,14 @@ varying vec2 field_val;
 varying float v_nan;
 
 instance uniform int lod_level = 0;
+instance uniform int neighbor_lod_left = -1;
+instance uniform int neighbor_lod_right = -1;
+instance uniform int neighbor_lod_top = -1;
+instance uniform int neighbor_lod_bottom = -1;
+
+uniform float lod_segments[4];
+uniform float chunk_size;
+
 uniform int color_scheme = 0;
 uniform bool show_curves = true;
 uniform bool show_critical_stripe = true;
@@ -30,6 +38,65 @@ float matrix_hash(vec2 p) {
     return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
 }
 
+struct TerrainData {
+    float height;
+    vec3 normal;
+    vec2 field_val;
+    float nan_factor;
+};
+
+TerrainData get_terrain_data(float x, float z) {
+    TerrainData td;
+    FieldData fd = get_field_with_derivatives(x, z);
+
+    bool is_invalid = any(isnan(fd.value)) || any(isinf(fd.value)) ||
+                    any(isnan(fd.d_sigma)) || any(isinf(fd.d_sigma)) ||
+                    any(isnan(fd.d_t)) || any(isinf(fd.d_t));
+
+    if (is_invalid) {
+        td.nan_factor = 1.0;
+        td.field_val = vec2(0.0);
+        td.normal = vec3(0.0, 1.0, 0.0);
+        td.height = 0.0;
+    } else {
+        td.nan_factor = 0.0;
+        td.field_val = fd.value;
+        float mag = length(td.field_val);
+        if (height_type == 0) {
+            td.height = height_a * log(height_epsilon + mag);
+        } else {
+            td.height = mag;
+        }
+
+        float u = td.field_val.x;
+        float v = td.field_val.y;
+        vec2 du_dsigma_v = fd.d_sigma;
+        vec2 du_dt_v = fd.d_t;
+
+        float du_dx = 0.1 * du_dsigma_v.x;
+        float dv_dx = 0.1 * du_dsigma_v.y;
+        float du_dz = -0.1 * du_dt_v.x;
+        float dv_dz = -0.1 * du_dt_v.y;
+
+        float dmag_dx = (mag > 1e-12) ? (u * du_dx + v * dv_dx) / mag : 0.0;
+        float dmag_dz = (mag > 1e-12) ? (u * du_dz + v * dv_dz) / mag : 0.0;
+
+        float dh_dx = 0.0;
+        float dh_dz = 0.0;
+
+        if (height_type == 0) {
+            float denom = height_epsilon + mag;
+            dh_dx = (height_a / denom) * dmag_dx;
+            dh_dz = (height_a / denom) * dmag_dz;
+        } else {
+            dh_dx = dmag_dx;
+            dh_dz = dmag_dz;
+        }
+        td.normal = normalize(vec3(-dh_dx, 1.0, -dh_dz));
+    }
+    return td;
+}
+
 void vertex() {
     vec3 local_pos = VERTEX;
     if (performance_protection_active) {
@@ -40,66 +107,73 @@ void vertex() {
         v_nan = 0.0;
         field_val = vec2(0.0);
     } else {
-        vec3 world_v_pos = (MODEL_MATRIX * vec4(local_pos, 1.0)).xyz;
+        TerrainData final_td;
+        float half_size = chunk_size * 0.5;
+        float eps = 0.01;
 
-        FieldData fd = get_field_with_derivatives(world_v_pos.x, world_v_pos.z);
+        bool on_left = VERTEX.x < -half_size + eps;
+        bool on_right = VERTEX.x > half_size - eps;
+        bool on_top = VERTEX.z < -half_size + eps;
+        bool on_bottom = VERTEX.z > half_size - eps;
 
-        bool is_invalid = any(isnan(fd.value)) || any(isinf(fd.value)) ||
-                        any(isnan(fd.d_sigma)) || any(isinf(fd.d_sigma)) ||
-                        any(isnan(fd.d_t)) || any(isinf(fd.d_t));
+        int n_lod = -1;
+        bool horizontal_edge = false; // edge along X (Top/Bottom)
 
-        if (is_invalid) {
-            v_nan = 1.0;
-            field_val = vec2(0.0);
-            v_normal = vec3(0.0, 1.0, 0.0);
-            // local_pos.y remains 0.0
-        } else {
-            v_nan = 0.0;
-            field_val = fd.value;
-
-            float mag = length(field_val);
-            float h = 0.0;
-            if (height_type == 0) {
-                h = height_a * log(height_epsilon + mag);
-            } else {
-                h = mag;
-            }
-            local_pos.y += h;
-
-            // Analytical normals using derivatives
-            float u = field_val.x;
-            float v = field_val.y;
-
-            // sigma = x * 0.1, t = -z * 0.1
-            // d_sigma/dx = 0.1, dt/dz = -0.1
-            vec2 du_dsigma_v = fd.d_sigma; // (du/dsigma, dv/dsigma)
-            vec2 du_dt_v = fd.d_t;         // (du/dt, dv/dt)
-
-            float du_dx = 0.1 * du_dsigma_v.x;
-            float dv_dx = 0.1 * du_dsigma_v.y;
-            float du_dz = -0.1 * du_dt_v.x;
-            float dv_dz = -0.1 * du_dt_v.y;
-
-            float dmag_dx = (mag > 1e-12) ? (u * du_dx + v * dv_dx) / mag : 0.0;
-            float dmag_dz = (mag > 1e-12) ? (u * du_dz + v * dv_dz) / mag : 0.0;
-
-            float dh_dx = 0.0;
-            float dh_dz = 0.0;
-
-            if (height_type == 0) {
-                // h = height_a * log(height_epsilon + mag)
-                float denom = height_epsilon + mag;
-                dh_dx = (height_a / denom) * dmag_dx;
-                dh_dz = (height_a / denom) * dmag_dz;
-            } else {
-                // h = mag
-                dh_dx = dmag_dx;
-                dh_dz = dmag_dz;
-            }
-
-            v_normal = normalize(vec3(-dh_dx, 1.0, -dh_dz));
+        if (on_left && neighbor_lod_left > lod_level) {
+            n_lod = neighbor_lod_left;
+            horizontal_edge = false;
+        } else if (on_right && neighbor_lod_right > lod_level) {
+            n_lod = neighbor_lod_right;
+            horizontal_edge = false;
+        } else if (on_top && neighbor_lod_top > lod_level) {
+            n_lod = neighbor_lod_top;
+            horizontal_edge = true;
+        } else if (on_bottom && neighbor_lod_bottom > lod_level) {
+            n_lod = neighbor_lod_bottom;
+            horizontal_edge = true;
         }
 
+        if (n_lod != -1) {
+            float segments = lod_segments[n_lod];
+            float s = chunk_size / segments;
+            float t, t1, t2;
+            vec3 p1_local, p2_local;
+
+            if (horizontal_edge) {
+                t = (VERTEX.x + half_size) / s;
+                t1 = floor(t + 0.0001);
+                t2 = t1 + 1.0;
+                p1_local = vec3(t1 * s - half_size, 0.0, VERTEX.z);
+                p2_local = vec3(t2 * s - half_size, 0.0, VERTEX.z);
+            } else {
+                t = (VERTEX.z + half_size) / s;
+                t1 = floor(t + 0.0001);
+                t2 = t1 + 1.0;
+                p1_local = vec3(VERTEX.x, 0.0, t1 * s - half_size);
+                p2_local = vec3(VERTEX.x, 0.0, t2 * s - half_size);
+            }
+
+            float w = clamp(t - t1, 0.0, 1.0);
+            vec3 p1_world = (MODEL_MATRIX * vec4(p1_local, 1.0)).xyz;
+            vec3 p2_world = (MODEL_MATRIX * vec4(p2_local, 1.0)).xyz;
+
+            TerrainData td1 = get_terrain_data(p1_world.x, p1_world.z);
+            TerrainData td2 = get_terrain_data(p2_world.x, p2_world.z);
+
+            final_td.height = mix(td1.height, td2.height, w);
+            final_td.normal = normalize(mix(td1.normal, td2.normal, w));
+            final_td.field_val = mix(td1.field_val, td2.field_val, w);
+            final_td.nan_factor = mix(td1.nan_factor, td2.nan_factor, w);
+        } else {
+            vec3 world_v_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
+            final_td = get_terrain_data(world_v_pos.x, world_v_pos.z);
+        }
+
+        v_nan = final_td.nan_factor;
+        field_val = final_td.field_val;
+        v_normal = final_td.normal;
+
+        local_pos.y += final_td.height;
         VERTEX = local_pos;
         world_pos = (MODEL_MATRIX * vec4(local_pos, 1.0)).xyz;
         NORMAL = (MODEL_NORMAL_MATRIX * v_normal);
