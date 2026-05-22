@@ -27,7 +27,9 @@ var show_critical_stripe: bool = true
 var view_distance: int = 7
 var show_flow: bool = false
 var color_scheme: int = 0
-var environment_type: int = 0
+var environment_type: int = 0 # 0: Dynamic, 1: Noon, 2: Sunrise, 3: Midnight, 4: Static
+var day_duration: float = 60.0 # Seconds for a full cycle
+var static_time: float = 43200.0 # Current time in seconds (Noon = 12h = 43200s)
 var sunrise_direction: float = 0.0
 var sky_luminosity: float = 1.0
 var sun_luminosity: float = 1.0
@@ -95,6 +97,8 @@ func save_settings():
 	config.set_value("rendering", "show_flow", show_flow)
 	config.set_value("rendering", "color_scheme", color_scheme)
 	config.set_value("rendering", "environment_type", environment_type)
+	config.set_value("rendering", "day_duration", day_duration)
+	config.set_value("rendering", "static_time", static_time)
 	config.set_value("rendering", "sunrise_direction", sunrise_direction)
 	config.set_value("rendering", "sky_luminosity", sky_luminosity)
 	config.set_value("rendering", "sun_luminosity", sun_luminosity)
@@ -157,6 +161,8 @@ func load_settings():
 	show_flow = config.get_value("rendering", "show_flow", show_flow)
 	color_scheme = config.get_value("rendering", "color_scheme", color_scheme)
 	environment_type = config.get_value("rendering", "environment_type", environment_type)
+	day_duration = config.get_value("rendering", "day_duration", day_duration)
+	static_time = config.get_value("rendering", "static_time", static_time)
 	sunrise_direction = config.get_value("rendering", "sunrise_direction", sunrise_direction)
 	sky_luminosity = config.get_value("rendering", "sky_luminosity", sky_luminosity)
 	sun_luminosity = config.get_value("rendering", "sun_luminosity", sun_luminosity)

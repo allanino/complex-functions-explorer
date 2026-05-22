@@ -63,7 +63,13 @@ extends CanvasLayer
 @onready var curves_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/CurvesCheckbox
 @onready var critical_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/CriticalCheckbox
 @onready var flow_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/FlowCheckbox
-@onready var environment_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/EnvironmentContainer/EnvironmentButton
+@onready var freeze_time_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/FreezeTimeCheckbox
+@onready var day_duration_container = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/DayDurationContainer
+@onready var day_duration_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/DayDurationContainer/DayDurationSlider
+@onready var day_duration_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/DayDurationContainer/DayDurationValue
+@onready var static_time_container = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/StaticTimeContainer
+@onready var static_time_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/StaticTimeContainer/StaticTimeSlider
+@onready var static_time_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/StaticTimeContainer/StaticTimeValue
 @onready var sunrise_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/SunriseContainer/SunriseSlider
 @onready var sunrise_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/SunriseContainer/SunriseValue
 @onready var sky_luminosity_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/SkyLuminosityContainer/SkyLuminositySlider
@@ -142,7 +148,9 @@ const DESCRIPTIONS = {
 	"View Distance": "Number of terrain chunks loaded around the player.",
 	"Level Curves": "Overlay contour lines for integer values of Re(f) (black) and Im(f) (white).",
 	"Critical Stripe": "Visual guide indicating the 0 < Re < 1 region where non-trivial zeros reside.",
-	"Sun Position": "Select between a static sun at noon, a static sun at golden hour, or a dynamic day/night cycle.",
+	"Freeze time": "Choose between a dynamic day/night cycle or a fixed time of day.",
+	"Day Duration": "Set the real-time duration for a full 24-hour mathematical day cycle.",
+	"Time of day": "Manually set the current time of day when time is frozen.",
 	"Sunrise Direction": "Adjust the angle from which the sun rises (180° is towards +σ).",
 	"Sky Luminosity": "Adjust the overall brightness of the sky and clouds.",
 	"Sun Luminosity": "Adjust the intensity of the sun and moon light.",
@@ -183,6 +191,9 @@ var _initial_terrain_roughness: float
 var _initial_hud_scale: float
 var _initial_sky_luminosity: float
 var _initial_sun_luminosity: float
+var _initial_environment_type: int
+var _initial_day_duration: float
+var _initial_static_time: float
 
 func _ready():
 	hud_columns.offset_top = -1000
@@ -201,6 +212,9 @@ func _ready():
 	zoom_slider.value_changed.connect(_on_zoom_value_changed)
 	zero_speed_slider.value_changed.connect(_on_zero_speed_value_changed)
 	view_distance_slider.value_changed.connect(_on_view_distance_value_changed)
+	freeze_time_checkbox.toggled.connect(_on_freeze_time_toggled)
+	day_duration_slider.value_changed.connect(_on_day_duration_value_changed)
+	static_time_slider.value_changed.connect(_on_static_time_value_changed)
 	sunrise_slider.value_changed.connect(_on_sunrise_value_changed)
 	sky_luminosity_slider.value_changed.connect(_on_sky_luminosity_value_changed)
 	sun_luminosity_slider.value_changed.connect(_on_sun_luminosity_value_changed)
@@ -221,11 +235,6 @@ func _ready():
 	morph_button.item_selected.connect(_on_morph_selected)
 	morph_slider.value_changed.connect(_on_morph_slider_changed)
 	exit_morph_button.pressed.connect(_on_exit_morph_pressed)
-
-	environment_button.clear()
-	environment_button.add_item("Noon")
-	environment_button.add_item("Sunrise golden hour")
-	environment_button.add_item("Dynamic sun and moon")
 
 	func_button.clear()
 	func_button.add_item("Zeta (σ > 0)")
@@ -311,7 +320,6 @@ func _any_dropdown_popup():
 		|| terrain_detail_button.get_popup().visible
 		|| aa_button.get_popup().visible
 		|| color_scheme_button.get_popup().visible
-		|| environment_button.get_popup().visible
 		|| multivalued_mode_button.get_popup().visible
 	)
 
@@ -366,6 +374,11 @@ func toggle_menu(applied: bool = false):
 		_initial_hud_scale = Config.hud_scale
 		_initial_sky_luminosity = Config.sky_luminosity
 		_initial_sun_luminosity = Config.sun_luminosity
+		_initial_environment_type = Config.environment_type
+		_initial_day_duration = Config.day_duration
+		_initial_static_time = Config.static_time
+
+		freeze_time_checkbox.button_pressed = (Config.environment_type != 0)
 
 		if player:
 			var scale_factor = 1.0 / Config.effective_zoom
@@ -394,7 +407,10 @@ func toggle_menu(applied: bool = false):
 		_on_view_distance_value_changed(Config.view_distance)
 		curves_checkbox.button_pressed = Config.show_curves
 		critical_checkbox.button_pressed = Config.show_critical_stripe
-		environment_button.selected = Config.environment_type
+		day_duration_slider.value = Config.day_duration
+		_on_day_duration_value_changed(Config.day_duration)
+		static_time_slider.value = Config.static_time
+		_on_static_time_value_changed(Config.static_time)
 		sunrise_slider.value = Config.sunrise_direction
 		_on_sunrise_value_changed(Config.sunrise_direction)
 		sky_luminosity_slider.value = Config.sky_luminosity * 100.0
@@ -470,6 +486,9 @@ func toggle_menu(applied: bool = false):
 				_update_hud_layout()
 			Config.sky_luminosity = _initial_sky_luminosity
 			Config.sun_luminosity = _initial_sun_luminosity
+			Config.environment_type = _initial_environment_type
+			Config.day_duration = _initial_day_duration
+			Config.static_time = _initial_static_time
 
 func _on_func_selected(index):
 	var is_zeta_variant = (index >= 0 and index <= 3)
@@ -498,6 +517,26 @@ func _on_multivalued_mode_selected(index):
 	cycle_speed_container.visible = is_multivalued and is_cycle
 	morph_time_container.visible = is_multivalued and is_cycle
 
+func _on_freeze_time_toggled(pressed: bool):
+	if pressed:
+		if Config.environment_type == 0:
+			Config.environment_type = 4 # Static
+	else:
+		Config.environment_type = 0 # Dynamic
+
+func _format_time(total_seconds: float) -> String:
+	var hours = int(total_seconds) / 3600
+	var minutes = (int(total_seconds) % 3600) / 60
+	var seconds = int(total_seconds) % 60
+	return "%02d:%02d:%02d" % [hours, minutes, seconds]
+
+func _on_day_duration_value_changed(value):
+	Config.day_duration = value
+	day_duration_value.text = _format_time(value)
+
+func _on_static_time_value_changed(value):
+	Config.static_time = value
+	static_time_value.text = _format_time(value)
 func _on_master_volume_value_changed(value):
 	Config.master_volume = value
 	master_volume_value.text = str(int(value)) + "%"
@@ -674,7 +713,6 @@ func _on_set_pos_pressed():
 	Config.color_scheme = color_scheme_button.selected
 	Config.show_curves = curves_checkbox.button_pressed
 	Config.show_critical_stripe = critical_checkbox.button_pressed
-	Config.environment_type = environment_button.selected
 	Config.sunrise_direction = sunrise_slider.value
 	Config.sky_luminosity = sky_luminosity_slider.value / 100.0
 	Config.sun_luminosity = sun_luminosity_slider.value / 100.0
@@ -695,6 +733,8 @@ func _on_set_pos_pressed():
 	Config.terrain_metallic = metallic_slider.value / 100.0
 	Config.terrain_roughness = roughness_slider.value / 100.0
 	Config.view_distance = int(view_distance_slider.value)
+	Config.day_duration = day_duration_slider.value
+	Config.static_time = static_time_slider.value
 	Config.hud_scale = hud_scale_slider.value / 100.0
 	Config.function_type = func_button.selected
 	Config.height_type = height_button.selected
@@ -750,6 +790,11 @@ func _process(_delta):
 		if abs(_slider_to_zoom(zoom_slider.value) - Config.zoom_factor) > 0.001:
 			zoom_slider.value = _zoom_to_slider(Config.zoom_factor)
 			_on_zoom_value_changed(zoom_slider.value)
+
+		# Live update time slider if time is flowing
+		if Config.environment_type == 0:
+			static_time_slider.value = Config.static_time
+			static_time_value.text = _format_time(Config.static_time)
 
 	perf_label.visible = Config.performance_protection_active
 
