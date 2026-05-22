@@ -841,9 +841,9 @@ layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 4
 min_value = 10.0
-max_value = 86400.0
+max_value = 3600.0
 step = 10.0
-value = 500.0
+value = 60.0
 
 [node name="DayDurationValue" type="Label" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/DayDurationContainer"]
 custom_minimum_size = Vector2(80, 0)

@@ -315,7 +315,6 @@ func _any_dropdown_popup():
 		|| terrain_detail_button.get_popup().visible
 		|| aa_button.get_popup().visible
 		|| color_scheme_button.get_popup().visible
-		|| environment_button.get_popup().visible
 		|| multivalued_mode_button.get_popup().visible
 	)
 

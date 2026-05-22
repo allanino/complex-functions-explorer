@@ -28,7 +28,7 @@ var view_distance: int = 7
 var show_flow: bool = false
 var color_scheme: int = 0
 var environment_type: int = 0 # 0: Dynamic, 1: Noon, 2: Sunrise, 3: Midnight, 4: Static
-var day_duration: float = 500.0 # Seconds for a full cycle
+var day_duration: float = 60.0 # Seconds for a full cycle
 var static_time: float = 43200.0 # Current time in seconds (Noon = 12h = 43200s)
 var sunrise_direction: float = 0.0
 var sky_luminosity: float = 1.0
