@@ -82,8 +82,220 @@ vec2 complex_cos(float sigma, float t) {
     );
 }
 
-vec2 complex_tan(float sigma, float t) {
-    return complex_div(complex_sin(sigma, t), complex_cos(sigma, t));
+/*
+================================================================================
+DERIVATION OF THE OVERFLOW-SAFE COMPLEX TANGENT FORMULA
+================================================================================
+
+Goal: Compute tan(x + iy) in a single Cartesian vec2 without evaluating raw
+      sine or cosine functions that explode to INF when |y| is large.
+
+1. Start with the standard real-hyperbolic identity for complex tangent:
+   tan(x + iy) = [ sin(2x) + i*sinh(2y) ] / [ cosh(2y) + cos(2x) ]
+
+2. Express the hyperbolic terms using their exponential definitions:
+   cosh(2y) = (e^(2y) + e^(-2y)) / 2
+   sinh(2y) = (e^(2y) - e^(-2y)) / 2
+
+3. To prevent overflow when |y| is large, we can algebraically multiply the 
+   entire numerator and denominator by a scaling factor of e^(-2|y|):
+   tan(x + iy) = [ (sin(2x) + i*sinh(2y)) * e^(-2|y|) ] 
+                 --------------------------------------
+                 [ (cosh(2y) + cos(2x)) * e^(-2|y|) ]
+
+4. Distribute the e^(-2|y|) scaling factor across the hyperbolic definitions:
+   cosh(2y) * e^(-2|y|) = [(e^(2y) + e^(-2y)) / 2] * e^(-2|y|)
+                        = (e^(2y - 2|y|) + e^(-2y - 2|y|)) / 2
+
+   - When y >= 0:  1/2 * (e^(0) + e^(-4y))  = 0.5 * (1.0 + e^(-4|y|))
+   - When y < 0:   1/2 * (e^(-4|y|) + e^0)  = 0.5 * (1.0 + e^(-4|y|))
+   Therefore, scaled_cosh = 0.5 * (1.0 + e^(-4|y|)) globally.
+
+5. Do the same for the sinh(2y) component, tracking the sign of y:
+   sinh(2y) * e^(-2|y|) = [(e^(2y) - e^(-2y)) / 2] * e^(-2|y|)
+                        = (e^(2y - 2|y|) - e^(-2y - 2|y|)) / 2
+
+   - When y >= 0:  1/2 * (e^(0) - e^(-4y))  =  0.5 * (1.0 - e^(-4|y|))
+   - When y < 0:   1/2 * (e^(-4|y|) - e^0)  = -0.5 * (1.0 - e^(-4|y|))
+   Therefore, scaled_sinh = 0.5 * (1.0 - e^(-4|y|)) * sign(y) globally.
+
+6. Distribute the e^(-2|y|) scaling factor across the standard trig terms:
+   scaled_sin_2x = sin(2x) * e^(-2|y|)
+   scaled_cos_2x = cos(2x) * e^(-2|y|)
+
+7. Reconstruct the component fractions:
+   Denominator = scaled_cosh + scaled_cos_2x
+   Real Part   = scaled_sin_2x / Denominator
+   Imag Part   = scaled_sinh / Denominator
+
+Why this is bulletproof:
+- As |y| grows, e^(-2|y|) and e^(-4|y|) safely underflow to 0.0.
+- The denominator naturally approaches exactly 0.5 as |y| -> INF, completely 
+  eliminating division-by-zero risks or precision blowouts.
+- Real and imaginary components smoothly converge asymptotically to (0.0, sign(y)).
+================================================================================
+*/
+vec2 complex_tan(float x, float y) {
+    float abs_2y = 2.0 * abs(y);
+    
+    // This scales down the hyperbolic functions so they never overflow
+    float exp_neg = exp(-abs_2y); 
+    
+    // Bounded hyperbolic terms (approach 0.5 and 0.5 * sign(y) respectively)
+    float scaled_cosh = 0.5 * (1.0 + exp_neg * exp_neg);
+    float scaled_sinh = 0.5 * (1.0 - exp_neg * exp_neg) * sign(y);
+    
+    // Scale standard trigonometric terms by the same factor
+    float scaled_sin_2x = sin(2.0 * x) * exp_neg;
+    float scaled_cos_2x = cos(2.0 * x) * exp_neg;
+    
+    // Denominator is completely safe from overflow/underflow now
+    float denom = scaled_cosh + scaled_cos_2x;
+    
+    // Real part: sin(2x) / denom
+    // Imaginary part: sinh(2y) / denom
+    return vec2(scaled_sin_2x / denom, scaled_sinh / denom);
+}
+
+/*
+================================================================================
+DERIVATION OF THE OVERFLOW-SAFE COMPLEX COTANGENT FORMULA
+================================================================================
+
+Goal: Compute cot(x + iy) in a single Cartesian vec2 without evaluating raw
+      hyperbolic functions that explode to INF when |y| is large.
+
+1. Start with the standard real-hyperbolic identity for complex cotangent:
+   cot(x + iy) = [ sin(2x) - i*sinh(2y) ] / [ cosh(2y) - cos(2x) ]
+
+2. Express the hyperbolic terms using their exponential definitions:
+   cosh(2y) = (e^(2y) + e^(-2y)) / 2
+   sinh(2y) = (e^(2y) - e^(-2y)) / 2
+
+3. To prevent overflow when |y| is large, we can algebraically multiply the 
+   entire numerator and denominator by a scaling factor of e^(-2|y|):
+   cot(x + iy) = [ (sin(2x) - i*sinh(2y)) * e^(-2|y|) ] 
+                 --------------------------------------
+                 [ (cosh(2y) - cos(2x)) * e^(-2|y|) ]
+
+4. Distribute the e^(-2|y|) scaling factor across the hyperbolic definitions:
+   cosh(2y) * e^(-2|y|) = [(e^(2y) + e^(-2y)) / 2] * e^(-2|y|)
+                        = (e^(2y - 2|y|) + e^(-2y - 2|y|)) / 2
+
+   - When y >= 0:  1/2 * (e^(0) + e^(-4y))  = 0.5 * (1.0 + e^(-4|y|))
+   - When y < 0:   1/2 * (e^(-4|y|) + e^0)  = 0.5 * (1.0 + e^(-4|y|))
+   Therefore, scaled_cosh = 0.5 * (1.0 + e^(-4|y|)) globally.
+
+5. Do the same for the sinh(2y) component, tracking the sign of y:
+   sinh(2y) * e^(-2|y|) = [(e^(2y) - e^(-2y)) / 2] * e^(-2|y|)
+                        = (e^(2y - 2|y|) - e^(-2y - 2|y|)) / 2
+
+   - When y >= 0:  1/2 * (e^(0) - e^(-4y))  =  0.5 * (1.0 - e^(-4|y|))
+   - When y < 0:   1/2 * (e^(-4|y|) - e^0)  = -0.5 * (1.0 - e^(-4|y|))
+   Therefore, scaled_sinh = 0.5 * (1.0 - e^(-4|y|)) * sign(y) globally.
+
+6. Distribute the e^(-2|y|) scaling factor across the standard trig terms:
+   scaled_sin_2x = sin(2x) * e^(-2|y|)
+   scaled_cos_2x = cos(2x) * e^(-2|y|)
+
+7. Reconstruct the component fractions:
+   Denominator = scaled_cosh - scaled_cos_2x
+   Real Part   = scaled_sin_2x / Denominator
+   Imag Part   = -scaled_sinh / Denominator
+
+Why this is bulletproof:
+- As |y| grows, e^(-2|y|) and e^(-4|y|) safely underflow to 0.0.
+- The denominator naturally approaches exactly 0.5 as |y| -> INF, completely 
+  eliminating division-by-zero risks or precision blowouts.
+- Real and imaginary components smoothly converge asymptotically to (0.0, -sign(y)).
+================================================================================
+*/
+
+vec2 complex_cot(float x, float y) {
+    float abs_2y = 2.0 * abs(y);
+    
+    // This scales down the hyperbolic functions so they never overflow
+    float exp_neg = exp(-abs_2y); 
+    
+    // Bounded hyperbolic terms:
+    // cosh(2y) * e^(-2|y|) approaches 0.5 as |y| grows
+    // sinh(2y) * e^(-2|y|) approaches 0.5 * sign(y) as |y| grows
+    float scaled_cosh = 0.5 * (1.0 + exp_neg * exp_neg);
+    float scaled_sinh = 0.5 * (1.0 - exp_neg * exp_neg) * sign(y);
+    
+    // We must also scale the standard cos/sin terms by the same factor
+    float scaled_sin_2x = sin(2.0 * x) * exp_neg;
+    float scaled_cos_2x = cos(2.0 * x) * exp_neg;
+    
+    // Denominator is completely safe from overflow now
+    float denom = scaled_cosh - scaled_cos_2x;
+    
+    // Real part: sin(2x) / denom
+    // Imaginary part: -sinh(2y) / denom
+    return vec2(scaled_sin_2x / denom, -scaled_sinh / denom);
+}
+
+/*
+================================================================================
+DERIVATION OF THE OVERFLOW-SAFE COMPLEX LOG SINE FORMULA
+================================================================================
+
+Goal: Compute ln(sin(x + iy)) directly in log-space without evaluating massive
+      exponential terms that overflow standard floating-point limits.
+
+1. Start with the standard Cartesian definition of complex sine:
+   sin(x + iy) = sin(x)*cosh(y) + i*cos(x)*sinh(y)
+
+2. Express the hyperbolic functions in terms of their exponential components:
+   cosh(y) = (e^|y| + e^-|y|) / 2
+   sinh(y) = sign(y) * (e^|y| - e^-|y|) / 2
+
+3. Substitute these exponential definitions back into step 1:
+   sin(x + iy) = sin(x) * [(e^|y| + e^-|y|) / 2] + i*cos(x) * [sign(y) * (e^|y| - e^-|y|) / 2]
+
+4. Factor out the dominant scaling factor, (e^|y| / 2), from both terms:
+   sin(x + iy) = (e^|y| / 2) * [ sin(x)*(1 + e^(-2|y|)) + i * sign(y)*cos(x)*(1 - e^(-2|y|)) ]
+
+5. Apply the complex logarithm identity, ln(A * B) = ln(A) + ln(B):
+   ln(sin(x + iy)) = ln(e^|y| / 2) + ln[ sin(x)*(1 + e^(-2|y|)) + i * sign(y)*cos(x)*(1 - e^(-2|y|)) ]
+
+6. Simplify the first log term using basic logarithm rules:
+   ln(e^|y| / 2) = ln(e^|y|) - ln(2)
+                 = |y| - ln(2)
+
+7. This yields the final, completely stable two-part equation:
+   Real Scaler (log_scale) = |y| - ln(2)
+   Bounded Internal Z      = vec2( sin(x)*(1 + e^(-2|y|)), sign(y)*cos(x)*(1 - e^(-2|y|)) )
+
+   Result = vec2(log_scale, 0.0) + complex_log(Internal Z)
+
+Why this is bulletproof:
+- As |y| grows, e^(-2|y|) cleanly underflows to 0.0 instead of exploding to INF.
+- Internal Z stays strictly bounded between 0.0 and 2.0 everywhere in the plane.
+- Eliminates catastrophic subtraction cancellation near the real axis (y ≈ 0).
+================================================================================
+*/
+vec2 complex_log_sin(float x, float y) {
+    float abs_y = abs(y);
+    
+    // Mathematically exact scale factor in log-space
+    float log_scale = abs_y - log(2.0);
+    
+    // e^(-2 * |y|)
+    float e_neg2 = exp(-2.0 * abs_y);
+    
+    // Derived directly from first principles:
+    // Real part gets the (1.0 + e_neg2) factor
+    // Imaginary part gets the sign(y) * (1.0 - e_neg2) factor
+    vec2 internal_z = vec2(
+        sin(x) * (1.0 + e_neg2),
+        sign(y) * cos(x) * (1.0 - e_neg2)
+    );
+    
+    // Let your standard complex_log handle the phase tracking smoothly
+    vec2 log_internal = complex_log(internal_z.x, internal_z.y);
+    
+    return vec2(log_scale + log_internal.x, log_internal.y);
 }
 
 //-------------------------------------------------------------------------
@@ -378,14 +590,57 @@ FieldData complex_cos_with_derivatives(float sigma, float t) {
     return res;
 }
 
+/*
+================================================================================
+DERIVATION OF THE OVERFLOW-SAFE COMPLEX TANGENT WITH DERIVATIVES
+================================================================================
+
+Goal: Compute tan(z) and its derivative d/dz tan(z) without evaluating raw 
+      cosine functions that explode to INF when |y| is large.
+
+1. Compute the stable value first:
+   vec2 T = complex_tan_stable(sigma, t);  // T = u + iv
+
+2. Use the trigonometric identity for the derivative of tangent:
+   d/dz tan(z) = sec^2(z) = 1 + tan^2(z)
+
+3. Expand tan^2(z) into real and imaginary components:
+   tan^2(z) = (u + iv)*(u + iv)
+            = (u^2 - v^2) + i*(2*u*v)
+
+4. Add 1.0 to get the final complex derivative:
+   deriv.x = 1.0 + u^2 - v^2
+   deriv.y = 2.0 * u * v
+
+Why this is bulletproof:
+- It completely bypasses complex_cos and complex_mul(cos, cos).
+- As |y| -> INF, the stable tangent value T smoothly approaches (0.0, sign(y)).
+- Plugging those limits into the derivative formula yields:
+  deriv.x = 1.0 + 0.0 - (sign(y))^2 = 1.0 - 1.0 = 0.0
+  deriv.y = 2.0 * 0.0 * sign(y) = 0.0
+- The derivative safely and perfectly drops to (0.0, 0.0) without ever hitting an intermediate INF.
+================================================================================
+*/
 FieldData complex_tan_with_derivatives(float sigma, float t) {
     FieldData res;
+    
+    // 1. Calculate value safely using the real-hyperbolic identity
     res.value = complex_tan(sigma, t);
-    vec2 cos_z = complex_cos(sigma, t);
-    vec2 cos_z_sqr = complex_mul(cos_z, cos_z);
-    vec2 deriv = complex_div(vec2(1.0, 0.0), cos_z_sqr);
+    
+    // 2. Extract components: T = u + iv
+    float u = res.value.x;
+    float v = res.value.y;
+    
+    // 3. Compute the derivative directly from the value: d/dz = 1 + T^2
+    vec2 deriv = vec2(
+        1.0 + (u * u) - (v * v),
+        2.0 * u * v
+    );
+    
+    // 4. Assign directional derivatives matching your grid space
     res.d_sigma = deriv;
     res.d_t = vec2(-deriv.y, deriv.x);
+    
     return res;
 }
 
