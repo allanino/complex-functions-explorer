@@ -271,13 +271,13 @@ func _update_all_chunks_lod(force: bool = false):
 func _update_lod_subs():
 	match Config.terrain_detail:
 		0: # High
-			LOD_SUBS = [511, 255, 127, 63]
+			LOD_SUBS = [511, 255, 127, 63, 31]
 		1: # Medium
-			LOD_SUBS = [255, 127, 31, 15]
+			LOD_SUBS = [255, 127, 63, 31, 15]
 		2: # Low
-			LOD_SUBS = [127, 63, 31, 15]
+			LOD_SUBS = [127, 63, 31, 15, 7]
 		3: # Lowest
-			LOD_SUBS = [63, 31, 15, 7]
+			LOD_SUBS = [63, 31, 15, 7, 3]
 
 func _get_lod_level(coord: Vector2i, player_coord: Vector2i) -> int:
 	var dx = abs(coord.x - player_coord.x)
@@ -290,8 +290,10 @@ func _get_lod_level(coord: Vector2i, player_coord: Vector2i) -> int:
 		return 1
 	elif dist <= 4:
 		return 2
-	else:
+	elif dist <= 6:
 		return 3
+	else:
+		return 4
 
 func _create_lod_mesh(size: float, subdivisions: int) -> Mesh:
 	var plane = PlaneMesh.new()
