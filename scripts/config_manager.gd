@@ -43,6 +43,7 @@ var morph_value: float = 1.0
 var movement_speed: float = 10.0
 var speed_near_zeros: float = 100.0
 var camera_height: float = 1.8
+var zero_proximity_nav: float = 0.5
 
 # UI parameters
 var show_hud_complex: bool = true
@@ -55,6 +56,7 @@ var hud_scale: float = 1.0
 # Audio parameters
 var bg_music_volume: float = 100.0
 var drone_volume: float = 100.0
+var zero_proximity_audio: float = 0.5
 
 # Session state (not saved)
 var visited_zeros: Array[float] = []
@@ -105,6 +107,7 @@ func save_settings():
 	config.set_value("player", "movement_speed", movement_speed)
 	config.set_value("player", "speed_near_zeros", speed_near_zeros)
 	config.set_value("player", "camera_height", camera_height)
+	config.set_value("player", "zero_proximity_nav", zero_proximity_nav)
 
 	config.set_value("ui", "show_hud_complex", show_hud_complex)
 	config.set_value("ui", "show_hud_navigation", show_hud_navigation)
@@ -115,6 +118,7 @@ func save_settings():
 
 	config.set_value("audio", "bg_music_volume", bg_music_volume)
 	config.set_value("audio", "drone_volume", drone_volume)
+	config.set_value("audio", "zero_proximity_audio", zero_proximity_audio)
 
 	var err = config.save(SAVE_PATH)
 	if err != OK:
@@ -163,6 +167,7 @@ func load_settings():
 	movement_speed = config.get_value("player", "movement_speed", movement_speed)
 	speed_near_zeros = config.get_value("player", "speed_near_zeros", speed_near_zeros)
 	camera_height = config.get_value("player", "camera_height", camera_height)
+	zero_proximity_nav = config.get_value("player", "zero_proximity_nav", zero_proximity_nav)
 
 	show_hud_complex = config.get_value("ui", "show_hud_complex", show_hud_complex)
 	show_hud_navigation = config.get_value("ui", "show_hud_navigation", show_hud_navigation)
@@ -173,3 +178,4 @@ func load_settings():
 
 	bg_music_volume = config.get_value("audio", "bg_music_volume", bg_music_volume)
 	drone_volume = config.get_value("audio", "drone_volume", drone_volume)
+	zero_proximity_audio = config.get_value("audio", "zero_proximity_audio", zero_proximity_audio)
