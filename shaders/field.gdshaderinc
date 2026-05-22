@@ -1,6 +1,7 @@
 // Shared field and height functions for shaders
 
 uniform int iterations = 120;
+uniform float log_n_cache[1024];
 uniform float zoom_factor = 1.0;
 uniform int function_type = 0; // 0: Zeta, 1: Zeta continuation, 2: Dirichlet Eta, 3: Dirichlet Beta, 4: Gamma, 5: Log Gamma, 6: Dedekind Eta, 7: Mandelbrot, 8: Sin, 9: Cos, 10: Tan, 11: Exp, 12: Log, 13: Rational, 14: Multivalued
 uniform int height_type = 0;   // 0: Log, 1: Abs
@@ -91,12 +92,13 @@ FieldData dirichlet_eta_with_derivatives(float sigma, float t, int iters) {
     vec2 eta = vec2(0.0);
     vec2 deta_dsigma = vec2(0.0);
     for (int n = 1; n <= iters; n++) {
+        if (n >= 1024) break;
         float nf = float(n);
         float amp = pow(nf, -sigma);
         if (amp < 1e-6) break;
-        float log_n = log(nf);
+        float log_n = log_n_cache[n];
         float theta = -t * log_n;
-        float _sign = (mod(float(n), 2.0) < 0.5) ? -1.0 : 1.0;
+        float _sign = (mod(nf, 2.0) < 0.5) ? -1.0 : 1.0;
         vec2 term = _sign * amp * vec2(cos(theta), sin(theta));
         eta += term;
         deta_dsigma += -log_n * term;
@@ -112,10 +114,12 @@ FieldData dirichlet_beta_with_derivatives(float sigma, float t, int iters) {
     vec2 beta = vec2(0.0);
     vec2 dbeta_dsigma = vec2(0.0);
     for (int n = 0; n < iters; n++) {
-        float k = 2.0 * float(n) + 1.0;
-        float amp = pow(k, -sigma);
+        int k = 2 * n + 1;
+        if (k >= 1024) break;
+        float kf = float(k);
+        float amp = pow(kf, -sigma);
         if (amp < 1e-6) break;
-        float log_k = log(k);
+        float log_k = log_n_cache[k];
         float theta = -t * log_k;
         float _sign = (mod(float(n), 2.0) < 0.5) ? 1.0 : -1.0;
         vec2 term = _sign * amp * vec2(cos(theta), sin(theta));

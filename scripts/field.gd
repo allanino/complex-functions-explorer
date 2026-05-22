@@ -45,27 +45,76 @@ static func complex_tan(sigma: float, t: float) -> Vector2:
 # Component Functions: Zeta, Eta, Gamma, Dedekind Eta
 #-------------------------------------------------------------------------
 
+static var log_n_cache: PackedFloat32Array = PackedFloat32Array()
+
+static func ensure_log_cache(limit: int):
+	if log_n_cache.size() < limit + 1:
+		var old_size = log_n_cache.size()
+		log_n_cache.resize(limit + 1)
+		for i in range(max(1, old_size), limit + 1):
+			log_n_cache[i] = log(float(i))
+
 static func dirichlet_eta(sigma: float, t: float, iterations: int) -> Vector2:
+	ensure_log_cache(iterations)
 	var eta = Vector2.ZERO
 	for n in range(1, iterations + 1):
-		var nf = float(n)
-		var amp = pow(nf, -sigma)
+		var amp = pow(float(n), -sigma)
 		if amp < 1e-6: break
-		var theta = -t * log(nf)
+		var theta = -t * log_n_cache[n]
 		var _sign = 1.0 if (n % 2 == 1) else -1.0
 		eta += _sign * amp * Vector2(cos(theta), sin(theta))
 	return eta
 
+static func dirichlet_eta_with_derivatives(sigma: float, t: float, iterations: int) -> Array:
+	ensure_log_cache(iterations)
+	var eta = Vector2.ZERO
+	var deta_dsigma = Vector2.ZERO
+	for n in range(1, iterations + 1):
+		var nf = float(n)
+		var amp = pow(nf, -sigma)
+		if amp < 1e-6: break
+		var log_n = log_n_cache[n]
+		var theta = -t * log_n
+		var _sign = 1.0 if (n % 2 == 1) else -1.0
+		var term = _sign * amp * Vector2(cos(theta), sin(theta))
+		eta += term
+		deta_dsigma += -log_n * term
+
+	var deta_dt = Vector2(-deta_dsigma.y, deta_dsigma.x)
+	return [eta, deta_dsigma, deta_dt]
+
 static func dirichlet_beta(sigma: float, t: float, iterations: int) -> Vector2:
+	var max_k = 2 * iterations - 1
+	ensure_log_cache(max_k)
 	var beta = Vector2.ZERO
 	for n in range(iterations):
-		var k = 2.0 * float(n) + 1.0
-		var amp = pow(k, -sigma)
+		var k = 2 * n + 1
+		var amp = pow(float(k), -sigma)
 		if amp < 1e-6: break
-		var theta = -t * log(k)
+		var theta = -t * log_n_cache[k]
 		var _sign = 1.0 if (n % 2 == 0) else -1.0
 		beta += _sign * amp * Vector2(cos(theta), sin(theta))
 	return beta
+
+static func dirichlet_beta_with_derivatives(sigma: float, t: float, iterations: int) -> Array:
+	var max_k = 2 * iterations - 1
+	ensure_log_cache(max_k)
+	var beta = Vector2.ZERO
+	var dbeta_dsigma = Vector2.ZERO
+	for n in range(iterations):
+		var k = 2 * n + 1
+		var kf = float(k)
+		var amp = pow(kf, -sigma)
+		if amp < 1e-6: break
+		var log_k = log_n_cache[k]
+		var theta = -t * log_k
+		var _sign = 1.0 if (n % 2 == 0) else -1.0
+		var term = _sign * amp * Vector2(cos(theta), sin(theta))
+		beta += term
+		dbeta_dsigma += -log_k * term
+
+	var dbeta_dt = Vector2(-dbeta_dsigma.y, dbeta_dsigma.x)
+	return [beta, dbeta_dsigma, dbeta_dt]
 
 static func zeta(sigma: float, t: float) -> Vector2:
 	var iterations = Config.iterations
