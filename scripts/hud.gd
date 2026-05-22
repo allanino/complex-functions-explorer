@@ -758,6 +758,10 @@ func _update_hud_layout():
 		return
 	_last_hud_state = current_state
 
+	# Scale stack widths to accommodate wider fonts
+	hud_stack_right.custom_minimum_size.x = 150 * Config.hud_scale
+	hud_stack_left.custom_minimum_size.x = 150 * Config.hud_scale
+
 	var available_height = get_viewport().size.y - 40
 	var current_height = 0.0
 	var separation = 10.0
@@ -813,25 +817,22 @@ func _rescale_card(card: Control, scale: float):
 			node.add_theme_font_size_override("normal_font_size", int(round(node.get_meta("base_font_size") * scale)))
 
 		if node is Control:
-			# Only scale custom minimum size for ComplexAspect
+			# Only scale custom minimum size for ComplexAspect to maintain square ratio
 			if node.name == "ComplexAspect":
 				if not node.has_meta("base_min_size"):
-					var base_size = node.custom_minimum_size
-					if base_size.y < 150: base_size.y = 150
-					node.set_meta("base_min_size", base_size)
+					node.set_meta("base_min_size", Vector2(150, 150))
 				node.custom_minimum_size = node.get_meta("base_min_size") * scale
 
-			# Scale container separations and margins
+			# Keep container separations and margins constant at their original design values
 			if node is BoxContainer:
 				if not node.has_meta("base_separation"):
 					node.set_meta("base_separation", node.get_theme_constant("separation"))
-				# Separation between nodes inside cards is also kept constant for better readability
-				node.add_theme_constant_override("separation", int(round(node.get_meta("base_separation"))))
+				node.add_theme_constant_override("separation", node.get_meta("base_separation"))
 			elif node is MarginContainer:
 				for margin in ["margin_left", "margin_top", "margin_right", "margin_bottom"]:
 					if not node.has_meta("base_" + margin):
 						node.set_meta("base_" + margin, node.get_theme_constant(margin))
-					node.add_theme_constant_override(margin, int(round(node.get_meta("base_" + margin) * scale)))
+					node.add_theme_constant_override(margin, node.get_meta("base_" + margin))
 
 		for child in node.get_children():
 			if child is Control:
