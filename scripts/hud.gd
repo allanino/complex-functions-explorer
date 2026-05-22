@@ -283,6 +283,7 @@ func _any_dropdown_popup():
 		|| aa_button.get_popup().visible
 		|| color_scheme_button.get_popup().visible
 		|| environment_button.get_popup().visible
+		|| multivalued_mode_button.get_popup().visible
 	)
 
 func _on_tooltip_timer_timeout():

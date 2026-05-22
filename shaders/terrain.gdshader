@@ -28,6 +28,7 @@ uniform float emission : hint_range(0.0, 1.0) = 0.1;
 uniform float metallic : hint_range(0.0, 1.0) = 0.7;
 uniform float roughness : hint_range(0.0, 1.0) = 0.1;
 uniform float morph : hint_range(0.0, 1.0) = 1.0;
+uniform float portal_height = 50.0;
 
 // Helper function to convert HSV to RGB
 vec3 hsv2rgb(vec3 c) {
@@ -103,8 +104,8 @@ void vertex() {
                 float r = cam_pos.z / (cam_pos.z - world_v_pos.z);
                 float px = cam_pos.x + r * (world_v_pos.x - cam_pos.x);
                 float py = cam_pos.y + r * (world_v_pos.y - cam_pos.y);
-                // Portal is at z=0, x > 0, extending vertically to infinity
-                if (px > 0.0 && py > -100.0) {
+                // Portal is at z=0, x > 0, with dynamic height py < portal_height
+                if (px > 0.0 && py > -10.0 && py < portal_height) {
                     branch_offset = (cam_pos.z > 0.0) ? 1 : -1;
                 }
             }
