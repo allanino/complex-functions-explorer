@@ -54,7 +54,7 @@ static func dirichlet_eta(sigma: float, t: float, iterations: int) -> Vector2:
 	for n in range(1, iterations + 1):
 		var nf = float(n)
 		var amp = pow(nf, -sigma)
-		if amp < 1e-8: break
+		if amp < 1e-6: break
 		var theta = -t * log(nf)
 		var _sign = 1.0 if (n % 2 == 1) else -1.0
 		eta += _sign * amp * Vector2(cos(theta), sin(theta))
@@ -66,7 +66,7 @@ static func dirichlet_beta(sigma: float, t: float, iterations: int) -> Vector2:
 	for n in range(iterations):
 		var k = 2.0 * float(n) + 1.0
 		var amp = pow(k, -sigma)
-		if amp < 1e-8: break
+		if amp < 1e-6: break
 		var theta = -t * log(k)
 		var _sign = 1.0 if (n % 2 == 0) else -1.0
 		beta += _sign * amp * Vector2(cos(theta), sin(theta))

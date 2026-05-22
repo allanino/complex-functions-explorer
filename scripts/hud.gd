@@ -104,30 +104,6 @@ extends CanvasLayer
 @onready var tooltip_timer = $TooltipTimer
 
 var _pending_tooltip_key: String = ""
-var _monitor_update_timer: float = 0.0
-
-# Material state cache
-var _last_multivalued_n: int = -1
-var _last_branch_cycle_speed: float = -1.0
-var _last_multivalued_morph_time: float = -1.0
-var _last_function_type: int = -1
-var _last_color_scheme: int = -1
-var _last_scale: float = -1.0
-var _last_perf_active: bool = false
-
-# HUD layout state cache
-var _last_viewport_size: Vector2 = Vector2.ZERO
-var _last_hud_scale: float = -1.0
-var _last_cards_visibility: Array[bool] = []
-
-# Label values cache
-var _last_sigma: float = -1e9
-var _last_t: float = -1e9
-var _last_f_re: float = -1e9
-var _last_f_im: float = -1e9
-var _last_f_mag: float = -1e9
-var _last_zeros_count: int = -1
-var _last_rvm_t: float = -1e9
 
 const DESCRIPTIONS = {
 	"Function": "Select the complex function to visualize on the terrain.",
@@ -661,7 +637,7 @@ func _on_set_pos_pressed():
 func _on_quit_pressed():
 	get_tree().quit()
 
-func _process(delta):
+func _process(_delta):
 	if tooltip.visible:
 		_update_tooltip_position()
 
@@ -678,8 +654,7 @@ func _process(delta):
 	var x = player.global_position.x
 	var z = player.global_position.z
 
-	# Use cached field value from player
-	var f = player.current_f if "current_f" in player else Field.get_field(x, z)
+	var f = Field.get_field(x, z)
 
 	# Update Zeta Zeros display
 	var is_auto_walking = false
@@ -691,124 +666,84 @@ func _process(delta):
 
 	if show_zeros:
 		var total_count = Config.visited_zeros.size()
-		if total_count != _last_zeros_count:
-			var last_zeros_text = ""
-			for i in range(total_count - 1, -1, -1):
-				last_zeros_text += "t = %.3f\n" % Config.visited_zeros[i]
+		var last_zeros_text = ""
 
-			zeros_count_label.text = "Count: %d" % total_count
-			zeros_list_label.text = last_zeros_text
-			_last_zeros_count = total_count
+		# Show all visited zeros in the scrolling list
+		for i in range(total_count - 1, -1, -1):
+			last_zeros_text += "t = %.3f\n" % Config.visited_zeros[i]
+
+		zeros_count_label.text = "Count: %d" % total_count
 
 		# Riemann-von Mangoldt formula: N(T) ≈ (T/2π) log(T/2πe) + 7/8
+		# For small T, it's roughly (T/2π) * (log(T/2π) - 1)
+		# A slightly more accurate version for visualization:
 		if Config.show_rvm:
-			var T = abs(t)
-			if abs(T - _last_rvm_t) > 0.01:
-				var val = 0.0
-				if T > 0.1:
-					val = (T / (2.0 * PI)) * (log(T / (2.0 * PI)) - 1.0) + 7.0/8.0
-				rvm_label.text = "N(t) ≈ %.2f" % val
-				_last_rvm_t = T
+			var T = abs(z * 0.1)
+			var val = 0.0
+			if T > 0.1:
+				val = (T / (2.0 * PI)) * (log(T / (2.0 * PI)) - 1.0) + 7.0/8.0
+			rvm_label.text = "N(t) ≈ %.2f" % val
 			rvm_label.visible = true
 		else:
 			rvm_label.visible = false
 
-	# Update shader uniforms with state check
+		zeros_list_label.text = last_zeros_text
+
+	# Update shader uniforms
 	var material = complex_rect.material as ShaderMaterial
-	if material:
-		material.set_shader_parameter("current_f", f)
+	material.set_shader_parameter("current_f", f)
+	material.set_shader_parameter("multivalued_n", Config.multivalued_n)
+	material.set_shader_parameter("branch_cycle_speed", Config.branch_cycle_speed)
+	material.set_shader_parameter("multivalued_morph_time", Config.multivalued_morph_time)
+	material.set_shader_parameter("function_type", Config.function_type)
+	material.set_shader_parameter("color_scheme", Config.color_scheme)
+	material.set_shader_parameter("scale", current_scale)
+	material.set_shader_parameter("performance_protection_active", Config.performance_protection_active)
 
-		var state_changed = (
-			_last_multivalued_n != Config.multivalued_n or
-			not is_equal_approx(_last_branch_cycle_speed, Config.branch_cycle_speed) or
-			not is_equal_approx(_last_multivalued_morph_time, Config.multivalued_morph_time) or
-			_last_function_type != Config.function_type or
-			_last_color_scheme != Config.color_scheme or
-			not is_equal_approx(_last_scale, current_scale) or
-			_last_perf_active != Config.performance_protection_active
-		)
-
-		if state_changed:
-			material.set_shader_parameter("multivalued_n", Config.multivalued_n)
-			material.set_shader_parameter("branch_cycle_speed", Config.branch_cycle_speed)
-			material.set_shader_parameter("multivalued_morph_time", Config.multivalued_morph_time)
-			material.set_shader_parameter("function_type", Config.function_type)
-			material.set_shader_parameter("color_scheme", Config.color_scheme)
-			material.set_shader_parameter("scale", current_scale)
-			material.set_shader_parameter("performance_protection_active", Config.performance_protection_active)
-
-			_last_multivalued_n = Config.multivalued_n
-			_last_branch_cycle_speed = Config.branch_cycle_speed
-			_last_multivalued_morph_time = Config.multivalued_morph_time
-			_last_function_type = Config.function_type
-			_last_color_scheme = Config.color_scheme
-			_last_scale = current_scale
-			_last_perf_active = Config.performance_protection_active
-
-	# Use mathematical coordinates from player
-	var sigma = player.current_sigma if "current_sigma" in player else (x * 0.1 / Config.effective_zoom)
-	var t = player.current_t if "current_t" in player else (-z * 0.1 / Config.effective_zoom)
-	var f_mag = player.current_mag if "current_mag" in player else f.length()
-
-	if abs(sigma - _last_sigma) > 0.0005 or abs(t - _last_t) > 0.0005:
-		domain_label.text = "Re = %.3f\nIm = %.3f" % [sigma, t]
-		_last_sigma = sigma
-		_last_t = t
-
-	if abs(f.x - _last_f_re) > 0.0005 or abs(f.y - _last_f_im) > 0.0005 or abs(f_mag - _last_f_mag) > 0.0005:
-		target_label.text = "Re = %.3f\nIm = %.3f\n|f| = %.3f" % [f.x, f.y, f_mag]
-		_last_f_re = f.x
-		_last_f_im = f.y
-		_last_f_mag = f_mag
+	var scale_factor = 1.0 / Config.effective_zoom
+	domain_label.text = "Re = %.3f\nIm = %.3f" % [x * 0.1 * scale_factor, -z * 0.1 * scale_factor]
+	target_label.text = "Re = %.3f\nIm = %.3f\n|f| = %.3f" % [f.x, f.y, f.length()]
 
 	complex_panel.visible = Config.show_hud_complex
 	info_panel.visible = Config.show_hud_navigation
 	monitor_panel.visible = Config.show_hud_monitor
-
 	if Config.show_hud_monitor:
-		_monitor_update_timer += delta
-		if _monitor_update_timer >= 0.2: # Update 5 times per second
-			_monitor_update_timer = 0.0
-			var monitor_text = "FPS: %d" % Engine.get_frames_per_second()
-			if world_manager:
-				monitor_text += "\n\nChunks"
-				var num_lods = world_manager.LOD_SUBS.size()
-				var lod_counts = []
-				lod_counts.resize(num_lods)
-				lod_counts.fill(0)
+		var monitor_text = "FPS: %d" % Engine.get_frames_per_second()
+		if world_manager:
+			monitor_text += "\n\nChunks"
+			var num_lods = world_manager.LOD_SUBS.size()
+			var lod_counts = []
+			lod_counts.resize(num_lods)
+			lod_counts.fill(0)
 
-				for chunk in world_manager.chunks.values():
-					var lod = chunk.get_meta("lod_level", 0)
-					if lod >= 0 and lod < num_lods:
-						lod_counts[lod] += 1
+			for chunk in world_manager.chunks.values():
+				var lod = chunk.get_meta("lod_level", 0)
+				if lod >= 0 and lod < num_lods:
+					lod_counts[lod] += 1
 
-				for i in range(num_lods):
-					if lod_counts[i] > 0:
-						monitor_text += "\n%d: %d" % [world_manager.LOD_SUBS[i], lod_counts[i]]
+			for i in range(num_lods):
+				if lod_counts[i] > 0:
+					monitor_text += "\n%d: %d" % [world_manager.LOD_SUBS[i], lod_counts[i]]
 
-			fps_label.text = monitor_text
+		fps_label.text = monitor_text
 
 	_update_hud_layout()
+
+var _last_hud_state = {}
 
 func _update_hud_layout():
 	if not hud_columns: return
 
 	var cards = [complex_panel, info_panel, monitor_panel, zeros_panel, perf_label]
-	var v_size = get_viewport().size
-	var cards_vis = cards.map(func(c): return c.visible)
+	var current_state = {
+		"size": get_viewport().size,
+		"scale": Config.hud_scale,
+		"visibility": cards.map(func(c): return c.visible)
+	}
 
-	var layout_changed = (
-		v_size != _last_viewport_size or
-		not is_equal_approx(Config.hud_scale, _last_hud_scale) or
-		cards_vis != _last_cards_visibility
-	)
-
-	if not layout_changed:
+	if current_state.hash() == _last_hud_state.hash():
 		return
-
-	_last_viewport_size = v_size
-	_last_hud_scale = Config.hud_scale
-	_last_cards_visibility = cards_vis
+	_last_hud_state = current_state
 
 	hud_columns.scale = Vector2.ONE * Config.hud_scale
 	hud_columns.pivot_offset = hud_columns.size
