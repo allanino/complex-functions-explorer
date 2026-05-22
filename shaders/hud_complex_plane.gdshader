@@ -3,6 +3,8 @@ shader_type canvas_item;
 uniform vec2 current_f; // Current value of f(x,z)
 uniform int color_scheme = 0;
 uniform sampler2D cyclic_palette : hint_default_black;
+uniform int palette_mapping_mode = 0; // 0: Cyclic/Phase, 1: 2D Complex
+uniform float palette_2d_scale = 0.1;
 uniform float inv_palette_height = 0.5;
 uniform float scale = 2.0; // Current scale of the complex plane view
 
@@ -22,10 +24,17 @@ void fragment() {
     float phase = atan(z.y, z.x);
     float mag = length(z);
 
-    // Background color based on phase
-    float palette_v = (float(color_scheme) + 0.5) * inv_palette_height;
-    float palette_u = (phase + PI) / (2.0 * PI);
-    vec3 sampled_color = texture(cyclic_palette, vec2(palette_u, palette_v)).rgb;
+    // Background color based on phase or 2D complex mapping
+    vec2 palette_uv;
+    if (palette_mapping_mode == 1) {
+        palette_uv = z * palette_2d_scale * 0.5 + 0.5;
+    } else {
+        float palette_u = (phase + PI) / (2.0 * PI);
+        float palette_v = (float(color_scheme) + 0.5) * inv_palette_height;
+        palette_uv = vec2(palette_u, palette_v);
+    }
+
+    vec3 sampled_color = texture(cyclic_palette, palette_uv).rgb;
     vec3 color = mix(vec3(1.0), sampled_color, 0.6) * 0.7; // Mimic hsv2rgb(hue, 0.6, 0.7)
 
     // Draw unit circle

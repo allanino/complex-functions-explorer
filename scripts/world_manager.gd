@@ -17,7 +17,7 @@ var _shaders_stopped: bool = false
 # We increase our chunks by this to make junctions more seamless
 # To test this, look at the right of zeta, the pole has a junction
 # along t = 0.00.
-const chunk_leeway = 0.0
+const chunk_leeway = 0.3
 
 @onready var sun = get_node("../DirectionalLight3D")
 @onready var moon = get_node("../MoonLight")
@@ -139,17 +139,12 @@ func _process(delta):
 			sky_mat.set_shader_parameter("golden_hour_factor", _golden_hour_transition)
 			sky_mat.set_shader_parameter("night_factor", night_factor)
 
-	# Only update branch time on branch functions
-	if Config.function_type == 14:
-		Config.branch_time = Time.get_ticks_msec() / 1000.0
-
 	# Check if any field properties have changed
 	var current_field_state = {
 		"iterations": Config.iterations,
 		"terrain_detail": Config.terrain_detail,
 		"show_curves": Config.show_curves,
 		"show_critical_stripe": Config.show_critical_stripe,
-		"show_flow": Config.show_flow,
 		"color_scheme": Config.color_scheme,
 		"function_type": Config.function_type,
 		"height_type": Config.height_type,
@@ -157,20 +152,16 @@ func _process(delta):
 		"height_epsilon": Config.height_epsilon,
 		"zoom_factor": Config.zoom_factor,
 		"effective_zoom": Config.effective_zoom,
+	"palette_mapping_mode": Config.palette_mapping_mode,
+	"palette_2d_scale": Config.palette_2d_scale,
 		"rational_num_coeffs": Config.rational_num_coeffs,
 		"rational_den_coeffs": Config.rational_den_coeffs,
-		"multivalued_n": Config.multivalued_n,
-		"branch_cycle_speed": Config.branch_cycle_speed,
-		"multivalued_morph_time": Config.multivalued_morph_time,
-		"branch_time": Config.branch_time,
 		"terrain_brightness": Config.terrain_brightness,
 		"terrain_saturation": Config.terrain_saturation,
 		"terrain_albedo": Config.terrain_albedo,
 		"terrain_emission": Config.terrain_emission,
 		"terrain_metallic": Config.terrain_metallic,
-		"terrain_roughness": Config.terrain_roughness,
-		"morph_type": Config.morph_type,
-		"morph_value": Config.morph_value
+		"terrain_roughness": Config.terrain_roughness
 	}
 
 	var state_changed = current_field_state != _last_field_state
@@ -202,13 +193,13 @@ func _update_all_chunks_lod(force: bool = false):
 func _update_lod_subs():
 	match Config.terrain_detail:
 		0: # High
-			LOD_SUBS = [511, 255, 127, 63]
+			LOD_SUBS = [512, 256, 128, 64]
 		1: # Medium
-			LOD_SUBS = [255, 127, 31, 15]
+			LOD_SUBS = [256, 128, 32, 16]
 		2: # Low
-			LOD_SUBS = [127, 63, 31, 15]
+			LOD_SUBS = [128, 64, 32, 16]
 		3: # Lowest
-			LOD_SUBS = [63, 31, 15, 7]
+			LOD_SUBS = [64, 32, 16, 8]
 
 func _get_lod_level(coord: Vector2i, player_coord: Vector2i) -> int:
 	var dx = abs(coord.x - player_coord.x)
@@ -248,6 +239,12 @@ func _update_terrain_material_uniforms():
 	if not terrain_material:
 		return
 
+	if Config.custom_palette_path != "":
+		var img = Image.load_from_file(Config.custom_palette_path)
+		if img:
+			var tex = ImageTexture.create_from_image(img)
+			terrain_material.set_shader_parameter("cyclic_palette", tex)
+
 	terrain_material.set_shader_parameter("performance_protection_active", Config.performance_protection_active)
 	terrain_material.set_shader_parameter("color_scheme", Config.color_scheme)
 
@@ -258,62 +255,25 @@ func _update_terrain_material_uniforms():
 	terrain_material.set_shader_parameter("iterations", Config.iterations)
 	terrain_material.set_shader_parameter("show_curves", Config.show_curves)
 	terrain_material.set_shader_parameter("show_critical_stripe", Config.show_critical_stripe)
-	terrain_material.set_shader_parameter("show_flow", Config.show_flow)
 	terrain_material.set_shader_parameter("function_type", Config.function_type)
 	terrain_material.set_shader_parameter("height_type", Config.height_type)
 	terrain_material.set_shader_parameter("height_a", Config.height_a)
 	terrain_material.set_shader_parameter("height_epsilon", Config.height_epsilon)
 	terrain_material.set_shader_parameter("zoom_factor", Config.effective_zoom)
+	terrain_material.set_shader_parameter("palette_mapping_mode", Config.palette_mapping_mode)
+	terrain_material.set_shader_parameter("palette_2d_scale", Config.palette_2d_scale)
 	terrain_material.set_shader_parameter("rational_num_coeffs", Config.rational_num_coeffs)
 	terrain_material.set_shader_parameter("rational_den_coeffs", Config.rational_den_coeffs)
-	terrain_material.set_shader_parameter("multivalued_n", Config.multivalued_n)
-	terrain_material.set_shader_parameter("branch_cycle_speed", Config.branch_cycle_speed)
-	terrain_material.set_shader_parameter("multivalued_morph_time", Config.multivalued_morph_time)
 	terrain_material.set_shader_parameter("brightness", Config.terrain_brightness)
 	terrain_material.set_shader_parameter("saturation", Config.terrain_saturation)
 	terrain_material.set_shader_parameter("albedo", Config.terrain_albedo)
 	terrain_material.set_shader_parameter("emission", Config.terrain_emission)
 	terrain_material.set_shader_parameter("metallic", Config.terrain_metallic)
 	terrain_material.set_shader_parameter("roughness", Config.terrain_roughness)
-	terrain_material.set_shader_parameter("branch_time", Config.branch_time)
-
-	terrain_material.set_shader_parameter("chunk_size", chunk_size)
-	var segments = []
-	for sub in LOD_SUBS:
-		segments.append(float(sub + 1))
-	terrain_material.set_shader_parameter("lod_segments", segments)
-
-	var morph_param = 1.0
-	if Config.morph_type == 1:
-		morph_param = Config.morph_value
-	terrain_material.set_shader_parameter("morph", morph_param)
 
 func _update_chunk_uniforms(chunk: MeshInstance3D):
 	var lod = chunk.get_meta("lod_level", 0)
 	chunk.set_instance_shader_parameter("lod_level", lod)
-
-func _update_neighbor_lods(coord: Vector2i):
-	_update_neighbor_lod_uniforms(coord)
-	_update_neighbor_lod_uniforms(Vector2i(coord.x - 1, coord.y))
-	_update_neighbor_lod_uniforms(Vector2i(coord.x + 1, coord.y))
-	_update_neighbor_lod_uniforms(Vector2i(coord.x, coord.y - 1))
-	_update_neighbor_lod_uniforms(Vector2i(coord.x, coord.y + 1))
-
-func _update_neighbor_lod_uniforms(coord: Vector2i):
-	var chunk = chunks.get(coord)
-	if not chunk: return
-
-	var lod = chunk.get_meta("lod_level", 0)
-
-	var left_lod = chunks[Vector2i(coord.x - 1, coord.y)].get_meta("lod_level", lod) if chunks.has(Vector2i(coord.x - 1, coord.y)) else lod
-	var right_lod = chunks[Vector2i(coord.x + 1, coord.y)].get_meta("lod_level", lod) if chunks.has(Vector2i(coord.x + 1, coord.y)) else lod
-	var top_lod = chunks[Vector2i(coord.x, coord.y - 1)].get_meta("lod_level", lod) if chunks.has(Vector2i(coord.x, coord.y - 1)) else lod
-	var bottom_lod = chunks[Vector2i(coord.x, coord.y + 1)].get_meta("lod_level", lod) if chunks.has(Vector2i(coord.x, coord.y + 1)) else lod
-
-	chunk.set_instance_shader_parameter("neighbor_lod_left", left_lod)
-	chunk.set_instance_shader_parameter("neighbor_lod_right", right_lod)
-	chunk.set_instance_shader_parameter("neighbor_lod_top", top_lod)
-	chunk.set_instance_shader_parameter("neighbor_lod_bottom", bottom_lod)
 
 func _load_chunk(coord: Vector2i):
 	var chunk = chunk_scene.instantiate()
@@ -340,7 +300,6 @@ func _load_chunk(coord: Vector2i):
 	)
 
 	chunks[coord] = chunk
-	_update_neighbor_lods(coord)
 
 func _update_chunk_lod(chunk: MeshInstance3D, lod: int):
 	var subdivisions = LOD_SUBS[lod]
@@ -352,14 +311,7 @@ func _update_chunk_lod(chunk: MeshInstance3D, lod: int):
 	chunk.set_meta("lod_level", lod)
 	_update_chunk_uniforms(chunk)
 
-	# Find coord for this chunk to update neighbors
-	for coord in chunks:
-		if chunks[coord] == chunk:
-			_update_neighbor_lods(coord)
-			break
-
 func _unload_chunk(coord: Vector2i):
 	var chunk = chunks[coord]
 	chunk.queue_free()
 	chunks.erase(coord)
-	_update_neighbor_lods(coord)
