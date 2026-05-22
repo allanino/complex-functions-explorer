@@ -211,7 +211,6 @@ func _physics_process(delta):
 	global_position.y = terrain_h + Config.camera_height / Config.effective_zoom + height_offset
 
 	# Multivalued branch crossing detection
-	var scale_factor = 1.0 / Config.effective_zoom
 	var current_t = -global_position.z * 0.1 * scale_factor
 	var current_sigma = global_position.x * 0.1 * scale_factor
 
