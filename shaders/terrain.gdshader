@@ -13,7 +13,7 @@ instance uniform int neighbor_lod_right = -1;
 instance uniform int neighbor_lod_top = -1;
 instance uniform int neighbor_lod_bottom = -1;
 
-uniform float lod_segments[4];
+uniform float lod_segments[5];
 uniform float chunk_size;
 
 uniform int color_scheme = 0;
