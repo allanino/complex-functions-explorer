@@ -85,30 +85,55 @@ void sky() {
 
         // Stars
         if (night_factor > 0.01 && eye_alt > 0.0) {
-            // Project onto a sphere-like coordinate for more uniform distribution
+
             vec3 star_dir = normalize(EYEDIR);
-            // Using a high frequency grid for stars
-            float star_res = 200.0;
-            vec3 star_grid = floor(star_dir * star_res);
 
-            // 3D Hash for star position and properties
-            vec3 p3 = fract(star_grid * vec3(0.1031, 0.1030, 0.0973));
-            p3 += dot(p3, p3.yxz + 33.33);
-            float h = fract((p3.x + p3.y) * p3.z);
+            // Spherical UV mapping
+            float u = atan(star_dir.z, star_dir.x) / (2.0 * PI) + 0.5;
+            float v = asin(clamp(star_dir.y, -1.0, 1.0)) / PI + 0.5;
 
-            if (h > 0.995) {
-                // Calculate center of the cell in star_dir space
-                vec3 cell_center = (star_grid + 0.5) / star_res;
-                float dist = distance(star_dir, normalize(cell_center));
+            vec2 star_uv = vec2(u, v);
 
-                // Very sharp point-like falloff
-                float star = smoothstep(0.0015, 0.0005, dist);
+            // Stable 2D star grid
+            float star_res = 512.0;
+            vec2 cell = floor(star_uv * star_res);
 
-                // Random brightness and subtle flicker
+            // Cell hash
+            float h = hash(cell);
+
+            // Star existence
+            if (h > 0.992) {
+
+                // Random star position INSIDE the cell
+                vec2 rnd = vec2(
+                    hash(cell + vec2(13.1, 7.2)),
+                    hash(cell + vec2(2.8, 19.7))
+                );
+
+                vec2 star_pos = (cell + rnd) / star_res;
+
+                // Wrap-safe UV distance
+                vec2 delta = abs(star_uv - star_pos);
+                delta.x = min(delta.x, 1.0 - delta.x);
+
+                float dist = length(delta);
+
+                // Softer Gaussian-like falloff
+                float star = exp(-dist * 10000.0);
+
+                // Brightness and flicker
                 float flicker = 0.8 + 0.2 * sin(TIME * 2.0 + h * 100.0);
-                float brightness = fract(h * 10.0);
+                float brightness = 0.8 + fract(h * 17.31);
 
-                final_color += vec3(star * brightness * flicker * night_factor);
+                float star_intensity = 1.0;
+
+                final_color += vec3(
+                    star *
+                    brightness *
+                    flicker *
+                    night_factor *
+                    star_intensity
+                );
             }
         }
 
