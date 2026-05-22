@@ -817,11 +817,15 @@ func _rescale_card(card: Control, scale: float):
 			node.add_theme_font_size_override("normal_font_size", int(round(node.get_meta("base_font_size") * scale)))
 
 		if node is Control:
-			# Only scale custom minimum size for ComplexAspect to maintain square ratio
+			# Only scale custom minimum size for specific panels to maintain layout proportions
 			if node.name == "ComplexAspect":
 				if not node.has_meta("base_min_size"):
 					node.set_meta("base_min_size", Vector2(150, 150))
 				node.custom_minimum_size = node.get_meta("base_min_size") * scale
+			elif node.name == "ZerosPanel" or node.name == "InfoPanel":
+				if not node.has_meta("base_min_size"):
+					node.set_meta("base_min_size", node.custom_minimum_size)
+				node.custom_minimum_size.y = node.get_meta("base_min_size").y * scale
 
 			# Keep container separations and margins constant at their original design values
 			if node is BoxContainer:
