@@ -31,6 +31,8 @@ extends CanvasLayer
 @onready var iter_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/IterContainer/IterValue
 @onready var rational_container = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/RationalContainer
 @onready var rational_input = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/RationalContainer/RationalInput
+@onready var multivalued_mode_container = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/MultivaluedModeContainer
+@onready var multivalued_mode_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/MultivaluedModeContainer/MultivaluedModeButton
 @onready var multivalued_container = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/MultivaluedContainer
 @onready var multivalued_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/MultivaluedContainer/MultivaluedSlider
 @onready var multivalued_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/MultivaluedContainer/MultivaluedValue
@@ -126,6 +128,7 @@ const DESCRIPTIONS = {
 	"Automatic Walking": "Automatically follow the critical line (Re = 0.5) to find Riemann Zeta zeros.",
 	"Terrain Details": "Quality and subdivision level of the procedurally generated terrain meshes.",
 	"Antialiasing": "Choose a technique to reduce jagged edges in the 3D view.",
+	"Branch Experience": "Choose how to visualize multiple branches: temporal cycling or spatial portals.",
 	"Branches (n)": "Number of branches for the multivalued function z^(1/n).",
 	"Cycle Speed": "Temporal branch morphing speed.",
 	"Morph Time": "Duration of the smooth transition between branches.",
@@ -177,6 +180,7 @@ func _ready():
 	quit_button.pressed.connect(_on_quit_pressed)
 	func_button.item_selected.connect(_on_func_selected)
 	height_button.item_selected.connect(_on_height_selected)
+	multivalued_mode_button.item_selected.connect(_on_multivalued_mode_selected)
 
 	bg_music_slider.value_changed.connect(_on_bg_music_value_changed)
 	drone_slider.value_changed.connect(_on_drone_value_changed)
@@ -225,6 +229,10 @@ func _ready():
 	func_button.add_item("Log")
 	func_button.add_item("Rational")
 	func_button.add_item("Multivalued z^(1/n)")
+
+	multivalued_mode_button.clear()
+	multivalued_mode_button.add_item("Time cycle")
+	multivalued_mode_button.add_item("Branch portals")
 
 	height_button.clear()
 	height_button.add_item("Logarithmic (a*log(ε + abs))")
@@ -290,6 +298,7 @@ func _any_dropdown_popup():
 		|| aa_button.get_popup().visible
 		|| color_scheme_button.get_popup().visible
 		|| environment_button.get_popup().visible
+		|| multivalued_mode_button.get_popup().visible
 	)
 
 func _on_tooltip_timer_timeout():
@@ -404,6 +413,8 @@ func toggle_menu(applied: bool = false):
 
 		multivalued_slider.value = Config.multivalued_n
 		_on_multivalued_n_value_changed(Config.multivalued_n)
+		multivalued_mode_button.selected = Config.multivalued_mode
+		_on_multivalued_mode_selected(Config.multivalued_mode)
 		cycle_speed_slider.value = Config.branch_cycle_speed
 		_on_cycle_speed_value_changed(Config.branch_cycle_speed)
 		morph_time_slider.value = Config.multivalued_morph_time
@@ -441,9 +452,9 @@ func _on_func_selected(index):
 		iter_slider.value = 100 # Minimum value allowed by slider
 
 	rational_container.visible = (index == 13)
+	multivalued_mode_container.visible = (index == 14)
 	multivalued_container.visible = (index == 14)
-	cycle_speed_container.visible = (index == 14)
-	morph_time_container.visible = (index == 14)
+	_on_multivalued_mode_selected(multivalued_mode_button.selected)
 	iter_container.visible = (is_zeta_variant or index == 6 or index == 7)
 	critical_checkbox.visible = is_zeta_variant
 	hud_zeros_checkbox.visible = is_zeta_variant
@@ -454,6 +465,12 @@ func _on_height_selected(index):
 	var is_log = (index == 0)
 	height_a_container.visible = is_log
 	height_eps_container.visible = is_log
+
+func _on_multivalued_mode_selected(index):
+	var is_multivalued = (func_button.selected == 14)
+	var is_cycle = (index == 0)
+	cycle_speed_container.visible = is_multivalued and is_cycle
+	morph_time_container.visible = is_multivalued and is_cycle
 
 func _on_bg_music_value_changed(value):
 	Config.bg_music_volume = value
@@ -641,6 +658,7 @@ func _on_set_pos_pressed():
 	Config.function_type = func_button.selected
 	Config.height_type = height_button.selected
 	Config.multivalued_n = int(multivalued_slider.value)
+	Config.multivalued_mode = multivalued_mode_button.selected
 	Config.branch_cycle_speed = cycle_speed_slider.value
 	Config.multivalued_morph_time = morph_time_slider.value
 
@@ -748,7 +766,16 @@ func _process(_delta):
 
 	var scale_factor = 1.0 / Config.effective_zoom
 	domain_label.text = "Re = %.3f\nIm = %.3f" % [x * 0.1 * scale_factor, -z * 0.1 * scale_factor]
-	target_label.text = "Re = %.3f\nIm = %.3f\n|f| = %.3f" % [f.x, f.y, f.length()]
+	var target_text = "Re = %.3f\nIm = %.3f\n|f| = %.3f" % [f.x, f.y, f.length()]
+	if Config.function_type == 14:
+		var k = 0
+		if Config.multivalued_mode == 0:
+			var progress = fmod(Config.branch_time * Config.branch_cycle_speed, 1.0) * Config.multivalued_n
+			k = int(floor(progress))
+		else:
+			k = Config.current_branch
+		target_text += "\nBranch k = %d" % k
+	target_label.text = target_text
 
 	complex_panel.visible = Config.show_hud_complex
 	info_panel.visible = Config.show_hud_navigation

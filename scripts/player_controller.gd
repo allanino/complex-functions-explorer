@@ -13,6 +13,7 @@ var height_offset = 0.0
 var last_space_time = 0.0
 var space_held_time = 0.0
 var is_resetting_height = false
+var last_t = 0.0
 
 # Zero detection history
 var mag_history: Array[float] = [1.0, 1.0, 1.0, 1.0, 1.0]
@@ -28,6 +29,8 @@ var current_mag: float = 0.0
 func _ready():
 	# Set the global position directly using a Vector3(x, y, z)
 	global_position = Vector3(5.0, 0.0, 0.0)
+	var scale_factor = 1.0 / Config.effective_zoom
+	last_t = -global_position.z * 0.1 * scale_factor
 	
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
@@ -206,6 +209,27 @@ func _physics_process(delta):
 
 	# Snap player to terrain height + offset
 	global_position.y = terrain_h + Config.camera_height / Config.effective_zoom + height_offset
+
+	# Multivalued branch crossing detection
+	if Config.function_type == 14 and Config.multivalued_mode == 1:
+		# Detect crossing of the positive real axis (sigma > 0, t=0)
+		if current_sigma > 0.0:
+			var branch_changed = false
+			if last_t < 0.0 and current_t >= 0.0:
+				# Crossed from -t to +t (counter-clockwise around origin)
+				Config.current_branch = (Config.current_branch + 1) % Config.multivalued_n
+				branch_changed = true
+			elif last_t > 0.0 and current_t <= 0.0:
+				# Crossed from +t to -t (clockwise around origin)
+				Config.current_branch = (Config.current_branch + Config.multivalued_n - 1) % Config.multivalued_n
+				branch_changed = true
+
+			if branch_changed:
+				var spatial_audio = get_node_or_null("/root/Main/SpatialAudio")
+				if spatial_audio and spatial_audio.has_method("play_portal_crossing"):
+					spatial_audio.play_portal_crossing()
+
+	last_t = current_t
 
 	# Zeta zero detection during auto-walk
 	if auto_walk_state == AutoWalkState.WALKING and (Config.function_type >= 0 and Config.function_type <= 3):

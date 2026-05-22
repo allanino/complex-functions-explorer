@@ -28,6 +28,8 @@ uniform float emission : hint_range(0.0, 1.0) = 0.1;
 uniform float metallic : hint_range(0.0, 1.0) = 0.7;
 uniform float roughness : hint_range(0.0, 1.0) = 0.1;
 uniform float morph : hint_range(0.0, 1.0) = 1.0;
+uniform float portal_height = 50.0;
+uniform float portal_width = 100.0;
 
 // Helper function to convert HSV to RGB
 vec3 hsv2rgb(vec3 c) {
@@ -95,7 +97,22 @@ void vertex() {
         }
 
         vec3 world_v_pos = (MODEL_MATRIX * vec4(snap_v, 1.0)).xyz;
-        FieldData final_fd = get_field_with_derivatives(world_v_pos.x, world_v_pos.z);
+
+        int branch_offset = 0;
+        if (function_type == 14 && multivalued_mode == 1) {
+            vec3 cam_pos = (INV_VIEW_MATRIX * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
+            if (cam_pos.z * world_v_pos.z < 0.0) {
+                float r = cam_pos.z / (cam_pos.z - world_v_pos.z);
+                float px = cam_pos.x + r * (world_v_pos.x - cam_pos.x);
+                float py = cam_pos.y + r * (world_v_pos.y - cam_pos.y);
+                // Portal is at z=0, 0 < x < portal_width, with dynamic height py < portal_height
+                if (px > 0.0 && px < portal_width && py > -10.0 && py < portal_height) {
+                    branch_offset = (cam_pos.z > 0.0) ? 1 : -1;
+                }
+            }
+        }
+
+        FieldData final_fd = get_field_with_derivatives(world_v_pos.x, world_v_pos.z, branch_offset);
 
         bool is_invalid = any(isnan(final_fd.value)) || any(isinf(final_fd.value)) ||
                         any(isnan(final_fd.d_sigma)) || any(isinf(final_fd.d_sigma)) ||
@@ -281,6 +298,15 @@ void fragment() {
 
         ALBEDO = base * albedo;
         vec3 final_emission = base * emission;
+
+        if (function_type == 14 && multivalued_mode == 1) {
+            // Highlight the branch cut portal area
+            float dist_to_cut = abs(world_pos.z);
+            if (world_pos.x > 0.0 && world_pos.x < portal_width) {
+                float cut_glow = 1.0 - smoothstep(0.0, 0.1 * zoom_factor, dist_to_cut);
+                final_emission += vec3(0.0, 0.8, 1.0) * cut_glow * 0.4;
+            }
+        }
 
         // Only apply the lines rendering for zeta (at x = 0, x = 5.0, x = 10.0)
         // which corresponds to Re = 0.0, Re = 0.5, Re = 1.0

@@ -209,20 +209,25 @@ static func multivalued_z_pow_inv_n(sigma: float, t: float, n: int, cycle_speed:
 	if theta < 0.0: theta += 2.0 * PI
 	var float_n = float(n)
 
-	var time = Config.branch_time
-	var progress = fmod(time * cycle_speed, 1.0) * float_n
-	var k_current = floor(progress)
-	var t_in_branch = progress - k_current
-
-	# Non-linear transition: stay on branch, then morph
-	var morph_time = Config.multivalued_morph_time
-	var transition_fraction = clamp(morph_time * float_n * cycle_speed, 0.0, 1.0)
-	var transition_threshold = 1.0 - transition_fraction
 	var blend_factor = 0.0
-	if transition_threshold < 1.0:
-		blend_factor = smoothstep(transition_threshold, 1.0, t_in_branch)
-	else:
-		blend_factor = 1.0 if t_in_branch >= 1.0 else 0.0
+	var k_current = 0.0
+
+	if Config.multivalued_mode == 0: # Time cycle
+		var time = Config.branch_time
+		var progress = fmod(time * cycle_speed, 1.0) * float_n
+		k_current = floor(progress)
+		var t_in_branch = progress - k_current
+
+		# Non-linear transition: stay on branch, then morph
+		var morph_time = Config.multivalued_morph_time
+		var transition_fraction = clamp(morph_time * float_n * cycle_speed, 0.0, 1.0)
+		var transition_threshold = 1.0 - transition_fraction
+		if transition_threshold < 1.0:
+			blend_factor = smoothstep(transition_threshold, 1.0, t_in_branch)
+		else:
+			blend_factor = 1.0 if t_in_branch >= 1.0 else 0.0
+	else: # Branch portals
+		k_current = float(Config.current_branch)
 
 	var morphed_phase = (theta + 2.0 * PI * (k_current + blend_factor)) / float_n
 	var morphed_r = pow(r, 1.0 / float_n)

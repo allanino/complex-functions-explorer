@@ -13,6 +13,11 @@ var _lod_mesh_cache = {}
 var _last_player_chunk = Vector2i(9999, 9999)
 var slow_frame_counter: int = 0
 var _shaders_stopped: bool = false
+var portal_frame: Node3D
+var portal_ground_bar: MeshInstance3D
+var portal_vert_bar: MeshInstance3D
+var portal_top_bar: MeshInstance3D
+var portal_end_bar: MeshInstance3D
 
 @onready var sun = get_node("../DirectionalLight3D")
 @onready var moon = get_node("../MoonLight")
@@ -27,8 +32,49 @@ var _sun_color = Color("#fc9500")
 func _ready():
 	_update_lod_subs()
 	_update_terrain_material_uniforms()
+	_setup_portal_frame()
 	# Uncomment this to debug the mesh wireframe
 	# get_viewport().debug_draw = Viewport.DEBUG_DRAW_WIREFRAME
+
+func _setup_portal_frame():
+	portal_frame = Node3D.new()
+	portal_frame.name = "PortalFrame"
+	add_child(portal_frame)
+
+	var mat = StandardMaterial3D.new()
+	mat.albedo_color = Color(0.0, 0.8, 1.0)
+	mat.emission_enabled = true
+	mat.emission = Color(0.0, 0.8, 1.0)
+	mat.emission_energy_multiplier = 2.0
+
+	# Ground line
+	portal_ground_bar = MeshInstance3D.new()
+	portal_ground_bar.mesh = BoxMesh.new()
+	portal_ground_bar.mesh.size = Vector3(1.0, 0.2, 0.2)
+	portal_ground_bar.material_override = mat
+	portal_frame.add_child(portal_ground_bar)
+	portal_ground_bar.position = Vector3(5000.0, 0.0, 0.0)
+
+	# Vertical bar at origin
+	portal_vert_bar = MeshInstance3D.new()
+	portal_vert_bar.mesh = BoxMesh.new()
+	portal_vert_bar.mesh.size = Vector3(0.2, 1.0, 0.2) # Initial, will scale
+	portal_vert_bar.material_override = mat
+	portal_frame.add_child(portal_vert_bar)
+
+	# Top bar
+	portal_top_bar = MeshInstance3D.new()
+	portal_top_bar.mesh = BoxMesh.new()
+	portal_top_bar.mesh.size = Vector3(1.0, 0.2, 0.2) # Scaled dynamically
+	portal_top_bar.material_override = mat
+	portal_frame.add_child(portal_top_bar)
+
+	# End vertical bar
+	portal_end_bar = MeshInstance3D.new()
+	portal_end_bar.mesh = BoxMesh.new()
+	portal_end_bar.mesh.size = Vector3(0.2, 1.0, 0.2)
+	portal_end_bar.material_override = mat
+	portal_frame.add_child(portal_end_bar)
 
 func _process(delta):
 	if not player:
@@ -144,8 +190,11 @@ func _process(delta):
 		"rational_num_coeffs": Config.rational_num_coeffs,
 		"rational_den_coeffs": Config.rational_den_coeffs,
 		"multivalued_n": Config.multivalued_n,
+		"multivalued_mode": Config.multivalued_mode,
 		"branch_cycle_speed": Config.branch_cycle_speed,
 		"multivalued_morph_time": Config.multivalued_morph_time,
+		"branch_time": Config.branch_time,
+		"current_branch": Config.current_branch,
 		"terrain_brightness": Config.terrain_brightness,
 		"terrain_saturation": Config.terrain_saturation,
 		"terrain_albedo": Config.terrain_albedo,
@@ -192,6 +241,35 @@ func _process(delta):
 			_unload_chunk(chunk_coord)
 
 		_update_all_chunks_lod()
+
+	if portal_frame:
+		var is_portal_mode = (Config.function_type == 14 and Config.multivalued_mode == 1)
+		portal_frame.visible = is_portal_mode
+		if is_portal_mode:
+			var zoom = Config.effective_zoom
+			var cam_h = player.global_position.y
+			var p_height = max(50.0 * zoom, cam_h + 50.0 * zoom)
+
+			var player_x = player.global_position.x
+			var p_width = max(100.0 * zoom, player_x + float(Config.view_distance + 1) * chunk_size)
+
+			portal_frame.scale = Vector3.ONE # We handle scaling manually on bars
+
+			portal_ground_bar.scale = Vector3(p_width, zoom, zoom)
+			portal_ground_bar.position = Vector3(p_width * 0.5, 0.0, 0.0)
+
+			portal_vert_bar.scale = Vector3(zoom, p_height, zoom)
+			portal_vert_bar.position = Vector3(0.0, p_height * 0.5, 0.0)
+
+			portal_top_bar.scale = Vector3(p_width, zoom, zoom)
+			portal_top_bar.position = Vector3(p_width * 0.5, p_height, 0.0)
+
+			portal_end_bar.scale = Vector3(zoom, p_height, zoom)
+			portal_end_bar.position = Vector3(p_width, p_height * 0.5, 0.0)
+
+			if terrain_material:
+				terrain_material.set_shader_parameter("portal_height", p_height)
+				terrain_material.set_shader_parameter("portal_width", p_width)
 
 func _update_all_chunks_lod(force: bool = false):
 	var player_chunk_coord = _last_player_chunk
@@ -264,6 +342,7 @@ func _update_terrain_material_uniforms():
 	terrain_material.set_shader_parameter("rational_num_coeffs", Config.rational_num_coeffs)
 	terrain_material.set_shader_parameter("rational_den_coeffs", Config.rational_den_coeffs)
 	terrain_material.set_shader_parameter("multivalued_n", Config.multivalued_n)
+	terrain_material.set_shader_parameter("multivalued_mode", Config.multivalued_mode)
 	terrain_material.set_shader_parameter("branch_cycle_speed", Config.branch_cycle_speed)
 	terrain_material.set_shader_parameter("multivalued_morph_time", Config.multivalued_morph_time)
 	terrain_material.set_shader_parameter("brightness", Config.terrain_brightness)
@@ -273,6 +352,7 @@ func _update_terrain_material_uniforms():
 	terrain_material.set_shader_parameter("metallic", Config.terrain_metallic)
 	terrain_material.set_shader_parameter("roughness", Config.terrain_roughness)
 	terrain_material.set_shader_parameter("branch_time", Config.branch_time)
+	terrain_material.set_shader_parameter("current_branch", Config.current_branch)
 
 	terrain_material.set_shader_parameter("chunk_size", chunk_size)
 	var segments = []
