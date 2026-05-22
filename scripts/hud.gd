@@ -61,6 +61,10 @@ extends CanvasLayer
 @onready var environment_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/EnvironmentContainer/EnvironmentButton
 @onready var sunrise_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/SunriseContainer/SunriseSlider
 @onready var sunrise_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/SunriseContainer/SunriseValue
+@onready var sky_luminosity_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/SkyLuminosityContainer/SkyLuminositySlider
+@onready var sky_luminosity_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/SkyLuminosityContainer/SkyLuminosityValue
+@onready var sun_luminosity_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/SunLuminosityContainer/SunLuminositySlider
+@onready var sun_luminosity_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/SunLuminosityContainer/SunLuminosityValue
 @onready var shadows_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/GRAPHICS/ShadowsCheckbox
 
 @onready var hud_complex_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/HUD/HudComplexCheckbox
@@ -130,6 +134,8 @@ const DESCRIPTIONS = {
 	"Critical Stripe": "Visual guide indicating the 0 < Re < 1 region where non-trivial zeros reside.",
 	"Sun Position": "Select between a static sun at noon, a static sun at golden hour, or a dynamic day/night cycle.",
 	"Sunrise Direction": "Adjust the angle from which the sun rises (180° is towards +σ).",
+	"Sky Luminosity": "Adjust the overall brightness of the sky and clouds.",
+	"Sun Luminosity": "Adjust the intensity of the sun and moon light.",
 	"Shadows": "Enable real-time directional shadows for terrain features.",
 	"Complex plane": "Show the domain coloring map of the current position on the HUD.",
 	"Navigation": "Show coordinate and magnitude information on the HUD.",
@@ -158,6 +164,8 @@ var _initial_terrain_albedo: float
 var _initial_terrain_emission: float
 var _initial_terrain_metallic: float
 var _initial_terrain_roughness: float
+var _initial_sky_luminosity: float
+var _initial_sun_luminosity: float
 
 func _ready():
 	apply_button.pressed.connect(_on_set_pos_pressed)
@@ -172,6 +180,8 @@ func _ready():
 	zero_speed_slider.value_changed.connect(_on_zero_speed_value_changed)
 	view_distance_slider.value_changed.connect(_on_view_distance_value_changed)
 	sunrise_slider.value_changed.connect(_on_sunrise_value_changed)
+	sky_luminosity_slider.value_changed.connect(_on_sky_luminosity_value_changed)
+	sun_luminosity_slider.value_changed.connect(_on_sun_luminosity_value_changed)
 	hud_scale_slider.value_changed.connect(_on_hud_scale_value_changed)
 
 	get_viewport().size_changed.connect(_update_hud_layout)
@@ -321,6 +331,8 @@ func toggle_menu(applied: bool = false):
 		_initial_terrain_emission = Config.terrain_emission
 		_initial_terrain_metallic = Config.terrain_metallic
 		_initial_terrain_roughness = Config.terrain_roughness
+		_initial_sky_luminosity = Config.sky_luminosity
+		_initial_sun_luminosity = Config.sun_luminosity
 
 		if player:
 			var scale_factor = 1.0 / Config.effective_zoom
@@ -349,6 +361,10 @@ func toggle_menu(applied: bool = false):
 		environment_button.selected = Config.environment_type
 		sunrise_slider.value = Config.sunrise_direction
 		_on_sunrise_value_changed(Config.sunrise_direction)
+		sky_luminosity_slider.value = Config.sky_luminosity * 100.0
+		_on_sky_luminosity_value_changed(sky_luminosity_slider.value)
+		sun_luminosity_slider.value = Config.sun_luminosity * 100.0
+		_on_sun_luminosity_value_changed(sun_luminosity_slider.value)
 		shadows_checkbox.button_pressed = Config.shadows_enabled
 		hud_complex_checkbox.button_pressed = Config.show_hud_complex
 		hud_navigation_checkbox.button_pressed = Config.show_hud_navigation
@@ -403,6 +419,8 @@ func toggle_menu(applied: bool = false):
 			Config.terrain_emission = _initial_terrain_emission
 			Config.terrain_metallic = _initial_terrain_metallic
 			Config.terrain_roughness = _initial_terrain_roughness
+			Config.sky_luminosity = _initial_sky_luminosity
+			Config.sun_luminosity = _initial_sun_luminosity
 
 func _on_func_selected(index):
 	var is_zeta_variant = (index >= 0 and index <= 3)
@@ -446,6 +464,14 @@ func _on_view_distance_value_changed(value):
 
 func _on_sunrise_value_changed(value):
 	sunrise_value.text = str(int(value)) + "°"
+
+func _on_sky_luminosity_value_changed(value):
+	Config.sky_luminosity = value / 100.0
+	sky_luminosity_value.text = str(int(value)) + "%"
+
+func _on_sun_luminosity_value_changed(value):
+	Config.sun_luminosity = value / 100.0
+	sun_luminosity_value.text = str(int(value)) + "%"
 
 func _on_hud_scale_value_changed(value):
 	hud_scale_value.text = str(int(value)) + "%"
@@ -575,6 +601,8 @@ func _on_set_pos_pressed():
 	Config.show_critical_stripe = critical_checkbox.button_pressed
 	Config.environment_type = environment_button.selected
 	Config.sunrise_direction = sunrise_slider.value
+	Config.sky_luminosity = sky_luminosity_slider.value / 100.0
+	Config.sun_luminosity = sun_luminosity_slider.value / 100.0
 	Config.shadows_enabled = shadows_checkbox.button_pressed
 	Config.show_hud_complex = hud_complex_checkbox.button_pressed
 	Config.show_hud_navigation = hud_navigation_checkbox.button_pressed
