@@ -7,8 +7,6 @@ extends Node3D
 
 var chunks = {}
 var _last_field_state = {}
-var _last_environment_type: int = -1
-
 var LOD_SUBS = [] # This will be set in code
 var _lod_mesh_cache = {}
 var _last_player_chunk = Vector2i(9999, 9999)
@@ -25,13 +23,10 @@ var portal_end_bar: MeshInstance3D
 @onready var world_environment = get_node("../WorldEnvironment")
 
 # Day night cycle variables
-var day_night_cycle_duration = 500.0
 var _golden_hour_transition: float = 0.0
-var _day_night_time: float = 0.0
 var _sun_color = Color("#fc9500")
 
 func _ready():
-	_last_environment_type = Config.environment_type
 	_update_lod_subs()
 	_update_terrain_material_uniforms()
 	_setup_portal_frame()
@@ -111,26 +106,19 @@ func _process(delta):
 
 	var progress = 0.0
 	if Config.environment_type == 0: # Dynamic
-		if _last_environment_type != 0:
-			# Seamless transition: initialize cycle time from current effective progress
-			var current_progress = 0.0
-			match _last_environment_type:
-				1: current_progress = 0.5 # Noon
-				2: current_progress = 0.25 # Sunrise (approx)
-				3: current_progress = 0.0 # Midnight
-				_: current_progress = Config.static_time / 86400.0 # Static/Manual
-			_day_night_time = current_progress * Config.day_duration
-
-		_day_night_time += delta
-		if _day_night_time >= Config.day_duration:
-			_day_night_time -= Config.day_duration
-		progress = _day_night_time / Config.day_duration
+		# Increment static time based on day duration
+		# 86400 seconds in a day / day_duration = speed multiplier
+		Config.static_time += delta * (86400.0 / Config.day_duration)
+		if Config.static_time >= 86400.0:
+			Config.static_time -= 86400.0
+		progress = Config.static_time / 86400.0
 	else: # Static or presets
 		match Config.environment_type:
-			1: progress = 0.5 # Noon
-			2: progress = 0.25 # Sunrise
-			3: progress = 0.0 # Midnight
-			_: progress = Config.static_time / 86400.0 # Static
+			1: Config.static_time = 43200.0 # Noon
+			2: Config.static_time = 21600.0 # Sunrise (6 AM)
+			3: Config.static_time = 0.0 # Midnight
+
+		progress = Config.static_time / 86400.0
 
 	# angle = PI is Midnight (progress 0.0), angle = 0.0 is Noon (progress 0.5)
 	var angle = (progress + 0.5) * TAU
@@ -158,8 +146,6 @@ func _process(delta):
 		var moon_elevation = -moon_dir.y
 		moon.light_energy = smoothstep(-0.02, 0.02, moon_elevation) * 0.4 * Config.sun_luminosity
 		moon.shadow_enabled = Config.shadows_enabled and moon_elevation > 0.01
-
-	_last_environment_type = Config.environment_type
 
 	if world_environment and world_environment.environment and world_environment.environment.sky:
 		var sky_mat = world_environment.environment.sky.sky_material as ShaderMaterial

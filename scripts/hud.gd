@@ -374,7 +374,6 @@ func toggle_menu(applied: bool = false):
 		_initial_static_time = Config.static_time
 
 		freeze_time_checkbox.button_pressed = (Config.environment_type != 0)
-		_on_freeze_time_toggled(freeze_time_checkbox.button_pressed)
 
 		if player:
 			var scale_factor = 1.0 / Config.effective_zoom
@@ -780,8 +779,10 @@ func _process(_delta):
 			zoom_slider.value = _zoom_to_slider(Config.zoom_factor)
 			_on_zoom_value_changed(zoom_slider.value)
 
-		day_duration_container.visible = (Config.environment_type == 0)
-		static_time_container.visible = (Config.environment_type != 0)
+		# Live update time slider if time is flowing
+		if Config.environment_type == 0:
+			static_time_slider.value = Config.static_time
+			static_time_value.text = _format_time(Config.static_time)
 
 	perf_label.visible = Config.performance_protection_active
 
