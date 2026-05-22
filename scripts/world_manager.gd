@@ -13,6 +13,7 @@ var _lod_mesh_cache = {}
 var _last_player_chunk = Vector2i(9999, 9999)
 var slow_frame_counter: int = 0
 var _shaders_stopped: bool = false
+var portal_frame: Node3D
 
 # We increase our chunks by this to make junctions more seamless
 # To test this, look at the right of zeta, the pole has a junction
@@ -32,8 +33,40 @@ var _sun_color = Color("#fc9500")
 func _ready():
 	_update_lod_subs()
 	_update_terrain_material_uniforms()
+	_setup_portal_frame()
 	# Uncomment this to debug the mesh wireframe
 	# get_viewport().debug_draw = Viewport.DEBUG_DRAW_WIREFRAME
+
+func _setup_portal_frame():
+	portal_frame = Node3D.new()
+	portal_frame.name = "PortalFrame"
+	add_child(portal_frame)
+
+	var mat = StandardMaterial3D.new()
+	mat.albedo_color = Color(0.0, 0.8, 1.0)
+	mat.emission_enabled = true
+	mat.emission = Color(0.0, 0.8, 1.0)
+	mat.emission_energy_multiplier = 2.0
+
+	# Horizontal bars
+	for y in [0.0, 100.0]:
+		var bar = MeshInstance3D.new()
+		var mesh = BoxMesh.new()
+		mesh.size = Vector3(100.0, 0.2, 0.2)
+		bar.mesh = mesh
+		bar.material_override = mat
+		portal_frame.add_child(bar)
+		bar.position = Vector3(50.0, y, 0.0)
+
+	# Vertical bars
+	for x in [0.0, 100.0]:
+		var bar = MeshInstance3D.new()
+		var mesh = BoxMesh.new()
+		mesh.size = Vector3(0.2, 100.0, 0.2)
+		bar.mesh = mesh
+		bar.material_override = mat
+		portal_frame.add_child(bar)
+		bar.position = Vector3(x, 50.0, 0.0)
 
 func _process(delta):
 	if not player:
@@ -192,6 +225,12 @@ func _process(delta):
 	if player_chunk_x != _last_player_chunk.x or player_chunk_z != _last_player_chunk.y:
 		_last_player_chunk = Vector2i(player_chunk_x, player_chunk_z)
 		_update_all_chunks_lod()
+
+	if portal_frame:
+		var is_portal_mode = (Config.function_type == 14 and Config.multivalued_mode == 1)
+		portal_frame.visible = is_portal_mode
+		if is_portal_mode:
+			portal_frame.scale = Vector3.ONE * Config.effective_zoom
 
 func _update_all_chunks_lod(force: bool = false):
 	var player_chunk_coord = _last_player_chunk

@@ -437,7 +437,7 @@ FieldData get_rational_with_derivatives(float sigma, float t) {
     return res;
 }
 
-FieldData multivalued_z_pow_inv_n_with_derivatives(float sigma, float t, int n, float cycle_speed) {
+FieldData multivalued_z_pow_inv_n_with_derivatives(float sigma, float t, int n, float cycle_speed, int branch_offset) {
     FieldData res;
     float r_sq = sigma * sigma + t * t;
     float r = sqrt(r_sq);
@@ -460,7 +460,7 @@ FieldData multivalued_z_pow_inv_n_with_derivatives(float sigma, float t, int n, 
         float transition_threshold = dwell_time * float_n;
         blend_factor = smoothstep(transition_threshold, 1.0, t_in_branch);
     } else { // Branch portals
-        k_val = float(current_branch);
+        k_val = float((current_branch + branch_offset + n) % n);
     }
 
     float morphed_phase = (theta + 2.0 * PI * (k_val + blend_factor)) / float_n;
@@ -480,7 +480,7 @@ FieldData multivalued_z_pow_inv_n_with_derivatives(float sigma, float t, int n, 
 // Dispatchers
 //-------------------------------------------------------------------------
 
-FieldData get_field_with_derivatives(float x, float z) {
+FieldData get_field_with_derivatives(float x, float z, int branch_offset) {
     float zoom = 1.0 / zoom_factor;
     float sigma = x * 0.1 * zoom;
     float t = -z * 0.1 * zoom;
@@ -498,7 +498,7 @@ FieldData get_field_with_derivatives(float x, float z) {
     if (function_type == 11) return complex_exp_with_derivatives(sigma, t);
     if (function_type == 12) return complex_log_with_derivatives(sigma, t);
     if (function_type == 13) return get_rational_with_derivatives(sigma, t);
-    if (function_type == 14) return multivalued_z_pow_inv_n_with_derivatives(sigma, t, multivalued_n, branch_cycle_speed);
+    if (function_type == 14) return multivalued_z_pow_inv_n_with_derivatives(sigma, t, multivalued_n, branch_cycle_speed, branch_offset);
     FieldData res;
     res.value = vec2(0.0);
     res.d_sigma = vec2(0.0);
