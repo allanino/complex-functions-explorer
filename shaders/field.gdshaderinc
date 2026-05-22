@@ -654,6 +654,61 @@ FieldData complex_tan_with_derivatives(float sigma, float t) {
     return res;
 }
 
+/*
+================================================================================
+DERIVATION OF THE OVERFLOW-SAFE COMPLEX COTANGENT WITH DERIVATIVES
+================================================================================
+
+Goal: Compute cot(z) and its derivative d/dz cot(z) without evaluating raw 
+      sine or cosine functions that explode to INF when |y| is large.
+
+1. Compute the stable value first:
+   vec2 C = complex_cot(sigma, t);  // C = u + iv
+
+2. Use the trigonometric identity for the derivative of cotangent:
+   d/dz cot(z) = -csc^2(z) = -(1 + cot^2(z))
+
+3. Expand cot^2(z) into real and imaginary components:
+   cot^2(z) = (u + iv)*(u + iv)
+            = (u^2 - v^2) + i*(2*u*v)
+
+4. Add 1.0 and negate the entire expression to match -(1 + cot^2(z)):
+   deriv.x = -(1.0 + u^2 - v^2) = -1.0 - u^2 + v^2
+   deriv.y = -(2.0 * u * v)     = -2.0 * u * v
+
+Why this is bulletproof:
+- It completely bypasses complex_sin and complex_mul(sin, sin).
+- As |y| -> INF, the stable cotangent value C smoothly approaches (0.0, -sign(y)).
+- Plugging those limits into this derivative formula yields:
+  deriv.x = -1.0 - 0.0 + (-sign(y))^2 = -1.0 + 1.0 = 0.0
+  deriv.y = -2.0 * 0.0 * (-sign(y)) = 0.0
+- The derivative safely and perfectly settles to (0.0, 0.0) without ever hitting 
+  an intermediate INF or precision blackout.
+================================================================================
+*/
+FieldData complex_cot_with_derivatives(float sigma, float t) {
+    FieldData res;
+    
+    // 1. Calculate value safely using our stable real-hyperbolic identity
+    res.value = complex_cot(sigma, t);
+    
+    // 2. Extract components: C = u + iv
+    float u = res.value.x;
+    float v = res.value.y;
+    
+    // 3. Compute the derivative directly from the value: d/dz = -(1 + C^2)
+    vec2 deriv = vec2(
+        -1.0 - (u * u) + (v * v),
+        -2.0 * u * v
+    );
+    
+    // 4. Assign directional derivatives matching your grid space
+    res.d_sigma = deriv;
+    res.d_t = vec2(-deriv.y, deriv.x);
+    
+    return res;
+}
+
 FieldData complex_exp_with_derivatives(float sigma, float t) {
     FieldData res;
     res.value = complex_exp(sigma, t);
