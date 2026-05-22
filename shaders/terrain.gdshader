@@ -112,7 +112,41 @@ void vertex() {
             }
         }
 
-        FieldData final_fd = get_field_with_derivatives(world_v_pos.x, world_v_pos.z, branch_offset);
+        FieldData initial_fd = get_field_with_derivatives(world_v_pos.x, world_v_pos.z, branch_offset);
+        FieldData final_fd = initial_fd;
+
+        // Pole snapping logic
+        float mag_init = length(initial_fd.value);
+        float inv_h = 1.0 / (mag_init + 1e-12);
+
+        if (inv_h < 0.1) {
+            float zoom = 1.0 / zoom_factor;
+            float d_sigma_dx = 0.1 * zoom;
+            float d_t_dz = -0.1 * zoom;
+
+            float du_dx = initial_fd.d_sigma.x * d_sigma_dx;
+            float dv_dx = initial_fd.d_sigma.y * d_sigma_dx;
+            float du_dz = initial_fd.d_t.x * d_t_dz;
+            float dv_dz = initial_fd.d_t.y * d_t_dz;
+
+            float dmag_dx = (initial_fd.value.x * du_dx + initial_fd.value.y * dv_dx) / (mag_init + 1e-12);
+            float dmag_dz = (initial_fd.value.x * du_dz + initial_fd.value.y * dv_dz) / (mag_init + 1e-12);
+
+            vec2 grad_inv_h = vec2(-dmag_dx, -dmag_dz) / (mag_init * mag_init + 1e-12);
+            float grad_mag = length(grad_inv_h);
+
+            if (grad_mag > 1e-6) {
+                float shift_dist = inv_h / grad_mag;
+                // Max shift is half a grid cell to keep it local
+                float max_shift = (chunk_size / lod_segments[lod_level]) * 0.5;
+                vec2 shift = -normalize(grad_inv_h) * min(shift_dist, max_shift);
+
+                snap_v.x += shift.x;
+                snap_v.z += shift.y;
+                world_v_pos = (MODEL_MATRIX * vec4(snap_v, 1.0)).xyz;
+                final_fd = get_field_with_derivatives(world_v_pos.x, world_v_pos.z, branch_offset);
+            }
+        }
 
         bool is_invalid = any(isnan(final_fd.value)) || any(isinf(final_fd.value)) ||
                         any(isnan(final_fd.d_sigma)) || any(isinf(final_fd.d_sigma)) ||
@@ -175,12 +209,13 @@ void vertex() {
             vec2 dg_dt     = (1.0 - blend) * dz_dt     + blend * df_dt;
 
             // Convert from (sigma, t) derivatives to world (x, z) derivatives
-            // sigma = 0.1 * x
-            // t     = -0.1 * z
-            float d_sigma_dx = 0.1;
+            // sigma = 0.1 * x * (1/zoom)
+            // t     = -0.1 * z * (1/zoom)
+            float zoom = 1.0 / zoom_factor;
+            float d_sigma_dx = 0.1 * zoom;
             float d_t_dx     = 0.0;
             float d_sigma_dz = 0.0;
-            float d_t_dz     = -0.1;
+            float d_t_dz     = -0.1 * zoom;
 
             float du_dx = dg_dsigma.x * d_sigma_dx + dg_dt.x * d_t_dx;
             float dv_dx = dg_dsigma.y * d_sigma_dx + dg_dt.y * d_t_dx;
@@ -194,6 +229,16 @@ void vertex() {
 
             float dh_dx = (height_type == 0) ? (height_a / (height_epsilon + mag)) * dmag_dx : dmag_dx;
             float dh_dz = (height_type == 0) ? (height_a / (height_epsilon + mag)) * dmag_dz : dmag_dz;
+
+            // Apply asymptotic height capping: h_capped = (h * H_max) / (h + H_max)
+            // d(h_capped)/dx = (dh/dx) * (H_max / (h + H_max))^2
+            float h_max = 400.0;
+            float capping_factor = (h_max / (h + h_max));
+            capping_factor *= capping_factor;
+
+            h = (h * h_max) / (h + h_max);
+            dh_dx *= capping_factor;
+            dh_dz *= capping_factor;
 
             v_normal = normalize(vec3(-dh_dx, 1.0, -dh_dz));
 
