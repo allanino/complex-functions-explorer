@@ -161,6 +161,7 @@ var _initial_terrain_roughness: float
 var _initial_hud_scale: float
 
 func _ready():
+	hud_columns.offset_top = -1000
 	apply_button.pressed.connect(_on_set_pos_pressed)
 	close_button.pressed.connect(toggle_menu)
 	quit_button.pressed.connect(_on_quit_pressed)
@@ -759,7 +760,7 @@ func _update_hud_layout():
 
 	var available_height = get_viewport().size.y - 40
 	var current_height = 0.0
-	var separation = 10.0 * Config.hud_scale
+	var separation = 10.0
 
 	var right_cards = []
 	var left_cards = []
@@ -776,8 +777,8 @@ func _update_hud_layout():
 	_apply_stack_layout(hud_stack_right, right_cards)
 	_apply_stack_layout(hud_stack_left, left_cards)
 
-	hud_stack_right.add_theme_constant_override("separation", int(round(10.0 * Config.hud_scale)))
-	hud_stack_left.add_theme_constant_override("separation", int(round(10.0 * Config.hud_scale)))
+	hud_stack_right.add_theme_constant_override("separation", 10)
+	hud_stack_left.add_theme_constant_override("separation", 10)
 
 func _apply_stack_layout(stack: VBoxContainer, desired_cards: Array):
 	for child in stack.get_children():
@@ -813,17 +814,19 @@ func _rescale_card(card: Control, scale: float):
 
 		if node is Control:
 			# Only scale custom minimum size for ComplexAspect
-			if not node.has_meta("base_min_size"):
-				node.set_meta("base_min_size", node.custom_minimum_size)
-
 			if node.name == "ComplexAspect":
+				if not node.has_meta("base_min_size"):
+					var base_size = node.custom_minimum_size
+					if base_size.y < 150: base_size.y = 150
+					node.set_meta("base_min_size", base_size)
 				node.custom_minimum_size = node.get_meta("base_min_size") * scale
 
 			# Scale container separations and margins
 			if node is BoxContainer:
 				if not node.has_meta("base_separation"):
 					node.set_meta("base_separation", node.get_theme_constant("separation"))
-				node.add_theme_constant_override("separation", int(round(node.get_meta("base_separation") * scale)))
+				# Separation between nodes inside cards is also kept constant for better readability
+				node.add_theme_constant_override("separation", int(round(node.get_meta("base_separation"))))
 			elif node is MarginContainer:
 				for margin in ["margin_left", "margin_top", "margin_right", "margin_bottom"]:
 					if not node.has_meta("base_" + margin):
