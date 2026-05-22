@@ -91,17 +91,28 @@ vec2 complex_tan(float sigma, float t) {
 FieldData dirichlet_eta_with_derivatives(float sigma, float t, int iters) {
     vec2 eta = vec2(0.0);
     vec2 deta_dsigma = vec2(0.0);
-    for (int n = 1; n <= iters; n++) {
+    for (int n = 1; n <= iters; n += 2) {
         if (n >= 1024) break;
         float nf = float(n);
         float amp = pow(nf, -sigma);
         if (amp < 1e-6) break;
         float log_n = log_n_cache[n];
         float theta = -t * log_n;
-        float _sign = (mod(nf, 2.0) < 0.5) ? -1.0 : 1.0;
-        vec2 term = _sign * amp * vec2(cos(theta), sin(theta));
+        vec2 term = amp * vec2(cos(theta), sin(theta));
         eta += term;
-        deta_dsigma += -log_n * term;
+        deta_dsigma -= log_n * term;
+
+        int n2 = n + 1;
+        if (n2 <= iters && n2 < 1024) {
+            float nf2 = float(n2);
+            float amp2 = pow(nf2, -sigma);
+            if (amp2 < 1e-6) break;
+            float log_n2 = log_n_cache[n2];
+            float theta2 = -t * log_n2;
+            vec2 term2 = amp2 * vec2(cos(theta2), sin(theta2));
+            eta -= term2;
+            deta_dsigma += log_n2 * term2;
+        }
     }
     FieldData result;
     result.value = eta;
@@ -113,7 +124,7 @@ FieldData dirichlet_eta_with_derivatives(float sigma, float t, int iters) {
 FieldData dirichlet_beta_with_derivatives(float sigma, float t, int iters) {
     vec2 beta = vec2(0.0);
     vec2 dbeta_dsigma = vec2(0.0);
-    for (int n = 0; n < iters; n++) {
+    for (int n = 0; n < iters; n += 2) {
         int k = 2 * n + 1;
         if (k >= 1024) break;
         float kf = float(k);
@@ -121,10 +132,23 @@ FieldData dirichlet_beta_with_derivatives(float sigma, float t, int iters) {
         if (amp < 1e-6) break;
         float log_k = log_n_cache[k];
         float theta = -t * log_k;
-        float _sign = (mod(float(n), 2.0) < 0.5) ? 1.0 : -1.0;
-        vec2 term = _sign * amp * vec2(cos(theta), sin(theta));
+        vec2 term = amp * vec2(cos(theta), sin(theta));
         beta += term;
-        dbeta_dsigma += -log_k * term;
+        dbeta_dsigma -= log_k * term;
+
+        int n2 = n + 1;
+        if (n2 < iters) {
+            int k2 = 2 * n2 + 1;
+            if (k2 >= 1024) break;
+            float kf2 = float(k2);
+            float amp2 = pow(kf2, -sigma);
+            if (amp2 < 1e-6) break;
+            float log_k2 = log_n_cache[k2];
+            float theta2 = -t * log_k2;
+            vec2 term2 = amp2 * vec2(cos(theta2), sin(theta2));
+            beta -= term2;
+            dbeta_dsigma += log_k2 * term2;
+        }
     }
     FieldData result;
     result.value = beta;

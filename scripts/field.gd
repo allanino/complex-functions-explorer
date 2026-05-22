@@ -57,28 +57,44 @@ static func ensure_log_cache(limit: int):
 static func dirichlet_eta(sigma: float, t: float, iterations: int) -> Vector2:
 	ensure_log_cache(iterations)
 	var eta = Vector2.ZERO
-	for n in range(1, iterations + 1):
+	for n in range(1, iterations + 1, 2):
 		var amp = pow(float(n), -sigma)
 		if amp < 1e-6: break
 		var theta = -t * log_n_cache[n]
-		var _sign = 1.0 if (n % 2 == 1) else -1.0
-		eta += _sign * amp * Vector2(cos(theta), sin(theta))
+		eta += amp * Vector2(cos(theta), sin(theta))
+
+		if n + 1 <= iterations:
+			var n2 = n + 1
+			var amp2 = pow(float(n2), -sigma)
+			if amp2 < 1e-6: break
+			var theta2 = -t * log_n_cache[n2]
+			eta -= amp2 * Vector2(cos(theta2), sin(theta2))
 	return eta
 
 static func dirichlet_eta_with_derivatives(sigma: float, t: float, iterations: int) -> Array:
 	ensure_log_cache(iterations)
 	var eta = Vector2.ZERO
 	var deta_dsigma = Vector2.ZERO
-	for n in range(1, iterations + 1):
+	for n in range(1, iterations + 1, 2):
 		var nf = float(n)
 		var amp = pow(nf, -sigma)
 		if amp < 1e-6: break
 		var log_n = log_n_cache[n]
 		var theta = -t * log_n
-		var _sign = 1.0 if (n % 2 == 1) else -1.0
-		var term = _sign * amp * Vector2(cos(theta), sin(theta))
+		var term = amp * Vector2(cos(theta), sin(theta))
 		eta += term
 		deta_dsigma += -log_n * term
+
+		if n + 1 <= iterations:
+			var n2 = n + 1
+			var nf2 = float(n2)
+			var amp2 = pow(nf2, -sigma)
+			if amp2 < 1e-6: break
+			var log_n2 = log_n_cache[n2]
+			var theta2 = -t * log_n2
+			var term2 = amp2 * Vector2(cos(theta2), sin(theta2))
+			eta -= term2
+			deta_dsigma += log_n2 * term2
 
 	var deta_dt = Vector2(-deta_dsigma.y, deta_dsigma.x)
 	return [eta, deta_dsigma, deta_dt]
@@ -87,13 +103,19 @@ static func dirichlet_beta(sigma: float, t: float, iterations: int) -> Vector2:
 	var max_k = 2 * iterations - 1
 	ensure_log_cache(max_k)
 	var beta = Vector2.ZERO
-	for n in range(iterations):
+	for n in range(0, iterations, 2):
 		var k = 2 * n + 1
 		var amp = pow(float(k), -sigma)
 		if amp < 1e-6: break
 		var theta = -t * log_n_cache[k]
-		var _sign = 1.0 if (n % 2 == 0) else -1.0
-		beta += _sign * amp * Vector2(cos(theta), sin(theta))
+		beta += amp * Vector2(cos(theta), sin(theta))
+
+		if n + 1 < iterations:
+			var k2 = 2 * (n + 1) + 1
+			var amp2 = pow(float(k2), -sigma)
+			if amp2 < 1e-6: break
+			var theta2 = -t * log_n_cache[k2]
+			beta -= amp2 * Vector2(cos(theta2), sin(theta2))
 	return beta
 
 static func dirichlet_beta_with_derivatives(sigma: float, t: float, iterations: int) -> Array:
@@ -101,17 +123,27 @@ static func dirichlet_beta_with_derivatives(sigma: float, t: float, iterations: 
 	ensure_log_cache(max_k)
 	var beta = Vector2.ZERO
 	var dbeta_dsigma = Vector2.ZERO
-	for n in range(iterations):
+	for n in range(0, iterations, 2):
 		var k = 2 * n + 1
 		var kf = float(k)
 		var amp = pow(kf, -sigma)
 		if amp < 1e-6: break
 		var log_k = log_n_cache[k]
 		var theta = -t * log_k
-		var _sign = 1.0 if (n % 2 == 0) else -1.0
-		var term = _sign * amp * Vector2(cos(theta), sin(theta))
+		var term = amp * Vector2(cos(theta), sin(theta))
 		beta += term
 		dbeta_dsigma += -log_k * term
+
+		if n + 1 < iterations:
+			var k2 = 2 * (n + 1) + 1
+			var kf2 = float(k2)
+			var amp2 = pow(kf2, -sigma)
+			if amp2 < 1e-6: break
+			var log_k2 = log_n_cache[k2]
+			var theta2 = -t * log_k2
+			var term2 = amp2 * Vector2(cos(theta2), sin(theta2))
+			beta -= term2
+			dbeta_dsigma += log_k2 * term2
 
 	var dbeta_dt = Vector2(-dbeta_dsigma.y, dbeta_dsigma.x)
 	return [beta, dbeta_dsigma, dbeta_dt]
