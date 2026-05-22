@@ -63,7 +63,7 @@ extends CanvasLayer
 @onready var curves_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/CurvesCheckbox
 @onready var critical_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/CriticalCheckbox
 @onready var flow_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/FlowCheckbox
-@onready var environment_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/EnvironmentContainer/EnvironmentButton
+@onready var freeze_time_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/FreezeTimeCheckbox
 @onready var day_duration_container = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/DayDurationContainer
 @onready var day_duration_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/DayDurationContainer/DayDurationSlider
 @onready var day_duration_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/DayDurationContainer/DayDurationValue
@@ -146,9 +146,9 @@ const DESCRIPTIONS = {
 	"View Distance": "Number of terrain chunks loaded around the player.",
 	"Level Curves": "Overlay contour lines for integer values of Re(f) (black) and Im(f) (white).",
 	"Critical Stripe": "Visual guide indicating the 0 < Re < 1 region where non-trivial zeros reside.",
-	"Time of day": "Select between a dynamic day/night cycle or a static time of day.",
+	"Freeze time": "Choose between a dynamic day/night cycle or a fixed time of day.",
 	"Day Duration": "Set the real-time duration for a full 24-hour mathematical day cycle.",
-	"Current Time": "Manually set the current time of day when in static mode.",
+	"Time of day": "Manually set the current time of day when time is frozen.",
 	"Sunrise Direction": "Adjust the angle from which the sun rises (180° is towards +σ).",
 	"Sky Luminosity": "Adjust the overall brightness of the sky and clouds.",
 	"Sun Luminosity": "Adjust the intensity of the sun and moon light.",
@@ -207,7 +207,7 @@ func _ready():
 	zoom_slider.value_changed.connect(_on_zoom_value_changed)
 	zero_speed_slider.value_changed.connect(_on_zero_speed_value_changed)
 	view_distance_slider.value_changed.connect(_on_view_distance_value_changed)
-	environment_button.item_selected.connect(_on_environment_selected)
+	freeze_time_checkbox.toggled.connect(_on_freeze_time_toggled)
 	day_duration_slider.value_changed.connect(_on_day_duration_value_changed)
 	static_time_slider.value_changed.connect(_on_static_time_value_changed)
 	sunrise_slider.value_changed.connect(_on_sunrise_value_changed)
@@ -230,13 +230,6 @@ func _ready():
 	morph_button.item_selected.connect(_on_morph_selected)
 	morph_slider.value_changed.connect(_on_morph_slider_changed)
 	exit_morph_button.pressed.connect(_on_exit_morph_pressed)
-
-	environment_button.clear()
-	environment_button.add_item("Dynamic")
-	environment_button.add_item("Noon")
-	environment_button.add_item("Sunrise")
-	environment_button.add_item("Midnight")
-	environment_button.add_item("Static")
 
 	func_button.clear()
 	func_button.add_item("Zeta (σ > 0)")
@@ -380,6 +373,9 @@ func toggle_menu(applied: bool = false):
 		_initial_day_duration = Config.day_duration
 		_initial_static_time = Config.static_time
 
+		freeze_time_checkbox.button_pressed = (Config.environment_type != 0)
+		_on_freeze_time_toggled(freeze_time_checkbox.button_pressed)
+
 		if player:
 			var scale_factor = 1.0 / Config.effective_zoom
 			var re_val = player.global_position.x * 0.1 * scale_factor
@@ -407,8 +403,6 @@ func toggle_menu(applied: bool = false):
 		_on_view_distance_value_changed(Config.view_distance)
 		curves_checkbox.button_pressed = Config.show_curves
 		critical_checkbox.button_pressed = Config.show_critical_stripe
-		environment_button.selected = Config.environment_type
-		_on_environment_selected(Config.environment_type)
 		day_duration_slider.value = Config.day_duration
 		_on_day_duration_value_changed(Config.day_duration)
 		static_time_slider.value = Config.static_time
@@ -516,10 +510,12 @@ func _on_multivalued_mode_selected(index):
 	cycle_speed_container.visible = is_multivalued and is_cycle
 	morph_time_container.visible = is_multivalued and is_cycle
 
-func _on_environment_selected(index):
-	Config.environment_type = index
-	day_duration_container.visible = (index == 0)
-	static_time_container.visible = (index == 4) # Static
+func _on_freeze_time_toggled(pressed: bool):
+	if pressed:
+		if Config.environment_type == 0:
+			Config.environment_type = 4 # Static
+	else:
+		Config.environment_type = 0 # Dynamic
 
 func _format_time(total_seconds: float) -> String:
 	var hours = int(total_seconds) / 3600
@@ -783,6 +779,9 @@ func _process(_delta):
 		if abs(_slider_to_zoom(zoom_slider.value) - Config.zoom_factor) > 0.001:
 			zoom_slider.value = _zoom_to_slider(Config.zoom_factor)
 			_on_zoom_value_changed(zoom_slider.value)
+
+		day_duration_container.visible = (Config.environment_type == 0)
+		static_time_container.visible = (Config.environment_type != 0)
 
 	perf_label.visible = Config.performance_protection_active
 

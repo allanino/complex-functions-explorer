@@ -101,7 +101,7 @@ Built with the **Godot Engine**, the project leverages modern rendering and audi
 Pressing the **Esc** key opens the settings menu, providing several ways to customize your experience:
 
 *   **Function:** Select complex functions (Zeta, Gamma, Dedekind Eta, etc.), choose height mapping (Logarithmic or Absolute), and configure parameters like iterations or rational expressions.
-*   **Environment:** Customize visual themes (Color Scheme), toggle level curves and the critical stripe, and control the time of day (**Dynamic**, **Noon**, **Sunrise**, **Midnight**, or **Manual**) with precise duration and time settings.
+*   **Environment:** Customize visual themes (Color Scheme), toggle level curves and the critical stripe, and control the time of day (**Freeze time** toggle) with precise duration and time settings.
 *   **Graphics:** Fine-tune rendering quality, including terrain detail, antialiasing modes (MSAA, FXAA, SMAA), view distance, and shadows.
 *   **Navigation:** Set precise coordinates (Real/Imaginary), adjust movement speed and camera height, and toggle automatic walking along the critical line.
 *   **HUD:** Customize on-screen information, such as the complex plane overlay, navigation data, and zeta zero detection panels.

@@ -118,7 +118,7 @@ func _process(delta):
 				1: current_progress = 0.5 # Noon
 				2: current_progress = 0.25 # Sunrise (approx)
 				3: current_progress = 0.0 # Midnight
-				4: current_progress = Config.static_time / 86400.0 # Static
+				_: current_progress = Config.static_time / 86400.0 # Static/Manual
 			_day_night_time = current_progress * Config.day_duration
 
 		_day_night_time += delta
@@ -130,7 +130,7 @@ func _process(delta):
 			1: progress = 0.5 # Noon
 			2: progress = 0.25 # Sunrise
 			3: progress = 0.0 # Midnight
-			4: progress = Config.static_time / 86400.0 # Static
+			_: progress = Config.static_time / 86400.0 # Static
 
 	# angle = PI is Midnight (progress 0.0), angle = 0.0 is Noon (progress 0.5)
 	var angle = (progress + 0.5) * TAU
