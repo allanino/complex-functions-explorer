@@ -164,6 +164,8 @@ func _process(delta):
 			sky_mat.set_shader_parameter("golden_hour_factor", _golden_hour_transition)
 			sky_mat.set_shader_parameter("night_factor", night_factor)
 			sky_mat.set_shader_parameter("sky_luminosity", Config.sky_luminosity)
+			sky_mat.set_shader_parameter("fog_enabled", Config.fog_enabled)
+			sky_mat.set_shader_parameter("fog_density", Config.fog_density)
 
 	# Only update branch time on branch functions
 	if Config.function_type >= 14 and Config.function_type <= 17:
@@ -172,6 +174,20 @@ func _process(delta):
 	if terrain_material:
 		terrain_material.set_shader_parameter("branch_time", Config.branch_time)
 		terrain_material.set_shader_parameter("zoom_factor", Config.effective_zoom)
+
+	# Calculate dynamic fog color based on environment state
+	var day_fog = Color(0.6, 0.8, 1.0)
+	var golden_fog = Color(1.0, 0.4, 0.1)
+	var night_fog = Color(0.01, 0.02, 0.05)
+
+	var fog_color = lerp(day_fog, golden_fog, _golden_hour_transition)
+	fog_color = lerp(fog_color, night_fog, smoothstep(0.0, 0.5, night_factor))
+
+	if terrain_material:
+		terrain_material.set_shader_parameter("fog_color", fog_color)
+		terrain_material.set_shader_parameter("fog_enabled", Config.fog_enabled)
+		terrain_material.set_shader_parameter("fog_density", Config.fog_density)
+		terrain_material.set_shader_parameter("fog_distance", Config.fog_distance)
 
 	# Check if any field properties have changed
 	var current_field_state = {
@@ -204,7 +220,10 @@ func _process(delta):
 		"morph_type": Config.morph_type,
 		"morph_value": Config.morph_value,
 		"sky_luminosity": Config.sky_luminosity,
-		"sun_luminosity": Config.sun_luminosity
+		"sun_luminosity": Config.sun_luminosity,
+		"fog_enabled": Config.fog_enabled,
+		"fog_density": Config.fog_density,
+		"fog_distance": Config.fog_distance
 	}
 
 	var state_changed = current_field_state != _last_field_state
@@ -353,6 +372,9 @@ func _update_terrain_material_uniforms():
 	terrain_material.set_shader_parameter("roughness", Config.terrain_roughness)
 	terrain_material.set_shader_parameter("branch_time", Config.branch_time)
 	terrain_material.set_shader_parameter("current_branch", Config.current_branch)
+	terrain_material.set_shader_parameter("fog_enabled", Config.fog_enabled)
+	terrain_material.set_shader_parameter("fog_density", Config.fog_density)
+	terrain_material.set_shader_parameter("fog_distance", Config.fog_distance)
 
 	terrain_material.set_shader_parameter("chunk_size", chunk_size)
 	var segments = []

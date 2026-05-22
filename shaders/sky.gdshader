@@ -6,6 +6,8 @@ uniform vec3 cloud_color : source_color = vec3(1.0, 1.0, 1.0);
 uniform float golden_hour_factor = 0.0;
 uniform float night_factor = 0.0;
 uniform float sky_luminosity = 1.0;
+uniform bool fog_enabled = false;
+uniform float fog_density = 0.01;
 uniform bool performance_protection_active = false;
 
 // Dave Hoskins' hash (2D to 1D)
@@ -212,6 +214,7 @@ void sky() {
             LIGHT0_COLOR * vec3(1.0, 0.7, 0.4), // warm sunset haze
             golden_hour_factor
         );
+        haze_color = mix(haze_color, night_horizon, smoothstep(0.0, 0.5, night_factor));
 
         // Add subtle sun scattering
         haze_color += LIGHT0_COLOR * sun_haze * 0.2;
@@ -222,6 +225,10 @@ void sky() {
             (haze_amount * 0.1 +
             sun_haze * 0.08)
             * night_haze_factor;
+
+        if (fog_enabled) {
+            final_haze = mix(final_haze, 1.0, clamp(fog_density * 20.0 * clamp(1.0 - EYEDIR.y, 0.0, 1.0), 0.0, 1.0));
+        }
 
         cloud_final_color = mix(
             cloud_final_color,

@@ -28,6 +28,10 @@ uniform float emission : hint_range(0.0, 1.0) = 0.1;
 uniform float metallic : hint_range(0.0, 1.0) = 0.7;
 uniform float roughness : hint_range(0.0, 1.0) = 0.1;
 uniform float morph : hint_range(0.0, 1.0) = 1.0;
+uniform bool fog_enabled = false;
+uniform float fog_density = 0.01;
+uniform float fog_distance = 0.0;
+uniform vec3 fog_color : source_color = vec3(0.6, 0.8, 1.0);
 uniform float portal_height = 50.0;
 uniform float portal_width = 100.0;
 
@@ -388,5 +392,14 @@ void fragment() {
         ROUGHNESS = roughness;
         METALLIC = metallic;
         SPECULAR = 0.1;
+
+        if (fog_enabled) {
+            float dist = length(VERTEX.xyz);
+            float fog_factor = 1.0 - exp(-max(dist - fog_distance, 0.0) * fog_density);
+            fog_factor = clamp(fog_factor, 0.0, 1.0);
+
+            ALBEDO = mix(ALBEDO, fog_color, fog_factor);
+            EMISSION = mix(EMISSION, fog_color, fog_factor);
+        }
     }
 }
