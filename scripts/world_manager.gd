@@ -248,8 +248,11 @@ func _update_terrain_material_uniforms():
 	if not terrain_material:
 		return
 
-	Field.ensure_log_cache(8191)
-	terrain_material.set_shader_parameter("log_n_cache", Field.log_n_cache)
+	Field.ensure_log_cache(4095)
+	var cache1 = Field.log_n_cache.slice(0, 2048)
+	var cache2 = Field.log_n_cache.slice(2048, 4096)
+	terrain_material.set_shader_parameter("log_n_cache", cache1)
+	terrain_material.set_shader_parameter("log_n_cache2", cache2)
 	terrain_material.set_shader_parameter("performance_protection_active", Config.performance_protection_active)
 	terrain_material.set_shader_parameter("color_scheme", Config.color_scheme)
 	terrain_material.set_shader_parameter("iterations", Config.iterations)

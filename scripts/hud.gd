@@ -691,8 +691,11 @@ func _process(_delta):
 
 	# Update shader uniforms
 	var material = complex_rect.material as ShaderMaterial
-	Field.ensure_log_cache(8191)
-	material.set_shader_parameter("log_n_cache", Field.log_n_cache)
+	Field.ensure_log_cache(4095)
+	var cache1 = Field.log_n_cache.slice(0, 2048)
+	var cache2 = Field.log_n_cache.slice(2048, 4096)
+	material.set_shader_parameter("log_n_cache", cache1)
+	material.set_shader_parameter("log_n_cache2", cache2)
 	material.set_shader_parameter("current_f", f)
 	material.set_shader_parameter("multivalued_n", Config.multivalued_n)
 	material.set_shader_parameter("branch_cycle_speed", Config.branch_cycle_speed)
