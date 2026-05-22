@@ -13,7 +13,7 @@ instance uniform int neighbor_lod_right = -1;
 instance uniform int neighbor_lod_top = -1;
 instance uniform int neighbor_lod_bottom = -1;
 
-uniform float lod_segments[4];
+uniform float lod_segments[5];
 uniform float chunk_size;
 
 uniform int color_scheme = 0;
@@ -179,12 +179,13 @@ void vertex() {
             vec2 dg_dt     = (1.0 - blend) * dz_dt     + blend * df_dt;
 
             // Convert from (sigma, t) derivatives to world (x, z) derivatives
-            // sigma = 0.1 * x
-            // t     = -0.1 * z
-            float d_sigma_dx = 0.1;
+            // sigma = 0.1 * x * (1/zoom)
+            // t     = -0.1 * z * (1/zoom)
+            float zoom = 1.0 / zoom_factor;
+            float d_sigma_dx = 0.1 * zoom;
             float d_t_dx     = 0.0;
             float d_sigma_dz = 0.0;
-            float d_t_dz     = -0.1;
+            float d_t_dz     = -0.1 * zoom;
 
             float du_dx = dg_dsigma.x * d_sigma_dx + dg_dt.x * d_t_dx;
             float dv_dx = dg_dsigma.y * d_sigma_dx + dg_dt.y * d_t_dx;
@@ -200,8 +201,6 @@ void vertex() {
             float dh_dz = (height_type == 0) ? (height_a / (height_epsilon + mag)) * dmag_dz : dmag_dz;
 
             v_normal = normalize(vec3(-dh_dx, 1.0, -dh_dz));
-
-
         }
 
         VERTEX = local_pos;
