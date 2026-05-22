@@ -80,6 +80,8 @@ extends CanvasLayer
 @onready var hud_scale_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/HUD/HudScaleContainer/HudScaleSlider
 @onready var hud_scale_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/HUD/HudScaleContainer/HudScaleValue
 
+@onready var master_volume_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/AUDIO/MasterVolumeContainer/MasterVolumeSlider
+@onready var master_volume_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/AUDIO/MasterVolumeContainer/MasterVolumeValue
 @onready var bg_music_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/AUDIO/BgMusicContainer/BgMusicSlider
 @onready var bg_music_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/AUDIO/BgMusicContainer/BgMusicValue
 @onready var drone_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/AUDIO/DroneContainer/DroneSlider
@@ -151,6 +153,7 @@ const DESCRIPTIONS = {
 	"Riemann–von Mangoldt": "Show the estimated number of zeros N(t) based on the Riemann–von Mangoldt formula.",
 	"Performance Monitor": "Show real-time performance metrics (FPS) and chunks statistics on the HUD.",
 	"HUD Scale": "Adjust the size of the HUD elements.",
+	"Master Volume": "Control the global volume level of all sound sources.",
 	"Background Music": "Adjust the volume of the ambient mathematical soundscape.",
 	"Topographic Drone": "Adjust the volume of the terrain-responsive spatial audio.",
 	"Zeros proximity": "Terrain height threshold for detecting and reacting to function zeros.",
@@ -165,6 +168,7 @@ const DESCRIPTIONS = {
 }
 
 var current_scale = 2.0
+var _initial_master_volume: float
 var _initial_bg_music_volume: float
 var _initial_drone_volume: float
 var _initial_zero_proximity_nav: float
@@ -189,6 +193,7 @@ func _ready():
 	height_button.item_selected.connect(_on_height_selected)
 	multivalued_mode_button.item_selected.connect(_on_multivalued_mode_selected)
 
+	master_volume_slider.value_changed.connect(_on_master_volume_value_changed)
 	bg_music_slider.value_changed.connect(_on_bg_music_value_changed)
 	drone_slider.value_changed.connect(_on_drone_value_changed)
 	zero_proximity_nav_slider.value_changed.connect(_on_zero_proximity_nav_value_changed)
@@ -346,6 +351,7 @@ func toggle_menu(applied: bool = false):
 	menu_overlay.visible = !menu_overlay.visible
 	if menu_overlay.visible:
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+		_initial_master_volume = Config.master_volume
 		_initial_bg_music_volume = Config.bg_music_volume
 		_initial_drone_volume = Config.drone_volume
 		_initial_zero_proximity_nav = Config.zero_proximity_nav
@@ -406,6 +412,8 @@ func toggle_menu(applied: bool = false):
 		if player:
 			auto_walk_checkbox.button_pressed = (player.auto_walk_state != 0) # 0 is AutoWalkState.NONE
 		flow_checkbox.button_pressed = Config.show_flow
+		master_volume_slider.value = Config.master_volume
+		_on_master_volume_value_changed(Config.master_volume)
 		bg_music_slider.value = Config.bg_music_volume
 		_on_bg_music_value_changed(Config.bg_music_volume)
 		drone_slider.value = Config.drone_volume
@@ -445,6 +453,7 @@ func toggle_menu(applied: bool = false):
 		_pending_tooltip_key = ""
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 		if not applied:
+			Config.master_volume = _initial_master_volume
 			Config.bg_music_volume = _initial_bg_music_volume
 			Config.drone_volume = _initial_drone_volume
 			Config.zero_proximity_nav = _initial_zero_proximity_nav
@@ -488,6 +497,10 @@ func _on_multivalued_mode_selected(index):
 	var is_cycle = (index == 0)
 	cycle_speed_container.visible = is_multivalued and is_cycle
 	morph_time_container.visible = is_multivalued and is_cycle
+
+func _on_master_volume_value_changed(value):
+	Config.master_volume = value
+	master_volume_value.text = str(int(value)) + "%"
 
 func _on_bg_music_value_changed(value):
 	Config.bg_music_volume = value
@@ -672,6 +685,7 @@ func _on_set_pos_pressed():
 	Config.show_rvm = rvm_checkbox.button_pressed
 	Config.show_hud_monitor = hud_monitor_checkbox.button_pressed
 	Config.show_flow = flow_checkbox.button_pressed
+	Config.master_volume = master_volume_slider.value
 	Config.bg_music_volume = bg_music_slider.value
 	Config.drone_volume = drone_slider.value
 	Config.terrain_brightness = brightness_slider.value / 50.0

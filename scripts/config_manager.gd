@@ -56,6 +56,7 @@ var show_hud_monitor: bool = false
 var hud_scale: float = 1.0
 
 # Audio parameters
+var master_volume: float = 100.0
 var bg_music_volume: float = 100.0
 var drone_volume: float = 100.0
 var zero_proximity_audio: float = 0.5
@@ -119,6 +120,7 @@ func save_settings():
 	config.set_value("ui", "show_hud_monitor", show_hud_monitor)
 	config.set_value("ui", "hud_scale", hud_scale)
 
+	config.set_value("audio", "master_volume", master_volume)
 	config.set_value("audio", "bg_music_volume", bg_music_volume)
 	config.set_value("audio", "drone_volume", drone_volume)
 	config.set_value("audio", "zero_proximity_audio", zero_proximity_audio)
@@ -180,6 +182,7 @@ func load_settings():
 	show_hud_monitor = config.get_value("ui", "show_hud_monitor", show_hud_monitor)
 	hud_scale = config.get_value("ui", "hud_scale", hud_scale)
 
+	master_volume = config.get_value("audio", "master_volume", master_volume)
 	bg_music_volume = config.get_value("audio", "bg_music_volume", bg_music_volume)
 	drone_volume = config.get_value("audio", "drone_volume", drone_volume)
 	zero_proximity_audio = config.get_value("audio", "zero_proximity_audio", zero_proximity_audio)

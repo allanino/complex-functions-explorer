@@ -323,6 +323,9 @@ func fill_buffer():
 		to_fill -= 1
 
 func _process_audio_toggles():
+	# 0. Global Master Volume
+	AudioServer.set_bus_volume_db(AudioServer.get_bus_index("Master"), linear_to_db(Config.master_volume / 100.0))
+
 	# 1. Background Music
 	var music = get_node_or_null("BackgroundMusic")
 	if music:
