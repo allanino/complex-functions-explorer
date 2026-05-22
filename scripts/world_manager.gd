@@ -13,6 +13,8 @@ var _lod_mesh_cache = {}
 var _last_player_chunk = Vector2i(9999, 9999)
 var slow_frame_counter: int = 0
 var _shaders_stopped: bool = false
+var _loaded_palette_path: String = ""
+var _cached_palette: ImageTexture = null
 
 # We increase our chunks by this to make junctions more seamless
 # To test this, look at the right of zeta, the pole has a junction
@@ -156,6 +158,7 @@ func _process(delta):
 	"palette_2d_scale": Config.palette_2d_scale,
 		"rational_num_coeffs": Config.rational_num_coeffs,
 		"rational_den_coeffs": Config.rational_den_coeffs,
+	"custom_palette_path": Config.custom_palette_path,
 		"terrain_brightness": Config.terrain_brightness,
 		"terrain_saturation": Config.terrain_saturation,
 		"terrain_albedo": Config.terrain_albedo,
@@ -239,11 +242,18 @@ func _update_terrain_material_uniforms():
 	if not terrain_material:
 		return
 
-	if Config.custom_palette_path != "":
-		var img = Image.load_from_file(Config.custom_palette_path)
-		if img:
-			var tex = ImageTexture.create_from_image(img)
-			terrain_material.set_shader_parameter("cyclic_palette", tex)
+	if Config.custom_palette_path != _loaded_palette_path:
+		_loaded_palette_path = Config.custom_palette_path
+		if _loaded_palette_path != "":
+			var img = Image.load_from_file(_loaded_palette_path)
+			if img:
+				_cached_palette = ImageTexture.create_from_image(img)
+			else:
+				_cached_palette = null
+		else:
+			_cached_palette = null
+
+		terrain_material.set_shader_parameter("cyclic_palette", _cached_palette)
 
 	terrain_material.set_shader_parameter("performance_protection_active", Config.performance_protection_active)
 	terrain_material.set_shader_parameter("color_scheme", Config.color_scheme)

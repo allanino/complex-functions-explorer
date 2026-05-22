@@ -157,6 +157,7 @@ void fragment() {
         if (palette_mapping_mode == 1) {
             // 2D Complex mapping: center f=0 at (0.5, 0.5)
             palette_uv = f * palette_2d_scale * 0.5 + 0.5;
+            palette_uv.y = 1.0 - palette_uv.y; // Invert Y so positive Im is at the top of the image
         } else {
             // Cyclic/Phase mapping (multi-row support)
             float phase = atan(f.y, f.x);

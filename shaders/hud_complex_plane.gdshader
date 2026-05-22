@@ -28,6 +28,7 @@ void fragment() {
     vec2 palette_uv;
     if (palette_mapping_mode == 1) {
         palette_uv = z * palette_2d_scale * 0.5 + 0.5;
+        palette_uv.y = 1.0 - palette_uv.y; // Invert Y so positive Im is at the top
     } else {
         float palette_u = (phase + PI) / (2.0 * PI);
         float palette_v = (float(color_scheme) + 0.5) * inv_palette_height;
