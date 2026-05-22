@@ -540,31 +540,41 @@ FieldData mandelbrot_with_derivatives(float sigma, float t, int iters) {
 
 FieldData zeta_continuation_with_derivatives(float sigma, float t, int iters) {
     if (sigma >= 0.5) return zeta_with_derivatives(sigma, t, iters);
+    
     vec2 s = vec2(sigma, t);
     vec2 s1 = vec2(1.0 - sigma, -t);
 
+    // 1. Core linear log terms
     vec2 log_sum = complex_mul(s, vec2(log(2.0), 0.0))
                  + complex_mul(s - vec2(1.0, 0.0), vec2(log(PI), 0.0));
+                 
     vec2 ratio = vec2(log(2.0) + log(PI), 0.0);
 
+    // 2. Safely compute the sin/cot parts using our log-space tools
     vec2 pi_s_2 = (PI * 0.5) * s;
-    vec2 sin_part = complex_sin(pi_s_2.x, pi_s_2.y);
-    vec2 cos_part = complex_cos(pi_s_2.x, pi_s_2.y);
-    log_sum += complex_log(sin_part.x, sin_part.y);
-    ratio += (PI * 0.5) * complex_div(cos_part, sin_part);
+    
+    // Completely safe log(sin(pi * s / 2))
+    log_sum += complex_log_sin(pi_s_2.x, pi_s_2.y);
+    
+    // Completely safe cot(pi * s / 2)
+    ratio += (PI * 0.5) * complex_cot(pi_s_2.x, pi_s_2.y);
 
+    // 3. Bring in the upgraded Log Gamma
     FieldData lg_data = complex_log_gamma_with_derivatives(s1.x, s1.y);
     log_sum += lg_data.value;
     ratio -= lg_data.d_sigma; // d/ds log Gamma(1-s) = -psi(1-s)
 
+    // 4. Bring in the reflected Zeta
     FieldData z_data = zeta_with_derivatives(s1.x, s1.y, iters);
     log_sum += complex_log(z_data.value.x, z_data.value.y);
     ratio -= complex_div(z_data.d_sigma, z_data.value); // d/ds log zeta(1-s) = -zeta'(1-s)/zeta(1-s)
 
+    // 5. Exponentiate back out to standard space
     FieldData res;
     res.value = complex_exp(log_sum.x, log_sum.y);
     res.d_sigma = complex_mul(res.value, ratio);
     res.d_t = vec2(-res.d_sigma.y, res.d_sigma.x);
+
     return res;
 }
 
