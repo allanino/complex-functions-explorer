@@ -5,6 +5,7 @@ uniform vec3 horizon_color : source_color = vec3(0.6, 0.8, 1.0);
 uniform vec3 cloud_color : source_color = vec3(1.0, 1.0, 1.0);
 uniform float golden_hour_factor = 0.0;
 uniform float night_factor = 0.0;
+uniform float sky_luminosity = 1.0;
 uniform bool performance_protection_active = false;
 
 // Dave Hoskins' hash (2D to 1D)
@@ -228,6 +229,6 @@ void sky() {
             clamp(final_haze, 0.0, 1.0)
         );
 
-        COLOR = cloud_final_color;
+        COLOR = cloud_final_color * sky_luminosity;
     }
 }

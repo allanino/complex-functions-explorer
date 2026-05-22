@@ -355,6 +355,9 @@ void fragment() {
             }
         }
 
+        // Reinhard Tone Mapping to keep high emissions from blowing out to absolute white
+        final_emission = final_emission / (final_emission + vec3(1.0));
+
         EMISSION = final_emission;
         ROUGHNESS = roughness;
         METALLIC = metallic;
