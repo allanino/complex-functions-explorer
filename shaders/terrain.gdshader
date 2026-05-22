@@ -103,8 +103,8 @@ void vertex() {
                 float r = cam_pos.z / (cam_pos.z - world_v_pos.z);
                 float px = cam_pos.x + r * (world_v_pos.x - cam_pos.x);
                 float py = cam_pos.y + r * (world_v_pos.y - cam_pos.y);
-                // Portal is at z=0, x > 0, y from 0 to 100
-                if (px > 0.0 && px < 100.0 * zoom_factor && py > -10.0 && py < 100.0 * zoom_factor) {
+                // Portal is at z=0, x > 0, extending vertically to infinity
+                if (px > 0.0 && py > -100.0) {
                     branch_offset = (cam_pos.z > 0.0) ? 1 : -1;
                 }
             }
@@ -300,7 +300,7 @@ void fragment() {
         if (function_type == 14 && multivalued_mode == 1) {
             // Highlight the branch cut portal area
             float dist_to_cut = abs(world_pos.z);
-            if (world_pos.x > 0.0 && world_pos.x < 100.0 * zoom_factor) {
+            if (world_pos.x > 0.0) {
                 float cut_glow = 1.0 - smoothstep(0.0, 0.1 * zoom_factor, dist_to_cut);
                 final_emission += vec3(0.0, 0.8, 1.0) * cut_glow * 0.4;
             }

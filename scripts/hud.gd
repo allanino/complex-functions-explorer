@@ -123,7 +123,7 @@ const DESCRIPTIONS = {
 	"Automatic Walking": "Automatically follow the critical line (Re = 0.5) to find Riemann Zeta zeros.",
 	"Terrain Details": "Quality and subdivision level of the procedurally generated terrain meshes.",
 	"Antialiasing": "Choose a technique to reduce jagged edges in the 3D view.",
-	"Branch Visualization": "Choose how to visualize multiple branches: temporal cycling or spatial portals.",
+	"Branch Experience": "Choose how to visualize multiple branches: temporal cycling or spatial portals.",
 	"Branches (n)": "Number of branches for the multivalued function z^(1/n).",
 	"Cycle Speed": "Temporal branch morphing speed.",
 	"Morph Time": "Duration of the smooth transition between branches.",

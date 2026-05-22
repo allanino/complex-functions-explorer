@@ -48,25 +48,23 @@ func _setup_portal_frame():
 	mat.emission = Color(0.0, 0.8, 1.0)
 	mat.emission_energy_multiplier = 2.0
 
-	# Horizontal bars
-	for y in [0.0, 100.0]:
-		var bar = MeshInstance3D.new()
-		var mesh = BoxMesh.new()
-		mesh.size = Vector3(100.0, 0.2, 0.2)
-		bar.mesh = mesh
-		bar.material_override = mat
-		portal_frame.add_child(bar)
-		bar.position = Vector3(50.0, y, 0.0)
+	# Ground line (extending far along X)
+	var ground_bar = MeshInstance3D.new()
+	var g_mesh = BoxMesh.new()
+	g_mesh.size = Vector3(10000.0, 0.2, 0.2)
+	ground_bar.mesh = g_mesh
+	ground_bar.material_override = mat
+	portal_frame.add_child(ground_bar)
+	ground_bar.position = Vector3(5000.0, 0.0, 0.0)
 
-	# Vertical bars
-	for x in [0.0, 100.0]:
-		var bar = MeshInstance3D.new()
-		var mesh = BoxMesh.new()
-		mesh.size = Vector3(0.2, 100.0, 0.2)
-		bar.mesh = mesh
-		bar.material_override = mat
-		portal_frame.add_child(bar)
-		bar.position = Vector3(x, 50.0, 0.0)
+	# Vertical line at origin (extending upwards)
+	var vert_bar = MeshInstance3D.new()
+	var v_mesh = BoxMesh.new()
+	v_mesh.size = Vector3(0.2, 10000.0, 0.2)
+	vert_bar.mesh = v_mesh
+	vert_bar.material_override = mat
+	portal_frame.add_child(vert_bar)
+	vert_bar.position = Vector3(0.0, 5000.0, 0.0)
 
 func _process(delta):
 	if not player:
