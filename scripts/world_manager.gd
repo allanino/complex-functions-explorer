@@ -154,6 +154,20 @@ func _process(delta):
 			sky_mat.set_shader_parameter("night_factor", night_factor)
 			sky_mat.set_shader_parameter("sky_luminosity", Config.sky_luminosity)
 
+		var env = world_environment.environment
+		env.fog_enabled = Config.fog_enabled
+		env.volumetric_fog_enabled = Config.fog_enabled
+
+		var fog_color = lerp(Color(0.6, 0.8, 1.0), Color(1.0, 0.4, 0.1), _golden_hour_transition)
+		fog_color = lerp(fog_color, Color(0.01, 0.02, 0.05), night_factor)
+
+		env.fog_light_color = fog_color
+		env.volumetric_fog_albedo = fog_color
+		env.fog_density = Config.fog_density
+		env.volumetric_fog_density = Config.fog_density
+		env.fog_depth_begin = Config.fog_distance
+		env.fog_aerial_perspective = 0.5
+
 	# Only update branch time on branch functions
 	if Config.function_type >= 14 and Config.function_type <= 17:
 		Config.branch_time = Time.get_ticks_msec() / 1000.0
@@ -193,7 +207,10 @@ func _process(delta):
 		"morph_type": Config.morph_type,
 		"morph_value": Config.morph_value,
 		"sky_luminosity": Config.sky_luminosity,
-		"sun_luminosity": Config.sun_luminosity
+		"sun_luminosity": Config.sun_luminosity,
+		"fog_enabled": Config.fog_enabled,
+		"fog_density": Config.fog_density,
+		"fog_distance": Config.fog_distance
 	}
 
 	var state_changed = current_field_state != _last_field_state
