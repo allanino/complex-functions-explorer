@@ -166,10 +166,12 @@ var _initial_terrain_albedo: float
 var _initial_terrain_emission: float
 var _initial_terrain_metallic: float
 var _initial_terrain_roughness: float
+var _initial_hud_scale: float
 var _initial_sky_luminosity: float
 var _initial_sun_luminosity: float
 
 func _ready():
+	hud_columns.offset_top = -1000
 	apply_button.pressed.connect(_on_set_pos_pressed)
 	close_button.pressed.connect(toggle_menu)
 	quit_button.pressed.connect(_on_quit_pressed)
@@ -335,6 +337,7 @@ func toggle_menu(applied: bool = false):
 		_initial_terrain_emission = Config.terrain_emission
 		_initial_terrain_metallic = Config.terrain_metallic
 		_initial_terrain_roughness = Config.terrain_roughness
+		_initial_hud_scale = Config.hud_scale
 		_initial_sky_luminosity = Config.sky_luminosity
 		_initial_sun_luminosity = Config.sun_luminosity
 
@@ -425,6 +428,9 @@ func toggle_menu(applied: bool = false):
 			Config.terrain_emission = _initial_terrain_emission
 			Config.terrain_metallic = _initial_terrain_metallic
 			Config.terrain_roughness = _initial_terrain_roughness
+			if Config.hud_scale != _initial_hud_scale:
+				Config.hud_scale = _initial_hud_scale
+				_update_hud_layout()
 			Config.sky_luminosity = _initial_sky_luminosity
 			Config.sun_luminosity = _initial_sun_luminosity
 
@@ -481,6 +487,8 @@ func _on_sun_luminosity_value_changed(value):
 
 func _on_hud_scale_value_changed(value):
 	hud_scale_value.text = str(int(value)) + "%"
+	Config.hud_scale = value / 100.0
+	_update_hud_layout()
 
 func _on_iterations_value_changed(value):
 	Config.iterations = int(value)
@@ -773,6 +781,11 @@ func _update_hud_layout():
 	if not hud_columns: return
 
 	var cards = [complex_panel, info_panel, monitor_panel, zeros_panel, perf_label]
+
+	# Always rescale all cards to ensure their combined_minimum_size is correct for height check
+	for card in cards:
+		_rescale_card(card, Config.hud_scale)
+
 	var current_state = {
 		"size": get_viewport().size,
 		"scale": Config.hud_scale,
@@ -783,10 +796,11 @@ func _update_hud_layout():
 		return
 	_last_hud_state = current_state
 
-	hud_columns.scale = Vector2.ONE * Config.hud_scale
-	hud_columns.pivot_offset = hud_columns.size
+	# Scale stack widths to accommodate wider fonts
+	hud_stack_right.custom_minimum_size.x = 150 * Config.hud_scale
+	hud_stack_left.custom_minimum_size.x = 150 * Config.hud_scale
 
-	var available_height = (get_viewport().size.y - 40) / Config.hud_scale
+	var available_height = get_viewport().size.y - 40
 	var current_height = 0.0
 	var separation = 10.0
 
@@ -805,6 +819,9 @@ func _update_hud_layout():
 	_apply_stack_layout(hud_stack_right, right_cards)
 	_apply_stack_layout(hud_stack_left, left_cards)
 
+	hud_stack_right.add_theme_constant_override("separation", 10)
+	hud_stack_left.add_theme_constant_override("separation", 10)
+
 func _apply_stack_layout(stack: VBoxContainer, desired_cards: Array):
 	for child in stack.get_children():
 		if not child in desired_cards:
@@ -817,3 +834,48 @@ func _apply_stack_layout(stack: VBoxContainer, desired_cards: Array):
 				card.get_parent().remove_child(card)
 			stack.add_child(card)
 		stack.move_child(card, 0)
+
+func _rescale_card(card: Control, scale: float):
+	if card == null: return
+
+	if card.has_meta("last_applied_scale") and card.get_meta("last_applied_scale") == scale:
+		return
+	card.set_meta("last_applied_scale", scale)
+
+	var stack = [card]
+	while stack.size() > 0:
+		var node = stack.pop_back()
+		if node is Label:
+			if not node.has_meta("base_font_size"):
+				node.set_meta("base_font_size", node.get_theme_font_size("font_size"))
+			node.add_theme_font_size_override("font_size", int(round(node.get_meta("base_font_size") * scale)))
+		elif node is RichTextLabel:
+			if not node.has_meta("base_font_size"):
+				node.set_meta("base_font_size", node.get_theme_font_size("normal_font_size"))
+			node.add_theme_font_size_override("normal_font_size", int(round(node.get_meta("base_font_size") * scale)))
+
+		if node is Control:
+			# Only scale custom minimum size for specific panels to maintain layout proportions
+			if node.name == "ComplexAspect":
+				if not node.has_meta("base_min_size"):
+					node.set_meta("base_min_size", Vector2(150, 150))
+				node.custom_minimum_size = node.get_meta("base_min_size") * scale
+			elif node.name == "ZerosPanel" or node.name == "InfoPanel":
+				if not node.has_meta("base_min_size"):
+					node.set_meta("base_min_size", node.custom_minimum_size)
+				node.custom_minimum_size.y = node.get_meta("base_min_size").y * scale
+
+			# Keep container separations and margins constant at their original design values
+			if node is BoxContainer:
+				if not node.has_meta("base_separation"):
+					node.set_meta("base_separation", node.get_theme_constant("separation"))
+				node.add_theme_constant_override("separation", node.get_meta("base_separation"))
+			elif node is MarginContainer:
+				for margin in ["margin_left", "margin_top", "margin_right", "margin_bottom"]:
+					if not node.has_meta("base_" + margin):
+						node.set_meta("base_" + margin, node.get_theme_constant(margin))
+					node.add_theme_constant_override(margin, node.get_meta("base_" + margin))
+
+		for child in node.get_children():
+			if child is Control:
+				stack.push_back(child)
