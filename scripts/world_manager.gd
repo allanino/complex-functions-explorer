@@ -17,6 +17,7 @@ var portal_frame: Node3D
 var portal_ground_bar: MeshInstance3D
 var portal_vert_bar: MeshInstance3D
 var portal_top_bar: MeshInstance3D
+var portal_end_bar: MeshInstance3D
 
 # We increase our chunks by this to make junctions more seamless
 # To test this, look at the right of zeta, the pole has a junction
@@ -51,10 +52,10 @@ func _setup_portal_frame():
 	mat.emission = Color(0.0, 0.8, 1.0)
 	mat.emission_energy_multiplier = 2.0
 
-	# Ground line (extending far along X)
+	# Ground line
 	portal_ground_bar = MeshInstance3D.new()
 	portal_ground_bar.mesh = BoxMesh.new()
-	portal_ground_bar.mesh.size = Vector3(10000.0, 0.2, 0.2)
+	portal_ground_bar.mesh.size = Vector3(1.0, 0.2, 0.2)
 	portal_ground_bar.material_override = mat
 	portal_frame.add_child(portal_ground_bar)
 	portal_ground_bar.position = Vector3(5000.0, 0.0, 0.0)
@@ -69,9 +70,16 @@ func _setup_portal_frame():
 	# Top bar
 	portal_top_bar = MeshInstance3D.new()
 	portal_top_bar.mesh = BoxMesh.new()
-	portal_top_bar.mesh.size = Vector3(10000.0, 0.2, 0.2)
+	portal_top_bar.mesh.size = Vector3(1.0, 0.2, 0.2) # Scaled dynamically
 	portal_top_bar.material_override = mat
 	portal_frame.add_child(portal_top_bar)
+
+	# End vertical bar
+	portal_end_bar = MeshInstance3D.new()
+	portal_end_bar.mesh = BoxMesh.new()
+	portal_end_bar.mesh.size = Vector3(0.2, 1.0, 0.2)
+	portal_end_bar.material_override = mat
+	portal_frame.add_child(portal_end_bar)
 
 func _process(delta):
 	if not player:
@@ -239,20 +247,26 @@ func _process(delta):
 			var cam_h = player.global_position.y
 			var p_height = max(50.0 * zoom, cam_h + 50.0 * zoom)
 
+			var player_x = player.global_position.x
+			var p_width = max(100.0 * zoom, player_x + float(Config.view_distance + 1) * chunk_size)
+
 			portal_frame.scale = Vector3.ONE # We handle scaling manually on bars
 
-			portal_ground_bar.scale.y = zoom
-			portal_ground_bar.scale.z = zoom
-			portal_ground_bar.position.y = 0.0
+			portal_ground_bar.scale = Vector3(p_width, zoom, zoom)
+			portal_ground_bar.position = Vector3(p_width * 0.5, 0.0, 0.0)
 
 			portal_vert_bar.scale = Vector3(zoom, p_height, zoom)
 			portal_vert_bar.position = Vector3(0.0, p_height * 0.5, 0.0)
 
-			portal_top_bar.scale = Vector3(1.0, zoom, zoom)
-			portal_top_bar.position = Vector3(5000.0, p_height, 0.0)
+			portal_top_bar.scale = Vector3(p_width, zoom, zoom)
+			portal_top_bar.position = Vector3(p_width * 0.5, p_height, 0.0)
+
+			portal_end_bar.scale = Vector3(zoom, p_height, zoom)
+			portal_end_bar.position = Vector3(p_width, p_height * 0.5, 0.0)
 
 			if terrain_material:
 				terrain_material.set_shader_parameter("portal_height", p_height)
+				terrain_material.set_shader_parameter("portal_width", p_width)
 
 func _update_all_chunks_lod(force: bool = false):
 	var player_chunk_coord = _last_player_chunk
