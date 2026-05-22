@@ -140,7 +140,7 @@ const DESCRIPTIONS = {
 	"View Distance": "Number of terrain chunks loaded around the player.",
 	"Level Curves": "Overlay contour lines for integer values of Re(f) (black) and Im(f) (white).",
 	"Critical Stripe": "Visual guide indicating the 0 < Re < 1 region where non-trivial zeros reside.",
-	"Sun Position": "Select between a static sun at noon, a static sun at golden hour, or a dynamic day/night cycle.",
+	"Time of day": "Select between a static sun at noon, a static sun at golden hour, a static moon at midnight, or a dynamic day/night cycle.",
 	"Sunrise Direction": "Adjust the angle from which the sun rises (180° is towards +σ).",
 	"Sky Luminosity": "Adjust the overall brightness of the sky and clouds.",
 	"Sun Luminosity": "Adjust the intensity of the sun and moon light.",
@@ -219,8 +219,9 @@ func _ready():
 
 	environment_button.clear()
 	environment_button.add_item("Noon")
-	environment_button.add_item("Sunrise golden hour")
-	environment_button.add_item("Dynamic sun and moon")
+	environment_button.add_item("Sunrise")
+	environment_button.add_item("Midnight")
+	environment_button.add_item("Dynamic")
 
 	func_button.clear()
 	func_button.add_item("Zeta (σ > 0)")
