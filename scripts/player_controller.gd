@@ -137,7 +137,7 @@ func _physics_process(delta):
 	var current_speed = Config.movement_speed * Config.effective_zoom
 
 	# Speed reduction near zeros
-	if current_mag < Config.zero_threshold:
+	if current_mag < Config.zero_proximity_nav:
 		current_speed *= (Config.speed_near_zeros / 100.0)
 
 	if auto_walk_state != AutoWalkState.NONE:
@@ -244,9 +244,9 @@ func _physics_process(delta):
 		   mag_history[2] < mag_history[3] and mag_history[3] < mag_history[4]:
 			var t = t_history[2] # Middle value is the reported zero
 
-			# Check if the magnitude is reasonably low (e.g. < zero_threshold) to avoid false positives
+			# Check if the magnitude is reasonably low (e.g. < zero_proximity_nav) to avoid false positives
 			# from tiny oscillations far from zeros
-			if mag_history[2] < Config.zero_threshold:
+			if mag_history[2] < Config.zero_proximity_nav:
 				Config.visited_zeros.push_back(t)
 				last_detected_t = t
 
