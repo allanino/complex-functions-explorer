@@ -158,6 +158,7 @@ var _initial_terrain_albedo: float
 var _initial_terrain_emission: float
 var _initial_terrain_metallic: float
 var _initial_terrain_roughness: float
+var _initial_hud_scale: float
 
 func _ready():
 	apply_button.pressed.connect(_on_set_pos_pressed)
@@ -321,6 +322,7 @@ func toggle_menu(applied: bool = false):
 		_initial_terrain_emission = Config.terrain_emission
 		_initial_terrain_metallic = Config.terrain_metallic
 		_initial_terrain_roughness = Config.terrain_roughness
+		_initial_hud_scale = Config.hud_scale
 
 		if player:
 			var scale_factor = 1.0 / Config.effective_zoom
@@ -403,6 +405,9 @@ func toggle_menu(applied: bool = false):
 			Config.terrain_emission = _initial_terrain_emission
 			Config.terrain_metallic = _initial_terrain_metallic
 			Config.terrain_roughness = _initial_terrain_roughness
+			if Config.hud_scale != _initial_hud_scale:
+				Config.hud_scale = _initial_hud_scale
+				_update_hud_layout()
 
 func _on_func_selected(index):
 	var is_zeta_variant = (index >= 0 and index <= 3)
@@ -449,6 +454,8 @@ func _on_sunrise_value_changed(value):
 
 func _on_hud_scale_value_changed(value):
 	hud_scale_value.text = str(int(value)) + "%"
+	Config.hud_scale = value / 100.0
+	_update_hud_layout()
 
 func _on_multivalued_n_value_changed(value):
 	multivalued_value.text = str(int(value))
@@ -735,6 +742,11 @@ func _update_hud_layout():
 	if not hud_columns: return
 
 	var cards = [complex_panel, info_panel, monitor_panel, zeros_panel, perf_label]
+
+	# Always rescale all cards to ensure their combined_minimum_size is correct for height check
+	for card in cards:
+		_rescale_card(card, Config.hud_scale)
+
 	var current_state = {
 		"size": get_viewport().size,
 		"scale": Config.hud_scale,
@@ -754,7 +766,6 @@ func _update_hud_layout():
 
 	for card in cards:
 		if not card.visible: continue
-		_rescale_card(card, Config.hud_scale)
 		var card_height = card.get_combined_minimum_size().y
 		if current_height + card_height <= available_height:
 			right_cards.push_back(card)
@@ -791,16 +802,21 @@ func _rescale_card(card: Control, scale: float):
 	var stack = [card]
 	while stack.size() > 0:
 		var node = stack.pop_back()
-		if node is Label or node is RichTextLabel:
+		if node is Label:
 			if not node.has_meta("base_font_size"):
 				node.set_meta("base_font_size", node.get_theme_font_size("font_size"))
 			node.add_theme_font_size_override("font_size", int(round(node.get_meta("base_font_size") * scale)))
+		elif node is RichTextLabel:
+			if not node.has_meta("base_font_size"):
+				node.set_meta("base_font_size", node.get_theme_font_size("normal_font_size"))
+			node.add_theme_font_size_override("normal_font_size", int(round(node.get_meta("base_font_size") * scale)))
 
 		if node is Control:
-			# Scale custom minimum size if it was explicitly set
+			# Only scale custom minimum size for ComplexAspect
 			if not node.has_meta("base_min_size"):
 				node.set_meta("base_min_size", node.custom_minimum_size)
-			if node.get_meta("base_min_size") != Vector2.ZERO:
+
+			if node.name == "ComplexAspect":
 				node.custom_minimum_size = node.get_meta("base_min_size") * scale
 
 			# Scale container separations and margins
