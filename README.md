@@ -95,13 +95,13 @@ Built with the **Godot Engine**, the project leverages modern rendering and audi
 
 *   **GPU Shaders:** Terrain displacement and domain coloring are handled via GLSL shaders for high-performance real-time visualization.
 *   **Spatial Audio:** A topographic drone responds to terrain height and phase, providing an auditory dimension to the mathematical exploration.
-*   **Dynamic World:** Features a day/night cycle, adjustable sunrise direction, and multiple environmental lighting modes.
+*   **Dynamic World:** Features a dynamic day/night cycle with customizable duration, a static time mode, and adjustable sunrise direction.
 
 ## Options
 Pressing the **Esc** key opens the settings menu, providing several ways to customize your experience:
 
 *   **Function:** Select complex functions (Zeta, Gamma, Dedekind Eta, etc.), choose height mapping (Logarithmic or Absolute), and configure parameters like iterations or rational expressions.
-*   **Environment:** Customize visual themes (Color Scheme), toggle level curves and the critical stripe, and control the time of day and sunrise direction.
+*   **Environment:** Customize visual themes (Color Scheme), toggle level curves and the critical stripe, and control the time of day (**Dynamic**, **Noon**, **Sunrise**, **Midnight**, or **Manual**) with precise duration and time settings.
 *   **Graphics:** Fine-tune rendering quality, including terrain detail, antialiasing modes (MSAA, FXAA, SMAA), view distance, and shadows.
 *   **Navigation:** Set precise coordinates (Real/Imaginary), adjust movement speed and camera height, and toggle automatic walking along the critical line.
 *   **HUD:** Customize on-screen information, such as the complex plane overlay, navigation data, and zeta zero detection panels.
