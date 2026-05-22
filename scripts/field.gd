@@ -50,83 +50,33 @@ static func dirichlet_eta(sigma: float, t: float, iterations: int) -> Vector2:
 	for n in range(1, iterations + 1, 2):
 		var nf = float(n)
 		var amp = pow(nf, -sigma)
-		if amp < 1e-6: break
 		var log_n = log(nf)
 		var theta = -t * log_n
 		eta += amp * Vector2(cos(theta), sin(theta))
 
 		var nf2 = float(n + 1)
 		var amp2 = pow(nf2, -sigma)
-		if amp2 < 1e-6: break
 		var theta2 = -t * log(nf2)
 		eta -= amp2 * Vector2(cos(theta2), sin(theta2))
+
+		if (amp < 1e-6 || amp2 < 1e-6 || amp > 1e6 || amp2 > 1e6): break
 	return eta
-
-static func dirichlet_eta_with_derivatives(sigma: float, t: float, iterations: int) -> Array:
-	var eta = Vector2.ZERO
-	var deta_dsigma = Vector2.ZERO
-	for n in range(1, iterations + 1, 2):
-		var nf = float(n)
-		var amp = pow(nf, -sigma)
-		if amp < 1e-6: break
-		var log_n = log(nf)
-		var theta = -t * log_n
-		var term = amp * Vector2(cos(theta), sin(theta))
-		eta += term
-		deta_dsigma += -log_n * term
-
-		var nf2 = float(n + 1)
-		var amp2 = pow(nf2, -sigma)
-		if amp2 < 1e-6: break
-		var log_n2 = log(nf2)
-		var theta2 = -t * log_n2
-		var term2 = amp2 * Vector2(cos(theta2), sin(theta2))
-		eta -= term2
-		deta_dsigma += log_n2 * term2
-
-	var deta_dt = Vector2(-deta_dsigma.y, deta_dsigma.x)
-	return [eta, deta_dsigma, deta_dt]
 
 static func dirichlet_beta(sigma: float, t: float, iterations: int) -> Vector2:
 	var beta = Vector2.ZERO
 	for n in range(0, iterations, 2):
 		var kf = 2.0 * float(n) + 1.0
 		var amp = pow(kf, -sigma)
-		if amp < 1e-6: break
 		var theta = -t * log(kf)
 		beta += amp * Vector2(cos(theta), sin(theta))
 
 		var kf2 = 2.0 * float(n + 1) + 1.0
 		var amp2 = pow(kf2, -sigma)
-		if amp2 < 1e-6: break
 		var theta2 = -t * log(kf2)
 		beta -= amp2 * Vector2(cos(theta2), sin(theta2))
+
+		if (amp < 1e-6 || amp2 < 1e-6 || amp > 1e6 || amp2 > 1e6): break
 	return beta
-
-static func dirichlet_beta_with_derivatives(sigma: float, t: float, iterations: int) -> Array:
-	var beta = Vector2.ZERO
-	var dbeta_dsigma = Vector2.ZERO
-	for n in range(0, iterations, 2):
-		var kf = 2.0 * float(n) + 1.0
-		var amp = pow(kf, -sigma)
-		if amp < 1e-6: break
-		var log_k = log(kf)
-		var theta = -t * log_k
-		var term = amp * Vector2(cos(theta), sin(theta))
-		beta += term
-		dbeta_dsigma += -log_k * term
-
-		var kf2 = 2.0 * float(n + 1) + 1.0
-		var amp2 = pow(kf2, -sigma)
-		if amp2 < 1e-6: break
-		var log_k2 = log(kf2)
-		var theta2 = -t * log_k2
-		var term2 = amp2 * Vector2(cos(theta2), sin(theta2))
-		beta -= term2
-		dbeta_dsigma += log_k2 * term2
-
-	var dbeta_dt = Vector2(-dbeta_dsigma.y, dbeta_dsigma.x)
-	return [beta, dbeta_dsigma, dbeta_dt]
 
 static func zeta(sigma: float, t: float) -> Vector2:
 	var iterations = Config.iterations
@@ -163,7 +113,6 @@ static func lanczos_gamma(z_orig: Vector2) -> Vector2:
 
 static func complex_gamma(sigma: float, t: float) -> Vector2:
 	if sigma < 0.5:
-		var z = Vector2(sigma, t)
 		var sin_pi_z = complex_sin(PI * sigma, PI * t)
 		var g1z = lanczos_gamma(Vector2(1.0 - sigma, -t))
 		return complex_div(Vector2(PI, 0.0), complex_mul(sin_pi_z, g1z))
