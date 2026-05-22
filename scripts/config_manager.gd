@@ -11,9 +11,11 @@ var height_epsilon: float = 1.0
 var rational_num_coeffs: PackedFloat32Array = PackedFloat32Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 var rational_den_coeffs: PackedFloat32Array = PackedFloat32Array([1, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 var multivalued_n: int = 2
+var multivalued_mode: int = 0 # 0: Time cycle, 1: Branch portals
 var branch_cycle_speed: float = 0.5
 var multivalued_morph_time: float = 0.1
 var branch_time: float = 0.0
+var current_branch: int = 0 # Session state for Portals mode
 var zero_threshold: float = 0.5
 var zoom_factor: float = 1.0
 
@@ -74,6 +76,7 @@ func save_settings():
 	config.set_value("field", "rational_num_coeffs", rational_num_coeffs)
 	config.set_value("field", "rational_den_coeffs", rational_den_coeffs)
 	config.set_value("field", "multivalued_n", multivalued_n)
+	config.set_value("field", "multivalued_mode", multivalued_mode)
 	config.set_value("field", "branch_cycle_speed", branch_cycle_speed)
 	config.set_value("field", "multivalued_morph_time", multivalued_morph_time)
 	config.set_value("field", "zero_threshold", zero_threshold)
@@ -130,6 +133,7 @@ func load_settings():
 	rational_num_coeffs = config.get_value("field", "rational_num_coeffs", rational_num_coeffs)
 	rational_den_coeffs = config.get_value("field", "rational_den_coeffs", rational_den_coeffs)
 	multivalued_n = config.get_value("field", "multivalued_n", multivalued_n)
+	multivalued_mode = config.get_value("field", "multivalued_mode", multivalued_mode)
 	branch_cycle_speed = config.get_value("field", "branch_cycle_speed", branch_cycle_speed)
 	multivalued_morph_time = config.get_value("field", "multivalued_morph_time", multivalued_morph_time)
 	zero_threshold = config.get_value("field", "zero_threshold", zero_threshold)

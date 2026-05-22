@@ -160,9 +160,11 @@ func _process(delta):
 		"rational_num_coeffs": Config.rational_num_coeffs,
 		"rational_den_coeffs": Config.rational_den_coeffs,
 		"multivalued_n": Config.multivalued_n,
+		"multivalued_mode": Config.multivalued_mode,
 		"branch_cycle_speed": Config.branch_cycle_speed,
 		"multivalued_morph_time": Config.multivalued_morph_time,
 		"branch_time": Config.branch_time,
+		"current_branch": Config.current_branch,
 		"terrain_brightness": Config.terrain_brightness,
 		"terrain_saturation": Config.terrain_saturation,
 		"terrain_albedo": Config.terrain_albedo,
@@ -262,6 +264,7 @@ func _update_terrain_material_uniforms():
 	terrain_material.set_shader_parameter("rational_num_coeffs", Config.rational_num_coeffs)
 	terrain_material.set_shader_parameter("rational_den_coeffs", Config.rational_den_coeffs)
 	terrain_material.set_shader_parameter("multivalued_n", Config.multivalued_n)
+	terrain_material.set_shader_parameter("multivalued_mode", Config.multivalued_mode)
 	terrain_material.set_shader_parameter("branch_cycle_speed", Config.branch_cycle_speed)
 	terrain_material.set_shader_parameter("multivalued_morph_time", Config.multivalued_morph_time)
 	terrain_material.set_shader_parameter("brightness", Config.terrain_brightness)
@@ -271,6 +274,7 @@ func _update_terrain_material_uniforms():
 	terrain_material.set_shader_parameter("metallic", Config.terrain_metallic)
 	terrain_material.set_shader_parameter("roughness", Config.terrain_roughness)
 	terrain_material.set_shader_parameter("branch_time", Config.branch_time)
+	terrain_material.set_shader_parameter("current_branch", Config.current_branch)
 
 	terrain_material.set_shader_parameter("chunk_size", chunk_size)
 	var segments = []

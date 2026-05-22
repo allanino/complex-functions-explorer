@@ -11,9 +11,11 @@ uniform bool performance_protection_active = false;
 uniform float rational_num_coeffs[10];
 uniform float rational_den_coeffs[10];
 uniform int multivalued_n = 2;
+uniform int multivalued_mode = 0;
 uniform float branch_cycle_speed = 0.5;
 uniform float multivalued_morph_time = 0.1;
 uniform float branch_time = 0.0;
+uniform int current_branch = 0;
 
 struct FieldData {
     vec2 value;    // The actual complex f(sigma, t)
@@ -443,18 +445,25 @@ FieldData multivalued_z_pow_inv_n_with_derivatives(float sigma, float t, int n, 
     if (theta < 0.0) theta += 2.0 * PI;
     float float_n = float(n);
 
-    // Temporal branch selection & blending factor
-    float progress = fract(branch_time * cycle_speed) * float_n;
-    int k_current = int(floor(progress));
-    float t_in_branch = fract(progress);
+    float blend_factor = 0.0;
+    float k_val = 0.0;
 
-    // Non-linear transition: stay on branch, then morph
-    float dwell_time = (1.0 / float_n) - multivalued_morph_time * cycle_speed;
-    dwell_time = max(dwell_time, 0.0);
-    float transition_threshold = dwell_time * float_n;
-    float blend_factor = smoothstep(transition_threshold, 1.0, t_in_branch);
+    if (multivalued_mode == 0) { // Time cycle
+        // Temporal branch selection & blending factor
+        float progress = fract(branch_time * cycle_speed) * float_n;
+        k_val = floor(progress);
+        float t_in_branch = fract(progress);
 
-    float morphed_phase = (theta + 2.0 * PI * (float(k_current) + blend_factor)) / float_n;
+        // Non-linear transition: stay on branch, then morph
+        float dwell_time = (1.0 / float_n) - multivalued_morph_time * cycle_speed;
+        dwell_time = max(dwell_time, 0.0);
+        float transition_threshold = dwell_time * float_n;
+        blend_factor = smoothstep(transition_threshold, 1.0, t_in_branch);
+    } else { // Branch portals
+        k_val = float(current_branch);
+    }
+
+    float morphed_phase = (theta + 2.0 * PI * (k_val + blend_factor)) / float_n;
     float morphed_r = pow(r, 1.0 / float_n);
     res.value = vec2(morphed_r * cos(morphed_phase), morphed_r * sin(morphed_phase));
 
