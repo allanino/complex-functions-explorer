@@ -21,6 +21,7 @@ struct FieldData {
     vec2 d_t;      // Partial derivative with respect to t
 };
 
+
 //-------------------------------------------------------------------------
 // Complex Arithmetic
 //-------------------------------------------------------------------------
@@ -90,16 +91,24 @@ vec2 complex_tan(float sigma, float t) {
 FieldData dirichlet_eta_with_derivatives(float sigma, float t, int iters) {
     vec2 eta = vec2(0.0);
     vec2 deta_dsigma = vec2(0.0);
-    for (int n = 1; n <= iters; n++) {
+    for (int n = 1; n <= iters; n += 2) {
         float nf = float(n);
         float amp = pow(nf, -sigma);
-        if (amp < 1e-6) break;
         float log_n = log(nf);
         float theta = -t * log_n;
-        float _sign = (mod(float(n), 2.0) < 0.5) ? -1.0 : 1.0;
-        vec2 term = _sign * amp * vec2(cos(theta), sin(theta));
+        vec2 term = amp * vec2(cos(theta), sin(theta));
         eta += term;
-        deta_dsigma += -log_n * term;
+        deta_dsigma -= log_n * term;
+
+        float nf2 = float(n + 1);
+        float amp2 = pow(nf2, -sigma);
+        float log_n2 = log(nf2);
+        float theta2 = -t * log_n2;
+        vec2 term2 = amp2 * vec2(cos(theta2), sin(theta2));
+        eta -= term2;
+        deta_dsigma += log_n2 * term2;
+
+        if (amp < 1e-6 || amp2 < 1e-6 || amp > 1e6 || amp2 > 1e6) break;
     }
     FieldData result;
     result.value = eta;
@@ -111,16 +120,24 @@ FieldData dirichlet_eta_with_derivatives(float sigma, float t, int iters) {
 FieldData dirichlet_beta_with_derivatives(float sigma, float t, int iters) {
     vec2 beta = vec2(0.0);
     vec2 dbeta_dsigma = vec2(0.0);
-    for (int n = 0; n < iters; n++) {
-        float k = 2.0 * float(n) + 1.0;
-        float amp = pow(k, -sigma);
-        if (amp < 1e-6) break;
-        float log_k = log(k);
+    for (int n = 0; n < iters; n += 2) {
+        float kf = 2.0 * float(n) + 1.0;
+        float amp = pow(kf, -sigma);
+        float log_k = log(kf);
         float theta = -t * log_k;
-        float _sign = (mod(float(n), 2.0) < 0.5) ? 1.0 : -1.0;
-        vec2 term = _sign * amp * vec2(cos(theta), sin(theta));
+        vec2 term = amp * vec2(cos(theta), sin(theta));
         beta += term;
-        dbeta_dsigma += -log_k * term;
+        dbeta_dsigma -= log_k * term;
+
+        float kf2 = 2.0 * float(n + 1) + 1.0;
+        float amp2 = pow(kf2, -sigma);
+        float log_k2 = log(kf2);
+        float theta2 = -t * log_k2;
+        vec2 term2 = amp2 * vec2(cos(theta2), sin(theta2));
+        beta -= term2;
+        dbeta_dsigma += log_k2 * term2;
+
+        if (amp < 1e-6 || amp2 < 1e-6 || amp > 1e6 || amp2 > 1e6) break;
     }
     FieldData result;
     result.value = beta;

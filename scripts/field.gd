@@ -51,25 +51,36 @@ const LOG_PI = 1.1447298858494002
 static func dirichlet_eta(sigma: float, t: float, iterations: int) -> Vector2:
 	if iterations <= 0: return Vector2.ZERO
 	var eta = Vector2.ZERO
-	for n in range(1, iterations + 1):
+	for n in range(1, iterations + 1, 2):
 		var nf = float(n)
 		var amp = pow(nf, -sigma)
-		if amp < 1e-6: break
-		var theta = -t * log(nf)
-		var _sign = 1.0 if (n % 2 == 1) else -1.0
-		eta += _sign * amp * Vector2(cos(theta), sin(theta))
+		var log_n = log(nf)
+		var theta = -t * log_n
+		eta += amp * Vector2(cos(theta), sin(theta))
+
+		var nf2 = float(n + 1)
+		var amp2 = pow(nf2, -sigma)
+		var theta2 = -t * log(nf2)
+		eta -= amp2 * Vector2(cos(theta2), sin(theta2))
+
+		if (amp < 1e-6 || amp2 < 1e-6 || amp > 1e6 || amp2 > 1e6): break
 	return eta
 
 static func dirichlet_beta(sigma: float, t: float, iterations: int) -> Vector2:
 	if iterations <= 0: return Vector2.ZERO
 	var beta = Vector2.ZERO
-	for n in range(iterations):
-		var k = 2.0 * float(n) + 1.0
-		var amp = pow(k, -sigma)
-		if amp < 1e-6: break
-		var theta = -t * log(k)
-		var _sign = 1.0 if (n % 2 == 0) else -1.0
-		beta += _sign * amp * Vector2(cos(theta), sin(theta))
+	for n in range(0, iterations, 2):
+		var kf = 2.0 * float(n) + 1.0
+		var amp = pow(kf, -sigma)
+		var theta = -t * log(kf)
+		beta += amp * Vector2(cos(theta), sin(theta))
+
+		var kf2 = 2.0 * float(n + 1) + 1.0
+		var amp2 = pow(kf2, -sigma)
+		var theta2 = -t * log(kf2)
+		beta -= amp2 * Vector2(cos(theta2), sin(theta2))
+
+		if (amp < 1e-6 || amp2 < 1e-6 || amp > 1e6 || amp2 > 1e6): break
 	return beta
 
 static func zeta(sigma: float, t: float) -> Vector2:
@@ -107,7 +118,6 @@ static func lanczos_gamma(z_orig: Vector2) -> Vector2:
 
 static func complex_gamma(sigma: float, t: float) -> Vector2:
 	if sigma < 0.5:
-		var z = Vector2(sigma, t)
 		var sin_pi_z = complex_sin(PI * sigma, PI * t)
 		var g1z = lanczos_gamma(Vector2(1.0 - sigma, -t))
 		return complex_div(Vector2(PI, 0.0), complex_mul(sin_pi_z, g1z))
