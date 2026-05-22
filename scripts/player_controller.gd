@@ -220,7 +220,6 @@ func _physics_process(delta):
 		var f = Field.get_field(global_position.x, global_position.z)
 		var current_mag = f.length()
 
-		var scale_factor = 1.0 / Config.effective_zoom
 		t_history.push_back(-global_position.z * 0.1 * scale_factor)
 		t_history.pop_front()
 
