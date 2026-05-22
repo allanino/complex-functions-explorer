@@ -38,11 +38,25 @@ static func complex_sin(sigma: float, t: float) -> Vector2:
 static func complex_cos(sigma: float, t: float) -> Vector2:
 	return Vector2(cos(sigma) * cosh(t), -sin(sigma) * sinh(t))
 
-static func complex_tan(sigma: float, t: float) -> Vector2:
-	return complex_div(complex_sin(sigma, t), complex_cos(sigma, t))
+static func complex_tan(x: float, y: float) -> Vector2:
+	var abs_2y = 2.0 * abs(y)
+	var exp_neg = exp(-abs_2y)
+	var scaled_cosh = 0.5 * (1.0 + exp_neg * exp_neg)
+	var scaled_sinh = 0.5 * (1.0 - exp_neg * exp_neg) * (1.0 if y >= 0.0 else -1.0)
+	var scaled_sin_2x = sin(2.0 * x) * exp_neg
+	var scaled_cos_2x = cos(2.0 * x) * exp_neg
+	var denom = scaled_cosh + scaled_cos_2x
+	return Vector2(scaled_sin_2x / denom, scaled_sinh / denom)
 
-static func complex_cot(sigma: float, t: float) -> Vector2:
-	return complex_div(complex_cos(sigma, t), complex_sin(sigma, t))
+static func complex_cot(x: float, y: float) -> Vector2:
+	var abs_2y = 2.0 * abs(y)
+	var exp_neg = exp(-abs_2y)
+	var scaled_cosh = 0.5 * (1.0 + exp_neg * exp_neg)
+	var scaled_sinh = 0.5 * (1.0 - exp_neg * exp_neg) * (1.0 if y >= 0.0 else -1.0)
+	var scaled_sin_2x = sin(2.0 * x) * exp_neg
+	var scaled_cos_2x = cos(2.0 * x) * exp_neg
+	var denom = scaled_cosh - scaled_cos_2x
+	return Vector2(scaled_sin_2x / denom, -scaled_sinh / denom)
 
 static func complex_log_sin(x: float, y: float) -> Vector2:
 	var abs_y = abs(y)
