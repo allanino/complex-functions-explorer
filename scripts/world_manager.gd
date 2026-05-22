@@ -7,7 +7,6 @@ extends Node3D
 
 var chunks = {}
 var _last_field_state = {}
-
 var LOD_SUBS = [] # This will be set in code
 var _lod_mesh_cache = {}
 var _last_player_chunk = Vector2i(9999, 9999)
@@ -24,9 +23,7 @@ var portal_end_bar: MeshInstance3D
 @onready var world_environment = get_node("../WorldEnvironment")
 
 # Day night cycle variables
-var day_night_cycle_duration = 500.0
 var _golden_hour_transition: float = 0.0
-var _day_night_time: float = 0.0
 var _sun_color = Color("#fc9500")
 
 func _ready():
@@ -107,56 +104,48 @@ func _process(delta):
 	# Orbit axis is perpendicular to sunrise vector (cos, 0, sin) and zenith (0, 1, 0)
 	var orbit_axis = Vector3(sin(sunrise_rad), 0, -cos(sunrise_rad))
 
-	if Config.environment_type == 2: # Dynamic sun and moon
-		_day_night_time += delta
-		if _day_night_time >= day_night_cycle_duration:
-			_day_night_time -= day_night_cycle_duration
+	var progress = 0.0
+	if Config.environment_type == 0: # Dynamic
+		# Increment static time based on day duration
+		# 86400 seconds in a day / day_duration = speed multiplier
+		Config.static_time += delta * (86400.0 / Config.day_duration)
+		if Config.static_time >= 86400.0:
+			Config.static_time -= 86400.0
+		progress = Config.static_time / 86400.0
+	else: # Static or presets
+		match Config.environment_type:
+			1: Config.static_time = 43200.0 # Noon
+			2: Config.static_time = 21600.0 # Sunrise (6 AM)
+			3: Config.static_time = 0.0 # Midnight
 
-		var progress = _day_night_time / day_night_cycle_duration
-		var angle = progress * TAU
+		progress = Config.static_time / 86400.0
 
-		# Sun direction: rotate Noon (0, -1, 0) around orbit axis
-		var sun_dir = Quaternion(orbit_axis, angle) * Vector3.DOWN
-		var moon_dir = -sun_dir
+	# angle = PI is Midnight (progress 0.0), angle = 0.0 is Noon (progress 0.5)
+	var angle = (progress + 0.5) * TAU
 
-		var sun_elevation = -sun_dir.y
-		_golden_hour_transition = clamp((0.5 - sun_elevation) / 0.5, 0.0, 1.0)
+	# Sun direction: rotate Noon (0, -1, 0) around orbit axis
+	var sun_dir = Quaternion(orbit_axis, angle) * Vector3.DOWN
+	var moon_dir = -sun_dir
 
-		if sun_elevation < 0.0:
-			night_factor = clamp(-sun_elevation / 0.3, 0.0, 1.0)
-		else:
-			night_factor = 0.0
+	var sun_elevation = -sun_dir.y
+	_golden_hour_transition = clamp((0.5 - sun_elevation) / 0.5, 0.0, 1.0)
 
-		if sun:
-			sun.basis = Basis.looking_at(sun_dir, Vector3.UP if abs(sun_dir.y) < 0.99 else Vector3.FORWARD)
-			sun.light_energy = smoothstep(-0.02, 0.02, sun_elevation) * Config.sun_luminosity
-			sun.light_color = lerp(_sun_color, Color(1.0, 0.5, 0.2), _golden_hour_transition)
-			sun.shadow_enabled = Config.shadows_enabled and sun_elevation > 0.01
-
-		if moon:
-			moon.basis = Basis.looking_at(moon_dir, Vector3.UP if abs(moon_dir.y) < 0.99 else Vector3.FORWARD)
-			var moon_elevation = -moon_dir.y
-			moon.light_energy = smoothstep(-0.02, 0.02, moon_elevation) * 0.4 * Config.sun_luminosity
-			moon.shadow_enabled = Config.shadows_enabled and moon_elevation > 0.01
+	if sun_elevation < 0.0:
+		night_factor = clamp(-sun_elevation / 0.3, 0.0, 1.0)
 	else:
-		if moon:
-			moon.light_energy = 0.0
-
-		var target_transition = 1.0 if Config.environment_type == 1 else 0.0
-		_golden_hour_transition = move_toward(_golden_hour_transition, target_transition, delta * 0.5)
-
-		if sun:
-			# Target direction for golden hour: 0.1 radians above horizon at Sunrise
-			# Angle -PI/2 is Sunrise, so we use -(PI/2 - 0.1)
-			var sunrise_angle = -(PI/2 - 0.1) * _golden_hour_transition
-			var target_dir = Quaternion(orbit_axis, sunrise_angle) * Vector3.DOWN
-
-			sun.basis = Basis.looking_at(target_dir, Vector3.UP if abs(target_dir.y) < 0.99 else Vector3.FORWARD)
-			sun.light_color = lerp(_sun_color, Color(1.0, 0.5, 0.2), _golden_hour_transition)
-			sun.light_energy = lerp(1.0, 1.5, _golden_hour_transition) * Config.sun_luminosity
-			sun.shadow_enabled = Config.shadows_enabled
-
 		night_factor = 0.0
+
+	if sun:
+		sun.basis = Basis.looking_at(sun_dir, Vector3.UP if abs(sun_dir.y) < 0.99 else Vector3.FORWARD)
+		sun.light_energy = smoothstep(-0.02, 0.02, sun_elevation) * Config.sun_luminosity
+		sun.light_color = lerp(_sun_color, Color(1.0, 0.5, 0.2), _golden_hour_transition)
+		sun.shadow_enabled = Config.shadows_enabled and sun_elevation > 0.01
+
+	if moon:
+		moon.basis = Basis.looking_at(moon_dir, Vector3.UP if abs(moon_dir.y) < 0.99 else Vector3.FORWARD)
+		var moon_elevation = -moon_dir.y
+		moon.light_energy = smoothstep(-0.02, 0.02, moon_elevation) * 0.4 * Config.sun_luminosity
+		moon.shadow_enabled = Config.shadows_enabled and moon_elevation > 0.01
 
 	if world_environment and world_environment.environment and world_environment.environment.sky:
 		var sky_mat = world_environment.environment.sky.sky_material as ShaderMaterial
@@ -301,13 +290,13 @@ func _update_all_chunks_lod(force: bool = false):
 func _update_lod_subs():
 	match Config.terrain_detail:
 		0: # High
-			LOD_SUBS = [511, 255, 127, 63]
+			LOD_SUBS = [511, 255, 127, 63, 31]
 		1: # Medium
-			LOD_SUBS = [255, 127, 31, 15]
+			LOD_SUBS = [255, 127, 63, 31, 15]
 		2: # Low
-			LOD_SUBS = [127, 63, 31, 15]
+			LOD_SUBS = [127, 63, 31, 15, 7]
 		3: # Lowest
-			LOD_SUBS = [63, 31, 15, 7]
+			LOD_SUBS = [63, 31, 15, 7, 3]
 
 func _get_lod_level(coord: Vector2i, player_coord: Vector2i) -> int:
 	var dx = abs(coord.x - player_coord.x)
@@ -320,8 +309,10 @@ func _get_lod_level(coord: Vector2i, player_coord: Vector2i) -> int:
 		return 1
 	elif dist <= 4:
 		return 2
-	else:
+	elif dist <= 6:
 		return 3
+	else:
+		return 4
 
 func _create_lod_mesh(size: float, subdivisions: int) -> Mesh:
 	var plane = PlaneMesh.new()
