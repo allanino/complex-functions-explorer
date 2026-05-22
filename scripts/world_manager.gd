@@ -104,14 +104,14 @@ func _process(delta):
 
 		if sun:
 			sun.basis = Basis.looking_at(sun_dir, Vector3.UP if abs(sun_dir.y) < 0.99 else Vector3.FORWARD)
-			sun.light_energy = smoothstep(-0.02, 0.02, sun_elevation)
+			sun.light_energy = smoothstep(-0.02, 0.02, sun_elevation) * Config.sun_luminosity
 			sun.light_color = lerp(_sun_color, Color(1.0, 0.5, 0.2), _golden_hour_transition)
 			sun.shadow_enabled = Config.shadows_enabled and sun_elevation > 0.01
 
 		if moon:
 			moon.basis = Basis.looking_at(moon_dir, Vector3.UP if abs(moon_dir.y) < 0.99 else Vector3.FORWARD)
 			var moon_elevation = -moon_dir.y
-			moon.light_energy = smoothstep(-0.02, 0.02, moon_elevation) * 0.4
+			moon.light_energy = smoothstep(-0.02, 0.02, moon_elevation) * 0.4 * Config.sun_luminosity
 			moon.shadow_enabled = Config.shadows_enabled and moon_elevation > 0.01
 	else:
 		if moon:
@@ -128,7 +128,7 @@ func _process(delta):
 
 			sun.basis = Basis.looking_at(target_dir, Vector3.UP if abs(target_dir.y) < 0.99 else Vector3.FORWARD)
 			sun.light_color = lerp(_sun_color, Color(1.0, 0.5, 0.2), _golden_hour_transition)
-			sun.light_energy = lerp(1.0, 1.5, _golden_hour_transition)
+			sun.light_energy = lerp(1.0, 1.5, _golden_hour_transition) * Config.sun_luminosity
 			sun.shadow_enabled = Config.shadows_enabled
 
 		night_factor = 0.0
@@ -138,6 +138,7 @@ func _process(delta):
 		if sky_mat:
 			sky_mat.set_shader_parameter("golden_hour_factor", _golden_hour_transition)
 			sky_mat.set_shader_parameter("night_factor", night_factor)
+			sky_mat.set_shader_parameter("sky_luminosity", Config.sky_luminosity)
 
 	# Only update branch time on branch functions
 	if Config.function_type == 14:
@@ -170,7 +171,9 @@ func _process(delta):
 		"terrain_metallic": Config.terrain_metallic,
 		"terrain_roughness": Config.terrain_roughness,
 		"morph_type": Config.morph_type,
-		"morph_value": Config.morph_value
+		"morph_value": Config.morph_value,
+		"sky_luminosity": Config.sky_luminosity,
+		"sun_luminosity": Config.sun_luminosity
 	}
 
 	var state_changed = current_field_state != _last_field_state
