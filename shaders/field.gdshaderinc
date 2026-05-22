@@ -1,7 +1,7 @@
 // Shared field and height functions for shaders
 
 uniform int iterations = 120;
-uniform float log_n_cache[1024];
+uniform float log_n_cache[8192];
 uniform float zoom_factor = 1.0;
 uniform int function_type = 0; // 0: Zeta, 1: Zeta continuation, 2: Dirichlet Eta, 3: Dirichlet Beta, 4: Gamma, 5: Log Gamma, 6: Dedekind Eta, 7: Mandelbrot, 8: Sin, 9: Cos, 10: Tan, 11: Exp, 12: Log, 13: Rational, 14: Multivalued
 uniform int height_type = 0;   // 0: Log, 1: Abs
@@ -92,7 +92,7 @@ FieldData dirichlet_eta_with_derivatives(float sigma, float t, int iters) {
     vec2 eta = vec2(0.0);
     vec2 deta_dsigma = vec2(0.0);
     for (int n = 1; n <= iters; n += 2) {
-        if (n >= 1024) break;
+        if (n >= 8191) break;
         float nf = float(n);
         float amp = pow(nf, -sigma);
         if (amp < 1e-6) break;
@@ -103,16 +103,14 @@ FieldData dirichlet_eta_with_derivatives(float sigma, float t, int iters) {
         deta_dsigma -= log_n * term;
 
         int n2 = n + 1;
-        if (n2 <= iters && n2 < 1024) {
-            float nf2 = float(n2);
-            float amp2 = pow(nf2, -sigma);
-            if (amp2 < 1e-6) break;
-            float log_n2 = log_n_cache[n2];
-            float theta2 = -t * log_n2;
-            vec2 term2 = amp2 * vec2(cos(theta2), sin(theta2));
-            eta -= term2;
-            deta_dsigma += log_n2 * term2;
-        }
+        float nf2 = float(n2);
+        float amp2 = pow(nf2, -sigma);
+        if (amp2 < 1e-6) break;
+        float log_n2 = log_n_cache[n2];
+        float theta2 = -t * log_n2;
+        vec2 term2 = amp2 * vec2(cos(theta2), sin(theta2));
+        eta -= term2;
+        deta_dsigma += log_n2 * term2;
     }
     FieldData result;
     result.value = eta;
@@ -126,7 +124,7 @@ FieldData dirichlet_beta_with_derivatives(float sigma, float t, int iters) {
     vec2 dbeta_dsigma = vec2(0.0);
     for (int n = 0; n < iters; n += 2) {
         int k = 2 * n + 1;
-        if (k >= 1024) break;
+        if (k >= 8190) break;
         float kf = float(k);
         float amp = pow(kf, -sigma);
         if (amp < 1e-6) break;
@@ -137,18 +135,15 @@ FieldData dirichlet_beta_with_derivatives(float sigma, float t, int iters) {
         dbeta_dsigma -= log_k * term;
 
         int n2 = n + 1;
-        if (n2 < iters) {
-            int k2 = 2 * n2 + 1;
-            if (k2 >= 1024) break;
-            float kf2 = float(k2);
-            float amp2 = pow(kf2, -sigma);
-            if (amp2 < 1e-6) break;
-            float log_k2 = log_n_cache[k2];
-            float theta2 = -t * log_k2;
-            vec2 term2 = amp2 * vec2(cos(theta2), sin(theta2));
-            beta -= term2;
-            dbeta_dsigma += log_k2 * term2;
-        }
+        int k2 = 2 * n2 + 1;
+        float kf2 = float(k2);
+        float amp2 = pow(kf2, -sigma);
+        if (amp2 < 1e-6) break;
+        float log_k2 = log_n_cache[k2];
+        float theta2 = -t * log_k2;
+        vec2 term2 = amp2 * vec2(cos(theta2), sin(theta2));
+        beta -= term2;
+        dbeta_dsigma += log_k2 * term2;
     }
     FieldData result;
     result.value = beta;
