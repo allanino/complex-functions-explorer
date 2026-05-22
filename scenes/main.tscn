@@ -26,6 +26,17 @@ sky = SubResource("Sky_1")
 tonemap_mode = 2
 glow_enabled = true
 
+fog_enabled = true
+fog_light_color = Color(0.5, 0.6, 0.7, 1)
+fog_light_energy = 1.0
+fog_density = 0.02
+fog_aerial_perspective = 0.5
+
+volumetric_fog_enabled = false
+volumetric_fog_density = 0.03
+volumetric_fog_albedo = Color(0.5, 0.6, 0.7, 1)
+
+
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_2"]
 render_priority = 0
 shader = ExtResource("6_terrain")
