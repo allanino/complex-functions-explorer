@@ -150,7 +150,7 @@ const DESCRIPTIONS = {
 	"HUD Scale": "Adjust the size of the HUD elements.",
 	"Background Music": "Adjust the volume of the ambient mathematical soundscape.",
 	"Topographic Drone": "Adjust the volume of the terrain-responsive spatial audio.",
-	"Zeros proximity": "Distance threshold for detecting and reacting to function zeros.",
+	"Zeros proximity": "Terrain height threshold for detecting and reacting to function zeros.",
 	"Brightness": "Adjust the overall brightness of the terrain surface.",
 	"Terrain Morph": "Transition between the flat complex plane and the 3D terrain.",
 	"Flow": "Overlay flowing arrows that follow the terrain gradient.",
