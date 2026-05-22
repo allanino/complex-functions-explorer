@@ -85,11 +85,11 @@ func setup_portal_sfx():
 	portal_sfx_player.name = "PortalSfx"
 	add_child(portal_sfx_player)
 
-	var sfx_path = "res://assets/portal-crossing.wav"
+	var sfx_path = "res://assets/portal-crossing.mp3"
 	var sfx_stream = load(sfx_path)
 	if sfx_stream:
 		portal_sfx_player.stream = sfx_stream
-		portal_sfx_player.volume_db = -6.0
+		portal_sfx_player.volume_db = -20.0
 	else:
 		print("Warning: Portal SFX not found at ", sfx_path)
 
