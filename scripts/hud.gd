@@ -27,7 +27,8 @@ extends CanvasLayer
 @onready var height_eps_container = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/HeightEpsContainer
 @onready var height_eps_input = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/HeightEpsContainer/HeightEpsInput
 @onready var iter_container = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/IterContainer
-@onready var iter_input = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/IterContainer/IterInput
+@onready var iter_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/IterContainer/IterSlider
+@onready var iter_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/IterContainer/IterValue
 @onready var rational_container = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/RationalContainer
 @onready var rational_input = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/RationalContainer/RationalInput
 @onready var multivalued_mode_container = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/MultivaluedModeContainer
@@ -63,6 +64,10 @@ extends CanvasLayer
 @onready var environment_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/EnvironmentContainer/EnvironmentButton
 @onready var sunrise_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/SunriseContainer/SunriseSlider
 @onready var sunrise_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/SunriseContainer/SunriseValue
+@onready var sky_luminosity_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/SkyLuminosityContainer/SkyLuminositySlider
+@onready var sky_luminosity_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/SkyLuminosityContainer/SkyLuminosityValue
+@onready var sun_luminosity_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/SunLuminosityContainer/SunLuminositySlider
+@onready var sun_luminosity_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/SunLuminosityContainer/SunLuminosityValue
 @onready var shadows_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/GRAPHICS/ShadowsCheckbox
 
 @onready var hud_complex_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/HUD/HudComplexCheckbox
@@ -133,6 +138,8 @@ const DESCRIPTIONS = {
 	"Critical Stripe": "Visual guide indicating the 0 < Re < 1 region where non-trivial zeros reside.",
 	"Sun Position": "Select between a static sun at noon, a static sun at golden hour, or a dynamic day/night cycle.",
 	"Sunrise Direction": "Adjust the angle from which the sun rises (180° is towards +σ).",
+	"Sky Luminosity": "Adjust the overall brightness of the sky and clouds.",
+	"Sun Luminosity": "Adjust the intensity of the sun and moon light.",
 	"Shadows": "Enable real-time directional shadows for terrain features.",
 	"Complex plane": "Show the domain coloring map of the current position on the HUD.",
 	"Navigation": "Show coordinate and magnitude information on the HUD.",
@@ -155,14 +162,19 @@ const DESCRIPTIONS = {
 var current_scale = 2.0
 var _initial_bg_music_volume: float
 var _initial_drone_volume: float
+var _initial_iterations: int
 var _initial_terrain_brightness: float
 var _initial_terrain_saturation: float
 var _initial_terrain_albedo: float
 var _initial_terrain_emission: float
 var _initial_terrain_metallic: float
 var _initial_terrain_roughness: float
+var _initial_hud_scale: float
+var _initial_sky_luminosity: float
+var _initial_sun_luminosity: float
 
 func _ready():
+	hud_columns.offset_top = -1000
 	apply_button.pressed.connect(_on_set_pos_pressed)
 	close_button.pressed.connect(toggle_menu)
 	quit_button.pressed.connect(_on_quit_pressed)
@@ -176,7 +188,10 @@ func _ready():
 	zero_speed_slider.value_changed.connect(_on_zero_speed_value_changed)
 	view_distance_slider.value_changed.connect(_on_view_distance_value_changed)
 	sunrise_slider.value_changed.connect(_on_sunrise_value_changed)
+	sky_luminosity_slider.value_changed.connect(_on_sky_luminosity_value_changed)
+	sun_luminosity_slider.value_changed.connect(_on_sun_luminosity_value_changed)
 	hud_scale_slider.value_changed.connect(_on_hud_scale_value_changed)
+	iter_slider.value_changed.connect(_on_iterations_value_changed)
 
 	get_viewport().size_changed.connect(_update_hud_layout)
 	multivalued_slider.value_changed.connect(_on_multivalued_n_value_changed)
@@ -324,12 +339,16 @@ func toggle_menu(applied: bool = false):
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 		_initial_bg_music_volume = Config.bg_music_volume
 		_initial_drone_volume = Config.drone_volume
+		_initial_iterations = Config.iterations
 		_initial_terrain_brightness = Config.terrain_brightness
 		_initial_terrain_saturation = Config.terrain_saturation
 		_initial_terrain_albedo = Config.terrain_albedo
 		_initial_terrain_emission = Config.terrain_emission
 		_initial_terrain_metallic = Config.terrain_metallic
 		_initial_terrain_roughness = Config.terrain_roughness
+		_initial_hud_scale = Config.hud_scale
+		_initial_sky_luminosity = Config.sky_luminosity
+		_initial_sun_luminosity = Config.sun_luminosity
 
 		if player:
 			var scale_factor = 1.0 / Config.effective_zoom
@@ -339,7 +358,8 @@ func toggle_menu(applied: bool = false):
 			if not is_finite(im_val): im_val = 0.0
 			re_input.text = "%.3f" % re_val
 			im_input.text = "%.3f" % im_val
-		iter_input.text = str(Config.iterations)
+		iter_slider.value = Config.iterations
+		_on_iterations_value_changed(Config.iterations)
 		speed_input.text = "%.1f" % (Config.movement_speed * 0.1)
 		zoom_slider.value = _zoom_to_slider(Config.zoom_factor)
 		_on_zoom_value_changed(zoom_slider.value)
@@ -358,6 +378,10 @@ func toggle_menu(applied: bool = false):
 		environment_button.selected = Config.environment_type
 		sunrise_slider.value = Config.sunrise_direction
 		_on_sunrise_value_changed(Config.sunrise_direction)
+		sky_luminosity_slider.value = Config.sky_luminosity * 100.0
+		_on_sky_luminosity_value_changed(sky_luminosity_slider.value)
+		sun_luminosity_slider.value = Config.sun_luminosity * 100.0
+		_on_sun_luminosity_value_changed(sun_luminosity_slider.value)
 		shadows_checkbox.button_pressed = Config.shadows_enabled
 		hud_complex_checkbox.button_pressed = Config.show_hud_complex
 		hud_navigation_checkbox.button_pressed = Config.show_hud_navigation
@@ -408,18 +432,24 @@ func toggle_menu(applied: bool = false):
 		if not applied:
 			Config.bg_music_volume = _initial_bg_music_volume
 			Config.drone_volume = _initial_drone_volume
+			Config.iterations = _initial_iterations
 			Config.terrain_brightness = _initial_terrain_brightness
 			Config.terrain_saturation = _initial_terrain_saturation
 			Config.terrain_albedo = _initial_terrain_albedo
 			Config.terrain_emission = _initial_terrain_emission
 			Config.terrain_metallic = _initial_terrain_metallic
 			Config.terrain_roughness = _initial_terrain_roughness
+			if Config.hud_scale != _initial_hud_scale:
+				Config.hud_scale = _initial_hud_scale
+				_update_hud_layout()
+			Config.sky_luminosity = _initial_sky_luminosity
+			Config.sun_luminosity = _initial_sun_luminosity
 
 func _on_func_selected(index):
 	var is_zeta_variant = (index >= 0 and index <= 3)
 
 	if index == 6 and Config.function_type != 6:
-		iter_input.text = "10"
+		iter_slider.value = 100 # Minimum value allowed by slider
 
 	rational_container.visible = (index == 13)
 	multivalued_mode_container.visible = (index == 14)
@@ -464,8 +494,22 @@ func _on_view_distance_value_changed(value):
 func _on_sunrise_value_changed(value):
 	sunrise_value.text = str(int(value)) + "°"
 
+func _on_sky_luminosity_value_changed(value):
+	Config.sky_luminosity = value / 100.0
+	sky_luminosity_value.text = str(int(value)) + "%"
+
+func _on_sun_luminosity_value_changed(value):
+	Config.sun_luminosity = value / 100.0
+	sun_luminosity_value.text = str(int(value)) + "%"
+
 func _on_hud_scale_value_changed(value):
 	hud_scale_value.text = str(int(value)) + "%"
+	Config.hud_scale = value / 100.0
+	_update_hud_layout()
+
+func _on_iterations_value_changed(value):
+	Config.iterations = int(value)
+	iter_value.text = str(int(value))
 
 func _on_multivalued_n_value_changed(value):
 	multivalued_value.text = str(int(value))
@@ -567,7 +611,7 @@ func _on_set_pos_pressed():
 	if not is_finite(re): re = 0.5
 	if not is_finite(im): im = 0.0
 
-	var iters = int(iter_input.text)
+	var iters = int(iter_slider.value)
 	var h_a = float(height_a_input.text)
 	if not is_finite(h_a): h_a = 3.0
 	var h_eps = float(height_eps_input.text)
@@ -592,6 +636,8 @@ func _on_set_pos_pressed():
 	Config.show_critical_stripe = critical_checkbox.button_pressed
 	Config.environment_type = environment_button.selected
 	Config.sunrise_direction = sunrise_slider.value
+	Config.sky_luminosity = sky_luminosity_slider.value / 100.0
+	Config.sun_luminosity = sun_luminosity_slider.value / 100.0
 	Config.shadows_enabled = shadows_checkbox.button_pressed
 	Config.show_hud_complex = hud_complex_checkbox.button_pressed
 	Config.show_hud_navigation = hud_navigation_checkbox.button_pressed
@@ -762,6 +808,11 @@ func _update_hud_layout():
 	if not hud_columns: return
 
 	var cards = [complex_panel, info_panel, monitor_panel, zeros_panel, perf_label]
+
+	# Always rescale all cards to ensure their combined_minimum_size is correct for height check
+	for card in cards:
+		_rescale_card(card, Config.hud_scale)
+
 	var current_state = {
 		"size": get_viewport().size,
 		"scale": Config.hud_scale,
@@ -772,10 +823,11 @@ func _update_hud_layout():
 		return
 	_last_hud_state = current_state
 
-	hud_columns.scale = Vector2.ONE * Config.hud_scale
-	hud_columns.pivot_offset = hud_columns.size
+	# Scale stack widths to accommodate wider fonts
+	hud_stack_right.custom_minimum_size.x = 150 * Config.hud_scale
+	hud_stack_left.custom_minimum_size.x = 150 * Config.hud_scale
 
-	var available_height = (get_viewport().size.y - 40) / Config.hud_scale
+	var available_height = get_viewport().size.y - 40
 	var current_height = 0.0
 	var separation = 10.0
 
@@ -794,6 +846,9 @@ func _update_hud_layout():
 	_apply_stack_layout(hud_stack_right, right_cards)
 	_apply_stack_layout(hud_stack_left, left_cards)
 
+	hud_stack_right.add_theme_constant_override("separation", 10)
+	hud_stack_left.add_theme_constant_override("separation", 10)
+
 func _apply_stack_layout(stack: VBoxContainer, desired_cards: Array):
 	for child in stack.get_children():
 		if not child in desired_cards:
@@ -806,3 +861,48 @@ func _apply_stack_layout(stack: VBoxContainer, desired_cards: Array):
 				card.get_parent().remove_child(card)
 			stack.add_child(card)
 		stack.move_child(card, 0)
+
+func _rescale_card(card: Control, scale: float):
+	if card == null: return
+
+	if card.has_meta("last_applied_scale") and card.get_meta("last_applied_scale") == scale:
+		return
+	card.set_meta("last_applied_scale", scale)
+
+	var stack = [card]
+	while stack.size() > 0:
+		var node = stack.pop_back()
+		if node is Label:
+			if not node.has_meta("base_font_size"):
+				node.set_meta("base_font_size", node.get_theme_font_size("font_size"))
+			node.add_theme_font_size_override("font_size", int(round(node.get_meta("base_font_size") * scale)))
+		elif node is RichTextLabel:
+			if not node.has_meta("base_font_size"):
+				node.set_meta("base_font_size", node.get_theme_font_size("normal_font_size"))
+			node.add_theme_font_size_override("normal_font_size", int(round(node.get_meta("base_font_size") * scale)))
+
+		if node is Control:
+			# Only scale custom minimum size for specific panels to maintain layout proportions
+			if node.name == "ComplexAspect":
+				if not node.has_meta("base_min_size"):
+					node.set_meta("base_min_size", Vector2(150, 150))
+				node.custom_minimum_size = node.get_meta("base_min_size") * scale
+			elif node.name == "ZerosPanel" or node.name == "InfoPanel":
+				if not node.has_meta("base_min_size"):
+					node.set_meta("base_min_size", node.custom_minimum_size)
+				node.custom_minimum_size.y = node.get_meta("base_min_size").y * scale
+
+			# Keep container separations and margins constant at their original design values
+			if node is BoxContainer:
+				if not node.has_meta("base_separation"):
+					node.set_meta("base_separation", node.get_theme_constant("separation"))
+				node.add_theme_constant_override("separation", node.get_meta("base_separation"))
+			elif node is MarginContainer:
+				for margin in ["margin_left", "margin_top", "margin_right", "margin_bottom"]:
+					if not node.has_meta("base_" + margin):
+						node.set_meta("base_" + margin, node.get_theme_constant(margin))
+					node.add_theme_constant_override(margin, node.get_meta("base_" + margin))
+
+		for child in node.get_children():
+			if child is Control:
+				stack.push_back(child)

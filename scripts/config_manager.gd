@@ -29,6 +29,8 @@ var show_flow: bool = false
 var color_scheme: int = 0
 var environment_type: int = 0
 var sunrise_direction: float = 0.0
+var sky_luminosity: float = 1.0
+var sun_luminosity: float = 1.0
 var shadows_enabled: bool = false
 var terrain_brightness: float = 1.0
 var terrain_saturation: float = 0.85
@@ -91,6 +93,8 @@ func save_settings():
 	config.set_value("rendering", "color_scheme", color_scheme)
 	config.set_value("rendering", "environment_type", environment_type)
 	config.set_value("rendering", "sunrise_direction", sunrise_direction)
+	config.set_value("rendering", "sky_luminosity", sky_luminosity)
+	config.set_value("rendering", "sun_luminosity", sun_luminosity)
 	config.set_value("rendering", "shadows_enabled", shadows_enabled)
 	config.set_value("rendering", "terrain_brightness", terrain_brightness)
 	config.set_value("rendering", "terrain_saturation", terrain_saturation)
@@ -148,6 +152,8 @@ func load_settings():
 	color_scheme = config.get_value("rendering", "color_scheme", color_scheme)
 	environment_type = config.get_value("rendering", "environment_type", environment_type)
 	sunrise_direction = config.get_value("rendering", "sunrise_direction", sunrise_direction)
+	sky_luminosity = config.get_value("rendering", "sky_luminosity", sky_luminosity)
+	sun_luminosity = config.get_value("rendering", "sun_luminosity", sun_luminosity)
 	shadows_enabled = config.get_value("rendering", "shadows_enabled", shadows_enabled)
 	terrain_brightness = config.get_value("rendering", "terrain_brightness", terrain_brightness)
 	terrain_saturation = config.get_value("rendering", "terrain_saturation", terrain_saturation)
