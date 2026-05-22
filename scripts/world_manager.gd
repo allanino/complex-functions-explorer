@@ -301,7 +301,7 @@ func _get_lod_level(coord: Vector2i, player_coord: Vector2i) -> int:
 		return 1
 	elif dist <= 4:
 		return 2
-	elif dist <= 5:
+	elif dist <= 6:
 		return 3
 	else:
 		return 4
