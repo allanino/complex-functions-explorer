@@ -211,7 +211,7 @@ func _physics_process(delta):
 	global_position.y = terrain_h + Config.camera_height / Config.effective_zoom + height_offset
 
 	# Multivalued branch crossing detection
-	if Config.function_type == 14 and Config.multivalued_mode == 1:
+	if Config.function_type == 15 and Config.multivalued_mode == 1:
 		# Detect crossing of the positive real axis (sigma > 0, t=0)
 		if current_sigma > 0.0:
 			var branch_changed = false

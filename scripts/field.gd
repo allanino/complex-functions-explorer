@@ -41,6 +41,9 @@ static func complex_cos(sigma: float, t: float) -> Vector2:
 static func complex_tan(sigma: float, t: float) -> Vector2:
 	return complex_div(complex_sin(sigma, t), complex_cos(sigma, t))
 
+static func complex_cot(sigma: float, t: float) -> Vector2:
+	return complex_div(complex_cos(sigma, t), complex_sin(sigma, t))
+
 #-------------------------------------------------------------------------
 # Component Functions: Zeta, Eta, Gamma, Dedekind Eta
 #-------------------------------------------------------------------------
@@ -260,10 +263,11 @@ static func get_field(x: float, z: float) -> Vector2:
 	elif function_type == 8: return complex_sin(sigma, t)
 	elif function_type == 9: return complex_cos(sigma, t)
 	elif function_type == 10: return complex_tan(sigma, t)
-	elif function_type == 11: return complex_exp(sigma, t)
-	elif function_type == 12: return complex_log(sigma, t)
-	elif function_type == 13: return get_rational(sigma, t)
-	elif function_type == 14: return multivalued_z_pow_inv_n(sigma, t, Config.multivalued_n, Config.branch_cycle_speed)
+	elif function_type == 11: return complex_cot(sigma, t)
+	elif function_type == 12: return complex_exp(sigma, t)
+	elif function_type == 13: return complex_log(sigma, t)
+	elif function_type == 14: return get_rational(sigma, t)
+	elif function_type == 15: return multivalued_z_pow_inv_n(sigma, t, Config.multivalued_n, Config.branch_cycle_speed)
 	return Vector2.ZERO
 
 static func get_height_from_field(f: Vector2) -> float:

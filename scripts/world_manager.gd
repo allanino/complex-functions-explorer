@@ -155,7 +155,7 @@ func _process(delta):
 			sky_mat.set_shader_parameter("sky_luminosity", Config.sky_luminosity)
 
 	# Only update branch time on branch functions
-	if Config.function_type >= 14 and Config.function_type <= 17:
+	if Config.function_type >= 15 and Config.function_type <= 18:
 		Config.branch_time = Time.get_ticks_msec() / 1000.0
 
 	if terrain_material:
@@ -232,7 +232,7 @@ func _process(delta):
 		_update_all_chunks_lod()
 
 	if portal_frame:
-		var is_portal_mode = (Config.function_type == 14 and Config.multivalued_mode == 1)
+		var is_portal_mode = (Config.function_type == 15 and Config.multivalued_mode == 1)
 		portal_frame.visible = is_portal_mode
 		if is_portal_mode:
 			var zoom = Config.effective_zoom
