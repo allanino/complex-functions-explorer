@@ -42,6 +42,7 @@ var pitch_shift_effect: AudioEffectPitchShift
 var reverb_effect: AudioEffectReverb
 var lpf_effect: AudioEffectLowPassFilter
 
+var portal_sfx_player: AudioStreamPlayer
 var player: Node3D
 
 func _ready():
@@ -73,6 +74,24 @@ func _ready():
 	await get_tree().process_frame
 
 	setup_background_music()
+	setup_portal_sfx()
+
+func play_portal_crossing():
+	if portal_sfx_player and not is_suppressed:
+		portal_sfx_player.play()
+
+func setup_portal_sfx():
+	portal_sfx_player = AudioStreamPlayer.new()
+	portal_sfx_player.name = "PortalSfx"
+	add_child(portal_sfx_player)
+
+	var sfx_path = "res://assets/portal-crossing.wav"
+	var sfx_stream = load(sfx_path)
+	if sfx_stream:
+		portal_sfx_player.stream = sfx_stream
+		portal_sfx_player.volume_db = -6.0
+	else:
+		print("Warning: Portal SFX not found at ", sfx_path)
 
 func setup_background_music():
 	var music_player = AudioStreamPlayer.new()

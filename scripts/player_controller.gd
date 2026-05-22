@@ -206,12 +206,20 @@ func _physics_process(delta):
 	if Config.function_type == 14 and Config.multivalued_mode == 1:
 		# Detect crossing of the positive real axis (sigma > 0, t=0)
 		if current_sigma > 0.0:
+			var branch_changed = false
 			if last_t < 0.0 and current_t >= 0.0:
 				# Crossed from -t to +t (counter-clockwise around origin)
 				Config.current_branch = (Config.current_branch + 1) % Config.multivalued_n
+				branch_changed = true
 			elif last_t > 0.0 and current_t <= 0.0:
 				# Crossed from +t to -t (clockwise around origin)
 				Config.current_branch = (Config.current_branch + Config.multivalued_n - 1) % Config.multivalued_n
+				branch_changed = true
+
+			if branch_changed:
+				var spatial_audio = get_node_or_null("/root/Main/SpatialAudio")
+				if spatial_audio and spatial_audio.has_method("play_portal_crossing"):
+					spatial_audio.play_portal_crossing()
 
 	last_t = current_t
 
