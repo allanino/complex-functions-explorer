@@ -283,7 +283,7 @@ func _on_tooltip_timer_timeout():
 		return
 
 	if _pending_tooltip_key != "":
-		tooltip_label.custom_minimum_size.x = 250 * Config.hud_scale
+		tooltip_label.custom_minimum_size.x = 250
 		tooltip_label.text = DESCRIPTIONS[_pending_tooltip_key]
 		tooltip.visible = true
 		# Force a complete layout recalculation to fix the first-render height bug
@@ -294,7 +294,7 @@ func _on_tooltip_timer_timeout():
 func _update_tooltip_position():
 	var mouse_pos = get_viewport().get_mouse_position()
 	# Position at the tip of the mouse
-	tooltip.global_position = mouse_pos + Vector2(5, 5) * Config.hud_scale
+	tooltip.global_position = mouse_pos + Vector2(5, 5)
 
 func apply_aa():
 	var vp = get_viewport()
@@ -743,13 +743,6 @@ func _update_hud_layout():
 
 	if current_state.hash() == _last_hud_state.hash():
 		return
-
-	# Scale UI elements if the scale factor changed
-	if not _last_hud_state.has("scale") or _last_hud_state["scale"] != Config.hud_scale:
-		_rescale_ui_recursive(hud_columns, Config.hud_scale)
-		_rescale_ui_recursive(menu_overlay, Config.hud_scale)
-		_rescale_ui_recursive(tooltip, Config.hud_scale)
-
 	_last_hud_state = current_state
 
 	var available_height = get_viewport().size.y - 40
@@ -761,7 +754,7 @@ func _update_hud_layout():
 
 	for card in cards:
 		if not card.visible: continue
-		_rescale_ui_recursive(card, Config.hud_scale)
+		_rescale_card(card, Config.hud_scale)
 		var card_height = card.get_combined_minimum_size().y
 		if current_height + card_height <= available_height:
 			right_cards.push_back(card)
@@ -771,6 +764,9 @@ func _update_hud_layout():
 
 	_apply_stack_layout(hud_stack_right, right_cards)
 	_apply_stack_layout(hud_stack_left, left_cards)
+
+	hud_stack_right.add_theme_constant_override("separation", int(round(10.0 * Config.hud_scale)))
+	hud_stack_left.add_theme_constant_override("separation", int(round(10.0 * Config.hud_scale)))
 
 func _apply_stack_layout(stack: VBoxContainer, desired_cards: Array):
 	for child in stack.get_children():
@@ -785,117 +781,39 @@ func _apply_stack_layout(stack: VBoxContainer, desired_cards: Array):
 			stack.add_child(card)
 		stack.move_child(card, 0)
 
-func _rescale_ui_recursive(node: Node, scale: float):
-	if node == null: return
+func _rescale_card(card: Control, scale: float):
+	if card == null: return
 
-	if node.has_meta("last_applied_scale") and node.get_meta("last_applied_scale") == scale:
-		# If this node and its branch were already scaled, we can skip if it's not a container
-		# that might have dynamic children. For safety in this project, we only skip if it's not
-		# one of our main stacks or containers.
-		if not node == hud_columns and not node == menu_overlay and not node == tooltip:
-			return
+	if card.has_meta("last_applied_scale") and card.get_meta("last_applied_scale") == scale:
+		return
+	card.set_meta("last_applied_scale", scale)
 
-	if node is Control or node is Window:
-		var node_type = node.get_class()
+	var stack = [card]
+	while stack.size() > 0:
+		var node = stack.pop_back()
+		if node is Label or node is RichTextLabel:
+			if not node.has_meta("base_font_size"):
+				node.set_meta("base_font_size", node.get_theme_font_size("font_size"))
+			node.add_theme_font_size_override("font_size", int(round(node.get_meta("base_font_size") * scale)))
 
-		# Iterate through class hierarchy to find all theme items
-		var types_to_check = [node_type]
-		var parent_type = ClassDB.get_parent_class(node_type)
-		while parent_type != "" and parent_type != "Node":
-			types_to_check.append(parent_type)
-			parent_type = ClassDB.get_parent_class(parent_type)
-
-		# Font size scaling
-		for type in types_to_check:
-			for key in node.get_theme_item_list(Theme.DATA_TYPE_FONT_SIZE, type):
-				var base_key = "base_font_size_" + key
-				var base_val = 0
-				if node.has_meta(base_key):
-					base_val = node.get_meta(base_key)
-				else:
-					base_val = node.get_theme_font_size(key, type)
-					node.set_meta(base_key, base_val)
-				node.add_theme_font_size_override(key, int(round(base_val * scale)))
-
-		# Constants (separation, margins, etc.)
-		for type in types_to_check:
-			for key in node.get_theme_item_list(Theme.DATA_TYPE_CONSTANT, type):
-				var base_key = "base_constant_" + key
-				var base_val = 0
-				if node.has_meta(base_key):
-					base_val = node.get_meta(base_key)
-				else:
-					base_val = node.get_theme_constant(key, type)
-					node.set_meta(base_key, base_val)
-				node.add_theme_constant_override(key, int(round(base_val * scale)))
-
-		# Size scaling
 		if node is Control:
+			# Scale custom minimum size if it was explicitly set
 			if not node.has_meta("base_min_size"):
 				node.set_meta("base_min_size", node.custom_minimum_size)
-			node.custom_minimum_size = node.get_meta("base_min_size") * scale
-		elif node is Window:
-			if not node.has_meta("base_min_size"):
-				node.set_meta("base_min_size", node.min_size)
-			node.min_size = Vector2i(node.get_meta("base_min_size") * scale)
+			if node.get_meta("base_min_size") != Vector2.ZERO:
+				node.custom_minimum_size = node.get_meta("base_min_size") * scale
 
-		# StyleBox scaling
-		var stylebox_names = ["panel", "normal", "hover", "pressed", "focus", "disabled", "tab_selected", "tab_unselected"]
-		for sb_name in stylebox_names:
-			for type in types_to_check:
-				if node.has_theme_stylebox(sb_name, type):
-					var sb = node.get_theme_stylebox(sb_name, type)
-					if not node.has_theme_stylebox_override(sb_name):
-						sb = sb.duplicate()
-						node.add_theme_stylebox_override(sb_name, sb)
-					_rescale_stylebox(sb, scale)
+			# Scale container separations and margins
+			if node is BoxContainer:
+				if not node.has_meta("base_separation"):
+					node.set_meta("base_separation", node.get_theme_constant("separation"))
+				node.add_theme_constant_override("separation", int(round(node.get_meta("base_separation") * scale)))
+			elif node is MarginContainer:
+				for margin in ["margin_left", "margin_top", "margin_right", "margin_bottom"]:
+					if not node.has_meta("base_" + margin):
+						node.set_meta("base_" + margin, node.get_theme_constant(margin))
+					node.add_theme_constant_override(margin, int(round(node.get_meta("base_" + margin) * scale)))
 
-		if node is OptionButton:
-			_rescale_ui_recursive(node.get_popup(), scale)
-
-	node.set_meta("last_applied_scale", scale)
-	for child in node.get_children():
-		_rescale_ui_recursive(child, scale)
-
-func _rescale_stylebox(sb: StyleBox, scale: float):
-	if sb is StyleBoxFlat:
-		# Border width
-		if not sb.has_meta("base_border_left"):
-			sb.set_meta("base_border_left", sb.border_width_left)
-			sb.set_meta("base_border_top", sb.border_width_top)
-			sb.set_meta("base_border_right", sb.border_width_right)
-			sb.set_meta("base_border_bottom", sb.border_width_bottom)
-		sb.border_width_left = int(round(sb.get_meta("base_border_left") * scale))
-		sb.border_width_top = int(round(sb.get_meta("base_border_top") * scale))
-		sb.border_width_right = int(round(sb.get_meta("base_border_right") * scale))
-		sb.border_width_bottom = int(round(sb.get_meta("base_border_bottom") * scale))
-
-		# Corner radius
-		if not sb.has_meta("base_radius_tl"):
-			sb.set_meta("base_radius_tl", sb.corner_radius_top_left)
-			sb.set_meta("base_radius_tr", sb.corner_radius_top_right)
-			sb.set_meta("base_radius_br", sb.corner_radius_bottom_right)
-			sb.set_meta("base_radius_bl", sb.corner_radius_bottom_left)
-		sb.corner_radius_top_left = int(round(sb.get_meta("base_radius_tl") * scale))
-		sb.corner_radius_top_right = int(round(sb.get_meta("base_radius_tr") * scale))
-		sb.corner_radius_bottom_right = int(round(sb.get_meta("base_radius_br") * scale))
-		sb.corner_radius_bottom_left = int(round(sb.get_meta("base_radius_bl") * scale))
-
-		# Shadow
-		if not sb.has_meta("base_shadow_size"):
-			sb.set_meta("base_shadow_size", sb.shadow_size)
-			sb.set_meta("base_shadow_offset", sb.shadow_offset)
-		sb.shadow_size = int(round(sb.get_meta("base_shadow_size") * scale))
-		sb.shadow_offset = sb.get_meta("base_shadow_offset") * scale
-
-		# Content margins
-		if not sb.has_meta("base_margin_left"):
-			sb.set_meta("base_margin_left", sb.content_margin_left)
-			sb.set_meta("base_margin_top", sb.content_margin_top)
-			sb.set_meta("base_margin_right", sb.content_margin_right)
-			sb.set_meta("base_margin_bottom", sb.content_margin_bottom)
-		# Content margin can be -1 (default), don't scale it if it's -1
-		if sb.get_meta("base_margin_left") >= 0: sb.content_margin_left = sb.get_meta("base_margin_left") * scale
-		if sb.get_meta("base_margin_top") >= 0: sb.content_margin_top = sb.get_meta("base_margin_top") * scale
-		if sb.get_meta("base_margin_right") >= 0: sb.content_margin_right = sb.get_meta("base_margin_right") * scale
-		if sb.get_meta("base_margin_bottom") >= 0: sb.content_margin_bottom = sb.get_meta("base_margin_bottom") * scale
+		for child in node.get_children():
+			if child is Control:
+				stack.push_back(child)
