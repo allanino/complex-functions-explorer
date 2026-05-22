@@ -248,6 +248,7 @@ func _ready():
 	func_button.add_item("Sin")
 	func_button.add_item("Cos")
 	func_button.add_item("Tan")
+	func_button.add_item("Cot")
 	func_button.add_item("Exp")
 	func_button.add_item("Log")
 	func_button.add_item("Rational")
@@ -503,9 +504,9 @@ func _on_func_selected(index):
 	if index == 6 and Config.function_type != 6:
 		iter_slider.value = 100 # Minimum value allowed by slider
 
-	rational_container.visible = (index == 13)
-	multivalued_mode_container.visible = (index == 14)
-	multivalued_container.visible = (index == 14)
+	rational_container.visible = (index == 14)
+	multivalued_mode_container.visible = (index == 15)
+	multivalued_container.visible = (index == 15)
 	_on_multivalued_mode_selected(multivalued_mode_button.selected)
 	iter_container.visible = (is_zeta_variant or index == 6 or index == 7)
 	critical_checkbox.visible = is_zeta_variant
@@ -519,7 +520,7 @@ func _on_height_selected(index):
 	height_eps_container.visible = is_log
 
 func _on_multivalued_mode_selected(index):
-	var is_multivalued = (func_button.selected == 14)
+	var is_multivalued = (func_button.selected == 15)
 	var is_cycle = (index == 0)
 	cycle_speed_container.visible = is_multivalued and is_cycle
 	morph_time_container.visible = is_multivalued and is_cycle
@@ -752,7 +753,7 @@ func _on_set_pos_pressed():
 
 	apply_aa()
 
-	if Config.function_type == 13:
+	if Config.function_type == 14:
 		var expr = rational_input.text.replace(" ", "")
 		if "/" in expr:
 			var parts = expr.split("/")
@@ -860,7 +861,7 @@ func _process(_delta):
 	var scale_factor = 1.0 / Config.effective_zoom
 	domain_label.text = "Re = %.3f\nIm = %.3f" % [x * 0.1 * scale_factor, -z * 0.1 * scale_factor]
 	var target_text = "Re = %.3f\nIm = %.3f\n|f| = %.3f" % [f.x, f.y, f.length()]
-	if Config.function_type == 14:
+	if Config.function_type == 15:
 		var k = 0
 		if Config.multivalued_mode == 0:
 			var progress = fmod(Config.branch_time * Config.branch_cycle_speed, 1.0) * Config.multivalued_n

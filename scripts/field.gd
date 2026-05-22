@@ -38,8 +38,36 @@ static func complex_sin(sigma: float, t: float) -> Vector2:
 static func complex_cos(sigma: float, t: float) -> Vector2:
 	return Vector2(cos(sigma) * cosh(t), -sin(sigma) * sinh(t))
 
-static func complex_tan(sigma: float, t: float) -> Vector2:
-	return complex_div(complex_sin(sigma, t), complex_cos(sigma, t))
+static func complex_tan(x: float, y: float) -> Vector2:
+	var abs_2y = 2.0 * abs(y)
+	var exp_neg = exp(-abs_2y)
+	var scaled_cosh = 0.5 * (1.0 + exp_neg * exp_neg)
+	var scaled_sinh = 0.5 * (1.0 - exp_neg * exp_neg) * (1.0 if y >= 0.0 else -1.0)
+	var scaled_sin_2x = sin(2.0 * x) * exp_neg
+	var scaled_cos_2x = cos(2.0 * x) * exp_neg
+	var denom = scaled_cosh + scaled_cos_2x
+	return Vector2(scaled_sin_2x / denom, scaled_sinh / denom)
+
+static func complex_cot(x: float, y: float) -> Vector2:
+	var abs_2y = 2.0 * abs(y)
+	var exp_neg = exp(-abs_2y)
+	var scaled_cosh = 0.5 * (1.0 + exp_neg * exp_neg)
+	var scaled_sinh = 0.5 * (1.0 - exp_neg * exp_neg) * (1.0 if y >= 0.0 else -1.0)
+	var scaled_sin_2x = sin(2.0 * x) * exp_neg
+	var scaled_cos_2x = cos(2.0 * x) * exp_neg
+	var denom = scaled_cosh - scaled_cos_2x
+	return Vector2(scaled_sin_2x / denom, -scaled_sinh / denom)
+
+static func complex_log_sin(x: float, y: float) -> Vector2:
+	var abs_y = abs(y)
+	var log_scale = abs_y - log(2.0)
+	var e_neg2 = exp(-2.0 * abs_y)
+	var internal_z = Vector2(
+		sin(x) * (1.0 + e_neg2),
+		(1.0 if y >= 0.0 else -1.0) * cos(x) * (1.0 - e_neg2)
+	)
+	var log_internal = complex_log(internal_z.x, internal_z.y)
+	return Vector2(log_scale + log_internal.x, log_internal.y)
 
 #-------------------------------------------------------------------------
 # Component Functions: Zeta, Eta, Gamma, Dedekind Eta
@@ -118,9 +146,10 @@ static func lanczos_gamma(z_orig: Vector2) -> Vector2:
 
 static func complex_gamma(sigma: float, t: float) -> Vector2:
 	if sigma < 0.5:
-		var sin_pi_z = complex_sin(PI * sigma, PI * t)
-		var g1z = lanczos_gamma(Vector2(1.0 - sigma, -t))
-		return complex_div(Vector2(PI, 0.0), complex_mul(sin_pi_z, g1z))
+		var log_sin_pi_z = complex_log_sin(PI * sigma, PI * t)
+		var lg1z = complex_log_gamma(1.0 - sigma, -t)
+		var log_sum = Vector2(log(PI), 0.0) - log_sin_pi_z - lg1z
+		return complex_exp(log_sum.x, log_sum.y)
 	return lanczos_gamma(Vector2(sigma, t))
 
 static func zeta_continuation(sigma: float, t: float) -> Vector2:
@@ -132,8 +161,7 @@ static func zeta_continuation(sigma: float, t: float) -> Vector2:
 				+ complex_mul(s - Vector2(1.0, 0.0), Vector2(LOG_PI, 0.0)))
 
 	var pi_s_2 = (PI * 0.5) * s
-	var sin_part = complex_sin(pi_s_2.x, pi_s_2.y)
-	log_sum += complex_log(sin_part.x, sin_part.y)
+	log_sum += complex_log_sin(pi_s_2.x, pi_s_2.y)
 
 	log_sum += complex_log_gamma(s1.x, s1.y)
 
@@ -157,9 +185,7 @@ static func lanczos_log_gamma(z: Vector2) -> Vector2:
 static func complex_log_gamma(sigma: float, t: float) -> Vector2:
 	var res: Vector2
 	if sigma < 0.5:
-		var pi_z = Vector2(PI * sigma, PI * t)
-		var s = complex_sin(pi_z.x, pi_z.y)
-		res = Vector2(log(PI), 0.0) - complex_log(s.x, s.y) - lanczos_log_gamma(Vector2(1.0 - sigma, -t))
+		res = Vector2(log(PI), 0.0) - complex_log_sin(PI * sigma, PI * t) - lanczos_log_gamma(Vector2(1.0 - sigma, -t))
 	else:
 		res = lanczos_log_gamma(Vector2(sigma, t))
 	return res
@@ -260,10 +286,11 @@ static func get_field(x: float, z: float) -> Vector2:
 	elif function_type == 8: return complex_sin(sigma, t)
 	elif function_type == 9: return complex_cos(sigma, t)
 	elif function_type == 10: return complex_tan(sigma, t)
-	elif function_type == 11: return complex_exp(sigma, t)
-	elif function_type == 12: return complex_log(sigma, t)
-	elif function_type == 13: return get_rational(sigma, t)
-	elif function_type == 14: return multivalued_z_pow_inv_n(sigma, t, Config.multivalued_n, Config.branch_cycle_speed)
+	elif function_type == 11: return complex_cot(sigma, t)
+	elif function_type == 12: return complex_exp(sigma, t)
+	elif function_type == 13: return complex_log(sigma, t)
+	elif function_type == 14: return get_rational(sigma, t)
+	elif function_type == 15: return multivalued_z_pow_inv_n(sigma, t, Config.multivalued_n, Config.branch_cycle_speed)
 	return Vector2.ZERO
 
 static func get_height_from_field(f: Vector2) -> float:
