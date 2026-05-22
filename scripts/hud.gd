@@ -285,7 +285,14 @@ func _ready():
 
 	apply_aa()
 	_setup_tooltips()
+	_disable_sliders_focus(self)
 	tooltip_timer.timeout.connect(_on_tooltip_timer_timeout)
+
+func _disable_sliders_focus(node: Node):
+	if node is HSlider:
+		node.focus_mode = Control.FOCUS_NONE
+	for child in node.get_children():
+		_disable_sliders_focus(child)
 
 func _setup_tooltips():
 	# We want to find all Labels and CheckBoxes in the menu tabs
