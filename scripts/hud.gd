@@ -184,6 +184,7 @@ const DESCRIPTIONS = {
 }
 
 var current_scale = 2.0
+var _last_zeros_visible: bool = false
 var _initial_master_volume: float
 var _initial_bg_music_volume: float
 var _initial_drone_volume: float
@@ -293,6 +294,7 @@ func _ready():
 	_setup_tooltips()
 	_disable_sliders_focus(self)
 	tooltip_timer.timeout.connect(_on_tooltip_timer_timeout)
+	_last_zeros_visible = Config.show_hud_zeros
 
 func _disable_sliders_focus(node: Node):
 	if node is HSlider:
@@ -771,6 +773,13 @@ func _parse_poly(text: String) -> PackedVector2Array:
 
 	return coeffs
 
+func _get_rvm_n(T: float) -> float:
+	# Riemann-von Mangoldt formula: N(T) ≈ (T/2π) log(T/2πe) + 7/8
+	# For small T, it's roughly (T/2π) * (log(T/2π) - 1)
+	if T <= 0.1:
+		return 0.0
+	return (T / (2.0 * PI)) * (log(T / (2.0 * PI)) - 1.0) + 7.0/8.0
+
 func _zoom_to_slider(zoom: float) -> float:
 	var min_zoom = 0.01
 	var max_zoom = 200.0
@@ -887,6 +896,7 @@ func _on_set_pos_pressed():
 		if auto_walk_checkbox.button_pressed:
 			if player.auto_walk_state == 0: # NONE
 				player.auto_walk_state = 1 # MOVING_TO_LINE
+				Config.rvm_start_t = abs(player.global_position.z * 0.1 / Config.effective_zoom)
 				Config.visited_zeros.clear()
 				if "last_detected_t" in player:
 					player.last_detected_t = -1.0
@@ -899,6 +909,10 @@ func _on_quit_pressed():
 	get_tree().quit()
 
 func _process(_delta):
+	if Config.show_hud_zeros and not _last_zeros_visible:
+		Config.rvm_start_t = abs(player.global_position.z * 0.1 / Config.effective_zoom)
+	_last_zeros_visible = Config.show_hud_zeros
+
 	if tooltip.visible:
 		_update_tooltip_position()
 
@@ -939,13 +953,10 @@ func _process(_delta):
 		zeros_count_label.text = "Count: %d" % total_count
 
 		# Riemann-von Mangoldt formula: N(T) ≈ (T/2π) log(T/2πe) + 7/8
-		# For small T, it's roughly (T/2π) * (log(T/2π) - 1)
-		# A slightly more accurate version for visualization:
 		if Config.show_rvm and f_data.get("has_von_mangoldt", false):
-			var T = abs(z * 0.1)
-			var val = 0.0
-			if T > 0.1:
-				val = (T / (2.0 * PI)) * (log(T / (2.0 * PI)) - 1.0) + 7.0/8.0
+			var T = abs(z * 0.1 / Config.effective_zoom)
+			var val = _get_rvm_n(T) - _get_rvm_n(Config.rvm_start_t)
+			val = max(0.0, val)
 			rvm_label.text = "N(t) ≈ %.2f" % val
 			rvm_label.visible = true
 		else:

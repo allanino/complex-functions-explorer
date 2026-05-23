@@ -181,6 +181,7 @@ var zero_proximity_audio: float = 0.5
 
 # Session state (not saved)
 var visited_zeros: Array[Vector2] = []
+var rvm_start_t: float = 0.0
 var performance_protection_active: bool = false
 var effective_zoom: float = 1.0
 
