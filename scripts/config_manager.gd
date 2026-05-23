@@ -30,16 +30,19 @@ const FUNCTIONS = {
 		"name": "Zeta (σ > 0)",
 		"is_dirichlect": true,
 		"has_iters": true,
+		"has_von_mangoldt": true
 	},
 	ComplexFunc.ZETA_REFLECTION: {
 		"name": "Zeta (reflection formula)",
 		"is_dirichlect": true,
 		"has_iters": true,
+		"has_von_mangoldt": true
 	},
 	ComplexFunc.DIRICHLET_ETA: {
 		"name": "Dirichlet Eta (σ > 0)",
 		"is_dirichlect": true,
 		"has_iters": true,
+		"has_von_mangoldt": true
 	},
 	ComplexFunc.DIRICHLET_BETA: {
 		"name": "Dirichlet Beta (σ > 0)",
@@ -177,7 +180,7 @@ var drone_volume: float = 100.0
 var zero_proximity_audio: float = 0.5
 
 # Session state (not saved)
-var visited_zeros: Array[float] = []
+var visited_zeros: Array[Vector2] = []
 var performance_protection_active: bool = false
 var effective_zoom: float = 1.0
 

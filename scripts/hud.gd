@@ -85,7 +85,7 @@ extends CanvasLayer
 
 @onready var hud_complex_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/HUD/Margin/VBox/HudComplexCheckbox
 @onready var hud_navigation_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/HUD/Margin/VBox/HudNavigationCheckbox
-@onready var hud_zeros_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/HUD/Margin/VBox/HudZetaZerosCheckbox
+@onready var hud_zeros_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/HUD/Margin/VBox/HudZerosDetectionCheckbox
 @onready var rvm_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/HUD/Margin/VBox/RvmCheckbox
 @onready var hud_monitor_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/HUD/Margin/VBox/HudMonitorCheckbox
 @onready var hud_scale_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/HUD/Margin/VBox/HudScaleContainer/HudScaleSlider
@@ -165,8 +165,8 @@ const DESCRIPTIONS = {
 	"Shadows": "Enable real-time directional shadows for terrain features.",
 	"Complex plane": "Show the domain coloring map of the current position on the HUD.",
 	"Navigation": "Show coordinate and magnitude information on the HUD.",
-	"Zeta zeros": "Show the list of discovered zeros during automatic walking.",
-	"Riemann–von Mangoldt": "Show the estimated number of zeros N(t) based on the Riemann–von Mangoldt formula.",
+	"Zeros detection": "Show the list of discovered zeros during walking.",
+	"Riemann–von Mangoldt": "Show the estimated number of zeta zeros N(t) based on the Riemann–von Mangoldt formula.",
 	"Performance Monitor": "Show real-time performance metrics (FPS) and chunks statistics on the HUD.",
 	"HUD Scale": "Adjust the size of the HUD elements.",
 	"Master Volume": "Control the global volume level of all sound sources.",
@@ -535,7 +535,6 @@ func _on_func_selected(f_type: int):
 	_on_multivalued_mode_selected(multivalued_mode_button.selected)
 	iter_container.visible = has_iters
 	critical_checkbox.visible = is_dirichlect
-	hud_zeros_checkbox.visible = is_dirichlect
 	auto_walk_checkbox.visible = is_dirichlect
 	rvm_checkbox.visible = is_dirichlect
 
@@ -801,6 +800,9 @@ func _on_set_pos_pressed():
 	var c_height = float(camera_height_input.text)
 	if not is_finite(c_height): c_height = 1.8
 
+	if !hud_zeros_checkbox.button_pressed:
+		Config.visited_zeros.clear()
+
 	Config.iterations = iters
 	Config.movement_speed = m_speed
 	Config.zoom_factor = _slider_to_zoom(zoom_slider.value)
@@ -922,23 +924,24 @@ func _process(_delta):
 
 	# Update Zeta Zeros display
 	var f_data = Config.function
-	var show_zeros = (f_data.get("is_dirichlect", false) and Config.show_hud_zeros)
-	zeros_panel.visible = show_zeros
+	zeros_panel.visible = Config.show_hud_zeros
 
-	if show_zeros:
+	if Config.show_hud_zeros:
 		var total_count = Config.visited_zeros.size()
 		var last_zeros_text = ""
+		var zero = Vector2(0.0, 0.0)
 
 		# Show all visited zeros in the scrolling list
 		for i in range(total_count - 1, -1, -1):
-			last_zeros_text += "t = %.3f\n" % Config.visited_zeros[i]
+			zero = Config.visited_zeros[i]
+			last_zeros_text += "(%.3f, %.3f)\n" % [zero[0], zero[1]]
 
 		zeros_count_label.text = "Count: %d" % total_count
 
 		# Riemann-von Mangoldt formula: N(T) ≈ (T/2π) log(T/2πe) + 7/8
 		# For small T, it's roughly (T/2π) * (log(T/2π) - 1)
 		# A slightly more accurate version for visualization:
-		if Config.show_rvm:
+		if Config.show_rvm and f_data.get("has_von_mangoldt", false):
 			var T = abs(z * 0.1)
 			var val = 0.0
 			if T > 0.1:

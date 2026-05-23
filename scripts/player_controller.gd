@@ -14,15 +14,17 @@ var last_space_time = 0.0
 var space_held_time = 0.0
 var is_resetting_height = false
 var last_t = 0.0
+var last_z: Vector2 = Vector2(0.0, 0.0)
 
 # Zero detection history
 var mag_history: Array[float] = [1.0, 1.0, 1.0, 1.0, 1.0]
-var t_history: Array[float] = [0.0, 0.0, 0.0, 0.0, 0.0]
-var last_detected_t = -1.0
+var z_history: Array[Vector2] = [Vector2(0.0, 0.0), Vector2(0.0, 0.0), Vector2(0.0, 0.0), Vector2(0.0, 0.0), Vector2(0.0, 0.0)]
+var last_detected_z = Vector2(0.0, 0.0)
 var current_f: Vector2 = Vector2.ZERO
 var current_sigma: float = 0.0
 var current_t: float = 0.0
 var current_mag: float = 0.0
+var current_z: Vector2 = Vector2(0.0, 0.0)
 
 @onready var camera = $Camera3D
 
@@ -90,7 +92,7 @@ func _unhandled_input(event):
 				auto_walk_state = AutoWalkState.MOVING_TO_LINE
 				# Reset zero counter when starting auto-walk
 				Config.visited_zeros.clear()
-				last_detected_t = -1.0
+				last_detected_z = Vector2(0.0, 0.0)
 			else:
 				auto_walk_state = AutoWalkState.NONE
 		elif event.keycode == KEY_R:
@@ -126,6 +128,7 @@ func _physics_process(delta):
 	var scale_factor = 1.0 / Config.effective_zoom
 	current_sigma = global_position.x * 0.1 * scale_factor
 	current_t = -global_position.z * 0.1 * scale_factor
+	current_z = Vector2(current_sigma, current_t)
 	current_f = Field.get_field(global_position.x, global_position.z)
 	current_mag = current_f.length()
 
@@ -229,25 +232,26 @@ func _physics_process(delta):
 				if spatial_audio and spatial_audio.has_method("play_portal_crossing"):
 					spatial_audio.play_portal_crossing()
 
-	last_t = current_t
+	last_z = current_z
 
 	# Zeta zero detection during auto-walk
-	if auto_walk_state == AutoWalkState.WALKING and Config.function.get("is_dirichlect", false):
-		t_history.push_back(current_t)
-		t_history.pop_front()
+	if Config.show_hud_zeros:
+		z_history.push_back(current_z)
+		z_history.pop_front()
 
 		mag_history.push_back(current_mag)
 		mag_history.pop_front()
 
+
 		# Check for local minimum: f[0] > f[1] > f[2] < f[3] < f[4]
 		if mag_history[0] > mag_history[1] and mag_history[1] > mag_history[2] and \
 		   mag_history[2] < mag_history[3] and mag_history[3] < mag_history[4]:
-			var t = t_history[2] # Middle value is the reported zero
+			var z = z_history[2] # Middle value is the reported zero
 
 			# Check if the magnitude is reasonably low (e.g. < zero_proximity_nav) to avoid false positives
 			# from tiny oscillations far from zeros
 			if mag_history[2] < Config.zero_proximity_nav:
-				Config.visited_zeros.push_back(t)
-				last_detected_t = t
+				Config.visited_zeros.push_back(z)
+				last_detected_z = z
 
 	move_and_slide()

@@ -1569,7 +1569,7 @@ theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_checkbox_hover")
 theme_override_styles/focus = SubResource("StyleBoxFlat_checkbox")
 text = "Navigation"
 
-[node name="HudZetaZerosCheckbox" type="CheckBox" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/HUD/Margin/VBox"]
+[node name="HudZerosDetectionCheckbox" type="CheckBox" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/HUD/Margin/VBox"]
 layout_mode = 2
 focus_mode = 0
 theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
@@ -1580,7 +1580,7 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_checkbox_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_checkbox")
 theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_checkbox_hover")
 theme_override_styles/focus = SubResource("StyleBoxFlat_checkbox")
-text = "Zeta zeros"
+text = "Zeros detection"
 
 [node name="RvmCheckbox" type="CheckBox" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/HUD/Margin/VBox"]
 layout_mode = 2
