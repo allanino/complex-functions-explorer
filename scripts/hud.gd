@@ -649,27 +649,86 @@ func _on_exit_morph_pressed():
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	morph_button.selected = 0
 
-func _parse_poly(text: String) -> PackedFloat32Array:
-	var coeffs = PackedFloat32Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
-	text = text.replace(" ", "").replace("-", "+-")
-	var terms = text.split("+", false)
+func _parse_complex(text: String) -> Vector2:
+	text = text.replace(" ", "").replace("I", "i")
+	if text == "": return Vector2.ZERO
+
+	# Handle pure imaginary "i" or "-i"
+	if text == "i": return Vector2(0, 1)
+	if text == "-i": return Vector2(0, -1)
+
+	if not "i" in text:
+		return Vector2(float(text), 0.0)
+
+	# If we have "i", it might be "1+2i", "2i", "-2i", "1+i", "1-i"
+	# Let's split by + and - but keep signs
+	var re = 0.0
+	var im = 0.0
+
+	var normalized = text.replace("-", "+-")
+	var parts = normalized.split("+", false)
+
+	for p in parts:
+		if p.ends_with("i"):
+			var im_str = p.substr(0, p.length() - 1)
+			if im_str == "" or im_str == "+": im += 1.0
+			elif im_str == "-": im -= 1.0
+			else: im += float(im_str)
+		else:
+			re += float(p)
+
+	return Vector2(re, im)
+
+func _parse_poly(text: String) -> PackedVector2Array:
+	var coeffs = PackedVector2Array([Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO])
+	text = text.replace(" ", "")
+
+	# We want to split by terms. A term usually starts with + or -
+	# unless it's inside parentheses.
+	var terms = []
+	var current_term = ""
+	var depth = 0
+	for i in range(text.length()):
+		var c = text[i]
+		if c == "(": depth += 1
+		elif c == ")": depth -= 1
+
+		if depth == 0 and i > 0 and (c == "+" or c == "-"):
+			terms.append(current_term)
+			current_term = c
+		else:
+			current_term += c
+	terms.append(current_term)
 
 	for term in terms:
 		if term == "": continue
-		var coeff = 1.0
+		var coeff = Vector2(1, 0)
 		var degree = 0
 
 		if "z" in term:
 			var parts = term.split("z")
-			if parts[0] == "": coeff = 1.0
-			elif parts[0] == "-": coeff = -1.0
-			else: coeff = float(parts[0])
+			var coeff_str = parts[0]
+			if coeff_str == "" or coeff_str == "+": coeff = Vector2(1, 0)
+			elif coeff_str == "-": coeff = Vector2(-1, 0)
+			else:
+				var sign = 1.0
+				if coeff_str.begins_with("+"):
+					coeff_str = coeff_str.substr(1)
+				elif coeff_str.begins_with("-"):
+					sign = -1.0
+					coeff_str = coeff_str.substr(1)
 
-			if parts[1] == "": degree = 1
-			elif parts[1].begins_with("^"):
-				degree = int(parts[1].substr(1))
+				# Remove surrounding parentheses if any
+				if coeff_str.begins_with("(") and coeff_str.ends_with(")"):
+					coeff_str = coeff_str.substr(1, coeff_str.length() - 2)
+				coeff = _parse_complex(coeff_str) * sign
+
+			var degree_str = parts[1]
+			if degree_str == "": degree = 1
+			elif degree_str.begins_with("^"):
+				degree = int(degree_str.substr(1))
 		else:
-			coeff = float(term)
+			coeff = _parse_complex(term)
 			degree = 0
 
 		if degree >= 0 and degree < 10:
@@ -757,11 +816,19 @@ func _on_set_pos_pressed():
 		var expr = rational_input.text.replace(" ", "")
 		if "/" in expr:
 			var parts = expr.split("/")
-			Config.rational_num_coeffs = _parse_poly(parts[0].replace("(", "").replace(")", ""))
-			Config.rational_den_coeffs = _parse_poly(parts[1].replace("(", "").replace(")", ""))
+			# We only strip outer parentheses if they enclose the whole numerator/denominator
+			var num_str = parts[0]
+			if num_str.begins_with("(") and num_str.ends_with(")"):
+				num_str = num_str.substr(1, num_str.length() - 2)
+			var den_str = parts[1]
+			if den_str.begins_with("(") and den_str.ends_with(")"):
+				den_str = den_str.substr(1, den_str.length() - 2)
+
+			Config.rational_num_coeffs = _parse_poly(num_str)
+			Config.rational_den_coeffs = _parse_poly(den_str)
 		else:
 			Config.rational_num_coeffs = _parse_poly(expr)
-			Config.rational_den_coeffs = PackedFloat32Array([1, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+			Config.rational_den_coeffs = PackedVector2Array([Vector2(1, 0), Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO])
 
 	Config.save_settings()
 	_update_hud_layout()

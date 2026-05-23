@@ -8,8 +8,8 @@ uniform float height_a = 3.0;
 uniform float height_epsilon = 1.0;
 uniform bool performance_protection_active = false;
 
-uniform float rational_num_coeffs[10];
-uniform float rational_den_coeffs[10];
+uniform vec2 rational_num_coeffs[10];
+uniform vec2 rational_den_coeffs[10];
 uniform int multivalued_n = 2;
 uniform int multivalued_mode = 0;
 uniform float branch_cycle_speed = 0.5;
@@ -728,13 +728,11 @@ FieldData complex_log_with_derivatives(float sigma, float t) {
     return res;
 }
 
-vec2 evaluate_poly(float sigma, float t, float coeffs[10]) {
+vec2 evaluate_poly(float sigma, float t, vec2 coeffs[10]) {
     vec2 z = vec2(sigma, t);
     vec2 res = vec2(0.0);
-    vec2 z_pow = vec2(1.0, 0.0);
-    for (int i = 0; i < 10; i++) {
-        res += coeffs[i] * z_pow;
-        z_pow = complex_mul(z_pow, z);
+    for (int i = 9; i >= 0; i--) {
+        res = complex_mul(res, z) + coeffs[i];
     }
     return res;
 }
@@ -745,16 +743,19 @@ vec2 get_rational(float sigma, float t) {
     return complex_div(num, den);
 }
 
-FieldData evaluate_poly_with_derivatives(float sigma, float t, float coeffs[10]) {
+FieldData evaluate_poly_with_derivatives(float sigma, float t, vec2 coeffs[10]) {
     vec2 z = vec2(sigma, t);
     vec2 val = vec2(0.0);
     vec2 deriv = vec2(0.0);
-    vec2 z_pow = vec2(1.0, 0.0);
-    for (int i = 0; i < 10; i++) {
-        val += coeffs[i] * z_pow;
-        if (i < 9) deriv += float(i + 1) * coeffs[i+1] * z_pow;
-        z_pow = complex_mul(z_pow, z);
+
+    // Horner's method for both value and its derivative
+    for (int i = 9; i >= 0; i--) {
+        if (i < 9) {
+            deriv = complex_mul(deriv, z) + val;
+        }
+        val = complex_mul(val, z) + coeffs[i];
     }
+
     FieldData res;
     res.value = val;
     res.d_sigma = deriv;
