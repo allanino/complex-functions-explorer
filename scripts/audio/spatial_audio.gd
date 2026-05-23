@@ -166,10 +166,10 @@ func _process(delta):
 
 	startup_time += delta
 
-	_process_audio_toggles()
-
 	if Config.performance_protection_active:
 		is_suppressed = true
+
+	_process_audio_toggles()
 
 	if playback == null:
 		var stream_player = $AudioStreamPlayer
@@ -328,7 +328,11 @@ func fill_buffer():
 
 func _process_audio_toggles():
 	# 0. Global Master Volume
-	AudioServer.set_bus_volume_db(AudioServer.get_bus_index("Master"), linear_to_db(Config.master_volume / 100.0))
+	var master_vol = Config.master_volume / 100.0
+	if is_suppressed:
+		master_vol = 0.0
+
+	AudioServer.set_bus_volume_db(AudioServer.get_bus_index("Master"), linear_to_db(master_vol))
 
 	# 1. Background Music
 	var music = get_node_or_null("BackgroundMusic")
