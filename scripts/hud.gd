@@ -518,25 +518,26 @@ func _on_func_item_selected(index):
 	_on_func_selected(func_button.get_item_id(index))
 
 func _on_func_selected(f_type: int):
-	var f_data = Config.FUNCTIONS.get(f_type, {})
+	Config.function_type = f_type
+	var f_data = Config.function
 
-	var is_zeta_variant = f_data.get("zeta_variant", false)
-	var has_iterations = f_data.get("has_iterations", false)
+	var is_zeta = f_data.get("is_zeta", false)
+	var has_iters = f_data.get("has_iters", false)
 	var is_rational = f_data.get("is_rational", false)
 	var is_multivalued = f_data.get("is_multivalued", false)
 
-	if f_data.has("on_select_reset_iters") and Config.function_type != f_type:
+	if f_data.has("on_select_reset_iters"):
 		iter_slider.value = f_data["on_select_reset_iters"]
 
 	rational_container.visible = is_rational
 	multivalued_mode_container.visible = is_multivalued
 	multivalued_container.visible = is_multivalued
 	_on_multivalued_mode_selected(multivalued_mode_button.selected)
-	iter_container.visible = has_iterations
-	critical_checkbox.visible = is_zeta_variant
-	hud_zeros_checkbox.visible = is_zeta_variant
-	auto_walk_checkbox.visible = is_zeta_variant
-	rvm_checkbox.visible = is_zeta_variant
+	iter_container.visible = has_iters
+	critical_checkbox.visible = is_zeta
+	hud_zeros_checkbox.visible = is_zeta
+	auto_walk_checkbox.visible = is_zeta
+	rvm_checkbox.visible = is_zeta
 
 func _on_height_selected(index):
 	var is_log = (index == 0)
@@ -544,8 +545,7 @@ func _on_height_selected(index):
 	height_eps_container.visible = is_log
 
 func _on_multivalued_mode_selected(index):
-	var f_type = func_button.get_item_id(func_button.selected)
-	var is_multivalued = Config.FUNCTIONS.get(f_type, {}).get("is_multivalued", false)
+	var is_multivalued = Config.function.get("is_multivalued", false)
 	var is_cycle = (index == 0)
 	cycle_speed_container.visible = is_multivalued and is_cycle
 	morph_time_container.visible = is_multivalued and is_cycle
@@ -925,8 +925,8 @@ func _process(_delta):
 	if player and "auto_walk_state" in player:
 		is_auto_walking = player.auto_walk_state != 0 # 0 is AutoWalkState.NONE
 
-	var f_data = Config.FUNCTIONS.get(Config.function_type, {})
-	var show_zeros = (f_data.get("zeta_variant", false) and is_auto_walking and Config.show_hud_zeros)
+	var f_data = Config.function
+	var show_zeros = (f_data.get("is_zeta", false) and is_auto_walking and Config.show_hud_zeros)
 	zeros_panel.visible = show_zeros
 
 	if show_zeros:

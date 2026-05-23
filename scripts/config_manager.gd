@@ -27,105 +27,105 @@ enum ComplexFunc {
 const FUNCTIONS = {
 	ComplexFunc.ZETA: {
 		"name": "Zeta (σ > 0)",
-		"zeta_variant": true,
-		"has_iterations": true,
+		"is_zeta": true,
+		"has_iters": true,
 	},
 	ComplexFunc.ZETA_REFLECTION: {
 		"name": "Zeta (reflection formula)",
-		"zeta_variant": true,
-		"has_iterations": true,
+		"is_zeta": true,
+		"has_iters": true,
 	},
 	ComplexFunc.DIRICHLET_ETA: {
 		"name": "Dirichlet Eta (σ > 0)",
-		"zeta_variant": true,
-		"has_iterations": true,
+		"is_zeta": true,
+		"has_iters": true,
 	},
 	ComplexFunc.DIRICHLET_BETA: {
 		"name": "Dirichlet Beta (σ > 0)",
-		"zeta_variant": true,
-		"has_iterations": true,
+		"is_zeta": true,
+		"has_iters": true,
 	},
 	ComplexFunc.GAMMA: {
 		"name": "Gamma",
-		"zeta_variant": false,
-		"has_iterations": false,
+		"is_zeta": false,
+		"has_iters": false,
 	},
 	ComplexFunc.LOG_GAMMA: {
 		"name": "Log Gamma",
-		"zeta_variant": false,
-		"has_iterations": false,
+		"is_zeta": false,
+		"has_iters": false,
 	},
 	ComplexFunc.DEDEKIND_ETA: {
 		"name": "Dedekind Eta",
-		"zeta_variant": false,
-		"has_iterations": true,
+		"is_zeta": false,
+		"has_iters": true,
 		"on_select_reset_iters": 100,
 	},
 	ComplexFunc.MANDELBROT: {
 		"name": "Mandelbrot",
-		"zeta_variant": false,
-		"has_iterations": true,
+		"is_zeta": false,
+		"has_iters": true,
 	},
 	ComplexFunc.SIN: {
 		"name": "Sin",
-		"zeta_variant": false,
-		"has_iterations": false,
+		"is_zeta": false,
+		"has_iters": false,
 	},
 	ComplexFunc.COS: {
 		"name": "Cos",
-		"zeta_variant": false,
-		"has_iterations": false,
+		"is_zeta": false,
+		"has_iters": false,
 	},
 	ComplexFunc.TAN: {
 		"name": "Tan",
-		"zeta_variant": false,
-		"has_iterations": false,
+		"is_zeta": false,
+		"has_iters": false,
 	},
 	ComplexFunc.COT: {
 		"name": "Cot",
-		"zeta_variant": false,
-		"has_iterations": false,
+		"is_zeta": false,
+		"has_iters": false,
 	},
 	ComplexFunc.EXP: {
 		"name": "Exp",
-		"zeta_variant": false,
-		"has_iterations": false,
+		"is_zeta": false,
+		"has_iters": false,
 	},
 	ComplexFunc.LOG: {
 		"name": "Log",
-		"zeta_variant": false,
-		"has_iterations": false,
+		"is_zeta": false,
+		"has_iters": false,
 	},
 	ComplexFunc.RATIONAL: {
 		"name": "Rational",
-		"zeta_variant": false,
-		"has_iterations": false,
+		"is_zeta": false,
+		"has_iters": false,
 		"is_rational": true,
 	},
 	ComplexFunc.MULTIVALUED_Z_POW: {
 		"name": "Multivalued z^(1/n)",
-		"zeta_variant": false,
-		"has_iterations": false,
+		"is_zeta": false,
+		"has_iters": false,
 		"is_multivalued": true,
 	},
 	ComplexFunc.MULTIVALUED_RSVD1: {
 		"name": "Multivalued Reserved 1",
-		"zeta_variant": false,
-		"has_iterations": false,
+		"is_zeta": false,
+		"has_iters": false,
 		"is_multivalued": true,
 		"hidden": true,
 	},
 	ComplexFunc.MULTIVALUED_RSVD2: {
 		"name": "Multivalued Reserved 2",
-		"zeta_variant": false,
-		"has_iterations": false,
+		"is_zeta": false,
+		"has_iters": false,
 		"is_multivalued": true,
 		"hidden": true,
 	},
 	ComplexFunc.MULTIVALUED_RSVD3: {
 		"name": "Multivalued Reserved 3",
-		"zeta_variant": false,
-		"has_iterations": false,
+		"is_zeta": false,
+		"has_iters": false,
 		"is_multivalued": true,
 		"hidden": true,
 	},
@@ -133,7 +133,12 @@ const FUNCTIONS = {
 
 # Field parameters
 var iterations: int = 300
-var function_type: int = ComplexFunc.ZETA
+var function_type: int = ComplexFunc.ZETA:
+	set(value):
+		function_type = value
+		function = FUNCTIONS.get(function_type, {})
+var function: Dictionary = FUNCTIONS[ComplexFunc.ZETA]
+
 var height_type: int = 0
 var height_a: float = 3.0
 var height_epsilon: float = 1.0
@@ -203,6 +208,7 @@ var effective_zoom: float = 1.0
 func _ready():
 	load_settings()
 	effective_zoom = float(zoom_factor)
+	function = FUNCTIONS.get(function_type, {})
 
 func save_settings():
 	var config = ConfigFile.new()
@@ -275,7 +281,10 @@ func load_settings():
 		return
 
 	iterations = config.get_value("field", "iterations", iterations)
-	function_type = config.get_value("field", "function_type", int(function_type))
+	var ft_raw = config.get_value("field", "function_type", int(function_type))
+	function_type = ft_raw
+	# ft_raw setter will update Config.function
+
 	height_type = config.get_value("field", "height_type", height_type)
 	height_a = config.get_value("field", "height_a", height_a)
 	height_epsilon = config.get_value("field", "height_epsilon", height_epsilon)

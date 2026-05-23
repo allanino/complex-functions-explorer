@@ -211,7 +211,7 @@ func _physics_process(delta):
 	global_position.y = terrain_h + Config.camera_height / Config.effective_zoom + height_offset
 
 	# Multivalued branch crossing detection
-	if Config.FUNCTIONS[Config.function_type].get("is_multivalued", false) and Config.multivalued_mode == 1:
+	if Config.function.get("is_multivalued", false) and Config.multivalued_mode == 1:
 		# Detect crossing of the positive real axis (sigma > 0, t=0)
 		if current_sigma > 0.0:
 			var branch_changed = false
@@ -232,7 +232,7 @@ func _physics_process(delta):
 	last_t = current_t
 
 	# Zeta zero detection during auto-walk
-	if auto_walk_state == AutoWalkState.WALKING and Config.FUNCTIONS[Config.function_type].get("zeta_variant", false):
+	if auto_walk_state == AutoWalkState.WALKING and Config.function.get("is_zeta", false):
 		t_history.push_back(current_t)
 		t_history.pop_front()
 

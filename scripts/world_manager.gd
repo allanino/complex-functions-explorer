@@ -171,7 +171,7 @@ func _process(delta):
 		env.fog_aerial_perspective = (1.0 - Config.fog_density)
 
 	# Only update branch time on branch functions
-	if Config.FUNCTIONS[Config.function_type].get("is_multivalued", false):
+	if Config.function.get("is_multivalued", false):
 		Config.branch_time = Time.get_ticks_msec() / 1000.0
 
 	if terrain_material:
@@ -251,7 +251,7 @@ func _process(delta):
 		_update_all_chunks_lod()
 
 	if portal_frame:
-		var is_portal_mode = (Config.FUNCTIONS[Config.function_type].get("is_multivalued", false) and Config.multivalued_mode == 1)
+		var is_portal_mode = (Config.function.get("is_multivalued", false) and Config.multivalued_mode == 1)
 		portal_frame.visible = is_portal_mode
 		if is_portal_mode:
 			var zoom = Config.effective_zoom
@@ -338,9 +338,9 @@ func _update_terrain_material_uniforms():
 	if not terrain_material:
 		return
 
-	var f_data = Config.FUNCTIONS.get(Config.function_type, {})
+	var f_data = Config.function
 	terrain_material.set_shader_parameter("performance_protection_active", Config.performance_protection_active)
-	terrain_material.set_shader_parameter("is_zeta_variant", f_data.get("zeta_variant", false))
+	terrain_material.set_shader_parameter("is_zeta_variant", f_data.get("is_zeta", false))
 	terrain_material.set_shader_parameter("is_multivalued", f_data.get("is_multivalued", false))
 	terrain_material.set_shader_parameter("color_scheme", Config.color_scheme)
 	terrain_material.set_shader_parameter("iterations", Config.iterations)
