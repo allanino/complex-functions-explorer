@@ -66,6 +66,7 @@ func _unhandled_input(event):
 			Config.zoom_factor = clampf(Config.zoom_factor / 1.1, 0.01, 200.0)
 		elif event.button_index == MOUSE_BUTTON_MIDDLE and event.pressed:
 			Config.zoom_factor = 1.0
+			Config.save_settings()
 
 
 	if event is InputEventKey and event.pressed and event.keycode == KEY_SPACE and not event.echo:
