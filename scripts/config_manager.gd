@@ -46,86 +46,58 @@ const FUNCTIONS = {
 		"has_iters": true,
 	},
 	ComplexFunc.GAMMA: {
-		"name": "Gamma",
-		"is_dirichlect": false,
-		"has_iters": false,
+		"name": "Gamma"
 	},
 	ComplexFunc.LOG_GAMMA: {
-		"name": "Log Gamma",
-		"is_dirichlect": false,
-		"has_iters": false,
+		"name": "Log Gamma"
 	},
 	ComplexFunc.DEDEKIND_ETA: {
 		"name": "Dedekind Eta",
-		"is_dirichlect": false,
 		"has_iters": true,
 		"on_select_reset_iters": 100,
 	},
 	ComplexFunc.MANDELBROT: {
 		"name": "Mandelbrot",
-		"is_dirichlect": false,
 		"has_iters": true,
 	},
 	ComplexFunc.SIN: {
 		"name": "Sin",
-		"is_dirichlect": false,
-		"has_iters": false,
 	},
 	ComplexFunc.COS: {
 		"name": "Cos",
-		"is_dirichlect": false,
-		"has_iters": false,
 	},
 	ComplexFunc.TAN: {
 		"name": "Tan",
-		"is_dirichlect": false,
-		"has_iters": false,
 	},
 	ComplexFunc.COT: {
 		"name": "Cot",
-		"is_dirichlect": false,
-		"has_iters": false,
 	},
 	ComplexFunc.EXP: {
 		"name": "Exp",
-		"is_dirichlect": false,
-		"has_iters": false,
 	},
 	ComplexFunc.LOG: {
 		"name": "Log",
-		"is_dirichlect": false,
-		"has_iters": false,
 	},
 	ComplexFunc.RATIONAL: {
 		"name": "Rational",
-		"is_dirichlect": false,
-		"has_iters": false,
 		"is_rational": true,
 	},
 	ComplexFunc.MULTIVALUED_Z_POW: {
 		"name": "Multivalued z^(1/n)",
-		"is_dirichlect": false,
-		"has_iters": false,
 		"is_multivalued": true,
 	},
 	ComplexFunc.MULTIVALUED_RSVD1: {
 		"name": "Multivalued Reserved 1",
-		"is_dirichlect": false,
-		"has_iters": false,
 		"is_multivalued": true,
 		"hidden": true,
 	},
 	ComplexFunc.MULTIVALUED_RSVD2: {
 		"name": "Multivalued Reserved 2",
-		"is_dirichlect": false,
-		"has_iters": false,
 		"is_multivalued": true,
 		"hidden": true,
 	},
 	ComplexFunc.MULTIVALUED_RSVD3: {
 		"name": "Multivalued Reserved 3",
-		"is_dirichlect": false,
-		"has_iters": false,
 		"is_multivalued": true,
 		"hidden": true,
 	},
