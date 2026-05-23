@@ -892,11 +892,12 @@ func _on_set_pos_pressed():
 			player.global_position.x = 10.0 * re * zoom_mult
 			player.global_position.z = -10.0 * im * zoom_mult
 
+		Config.rvm_start_t = abs(player.global_position.z * 0.1 / Config.effective_zoom)
+
 		# Update auto-walk state
 		if auto_walk_checkbox.button_pressed:
 			if player.auto_walk_state == 0: # NONE
 				player.auto_walk_state = 1 # MOVING_TO_LINE
-				Config.rvm_start_t = abs(player.global_position.z * 0.1 / Config.effective_zoom)
 				Config.visited_zeros.clear()
 				if "last_detected_t" in player:
 					player.last_detected_t = -1.0
