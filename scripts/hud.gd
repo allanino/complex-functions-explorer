@@ -76,6 +76,11 @@ extends CanvasLayer
 @onready var sky_luminosity_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/SkyLuminosityContainer/SkyLuminosityValue
 @onready var sun_luminosity_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/SunLuminosityContainer/SunLuminositySlider
 @onready var sun_luminosity_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/SunLuminosityContainer/SunLuminosityValue
+@onready var fog_enabled_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/FogEnabledCheckbox
+@onready var fog_density_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/FogDensityContainer/FogDensitySlider
+@onready var fog_density_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/FogDensityContainer/FogDensityValue
+@onready var fog_distance_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/FogDistanceContainer/FogDistanceSlider
+@onready var fog_distance_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/FogDistanceContainer/FogDistanceValue
 @onready var shadows_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/GRAPHICS/Margin/VBox/ShadowsCheckbox
 
 @onready var hud_complex_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/HUD/Margin/VBox/HudComplexCheckbox
@@ -154,6 +159,9 @@ const DESCRIPTIONS = {
 	"Sunrise Direction": "Adjust the angle from which the sun rises (180° is towards +σ).",
 	"Sky Luminosity": "Adjust the overall brightness of the sky and clouds.",
 	"Sun Luminosity": "Adjust the intensity of the sun and moon light.",
+	"Fog Enabled": "Enable or disable global volumetric fog effects.",
+	"Fog Density": "Adjust the thickness of the fog and aerial perspective.",
+	"Fog Distance": "Set the distance from the camera where fog begins to appear.",
 	"Shadows": "Enable real-time directional shadows for terrain features.",
 	"Complex plane": "Show the domain coloring map of the current position on the HUD.",
 	"Navigation": "Show coordinate and magnitude information on the HUD.",
@@ -194,6 +202,9 @@ var _initial_sun_luminosity: float
 var _initial_environment_type: int
 var _initial_day_duration: float
 var _initial_static_time: float
+var _initial_fog_enabled: bool
+var _initial_fog_density: float
+var _initial_fog_distance: float
 
 func _ready():
 	hud_columns.offset_top = -1000
@@ -218,6 +229,9 @@ func _ready():
 	sunrise_slider.value_changed.connect(_on_sunrise_value_changed)
 	sky_luminosity_slider.value_changed.connect(_on_sky_luminosity_value_changed)
 	sun_luminosity_slider.value_changed.connect(_on_sun_luminosity_value_changed)
+	fog_enabled_checkbox.toggled.connect(_on_fog_enabled_toggled)
+	fog_density_slider.value_changed.connect(_on_fog_density_value_changed)
+	fog_distance_slider.value_changed.connect(_on_fog_distance_value_changed)
 	hud_scale_slider.value_changed.connect(_on_hud_scale_value_changed)
 	iter_slider.value_changed.connect(_on_iterations_value_changed)
 
@@ -385,6 +399,9 @@ func toggle_menu(applied: bool = false):
 		_initial_environment_type = Config.environment_type
 		_initial_day_duration = Config.day_duration
 		_initial_static_time = Config.static_time
+		_initial_fog_enabled = Config.fog_enabled
+		_initial_fog_density = Config.fog_density
+		_initial_fog_distance = Config.fog_distance
 
 		freeze_time_checkbox.button_pressed = (Config.environment_type != 0)
 
@@ -425,6 +442,11 @@ func toggle_menu(applied: bool = false):
 		_on_sky_luminosity_value_changed(sky_luminosity_slider.value)
 		sun_luminosity_slider.value = Config.sun_luminosity * 100.0
 		_on_sun_luminosity_value_changed(sun_luminosity_slider.value)
+		fog_enabled_checkbox.button_pressed = Config.fog_enabled
+		fog_density_slider.value = Config.fog_density * 100.0
+		_on_fog_density_value_changed(fog_density_slider.value)
+		fog_distance_slider.value = Config.fog_distance
+		_on_fog_distance_value_changed(fog_distance_slider.value)
 		shadows_checkbox.button_pressed = Config.shadows_enabled
 		hud_complex_checkbox.button_pressed = Config.show_hud_complex
 		hud_navigation_checkbox.button_pressed = Config.show_hud_navigation
@@ -497,6 +519,9 @@ func toggle_menu(applied: bool = false):
 			Config.environment_type = _initial_environment_type
 			Config.day_duration = _initial_day_duration
 			Config.static_time = _initial_static_time
+			Config.fog_enabled = _initial_fog_enabled
+			Config.fog_density = _initial_fog_density
+			Config.fog_distance = _initial_fog_distance
 
 func _on_func_selected(index):
 	var is_zeta_variant = (index >= 0 and index <= 3)
@@ -586,6 +611,17 @@ func _on_sky_luminosity_value_changed(value):
 func _on_sun_luminosity_value_changed(value):
 	Config.sun_luminosity = value / 100.0
 	sun_luminosity_value.text = str(int(value)) + "%"
+
+func _on_fog_enabled_toggled(pressed: bool):
+	Config.fog_enabled = pressed
+
+func _on_fog_density_value_changed(value):
+	Config.fog_density = value / 100.0
+	fog_density_value.text = "%.2f" % Config.fog_density
+
+func _on_fog_distance_value_changed(value):
+	Config.fog_distance = value
+	fog_distance_value.text = str(int(value))
 
 func _on_hud_scale_value_changed(value):
 	hud_scale_value.text = str(int(value)) + "%"
@@ -743,6 +779,9 @@ func _on_set_pos_pressed():
 	Config.view_distance = int(view_distance_slider.value)
 	Config.day_duration = day_duration_slider.value
 	Config.static_time = static_time_slider.value
+	Config.fog_enabled = fog_enabled_checkbox.button_pressed
+	Config.fog_density = fog_density_slider.value / 100.0
+	Config.fog_distance = fog_distance_slider.value
 	Config.hud_scale = hud_scale_slider.value / 100.0
 	Config.function_type = func_button.selected
 	Config.height_type = height_button.selected
