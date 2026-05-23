@@ -528,8 +528,19 @@ func _on_func_selected(f_type: int):
 	var is_rational = f_data.get("is_rational", false)
 	var is_multivalued = f_data.get("is_multivalued", false)
 
-	if f_data.has("on_select_reset_iters"):
-		iter_slider.value = f_data["on_select_reset_iters"]
+	if has_iters:
+		if f_data.has("iters_range"):
+			var r = f_data["iters_range"]
+			iter_slider.min_value = r[0]
+			iter_slider.max_value = r[1]
+			iter_slider.step = r[2]
+		else:
+			# Defaults for functions without explicit range (e.g. Mandelbrot)
+			iter_slider.min_value = 1
+			iter_slider.max_value = 1000
+			iter_slider.step = 1
+		iter_slider.value = Config.iterations
+		_on_iterations_value_changed(Config.iterations)
 
 	rational_container.visible = is_rational
 	multivalued_mode_container.visible = is_multivalued
