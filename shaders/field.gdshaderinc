@@ -730,6 +730,14 @@ FieldData complex_log_with_derivatives(float sigma, float t) {
     return res;
 }
 
+FieldData identity_with_derivatives(float sigma, float t) {
+    FieldData res;
+    res.value = vec2(sigma, t);
+    res.d_sigma = vec2(0.0);
+    res.d_t = vec2(0.0);
+    return res;
+}
+
 vec2 evaluate_poly(float sigma, float t, vec2 coeffs[10]) {
     vec2 z = vec2(sigma, t);
     vec2 res = vec2(0.0);
@@ -838,8 +846,9 @@ FieldData get_field_with_derivatives(float x, float z, int branch_offset) {
     if (function_type == 11) return complex_cot_with_derivatives(sigma, t);
     if (function_type == 12) return complex_exp_with_derivatives(sigma, t);
     if (function_type == 13) return complex_log_with_derivatives(sigma, t);
-    if (function_type == 14) return get_rational_with_derivatives(sigma, t);
-    if (function_type == 15) return multivalued_z_pow_inv_n_with_derivatives(sigma, t, multivalued_n, branch_cycle_speed, branch_offset);
+    if (function_type == 14) return identity_with_derivatives(sigma, t);
+    if (function_type == 15) return get_rational_with_derivatives(sigma, t);
+    if (function_type == 16) return multivalued_z_pow_inv_n_with_derivatives(sigma, t, multivalued_n, branch_cycle_speed, branch_offset);
     FieldData res;
     res.value = vec2(0.0);
     res.d_sigma = vec2(0.0);

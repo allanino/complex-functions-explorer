@@ -17,6 +17,7 @@ enum ComplexFunc {
 	COT,
 	EXP,
 	LOG,
+	IDENTITY,
 	RATIONAL,
 	MULTIVALUED_Z_POW,
 	MULTIVALUED_RSVD1,
@@ -77,6 +78,9 @@ const FUNCTIONS = {
 	},
 	ComplexFunc.LOG: {
 		"name": "Log",
+	},
+	ComplexFunc.IDENTITY: {
+		"name": "Identity",
 	},
 	ComplexFunc.RATIONAL: {
 		"name": "Rational",

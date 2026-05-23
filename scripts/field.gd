@@ -290,6 +290,7 @@ static func get_field(x: float, z: float) -> Vector2:
 		Config.ComplexFunc.COT: return complex_cot(sigma, t)
 		Config.ComplexFunc.EXP: return complex_exp(sigma, t)
 		Config.ComplexFunc.LOG: return complex_log(sigma, t)
+		Config.ComplexFunc.IDENTITY: return Vector2(sigma, t)
 		Config.ComplexFunc.RATIONAL: return get_rational(sigma, t)
 		Config.ComplexFunc.MULTIVALUED_Z_POW: return multivalued_z_pow_inv_n(sigma, t, Config.multivalued_n, Config.branch_cycle_speed)
 
