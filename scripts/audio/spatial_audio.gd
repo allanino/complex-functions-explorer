@@ -2,7 +2,7 @@ extends Node3D
 
 # --- CONSTANTS ---
 const ZERO_PITCH_BOOST = 1.5
-const BASE_FREQUENCY = 65.4 # C2 (Standard drone)
+const BASE_FREQUENCY = 130.8 # C3 (Standard drone)
 const REVERB_AMOUNT = 0.5
 const PHASE_PAN_STRENGTH = 1.0
 
@@ -13,6 +13,9 @@ var phase: float = 0.0
 var mod_phase: float = 0.0
 var lfo_phase: float = 0.0
 var noise_state: float = 0.0
+var pulse_phase: float = 0.0
+var target_pulse_rate: float = 0.0
+var current_pulse_rate: float = 0.0
 
 # --- INTERPOLATED PARAMETERS ---
 var target_volume: float = 0.3
@@ -206,14 +209,14 @@ func _process(delta):
 	var proximity = 1.0 / (0.05 + mag)
 	if not is_finite(proximity): proximity = 20.0
 
-	# Frequency: C2 by default, jumps to G2 near zeros
 	# Avoid the fake zeros for x < 0
 	var is_dirichlect = Config.function.get("is_dirichlect", false)
 
-	if mag < Config.zero_proximity_audio and (not is_dirichlect or sigma > 0.0):
-		target_frequency = 88.0 # G2
-	else:
-		target_frequency = BASE_FREQUENCY # C2
+	# Frequency: Gain frequency for lower terrains (smaller mag)
+	target_frequency = BASE_FREQUENCY + clamp((1.0 / (0.1 + mag)) * 10.0, 0.0, 100.0)
+
+	# Pulse rate: Pulse more slowly the higher the terrain (larger mag)
+	target_pulse_rate = clamp(1.0 / (0.1 + mag), 0.5, 15.0)
 
 	target_harmonic_intensity = clamp(proximity * 0.08, 0.0, 0.4)
 	target_fm_index = clamp(proximity * 0.4, 0.0, 4.0)
@@ -236,6 +239,7 @@ func _process(delta):
 	# Significantly increased interpolation weights for instantaneous response
 	current_volume = lerp(current_volume, target_volume, delta * 20.0)
 	current_frequency = lerp(current_frequency, target_frequency, delta * 30.0)
+	current_pulse_rate = lerp(current_pulse_rate, target_pulse_rate, delta * 5.0)
 	current_pan = lerp(current_pan, target_pan, delta * 16.0)
 	current_harmonic_intensity = lerp(current_harmonic_intensity, target_harmonic_intensity, delta * 24.0)
 	current_resonance = lerp(current_resonance, target_resonance, delta * 20.0)
@@ -309,6 +313,10 @@ func fill_buffer():
 		sample = sample - (pow(sample, 3) / 3.0)
 
 		if not is_finite(sample): sample = 0.0
+
+		pulse_phase = fmod(pulse_phase + current_pulse_rate / sample_rate, 1.0)
+		var pulse_amp = 0.5 + 0.5 * sin(pulse_phase * TAU)
+		sample *= pulse_amp
 
 		var drone_vol_scale = Config.drone_volume / 100.0
 		var frame = Vector2.ONE * sample * current_volume * drone_vol_scale * startup_gain
