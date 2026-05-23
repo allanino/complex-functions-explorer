@@ -42,9 +42,9 @@ var terrain_metallic: float = 0.7
 var terrain_roughness: float = 0.1
 var morph_type: int = 0
 var morph_value: float = 1.0
-var fog_enabled: bool = true
-var fog_density: float = 0.02
-var fog_distance: float = 10.0
+var fog_enabled: bool = false
+var fog_density: float = 0.4
+var fog_distance: float = 100.0
 
 # Player parameters
 var movement_speed: float = 10.0
@@ -150,19 +150,8 @@ func load_settings():
 	height_type = config.get_value("field", "height_type", height_type)
 	height_a = config.get_value("field", "height_a", height_a)
 	height_epsilon = config.get_value("field", "height_epsilon", height_epsilon)
-
-	var val_num = config.get_value("field", "rational_num_coeffs", rational_num_coeffs)
-	if val_num is PackedFloat32Array:
-		rational_num_coeffs = PackedVector2Array([Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)])
-	else:
-		rational_num_coeffs = val_num
-
-	var val_den = config.get_value("field", "rational_den_coeffs", rational_den_coeffs)
-	if val_den is PackedFloat32Array:
-		rational_den_coeffs = PackedVector2Array([Vector2(1, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)])
-	else:
-		rational_den_coeffs = val_den
-
+	rational_num_coeffs = config.get_value("field", "rational_num_coeffs", rational_num_coeffs)
+	rational_den_coeffs = config.get_value("field", "rational_den_coeffs", rational_den_coeffs)
 	multivalued_n = config.get_value("field", "multivalued_n", multivalued_n)
 	multivalued_mode = config.get_value("field", "multivalued_mode", multivalued_mode)
 	branch_cycle_speed = config.get_value("field", "branch_cycle_speed", branch_cycle_speed)
