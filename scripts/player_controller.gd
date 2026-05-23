@@ -93,6 +93,8 @@ func _unhandled_input(event):
 				# Reset zero counter when starting auto-walk
 				Config.visited_zeros.clear()
 				last_detected_z = Vector2(0.0, 0.0)
+				Config.show_hud_zeros = true
+				Config.rvm_start_t = abs(global_position.z * 0.1 / Config.effective_zoom)
 			else:
 				auto_walk_state = AutoWalkState.NONE
 		elif event.keycode == KEY_R:
