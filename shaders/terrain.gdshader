@@ -147,54 +147,51 @@ void vertex() {
             field_val = mix(z_id, fz, blend);
 
             float mag = length(fz);
-            float h = 0.0;
+            float h_raw = 0.0;
 
             if (height_type == 0) {
-                h = height_a * log(height_epsilon + mag);
+                h_raw = height_a * log(height_epsilon + mag);
             } else {
-                h = mag;
+                h_raw = mag;
             }
 
-            h *= blend;
+            h_raw *= blend;
+
+            // Hyperbolic capping to prevent infinite spikes
+            float h = (h_raw * 400.0) / (h_raw + 400.0);
 
             local_pos = vec3(snap_v.x, snap_v.y + h, snap_v.z);
-
-            float u = field_val.x;
-            float v = field_val.y;
 
             // Derivatives of f(z)
             vec2 df_dsigma = final_fd.d_sigma; // (du/dsigma, dv/dsigma)
             vec2 df_dt     = final_fd.d_t;     // (du/dt, dv/dt)
 
-            // Derivatives of identity map z = sigma + i t
-            vec2 dz_dsigma = vec2(1.0, 0.0);
-            vec2 dz_dt     = vec2(0.0, 1.0);
-
-            // Chain rule for g = (1-blend) z + blend f(z)
-            vec2 dg_dsigma = (1.0 - blend) * dz_dsigma + blend * df_dsigma;
-            vec2 dg_dt     = (1.0 - blend) * dz_dt     + blend * df_dt;
-
             // Convert from (sigma, t) derivatives to world (x, z) derivatives
-            // sigma = 0.1 * x * (1/zoom)
-            // t     = -0.1 * z * (1/zoom)
             float zoom = 1.0 / zoom_factor;
             float d_sigma_dx = 0.1 * zoom;
-            float d_t_dx     = 0.0;
-            float d_sigma_dz = 0.0;
             float d_t_dz     = -0.1 * zoom;
 
-            float du_dx = dg_dsigma.x * d_sigma_dx + dg_dt.x * d_t_dx;
-            float dv_dx = dg_dsigma.y * d_sigma_dx + dg_dt.y * d_t_dx;
-
-            float du_dz = dg_dsigma.x * d_sigma_dz + dg_dt.x * d_t_dz;
-            float dv_dz = dg_dsigma.y * d_sigma_dz + dg_dt.y * d_t_dz;
+            float dfu_dx = df_dsigma.x * d_sigma_dx;
+            float dfv_dx = df_dsigma.y * d_sigma_dx;
+            float dfu_dz = df_dsigma.x * 0.0 + df_dt.x * d_t_dz;
+            float dfv_dz = df_dsigma.y * 0.0 + df_dt.y * d_t_dz;
 
             float safe_mag = max(mag, 1e-12);
-            float dmag_dx = (u * du_dx + v * dv_dx) / safe_mag;
-            float dmag_dz = (u * du_dz + v * dv_dz) / safe_mag;
+            float dmag_dx = (fz.x * dfu_dx + fz.y * dfv_dx) / safe_mag;
+            float dmag_dz = (fz.x * dfu_dz + fz.y * dfv_dz) / safe_mag;
 
-            float dh_dx = (height_type == 0) ? (height_a / (height_epsilon + mag)) * dmag_dx : dmag_dx;
-            float dh_dz = (height_type == 0) ? (height_a / (height_epsilon + mag)) * dmag_dz : dmag_dz;
+            float dh_raw_dx = (height_type == 0) ? (height_a / (height_epsilon + mag)) * dmag_dx : dmag_dx;
+            float dh_raw_dz = (height_type == 0) ? (height_a / (height_epsilon + mag)) * dmag_dz : dmag_dz;
+
+            dh_raw_dx *= blend;
+            dh_raw_dz *= blend;
+
+            // Derivative of hyperbolic capping (400 / (h_raw + 400))^2
+            float capping_deriv = 400.0 / (h_raw + 400.0);
+            capping_deriv *= capping_deriv;
+
+            float dh_dx = dh_raw_dx * capping_deriv;
+            float dh_dz = dh_raw_dz * capping_deriv;
 
             v_normal = normalize(vec3(-dh_dx, 1.0, -dh_dz));
         }

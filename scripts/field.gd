@@ -300,9 +300,19 @@ static func get_height_from_field(f: Vector2) -> float:
 	if not is_finite(f.x) or not is_finite(f.y): return 0.0
 	var mag = f.length()
 	if not is_finite(mag): return 0.0
-	var h: float
-	if Config.height_type == 0: h = Config.height_a * log(Config.height_epsilon + mag)
-	else: h = mag
+
+	var h_raw: float
+	if Config.height_type == 0: h_raw = Config.height_a * log(Config.height_epsilon + mag)
+	else: h_raw = mag
+
+	# Match shader morphing blend factor (usually 1.0)
+	var morph_val = Config.morph_value
+	var s = 0.5 - 0.5 * cos(PI * Config.morph_value)
+	var blend = log(1.0 + 8.0 * s) / log(9.0)
+	h_raw *= blend
+
+	# Hyperbolic capping matching the shader
+	var h = (h_raw * 400.0) / (h_raw + 400.0)
 	return h if is_finite(h) else 0.0
 
 static func get_height(x: float, z: float) -> float:
