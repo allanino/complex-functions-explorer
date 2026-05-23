@@ -184,7 +184,7 @@ func _process(delta):
 		player = get_tree().root.find_child("Player", true, false)
 		if player: pos = player.global_position
 
-	# Sample Zeta field
+	# Sample complex field
 	var f = Field.get_field(pos.x, pos.z)
 
 	# --- NAN SAFETY ---
@@ -208,8 +208,10 @@ func _process(delta):
 
 	# Frequency: C2 by default, jumps to G2 near zeros
 	# Avoid the fake zeros for x < 0
-	var is_zeta = Config.FUNCTIONS[Config.function_type].get("zeta_variant", false)
-	if mag < Config.zero_proximity_audio and (not is_zeta or pos.x > 0):
+	var f_data = Config.FUNCTIONS.get(Config.function_type, {})
+	var is_zeta_variant = f_data.get("zeta_variant", false)
+
+	if mag < Config.zero_proximity_audio and (not is_zeta_variant or sigma > 0.0):
 		target_frequency = 88.0 # G2
 	else:
 		target_frequency = BASE_FREQUENCY # C2
@@ -221,8 +223,10 @@ func _process(delta):
 	target_pan = sin(arg) * PHASE_PAN_STRENGTH
 
 	# 4. CRITICAL LINE (sigma = 0.5)
-	var dist_to_critical = abs(sigma - 0.5)
-	var critical_factor = exp(-dist_to_critical * 25.0)
+	var critical_factor = 0.0
+	if is_zeta_variant:
+		var dist_to_critical = abs(sigma - 0.5)
+		critical_factor = exp(-dist_to_critical * 25.0)
 	target_resonance = critical_factor
 
 	# --- FINITE CHECKS BEFORE LERP ---
