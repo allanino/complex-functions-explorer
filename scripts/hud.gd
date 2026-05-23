@@ -921,12 +921,8 @@ func _process(_delta):
 	var f = Field.get_field(x, z)
 
 	# Update Zeta Zeros display
-	var is_auto_walking = false
-	if player and "auto_walk_state" in player:
-		is_auto_walking = player.auto_walk_state != 0 # 0 is AutoWalkState.NONE
-
 	var f_data = Config.function
-	var show_zeros = (f_data.get("is_dirichlect", false) and is_auto_walking and Config.show_hud_zeros)
+	var show_zeros = (f_data.get("is_dirichlect", false) and Config.show_hud_zeros)
 	zeros_panel.visible = show_zeros
 
 	if show_zeros:
