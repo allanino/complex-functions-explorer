@@ -274,23 +274,26 @@ static func get_field(x: float, z: float) -> Vector2:
 	var zoom: float = 1.0 / Config.effective_zoom
 	var sigma: float = x * 0.1 * zoom
 	var t: float = -z * 0.1 * zoom
-	var function_type = Config.function_type
-	if function_type == 0: return zeta(sigma, t)
-	elif function_type == 1: return zeta_continuation(sigma, t)
-	elif function_type == 2: return dirichlet_eta(sigma, t, Config.iterations)
-	elif function_type == 3: return dirichlet_beta(sigma, t, Config.iterations)
-	elif function_type == 4: return complex_gamma(sigma, t)
-	elif function_type == 5: return complex_log_gamma(sigma, t)
-	elif function_type == 6: return dedekind_eta(sigma, t)
-	elif function_type == 7: return mandelbrot(sigma, t, Config.iterations)
-	elif function_type == 8: return complex_sin(sigma, t)
-	elif function_type == 9: return complex_cos(sigma, t)
-	elif function_type == 10: return complex_tan(sigma, t)
-	elif function_type == 11: return complex_cot(sigma, t)
-	elif function_type == 12: return complex_exp(sigma, t)
-	elif function_type == 13: return complex_log(sigma, t)
-	elif function_type == 14: return get_rational(sigma, t)
-	elif function_type == 15: return multivalued_z_pow_inv_n(sigma, t, Config.multivalued_n, Config.branch_cycle_speed)
+
+	match Config.function_type:
+		Config.ComplexFunc.ZETA: return zeta(sigma, t)
+		Config.ComplexFunc.ZETA_REFLECTION: return zeta_continuation(sigma, t)
+		Config.ComplexFunc.DIRICHLET_ETA: return dirichlet_eta(sigma, t, Config.iterations)
+		Config.ComplexFunc.DIRICHLET_BETA: return dirichlet_beta(sigma, t, Config.iterations)
+		Config.ComplexFunc.GAMMA: return complex_gamma(sigma, t)
+		Config.ComplexFunc.LOG_GAMMA: return complex_log_gamma(sigma, t)
+		Config.ComplexFunc.DEDEKIND_ETA: return dedekind_eta(sigma, t)
+		Config.ComplexFunc.MANDELBROT: return mandelbrot(sigma, t, Config.iterations)
+		Config.ComplexFunc.SIN: return complex_sin(sigma, t)
+		Config.ComplexFunc.COS: return complex_cos(sigma, t)
+		Config.ComplexFunc.TAN: return complex_tan(sigma, t)
+		Config.ComplexFunc.COT: return complex_cot(sigma, t)
+		Config.ComplexFunc.EXP: return complex_exp(sigma, t)
+		Config.ComplexFunc.LOG: return complex_log(sigma, t)
+		Config.ComplexFunc.IDENTITY: return Vector2(sigma, t)
+		Config.ComplexFunc.RATIONAL: return get_rational(sigma, t)
+		Config.ComplexFunc.MULTIVALUED_Z_POW: return multivalued_z_pow_inv_n(sigma, t, Config.multivalued_n, Config.branch_cycle_speed)
+
 	return Vector2.ZERO
 
 static func get_height_from_field(f: Vector2) -> float:

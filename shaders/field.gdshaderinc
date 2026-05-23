@@ -2,11 +2,13 @@
 
 uniform int iterations = 120;
 uniform float zoom_factor = 1.0;
-uniform int function_type = 0; // 0: Zeta, 1: Zeta continuation, 2: Dirichlet Eta, 3: Dirichlet Beta, 4: Gamma, 5: Log Gamma, 6: Dedekind Eta, 7: Mandelbrot, 8: Sin, 9: Cos, 10: Tan, 11: Cot, 12: Exp, 13: Log, 14: Rational, 15: Multivalued
+uniform int function_type = 0; // Maps to Config.ComplexFunc enum in GDScript
 uniform int height_type = 0;   // 0: Log, 1: Abs
 uniform float height_a = 3.0;
 uniform float height_epsilon = 1.0;
 uniform bool performance_protection_active = false;
+uniform bool is_dirichlect = false;
+uniform bool is_multivalued = false;
 
 uniform vec2 rational_num_coeffs[10];
 uniform vec2 rational_den_coeffs[10];
@@ -728,6 +730,14 @@ FieldData complex_log_with_derivatives(float sigma, float t) {
     return res;
 }
 
+FieldData identity_with_derivatives(float sigma, float t) {
+    FieldData res;
+    res.value = vec2(sigma, t);
+    res.d_sigma = vec2(0.0);
+    res.d_t = vec2(0.0);
+    return res;
+}
+
 vec2 evaluate_poly(float sigma, float t, vec2 coeffs[10]) {
     vec2 z = vec2(sigma, t);
     vec2 res = vec2(0.0);
@@ -836,8 +846,9 @@ FieldData get_field_with_derivatives(float x, float z, int branch_offset) {
     if (function_type == 11) return complex_cot_with_derivatives(sigma, t);
     if (function_type == 12) return complex_exp_with_derivatives(sigma, t);
     if (function_type == 13) return complex_log_with_derivatives(sigma, t);
-    if (function_type == 14) return get_rational_with_derivatives(sigma, t);
-    if (function_type == 15) return multivalued_z_pow_inv_n_with_derivatives(sigma, t, multivalued_n, branch_cycle_speed, branch_offset);
+    if (function_type == 14) return identity_with_derivatives(sigma, t);
+    if (function_type == 15) return get_rational_with_derivatives(sigma, t);
+    if (function_type == 16) return multivalued_z_pow_inv_n_with_derivatives(sigma, t, multivalued_n, branch_cycle_speed, branch_offset);
     FieldData res;
     res.value = vec2(0.0);
     res.d_sigma = vec2(0.0);

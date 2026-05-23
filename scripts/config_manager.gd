@@ -2,9 +2,119 @@ extends Node
 
 const SAVE_PATH = "user://settings.cfg"
 
+enum ComplexFunc {
+	ZETA,
+	ZETA_REFLECTION,
+	DIRICHLET_ETA,
+	DIRICHLET_BETA,
+	GAMMA,
+	LOG_GAMMA,
+	DEDEKIND_ETA,
+	MANDELBROT,
+	SIN,
+	COS,
+	TAN,
+	COT,
+	EXP,
+	LOG,
+	IDENTITY,
+	RATIONAL,
+	MULTIVALUED_Z_POW,
+	MULTIVALUED_RSVD1,
+	MULTIVALUED_RSVD2,
+	MULTIVALUED_RSVD3
+}
+
+const FUNCTIONS = {
+	ComplexFunc.ZETA: {
+		"name": "Zeta (σ > 0)",
+		"is_dirichlect": true,
+		"has_iters": true,
+	},
+	ComplexFunc.ZETA_REFLECTION: {
+		"name": "Zeta (reflection formula)",
+		"is_dirichlect": true,
+		"has_iters": true,
+	},
+	ComplexFunc.DIRICHLET_ETA: {
+		"name": "Dirichlet Eta (σ > 0)",
+		"is_dirichlect": true,
+		"has_iters": true,
+	},
+	ComplexFunc.DIRICHLET_BETA: {
+		"name": "Dirichlet Beta (σ > 0)",
+		"is_dirichlect": true,
+		"has_iters": true,
+	},
+	ComplexFunc.GAMMA: {
+		"name": "Gamma"
+	},
+	ComplexFunc.LOG_GAMMA: {
+		"name": "Log Gamma"
+	},
+	ComplexFunc.DEDEKIND_ETA: {
+		"name": "Dedekind Eta",
+		"has_iters": true,
+		"on_select_reset_iters": 100,
+	},
+	ComplexFunc.MANDELBROT: {
+		"name": "Mandelbrot",
+		"has_iters": true,
+	},
+	ComplexFunc.SIN: {
+		"name": "Sin",
+	},
+	ComplexFunc.COS: {
+		"name": "Cos",
+	},
+	ComplexFunc.TAN: {
+		"name": "Tan",
+	},
+	ComplexFunc.COT: {
+		"name": "Cot",
+	},
+	ComplexFunc.EXP: {
+		"name": "Exp",
+	},
+	ComplexFunc.LOG: {
+		"name": "Log",
+	},
+	ComplexFunc.IDENTITY: {
+		"name": "Identity",
+	},
+	ComplexFunc.RATIONAL: {
+		"name": "Rational",
+		"is_rational": true,
+	},
+	ComplexFunc.MULTIVALUED_Z_POW: {
+		"name": "Multivalued z^(1/n)",
+		"is_multivalued": true,
+	},
+	ComplexFunc.MULTIVALUED_RSVD1: {
+		"name": "Multivalued Reserved 1",
+		"is_multivalued": true,
+		"hidden": true,
+	},
+	ComplexFunc.MULTIVALUED_RSVD2: {
+		"name": "Multivalued Reserved 2",
+		"is_multivalued": true,
+		"hidden": true,
+	},
+	ComplexFunc.MULTIVALUED_RSVD3: {
+		"name": "Multivalued Reserved 3",
+		"is_multivalued": true,
+		"hidden": true,
+	},
+}
+
 # Field parameters
 var iterations: int = 300
-var function_type: int = 0
+var function_type: int = ComplexFunc.ZETA:
+	set(value):
+		function_type = value
+		function = FUNCTIONS.get(function_type, {})
+var function: Dictionary = FUNCTIONS[ComplexFunc.ZETA]
+
 var height_type: int = 0
 var height_a: float = 3.0
 var height_epsilon: float = 1.0
@@ -74,12 +184,13 @@ var effective_zoom: float = 1.0
 func _ready():
 	load_settings()
 	effective_zoom = float(zoom_factor)
+	function = FUNCTIONS.get(function_type, {})
 
 func save_settings():
 	var config = ConfigFile.new()
 
 	config.set_value("field", "iterations", iterations)
-	config.set_value("field", "function_type", function_type)
+	config.set_value("field", "function_type", int(function_type))
 	config.set_value("field", "height_type", height_type)
 	config.set_value("field", "height_a", height_a)
 	config.set_value("field", "height_epsilon", height_epsilon)
@@ -146,7 +257,10 @@ func load_settings():
 		return
 
 	iterations = config.get_value("field", "iterations", iterations)
-	function_type = config.get_value("field", "function_type", function_type)
+	var ft_raw = config.get_value("field", "function_type", int(function_type))
+	function_type = ft_raw
+	# ft_raw setter will update Config.function
+
 	height_type = config.get_value("field", "height_type", height_type)
 	height_a = config.get_value("field", "height_a", height_a)
 	height_epsilon = config.get_value("field", "height_epsilon", height_epsilon)

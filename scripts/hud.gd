@@ -211,7 +211,7 @@ func _ready():
 	apply_button.pressed.connect(_on_set_pos_pressed)
 	close_button.pressed.connect(toggle_menu)
 	quit_button.pressed.connect(_on_quit_pressed)
-	func_button.item_selected.connect(_on_func_selected)
+	func_button.item_selected.connect(_on_func_item_selected)
 	height_button.item_selected.connect(_on_height_selected)
 	multivalued_mode_button.item_selected.connect(_on_multivalued_mode_selected)
 
@@ -251,22 +251,13 @@ func _ready():
 	exit_morph_button.pressed.connect(_on_exit_morph_pressed)
 
 	func_button.clear()
-	func_button.add_item("Zeta (σ > 0)")
-	func_button.add_item("Zeta (reflection formula)")
-	func_button.add_item("Dirichlet Eta (σ > 0)")
-	func_button.add_item("Dirichlet Beta (σ > 0)")
-	func_button.add_item("Gamma")
-	func_button.add_item("Log Gamma")
-	func_button.add_item("Dedekind Eta")
-	func_button.add_item("Mandelbrot")
-	func_button.add_item("Sin")
-	func_button.add_item("Cos")
-	func_button.add_item("Tan")
-	func_button.add_item("Cot")
-	func_button.add_item("Exp")
-	func_button.add_item("Log")
-	func_button.add_item("Rational")
-	func_button.add_item("Multivalued z^(1/n)")
+	var sorted_keys = Config.FUNCTIONS.keys()
+	sorted_keys.sort()
+	for f_key in sorted_keys:
+		var f_data = Config.FUNCTIONS.get(f_key, {})
+		if f_data.get("hidden", false):
+			continue
+		func_button.add_item(f_data.get("name", "Unknown"), f_key)
 
 	multivalued_mode_button.clear()
 	multivalued_mode_button.add_item("Time cycle")
@@ -489,7 +480,7 @@ func toggle_menu(applied: bool = false):
 		morph_time_slider.value = Config.multivalued_morph_time
 		_on_morph_time_value_changed(Config.multivalued_morph_time)
 
-		func_button.selected = Config.function_type
+		func_button.select(func_button.get_item_index(Config.function_type))
 		height_button.selected = Config.height_type
 		_on_func_selected(Config.function_type)
 		_on_height_selected(Config.height_type)
@@ -523,21 +514,30 @@ func toggle_menu(applied: bool = false):
 			Config.fog_density = _initial_fog_density
 			Config.fog_distance = _initial_fog_distance
 
-func _on_func_selected(index):
-	var is_zeta_variant = (index >= 0 and index <= 3)
+func _on_func_item_selected(index):
+	_on_func_selected(func_button.get_item_id(index))
 
-	if index == 6 and Config.function_type != 6:
-		iter_slider.value = 100 # Minimum value allowed by slider
+func _on_func_selected(f_type: int):
+	Config.function_type = f_type
+	var f_data = Config.function
 
-	rational_container.visible = (index == 14)
-	multivalued_mode_container.visible = (index == 15)
-	multivalued_container.visible = (index == 15)
+	var is_dirichlect = f_data.get("is_dirichlect", false)
+	var has_iters = f_data.get("has_iters", false)
+	var is_rational = f_data.get("is_rational", false)
+	var is_multivalued = f_data.get("is_multivalued", false)
+
+	if f_data.has("on_select_reset_iters"):
+		iter_slider.value = f_data["on_select_reset_iters"]
+
+	rational_container.visible = is_rational
+	multivalued_mode_container.visible = is_multivalued
+	multivalued_container.visible = is_multivalued
 	_on_multivalued_mode_selected(multivalued_mode_button.selected)
-	iter_container.visible = (is_zeta_variant or index == 6 or index == 7)
-	critical_checkbox.visible = is_zeta_variant
-	hud_zeros_checkbox.visible = is_zeta_variant
-	auto_walk_checkbox.visible = is_zeta_variant
-	rvm_checkbox.visible = is_zeta_variant
+	iter_container.visible = has_iters
+	critical_checkbox.visible = is_dirichlect
+	hud_zeros_checkbox.visible = is_dirichlect
+	auto_walk_checkbox.visible = is_dirichlect
+	rvm_checkbox.visible = is_dirichlect
 
 func _on_height_selected(index):
 	var is_log = (index == 0)
@@ -545,7 +545,7 @@ func _on_height_selected(index):
 	height_eps_container.visible = is_log
 
 func _on_multivalued_mode_selected(index):
-	var is_multivalued = (func_button.selected == 15)
+	var is_multivalued = Config.function.get("is_multivalued", false)
 	var is_cycle = (index == 0)
 	cycle_speed_container.visible = is_multivalued and is_cycle
 	morph_time_container.visible = is_multivalued and is_cycle
@@ -842,7 +842,7 @@ func _on_set_pos_pressed():
 	Config.fog_density = fog_density_slider.value / 100.0
 	Config.fog_distance = fog_distance_slider.value
 	Config.hud_scale = hud_scale_slider.value / 100.0
-	Config.function_type = func_button.selected
+	Config.function_type = func_button.get_item_id(func_button.selected)
 	Config.height_type = height_button.selected
 	Config.multivalued_n = int(multivalued_slider.value)
 	Config.multivalued_mode = multivalued_mode_button.selected
@@ -851,7 +851,7 @@ func _on_set_pos_pressed():
 
 	apply_aa()
 
-	if Config.function_type == 14:
+	if Config.function_type == Config.ComplexFunc.RATIONAL:
 		var expr = rational_input.text.replace(" ", "")
 		if "/" in expr:
 			var parts = expr.split("/")
@@ -925,7 +925,8 @@ func _process(_delta):
 	if player and "auto_walk_state" in player:
 		is_auto_walking = player.auto_walk_state != 0 # 0 is AutoWalkState.NONE
 
-	var show_zeros = ((Config.function_type >= 0 and Config.function_type <= 3) and is_auto_walking and Config.show_hud_zeros)
+	var f_data = Config.function
+	var show_zeros = (f_data.get("is_dirichlect", false) and is_auto_walking and Config.show_hud_zeros)
 	zeros_panel.visible = show_zeros
 
 	if show_zeros:
@@ -967,7 +968,7 @@ func _process(_delta):
 	var scale_factor = 1.0 / Config.effective_zoom
 	domain_label.text = "Re = %.3f\nIm = %.3f" % [x * 0.1 * scale_factor, -z * 0.1 * scale_factor]
 	var target_text = "Re = %.3f\nIm = %.3f\n|f| = %.3f" % [f.x, f.y, f.length()]
-	if Config.function_type == 15:
+	if f_data.get("is_multivalued", false):
 		var k = 0
 		if Config.multivalued_mode == 0:
 			var progress = fmod(Config.branch_time * Config.branch_cycle_speed, 1.0) * Config.multivalued_n
