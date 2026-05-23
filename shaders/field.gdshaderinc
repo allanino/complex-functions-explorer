@@ -7,7 +7,7 @@ uniform int height_type = 0;   // 0: Log, 1: Abs
 uniform float height_a = 3.0;
 uniform float height_epsilon = 1.0;
 uniform bool performance_protection_active = false;
-uniform bool is_zeta_variant = false;
+uniform bool is_dirichlect = false;
 uniform bool is_multivalued = false;
 
 uniform vec2 rational_num_coeffs[10];

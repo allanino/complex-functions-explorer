@@ -208,9 +208,9 @@ func _process(delta):
 
 	# Frequency: C2 by default, jumps to G2 near zeros
 	# Avoid the fake zeros for x < 0
-	var is_zeta = Config.function.get("is_zeta", false)
+	var is_dirichlect = Config.function.get("is_dirichlect", false)
 
-	if mag < Config.zero_proximity_audio and (not is_zeta or sigma > 0.0):
+	if mag < Config.zero_proximity_audio and (not is_dirichlect or sigma > 0.0):
 		target_frequency = 88.0 # G2
 	else:
 		target_frequency = BASE_FREQUENCY # C2
@@ -223,7 +223,7 @@ func _process(delta):
 
 	# 4. CRITICAL LINE (sigma = 0.5)
 	var critical_factor = 0.0
-	if is_zeta:
+	if is_dirichlect:
 		var dist_to_critical = abs(sigma - 0.5)
 		critical_factor = exp(-dist_to_critical * 25.0)
 	target_resonance = critical_factor

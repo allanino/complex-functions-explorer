@@ -232,7 +232,7 @@ func _physics_process(delta):
 	last_t = current_t
 
 	# Zeta zero detection during auto-walk
-	if auto_walk_state == AutoWalkState.WALKING and Config.function.get("is_zeta", false):
+	if auto_walk_state == AutoWalkState.WALKING and Config.function.get("is_dirichlect", false):
 		t_history.push_back(current_t)
 		t_history.pop_front()
 

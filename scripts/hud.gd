@@ -521,7 +521,7 @@ func _on_func_selected(f_type: int):
 	Config.function_type = f_type
 	var f_data = Config.function
 
-	var is_zeta = f_data.get("is_zeta", false)
+	var is_dirichlect = f_data.get("is_dirichlect", false)
 	var has_iters = f_data.get("has_iters", false)
 	var is_rational = f_data.get("is_rational", false)
 	var is_multivalued = f_data.get("is_multivalued", false)
@@ -534,10 +534,10 @@ func _on_func_selected(f_type: int):
 	multivalued_container.visible = is_multivalued
 	_on_multivalued_mode_selected(multivalued_mode_button.selected)
 	iter_container.visible = has_iters
-	critical_checkbox.visible = is_zeta
-	hud_zeros_checkbox.visible = is_zeta
-	auto_walk_checkbox.visible = is_zeta
-	rvm_checkbox.visible = is_zeta
+	critical_checkbox.visible = is_dirichlect
+	hud_zeros_checkbox.visible = is_dirichlect
+	auto_walk_checkbox.visible = is_dirichlect
+	rvm_checkbox.visible = is_dirichlect
 
 func _on_height_selected(index):
 	var is_log = (index == 0)
@@ -926,7 +926,7 @@ func _process(_delta):
 		is_auto_walking = player.auto_walk_state != 0 # 0 is AutoWalkState.NONE
 
 	var f_data = Config.function
-	var show_zeros = (f_data.get("is_zeta", false) and is_auto_walking and Config.show_hud_zeros)
+	var show_zeros = (f_data.get("is_dirichlect", false) and is_auto_walking and Config.show_hud_zeros)
 	zeros_panel.visible = show_zeros
 
 	if show_zeros:

@@ -340,7 +340,7 @@ func _update_terrain_material_uniforms():
 
 	var f_data = Config.function
 	terrain_material.set_shader_parameter("performance_protection_active", Config.performance_protection_active)
-	terrain_material.set_shader_parameter("is_zeta_variant", f_data.get("is_zeta", false))
+	terrain_material.set_shader_parameter("is_dirichlect", f_data.get("is_dirichlect", false))
 	terrain_material.set_shader_parameter("is_multivalued", f_data.get("is_multivalued", false))
 	terrain_material.set_shader_parameter("color_scheme", Config.color_scheme)
 	terrain_material.set_shader_parameter("iterations", Config.iterations)
