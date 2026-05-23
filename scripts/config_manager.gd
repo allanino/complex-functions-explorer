@@ -8,8 +8,8 @@ var function_type: int = 0
 var height_type: int = 0
 var height_a: float = 3.0
 var height_epsilon: float = 1.0
-var rational_num_coeffs: PackedFloat32Array = PackedFloat32Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
-var rational_den_coeffs: PackedFloat32Array = PackedFloat32Array([1, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+var rational_num_coeffs: PackedVector2Array = PackedVector2Array([Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)])
+var rational_den_coeffs: PackedVector2Array = PackedVector2Array([Vector2(1, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)])
 var multivalued_n: int = 2
 var multivalued_mode: int = 0 # 0: Time cycle, 1: Branch portals
 var branch_cycle_speed: float = 0.5
@@ -150,8 +150,19 @@ func load_settings():
 	height_type = config.get_value("field", "height_type", height_type)
 	height_a = config.get_value("field", "height_a", height_a)
 	height_epsilon = config.get_value("field", "height_epsilon", height_epsilon)
-	rational_num_coeffs = config.get_value("field", "rational_num_coeffs", rational_num_coeffs)
-	rational_den_coeffs = config.get_value("field", "rational_den_coeffs", rational_den_coeffs)
+
+	var val_num = config.get_value("field", "rational_num_coeffs", rational_num_coeffs)
+	if val_num is PackedFloat32Array:
+		rational_num_coeffs = PackedVector2Array([Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)])
+	else:
+		rational_num_coeffs = val_num
+
+	var val_den = config.get_value("field", "rational_den_coeffs", rational_den_coeffs)
+	if val_den is PackedFloat32Array:
+		rational_den_coeffs = PackedVector2Array([Vector2(1, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)])
+	else:
+		rational_den_coeffs = val_den
+
 	multivalued_n = config.get_value("field", "multivalued_n", multivalued_n)
 	multivalued_mode = config.get_value("field", "multivalued_mode", multivalued_mode)
 	branch_cycle_speed = config.get_value("field", "branch_cycle_speed", branch_cycle_speed)

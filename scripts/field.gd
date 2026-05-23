@@ -216,12 +216,12 @@ static func mandelbrot(sigma: float, t: float, iterations: int) -> Vector2:
 # Rational Functions
 #-------------------------------------------------------------------------
 
-static func evaluate_poly(sigma: float, t: float, coeffs: PackedFloat32Array) -> Vector2:
+static func evaluate_poly(sigma: float, t: float, coeffs: PackedVector2Array) -> Vector2:
 	var z = Vector2(sigma, t)
 	var res = Vector2.ZERO
 	# Horner's method for polynomial evaluation
 	for i in range(9, -1, -1):
-		res = complex_mul(res, z) + Vector2(coeffs[i], 0.0)
+		res = complex_mul(res, z) + coeffs[i]
 	return res
 
 static func get_rational(sigma: float, t: float) -> Vector2:
