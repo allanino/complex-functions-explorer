@@ -650,7 +650,7 @@ func _on_exit_morph_pressed():
 	morph_button.selected = 0
 
 func _parse_complex(text: String) -> Vector2:
-	text = text.replace(" ", "").replace("I", "i")
+	text = text.replace(" ", "").replace("I", "i").replace("*", "")
 	if text == "": return Vector2.ZERO
 
 	# Handle pure imaginary "i" or "-i"
@@ -681,7 +681,7 @@ func _parse_complex(text: String) -> Vector2:
 
 func _parse_poly(text: String) -> PackedVector2Array:
 	var coeffs = PackedVector2Array([Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO])
-	text = text.replace(" ", "")
+	text = text.replace(" ", "").replace("*", "")
 
 	# We want to split by terms. A term usually starts with + or -
 	# unless it's inside parentheses.
