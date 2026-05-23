@@ -297,9 +297,11 @@ static func get_field(x: float, z: float) -> Vector2:
 	return Vector2.ZERO
 
 static func get_height_from_field(f: Vector2) -> float:
-	if not is_finite(f.x) or not is_finite(f.y): return 0.0
+	var f_is_inf = is_inf(f.x) or is_inf(f.y)
+	if not f_is_inf and (not is_finite(f.x) or not is_finite(f.y)): return 0.0
+
 	var mag = f.length()
-	if not is_finite(mag): return 0.0
+	if not f_is_inf and not is_finite(mag): return 0.0
 
 	var h_raw: float
 	if Config.height_type == 0: h_raw = Config.height_a * log(Config.height_epsilon + mag)
@@ -313,6 +315,7 @@ static func get_height_from_field(f: Vector2) -> float:
 
 	# Hyperbolic capping matching the shader
 	var h = (h_raw * 400.0) / (h_raw + 400.0)
+	if f_is_inf: h = 400.0
 	return h if is_finite(h) else 0.0
 
 static func get_height(x: float, z: float) -> float:

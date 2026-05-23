@@ -98,6 +98,46 @@ void vertex() {
 
         vec3 world_v_pos = (MODEL_MATRIX * vec4(snap_v, 1.0)).xyz;
 
+        // Singularity Snapping: Shift vertices toward poles to better capture "walls"
+        // We do a preliminary evaluation to find the gradient of the magnitude.
+        // For snapping, we use branch_offset = 0 as magnitude gradients are largely branch-invariant.
+        FieldData pre_fd = get_field_with_derivatives(world_v_pos.x, world_v_pos.z, 0);
+
+        // Skip snapping if we hit invalid data (NaN) or already at infinity to avoid NaN shifts
+        bool pre_nan = any(isnan(pre_fd.value)) || any(isnan(pre_fd.d_sigma)) || any(isnan(pre_fd.d_t));
+        bool pre_inf = any(isinf(pre_fd.value)) || any(isinf(pre_fd.d_sigma)) || any(isinf(pre_fd.d_t));
+
+        float mag_sq = dot(pre_fd.value, pre_fd.value);
+        if (!pre_nan && !pre_inf && mag_sq > 0.1) {
+            float mag = sqrt(mag_sq);
+            float k = 0.1 / zoom_factor;
+            vec2 df_dx = pre_fd.d_sigma * k;
+            vec2 df_dz = pre_fd.d_t * (-k);
+
+            float dh_dx = dot(pre_fd.value, df_dx) / mag;
+            float dh_dz = dot(pre_fd.value, df_dz) / mag;
+            vec2 grad_h = vec2(dh_dx, dh_dz);
+            float grad_h_sq = dot(grad_h, grad_h);
+
+            if (grad_h_sq > 0.000001) {
+                // Newton step toward the pole (zero of 1/h)
+                vec2 delta = (mag / grad_h_sq) * grad_h;
+
+                // Limit snapping to 45% of current LOD segment size to prevent mesh inversion
+                float seg_size = chunk_size / lod_segments[lod_level];
+                float max_delta = seg_size * 0.45;
+                float d_len = length(delta);
+                if (d_len > max_delta) {
+                    delta *= (max_delta / d_len);
+                }
+
+                world_v_pos.x += delta.x;
+                world_v_pos.z += delta.y;
+                snap_v.x += delta.x;
+                snap_v.z += delta.y;
+            }
+        }
+
         int branch_offset = 0;
         if (is_multivalued && multivalued_mode == 1) {
             vec3 cam_pos = (INV_VIEW_MATRIX * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
@@ -114,11 +154,10 @@ void vertex() {
 
         FieldData final_fd = get_field_with_derivatives(world_v_pos.x, world_v_pos.z, branch_offset);
 
-        bool is_invalid = any(isnan(final_fd.value)) || any(isinf(final_fd.value)) ||
-                        any(isnan(final_fd.d_sigma)) || any(isinf(final_fd.d_sigma)) ||
-                        any(isnan(final_fd.d_t)) || any(isinf(final_fd.d_t));
+        bool is_nan = any(isnan(final_fd.value)) || any(isnan(final_fd.d_sigma)) || any(isnan(final_fd.d_t));
+        bool is_inf = any(isinf(final_fd.value)) || any(isinf(final_fd.d_sigma)) || any(isinf(final_fd.d_t));
 
-        if (is_invalid) {
+        if (is_nan) {
             v_nan = 1.0;
             field_val = vec2(0.0);
             v_normal = vec3(0.0, 1.0, 0.0);
@@ -159,6 +198,7 @@ void vertex() {
 
             // Hyperbolic capping to prevent infinite spikes
             float h = (h_raw * 400.0) / (h_raw + 400.0);
+            if (is_inf) h = 400.0;
 
             local_pos = vec3(snap_v.x, snap_v.y + h, snap_v.z);
 
@@ -190,8 +230,8 @@ void vertex() {
             float capping_deriv = 400.0 / (h_raw + 400.0);
             capping_deriv *= capping_deriv;
 
-            float dh_dx = dh_raw_dx * capping_deriv;
-            float dh_dz = dh_raw_dz * capping_deriv;
+            float dh_dx = (is_inf) ? 0.0 : dh_raw_dx * capping_deriv;
+            float dh_dz = (is_inf) ? 0.0 : dh_raw_dz * capping_deriv;
 
             v_normal = normalize(vec3(-dh_dx, 1.0, -dh_dz));
         }
