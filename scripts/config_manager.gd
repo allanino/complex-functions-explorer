@@ -2,9 +2,138 @@ extends Node
 
 const SAVE_PATH = "user://settings.cfg"
 
+enum ComplexFunc {
+	ZETA,
+	ZETA_REFLECTION,
+	DIRICHLET_ETA,
+	DIRICHLET_BETA,
+	GAMMA,
+	LOG_GAMMA,
+	DEDEKIND_ETA,
+	MANDELBROT,
+	SIN,
+	COS,
+	TAN,
+	COT,
+	EXP,
+	LOG,
+	RATIONAL,
+	MULTIVALUED_Z_POW,
+	MULTIVALUED_RSVD1,
+	MULTIVALUED_RSVD2,
+	MULTIVALUED_RSVD3
+}
+
+const FUNCTIONS = {
+	ComplexFunc.ZETA: {
+		"name": "Zeta (σ > 0)",
+		"zeta_variant": true,
+		"has_iterations": true,
+	},
+	ComplexFunc.ZETA_REFLECTION: {
+		"name": "Zeta (reflection formula)",
+		"zeta_variant": true,
+		"has_iterations": true,
+	},
+	ComplexFunc.DIRICHLET_ETA: {
+		"name": "Dirichlet Eta (σ > 0)",
+		"zeta_variant": true,
+		"has_iterations": true,
+	},
+	ComplexFunc.DIRICHLET_BETA: {
+		"name": "Dirichlet Beta (σ > 0)",
+		"zeta_variant": true,
+		"has_iterations": true,
+	},
+	ComplexFunc.GAMMA: {
+		"name": "Gamma",
+		"zeta_variant": false,
+		"has_iterations": false,
+	},
+	ComplexFunc.LOG_GAMMA: {
+		"name": "Log Gamma",
+		"zeta_variant": false,
+		"has_iterations": false,
+	},
+	ComplexFunc.DEDEKIND_ETA: {
+		"name": "Dedekind Eta",
+		"zeta_variant": false,
+		"has_iterations": true,
+		"on_select_reset_iters": 100,
+	},
+	ComplexFunc.MANDELBROT: {
+		"name": "Mandelbrot",
+		"zeta_variant": false,
+		"has_iterations": true,
+	},
+	ComplexFunc.SIN: {
+		"name": "Sin",
+		"zeta_variant": false,
+		"has_iterations": false,
+	},
+	ComplexFunc.COS: {
+		"name": "Cos",
+		"zeta_variant": false,
+		"has_iterations": false,
+	},
+	ComplexFunc.TAN: {
+		"name": "Tan",
+		"zeta_variant": false,
+		"has_iterations": false,
+	},
+	ComplexFunc.COT: {
+		"name": "Cot",
+		"zeta_variant": false,
+		"has_iterations": false,
+	},
+	ComplexFunc.EXP: {
+		"name": "Exp",
+		"zeta_variant": false,
+		"has_iterations": false,
+	},
+	ComplexFunc.LOG: {
+		"name": "Log",
+		"zeta_variant": false,
+		"has_iterations": false,
+	},
+	ComplexFunc.RATIONAL: {
+		"name": "Rational",
+		"zeta_variant": false,
+		"has_iterations": false,
+		"is_rational": true,
+	},
+	ComplexFunc.MULTIVALUED_Z_POW: {
+		"name": "Multivalued z^(1/n)",
+		"zeta_variant": false,
+		"has_iterations": false,
+		"is_multivalued": true,
+	},
+	ComplexFunc.MULTIVALUED_RSVD1: {
+		"name": "Multivalued Reserved 1",
+		"zeta_variant": false,
+		"has_iterations": false,
+		"is_multivalued": true,
+		"hidden": true,
+	},
+	ComplexFunc.MULTIVALUED_RSVD2: {
+		"name": "Multivalued Reserved 2",
+		"zeta_variant": false,
+		"has_iterations": false,
+		"is_multivalued": true,
+		"hidden": true,
+	},
+	ComplexFunc.MULTIVALUED_RSVD3: {
+		"name": "Multivalued Reserved 3",
+		"zeta_variant": false,
+		"has_iterations": false,
+		"is_multivalued": true,
+		"hidden": true,
+	},
+}
+
 # Field parameters
 var iterations: int = 300
-var function_type: int = 0
+var function_type: int = ComplexFunc.ZETA
 var height_type: int = 0
 var height_a: float = 3.0
 var height_epsilon: float = 1.0
@@ -79,7 +208,7 @@ func save_settings():
 	var config = ConfigFile.new()
 
 	config.set_value("field", "iterations", iterations)
-	config.set_value("field", "function_type", function_type)
+	config.set_value("field", "function_type", int(function_type))
 	config.set_value("field", "height_type", height_type)
 	config.set_value("field", "height_a", height_a)
 	config.set_value("field", "height_epsilon", height_epsilon)
@@ -146,7 +275,7 @@ func load_settings():
 		return
 
 	iterations = config.get_value("field", "iterations", iterations)
-	function_type = config.get_value("field", "function_type", function_type)
+	function_type = config.get_value("field", "function_type", int(function_type))
 	height_type = config.get_value("field", "height_type", height_type)
 	height_a = config.get_value("field", "height_a", height_a)
 	height_epsilon = config.get_value("field", "height_epsilon", height_epsilon)

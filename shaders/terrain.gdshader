@@ -99,7 +99,7 @@ void vertex() {
         vec3 world_v_pos = (MODEL_MATRIX * vec4(snap_v, 1.0)).xyz;
 
         int branch_offset = 0;
-        if (function_type == 15 && multivalued_mode == 1) {
+        if (is_multivalued && multivalued_mode == 1) {
             vec3 cam_pos = (INV_VIEW_MATRIX * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
             if (cam_pos.z * world_v_pos.z < 0.0) {
                 float r = cam_pos.z / (cam_pos.z - world_v_pos.z);
@@ -298,7 +298,7 @@ void fragment() {
         ALBEDO = base * albedo;
         vec3 final_emission = base * emission;
 
-        if (function_type == 15 && multivalued_mode == 1) {
+        if (is_multivalued && multivalued_mode == 1) {
             // Highlight the branch cut portal area
             float dist_to_cut = abs(world_pos.z);
             if (world_pos.x > 0.0 && world_pos.x < portal_width) {
@@ -309,7 +309,7 @@ void fragment() {
 
         // Only apply the lines rendering for zeta (at x = 0, x = 5.0, x = 10.0)
         // which corresponds to Re = 0.0, Re = 0.5, Re = 1.0
-        if (show_critical_stripe && (function_type >= 0 && function_type <= 3)) {
+        if (show_critical_stripe && is_zeta_variant) {
             float zoom = zoom_factor;
             // Periodic glow factor
             float glow = 0.5 + 0.5 * sin(TIME * 2.0);

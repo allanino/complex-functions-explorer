@@ -208,7 +208,8 @@ func _process(delta):
 
 	# Frequency: C2 by default, jumps to G2 near zeros
 	# Avoid the fake zeros for x < 0
-	if mag < Config.zero_proximity_audio and pos.x > 0:
+	var is_zeta = Config.FUNCTIONS[Config.function_type].get("zeta_variant", false)
+	if mag < Config.zero_proximity_audio and (not is_zeta or pos.x > 0):
 		target_frequency = 88.0 # G2
 	else:
 		target_frequency = BASE_FREQUENCY # C2
