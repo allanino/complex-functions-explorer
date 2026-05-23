@@ -970,8 +970,10 @@ custom_minimum_size = Vector2(100, 20)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 4
-max_value = 500.0
+max_value = 100.0
+min_value = 0.1
 value = 10.0
+step = 0.1
 
 [node name="FogDistanceValue" type="Label" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/FogDistanceContainer"]
 custom_minimum_size = Vector2(50, 0)
