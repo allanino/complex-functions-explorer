@@ -24,8 +24,8 @@ process_mode = 3
 [sub_resource type="Environment" id="Environment_1"]
 background_mode = 2
 sky = SubResource("Sky_1")
-tonemap_mode = 2
-glow_enabled = true
+tonemap_mode = 3
+tonemap_exposure = 0.95
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_2"]
 render_priority = 0
@@ -59,6 +59,7 @@ shader_parameter/albedo = 0.15
 shader_parameter/emission = 0.1
 shader_parameter/metallic = 0.7
 shader_parameter/roughness = 0.1
+shader_parameter/surface_texture = 0.0
 shader_parameter/morph = 1.0
 shader_parameter/portal_height = 50.0
 shader_parameter/portal_width = 100.0
