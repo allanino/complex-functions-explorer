@@ -439,8 +439,12 @@ void fragment() {
                 float nx = fbm3(noise_pos + t * eps) - noise_val;
                 float nz = fbm3(noise_pos + b * eps) - noise_val;
 
-                vec3 normal_offset = (t * nx + b * nz) * surface_texture * fade * 2.0;
-                NORMAL = normalize(v_normal + normal_offset);
+                /* vec3 normal_offset = (t * nx + b * nz) * surface_texture * fade * 2.0; */
+                vec3 perturbed = normalize(
+                    NORMAL + vec3(nx, 0.0, nz) * surface_texture * fade * 2.0
+                );
+
+                NORMAL = perturbed;
 
                 // Remap noise_val from [0, 1] to [-0.5, 0.5] for roughness
                 roughness_variation = (noise_val - 0.5) * surface_texture * fade * 0.2;
