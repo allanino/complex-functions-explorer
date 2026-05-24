@@ -211,10 +211,10 @@ func _process(delta):
 
 	# Gaussian localization around zeros
 	# Pulse only exists very near zeros
-	pulse_presence = exp(-pow(mag, 2.0))
+	pulse_presence = exp(-pow(mag, 3.0))
 
 	# Stable breathing speed
-	target_pulse_rate = lerp(1.5, 4.5, pulse_presence)
+	target_pulse_rate = lerp(1.5, 6.0, pulse_presence)
 
 	# Store for synthesis stage
 	target_harmonic_intensity = clamp(proximity * 0.08, 0.0, 0.4)
@@ -284,7 +284,7 @@ func fill_buffer():
 		# --- FM SYNTHESIS ---
 
 		# Modulator
-		audio_fm_index = lerp(audio_fm_index, current_fm_index, 0.001)
+		audio_fm_index = lerp(audio_fm_index, current_fm_index, 0.1)
 		var modulator = sin(mod_phase * TAU) * audio_fm_index
 
 		# Carrier
@@ -307,7 +307,7 @@ func fill_buffer():
 		var pulse_wave = 0.75 + 0.25 * sin(pulse_phase * TAU)
 
 		# Pulse only appears near zeros
-		audio_pulse_presence = lerp(audio_pulse_presence, pulse_presence, 0.001)
+		audio_pulse_presence = lerp(audio_pulse_presence, pulse_presence, 0.1)
 
 		sample *= lerp(1.0, pulse_wave, audio_pulse_presence)
 
