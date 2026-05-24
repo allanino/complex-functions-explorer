@@ -29,25 +29,26 @@ const FUNCTIONS = {
 	ComplexFunc.ZETA: {
 		"name": "Zeta (σ > 0)",
 		"is_dirichlect": true,
-		"has_iters": true,
-		"has_von_mangoldt": true
+		"has_von_mangoldt": true,
+		# [min, max, step, initial]
+		"iters_range": [100.0, 5000.0, 100.0, 500.0],
 	},
 	ComplexFunc.ZETA_REFLECTION: {
 		"name": "Zeta (reflection formula)",
 		"is_dirichlect": true,
-		"has_iters": true,
-		"has_von_mangoldt": true
+		"has_von_mangoldt": true,
+		"iters_range": [100.0, 5000.0, 100.0, 500.0],
 	},
 	ComplexFunc.DIRICHLET_ETA: {
 		"name": "Dirichlet Eta (σ > 0)",
 		"is_dirichlect": true,
-		"has_iters": true,
-		"has_von_mangoldt": true
+		"has_von_mangoldt": true,
+		"iters_range": [100.0, 5000.0, 100.0, 500.0],
 	},
 	ComplexFunc.DIRICHLET_BETA: {
 		"name": "Dirichlet Beta (σ > 0)",
 		"is_dirichlect": true,
-		"has_iters": true,
+		"iters_range": [100.0, 5000.0, 100.0, 500.0],
 	},
 	ComplexFunc.GAMMA: {
 		"name": "Gamma"
@@ -57,12 +58,11 @@ const FUNCTIONS = {
 	},
 	ComplexFunc.DEDEKIND_ETA: {
 		"name": "Dedekind Eta",
-		"has_iters": true,
-		"on_select_reset_iters": 100,
+		"iters_range": [1.0, 20.0, 1.0, 10.0],
 	},
 	ComplexFunc.MANDELBROT: {
 		"name": "Mandelbrot",
-		"has_iters": true,
+		"iters_range": [100.0, 5000.0, 100.0, 500.0],
 	},
 	ComplexFunc.SIN: {
 		"name": "Sin",
@@ -111,11 +111,17 @@ const FUNCTIONS = {
 }
 
 # Field parameters
-var iterations: int = 300
+var iterations: int = 500
+var function_iterations: Dictionary = {}
 var function_type: int = ComplexFunc.ZETA:
 	set(value):
+		function_iterations[function_type] = iterations
 		function_type = value
 		function = FUNCTIONS.get(function_type, {})
+		if function_iterations.has(function_type):
+			iterations = function_iterations[function_type]
+		elif function.has("iters_range"):
+			iterations = int(function["iters_range"][3])
 var function: Dictionary = FUNCTIONS[ComplexFunc.ZETA]
 
 var height_type: int = 0
@@ -193,7 +199,9 @@ func _ready():
 func save_settings():
 	var config = ConfigFile.new()
 
+	function_iterations[function_type] = iterations
 	config.set_value("field", "iterations", iterations)
+	config.set_value("field", "function_iterations", function_iterations)
 	config.set_value("field", "function_type", int(function_type))
 	config.set_value("field", "height_type", height_type)
 	config.set_value("field", "height_a", height_a)
@@ -260,10 +268,14 @@ func load_settings():
 	if err != OK:
 		return
 
-	iterations = config.get_value("field", "iterations", iterations)
 	var ft_raw = config.get_value("field", "function_type", int(function_type))
 	function_type = ft_raw
-	# ft_raw setter will update Config.function
+
+	function_iterations = config.get_value("field", "function_iterations", {})
+	if function_iterations.has(function_type):
+		iterations = function_iterations[function_type]
+	else:
+		iterations = config.get_value("field", "iterations", iterations)
 
 	height_type = config.get_value("field", "height_type", height_type)
 	height_a = config.get_value("field", "height_a", height_a)

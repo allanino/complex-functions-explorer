@@ -524,12 +524,19 @@ func _on_func_selected(f_type: int):
 	var f_data = Config.function
 
 	var is_dirichlect = f_data.get("is_dirichlect", false)
-	var has_iters = f_data.get("has_iters", false)
+	var iters_range = f_data.get("iters_range", {})
+	var has_iters = !iters_range.is_empty()
 	var is_rational = f_data.get("is_rational", false)
 	var is_multivalued = f_data.get("is_multivalued", false)
 
-	if f_data.has("on_select_reset_iters"):
-		iter_slider.value = f_data["on_select_reset_iters"]
+	if has_iters:
+		iter_slider.min_value = iters_range[0]
+		iter_slider.max_value = iters_range[1]
+		iter_slider.step = iters_range[2]
+
+		Config.iterations = Config.function_iterations.get(f_type, iters_range[3])
+		iter_slider.value = Config.iterations
+		_on_iterations_value_changed(Config.iterations)
 
 	rational_container.visible = is_rational
 	multivalued_mode_container.visible = is_multivalued
