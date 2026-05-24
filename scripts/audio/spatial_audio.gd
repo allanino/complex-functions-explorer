@@ -34,7 +34,7 @@ var pulse_presence: float = 0.0
 
 # --- STARTUP ENVELOPE ---
 var startup_time := 0.0
-var startup_duration := 3.0
+var startup_duration := 5.0
 
 # --- FPS GUARD ---
 var low_fps_counter: int = 0
