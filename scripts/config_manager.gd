@@ -48,6 +48,7 @@ const FUNCTIONS = {
 	ComplexFunc.DIRICHLET_BETA: {
 		"name": "Dirichlet Beta (σ > 0)",
 		"is_dirichlect": true,
+		"has_von_mangoldt": true,
 		"iters_range": [100.0, 5000.0, 100.0, 500.0],
 	},
 	ComplexFunc.GAMMA: {
