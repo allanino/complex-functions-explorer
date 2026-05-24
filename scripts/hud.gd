@@ -1211,6 +1211,7 @@ func _on_detach_pressed(source_slider: HSlider, source_value_label: Label, title
 	# Expand bounds first to avoid clamping
 	detach_slider.min_value = min(detach_slider.min_value, source_slider.min_value)
 	detach_slider.max_value = max(detach_slider.max_value, source_slider.max_value)
+	detach_slider.custom_minimum_size = Vector2(200.0, 50.0)
 
 	detach_slider.min_value = source_slider.min_value
 	detach_slider.max_value = source_slider.max_value
