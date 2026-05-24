@@ -289,10 +289,16 @@ func fill_buffer():
 
 		# Carrier
 		var sample = sin(phase * TAU + modulator)
+	
+		# Add fifth
+		sample += 0.15 * sin(phase * TAU * 1.5 + modulator * 0.3)
 
-		# Non-linear saturation (Cubic soft-clipper)
+		# Non-linear saturation (Cubic soft-clipper) with wave shape
 		sample = clamp(sample * 1.1, -1.1, 1.1)
-		sample = sample - (sample * sample * sample / 3.0)
+		var shape = 0.25 + 0.1 * sin(lfo_phase * TAU)
+		sample = sample - (sample * sample * sample * shape)
+
+
 
 		if not is_finite(sample): sample = 0.0
 
