@@ -206,6 +206,10 @@ var _initial_static_time: float
 var _initial_fog_enabled: bool
 var _initial_fog_density: float
 var _initial_fog_distance: float
+var _initial_terrain_detail: int
+var _initial_antialiasing_mode: int
+var _initial_view_distance: int
+var _initial_shadows_enabled: bool
 
 func _ready():
 	hud_columns.offset_top = -1000
@@ -236,6 +240,9 @@ func _ready():
 	hud_scale_slider.value_changed.connect(_on_hud_scale_value_changed)
 	iter_slider.value_changed.connect(_on_iterations_value_changed)
 
+	terrain_detail_button.item_selected.connect(_on_terrain_detail_selected)
+	aa_button.item_selected.connect(_on_aa_selected)
+	shadows_checkbox.toggled.connect(_on_shadows_toggled)
 	get_viewport().size_changed.connect(_update_hud_layout)
 	multivalued_slider.value_changed.connect(_on_multivalued_n_value_changed)
 	cycle_speed_slider.value_changed.connect(_on_cycle_speed_value_changed)
@@ -395,6 +402,10 @@ func toggle_menu(applied: bool = false):
 		_initial_fog_enabled = Config.fog_enabled
 		_initial_fog_density = Config.fog_density
 		_initial_fog_distance = Config.fog_distance
+		_initial_terrain_detail = Config.terrain_detail
+		_initial_antialiasing_mode = Config.antialiasing_mode
+		_initial_view_distance = Config.view_distance
+		_initial_shadows_enabled = Config.shadows_enabled
 
 		freeze_time_checkbox.button_pressed = (Config.environment_type != 0)
 
@@ -515,6 +526,11 @@ func toggle_menu(applied: bool = false):
 			Config.fog_enabled = _initial_fog_enabled
 			Config.fog_density = _initial_fog_density
 			Config.fog_distance = _initial_fog_distance
+			Config.terrain_detail = _initial_terrain_detail
+			Config.antialiasing_mode = _initial_antialiasing_mode
+			Config.view_distance = _initial_view_distance
+			Config.shadows_enabled = _initial_shadows_enabled
+			apply_aa()
 
 func _on_func_item_selected(index):
 	_on_func_selected(func_button.get_item_id(index))
@@ -608,6 +624,7 @@ func _on_zero_speed_value_changed(value):
 
 func _on_view_distance_value_changed(value):
 	view_distance_value.text = str(int(value))
+	Config.view_distance = int(value)
 
 func _on_sunrise_value_changed(value):
 	sunrise_value.text = str(int(value)) + "°"
@@ -1124,3 +1141,13 @@ func _rescale_card(card: Control, scale: float):
 		for child in node.get_children():
 			if child is Control:
 				stack.push_back(child)
+
+func _on_terrain_detail_selected(index: int):
+	Config.terrain_detail = index
+
+func _on_aa_selected(index: int):
+	Config.antialiasing_mode = index
+	apply_aa()
+
+func _on_shadows_toggled(pressed: bool):
+	Config.shadows_enabled = pressed
