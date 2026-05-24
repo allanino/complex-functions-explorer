@@ -13,7 +13,7 @@ instance uniform int neighbor_lod_right = -1;
 instance uniform int neighbor_lod_top = -1;
 instance uniform int neighbor_lod_bottom = -1;
 
-uniform float lod_segments[5];
+uniform float lod_segments[6];
 uniform float chunk_size;
 
 uniform int color_scheme = 0;
@@ -27,6 +27,7 @@ uniform float albedo : hint_range(0.0, 1.0) = 0.15;
 uniform float emission : hint_range(0.0, 1.0) = 0.1;
 uniform float metallic : hint_range(0.0, 1.0) = 0.7;
 uniform float roughness : hint_range(0.0, 1.0) = 0.1;
+uniform float surface_texture : hint_range(0.0, 1.0) = 0.0;
 uniform float morph : hint_range(0.0, 1.0) = 1.0;
 uniform float portal_height = 50.0;
 uniform float portal_width = 100.0;
@@ -40,6 +41,34 @@ vec3 hsv2rgb(vec3 c) {
 
 float matrix_hash(vec2 p) {
     return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
+}
+
+// Simple 3D noise for surface texture
+float hash3(vec3 p) {
+    p = fract(p * vec3(443.897, 441.423, 437.195));
+    p += dot(p, p.yxz + 19.19);
+    return fract((p.x + p.y) * p.z);
+}
+
+float noise3(vec3 x) {
+    vec3 p = floor(x);
+    vec3 f = fract(x);
+    f = f * f * (3.0 - 2.0 * f);
+    return mix(mix(mix(hash3(p + vec3(0,0,0)), hash3(p + vec3(1,0,0)), f.x),
+                   mix(hash3(p + vec3(0,1,0)), hash3(p + vec3(1,1,0)), f.x), f.y),
+               mix(mix(hash3(p + vec3(0,0,1)), hash3(p + vec3(1,0,1)), f.x),
+                   mix(hash3(p + vec3(0,1,1)), hash3(p + vec3(1,1,1)), f.x), f.y), f.z);
+}
+
+float fbm3(vec3 p) {
+    float f = 0.0;
+    float w = 0.5;
+    for (int i = 0; i < 4; i++) {
+        f += w * noise3(p);
+        p *= 2.0;
+        w *= 0.5;
+    }
+    return f;
 }
 
 float sdLine(vec2 p, vec2 a, vec2 b) {
@@ -380,11 +409,53 @@ void fragment() {
             }
         }
 
+        // Procedural micro-normal perturbation and roughness variation
+        float noise_val = 0.0;
+        float roughness_variation = 0.0;
+        if (surface_texture > 0.0) {
+            vec3 scaled_world_pos = world_pos /  zoom_factor;
+
+            float dist_to_camera = length(scaled_world_pos - CAMERA_POSITION_WORLD);
+            // Fade the texture effect beyond 50 units, reaching 0 at 100 units
+            float fade = 1.0 - smoothstep(20.0, 100.0, dist_to_camera);
+            fade = mix(0.15, 1.0, fade);
+
+
+            if (fade > 0.001) {
+                // High frequency for fine texture
+                float freq = mix(2.0, 10.0, fade);
+                vec3 noise_pos = scaled_world_pos * freq;
+                noise_val = fbm3(noise_pos);
+
+                // Approximate tangent and bitangent based on the normal
+                vec3 t = normalize(cross(v_normal, vec3(0.0, 1.0, 0.0)));
+                if (length(t) < 0.1) {
+                    t = normalize(cross(v_normal, vec3(1.0, 0.0, 0.0)));
+                }
+                vec3 b = normalize(cross(v_normal, t));
+
+                // Derive normal perturbation by sampling nearby points
+                float eps = 0.05;
+                float nx = fbm3(noise_pos + t * eps) - noise_val;
+                float nz = fbm3(noise_pos + b * eps) - noise_val;
+
+                /* vec3 normal_offset = (t * nx + b * nz) * surface_texture * fade * 2.0; */
+                vec3 perturbed = normalize(
+                    NORMAL + vec3(nx, 0.0, nz) * surface_texture * fade * 2.0
+                );
+
+                NORMAL = perturbed;
+
+                // Remap noise_val from [0, 1] to [-0.5, 0.5] for roughness
+                roughness_variation = (noise_val - 0.5) * surface_texture * fade * 0.2;
+            }
+        }
+
         // Reinhard Tone Mapping to keep high emissions from blowing out to absolute white
         final_emission = final_emission / (final_emission + vec3(1.0));
 
         EMISSION = final_emission;
-        ROUGHNESS = roughness;
+        ROUGHNESS = clamp(roughness + roughness_variation, 0.0, 1.0);
         METALLIC = metallic;
         SPECULAR = 0.1;
     }

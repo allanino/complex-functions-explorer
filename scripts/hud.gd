@@ -121,6 +121,9 @@ var active_detached_value: Label = null
 @onready var metallic_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/MetallicContainer/MetallicValue
 @onready var roughness_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/RoughnessContainer/RoughnessSlider
 @onready var roughness_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/RoughnessContainer/RoughnessValue
+
+@onready var surface_texture_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/SurfaceTextureContainer/SurfaceTextureSlider
+@onready var surface_texture_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/SurfaceTextureContainer/SurfaceTextureValue
 @onready var morph_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/MorphContainer/MorphButton
 
 @onready var morph_overlay = $Control/MorphOverlay
@@ -206,6 +209,7 @@ var _initial_terrain_albedo: float
 var _initial_terrain_emission: float
 var _initial_terrain_metallic: float
 var _initial_terrain_roughness: float
+var _initial_terrain_surface_texture: float
 var _initial_hud_scale: float
 var _initial_sky_luminosity: float
 var _initial_sun_luminosity: float
@@ -215,6 +219,10 @@ var _initial_static_time: float
 var _initial_fog_enabled: bool
 var _initial_fog_density: float
 var _initial_fog_distance: float
+var _initial_terrain_detail: int
+var _initial_antialiasing_mode: int
+var _initial_view_distance: int
+var _initial_shadows_enabled: bool
 
 func _ready():
 	hud_columns.offset_top = -1000
@@ -245,6 +253,9 @@ func _ready():
 	hud_scale_slider.value_changed.connect(_on_hud_scale_value_changed)
 	iter_slider.value_changed.connect(_on_iterations_value_changed)
 
+	terrain_detail_button.item_selected.connect(_on_terrain_detail_selected)
+	aa_button.item_selected.connect(_on_aa_selected)
+	shadows_checkbox.toggled.connect(_on_shadows_toggled)
 	get_viewport().size_changed.connect(_update_hud_layout)
 	multivalued_slider.value_changed.connect(_on_multivalued_n_value_changed)
 	cycle_speed_slider.value_changed.connect(_on_cycle_speed_value_changed)
@@ -256,6 +267,7 @@ func _ready():
 	emission_slider.value_changed.connect(_on_terrain_emission_value_changed)
 	metallic_slider.value_changed.connect(_on_terrain_metallic_value_changed)
 	roughness_slider.value_changed.connect(_on_terrain_roughness_value_changed)
+	surface_texture_slider.value_changed.connect(_on_terrain_surface_texture_value_changed)
 	morph_button.item_selected.connect(_on_morph_selected)
 	morph_slider.value_changed.connect(_on_morph_slider_changed)
 	exit_morph_button.pressed.connect(_on_exit_morph_pressed)
@@ -324,6 +336,7 @@ func _ready():
 	$Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/EmissionContainer/EmissionDetachButton.pressed.connect(func(): _on_detach_pressed($Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/EmissionContainer/EmissionSlider, $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/EmissionContainer/EmissionValue, "Emission"))
 	$Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/MetallicContainer/MetallicDetachButton.pressed.connect(func(): _on_detach_pressed($Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/MetallicContainer/MetallicSlider, $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/MetallicContainer/MetallicValue, "Metallic"))
 	$Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/RoughnessContainer/RoughnessDetachButton.pressed.connect(func(): _on_detach_pressed($Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/RoughnessContainer/RoughnessSlider, $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/RoughnessContainer/RoughnessValue, "Roughness"))
+	$Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/SurfaceTextureContainer/SurfaceTextureDetachButton.pressed.connect(func(): _on_detach_pressed($Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/SurfaceTextureContainer/SurfaceTextureSlider, $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/SurfaceTextureContainer/SurfaceTextureValue, "SurfaceTexture"))
 	$Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/GRAPHICS/Margin/VBox/ViewDistanceContainer/ViewDistanceDetachButton.pressed.connect(func(): _on_detach_pressed($Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/GRAPHICS/Margin/VBox/ViewDistanceContainer/ViewDistanceSlider, $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/GRAPHICS/Margin/VBox/ViewDistanceContainer/ViewDistanceValue, "View Distance"))
 
 func _disable_sliders_focus(node: Node):
@@ -423,6 +436,7 @@ func toggle_menu(applied: bool = false):
 		_initial_terrain_emission = Config.terrain_emission
 		_initial_terrain_metallic = Config.terrain_metallic
 		_initial_terrain_roughness = Config.terrain_roughness
+		_initial_terrain_surface_texture = Config.terrain_surface_texture
 		_initial_hud_scale = Config.hud_scale
 		_initial_sky_luminosity = Config.sky_luminosity
 		_initial_sun_luminosity = Config.sun_luminosity
@@ -432,6 +446,10 @@ func toggle_menu(applied: bool = false):
 		_initial_fog_enabled = Config.fog_enabled
 		_initial_fog_density = Config.fog_density
 		_initial_fog_distance = Config.fog_distance
+		_initial_terrain_detail = Config.terrain_detail
+		_initial_antialiasing_mode = Config.antialiasing_mode
+		_initial_view_distance = Config.view_distance
+		_initial_shadows_enabled = Config.shadows_enabled
 
 		freeze_time_checkbox.button_pressed = (Config.environment_type != 0)
 
@@ -510,6 +528,9 @@ func toggle_menu(applied: bool = false):
 		roughness_slider.value = Config.terrain_roughness * 100.0
 		_on_terrain_roughness_value_changed(roughness_slider.value)
 
+		surface_texture_slider.value = Config.terrain_surface_texture * 100.0
+		_on_terrain_surface_texture_value_changed(surface_texture_slider.value)
+
 		multivalued_slider.value = Config.multivalued_n
 		_on_multivalued_n_value_changed(Config.multivalued_n)
 		multivalued_mode_button.selected = Config.multivalued_mode
@@ -541,6 +562,7 @@ func toggle_menu(applied: bool = false):
 			Config.terrain_emission = _initial_terrain_emission
 			Config.terrain_metallic = _initial_terrain_metallic
 			Config.terrain_roughness = _initial_terrain_roughness
+			Config.terrain_surface_texture = _initial_terrain_surface_texture
 			if Config.hud_scale != _initial_hud_scale:
 				Config.hud_scale = _initial_hud_scale
 				_update_hud_layout()
@@ -552,6 +574,11 @@ func toggle_menu(applied: bool = false):
 			Config.fog_enabled = _initial_fog_enabled
 			Config.fog_density = _initial_fog_density
 			Config.fog_distance = _initial_fog_distance
+			Config.terrain_detail = _initial_terrain_detail
+			Config.antialiasing_mode = _initial_antialiasing_mode
+			Config.view_distance = _initial_view_distance
+			Config.shadows_enabled = _initial_shadows_enabled
+			apply_aa()
 
 func _on_func_item_selected(index):
 	_on_func_selected(func_button.get_item_id(index))
@@ -645,6 +672,7 @@ func _on_zero_speed_value_changed(value):
 
 func _on_view_distance_value_changed(value):
 	view_distance_value.text = str(int(value))
+	Config.view_distance = int(value)
 
 func _on_sunrise_value_changed(value):
 	sunrise_value.text = str(int(value)) + "°"
@@ -712,6 +740,10 @@ func _on_terrain_metallic_value_changed(value):
 func _on_terrain_roughness_value_changed(value):
 	Config.terrain_roughness = value / 100.0
 	roughness_value.text = str(int(value)) + "%"
+
+func _on_terrain_surface_texture_value_changed(value):
+	Config.terrain_surface_texture = value / 100.0
+	surface_texture_value.text = str(int(value)) + "%"
 
 func _on_morph_selected(index):
 	Config.morph_type = index
@@ -818,10 +850,16 @@ func _parse_poly(text: String) -> PackedVector2Array:
 	return coeffs
 
 func _get_rvm_n(T: float) -> float:
-	# Riemann-von Mangoldt formula: N(T) ≈ (T/2π) log(T/2πe) + 7/8
-	# For small T, it's roughly (T/2π) * (log(T/2π) - 1)
 	if T <= 0.1:
 		return 0.0
+
+	# L-function for Dirichlet Beta has character modulo q = 4
+	if Config.function_type == Config.ComplexFunc.DIRICHLET_BETA:
+		# Riemann-von Mangoldt formula for Dirichlet L-functions:
+		# N(T, chi) ≈ (T/2π) * log(qT/2πe)
+		return (T / (2.0 * PI)) * (log((4.0 * T) / (2.0 * PI)) - 1.0)
+
+	# Riemann-von Mangoldt formula for Zeta: N(T) ≈ (T/2π) log(T/2πe) + 7/8
 	return (T / (2.0 * PI)) * (log(T / (2.0 * PI)) - 1.0) + 7.0/8.0
 
 func _zoom_to_slider(zoom: float) -> float:
@@ -890,6 +928,7 @@ func _on_set_pos_pressed():
 	Config.terrain_emission = emission_slider.value / 100.0
 	Config.terrain_metallic = metallic_slider.value / 100.0
 	Config.terrain_roughness = roughness_slider.value / 100.0
+	Config.terrain_surface_texture = surface_texture_slider.value / 100.0
 	Config.view_distance = int(view_distance_slider.value)
 	Config.day_duration = day_duration_slider.value
 	Config.static_time = static_time_slider.value
@@ -1199,5 +1238,17 @@ func _on_detach_slider_changed(value: float):
 
 func _on_exit_detach_pressed():
 	detach_overlay.visible = false
-	menu_overlay.visible = true
-	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	# The user asked: "When clicked on exit, keep the last slider values we had while detached"
+	# The sliders modify `Config` singleton values dynamically (which is already happening through `active_detached_slider`).
+	# To ensure they are permanently saved, we should call `Config.save_settings()` as "Apply Changes" does.
+	Config.save_settings()
+func _on_terrain_detail_selected(index: int):
+	Config.terrain_detail = index
+
+func _on_aa_selected(index: int):
+	Config.antialiasing_mode = index
+	apply_aa()
+
+func _on_shadows_toggled(pressed: bool):
+	Config.shadows_enabled = pressed
