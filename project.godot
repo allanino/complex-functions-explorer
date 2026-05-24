@@ -53,3 +53,7 @@ move_right={
 [rendering]
 
 reflections/sky_reflections/roughness_layers=7
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/gut/plugin.cfg")

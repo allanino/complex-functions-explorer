@@ -119,3 +119,23 @@ Pressing the **Esc** key opens the settings menu, providing several ways to cust
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Development and Testing
+
+The project uses the [GUT (Godot Unit Test)](https://github.com/bitwes/Gut) framework for writing and running automated unit tests.
+
+### Running tests from the command line
+
+A shell script is provided to easily run the test suite headlessly from the command line. This is especially useful for continuous integration (CI) environments or rapid development iterations.
+
+```bash
+# Ensure the godot executable is in your PATH
+./run_tests.sh
+```
+
+### Running tests from the Editor
+
+The GUT plugin can also be used directly within the Godot editor:
+1. Open the Godot project.
+2. Click on the **GUT** tab at the bottom panel.
+3. Click the **Run All** button to execute the test suite and view the results in the UI.
