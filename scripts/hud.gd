@@ -1182,22 +1182,9 @@ func _on_detach_pressed(source_slider: HSlider, source_value_label: Label, title
 	detach_slider.value = source_slider.value
 	detach_value.text = source_value_label.text
 
-	# Close the menu without applying/reverting since we are just detaching
-	# Wait, if we call toggle_menu(false), it will revert to initial values, which resets the UI slider too.
-	# But actually, sliders currently change the Config singleton immediately.
-	# If we just do `menu_overlay.visible = false` and `Input.mouse_mode = Input.MOUSE_MODE_CAPTURED`,
-	# we bypass the revert logic. But wait, we want to KEEP the state while detached.
-	# And what if the user closes the detach overlay? The task says:
-	# "hide the menu, exactly the same. When clicked on exit, keep the last slider values we had while detached"
-	# It means the changes should be kept (not reverted). To keep them, we can just treat it as if 'Apply' was pressed,
-	# or just don't call toggle_menu(). Let's just manually hide the menu and show the overlay.
-	menu_overlay.visible = false
+	toggle_menu(true)
 	detach_overlay.visible = true
-	# Capture the mouse to avoid the camera from spinning while using mouse keys/shortcuts,
-	# wait, if we capture the mouse we can't drag the slider directly unless we use keyboard.
-	# But actually the issue request states: "While detached we should capture the mouse to avoid the camera from spinning."
-	# I will just set it to CAPTURED.
-	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
 func _on_detach_slider_changed(value: float):
 	if active_detached_slider:

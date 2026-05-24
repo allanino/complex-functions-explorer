@@ -49,7 +49,12 @@ func _unhandled_input(event):
 				Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 		return
 
-	if Config.morph_type != 0:
+	var is_detached = false
+	var hud_node = get_node_or_null("/root/Main/HUD")
+	if hud_node and hud_node.detach_overlay and hud_node.detach_overlay.visible:
+		is_detached = true
+
+	if Config.morph_type != 0 or is_detached:
 		return
 
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
@@ -112,7 +117,12 @@ func get_terrain_height(x: float, z: float, field_val: Vector2 = Vector2.INF) ->
 	return Field.get_height(x, z)
 
 func _physics_process(delta):
-	if Config.morph_type != 0:
+	var is_detached = false
+	var hud_node = get_node_or_null("/root/Main/HUD")
+	if hud_node and hud_node.detach_overlay and hud_node.detach_overlay.visible:
+		is_detached = true
+
+	if Config.morph_type != 0 or is_detached:
 		velocity = Vector3.ZERO
 		return
 
