@@ -16,6 +16,8 @@ var noise_state: float = 0.0
 var pulse_phase: float = 0.0
 var target_pulse_rate: float = 0.0
 var current_pulse_rate: float = 0.0
+var audio_fm_index: float = 0.0
+var audio_pulse_presence: float = 0.0
 
 # --- INTERPOLATED PARAMETERS ---
 var target_volume: float = 0.3
@@ -26,8 +28,6 @@ var target_pan: float = 0.0
 var current_pan: float = 0.0
 var target_harmonic_intensity: float = 0.0
 var current_harmonic_intensity: float = 0.0
-var target_resonance: float = 0.0
-var current_resonance: float = 0.0
 var target_fm_index: float = 0.0
 var current_fm_index: float = 0.0
 var unwrapped_phase: float = 0.0
@@ -61,7 +61,7 @@ func _ready():
 
 	var generator = AudioStreamGenerator.new()
 	generator.mix_rate = 44100
-	generator.buffer_length = 0.03
+	generator.buffer_length = 0.05
 
 	stream_player.stream = generator
 
@@ -231,14 +231,6 @@ func _process(delta):
 	# 3. PHASE arg(f)
 	target_pan = cos(unwrapped_phase) * PHASE_PAN_STRENGTH
 
-	# 4. CRITICAL LINE (sigma = 0.5)
-	var is_dirichlect = Config.function.get("is_dirichlect", false)
-	var critical_factor = 0.0
-	if is_dirichlect:
-		var dist_to_critical = abs(sigma - 0.5)
-		critical_factor = exp(-dist_to_critical * 25.0)
-	target_resonance = critical_factor
-
 	# --- FINITE CHECKS BEFORE LERP ---
 	if not is_finite(target_frequency): target_frequency = BASE_FREQUENCY
 	if not is_finite(target_pan): target_pan = 0.0
@@ -250,7 +242,6 @@ func _process(delta):
 	current_pulse_rate = lerp(current_pulse_rate, target_pulse_rate, delta * 5.0)
 	current_pan = lerp(current_pan, target_pan, delta * 16.0)
 	current_harmonic_intensity = lerp(current_harmonic_intensity, target_harmonic_intensity, delta * 24.0)
-	current_resonance = lerp(current_resonance, target_resonance, delta * 20.0)
 	current_fm_index = lerp(current_fm_index, target_fm_index, delta * 10.0)
 
 	# Final safety clamp
@@ -262,15 +253,12 @@ func _process(delta):
 		if is_finite(ps): pitch_shift_effect.pitch_scale = ps
 
 	if reverb_effect:
-		var rv = clamp(REVERB_AMOUNT + current_resonance * 0.15 + (proximity * 0.01), 0.0, 0.9)
+		var rv = clamp(REVERB_AMOUNT + (proximity * 0.01), 0.0, 0.9)
 		if is_finite(rv): reverb_effect.wet = rv
 
 	if lpf_effect:
-		var cut = lerp(600.0, 4500.0, clamp(mag * 0.05 + current_resonance * 0.8, 0.0, 1.0))
+		var cut = lerp(600.0, 4500.0, clamp(mag * 0.05, 0.0, 1.0))
 		if is_finite(cut): lpf_effect.cutoff_hz = clamp(cut, 100.0, 20000.0)
-
-		var res = 0.2 + current_resonance * 0.3
-		if is_finite(res): lpf_effect.resonance = clamp(res, 0.0, 0.9)
 
 	fill_buffer()
 
@@ -303,14 +291,15 @@ func fill_buffer():
 		# --- FM SYNTHESIS ---
 
 		# Modulator
-		var modulator = sin(mod_phase * TAU) * current_fm_index
+		audio_fm_index = lerp(audio_fm_index, current_fm_index, 0.001)
+		var modulator = sin(mod_phase * TAU) * audio_fm_index
 
 		# Carrier
 		var sample = sin(phase * TAU + modulator)
 
 		# Non-linear saturation (Cubic soft-clipper)
 		sample = clamp(sample * 1.1, -1.1, 1.1)
-		sample = sample - (pow(sample, 3) / 3.0)
+		sample = sample - (sample * sample * sample / 3.0)
 
 		if not is_finite(sample): sample = 0.0
 
@@ -325,7 +314,9 @@ func fill_buffer():
 		var pulse_wave = 0.75 + 0.25 * sin(pulse_phase * TAU)
 
 		# Pulse only appears near zeros
-		sample *= lerp(1.0, pulse_wave, pulse_presence)
+		audio_pulse_presence = lerp(audio_pulse_presence, pulse_presence, 0.001)
+
+		sample *= lerp(1.0, pulse_wave, audio_pulse_presence)
 
 		var drone_vol_scale = Config.drone_volume / 100.0
 		var frame = Vector2.ONE * sample * current_volume * drone_vol_scale * startup_gain
