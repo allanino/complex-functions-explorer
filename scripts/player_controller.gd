@@ -52,7 +52,7 @@ func _unhandled_input(event):
 	if Config.morph_type != 0:
 		return
 
-	if event is InputEventMouseMotion:
+	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		if auto_walk_state == AutoWalkState.NONE or auto_walk_state == AutoWalkState.WALKING:
 			rotate_y(-event.relative.x * MOUSE_SENSITIVITY)
 			rotation_x -= event.relative.y * MOUSE_SENSITIVITY

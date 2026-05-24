@@ -1193,7 +1193,11 @@ func _on_detach_pressed(source_slider: HSlider, source_value_label: Label, title
 	# or just don't call toggle_menu(). Let's just manually hide the menu and show the overlay.
 	menu_overlay.visible = false
 	detach_overlay.visible = true
-	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	# Capture the mouse to avoid the camera from spinning while using mouse keys/shortcuts,
+	# wait, if we capture the mouse we can't drag the slider directly unless we use keyboard.
+	# But actually the issue request states: "While detached we should capture the mouse to avoid the camera from spinning."
+	# I will just set it to CAPTURED.
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 func _on_detach_slider_changed(value: float):
 	if active_detached_slider:
