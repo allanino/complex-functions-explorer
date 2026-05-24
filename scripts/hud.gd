@@ -781,10 +781,16 @@ func _parse_poly(text: String) -> PackedVector2Array:
 	return coeffs
 
 func _get_rvm_n(T: float) -> float:
-	# Riemann-von Mangoldt formula: N(T) ≈ (T/2π) log(T/2πe) + 7/8
-	# For small T, it's roughly (T/2π) * (log(T/2π) - 1)
 	if T <= 0.1:
 		return 0.0
+
+	# L-function for Dirichlet Beta has character modulo q = 4
+	if Config.function_type == Config.ComplexFunc.DIRICHLET_BETA:
+		# Riemann-von Mangoldt formula for Dirichlet L-functions:
+		# N(T, chi) ≈ (T/2π) * log(qT/2πe)
+		return (T / (2.0 * PI)) * (log((4.0 * T) / (2.0 * PI)) - 1.0)
+
+	# Riemann-von Mangoldt formula for Zeta: N(T) ≈ (T/2π) log(T/2πe) + 7/8
 	return (T / (2.0 * PI)) * (log(T / (2.0 * PI)) - 1.0) + 7.0/8.0
 
 func _zoom_to_slider(zoom: float) -> float:
