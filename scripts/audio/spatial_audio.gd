@@ -30,6 +30,9 @@ var target_resonance: float = 0.0
 var current_resonance: float = 0.0
 var target_fm_index: float = 0.0
 var current_fm_index: float = 0.0
+var unwrapped_phase: float = 0.0
+var pulse_presence: float = 0.0
+var previous_arg: float = 0.0
 
 # --- STARTUP ENVELOPE ---
 var startup_time := 0.0
@@ -198,6 +201,9 @@ func _process(delta):
 	if not is_finite(mag): mag = 0.0
 
 	var arg = atan2(f.y, f.x)
+	var delta_arg = wrapf(arg - previous_arg, -PI, PI)
+	unwrapped_phase += delta_arg
+	previous_arg = arg
 	var sigma = pos.x * 0.1 / Config.effective_zoom
 
 	# --- MAPPINGS ---
