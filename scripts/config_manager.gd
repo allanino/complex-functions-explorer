@@ -160,6 +160,7 @@ var terrain_albedo: float = 0.15
 var terrain_emission: float = 0.1
 var terrain_metallic: float = 0.7
 var terrain_roughness: float = 0.1
+var terrain_surface_texture: float = 0.0
 var morph_type: int = 0
 var morph_value: float = 1.0
 var fog_enabled: bool = false
@@ -236,6 +237,7 @@ func save_settings():
 	config.set_value("rendering", "terrain_emission", terrain_emission)
 	config.set_value("rendering", "terrain_metallic", terrain_metallic)
 	config.set_value("rendering", "terrain_roughness", terrain_roughness)
+	config.set_value("rendering", "terrain_surface_texture", terrain_surface_texture)
 	config.set_value("rendering", "morph_type", morph_type)
 	config.set_value("rendering", "morph_value", morph_value)
 	config.set_value("rendering", "fog_enabled", fog_enabled)
@@ -310,6 +312,7 @@ func load_settings():
 	terrain_emission = config.get_value("rendering", "terrain_emission", terrain_emission)
 	terrain_metallic = config.get_value("rendering", "terrain_metallic", terrain_metallic)
 	terrain_roughness = config.get_value("rendering", "terrain_roughness", terrain_roughness)
+	terrain_surface_texture = config.get_value("rendering", "terrain_surface_texture", terrain_surface_texture)
 	morph_type = config.get_value("rendering", "morph_type", morph_type)
 	morph_value = config.get_value("rendering", "morph_value", morph_value)
 	fog_enabled = config.get_value("rendering", "fog_enabled", fog_enabled)
