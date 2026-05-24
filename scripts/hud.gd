@@ -1238,11 +1238,9 @@ func _on_detach_slider_changed(value: float):
 
 func _on_exit_detach_pressed():
 	detach_overlay.visible = false
-	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
-	# The user asked: "When clicked on exit, keep the last slider values we had while detached"
-	# The sliders modify `Config` singleton values dynamically (which is already happening through `active_detached_slider`).
-	# To ensure they are permanently saved, we should call `Config.save_settings()` as "Apply Changes" does.
-	Config.save_settings()
+	menu_overlay.visible = true
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+
 func _on_terrain_detail_selected(index: int):
 	Config.terrain_detail = index
 
