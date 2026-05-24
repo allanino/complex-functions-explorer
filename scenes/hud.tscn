@@ -1367,6 +1367,12 @@ theme_override_font_sizes/font_size = 18
 text = "0%"
 horizontal_alignment = 2
 
+[node name="SurfaceTextureDetachButton" type="Button" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/SurfaceTextureContainer"]
+custom_minimum_size = Vector2(24, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "⇱"
+
 [node name="CurvesCheckbox" type="CheckBox" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox"]
 layout_mode = 2
 focus_mode = 0
