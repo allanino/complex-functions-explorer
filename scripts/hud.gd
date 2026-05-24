@@ -98,6 +98,15 @@ extends CanvasLayer
 @onready var drone_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/AUDIO/Margin/VBox/DroneContainer/DroneSlider
 @onready var drone_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/AUDIO/Margin/VBox/DroneContainer/DroneValue
 @onready var zero_proximity_audio_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/AUDIO/Margin/VBox/ZeroProximityAudioContainer/ZeroProximityAudioSlider
+
+@onready var detach_overlay = $Control/DetachOverlay
+@onready var detach_slider = $Control/DetachOverlay/MarginContainer/HBox/DetachSlider
+@onready var detach_label = $Control/DetachOverlay/MarginContainer/HBox/Label
+@onready var detach_value = $Control/DetachOverlay/MarginContainer/HBox/DetachValue
+@onready var exit_detach_button = $Control/DetachOverlay/MarginContainer/HBox/ExitDetachButton
+
+var active_detached_slider: HSlider = null
+var active_detached_value: Label = null
 @onready var zero_proximity_audio_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/AUDIO/Margin/VBox/ZeroProximityAudioContainer/ZeroProximityAudioValue
 
 @onready var brightness_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/BrightnessContainer/BrightnessSlider
@@ -308,6 +317,28 @@ func _ready():
 	tooltip_timer.timeout.connect(_on_tooltip_timer_timeout)
 	_last_zeros_visible = Config.show_hud_zeros
 
+	detach_slider.value_changed.connect(_on_detach_slider_changed)
+	exit_detach_button.pressed.connect(_on_exit_detach_pressed)
+	$Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/IterContainer/IterDetachButton.pressed.connect(func(): _on_detach_pressed($Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/IterContainer/IterSlider, $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/IterContainer/IterValue, "Iterations"))
+	$Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/MultivaluedContainer/MultivaluedDetachButton.pressed.connect(func(): _on_detach_pressed($Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/MultivaluedContainer/MultivaluedSlider, $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/MultivaluedContainer/MultivaluedValue, "Branches (n)"))
+	$Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/CycleSpeedContainer/CycleSpeedDetachButton.pressed.connect(func(): _on_detach_pressed($Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/CycleSpeedContainer/CycleSpeedSlider, $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/CycleSpeedContainer/CycleSpeedValue, "Cycle Speed"))
+	$Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/MorphTimeContainer/MorphTimeDetachButton.pressed.connect(func(): _on_detach_pressed($Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/MorphTimeContainer/MorphTimeSlider, $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/MorphTimeContainer/MorphTimeValue, "Morph Time"))
+	$Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/DayDurationContainer/DayDurationDetachButton.pressed.connect(func(): _on_detach_pressed($Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/DayDurationContainer/DayDurationSlider, $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/DayDurationContainer/DayDurationValue, "Day Duration"))
+	$Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/StaticTimeContainer/StaticTimeDetachButton.pressed.connect(func(): _on_detach_pressed($Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/StaticTimeContainer/StaticTimeSlider, $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/StaticTimeContainer/StaticTimeValue, "Time of day"))
+	$Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/SunriseContainer/SunriseDetachButton.pressed.connect(func(): _on_detach_pressed($Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/SunriseContainer/SunriseSlider, $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/SunriseContainer/SunriseValue, "Sunrise Direction"))
+	$Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/SkyLuminosityContainer/SkyLuminosityDetachButton.pressed.connect(func(): _on_detach_pressed($Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/SkyLuminosityContainer/SkyLuminositySlider, $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/SkyLuminosityContainer/SkyLuminosityValue, "Sky Luminosity"))
+	$Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/SunLuminosityContainer/SunLuminosityDetachButton.pressed.connect(func(): _on_detach_pressed($Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/SunLuminosityContainer/SunLuminositySlider, $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/SunLuminosityContainer/SunLuminosityValue, "Sun Luminosity"))
+	$Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/FogDensityContainer/FogDensityDetachButton.pressed.connect(func(): _on_detach_pressed($Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/FogDensityContainer/FogDensitySlider, $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/FogDensityContainer/FogDensityValue, "Fog Density"))
+	$Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/FogDistanceContainer/FogDistanceDetachButton.pressed.connect(func(): _on_detach_pressed($Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/FogDistanceContainer/FogDistanceSlider, $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/FogDistanceContainer/FogDistanceValue, "Fog Distance"))
+	$Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/BrightnessContainer/BrightnessDetachButton.pressed.connect(func(): _on_detach_pressed($Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/BrightnessContainer/BrightnessSlider, $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/BrightnessContainer/BrightnessValue, "Brightness"))
+	$Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/SaturationContainer/SaturationDetachButton.pressed.connect(func(): _on_detach_pressed($Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/SaturationContainer/SaturationSlider, $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/SaturationContainer/SaturationValue, "Saturation"))
+	$Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/AlbedoContainer/AlbedoDetachButton.pressed.connect(func(): _on_detach_pressed($Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/AlbedoContainer/AlbedoSlider, $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/AlbedoContainer/AlbedoValue, "Albedo"))
+	$Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/EmissionContainer/EmissionDetachButton.pressed.connect(func(): _on_detach_pressed($Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/EmissionContainer/EmissionSlider, $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/EmissionContainer/EmissionValue, "Emission"))
+	$Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/MetallicContainer/MetallicDetachButton.pressed.connect(func(): _on_detach_pressed($Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/MetallicContainer/MetallicSlider, $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/MetallicContainer/MetallicValue, "Metallic"))
+	$Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/RoughnessContainer/RoughnessDetachButton.pressed.connect(func(): _on_detach_pressed($Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/RoughnessContainer/RoughnessSlider, $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/RoughnessContainer/RoughnessValue, "Roughness"))
+	$Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/SurfaceTextureContainer/SurfaceTextureDetachButton.pressed.connect(func(): _on_detach_pressed($Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/SurfaceTextureContainer/SurfaceTextureSlider, $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/SurfaceTextureContainer/SurfaceTextureValue, "SurfaceTexture"))
+	$Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/GRAPHICS/Margin/VBox/ViewDistanceContainer/ViewDistanceDetachButton.pressed.connect(func(): _on_detach_pressed($Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/GRAPHICS/Margin/VBox/ViewDistanceContainer/ViewDistanceSlider, $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/GRAPHICS/Margin/VBox/ViewDistanceContainer/ViewDistanceValue, "View Distance"))
+
 func _disable_sliders_focus(node: Node):
 	if node is HSlider:
 		node.focus_mode = Control.FOCUS_NONE
@@ -383,6 +414,13 @@ func apply_aa():
 		5: vp.screen_space_aa = Viewport.SCREEN_SPACE_AA_SMAA
 
 func toggle_menu(applied: bool = false):
+	if detach_overlay.visible:
+		_on_exit_detach_pressed()
+		return
+	if morph_overlay.visible:
+		_on_exit_morph_pressed()
+		return
+
 	menu_overlay.visible = !menu_overlay.visible
 	if menu_overlay.visible:
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
@@ -1162,6 +1200,46 @@ func _rescale_card(card: Control, scale: float):
 		for child in node.get_children():
 			if child is Control:
 				stack.push_back(child)
+
+
+func _on_detach_pressed(source_slider: HSlider, source_value_label: Label, title: String):
+	active_detached_slider = null
+
+	detach_label.text = title
+	# Using set_block_signals(true) prevents _on_detach_slider_changed from firing while we update its properties.
+	detach_slider.set_block_signals(true)
+	# Expand bounds first to avoid clamping
+	detach_slider.min_value = min(detach_slider.min_value, source_slider.min_value)
+	detach_slider.max_value = max(detach_slider.max_value, source_slider.max_value)
+
+	detach_slider.min_value = source_slider.min_value
+	detach_slider.max_value = source_slider.max_value
+	detach_slider.step = source_slider.step
+	detach_slider.value = source_slider.value
+	detach_slider.set_block_signals(false)
+
+	detach_value.text = source_value_label.text
+
+	active_detached_slider = source_slider
+	active_detached_value = source_value_label
+
+	toggle_menu(true)
+	detach_overlay.visible = true
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+
+func _on_detach_slider_changed(value: float):
+	if active_detached_slider:
+		# Emit value_changed to trigger the existing logic on the source slider
+		active_detached_slider.value = value
+		# active_detached_slider.value_changed.emit(value) # value setting already emits if value actually changes
+		# Update the overlay label to match what the menu label would be
+		# It's better to just copy the text from the source_value_label
+		detach_value.text = active_detached_value.text
+
+func _on_exit_detach_pressed():
+	detach_overlay.visible = false
+	menu_overlay.visible = true
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
 func _on_terrain_detail_selected(index: int):
 	Config.terrain_detail = index
