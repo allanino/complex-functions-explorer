@@ -200,12 +200,6 @@ func _process(delta):
 	var mag = f.length()
 	if not is_finite(mag): mag = 0.0
 
-	var arg = atan2(f.y, f.x)
-	var delta_arg = wrapf(arg - previous_arg, -PI, PI)
-	unwrapped_phase += delta_arg
-	previous_arg = arg
-	var sigma = pos.x * 0.1 / Config.effective_zoom
-
 	# --- MAPPINGS ---
 
 	# 1. MAGNITUDE |f|
@@ -219,16 +213,20 @@ func _process(delta):
 
 	# Gaussian localization around zeros
 	# Pulse only exists very near zeros
-	pulse_presence = exp(-pow(mag * 1.0, 2.0))
+	pulse_presence = exp(-pow(mag, 2.0))
 
 	# Stable breathing speed
-	target_pulse_rate = lerp(1.5, 5.0, pulse_presence)
+	target_pulse_rate = lerp(1.5, 4.5, pulse_presence)
 
 	# Store for synthesis stage
 	target_harmonic_intensity = clamp(proximity * 0.08, 0.0, 0.4)
 	target_fm_index = clamp(proximity * 0.15, 0.0, 1.5)
 
 	# 3. PHASE arg(f)
+	var arg = atan2(f.y, f.x)
+	var delta_arg = wrapf(arg - previous_arg, -PI, PI)
+	unwrapped_phase += delta_arg
+	previous_arg = arg
 	target_pan = cos(unwrapped_phase) * PHASE_PAN_STRENGTH
 
 	# --- FINITE CHECKS BEFORE LERP ---
