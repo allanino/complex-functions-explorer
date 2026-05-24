@@ -6,6 +6,7 @@ extends Node3D
 @export var chunk_size: float = 32.0
 
 var chunks = {}
+var chunk_leeway = 0.01
 var _last_field_state = {}
 var LOD_SUBS = [] # This will be set in code
 var _lod_mesh_cache = {}
@@ -434,7 +435,7 @@ func _update_chunk_lod(chunk: MeshInstance3D, lod: int, coord: Vector2i):
 	var subdivisions = LOD_SUBS[lod]
 
 	if not _lod_mesh_cache.has(subdivisions):
-		_lod_mesh_cache[subdivisions] = _create_lod_mesh(chunk_size, subdivisions)
+		_lod_mesh_cache[subdivisions] = _create_lod_mesh(chunk_size + chunk_leeway, subdivisions)
 
 	chunk.mesh = _lod_mesh_cache[subdivisions]
 	chunk.set_meta("lod_level", lod)
