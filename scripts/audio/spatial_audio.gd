@@ -58,7 +58,7 @@ func _ready():
 
 	var generator = AudioStreamGenerator.new()
 	generator.mix_rate = 44100
-	generator.buffer_length = 0.1
+	generator.buffer_length = 0.03
 
 	stream_player.stream = generator
 
@@ -140,7 +140,7 @@ func setup_audio_bus_and_effects():
 
 	# Index 2: Reverb (conservative — large room + high wet caused dropouts here)
 	reverb_effect = AudioEffectReverb.new()
-	reverb_effect.room_size = 0.42
+	reverb_effect.room_size = 0.8
 	reverb_effect.damping = 0.72
 	reverb_effect.spread = 0.6
 	reverb_effect.hipass = 0.08
@@ -209,22 +209,24 @@ func _process(delta):
 	var proximity = 1.0 / (0.05 + mag)
 	if not is_finite(proximity): proximity = 20.0
 
-	# Avoid the fake zeros for x < 0
-	var is_dirichlect = Config.function.get("is_dirichlect", false)
+	# --- ZERO-LOCALIZED PULSE ---
 
-	# Frequency: Gain frequency for lower terrains (smaller mag)
-	target_frequency = BASE_FREQUENCY + clamp((1.0 / (0.1 + mag)) * 10.0, 0.0, 100.0)
+	# Gaussian localization around zeros
+	# Pulse only exists very near zeros
+	pulse_presence = exp(-pow(mag * 1.0, 2.0))
 
-	# Pulse rate: Pulse more slowly the higher the terrain (larger mag)
-	target_pulse_rate = clamp(1.0 / (0.1 + mag), 0.5, 15.0)
+	# Stable breathing speed
+	target_pulse_rate = lerp(1.5, 5.0, pulse_presence)
 
+	# Store for synthesis stage
 	target_harmonic_intensity = clamp(proximity * 0.08, 0.0, 0.4)
-	target_fm_index = clamp(proximity * 0.4, 0.0, 4.0)
+	target_fm_index = clamp(proximity * 0.15, 0.0, 1.5)
 
 	# 3. PHASE arg(f)
-	target_pan = sin(arg) * PHASE_PAN_STRENGTH
+	target_pan = cos(unwrapped_phase) * PHASE_PAN_STRENGTH
 
 	# 4. CRITICAL LINE (sigma = 0.5)
+	var is_dirichlect = Config.function.get("is_dirichlect", false)
 	var critical_factor = 0.0
 	if is_dirichlect:
 		var dist_to_critical = abs(sigma - 0.5)
@@ -300,23 +302,24 @@ func fill_buffer():
 		# Carrier
 		var sample = sin(phase * TAU + modulator)
 
-		# Add sub-depth
-		sample += 0.5 * sin(phase * TAU * 0.5)
-
-		# Growl (Noise component)
-		noise_state = fmod(noise_state + 0.1, 1.0) # Simple noise stepping
-		var noise = (randf() * 2.0 - 1.0) * current_harmonic_intensity * 0.2
-		sample += noise
-
 		# Non-linear saturation (Cubic soft-clipper)
 		sample = clamp(sample * 1.1, -1.1, 1.1)
 		sample = sample - (pow(sample, 3) / 3.0)
 
 		if not is_finite(sample): sample = 0.0
 
-		pulse_phase = fmod(pulse_phase + current_pulse_rate / sample_rate, 1.0)
-		var pulse_amp = 0.5 + 0.5 * sin(pulse_phase * TAU)
-		sample *= pulse_amp
+		# --- LOCALIZED ZERO PULSE ---
+
+		pulse_phase = fmod(
+			pulse_phase + current_pulse_rate / sample_rate,
+			1.0
+		)
+
+		# Gentle breathing curve
+		var pulse_wave = 0.75 + 0.25 * sin(pulse_phase * TAU)
+
+		# Pulse only appears near zeros
+		sample *= lerp(1.0, pulse_wave, pulse_presence)
 
 		var drone_vol_scale = Config.drone_volume / 100.0
 		var frame = Vector2.ONE * sample * current_volume * drone_vol_scale * startup_gain
