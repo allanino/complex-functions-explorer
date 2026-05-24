@@ -216,9 +216,11 @@ func _process(delta):
 	}
 
 	var state_changed = current_field_state != _last_field_state
+	var view_dist_changed = false
 
 	if state_changed:
 		var lod_changed = _last_field_state.get("terrain_detail", -1) != Config.terrain_detail
+		view_dist_changed = _last_field_state.get("view_distance", -1) != Config.view_distance
 		_last_field_state = current_field_state
 
 		if lod_changed:
@@ -229,26 +231,8 @@ func _process(delta):
 		_update_terrain_material_uniforms()
 
 	# Chunk and LOD Dynamic Update
-	if player_chunk_x != _last_player_chunk.x or player_chunk_z != _last_player_chunk.y:
-		_last_player_chunk = Vector2i(player_chunk_x, player_chunk_z)
-
-		# Load new chunks
-		for x in range(player_chunk_x - Config.view_distance, player_chunk_x + Config.view_distance + 1):
-			for z in range(player_chunk_z - Config.view_distance, player_chunk_z + Config.view_distance + 1):
-				var chunk_coord = Vector2i(x, z)
-				if not chunks.has(chunk_coord):
-					_load_chunk(chunk_coord)
-
-		# Unload distant chunks
-		var chunks_to_remove = []
-		for chunk_coord in chunks.keys():
-			if abs(chunk_coord.x - player_chunk_x) > Config.view_distance or abs(chunk_coord.y - player_chunk_z) > Config.view_distance:
-				chunks_to_remove.append(chunk_coord)
-
-		for chunk_coord in chunks_to_remove:
-			_unload_chunk(chunk_coord)
-
-		_update_all_chunks_lod()
+	if player_chunk_x != _last_player_chunk.x or player_chunk_z != _last_player_chunk.y or view_dist_changed:
+		_update_chunks(player_chunk_x, player_chunk_z)
 
 	if portal_frame:
 		var is_portal_mode = (Config.function.get("is_multivalued", false) and Config.multivalued_mode == 1)
@@ -278,6 +262,27 @@ func _process(delta):
 			if terrain_material:
 				terrain_material.set_shader_parameter("portal_height", p_height)
 				terrain_material.set_shader_parameter("portal_width", p_width)
+
+func _update_chunks(p_x: int, p_z: int):
+	_last_player_chunk = Vector2i(p_x, p_z)
+
+	# Load new chunks
+	for x in range(p_x - Config.view_distance, p_x + Config.view_distance + 1):
+		for z in range(p_z - Config.view_distance, p_z + Config.view_distance + 1):
+			var chunk_coord = Vector2i(x, z)
+			if not chunks.has(chunk_coord):
+				_load_chunk(chunk_coord)
+
+	# Unload distant chunks
+	var chunks_to_remove = []
+	for chunk_coord in chunks.keys():
+		if abs(chunk_coord.x - p_x) > Config.view_distance or abs(chunk_coord.y - p_z) > Config.view_distance:
+			chunks_to_remove.append(chunk_coord)
+
+	for chunk_coord in chunks_to_remove:
+		_unload_chunk(chunk_coord)
+
+	_update_all_chunks_lod()
 
 func _update_all_chunks_lod(force: bool = false):
 	var player_chunk_coord = _last_player_chunk
