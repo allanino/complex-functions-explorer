@@ -112,6 +112,9 @@ extends CanvasLayer
 @onready var metallic_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/MetallicContainer/MetallicValue
 @onready var roughness_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/RoughnessContainer/RoughnessSlider
 @onready var roughness_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/RoughnessContainer/RoughnessValue
+
+@onready var surface_texture_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/SurfaceTextureContainer/SurfaceTextureSlider
+@onready var surface_texture_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/SurfaceTextureContainer/SurfaceTextureValue
 @onready var morph_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/MorphContainer/MorphButton
 
 @onready var morph_overlay = $Control/MorphOverlay
@@ -197,6 +200,7 @@ var _initial_terrain_albedo: float
 var _initial_terrain_emission: float
 var _initial_terrain_metallic: float
 var _initial_terrain_roughness: float
+var _initial_terrain_surface_texture: float
 var _initial_hud_scale: float
 var _initial_sky_luminosity: float
 var _initial_sun_luminosity: float
@@ -247,6 +251,7 @@ func _ready():
 	emission_slider.value_changed.connect(_on_terrain_emission_value_changed)
 	metallic_slider.value_changed.connect(_on_terrain_metallic_value_changed)
 	roughness_slider.value_changed.connect(_on_terrain_roughness_value_changed)
+	surface_texture_slider.value_changed.connect(_on_terrain_surface_texture_value_changed)
 	morph_button.item_selected.connect(_on_morph_selected)
 	morph_slider.value_changed.connect(_on_morph_slider_changed)
 	exit_morph_button.pressed.connect(_on_exit_morph_pressed)
@@ -386,6 +391,7 @@ func toggle_menu(applied: bool = false):
 		_initial_terrain_emission = Config.terrain_emission
 		_initial_terrain_metallic = Config.terrain_metallic
 		_initial_terrain_roughness = Config.terrain_roughness
+		_initial_terrain_surface_texture = Config.terrain_surface_texture
 		_initial_hud_scale = Config.hud_scale
 		_initial_sky_luminosity = Config.sky_luminosity
 		_initial_sun_luminosity = Config.sun_luminosity
@@ -473,6 +479,9 @@ func toggle_menu(applied: bool = false):
 		roughness_slider.value = Config.terrain_roughness * 100.0
 		_on_terrain_roughness_value_changed(roughness_slider.value)
 
+		surface_texture_slider.value = Config.terrain_surface_texture * 100.0
+		_on_terrain_surface_texture_value_changed(surface_texture_slider.value)
+
 		multivalued_slider.value = Config.multivalued_n
 		_on_multivalued_n_value_changed(Config.multivalued_n)
 		multivalued_mode_button.selected = Config.multivalued_mode
@@ -504,6 +513,7 @@ func toggle_menu(applied: bool = false):
 			Config.terrain_emission = _initial_terrain_emission
 			Config.terrain_metallic = _initial_terrain_metallic
 			Config.terrain_roughness = _initial_terrain_roughness
+			Config.terrain_surface_texture = _initial_terrain_surface_texture
 			if Config.hud_scale != _initial_hud_scale:
 				Config.hud_scale = _initial_hud_scale
 				_update_hud_layout()
@@ -675,6 +685,10 @@ func _on_terrain_metallic_value_changed(value):
 func _on_terrain_roughness_value_changed(value):
 	Config.terrain_roughness = value / 100.0
 	roughness_value.text = str(int(value)) + "%"
+
+func _on_terrain_surface_texture_value_changed(value):
+	Config.terrain_surface_texture = value / 100.0
+	surface_texture_value.text = str(int(value)) + "%"
 
 func _on_morph_selected(index):
 	Config.morph_type = index
@@ -853,6 +867,7 @@ func _on_set_pos_pressed():
 	Config.terrain_emission = emission_slider.value / 100.0
 	Config.terrain_metallic = metallic_slider.value / 100.0
 	Config.terrain_roughness = roughness_slider.value / 100.0
+	Config.terrain_surface_texture = surface_texture_slider.value / 100.0
 	Config.view_distance = int(view_distance_slider.value)
 	Config.day_duration = day_duration_slider.value
 	Config.static_time = static_time_slider.value

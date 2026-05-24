@@ -206,6 +206,7 @@ func _process(delta):
 		"terrain_emission": Config.terrain_emission,
 		"terrain_metallic": Config.terrain_metallic,
 		"terrain_roughness": Config.terrain_roughness,
+		"terrain_surface_texture": Config.terrain_surface_texture,
 		"morph_type": Config.morph_type,
 		"morph_value": Config.morph_value,
 		"sky_luminosity": Config.sky_luminosity,
@@ -369,6 +370,7 @@ func _update_terrain_material_uniforms():
 	terrain_material.set_shader_parameter("emission", Config.terrain_emission)
 	terrain_material.set_shader_parameter("metallic", Config.terrain_metallic)
 	terrain_material.set_shader_parameter("roughness", Config.terrain_roughness)
+	terrain_material.set_shader_parameter("surface_texture", Config.terrain_surface_texture)
 	terrain_material.set_shader_parameter("branch_time", Config.branch_time)
 	terrain_material.set_shader_parameter("current_branch", Config.current_branch)
 
