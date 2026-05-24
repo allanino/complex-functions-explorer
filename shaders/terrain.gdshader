@@ -413,7 +413,9 @@ void fragment() {
         float noise_val = 0.0;
         float roughness_variation = 0.0;
         if (surface_texture > 0.0) {
-            float dist_to_camera = length(world_pos - CAMERA_POSITION_WORLD);
+            vec3 scaled_world_pos = world_pos /  zoom_factor;
+
+            float dist_to_camera = length(scaled_world_pos - CAMERA_POSITION_WORLD);
             // Fade the texture effect beyond 50 units, reaching 0 at 100 units
             float fade = 1.0 - smoothstep(20.0, 100.0, dist_to_camera);
             fade = mix(0.15, 1.0, fade);
@@ -422,7 +424,7 @@ void fragment() {
             if (fade > 0.001) {
                 // High frequency for fine texture
                 float freq = mix(2.0, 10.0, fade);
-                vec3 noise_pos = world_pos * freq;
+                vec3 noise_pos = scaled_world_pos * freq;
                 noise_val = fbm3(noise_pos);
 
                 // Approximate tangent and bitangent based on the normal
@@ -437,11 +439,11 @@ void fragment() {
                 float nx = fbm3(noise_pos + t * eps) - noise_val;
                 float nz = fbm3(noise_pos + b * eps) - noise_val;
 
-                vec3 normal_offset = (t * nx + b * nz) * surface_texture * fade * 5.0;
+                vec3 normal_offset = (t * nx + b * nz) * surface_texture * fade * 2.0;
                 NORMAL = normalize(v_normal + normal_offset);
 
                 // Remap noise_val from [0, 1] to [-0.5, 0.5] for roughness
-                roughness_variation = (noise_val - 0.5) * surface_texture * fade * 0.5;
+                roughness_variation = (noise_val - 0.5) * surface_texture * fade * 0.2;
             }
         }
 
