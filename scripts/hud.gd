@@ -524,21 +524,17 @@ func _on_func_selected(f_type: int):
 	var f_data = Config.function
 
 	var is_dirichlect = f_data.get("is_dirichlect", false)
-	var has_iters = f_data.get("has_iters", false)
+	var iters_range = f_data.get("iters_range", {})
+	var has_iters = !iters_range.is_empty()
 	var is_rational = f_data.get("is_rational", false)
 	var is_multivalued = f_data.get("is_multivalued", false)
 
 	if has_iters:
-		if f_data.has("iters_range"):
-			var r = f_data["iters_range"]
-			iter_slider.min_value = r[0]
-			iter_slider.max_value = r[1]
-			iter_slider.step = r[2]
-		else:
-			# Defaults for functions without explicit range (e.g. Mandelbrot)
-			iter_slider.min_value = 1
-			iter_slider.max_value = 1000
-			iter_slider.step = 1
+		iter_slider.min_value = iters_range[0]
+		iter_slider.max_value = iters_range[1]
+		iter_slider.step = iters_range[2]
+
+		Config.iterations = Config.function_iterations.get(f_type, iters_range[3])
 		iter_slider.value = Config.iterations
 		_on_iterations_value_changed(Config.iterations)
 

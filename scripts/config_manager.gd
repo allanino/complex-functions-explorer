@@ -29,7 +29,6 @@ const FUNCTIONS = {
 	ComplexFunc.ZETA: {
 		"name": "Zeta (σ > 0)",
 		"is_dirichlect": true,
-		"has_iters": true,
 		"has_von_mangoldt": true,
 		# [min, max, step, initial]
 		"iters_range": [100.0, 5000.0, 100.0, 500.0],
@@ -37,21 +36,18 @@ const FUNCTIONS = {
 	ComplexFunc.ZETA_REFLECTION: {
 		"name": "Zeta (reflection formula)",
 		"is_dirichlect": true,
-		"has_iters": true,
 		"has_von_mangoldt": true,
 		"iters_range": [100.0, 5000.0, 100.0, 500.0],
 	},
 	ComplexFunc.DIRICHLET_ETA: {
 		"name": "Dirichlet Eta (σ > 0)",
 		"is_dirichlect": true,
-		"has_iters": true,
 		"has_von_mangoldt": true,
 		"iters_range": [100.0, 5000.0, 100.0, 500.0],
 	},
 	ComplexFunc.DIRICHLET_BETA: {
 		"name": "Dirichlet Beta (σ > 0)",
 		"is_dirichlect": true,
-		"has_iters": true,
 		"iters_range": [100.0, 5000.0, 100.0, 500.0],
 	},
 	ComplexFunc.GAMMA: {
@@ -62,12 +58,11 @@ const FUNCTIONS = {
 	},
 	ComplexFunc.DEDEKIND_ETA: {
 		"name": "Dedekind Eta",
-		"has_iters": true,
 		"iters_range": [1.0, 20.0, 1.0, 10.0],
 	},
 	ComplexFunc.MANDELBROT: {
 		"name": "Mandelbrot",
-		"has_iters": true,
+		"iters_range": [100.0, 5000.0, 100.0, 500.0],
 	},
 	ComplexFunc.SIN: {
 		"name": "Sin",
