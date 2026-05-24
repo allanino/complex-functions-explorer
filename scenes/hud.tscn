@@ -693,7 +693,7 @@ horizontal_alignment = 2
 [node name="IterDetachButton" type="Button" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/IterContainer"]
 custom_minimum_size = Vector2(24, 0)
 layout_mode = 2
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 14
 text = "⇱"
 
 
@@ -766,7 +766,7 @@ horizontal_alignment = 2
 [node name="MultivaluedDetachButton" type="Button" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/MultivaluedContainer"]
 custom_minimum_size = Vector2(24, 0)
 layout_mode = 2
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 14
 text = "⇱"
 
 
@@ -800,7 +800,7 @@ horizontal_alignment = 2
 [node name="CycleSpeedDetachButton" type="Button" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/CycleSpeedContainer"]
 custom_minimum_size = Vector2(24, 0)
 layout_mode = 2
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 14
 text = "⇱"
 
 
@@ -834,7 +834,7 @@ horizontal_alignment = 2
 [node name="MorphTimeDetachButton" type="Button" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/MorphTimeContainer"]
 custom_minimum_size = Vector2(24, 0)
 layout_mode = 2
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 14
 text = "⇱"
 
 
@@ -895,7 +895,7 @@ horizontal_alignment = 2
 [node name="DayDurationDetachButton" type="Button" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/DayDurationContainer"]
 custom_minimum_size = Vector2(24, 0)
 layout_mode = 2
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 14
 text = "⇱"
 
 
@@ -929,7 +929,7 @@ horizontal_alignment = 2
 [node name="StaticTimeDetachButton" type="Button" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/StaticTimeContainer"]
 custom_minimum_size = Vector2(24, 0)
 layout_mode = 2
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 14
 text = "⇱"
 
 
@@ -961,7 +961,7 @@ horizontal_alignment = 2
 [node name="SunriseDetachButton" type="Button" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/SunriseContainer"]
 custom_minimum_size = Vector2(24, 0)
 layout_mode = 2
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 14
 text = "⇱"
 
 
@@ -994,7 +994,7 @@ horizontal_alignment = 2
 [node name="SkyLuminosityDetachButton" type="Button" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/SkyLuminosityContainer"]
 custom_minimum_size = Vector2(24, 0)
 layout_mode = 2
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 14
 text = "⇱"
 
 
@@ -1027,7 +1027,7 @@ horizontal_alignment = 2
 [node name="SunLuminosityDetachButton" type="Button" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/SunLuminosityContainer"]
 custom_minimum_size = Vector2(24, 0)
 layout_mode = 2
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 14
 text = "⇱"
 
 
@@ -1073,7 +1073,7 @@ horizontal_alignment = 2
 [node name="FogDensityDetachButton" type="Button" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/FogDensityContainer"]
 custom_minimum_size = Vector2(24, 0)
 layout_mode = 2
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 14
 text = "⇱"
 
 
@@ -1108,7 +1108,7 @@ horizontal_alignment = 2
 [node name="FogDistanceDetachButton" type="Button" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/FogDistanceContainer"]
 custom_minimum_size = Vector2(24, 0)
 layout_mode = 2
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 14
 text = "⇱"
 
 
@@ -1173,7 +1173,7 @@ horizontal_alignment = 2
 [node name="BrightnessDetachButton" type="Button" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/BrightnessContainer"]
 custom_minimum_size = Vector2(24, 0)
 layout_mode = 2
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 14
 text = "⇱"
 
 
@@ -1206,7 +1206,7 @@ horizontal_alignment = 2
 [node name="SaturationDetachButton" type="Button" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/SaturationContainer"]
 custom_minimum_size = Vector2(24, 0)
 layout_mode = 2
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 14
 text = "⇱"
 
 
@@ -1239,7 +1239,7 @@ horizontal_alignment = 2
 [node name="AlbedoDetachButton" type="Button" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/AlbedoContainer"]
 custom_minimum_size = Vector2(24, 0)
 layout_mode = 2
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 14
 text = "⇱"
 
 
@@ -1272,7 +1272,7 @@ horizontal_alignment = 2
 [node name="EmissionDetachButton" type="Button" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/EmissionContainer"]
 custom_minimum_size = Vector2(24, 0)
 layout_mode = 2
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 14
 text = "⇱"
 
 
@@ -1305,7 +1305,7 @@ horizontal_alignment = 2
 [node name="MetallicDetachButton" type="Button" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/MetallicContainer"]
 custom_minimum_size = Vector2(24, 0)
 layout_mode = 2
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 14
 text = "⇱"
 
 
@@ -1338,7 +1338,7 @@ horizontal_alignment = 2
 [node name="RoughnessDetachButton" type="Button" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/RoughnessContainer"]
 custom_minimum_size = Vector2(24, 0)
 layout_mode = 2
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 14
 text = "⇱"
 
 [node name="SurfaceTextureContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox"]
@@ -1370,7 +1370,7 @@ horizontal_alignment = 2
 [node name="SurfaceTextureDetachButton" type="Button" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/SurfaceTextureContainer"]
 custom_minimum_size = Vector2(24, 0)
 layout_mode = 2
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 16
 text = "⇱"
 
 [node name="CurvesCheckbox" type="CheckBox" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox"]
@@ -1512,7 +1512,7 @@ horizontal_alignment = 2
 [node name="ViewDistanceDetachButton" type="Button" parent="Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/GRAPHICS/Margin/VBox/ViewDistanceContainer"]
 custom_minimum_size = Vector2(24, 0)
 layout_mode = 2
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 14
 text = "⇱"
 
 
