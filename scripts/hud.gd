@@ -1164,15 +1164,25 @@ func _rescale_card(card: Control, scale: float):
 
 
 func _on_detach_pressed(source_slider: HSlider, source_value_label: Label, title: String):
-	active_detached_slider = source_slider
-	active_detached_value = source_value_label
+	active_detached_slider = null
 
 	detach_label.text = title
+	# Using set_block_signals(true) prevents _on_detach_slider_changed from firing while we update its properties.
+	detach_slider.set_block_signals(true)
+	# Expand bounds first to avoid clamping
+	detach_slider.min_value = min(detach_slider.min_value, source_slider.min_value)
+	detach_slider.max_value = max(detach_slider.max_value, source_slider.max_value)
+
 	detach_slider.min_value = source_slider.min_value
 	detach_slider.max_value = source_slider.max_value
 	detach_slider.step = source_slider.step
 	detach_slider.value = source_slider.value
+	detach_slider.set_block_signals(false)
+
 	detach_value.text = source_value_label.text
+
+	active_detached_slider = source_slider
+	active_detached_value = source_value_label
 
 	toggle_menu(true)
 	detach_overlay.visible = true
