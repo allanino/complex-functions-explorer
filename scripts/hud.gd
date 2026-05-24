@@ -787,8 +787,8 @@ func _get_rvm_n(T: float) -> float:
 	# L-function for Dirichlet Beta has character modulo q = 4
 	if Config.function_type == Config.ComplexFunc.DIRICHLET_BETA:
 		# Riemann-von Mangoldt formula for Dirichlet L-functions:
-		# N(T, chi) ≈ (T/π) * log(qT/2πe)
-		return (T / PI) * (log((4.0 * T) / (2.0 * PI)) - 1.0)
+		# N(T, chi) ≈ (T/2π) * log(qT/2πe)
+		return (T / (2.0 * PI)) * (log((4.0 * T) / (2.0 * PI)) - 1.0)
 
 	# Riemann-von Mangoldt formula for Zeta: N(T) ≈ (T/2π) log(T/2πe) + 7/8
 	return (T / (2.0 * PI)) * (log(T / (2.0 * PI)) - 1.0) + 7.0/8.0
