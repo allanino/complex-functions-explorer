@@ -315,6 +315,7 @@ size_flags_vertical = 3
 horizontal_scroll_mode = 0
 
 [node name="ListLabel" type="Label" parent="Control/HUDColumns/HUDStackRight/ZerosPanel/MarginContainer/VBox/Scroll"]
+mouse_filter = 2
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 12
@@ -477,6 +478,7 @@ theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
 text = "Exit"
 
 [node name="MenuOverlay" type="ColorRect" parent="Control"]
+mouse_filter = 2
 visible = false
 layout_mode = 1
 anchors_preset = 15
@@ -487,6 +489,7 @@ grow_vertical = 2
 color = Color(0, 0, 0, 0)
 
 [node name="CenterContainer" type="CenterContainer" parent="Control/MenuOverlay"]
+mouse_filter = 2
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
