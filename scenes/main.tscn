@@ -14,6 +14,7 @@ shader_parameter/horizon_color = Color(0.6, 0.8, 1, 1)
 shader_parameter/cloud_color = Color(1, 1, 1, 1)
 shader_parameter/golden_hour_factor = 0.0
 shader_parameter/night_factor = 0.0
+shader_parameter/sky_luminosity = 1.0
 shader_parameter/performance_protection_active = false
 
 [sub_resource type="Sky" id="Sky_1"]
@@ -36,17 +37,31 @@ shader_parameter/height_type = 0
 shader_parameter/height_a = 3.0
 shader_parameter/height_epsilon = 1.0
 shader_parameter/performance_protection_active = false
-shader_parameter/rational_num_coeffs = PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-shader_parameter/rational_den_coeffs = PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+shader_parameter/is_dirichlect = false
+shader_parameter/is_multivalued = false
+shader_parameter/rational_num_coeffs = PackedVector2Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+shader_parameter/rational_den_coeffs = PackedVector2Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+shader_parameter/multivalued_n = 2
+shader_parameter/multivalued_mode = 0
+shader_parameter/branch_cycle_speed = 0.5
+shader_parameter/multivalued_morph_time = 0.1
+shader_parameter/branch_time = 0.0
+shader_parameter/current_branch = 0
+shader_parameter/lod_segments = PackedFloat32Array(0, 0, 0, 0, 0)
+shader_parameter/chunk_size = 0.0
 shader_parameter/color_scheme = 0
 shader_parameter/show_curves = true
 shader_parameter/show_critical_stripe = true
+shader_parameter/show_flow = false
 shader_parameter/brightness = 1.0
 shader_parameter/saturation = 0.85
 shader_parameter/albedo = 0.15
 shader_parameter/emission = 0.1
 shader_parameter/metallic = 0.7
 shader_parameter/roughness = 0.1
+shader_parameter/morph = 1.0
+shader_parameter/portal_height = 50.0
+shader_parameter/portal_width = 100.0
 
 [node name="Main" type="Node3D" unique_id=1567576539]
 
