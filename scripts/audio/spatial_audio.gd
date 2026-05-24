@@ -2,7 +2,7 @@ extends Node3D
 
 # --- CONSTANTS ---
 const ZERO_PITCH_BOOST = 1.5
-const BASE_FREQUENCY = 130.8 # C3 (Standard drone)
+const BASE_FREQUENCY = 65.4 # C2 (Standard drone)
 const REVERB_AMOUNT = 0.5
 const PHASE_PAN_STRENGTH = 1.0
 
@@ -13,11 +13,6 @@ var phase: float = 0.0
 var mod_phase: float = 0.0
 var lfo_phase: float = 0.0
 var noise_state: float = 0.0
-var pulse_phase: float = 0.0
-var target_pulse_rate: float = 0.0
-var current_pulse_rate: float = 0.0
-var audio_fm_index: float = 0.0
-var audio_pulse_presence: float = 0.0
 
 # --- INTERPOLATED PARAMETERS ---
 var target_volume: float = 0.3
@@ -28,13 +23,14 @@ var target_pan: float = 0.0
 var current_pan: float = 0.0
 var target_harmonic_intensity: float = 0.0
 var current_harmonic_intensity: float = 0.0
+var target_resonance: float = 0.0
+var current_resonance: float = 0.0
 var target_fm_index: float = 0.0
 var current_fm_index: float = 0.0
-var pulse_presence: float = 0.0
 
 # --- STARTUP ENVELOPE ---
 var startup_time := 0.0
-var startup_duration := 5.0
+var startup_duration := 3.0
 
 # --- FPS GUARD ---
 var low_fps_counter: int = 0
@@ -59,7 +55,7 @@ func _ready():
 
 	var generator = AudioStreamGenerator.new()
 	generator.mix_rate = 44100
-	generator.buffer_length = 0.05
+	generator.buffer_length = 0.1
 
 	stream_player.stream = generator
 
@@ -141,7 +137,7 @@ func setup_audio_bus_and_effects():
 
 	# Index 2: Reverb (conservative — large room + high wet caused dropouts here)
 	reverb_effect = AudioEffectReverb.new()
-	reverb_effect.room_size = 0.8
+	reverb_effect.room_size = 0.42
 	reverb_effect.damping = 0.72
 	reverb_effect.spread = 0.6
 	reverb_effect.hipass = 0.08
@@ -198,6 +194,9 @@ func _process(delta):
 	var mag = f.length()
 	if not is_finite(mag): mag = 0.0
 
+	var arg = atan2(f.y, f.x)
+	var sigma = pos.x * 0.1 / Config.effective_zoom
+
 	# --- MAPPINGS ---
 
 	# 1. MAGNITUDE |f|
@@ -207,22 +206,27 @@ func _process(delta):
 	var proximity = 1.0 / (0.05 + mag)
 	if not is_finite(proximity): proximity = 20.0
 
-	# --- ZERO-LOCALIZED PULSE ---
+	# Frequency: C2 by default, jumps to G2 near zeros
+	# Avoid the fake zeros for x < 0
+	var is_dirichlect = Config.function.get("is_dirichlect", false)
 
-	# Gaussian localization around zeros
-	# Pulse only exists very near zeros
-	pulse_presence = exp(-pow(mag, 3.0))
+	if mag < Config.zero_proximity_audio and (not is_dirichlect or sigma > 0.0):
+		target_frequency = 88.0 # G2
+	else:
+		target_frequency = BASE_FREQUENCY # C2
 
-	# Stable breathing speed
-	target_pulse_rate = lerp(1.5, 6.0, pulse_presence)
-
-	# Store for synthesis stage
 	target_harmonic_intensity = clamp(proximity * 0.08, 0.0, 0.4)
-	target_fm_index = clamp(proximity * 0.15, 0.0, 1.5)
+	target_fm_index = clamp(proximity * 0.4, 0.0, 4.0)
 
 	# 3. PHASE arg(f)
-	var arg = atan2(f.y, f.x)
-	target_pan = cos(arg) * PHASE_PAN_STRENGTH
+	target_pan = sin(arg) * PHASE_PAN_STRENGTH
+
+	# 4. CRITICAL LINE (sigma = 0.5)
+	var critical_factor = 0.0
+	if is_dirichlect:
+		var dist_to_critical = abs(sigma - 0.5)
+		critical_factor = exp(-dist_to_critical * 25.0)
+	target_resonance = critical_factor
 
 	# --- FINITE CHECKS BEFORE LERP ---
 	if not is_finite(target_frequency): target_frequency = BASE_FREQUENCY
@@ -232,9 +236,9 @@ func _process(delta):
 	# Significantly increased interpolation weights for instantaneous response
 	current_volume = lerp(current_volume, target_volume, delta * 20.0)
 	current_frequency = lerp(current_frequency, target_frequency, delta * 30.0)
-	current_pulse_rate = lerp(current_pulse_rate, target_pulse_rate, delta * 5.0)
 	current_pan = lerp(current_pan, target_pan, delta * 16.0)
 	current_harmonic_intensity = lerp(current_harmonic_intensity, target_harmonic_intensity, delta * 24.0)
+	current_resonance = lerp(current_resonance, target_resonance, delta * 20.0)
 	current_fm_index = lerp(current_fm_index, target_fm_index, delta * 10.0)
 
 	# Final safety clamp
@@ -246,12 +250,15 @@ func _process(delta):
 		if is_finite(ps): pitch_shift_effect.pitch_scale = ps
 
 	if reverb_effect:
-		var rv = clamp(REVERB_AMOUNT + (proximity * 0.01), 0.0, 0.9)
+		var rv = clamp(REVERB_AMOUNT + current_resonance * 0.15 + (proximity * 0.01), 0.0, 0.9)
 		if is_finite(rv): reverb_effect.wet = rv
 
 	if lpf_effect:
-		var cut = lerp(600.0, 4500.0, clamp(mag * 0.05, 0.0, 1.0))
+		var cut = lerp(600.0, 4500.0, clamp(mag * 0.05 + current_resonance * 0.8, 0.0, 1.0))
 		if is_finite(cut): lpf_effect.cutoff_hz = clamp(cut, 100.0, 20000.0)
+
+		var res = 0.2 + current_resonance * 0.3
+		if is_finite(res): lpf_effect.resonance = clamp(res, 0.0, 0.9)
 
 	fill_buffer()
 
@@ -284,38 +291,24 @@ func fill_buffer():
 		# --- FM SYNTHESIS ---
 
 		# Modulator
-		audio_fm_index = lerp(audio_fm_index, current_fm_index, 0.1)
-		var modulator = sin(mod_phase * TAU) * audio_fm_index
+		var modulator = sin(mod_phase * TAU) * current_fm_index
 
 		# Carrier
 		var sample = sin(phase * TAU + modulator)
-	
-		# Add fifth
-		sample += 0.15 * sin(phase * TAU * 1.5 + modulator * 0.3)
 
-		# Non-linear saturation (Cubic soft-clipper) with wave shape
+		# Add sub-depth
+		sample += 0.5 * sin(phase * TAU * 0.5)
+
+		# Growl (Noise component)
+		noise_state = fmod(noise_state + 0.1, 1.0) # Simple noise stepping
+		var noise = (randf() * 2.0 - 1.0) * current_harmonic_intensity * 0.2
+		sample += noise
+
+		# Non-linear saturation (Cubic soft-clipper)
 		sample = clamp(sample * 1.1, -1.1, 1.1)
-		var shape = 0.25 + 0.1 * sin(lfo_phase * TAU)
-		sample = sample - (sample * sample * sample * shape)
-
-
+		sample = sample - (pow(sample, 3) / 3.0)
 
 		if not is_finite(sample): sample = 0.0
-
-		# --- LOCALIZED ZERO PULSE ---
-
-		pulse_phase = fmod(
-			pulse_phase + current_pulse_rate / sample_rate,
-			1.0
-		)
-
-		# Gentle breathing curve
-		var pulse_wave = 0.75 + 0.25 * sin(pulse_phase * TAU)
-
-		# Pulse only appears near zeros
-		audio_pulse_presence = lerp(audio_pulse_presence, pulse_presence, 0.1)
-
-		sample *= lerp(1.0, pulse_wave, audio_pulse_presence)
 
 		var drone_vol_scale = Config.drone_volume / 100.0
 		var frame = Vector2.ONE * sample * current_volume * drone_vol_scale * startup_gain

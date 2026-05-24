@@ -6,7 +6,6 @@ extends Node3D
 @export var chunk_size: float = 32.0
 
 var chunks = {}
-var chunk_leeway = 0.01
 var _last_field_state = {}
 var LOD_SUBS = [] # This will be set in code
 var _lod_mesh_cache = {}
@@ -207,7 +206,6 @@ func _process(delta):
 		"terrain_emission": Config.terrain_emission,
 		"terrain_metallic": Config.terrain_metallic,
 		"terrain_roughness": Config.terrain_roughness,
-		"terrain_surface_texture": Config.terrain_surface_texture,
 		"morph_type": Config.morph_type,
 		"morph_value": Config.morph_value,
 		"sky_luminosity": Config.sky_luminosity,
@@ -297,32 +295,29 @@ func _update_all_chunks_lod(force: bool = false):
 func _update_lod_subs():
 	match Config.terrain_detail:
 		0: # High
-			LOD_SUBS = [1023, 511, 255, 127, 63, 31]
+			LOD_SUBS = [511, 255, 127, 63, 31]
 		1: # Medium
-			LOD_SUBS = [511, 255, 127, 63, 31, 15]
+			LOD_SUBS = [255, 127, 63, 31, 15]
 		2: # Low
-			LOD_SUBS = [255, 127, 63, 31, 15, 7]
+			LOD_SUBS = [127, 63, 31, 15, 7]
 		3: # Lowest
-			LOD_SUBS = [127, 63, 31, 15, 7, 3]
+			LOD_SUBS = [63, 31, 15, 7, 3]
 
 func _get_lod_level(coord: Vector2i, player_coord: Vector2i) -> int:
 	var dx = abs(coord.x - player_coord.x)
 	var dz = abs(coord.y - player_coord.y)
 	var dist = max(dx, dz)
 
-
-	if dist <= 0:
-		return 0
 	if dist <= 1:
-		return 1
+		return 0
 	elif dist <= 2:
-		return 2
+		return 1
 	elif dist <= 4:
-		return 3
+		return 2
 	elif dist <= 6:
-		return 4
+		return 3
 	else:
-		return 5
+		return 4
 
 func _create_lod_mesh(size: float, subdivisions: int) -> Mesh:
 	var plane = PlaneMesh.new()
@@ -374,7 +369,6 @@ func _update_terrain_material_uniforms():
 	terrain_material.set_shader_parameter("emission", Config.terrain_emission)
 	terrain_material.set_shader_parameter("metallic", Config.terrain_metallic)
 	terrain_material.set_shader_parameter("roughness", Config.terrain_roughness)
-	terrain_material.set_shader_parameter("surface_texture", Config.terrain_surface_texture)
 	terrain_material.set_shader_parameter("branch_time", Config.branch_time)
 	terrain_material.set_shader_parameter("current_branch", Config.current_branch)
 
@@ -445,7 +439,7 @@ func _update_chunk_lod(chunk: MeshInstance3D, lod: int, coord: Vector2i):
 	var subdivisions = LOD_SUBS[lod]
 
 	if not _lod_mesh_cache.has(subdivisions):
-		_lod_mesh_cache[subdivisions] = _create_lod_mesh(chunk_size + chunk_leeway, subdivisions)
+		_lod_mesh_cache[subdivisions] = _create_lod_mesh(chunk_size, subdivisions)
 
 	chunk.mesh = _lod_mesh_cache[subdivisions]
 	chunk.set_meta("lod_level", lod)
