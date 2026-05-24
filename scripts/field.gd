@@ -303,6 +303,12 @@ static func get_height_from_field(f: Vector2) -> float:
 	var h: float
 	if Config.height_type == 0: h = Config.height_a * log(Config.height_epsilon + mag)
 	else: h = mag
+
+	# Match shader morphing blend factor (usually 1.0)
+	var s = 0.5 - 0.5 * cos(PI * Config.morph_value)
+	var blend = log(1.0 + 8.0 * s) / log(9.0)
+	h *= blend
+
 	return h if is_finite(h) else 0.0
 
 static func get_height(x: float, z: float) -> float:
