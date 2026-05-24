@@ -30,9 +30,7 @@ var target_harmonic_intensity: float = 0.0
 var current_harmonic_intensity: float = 0.0
 var target_fm_index: float = 0.0
 var current_fm_index: float = 0.0
-var unwrapped_phase: float = 0.0
 var pulse_presence: float = 0.0
-var previous_arg: float = 0.0
 
 # --- STARTUP ENVELOPE ---
 var startup_time := 0.0
@@ -224,10 +222,7 @@ func _process(delta):
 
 	# 3. PHASE arg(f)
 	var arg = atan2(f.y, f.x)
-	var delta_arg = wrapf(arg - previous_arg, -PI, PI)
-	unwrapped_phase += delta_arg
-	previous_arg = arg
-	target_pan = cos(unwrapped_phase) * PHASE_PAN_STRENGTH
+	target_pan = cos(arg) * PHASE_PAN_STRENGTH
 
 	# --- FINITE CHECKS BEFORE LERP ---
 	if not is_finite(target_frequency): target_frequency = BASE_FREQUENCY
