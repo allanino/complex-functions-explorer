@@ -1004,9 +1004,16 @@ func _process(_delta):
 			zoom_slider.value = _zoom_to_slider(Config.zoom_factor)
 			_on_zoom_value_changed(zoom_slider.value)
 
-			# Live update speed and height inputs as they change smoothly with zoom
-			speed_input.text = "%.1f" % (Config.movement_speed * 0.1)
-			camera_height_input.text = str(Config.camera_height)
+		# Live update speed and height inputs as they change smoothly with zoom
+		if not speed_input.has_focus():
+			var formatted_speed = "%.1f" % (Config.movement_speed * 0.1)
+			if speed_input.text != formatted_speed:
+				speed_input.text = formatted_speed
+
+		if not camera_height_input.has_focus():
+			var formatted_height = "%.3f" % Config.camera_height
+			if camera_height_input.text != formatted_height:
+				camera_height_input.text = formatted_height
 
 		# Live update time slider if time is flowing
 		if Config.environment_type == 0:
