@@ -272,3 +272,65 @@ func _physics_process(delta):
 				last_detected_z = z
 
 	move_and_slide()
+
+
+func demo_actions():
+	auto_walk_state = AutoWalkState.NONE
+	is_resetting_height = false
+
+	var ez = Config.effective_zoom
+	global_position.x = -30.0 * ez
+	global_position.z = 0.0
+
+	rotation.y = -PI / 2.0
+	rotation_x = 0.0
+	camera.rotation.x = rotation_x
+	height_offset = 0.0
+
+	var tween = create_tween()
+
+	# Phase 1: go up to 50.0 while camera slowly turns downwards
+	tween.tween_property(self, "height_offset", 50.0, 4.0)
+	tween.parallel().tween_property(self, "rotation_x", -PI / 2.0, 4.0)
+	tween.parallel().tween_property(camera, "rotation:x", -PI / 2.0, 4.0)
+
+	# Phase 2: rotate CCW while tilting upwards to face zeta wall towards -sigma
+	tween.tween_property(self, "rotation:y", PI / 2.0, 4.0)
+	tween.parallel().tween_property(self, "rotation_x", 0.0, 4.0)
+	tween.parallel().tween_property(camera, "rotation:x", 0.0, 4.0)
+
+	# Phase 3: height to 3.5 while rotating towards +sigma
+	tween.tween_property(self, "height_offset", 3.5, 4.0)
+	tween.parallel().tween_property(self, "rotation:y", -PI / 2.0, 4.0)
+
+	# Phase 4: walk towards singularity at (1, 1)
+	# Math coordinates (1, 1) -> x = 10.0 * ez, z = -10.0 * ez
+	tween.tween_property(self, "global_position:x", 10.0 * ez, 4.0)
+	tween.parallel().tween_property(self, "global_position:z", -10.0 * ez, 4.0)
+
+	# After arriving, stop and look down at the zero at (-2, 0).
+	# Look at (-2, 0). The zero is at x = -20.0 * ez, z = 0.0
+	# From (1, 1), vector dx = -30, dz = 10.
+	# Godot 3D rotation: atan2(-dx, -dz)
+	var target_yaw = atan2(30.0 * ez, -10.0 * ez)
+
+	tween.tween_property(self, "rotation:y", target_yaw, 2.0)
+	tween.parallel().tween_property(self, "rotation_x", -PI / 6.0, 2.0)
+	tween.parallel().tween_property(camera, "rotation:x", -PI / 6.0, 2.0)
+
+	# Wait a moment while looking at the zero
+	tween.tween_interval(2.0)
+
+	# Phase 5: move toward the pole while walking left, approaching (0.5, 3.0) at the critical line.
+	# Math coordinates (0.5, 3.0) -> x = 5.0 * ez, z = -30.0 * ez
+	tween.tween_property(self, "global_position:x", 5.0 * ez, 4.0)
+	tween.parallel().tween_property(self, "global_position:z", -30.0 * ez, 4.0)
+
+	tween.tween_callback(self._start_auto_walk_from_demo)
+
+func _start_auto_walk_from_demo():
+	auto_walk_state = AutoWalkState.MOVING_TO_LINE
+	Config.visited_zeros.clear()
+	last_detected_z = Vector2(0.0, 0.0)
+	Config.show_hud_zeros = true
+	Config.rvm_start_t = abs(global_position.z * 0.1 / Config.effective_zoom)
