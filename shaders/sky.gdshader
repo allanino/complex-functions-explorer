@@ -17,12 +17,14 @@ float hash(vec2 p) {
 
 // 2D Noise with quintic interpolation
 float noise(vec2 p) {
+    // Wrap to prevent precision loss over time
+    p = mod(p, 289.0);
     vec2 i = floor(p);
     vec2 f = fract(p);
     float a = hash(i);
-    float b = hash(i + vec2(1.0, 0.0));
-    float c = hash(i + vec2(0.0, 1.0));
-    float d = hash(i + vec2(1.0, 1.0));
+    float b = hash(mod(i + vec2(1.0, 0.0), 289.0));
+    float c = hash(mod(i + vec2(0.0, 1.0), 289.0));
+    float d = hash(mod(i + vec2(1.0, 1.0), 289.0));
     // Quintic interpolation
     vec2 u = f * f * f * (f * (f * 6.0 - 15.0) + 10.0);
     return mix(a, b, u.x) + (c - a) * u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
