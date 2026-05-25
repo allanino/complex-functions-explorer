@@ -9,8 +9,8 @@
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_1"]
 shader = ExtResource("4_sky")
-shader_parameter/sky_color = Color(0.110000014, 0.5846666, 1, 1)
-shader_parameter/horizon_color = Color(0.41000003, 0.72466666, 1, 1)
+shader_parameter/sky_color = Color(0.246, 0.533, 0.82, 1)
+shader_parameter/horizon_color = Color(0.40049997, 0.64525, 0.89, 1)
 shader_parameter/cloud_color = Color(1, 1, 1, 1)
 shader_parameter/golden_hour_factor = 0.0
 shader_parameter/night_factor = 0.0
@@ -64,6 +64,7 @@ shader_parameter/surface_texture = 0.0
 shader_parameter/morph = 1.0
 shader_parameter/portal_height = 50.0
 shader_parameter/portal_width = 100.0
+shader_parameter/self_illumination = 0.0
 
 [node name="Main" type="Node3D" unique_id=1567576539]
 
