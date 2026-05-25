@@ -9,8 +9,8 @@
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_1"]
 shader = ExtResource("4_sky")
-shader_parameter/sky_color = Color(0.3, 0.6, 0.9, 1)
-shader_parameter/horizon_color = Color(0.6, 0.8, 1, 1)
+shader_parameter/sky_color = Color(0.110000014, 0.5846666, 1, 1)
+shader_parameter/horizon_color = Color(0.41000003, 0.72466666, 1, 1)
 shader_parameter/cloud_color = Color(1, 1, 1, 1)
 shader_parameter/golden_hour_factor = 0.0
 shader_parameter/night_factor = 0.0
@@ -26,6 +26,7 @@ background_mode = 2
 sky = SubResource("Sky_1")
 tonemap_mode = 3
 tonemap_exposure = 0.95
+glow_enabled = true
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_2"]
 render_priority = 0
