@@ -31,6 +31,8 @@ uniform float surface_texture : hint_range(0.0, 1.0) = 0.0;
 uniform float morph : hint_range(0.0, 1.0) = 1.0;
 uniform float portal_height = 50.0;
 uniform float portal_width = 100.0;
+uniform float self_illumination = 0.0;
+uniform float time = 0.0;
 
 // Helper function to convert HSV to RGB
 vec3 hsv2rgb(vec3 c) {
@@ -455,6 +457,21 @@ void fragment() {
         final_emission = final_emission / (final_emission + vec3(1.0));
 
         EMISSION = final_emission;
+    // Self-Illumination Glow around camera
+    if (self_illumination > 0.0 && !performance_protection_active) {
+        float dist_to_camera = length(world_pos - CAMERA_POSITION_WORLD);
+        float scaled_dist = dist_to_camera / (10.0 * zoom_factor);
+
+        // Exponent decay
+        float glow_factor = exp(-scaled_dist);
+
+        // Gentle pulsing
+        float pulse = 1.0 + 0.03 * sin(time * 0.7);
+
+        vec3 warm_glow = vec3(1.0, 0.88, 0.72) * self_illumination * glow_factor * pulse;
+        EMISSION += warm_glow;
+    }
+
         ROUGHNESS = clamp(roughness + roughness_variation, 0.0, 1.0);
         METALLIC = metallic;
         SPECULAR = 0.1;

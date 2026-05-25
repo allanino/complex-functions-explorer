@@ -27,7 +27,6 @@ var current_mag: float = 0.0
 var current_z: Vector2 = Vector2(0.0, 0.0)
 
 @onready var camera = $Camera3D
-@onready var self_illumination_light = $SelfIllumination
 
 func _ready():
 	# Set the global position directly using a Vector3(x, y, z)
@@ -267,24 +266,5 @@ func _physics_process(delta):
 			if mag_history[2] < Config.zero_proximity_nav:
 				Config.visited_zeros.push_back(z)
 				last_detected_z = z
-
-
-	# Self-Illumination logic
-	if Config.self_illumination > 0.0:
-		self_illumination_light.visible = true
-
-		# Base energy mapped to slider (0-1 -> 0-10 energy)
-		var base_energy = Config.self_illumination * 10.0
-
-		# Gentle pulsing
-		var time = Time.get_ticks_msec() / 1000.0
-		var energy = base_energy * (1.0 + 0.03 * sin(time * 0.7))
-		self_illumination_light.light_energy = energy
-
-		# Wider area on zoom out
-		var base_range = 50.0
-		self_illumination_light.omni_range = base_range * Config.effective_zoom
-	else:
-		self_illumination_light.visible = false
 
 	move_and_slide()
