@@ -213,48 +213,6 @@ void sky() {
             cloud_final_color += LIGHT1_COLOR * moon_glow * LIGHT1_ENERGY;
         }
 
-        // ---------------
-        // Haze
-        //----------------
-
-        // Stronger near horizon
-        float horizon = 1.0 - clamp(EYEDIR.y, 0.0, 1.0);
-
-        // Exponential falloff feels more natural
-        float haze_amount = 1.0 - exp(-horizon * 4.0);
-
-        // Slightly stronger near sun
-        float sun_haze = 0.0;
-
-        if (LIGHT0_ENABLED) {
-            float sun_dot = max(dot(EYEDIR, LIGHT0_DIRECTION), 0.0);
-
-            // Wide forward scattering
-            sun_haze = pow(sun_dot, 3.0);   
-        }
-
-        // Atmospheric color
-        vec3 haze_color = mix(
-            vec3(0.55, 0.65, 0.8), // bluish daytime haze
-            LIGHT0_COLOR * vec3(1.0, 0.7, 0.4), // warm sunset haze
-            golden_hour_factor
-        );
-
-        // Add subtle sun scattering
-        haze_color += LIGHT0_COLOR * sun_haze * 0.2;
-
-        // Final intensity (decrease with night)
-        float night_haze_factor = 1.0 - smoothstep(0.05, 1.0, night_factor);
-        float final_haze =
-            (haze_amount * 0.1 +
-            sun_haze * 0.08)
-            * night_haze_factor;
-
-        cloud_final_color = mix(
-            cloud_final_color,
-            haze_color,
-            clamp(final_haze, 0.0, 1.0)
-        );
 
         COLOR = cloud_final_color * sky_luminosity;
     }
