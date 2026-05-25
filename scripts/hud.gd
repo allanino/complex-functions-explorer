@@ -76,6 +76,8 @@ extends CanvasLayer
 @onready var sky_luminosity_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/SkyLuminosityContainer/SkyLuminosityValue
 @onready var sun_luminosity_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/SunLuminosityContainer/SunLuminositySlider
 @onready var sun_luminosity_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/SunLuminosityContainer/SunLuminosityValue
+@onready var self_illumination_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/SelfIlluminationContainer/SelfIlluminationSlider
+@onready var self_illumination_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/SelfIlluminationContainer/SelfIlluminationValue
 @onready var fog_enabled_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/FogEnabledCheckbox
 @onready var fog_density_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/FogDensityContainer/FogDensitySlider
 @onready var fog_density_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/FogDensityContainer/FogDensityValue
@@ -213,6 +215,7 @@ var _initial_terrain_surface_texture: float
 var _initial_hud_scale: float
 var _initial_sky_luminosity: float
 var _initial_sun_luminosity: float
+var _initial_self_illumination: float
 var _initial_environment_type: int
 var _initial_day_duration: float
 var _initial_static_time: float
@@ -247,6 +250,7 @@ func _ready():
 	sunrise_slider.value_changed.connect(_on_sunrise_value_changed)
 	sky_luminosity_slider.value_changed.connect(_on_sky_luminosity_value_changed)
 	sun_luminosity_slider.value_changed.connect(_on_sun_luminosity_value_changed)
+	self_illumination_slider.value_changed.connect(_on_self_illumination_value_changed)
 	fog_enabled_checkbox.toggled.connect(_on_fog_enabled_toggled)
 	fog_density_slider.value_changed.connect(_on_fog_density_value_changed)
 	fog_distance_slider.value_changed.connect(_on_fog_distance_value_changed)
@@ -328,6 +332,7 @@ func _ready():
 	$Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/SunriseContainer/SunriseDetachButton.pressed.connect(func(): _on_detach_pressed($Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/SunriseContainer/SunriseSlider, $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/SunriseContainer/SunriseValue, "Sunrise Direction"))
 	$Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/SkyLuminosityContainer/SkyLuminosityDetachButton.pressed.connect(func(): _on_detach_pressed($Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/SkyLuminosityContainer/SkyLuminositySlider, $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/SkyLuminosityContainer/SkyLuminosityValue, "Sky Luminosity"))
 	$Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/SunLuminosityContainer/SunLuminosityDetachButton.pressed.connect(func(): _on_detach_pressed($Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/SunLuminosityContainer/SunLuminositySlider, $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/SunLuminosityContainer/SunLuminosityValue, "Sun Luminosity"))
+	$Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/SelfIlluminationContainer/SelfIlluminationDetachButton.pressed.connect(func(): _on_detach_pressed($Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/SelfIlluminationContainer/SelfIlluminationSlider, $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/SelfIlluminationContainer/SelfIlluminationValue, "Self-Illumination"))
 	$Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/FogDensityContainer/FogDensityDetachButton.pressed.connect(func(): _on_detach_pressed($Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/FogDensityContainer/FogDensitySlider, $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/FogDensityContainer/FogDensityValue, "Fog Density"))
 	$Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/FogDistanceContainer/FogDistanceDetachButton.pressed.connect(func(): _on_detach_pressed($Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/FogDistanceContainer/FogDistanceSlider, $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/FogDistanceContainer/FogDistanceValue, "Fog Distance"))
 	$Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/BrightnessContainer/BrightnessDetachButton.pressed.connect(func(): _on_detach_pressed($Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/BrightnessContainer/BrightnessSlider, $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/BrightnessContainer/BrightnessValue, "Brightness"))
@@ -440,6 +445,7 @@ func toggle_menu(applied: bool = false):
 		_initial_hud_scale = Config.hud_scale
 		_initial_sky_luminosity = Config.sky_luminosity
 		_initial_sun_luminosity = Config.sun_luminosity
+		_initial_self_illumination = Config.self_illumination
 		_initial_environment_type = Config.environment_type
 		_initial_day_duration = Config.day_duration
 		_initial_static_time = Config.static_time
@@ -490,6 +496,8 @@ func toggle_menu(applied: bool = false):
 		_on_sky_luminosity_value_changed(sky_luminosity_slider.value)
 		sun_luminosity_slider.value = Config.sun_luminosity * 100.0
 		_on_sun_luminosity_value_changed(sun_luminosity_slider.value)
+		self_illumination_slider.value = Config.self_illumination * 100.0
+		_on_self_illumination_value_changed(self_illumination_slider.value)
 		fog_enabled_checkbox.button_pressed = Config.fog_enabled
 		fog_density_slider.value = Config.fog_density * 100.0
 		_on_fog_density_value_changed(fog_density_slider.value)
@@ -568,6 +576,7 @@ func toggle_menu(applied: bool = false):
 				_update_hud_layout()
 			Config.sky_luminosity = _initial_sky_luminosity
 			Config.sun_luminosity = _initial_sun_luminosity
+			Config.self_illumination = _initial_self_illumination
 			Config.environment_type = _initial_environment_type
 			Config.day_duration = _initial_day_duration
 			Config.static_time = _initial_static_time
@@ -684,6 +693,10 @@ func _on_sky_luminosity_value_changed(value):
 func _on_sun_luminosity_value_changed(value):
 	Config.sun_luminosity = value / 100.0
 	sun_luminosity_value.text = str(int(value)) + "%"
+
+func _on_self_illumination_value_changed(value):
+	Config.self_illumination = value / 100.0
+	self_illumination_value.text = str(int(value)) + "%"
 
 func _on_fog_enabled_toggled(pressed: bool):
 	Config.fog_enabled = pressed
