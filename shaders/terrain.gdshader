@@ -184,7 +184,7 @@ void vertex() {
                 h = mag;
             }
 
-            h *= blend;
+            h *= blend * zoom_factor;
 
             local_pos = vec3(snap_v.x, snap_v.y + h, snap_v.z);
 
@@ -206,11 +206,12 @@ void vertex() {
             // Convert from (sigma, t) derivatives to world (x, z) derivatives
             // sigma = 0.1 * x * (1/zoom)
             // t     = -0.1 * z * (1/zoom)
-            float zoom = 1.0 / zoom_factor;
-            float d_sigma_dx = 0.1 * zoom;
+            // Since we scale the final height h by zoom_factor, the zoom_factor cancels out
+            // of the dh_dx and dh_dz derivatives entirely.
+            float d_sigma_dx = 0.1;
             float d_t_dx     = 0.0;
             float d_sigma_dz = 0.0;
-            float d_t_dz     = -0.1 * zoom;
+            float d_t_dz     = -0.1;
 
             float du_dx = dg_dsigma.x * d_sigma_dx + dg_dt.x * d_t_dx;
             float dv_dx = dg_dsigma.y * d_sigma_dx + dg_dt.y * d_t_dx;
