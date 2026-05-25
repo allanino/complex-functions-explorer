@@ -273,8 +273,8 @@ func _physics_process(delta):
 	if Config.self_illumination > 0.0:
 		self_illumination_light.visible = true
 
-		# Base energy mapped to slider (0-1 -> 0-2 energy)
-		var base_energy = Config.self_illumination * 2.0
+		# Base energy mapped to slider (0-1 -> 0-10 energy)
+		var base_energy = Config.self_illumination * 10.0
 
 		# Gentle pulsing
 		var time = Time.get_ticks_msec() / 1000.0
@@ -282,10 +282,7 @@ func _physics_process(delta):
 		self_illumination_light.light_energy = energy
 
 		# Wider area on zoom out
-		# Map effective_zoom: when zoom is high (zoom out), range is large
-		# Note: effective_zoom > 1.0 means zoomed OUT, < 1.0 means zoomed IN
-		# Actually, effective_zoom is larger when zoomed out. Let's make it proportional.
-		var base_range = 10.0
+		var base_range = 50.0
 		self_illumination_light.omni_range = base_range * Config.effective_zoom
 	else:
 		self_illumination_light.visible = false
