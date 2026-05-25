@@ -153,6 +153,7 @@ var static_time: float = 43200.0 # Current time in seconds (Noon = 12h = 43200s)
 var sunrise_direction: float = 0.0
 var sky_luminosity: float = 1.0
 var sun_luminosity: float = 1.0
+var self_illumination: float = 0.0
 var shadows_enabled: bool = false
 var terrain_brightness: float = 1.0
 var terrain_saturation: float = 0.85
@@ -230,6 +231,7 @@ func save_settings():
 	config.set_value("rendering", "sunrise_direction", sunrise_direction)
 	config.set_value("rendering", "sky_luminosity", sky_luminosity)
 	config.set_value("rendering", "sun_luminosity", sun_luminosity)
+	config.set_value("rendering", "self_illumination", self_illumination)
 	config.set_value("rendering", "shadows_enabled", shadows_enabled)
 	config.set_value("rendering", "terrain_brightness", terrain_brightness)
 	config.set_value("rendering", "terrain_saturation", terrain_saturation)
@@ -305,6 +307,7 @@ func load_settings():
 	sunrise_direction = config.get_value("rendering", "sunrise_direction", sunrise_direction)
 	sky_luminosity = config.get_value("rendering", "sky_luminosity", sky_luminosity)
 	sun_luminosity = config.get_value("rendering", "sun_luminosity", sun_luminosity)
+	self_illumination = config.get_value("rendering", "self_illumination", self_illumination)
 	shadows_enabled = config.get_value("rendering", "shadows_enabled", shadows_enabled)
 	terrain_brightness = config.get_value("rendering", "terrain_brightness", terrain_brightness)
 	terrain_saturation = config.get_value("rendering", "terrain_saturation", terrain_saturation)
