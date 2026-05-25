@@ -460,11 +460,15 @@ void fragment() {
     if (self_illumination > 0.0 && !performance_protection_active) {
         // Position slightly below the camera
         vec3 light_pos = CAMERA_POSITION_WORLD - vec3(0.0, 0.2 / zoom_factor, 0.0);
-        float dist_to_camera = length(world_pos - light_pos);
-        float scaled_dist = dist_to_camera / (10.0 * zoom_factor);
+
+        // We could apply zoom here to preserve the same radius of light
+        // I think it is better to have the radius scale with the player
+        // like it is a light source being shrinked or enlarged,
+        // like we are doing here.
+        float dist_to_camera = length(world_pos - light_pos) * 0.1;
 
         // Exponent decay
-        float glow_factor = exp(-scaled_dist);
+        float glow_factor = exp(-dist_to_camera);
 
         // Gentle pulsing
         float pulse = 1.0 + 0.03 * sin(TIME * 0.7);
