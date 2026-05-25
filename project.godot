@@ -52,4 +52,6 @@ move_right={
 
 [rendering]
 
+limits/global_shader_variables/buffer_size=65536
+
 reflections/sky_reflections/roughness_layers=7
