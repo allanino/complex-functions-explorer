@@ -3,7 +3,6 @@ extends CharacterBody3D
 const MOUSE_SENSITIVITY = 0.002
 const DOUBLE_PRESS_TIME = 0.3
 const CRITICAL_LINE_X = 5.0
-const AUTO_WALK_PITCH = -0.523598776 # -30 degrees in radians
 
 enum AutoWalkState { NONE, MOVING_TO_LINE, WALKING }
 
@@ -197,25 +196,17 @@ func _physics_process(delta):
 		# Smoothly rotate to the target yaw
 		rotation.y = lerp_angle(rotation.y, target_yaw, 5.0 * delta)
 
-		# Smoothly transition camera to horizontal
-		rotation_x = lerp(rotation_x, 0.0, 5.0 * delta)
-		camera.rotation.x = rotation_x
-
 		# Smoothly move to the critical line X
 		global_position.x = move_toward(global_position.x, target_x, current_speed * delta)
 
 		direction = Vector3.ZERO
 
-		if abs(global_position.x - target_x) < 0.01 and abs(angle_difference(rotation.y, 0.0)) < 0.01 and abs(rotation_x) < 0.01:
+		if abs(global_position.x - target_x) < 0.01 and abs(angle_difference(rotation.y, 0.0)) < 0.01:
 			auto_walk_state = AutoWalkState.WALKING
 
 	elif auto_walk_state == AutoWalkState.WALKING:
 		direction = Vector3(0, 0, -1)
 		global_position.x = move_toward(global_position.x, CRITICAL_LINE_X * Config.effective_zoom, 2.0 * delta)
-
-		# Smoothly transition to downward tilt only after positioning
-		rotation_x = lerp(rotation_x, AUTO_WALK_PITCH, 5.0 * delta)
-		camera.rotation.x = rotation_x
 
 	if direction != Vector3.ZERO:
 		velocity.x = direction.x * current_speed
