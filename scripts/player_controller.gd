@@ -137,6 +137,10 @@ func _physics_process(delta):
 		global_position.x *= zoom_ratio
 		global_position.z *= zoom_ratio
 
+		# Scale camera height and movement speed using damping power formula
+		Config.camera_height = Config.camera_height * pow(zoom_ratio, Config.zoom_damping - 1.0)
+		Config.movement_speed = Config.movement_speed * pow(zoom_ratio, 1.0 - Config.zoom_damping)
+
 	# Cache current field value and mathematical coordinates for reuse
 	var scale_factor = 1.0 / Config.effective_zoom
 	current_sigma = global_position.x * 0.1 * scale_factor
@@ -150,7 +154,7 @@ func _physics_process(delta):
 		if manual_input != Vector2.ZERO or Input.is_key_pressed(KEY_SPACE):
 			auto_walk_state = AutoWalkState.NONE
 
-	var current_speed = Config.movement_speed * Config.effective_zoom
+	var current_speed = Config.movement_speed
 
 	# Speed reduction near zeros
 	if current_mag < Config.zero_proximity_nav:
@@ -224,7 +228,7 @@ func _physics_process(delta):
 	var terrain_h = get_terrain_height(global_position.x, global_position.z, current_f)
 
 	# Snap player to terrain height + offset
-	global_position.y = terrain_h + Config.camera_height / Config.effective_zoom + height_offset
+	global_position.y = terrain_h + Config.camera_height + height_offset
 
 	# Multivalued branch crossing detection
 	if Config.function.get("is_multivalued", false) and Config.multivalued_mode == 1:

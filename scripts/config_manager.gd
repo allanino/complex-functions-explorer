@@ -138,6 +138,7 @@ var branch_time: float = 0.0
 var current_branch: int = 0 # Session state for Portals mode
 var zero_threshold: float = 0.5
 var zoom_factor: float = 1.0
+var zoom_damping: float = 0.5
 
 # Rendering parameters
 var terrain_detail: int = 1
@@ -216,6 +217,7 @@ func save_settings():
 	config.set_value("field", "multivalued_morph_time", multivalued_morph_time)
 	config.set_value("field", "zero_threshold", zero_threshold)
 	config.set_value("field", "zoom_factor", zoom_factor)
+	config.set_value("field", "zoom_damping", zoom_damping)
 
 	config.set_value("rendering", "terrain_detail", terrain_detail)
 	config.set_value("rendering", "antialiasing_mode", antialiasing_mode)
@@ -291,6 +293,7 @@ func load_settings():
 	multivalued_morph_time = config.get_value("field", "multivalued_morph_time", multivalued_morph_time)
 	zero_threshold = config.get_value("field", "zero_threshold", zero_threshold)
 	zoom_factor = config.get_value("field", "zoom_factor", zoom_factor)
+	zoom_damping = config.get_value("field", "zoom_damping", zoom_damping)
 
 	terrain_detail = config.get_value("rendering", "terrain_detail", terrain_detail)
 	antialiasing_mode = config.get_value("rendering", "antialiasing_mode", antialiasing_mode)
