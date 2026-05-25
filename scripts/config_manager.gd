@@ -19,6 +19,7 @@ enum ComplexFunc {
 	LOG,
 	IDENTITY,
 	RATIONAL,
+	XI,
 	MULTIVALUED_Z_POW,
 	MULTIVALUED_RSVD1,
 	MULTIVALUED_RSVD2,
@@ -89,6 +90,10 @@ const FUNCTIONS = {
 	ComplexFunc.RATIONAL: {
 		"name": "Rational",
 		"is_rational": true,
+	},
+	ComplexFunc.XI: {
+		"name": "Riemann Xi",
+		"iters_range": [50.0, 5000.0, 10.0, 256.0],
 	},
 	ComplexFunc.MULTIVALUED_Z_POW: {
 		"name": "Multivalued z^(1/n)",

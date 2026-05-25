@@ -229,6 +229,31 @@ static func get_rational(sigma: float, t: float) -> Vector2:
 	var den = evaluate_poly(sigma, t, Config.rational_den_coeffs)
 	return complex_div(num, den)
 
+static func xi(sigma: float, t: float, iterations: int) -> Vector2:
+	var steps: int = clampi(int(128.0 + 8.0 * abs(t)), 64, iterations)
+	var u_max: float = 8.0
+	var du: float = u_max / float(steps)
+	var re_sum: float = 0.0
+	var im_sum: float = 0.0
+
+	for i in range(steps):
+		var u: float = (float(i) + 0.5) * du
+		var x: float = exp(u)
+
+		var p: float = 0.0
+		for n in range(1, 6): # N=5
+			p += exp(-PI * float(n * n) * x)
+
+		var A: float = exp(u * sigma / 2.0)
+		var B: float = exp(u * (1.0 - sigma) / 2.0)
+		var c: float = cos(t * u / 2.0)
+		var s: float = sin(t * u / 2.0)
+
+		re_sum += (A + B) * c * p
+		im_sum += (A - B) * s * p
+
+	return Vector2(0.5 + 0.5 * du * re_sum, 0.5 * du * im_sum)
+
 static func multivalued_z_pow_inv_n(sigma: float, t: float, n: int, cycle_speed: float) -> Vector2:
 	var r = sqrt(sigma * sigma + t * t)
 	var theta = atan2(t, sigma)
@@ -292,6 +317,7 @@ static func get_field(x: float, z: float) -> Vector2:
 		Config.ComplexFunc.LOG: return complex_log(sigma, t)
 		Config.ComplexFunc.IDENTITY: return Vector2(sigma, t)
 		Config.ComplexFunc.RATIONAL: return get_rational(sigma, t)
+		Config.ComplexFunc.XI: return xi(sigma, t, Config.iterations)
 		Config.ComplexFunc.MULTIVALUED_Z_POW: return multivalued_z_pow_inv_n(sigma, t, Config.multivalued_n, Config.branch_cycle_speed)
 
 	return Vector2.ZERO

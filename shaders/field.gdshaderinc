@@ -785,6 +785,46 @@ FieldData get_rational_with_derivatives(float sigma, float t) {
     return res;
 }
 
+FieldData xi_with_derivatives(float sigma, float t, int iters) {
+	FieldData res;
+	int steps = clamp(int(128.0 + 8.0 * abs(t)), 64, min(iters, 2000));
+	float u_max = 8.0;
+	float du = u_max / float(steps);
+	float re_sum = 0.0;
+	float im_sum = 0.0;
+	float d_sigma_re = 0.0;
+	float d_sigma_im = 0.0;
+
+	for (int i = 0; i < steps; i++) {
+		float u = (float(i) + 0.5) * du;
+		float x = exp(u);
+
+		float p = 0.0;
+		for (int n = 1; n <= 5; n++) {
+			p += exp(-PI * float(n * n) * x);
+		}
+
+		float A = exp(u * sigma / 2.0);
+		float B = exp(u * (1.0 - sigma) / 2.0);
+		float c = cos(t * u / 2.0);
+		float s = sin(t * u / 2.0);
+
+		re_sum += (A + B) * c * p;
+		im_sum += (A - B) * s * p;
+
+		float dA = (u / 2.0) * A;
+		float dB = -(u / 2.0) * B;
+
+		d_sigma_re += (dA + dB) * c * p;
+		d_sigma_im += (dA - dB) * s * p;
+	}
+
+	res.value = vec2(0.5 + 0.5 * du * re_sum, 0.5 * du * im_sum);
+	res.d_sigma = vec2(0.5 * du * d_sigma_re, 0.5 * du * d_sigma_im);
+	res.d_t = vec2(-res.d_sigma.y, res.d_sigma.x);
+	return res;
+}
+
 FieldData multivalued_z_pow_inv_n_with_derivatives(float sigma, float t, int n, float cycle_speed, int branch_offset) {
     FieldData res;
     float r_sq = sigma * sigma + t * t;
@@ -848,7 +888,8 @@ FieldData get_field_with_derivatives(float x, float z, int branch_offset) {
     if (function_type == 13) return complex_log_with_derivatives(sigma, t);
     if (function_type == 14) return identity_with_derivatives(sigma, t);
     if (function_type == 15) return get_rational_with_derivatives(sigma, t);
-    if (function_type == 16) return multivalued_z_pow_inv_n_with_derivatives(sigma, t, multivalued_n, branch_cycle_speed, branch_offset);
+	if (function_type == 16) return xi_with_derivatives(sigma, t, iterations);
+	if (function_type == 17) return multivalued_z_pow_inv_n_with_derivatives(sigma, t, multivalued_n, branch_cycle_speed, branch_offset);
     FieldData res;
     res.value = vec2(0.0);
     res.d_sigma = vec2(0.0);
