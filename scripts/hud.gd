@@ -227,8 +227,13 @@ var _initial_antialiasing_mode: int
 var _initial_view_distance: int
 var _initial_shadows_enabled: bool
 
+var _speed_modified: bool = false
+var _camera_height_modified: bool = false
+
 func _ready():
 	hud_columns.offset_top = -1000
+	speed_input.text_changed.connect(func(_t): _speed_modified = true)
+	camera_height_input.text_changed.connect(func(_t): _camera_height_modified = true)
 	apply_button.pressed.connect(_on_set_pos_pressed)
 	close_button.pressed.connect(toggle_menu)
 	quit_button.pressed.connect(_on_quit_pressed)
@@ -469,6 +474,8 @@ func toggle_menu(applied: bool = false):
 			im_input.text = "%.3f" % im_val
 		iter_slider.value = Config.iterations
 		_on_iterations_value_changed(Config.iterations)
+		_speed_modified = false
+		_camera_height_modified = false
 		speed_input.text = "%.1f" % (Config.movement_speed * 0.1)
 		zoom_slider.value = _zoom_to_slider(Config.zoom_factor)
 		_on_zoom_value_changed(zoom_slider.value)
@@ -917,6 +924,10 @@ func _on_set_pos_pressed():
 	Config.camera_height = c_height
 	Config.height_a = h_a
 	Config.height_epsilon = h_eps
+
+	_speed_modified = false
+	_camera_height_modified = false
+
 	Config.terrain_detail = terrain_detail_button.selected
 	Config.antialiasing_mode = aa_button.selected
 	Config.color_scheme = color_scheme_button.selected
@@ -1018,12 +1029,12 @@ func _process(_delta):
 			_on_zoom_value_changed(zoom_slider.value)
 
 		# Live update speed and height inputs as they change smoothly with zoom
-		if not speed_input.has_focus():
+		if not _speed_modified and not speed_input.has_focus():
 			var formatted_speed = "%.1f" % (Config.movement_speed * 0.1)
 			if speed_input.text != formatted_speed:
 				speed_input.text = formatted_speed
 
-		if not camera_height_input.has_focus():
+		if not _camera_height_modified and not camera_height_input.has_focus():
 			var formatted_height = "%.3f" % Config.camera_height
 			if camera_height_input.text != formatted_height:
 				camera_height_input.text = formatted_height
