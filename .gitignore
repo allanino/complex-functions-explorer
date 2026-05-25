@@ -46,3 +46,4 @@ desktop.ini
 # Binaries
 *.sh
 *.x86*
+addons/*
