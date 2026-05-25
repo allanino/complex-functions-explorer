@@ -341,33 +341,93 @@ void fragment() {
         // Only apply the lines rendering for zeta (at x = 0, x = 5.0, x = 10.0)
         // which corresponds to Re = 0.0, Re = 0.5, Re = 1.0
         if (show_critical_stripe && is_dirichlect) {
+
             float zoom = zoom_factor;
-            // Periodic glow factor
-            float glow = 0.5 + 0.5 * sin(TIME * 2.0);
-            float line_width = 0.05 * zoom;
 
-            // Critical line at x = 5.0 * zoom (HUD x = 0.5)
-            float dist_to_critical = abs(world_pos.x - 5.0 * zoom);
-            float core_critical = 1.0 - smoothstep(0.0, line_width, dist_to_critical);
-            float glow_critical = 1.0 - smoothstep(0.0, 0.1 * zoom, dist_to_critical);
-            vec3 line_color = vec3(1.0, 1.0, 0.0); // Yellow
+            // Pulsing glow intensity
+            float glow = 0.35 + 0.65 * (0.5 + 0.5 * sin(TIME * 2.0));
 
-            // Critical stripe boundaries at x = 0.0 and x = 10.0 * zoom
-            float dist_to_0 = abs(world_pos.x - 0.0);
-            float core_0 = 1.0 - smoothstep(0.0, line_width, dist_to_0);
-            float glow_0 = 1.0 - smoothstep(0.0, 0.1 * zoom, dist_to_0);
+            // Thin analytic-looking core
+            float line_width = 0.015 * zoom;
 
-            float dist_to_10 = abs(world_pos.x - 10.0 * zoom);
-            float core_10 = 1.0 - smoothstep(0.0, line_width, dist_to_10);
-            float glow_10 = 1.0 - smoothstep(0.0, 0.1 * zoom, dist_to_10);
+            // Screen-space anti-aliasing
+            float aa = fwidth(world_pos.x) * 1.5;
 
-            vec3 white_line_color = vec3(1.0, 1.0, 1.0);
+            vec3 critical_color = vec3(0.9, 0.9, 0.0);
+            vec3 boundary_color = vec3(1.0);
 
-            // Combine core (sharp, steady) and glow (wide, oscillating) using additive blending
-            // to prevent dark shadows when glow is low.
-            final_emission += line_color * (core_critical * 0.5 + glow_critical * glow * 1.0);
-            final_emission += white_line_color * (core_0 * 0.5 + glow_0 * glow * 1.0);
-            final_emission += white_line_color * (core_10 * 0.5 + glow_10 * glow * 1.0);
+            // =========================================================
+            // Critical line (Re = 0.5)
+            // =========================================================
+
+            float d_critical = abs(world_pos.x - 5.0 * zoom);
+
+            float core_critical =
+                1.0 - smoothstep(
+                    line_width - aa,
+                    line_width + aa,
+                    d_critical
+                );
+
+            // Compact exponential glow
+            float glow_critical =
+                exp(-d_critical / (0.02 * zoom));
+
+            // =========================================================
+            // Left boundary (Re = 0)
+            // =========================================================
+
+            float d0 = abs(world_pos.x);
+
+            float core_0 =
+                1.0 - smoothstep(
+                    line_width - aa,
+                    line_width + aa,
+                    d0
+                );
+
+            float glow_0 =
+                exp(-d0 / (0.02 * zoom));
+
+            // =========================================================
+            // Right boundary (Re = 1)
+            // =========================================================
+
+            float d10 = abs(world_pos.x - 10.0 * zoom);
+
+            float core_10 =
+                1.0 - smoothstep(
+                    line_width - aa,
+                    line_width + aa,
+                    d10
+                );
+
+            float glow_10 =
+                exp(-d10 / (0.02 * zoom));
+
+            // =========================================================
+            // Final emission
+            // =========================================================
+
+            // Bright sharp core + animated compact glow
+
+            final_emission += critical_color *
+                (
+                    core_critical * 1.4 +
+                    glow_critical * glow * 0.9
+                );
+
+            final_emission += boundary_color *
+                (
+                    core_0 * 1.1 +
+                    glow_0 * glow * 0.5
+                );
+
+            final_emission += boundary_color *
+                (
+                    core_10 * 1.1 +
+                    glow_10 * glow * 0.5
+                );
         }
 
         if (show_flow) {
