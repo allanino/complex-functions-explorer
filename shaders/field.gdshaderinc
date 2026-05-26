@@ -788,7 +788,7 @@ FieldData get_rational_with_derivatives(float sigma, float t) {
 FieldData xi_with_derivatives(float sigma, float t, int iters) {
 	FieldData res;
 	int steps = clamp(int(128.0 + 8.0 * abs(t)), 64, min(iters, 2000));
-	float u_max = 8.0;
+	float u_max = 20.0;
 	float du = u_max / float(steps);
 	float re_sum = 0.0;
 	float im_sum = 0.0;
@@ -800,27 +800,35 @@ FieldData xi_with_derivatives(float sigma, float t, int iters) {
 		float x = exp(u);
 
 		float p = 0.0;
-		for (int n = 1; n <= 5; n++) {
+		for (int n = 1; n <= 20; n++) {
 			p += exp(-PI * float(n * n) * x);
 		}
 
 		float A = exp(u * sigma / 2.0);
 		float B = exp(u * (1.0 - sigma) / 2.0);
 		float c = cos(t * u / 2.0);
-		float s = sin(t * u / 2.0);
+		float s_osc = sin(t * u / 2.0);
 
 		re_sum += (A + B) * c * p;
-		im_sum += (A - B) * s * p;
+		im_sum += (A - B) * s_osc * p;
 
 		float dA = (u / 2.0) * A;
 		float dB = -(u / 2.0) * B;
 
 		d_sigma_re += (dA + dB) * c * p;
-		d_sigma_im += (dA - dB) * s * p;
+		d_sigma_im += (dA - dB) * s_osc * p;
 	}
 
-	res.value = vec2(0.5 + 0.5 * du * re_sum, 0.5 * du * im_sum);
-	res.d_sigma = vec2(0.5 * du * d_sigma_re, 0.5 * du * d_sigma_im);
+	vec2 I = vec2(du * re_sum, du * im_sum);
+	vec2 I_d_sigma = vec2(du * d_sigma_re, du * d_sigma_im);
+
+	vec2 s = vec2(sigma, t);
+	vec2 s_minus_1 = vec2(sigma - 1.0, t);
+	vec2 P = complex_mul(s, s_minus_1) * 0.5;
+	vec2 P_d_sigma = vec2(sigma - 0.5, t);
+
+	res.value = vec2(0.5, 0.0) + complex_mul(P, I);
+	res.d_sigma = complex_mul(P, I_d_sigma) + complex_mul(P_d_sigma, I);
 	res.d_t = vec2(-res.d_sigma.y, res.d_sigma.x);
 	return res;
 }

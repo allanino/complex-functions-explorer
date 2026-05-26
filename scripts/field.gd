@@ -231,7 +231,7 @@ static func get_rational(sigma: float, t: float) -> Vector2:
 
 static func xi(sigma: float, t: float, iterations: int) -> Vector2:
 	var steps: int = clampi(int(128.0 + 8.0 * abs(t)), 64, iterations)
-	var u_max: float = 8.0
+	var u_max: float = 20.0
 	var du: float = u_max / float(steps)
 	var re_sum: float = 0.0
 	var im_sum: float = 0.0
@@ -241,18 +241,24 @@ static func xi(sigma: float, t: float, iterations: int) -> Vector2:
 		var x: float = exp(u)
 
 		var p: float = 0.0
-		for n in range(1, 6): # N=5
+		for n in range(1, 21): # N=20
 			p += exp(-PI * float(n * n) * x)
 
 		var A: float = exp(u * sigma / 2.0)
 		var B: float = exp(u * (1.0 - sigma) / 2.0)
 		var c: float = cos(t * u / 2.0)
-		var s: float = sin(t * u / 2.0)
+		var s_osc: float = sin(t * u / 2.0)
 
 		re_sum += (A + B) * c * p
-		im_sum += (A - B) * s * p
+		im_sum += (A - B) * s_osc * p
 
-	return Vector2(0.5 + 0.5 * du * re_sum, 0.5 * du * im_sum)
+	var I = Vector2(du * re_sum, du * im_sum)
+	var s = Vector2(sigma, t)
+	var s_minus_1 = Vector2(sigma - 1.0, t)
+	var P = complex_mul(s, s_minus_1) * 0.5
+	var P_I = complex_mul(P, I)
+
+	return Vector2(0.5 + P_I.x, P_I.y)
 
 static func multivalued_z_pow_inv_n(sigma: float, t: float, n: int, cycle_speed: float) -> Vector2:
 	var r = sqrt(sigma * sigma + t * t)
