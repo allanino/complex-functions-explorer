@@ -85,7 +85,7 @@ func _unhandled_input(event):
 	if event is InputEventKey and event.pressed and event.ctrl_pressed:
 		if event.keycode == KEY_G:
 			Config.freeze_time = true
-			Config.day_time = 19860
+			Config.day_time = 22740
 			Config.save_settings()
 		elif event.keycode == KEY_N:
 			Config.freeze_time = false
