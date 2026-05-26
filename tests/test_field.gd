@@ -123,3 +123,27 @@ func test_mandelbrot():
 	var res = TestField.mandelbrot(0, 0, 10)
 	assert_almost_eq(res.x, 0.0, 0.0001)
 	assert_almost_eq(res.y, 0.0, 0.0001)
+
+func test_smoothstep():
+	# Below edge0
+	var res = TestField.smoothstep(0.0, 1.0, -0.5)
+	assert_almost_eq(res, 0.0, 0.0001)
+
+	# Above edge1
+	res = TestField.smoothstep(0.0, 1.0, 1.5)
+	assert_almost_eq(res, 1.0, 0.0001)
+
+	# Midway
+	res = TestField.smoothstep(0.0, 1.0, 0.5)
+	assert_almost_eq(res, 0.5, 0.0001)
+
+	# Fractional
+	res = TestField.smoothstep(0.0, 1.0, 0.2)
+	assert_almost_eq(res, 0.104, 0.0001)
+
+	# Different edges
+	res = TestField.smoothstep(2.0, 4.0, 3.0)
+	assert_almost_eq(res, 0.5, 0.0001)
+
+	res = TestField.smoothstep(2.0, 4.0, 2.5)
+	assert_almost_eq(res, 0.15625, 0.0001)
