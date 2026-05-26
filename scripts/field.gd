@@ -19,17 +19,13 @@ static func complex_div(a: Vector2, b: Vector2) -> Vector2:
 	)
 
 static func complex_exp(z: Vector2) -> Vector2:
-	var sigma = z.x
-	var t = z.y
-	var amp = exp(sigma)
-	return Vector2(amp * cos(t), amp * sin(t))
+	var amp = exp(z.x)
+	return Vector2(amp * cos(z.y), amp * sin(z.y))
 
 static func complex_log(z: Vector2) -> Vector2:
-	var sigma = z.x
-	var t = z.y
-	var mag_sq = sigma * sigma + t * t
+	var mag_sq = z.x * z.x + z.y * z.y
 	if mag_sq < 1e-48: return Vector2(-60.0, 0.0)
-	return Vector2(0.5 * log(mag_sq), atan2(t, sigma))
+	return Vector2(0.5 * log(mag_sq), atan2(z.y, z.x))
 
 static func complex_pow(z: Vector2, w: Vector2) -> Vector2:
 	var lz = complex_log(Vector2(z.x, z.y))
@@ -37,51 +33,41 @@ static func complex_pow(z: Vector2, w: Vector2) -> Vector2:
 	return complex_exp(Vector2(res_log.x, res_log.y))
 
 static func complex_sin(z: Vector2) -> Vector2:
-	var sigma = z.x
-	var t = z.y
-	return Vector2(sin(sigma) * cosh(t), cos(sigma) * sinh(t))
+	return Vector2(sin(z.x) * cosh(z.y), cos(z.x) * sinh(z.y))
 
 static func complex_cos(z: Vector2) -> Vector2:
-	var sigma = z.x
-	var t = z.y
-	return Vector2(cos(sigma) * cosh(t), -sin(sigma) * sinh(t))
+	return Vector2(cos(z.x) * cosh(z.y), -sin(z.x) * sinh(z.y))
 
 static func complex_tan(z: Vector2) -> Vector2:
-	var x = z.x
-	var y = z.y
-	var abs_2y = 2.0 * abs(y)
+	var abs_2y = 2.0 * abs(z.y)
 	var exp_neg = exp(-abs_2y)
 	var scaled_cosh = 0.5 * (1.0 + exp_neg * exp_neg)
-	var scaled_sinh = 0.5 * (1.0 - exp_neg * exp_neg) * (1.0 if y >= 0.0 else -1.0)
-	var scaled_sin_2x = sin(2.0 * x) * exp_neg
-	var scaled_cos_2x = cos(2.0 * x) * exp_neg
+	var scaled_sinh = 0.5 * (1.0 - exp_neg * exp_neg) * (1.0 if z.y >= 0.0 else -1.0)
+	var scaled_sin_2x = sin(2.0 * z.x) * exp_neg
+	var scaled_cos_2x = cos(2.0 * z.x) * exp_neg
 	var denom = scaled_cosh + scaled_cos_2x
 	return Vector2(scaled_sin_2x / denom, scaled_sinh / denom)
 
 static func complex_cot(z: Vector2) -> Vector2:
-	var x = z.x
-	var y = z.y
-	var abs_2y = 2.0 * abs(y)
+	var abs_2y = 2.0 * abs(z.y)
 	var exp_neg = exp(-abs_2y)
 	var scaled_cosh = 0.5 * (1.0 + exp_neg * exp_neg)
-	var scaled_sinh = 0.5 * (1.0 - exp_neg * exp_neg) * (1.0 if y >= 0.0 else -1.0)
-	var scaled_sin_2x = sin(2.0 * x) * exp_neg
-	var scaled_cos_2x = cos(2.0 * x) * exp_neg
+	var scaled_sinh = 0.5 * (1.0 - exp_neg * exp_neg) * (1.0 if z.y >= 0.0 else -1.0)
+	var scaled_sin_2x = sin(2.0 * z.x) * exp_neg
+	var scaled_cos_2x = cos(2.0 * z.x) * exp_neg
 	var denom = scaled_cosh - scaled_cos_2x
 	return Vector2(scaled_sin_2x / denom, -scaled_sinh / denom)
 
 static func complex_log_sin(z: Vector2) -> Vector2:
-	var x = z.x
-	var y = z.y
-	var abs_y = abs(y)
+	var abs_y = abs(z.y)
 	var log_scale = abs_y - log(2.0)
 	var e_neg2 = exp(-2.0 * abs_y)
 	var internal_z = Vector2(
-		sin(x) * (1.0 + e_neg2),
-		(1.0 if y >= 0.0 else -1.0) * cos(x) * (1.0 - e_neg2)
+		sin(z.x) * (1.0 + e_neg2),
+		(1.0 if z.y >= 0.0 else -1.0) * cos(z.x) * (1.0 - e_neg2)
 	)
-	var log_internal = complex_log(Vector2(internal_z.x, internal_z.y))
-	return Vector2(log_scale + log_internal.x, log_internal.y)
+	var log_internal = complex_log(Vector2(internal_z.z.x, internal_z.z.y))
+	return Vector2(log_scale + log_internal.z.x, log_internal.z.y)
 
 #-------------------------------------------------------------------------
 # Component Functions: Zeta, Eta, Gamma, Dedekind Eta
@@ -90,53 +76,47 @@ static func complex_log_sin(z: Vector2) -> Vector2:
 const LOG_2 = 0.6931471805599453
 const LOG_PI = 1.1447298858494002
 
-static func dirichlet_eta(z: Vector2, iterations: int) -> Vector2:
-	var sigma = z.x
-	var t = z.y
+static func dirichlet_eta(Vector2(z: Vector2, iterations: int)) -> Vector2:
 	if iterations <= 0: return Vector2.ZERO
 	var eta = Vector2.ZERO
 	for n in range(1, iterations + 1, 2):
 		var nf = float(n)
-		var amp = pow(nf, -sigma)
+		var amp = pow(nf, -z.x)
 		var log_n = log(nf)
-		var theta = -t * log_n
+		var theta = -z.y * log_n
 		eta += amp * Vector2(cos(theta), sin(theta))
 
 		var nf2 = float(n + 1)
-		var amp2 = pow(nf2, -sigma)
-		var theta2 = -t * log(nf2)
+		var amp2 = pow(nf2, -z.x)
+		var theta2 = -z.y * log(nf2)
 		eta -= amp2 * Vector2(cos(theta2), sin(theta2))
 
 		if (amp < 1e-6 || amp2 < 1e-6 || amp > 1e6 || amp2 > 1e6): break
 	return eta
 
-static func dirichlet_beta(z: Vector2, iterations: int) -> Vector2:
-	var sigma = z.x
-	var t = z.y
+static func dirichlet_beta(Vector2(z: Vector2, iterations: int)) -> Vector2:
 	if iterations <= 0: return Vector2.ZERO
 	var beta = Vector2.ZERO
 	for n in range(0, iterations, 2):
 		var kf = 2.0 * float(n) + 1.0
-		var amp = pow(kf, -sigma)
-		var theta = -t * log(kf)
+		var amp = pow(kf, -z.x)
+		var theta = -z.y * log(kf)
 		beta += amp * Vector2(cos(theta), sin(theta))
 
 		var kf2 = 2.0 * float(n + 1) + 1.0
-		var amp2 = pow(kf2, -sigma)
-		var theta2 = -t * log(kf2)
+		var amp2 = pow(kf2, -z.x)
+		var theta2 = -z.y * log(kf2)
 		beta -= amp2 * Vector2(cos(theta2), sin(theta2))
 
 		if (amp < 1e-6 || amp2 < 1e-6 || amp > 1e6 || amp2 > 1e6): break
 	return beta
 
 static func zeta(z: Vector2) -> Vector2:
-	var sigma = z.x
-	var t = z.y
 	var iterations = Config.iterations
-	var eta = dirichlet_eta(Vector2(sigma, t), iterations)
+	var eta = dirichlet_eta(Vector2(z.x, z.y), iterations)
 
-	var amp2 = pow(2.0, 1.0 - sigma)
-	var theta2 = -t * LOG_2
+	var amp2 = pow(2.0, 1.0 - z.x)
+	var theta2 = -z.y * LOG_2
 	var two_term = amp2 * Vector2(cos(theta2), sin(theta2))
 	var denom = Vector2(1.0, 0.0) - two_term
 	return complex_div(eta, denom)
@@ -165,24 +145,20 @@ static func lanczos_gamma(z_orig: Vector2) -> Vector2:
 	return SQRT_2PI * complex_mul(complex_mul(p, etmp), x)
 
 static func complex_gamma(z: Vector2) -> Vector2:
-	var sigma = z.x
-	var t = z.y
-	if sigma < 0.5:
-		var log_sin_pi_z = complex_log_sin(Vector2(PI * sigma, PI * t))
-		var lg1z = complex_log_gamma(Vector2(1.0 - sigma, -t))
+	if z.x < 0.5:
+		var log_sin_pi_z = complex_log_sin(Vector2(PI * z.x, PI * z.y))
+		var lg1z = complex_log_gamma(Vector2(1.0 - z.x, -z.y))
 		var log_sum = Vector2(log(PI), 0.0) - log_sin_pi_z - lg1z
 		return complex_exp(Vector2(log_sum.x, log_sum.y))
-	return lanczos_gamma(Vector2(sigma, t))
+	return lanczos_gamma(Vector2(z.x, z.y))
 
 static func log_zeta_continuation(z: Vector2) -> Vector2:
-	var sigma = z.x
-	var t = z.y
-	if sigma >= 0.5:
-		var z_val = zeta(Vector2(sigma, t))
-		return complex_log(Vector2(z_val.x, z_val.y))
+	if z.x >= 0.5:
+		var z_val = zeta(Vector2(z.x, z.y))
+		return complex_log(Vector2(z.x, z.y))
 
-	var s = Vector2(sigma, t)
-	var s1 = Vector2(1.0 - sigma, -t)
+	var s = Vector2(z.x, z.y)
+	var s1 = Vector2(1.0 - z.x, -z.y)
 
 	var log_sum = (complex_mul(s, Vector2(LOG_2, 0.0))
 				+ complex_mul(s - Vector2(1.0, 0.0), Vector2(LOG_PI, 0.0)))
@@ -198,9 +174,7 @@ static func log_zeta_continuation(z: Vector2) -> Vector2:
 	return log_sum
 
 static func zeta_continuation(z: Vector2) -> Vector2:
-	var sigma = z.x
-	var t = z.y
-	var log_val = log_zeta_continuation(Vector2(sigma, t))
+	var log_val = log_zeta_continuation(Vector2(z.x, z.y))
 	return complex_exp(Vector2(log_val.x, log_val.y))
 
 static func lanczos_log_gamma(z: Vector2) -> Vector2:
@@ -216,22 +190,18 @@ static func lanczos_log_gamma(z: Vector2) -> Vector2:
 	return res
 
 static func complex_log_gamma(z: Vector2) -> Vector2:
-	var sigma = z.x
-	var t = z.y
 	var res: Vector2
-	if sigma < 0.5:
-		res = Vector2(log(PI), 0.0) - complex_log_sin(Vector2(PI * sigma, PI * t)) - lanczos_log_gamma(Vector2(1.0 - sigma, -t))
+	if z.x < 0.5:
+		res = Vector2(log(PI), 0.0) - complex_log_sin(Vector2(PI * z.x, PI * z.y)) - lanczos_log_gamma(Vector2(1.0 - z.x, -z.y))
 	else:
-		res = lanczos_log_gamma(Vector2(sigma, t))
+		res = lanczos_log_gamma(Vector2(z.x, z.y))
 	return res
 
 static func dedekind_eta(z: Vector2) -> Vector2:
-	var sigma = z.x
-	var t = z.y
-	var factor = complex_exp(Vector2(-PI * t / 12.0, PI * sigma / 12.0))
+	var factor = complex_exp(Vector2(-PI * z.y / 12.0, PI * z.x / 12.0))
 	var prod = Vector2(1.0, 0.0)
-	var q_re_base = -2.0 * PI * t
-	var q_im_base = 2.0 * PI * sigma
+	var q_re_base = -2.0 * PI * z.y
+	var q_im_base = 2.0 * PI * z.x
 	var iterations = Config.iterations
 	for n in range(1, iterations + 1):
 		var nf = float(n)
@@ -241,43 +211,35 @@ static func dedekind_eta(z: Vector2) -> Vector2:
 		if nf > 10 and term_exp.length() < 1e-12: break
 	return complex_mul(factor, prod)
 
-static func mandelbrot(z: Vector2, iterations: int) -> Vector2:
-	var sigma = z.x
-	var t = z.y
-	var c = Vector2(sigma, t)
+static func mandelbrot(Vector2(z: Vector2, iterations: int)) -> Vector2:
+	var c = Vector2(z.x, z.y)
 	var z_val = Vector2.ZERO
 	for i in range(iterations):
 		z_val = complex_mul(z_val, z_val) + c
-		if z_val.length_squared() > 100.0: break
+		if z.length_squared() > 100.0: break
 	return z_val
 
 #-------------------------------------------------------------------------
 # Rational Functions
 #-------------------------------------------------------------------------
 
-static func evaluate_poly(z: Vector2, coeffs: PackedVector2Array) -> Vector2:
-	var sigma = z.x
-	var t = z.y
-
+static func evaluate_poly(Vector2(z: Vector2, coeffs: PackedVector2Array)) -> Vector2:
+	var z_val = Vector2(z.x, z.y)
 	var res = Vector2.ZERO
 	# Horner's method for polynomial evaluation
 	for i in range(9, -1, -1):
-		res = complex_mul(res, z) + coeffs[i]
+		res = complex_mul(res, z_val) + coeffs[i]
 	return res
 
 static func get_rational(z: Vector2) -> Vector2:
-	var sigma = z.x
-	var t = z.y
-	var num = evaluate_poly(Vector2(sigma, t), Config.rational_num_coeffs)
-	var den = evaluate_poly(Vector2(sigma, t), Config.rational_den_coeffs)
+	var num = evaluate_poly(Vector2(z.x, z.y), Config.rational_num_coeffs)
+	var den = evaluate_poly(Vector2(z.x, z.y), Config.rational_den_coeffs)
 	return complex_div(num, den)
 
 static func xi(z: Vector2) -> Vector2:
-	var sigma = z.x
-	var t = z.y
-	var s = Vector2(sigma, t)
-	var s_minus_1 = Vector2(sigma - 1.0, t)
-	var s_half = Vector2(sigma * 0.5, t * 0.5)
+	var s = Vector2(z.x, z.y)
+	var s_minus_1 = Vector2(z.x - 1.0, z.y)
+	var s_half = Vector2(z.x * 0.5, z.y * 0.5)
 
 	var log_sum = Vector2(log(0.5), 0.0)
 	log_sum += complex_log(Vector2(s.x, s.y))
@@ -286,15 +248,13 @@ static func xi(z: Vector2) -> Vector2:
 	log_sum -= complex_mul(s_half, Vector2(LOG_PI, 0.0))
 	log_sum += complex_log_gamma(Vector2(s_half.x, s_half.y))
 
-	log_sum += log_zeta_continuation(Vector2(sigma, t))
+	log_sum += log_zeta_continuation(Vector2(z.x, z.y))
 
 	return complex_exp(Vector2(log_sum.x, log_sum.y))
 
-static func multivalued_z_pow_inv_n(z: Vector2, n: int, cycle_speed: float) -> Vector2:
-	var sigma = z.x
-	var t = z.y
-	var r = sqrt(sigma * sigma + t * t)
-	var theta = atan2(t, sigma)
+static func multivalued_z_pow_inv_n(Vector2(z: Vector2, n: int), cycle_speed: float) -> Vector2:
+	var r = sqrt(z.x * z.x + z.y * z.y)
+	var theta = atan2(z.y, z.x)
 	if theta < 0.0: theta += 2.0 * PI
 	var float_n = float(n)
 

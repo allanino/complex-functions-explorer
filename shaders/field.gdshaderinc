@@ -49,25 +49,21 @@ vec2 complex_div(vec2 a, vec2 b) {
 }
 
 vec2 complex_exp(vec2 z) {
-    float sigma = z.x;
-    float t = z.y;
-    float amp = exp(sigma);
+    float amp = exp(z.x);
     return vec2(
-        amp * cos(t),
-        amp * sin(t)
+        amp * cos(z.y),
+        amp * sin(z.y)
     );
 }
 
 vec2 complex_log(vec2 z) {
-    float sigma = z.x;
-    float t = z.y;
-    float mag = length(vec2(sigma, t));
+    float mag = length(vec2(z.x, z.y));
     if (mag < 1e-24) {
         return vec2(-60.0, 0.0);
     }
     return vec2(
         log(mag),
-        atan(t, sigma)
+        atan(z.y, z.x)
     );
 }
 
@@ -78,20 +74,16 @@ vec2 complex_pow(vec2 z, vec2 w) {
 }
 
 vec2 complex_sin(vec2 z) {
-    float sigma = z.x;
-    float t = z.y;
     return vec2(
-        sin(sigma) * cosh(t),
-        cos(sigma) * sinh(t)
+        sin(z.x) * cosh(z.y),
+        cos(z.x) * sinh(z.y)
     );
 }
 
 vec2 complex_cos(vec2 z) {
-    float sigma = z.x;
-    float t = z.y;
     return vec2(
-        cos(sigma) * cosh(t),
-        -sin(sigma) * sinh(t)
+        cos(z.x) * cosh(z.y),
+        -sin(z.x) * sinh(z.y)
     );
 }
 
@@ -149,20 +141,18 @@ Why this is bulletproof:
 ================================================================================
 */
 vec2 complex_tan(vec2 z) {
-    float x = z.x;
-    float y = z.y;
-    float abs_2y = 2.0 * abs(y);
+    float abs_2y = 2.0 * abs(z.y);
     
     // This scales down the hyperbolic functions so they never overflow
     float exp_neg = exp(-abs_2y); 
     
-    // Bounded hyperbolic terms (approach 0.5 and 0.5 * sign(y) respectively)
+    // Bounded hyperbolic terms (approach 0.5 and 0.5 * sign(z.y) respectively)
     float scaled_cosh = 0.5 * (1.0 + exp_neg * exp_neg);
-    float scaled_sinh = 0.5 * (1.0 - exp_neg * exp_neg) * sign(y);
+    float scaled_sinh = 0.5 * (1.0 - exp_neg * exp_neg) * sign(z.y);
     
     // Scale standard trigonometric terms by the same factor
-    float scaled_sin_2x = sin(2.0 * x) * exp_neg;
-    float scaled_cos_2x = cos(2.0 * x) * exp_neg;
+    float scaled_sin_2x = sin(2.0 * z.x) * exp_neg;
+    float scaled_cos_2x = cos(2.0 * z.x) * exp_neg;
     
     // Denominator is completely safe from overflow/underflow now
     float denom = scaled_cosh + scaled_cos_2x;
@@ -177,41 +167,41 @@ vec2 complex_tan(vec2 z) {
 DERIVATION OF THE OVERFLOW-SAFE COMPLEX COTANGENT FORMULA
 ================================================================================
 
-Goal: Compute cot(x + iy) in a single Cartesian vec2 without evaluating raw
-      hyperbolic functions that explode to INF when |y| is large.
+Goal: Compute cot(z.x + iy) in a single Cartesian vec2 without evaluating raw
+      hyperbolic functions that explode to INF when |z.y| is large.
 
 1. Start with the standard real-hyperbolic identity for complex cotangent:
-   cot(x + iy) = [ sin(2x) - i*sinh(2y) ] / [ cosh(2y) - cos(2x) ]
+   cot(z.x + iy) = [ sin(2x) - i*sinh(2y) ] / [ cosh(2y) - cos(2x) ]
 
 2. Express the hyperbolic terms using their exponential definitions:
    cosh(2y) = (e^(2y) + e^(-2y)) / 2
    sinh(2y) = (e^(2y) - e^(-2y)) / 2
 
-3. To prevent overflow when |y| is large, we can algebraically multiply the 
-   entire numerator and denominator by a scaling factor of e^(-2|y|):
-   cot(x + iy) = [ (sin(2x) - i*sinh(2y)) * e^(-2|y|) ] 
+3. To prevent overflow when |z.y| is large, we can algebraically multiply the
+   entire numerator and denominator by a scaling factor of e^(-2|z.y|):
+   cot(z.x + iy) = [ (sin(2x) - i*sinh(2y)) * e^(-2|z.y|) ]
                  --------------------------------------
-                 [ (cosh(2y) - cos(2x)) * e^(-2|y|) ]
+                 [ (cosh(2y) - cos(2x)) * e^(-2|z.y|) ]
 
-4. Distribute the e^(-2|y|) scaling factor across the hyperbolic definitions:
-   cosh(2y) * e^(-2|y|) = [(e^(2y) + e^(-2y)) / 2] * e^(-2|y|)
-                        = (e^(2y - 2|y|) + e^(-2y - 2|y|)) / 2
+4. Distribute the e^(-2|z.y|) scaling factor across the hyperbolic definitions:
+   cosh(2y) * e^(-2|z.y|) = [(e^(2y) + e^(-2y)) / 2] * e^(-2|z.y|)
+                        = (e^(2y - 2|z.y|) + e^(-2y - 2|z.y|)) / 2
 
-   - When y >= 0:  1/2 * (e^(0) + e^(-4y))  = 0.5 * (1.0 + e^(-4|y|))
-   - When y < 0:   1/2 * (e^(-4|y|) + e^0)  = 0.5 * (1.0 + e^(-4|y|))
-   Therefore, scaled_cosh = 0.5 * (1.0 + e^(-4|y|)) globally.
+   - When z.y >= 0:  1/2 * (e^(0) + e^(-4y))  = 0.5 * (1.0 + e^(-4|z.y|))
+   - When z.y < 0:   1/2 * (e^(-4|z.y|) + e^0)  = 0.5 * (1.0 + e^(-4|z.y|))
+   Therefore, scaled_cosh = 0.5 * (1.0 + e^(-4|z.y|)) globally.
 
-5. Do the same for the sinh(2y) component, tracking the sign of y:
-   sinh(2y) * e^(-2|y|) = [(e^(2y) - e^(-2y)) / 2] * e^(-2|y|)
-                        = (e^(2y - 2|y|) - e^(-2y - 2|y|)) / 2
+5. Do the same for the sinh(2y) component, tracking the sign of z.y:
+   sinh(2y) * e^(-2|z.y|) = [(e^(2y) - e^(-2y)) / 2] * e^(-2|z.y|)
+                        = (e^(2y - 2|z.y|) - e^(-2y - 2|z.y|)) / 2
 
-   - When y >= 0:  1/2 * (e^(0) - e^(-4y))  =  0.5 * (1.0 - e^(-4|y|))
-   - When y < 0:   1/2 * (e^(-4|y|) - e^0)  = -0.5 * (1.0 - e^(-4|y|))
-   Therefore, scaled_sinh = 0.5 * (1.0 - e^(-4|y|)) * sign(y) globally.
+   - When z.y >= 0:  1/2 * (e^(0) - e^(-4y))  =  0.5 * (1.0 - e^(-4|z.y|))
+   - When z.y < 0:   1/2 * (e^(-4|z.y|) - e^0)  = -0.5 * (1.0 - e^(-4|z.y|))
+   Therefore, scaled_sinh = 0.5 * (1.0 - e^(-4|z.y|)) * sign(z.y) globally.
 
-6. Distribute the e^(-2|y|) scaling factor across the standard trig terms:
-   scaled_sin_2x = sin(2x) * e^(-2|y|)
-   scaled_cos_2x = cos(2x) * e^(-2|y|)
+6. Distribute the e^(-2|z.y|) scaling factor across the standard trig terms:
+   scaled_sin_2x = sin(2x) * e^(-2|z.y|)
+   scaled_cos_2x = cos(2x) * e^(-2|z.y|)
 
 7. Reconstruct the component fractions:
    Denominator = scaled_cosh - scaled_cos_2x
@@ -219,30 +209,28 @@ Goal: Compute cot(x + iy) in a single Cartesian vec2 without evaluating raw
    Imag Part   = -scaled_sinh / Denominator
 
 Why this is bulletproof:
-- As |y| grows, e^(-2|y|) and e^(-4|y|) safely underflow to 0.0.
-- The denominator naturally approaches exactly 0.5 as |y| -> INF, completely 
+- As |z.y| grows, e^(-2|z.y|) and e^(-4|z.y|) safely underflow to 0.0.
+- The denominator naturally approaches exactly 0.5 as |z.y| -> INF, completely
   eliminating division-by-zero risks or precision blowouts.
-- Real and imaginary components smoothly converge asymptotically to (0.0, -sign(y)).
+- Real and imaginary components smoothly converge asymptotically to (0.0, -sign(z.y)).
 ================================================================================
 */
 
 vec2 complex_cot(vec2 z) {
-    float x = z.x;
-    float y = z.y;
-    float abs_2y = 2.0 * abs(y);
+    float abs_2y = 2.0 * abs(z.y);
     
     // This scales down the hyperbolic functions so they never overflow
     float exp_neg = exp(-abs_2y); 
     
     // Bounded hyperbolic terms:
-    // cosh(2y) * e^(-2|y|) approaches 0.5 as |y| grows
-    // sinh(2y) * e^(-2|y|) approaches 0.5 * sign(y) as |y| grows
+    // cosh(2y) * e^(-2|z.y|) approaches 0.5 as |z.y| grows
+    // sinh(2y) * e^(-2|z.y|) approaches 0.5 * sign(z.y) as |z.y| grows
     float scaled_cosh = 0.5 * (1.0 + exp_neg * exp_neg);
-    float scaled_sinh = 0.5 * (1.0 - exp_neg * exp_neg) * sign(y);
+    float scaled_sinh = 0.5 * (1.0 - exp_neg * exp_neg) * sign(z.y);
     
     // We must also scale the standard cos/sin terms by the same factor
-    float scaled_sin_2x = sin(2.0 * x) * exp_neg;
-    float scaled_cos_2x = cos(2.0 * x) * exp_neg;
+    float scaled_sin_2x = sin(2.0 * z.x) * exp_neg;
+    float scaled_cos_2x = cos(2.0 * z.x) * exp_neg;
     
     // Denominator is completely safe from overflow now
     float denom = scaled_cosh - scaled_cos_2x;
@@ -257,64 +245,62 @@ vec2 complex_cot(vec2 z) {
 DERIVATION OF THE OVERFLOW-SAFE COMPLEX LOG SINE FORMULA
 ================================================================================
 
-Goal: Compute ln(sin(x + iy)) directly in log-space without evaluating massive
+Goal: Compute ln(sin(z.x + iy)) directly in log-space without evaluating massive
       exponential terms that overflow standard floating-point limits.
 
 1. Start with the standard Cartesian definition of complex sine:
-   sin(x + iy) = sin(x)*cosh(y) + i*cos(x)*sinh(y)
+   sin(z.x + iy) = sin(z.x)*cosh(z.y) + i*cos(z.x)*sinh(z.y)
 
 2. Express the hyperbolic functions in terms of their exponential components:
-   cosh(y) = (e^|y| + e^-|y|) / 2
-   sinh(y) = sign(y) * (e^|y| - e^-|y|) / 2
+   cosh(z.y) = (e^|z.y| + e^-|z.y|) / 2
+   sinh(z.y) = sign(z.y) * (e^|z.y| - e^-|z.y|) / 2
 
 3. Substitute these exponential definitions back into step 1:
-   sin(x + iy) = sin(x) * [(e^|y| + e^-|y|) / 2] + i*cos(x) * [sign(y) * (e^|y| - e^-|y|) / 2]
+   sin(z.x + iy) = sin(z.x) * [(e^|z.y| + e^-|z.y|) / 2] + i*cos(z.x) * [sign(z.y) * (e^|z.y| - e^-|z.y|) / 2]
 
-4. Factor out the dominant scaling factor, (e^|y| / 2), from both terms:
-   sin(x + iy) = (e^|y| / 2) * [ sin(x)*(1 + e^(-2|y|)) + i * sign(y)*cos(x)*(1 - e^(-2|y|)) ]
+4. Factor out the dominant scaling factor, (e^|z.y| / 2), from both terms:
+   sin(z.x + iy) = (e^|z.y| / 2) * [ sin(z.x)*(1 + e^(-2|z.y|)) + i * sign(z.y)*cos(z.x)*(1 - e^(-2|z.y|)) ]
 
 5. Apply the complex logarithm identity, ln(A * B) = ln(A) + ln(B):
-   ln(sin(x + iy)) = ln(e^|y| / 2) + ln[ sin(x)*(1 + e^(-2|y|)) + i * sign(y)*cos(x)*(1 - e^(-2|y|)) ]
+   ln(sin(z.x + iy)) = ln(e^|z.y| / 2) + ln[ sin(z.x)*(1 + e^(-2|z.y|)) + i * sign(z.y)*cos(z.x)*(1 - e^(-2|z.y|)) ]
 
 6. Simplify the first log term using basic logarithm rules:
-   ln(e^|y| / 2) = ln(e^|y|) - ln(2)
-                 = |y| - ln(2)
+   ln(e^|z.y| / 2) = ln(e^|z.y|) - ln(2)
+                 = |z.y| - ln(2)
 
 7. This yields the final, completely stable two-part equation:
-   Real Scaler (log_scale) = |y| - ln(2)
-   Bounded Internal Z      = vec2( sin(x)*(1 + e^(-2|y|)), sign(y)*cos(x)*(1 - e^(-2|y|)) )
+   Real Scaler (log_scale) = |z.y| - ln(2)
+   Bounded Internal Z      = vec2( sin(z.x)*(1 + e^(-2|z.y|)), sign(z.y)*cos(z.x)*(1 - e^(-2|z.y|)) )
 
    Result = vec2(log_scale, 0.0) + complex_log(Internal Z)
 
 Why this is bulletproof:
-- As |y| grows, e^(-2|y|) cleanly underflows to 0.0 instead of exploding to INF.
+- As |z.y| grows, e^(-2|z.y|) cleanly underflows to 0.0 instead of exploding to INF.
 - Internal Z stays strictly bounded between 0.0 and 2.0 everywhere in the plane.
-- Eliminates catastrophic subtraction cancellation near the real axis (y ≈ 0).
+- Eliminates catastrophic subtraction cancellation near the real axis (z.y ≈ 0).
 ================================================================================
 */
 vec2 complex_log_sin(vec2 z) {
-    float x = z.x;
-    float y = z.y;
-    float abs_y = abs(y);
+    float abs_y = abs(z.y);
     
     // Mathematically exact scale factor in log-space
     float log_scale = abs_y - LOG_2;
     
-    // e^(-2 * |y|)
+    // e^(-2 * |z.y|)
     float e_neg2 = exp(-2.0 * abs_y);
     
     // Derived directly from first principles:
     // Real part gets the (1.0 + e_neg2) factor
-    // Imaginary part gets the sign(y) * (1.0 - e_neg2) factor
+    // Imaginary part gets the sign(z.y) * (1.0 - e_neg2) factor
     vec2 internal_z = vec2(
-        sin(x) * (1.0 + e_neg2),
-        sign(y) * cos(x) * (1.0 - e_neg2)
+        sin(z.x) * (1.0 + e_neg2),
+        sign(z.y) * cos(z.x) * (1.0 - e_neg2)
     );
     
     // Let your standard complex_log handle the phase tracking smoothly
-    vec2 log_internal = complex_log(vec2(internal_z.x, internal_z.y));
+    vec2 log_internal = complex_log(vec2(internal_z.z.x, internal_z.z.y));
     
-    return vec2(log_scale + log_internal.x, log_internal.y);
+    return vec2(log_scale + log_internal.z.x, log_internal.z.y);
 }
 
 //-------------------------------------------------------------------------
@@ -322,23 +308,21 @@ vec2 complex_log_sin(vec2 z) {
 //-------------------------------------------------------------------------
 
 FieldData dirichlet_eta_with_derivatives(vec2 z, int iters) {
-    float sigma = z.x;
-    float t = z.y;
     vec2 eta = vec2(0.0);
     vec2 deta_dsigma = vec2(0.0);
     for (int n = 1; n <= iters; n += 2) {
         float nf = float(n);
-        float amp = pow(nf, -sigma);
+        float amp = pow(nf, -z.x);
         float log_n = log(nf);
-        float theta = -t * log_n;
+        float theta = -z.y * log_n;
         vec2 term = amp * vec2(cos(theta), sin(theta));
         eta += term;
         deta_dsigma -= log_n * term;
 
         float nf2 = float(n + 1);
-        float amp2 = pow(nf2, -sigma);
+        float amp2 = pow(nf2, -z.x);
         float log_n2 = log(nf2);
-        float theta2 = -t * log_n2;
+        float theta2 = -z.y * log_n2;
         vec2 term2 = amp2 * vec2(cos(theta2), sin(theta2));
         eta -= term2;
         deta_dsigma += log_n2 * term2;
@@ -353,23 +337,21 @@ FieldData dirichlet_eta_with_derivatives(vec2 z, int iters) {
 }
 
 FieldData dirichlet_beta_with_derivatives(vec2 z, int iters) {
-    float sigma = z.x;
-    float t = z.y;
     vec2 beta = vec2(0.0);
     vec2 dbeta_dsigma = vec2(0.0);
     for (int n = 0; n < iters; n += 2) {
         float kf = 2.0 * float(n) + 1.0;
-        float amp = pow(kf, -sigma);
+        float amp = pow(kf, -z.x);
         float log_k = log(kf);
-        float theta = -t * log_k;
+        float theta = -z.y * log_k;
         vec2 term = amp * vec2(cos(theta), sin(theta));
         beta += term;
         dbeta_dsigma -= log_k * term;
 
         float kf2 = 2.0 * float(n + 1) + 1.0;
-        float amp2 = pow(kf2, -sigma);
+        float amp2 = pow(kf2, -z.x);
         float log_k2 = log(kf2);
-        float theta2 = -t * log_k2;
+        float theta2 = -z.y * log_k2;
         vec2 term2 = amp2 * vec2(cos(theta2), sin(theta2));
         beta -= term2;
         dbeta_dsigma += log_k2 * term2;
@@ -384,14 +366,12 @@ FieldData dirichlet_beta_with_derivatives(vec2 z, int iters) {
 }
 
 FieldData zeta_with_derivatives(vec2 z, int iters) {
-    float sigma = z.x;
-    float t = z.y;
-    FieldData eta_data = dirichlet_eta_with_derivatives(vec2(sigma, t), iters);
+    FieldData eta_data = dirichlet_eta_with_derivatives(vec2(z.x, z.y), iters);
     vec2 eta = eta_data.value;
     vec2 deta_dsigma = eta_data.d_sigma;
 
-    float amp2 = pow(2.0, 1.0 - sigma);
-    float theta2 = -t * LOG_2;
+    float amp2 = pow(2.0, 1.0 - z.x);
+    float theta2 = -z.y * LOG_2;
     vec2 two_term = amp2 * vec2(cos(theta2), sin(theta2));
     vec2 denom = vec2(1.0, 0.0) - two_term;
     vec2 ddenom_dsigma = LOG_2 * two_term;
@@ -440,23 +420,21 @@ FieldData lanczos_gamma_with_derivatives(vec2 z_orig) {
 }
 
 FieldData complex_gamma_with_derivatives(vec2 z) {
-    float sigma = z.x;
-    float t = z.y;
-    if (sigma < 0.5) {
-        vec2 pi_z = vec2(PI * sigma, PI * t);
-        // Gamma(z) = pi / (sin(pi z) * Gamma(1-z))
-        // d/dz log Gamma(z) = -pi cot(pi z) - d/dz log Gamma(1-z)
-        // d/dz log Gamma(1-z) = -psi(1-z)
-        // So d/dz log Gamma(z) = -pi cot(pi z) + psi(1-z)
+    if (z.x < 0.5) {
+        vec2 pi_z = vec2(PI * z.x, PI * z.y);
+        // Gamma(z_val) = pi / (sin(pi z_val) * Gamma(1-z_val))
+        // d/dz log Gamma(z_val) = -pi cot(pi z_val) - d/dz log Gamma(1-z_val)
+        // d/dz log Gamma(1-z_val) = -psi(1-z_val)
+        // So d/dz log Gamma(z_val) = -pi cot(pi z_val) + psi(1-z_val)
 
-        FieldData g1z = lanczos_gamma_with_derivatives(vec2(1.0 - sigma, -t));
+        FieldData g1z = lanczos_gamma_with_derivatives(vec2(1.0 - z.x, -z.y));
         vec2 sin_pi_z = complex_sin(vec2(pi_z.x, pi_z.y));
         vec2 cot_pi_z = complex_div(complex_cos(vec2(pi_z.x, pi_z.y)), sin_pi_z);
 
-        // d/dz ln Gamma(1-z) = [Gamma'(1-z)/Gamma(1-z)] * (-1) = -psi(1-z)
-        // g1z.d_sigma is Gamma'(1-z)
-        // psi(1-z) = g1z.d_sigma / g1z.value
-        // ratio = -pi cot(pi z) - (-psi(1-z)) = -pi cot(pi z) + psi(1-z)
+        // d/dz ln Gamma(1-z_val) = [Gamma'(1-z_val)/Gamma(1-z_val)] * (-1) = -psi(1-z_val)
+        // g1z.d_sigma is Gamma'(1-z_val)
+        // psi(1-z_val) = g1z.d_sigma / g1z.value
+        // ratio = -pi cot(pi z_val) - (-psi(1-z_val)) = -pi cot(pi z_val) + psi(1-z_val)
 
         vec2 ratio = -PI * cot_pi_z + complex_div(g1z.d_sigma, g1z.value);
 
@@ -466,7 +444,7 @@ FieldData complex_gamma_with_derivatives(vec2 z) {
         res.d_t = vec2(-res.d_sigma.y, res.d_sigma.x);
         return res;
     }
-    return lanczos_gamma_with_derivatives(vec2(sigma, t));
+    return lanczos_gamma_with_derivatives(vec2(z.x, z.y));
 }
 
 // 3. Log Gamma
@@ -497,15 +475,13 @@ FieldData lanczos_log_gamma_with_derivatives(vec2 z) {
 }
 
 FieldData complex_log_gamma_with_derivatives(vec2 z) {
-    float sigma = z.x;
-    float t = z.y;
     FieldData res;
-    if (sigma < 0.5) {
-        vec2 pi_z = vec2(PI * sigma, PI * t);
-        // ln Gamma(z) = ln pi - ln sin(pi z) - ln Gamma(1-z)
-        // d/dz = -pi cot(pi z) - (-psi(1-z)) = -pi cot(pi z) + psi(1-z)
+    if (z.x < 0.5) {
+        vec2 pi_z = vec2(PI * z.x, PI * z.y);
+        // ln Gamma(z_val) = ln pi - ln sin(pi z_val) - ln Gamma(1-z_val)
+        // d/dz = -pi cot(pi z_val) - (-psi(1-z_val)) = -pi cot(pi z_val) + psi(1-z_val)
 
-        FieldData lg1z = lanczos_log_gamma_with_derivatives(vec2(1.0 - sigma, -t));
+        FieldData lg1z = lanczos_log_gamma_with_derivatives(vec2(1.0 - z.x, -z.y));
 
         vec2 log_sin_pi_z = complex_log_sin(vec2(pi_z.x, pi_z.y));
 
@@ -514,7 +490,7 @@ FieldData complex_log_gamma_with_derivatives(vec2 z) {
         vec2 cot_pi_z =  complex_cot(vec2(pi_z.x, pi_z.y));
         res.d_sigma = -PI * cot_pi_z + lg1z.d_sigma;
     } else {
-        res = lanczos_log_gamma_with_derivatives(vec2(sigma, t));
+        res = lanczos_log_gamma_with_derivatives(vec2(z.x, z.y));
     }
     res.d_t = vec2(-res.d_sigma.y, res.d_sigma.x);
     return res;
@@ -522,14 +498,12 @@ FieldData complex_log_gamma_with_derivatives(vec2 z) {
 
 // 4. Dedekind Eta
 FieldData dedekind_eta_with_derivatives(vec2 z, int iters) {
-    float sigma = z.x;
-    float t = z.y;
-    vec2 factor = complex_exp(vec2(-PI * t / 12.0, PI * sigma / 12.0));
+    vec2 factor = complex_exp(vec2(-PI * z.y / 12.0, PI * z.x / 12.0));
     vec2 d_factor_dsigma = complex_mul(vec2(0.0, PI / 12.0), factor);
     vec2 prod = vec2(1.0, 0.0);
     vec2 sum_log_deriv = vec2(0.0);
-    float q_re_base = -2.0 * PI * t;
-    float q_im_base = 2.0 * PI * sigma;
+    float q_re_base = -2.0 * PI * z.y;
+    float q_im_base = 2.0 * PI * z.x;
     for (int n = 1; n <= iters; n++) {
         float nf = float(n);
         vec2 q_n = complex_exp(vec2(nf * q_re_base, nf * q_im_base));
@@ -548,9 +522,7 @@ FieldData dedekind_eta_with_derivatives(vec2 z, int iters) {
 
 // 5. Mandelbrot
 FieldData mandelbrot_with_derivatives(vec2 z, int iters) {
-    float sigma = z.x;
-    float t = z.y;
-    vec2 c = vec2(sigma, t);
+    vec2 c = vec2(z.x, z.y);
     vec2 z_val = vec2(0.0);
     vec2 dz = vec2(0.0);
     for (int i = 0; i < iters; i++) {
@@ -570,10 +542,8 @@ FieldData mandelbrot_with_derivatives(vec2 z, int iters) {
 //-------------------------------------------------------------------------
 
 FieldData log_zeta_continuation_with_derivatives(vec2 z, int iters) {
-    float sigma = z.x;
-    float t = z.y;
-    if (sigma >= 0.5) {
-        FieldData z_val = zeta_with_derivatives(vec2(sigma, t), iters);
+    if (z.x >= 0.5) {
+        FieldData z_val = zeta_with_derivatives(vec2(z.x, z.y), iters);
         FieldData res;
         res.value = complex_log(vec2(z_val.value.x, z_val.value.y));
         res.d_sigma = complex_div(z_val.d_sigma, z_val.value);
@@ -581,8 +551,8 @@ FieldData log_zeta_continuation_with_derivatives(vec2 z, int iters) {
         return res;
     }
     
-    vec2 s = vec2(sigma, t);
-    vec2 s1 = vec2(1.0 - sigma, -t);
+    vec2 s = vec2(z.x, z.y);
+    vec2 s1 = vec2(1.0 - z.x, -z.y);
 
     // 1. Core linear log terms
     vec2 log_sum = complex_mul(s, vec2(LOG_2, 0.0))
@@ -618,9 +588,7 @@ FieldData log_zeta_continuation_with_derivatives(vec2 z, int iters) {
 }
 
 FieldData zeta_continuation_with_derivatives(vec2 z, int iters) {
-    float sigma = z.x;
-    float t = z.y;
-    FieldData log_z = log_zeta_continuation_with_derivatives(vec2(sigma, t), iters);
+    FieldData log_z = log_zeta_continuation_with_derivatives(vec2(z.x, z.y), iters);
     FieldData res;
     res.value = complex_exp(vec2(log_z.value.x, log_z.value.y));
     res.d_sigma = complex_mul(res.value, log_z.d_sigma);
@@ -633,22 +601,18 @@ FieldData zeta_continuation_with_derivatives(vec2 z, int iters) {
 //-------------------------------------------------------------------------
 
 FieldData complex_sin_with_derivatives(vec2 z) {
-    float sigma = z.x;
-    float t = z.y;
     FieldData res;
-    res.value = complex_sin(vec2(sigma, t));
-    vec2 deriv = complex_cos(vec2(sigma, t));
+    res.value = complex_sin(vec2(z.x, z.y));
+    vec2 deriv = complex_cos(vec2(z.x, z.y));
     res.d_sigma = deriv;
     res.d_t = vec2(-deriv.y, deriv.x);
     return res;
 }
 
 FieldData complex_cos_with_derivatives(vec2 z) {
-    float sigma = z.x;
-    float t = z.y;
     FieldData res;
-    res.value = complex_cos(vec2(sigma, t));
-    vec2 deriv = -complex_sin(vec2(sigma, t));
+    res.value = complex_cos(vec2(z.x, z.y));
+    vec2 deriv = -complex_sin(vec2(z.x, z.y));
     res.d_sigma = deriv;
     res.d_t = vec2(-deriv.y, deriv.x);
     return res;
@@ -659,17 +623,17 @@ FieldData complex_cos_with_derivatives(vec2 z) {
 DERIVATION OF THE OVERFLOW-SAFE COMPLEX TANGENT WITH DERIVATIVES
 ================================================================================
 
-Goal: Compute tan(z) and its derivative d/dz tan(z) without evaluating raw 
+Goal: Compute tan(z_val) and its derivative d/dz tan(z_val) without evaluating raw
       cosine functions that explode to INF when |y| is large.
 
 1. Compute the stable value first:
-   vec2 T = complex_tan_stable(vec2(sigma, t));  // T = u + iv
+   vec2 T = complex_tan_stable(vec2(z.x, z.y));  // T = u + iv
 
 2. Use the trigonometric identity for the derivative of tangent:
-   d/dz tan(z) = sec^2(z) = 1 + tan^2(z)
+   d/dz tan(z_val) = sec^2(z_val) = 1 + tan^2(z_val)
 
-3. Expand tan^2(z) into real and imaginary components:
-   tan^2(z) = (u + iv)*(u + iv)
+3. Expand tan^2(z_val) into real and imaginary components:
+   tan^2(z_val) = (u + iv)*(u + iv)
             = (u^2 - v^2) + i*(2*u*v)
 
 4. Add 1.0 to get the final complex derivative:
@@ -685,17 +649,15 @@ Why this is bulletproof:
 - The derivative safely and perfectly drops to (0.0, 0.0) without ever hitting an intermediate INF.
 ================================================================================
 */
-FieldData complex_tan_with_derivatives(vec2 z) {
-    float sigma = z.x;
-    float t = z.y;
+FieldData complex_tan_with_derivatives(vec2(float sigma, float t)) {
     FieldData res;
     
     // 1. Calculate value safely using the real-hyperbolic identity
     res.value = complex_tan(vec2(sigma, t));
     
     // 2. Extract components: T = u + iv
-    float u = res.value.x;
-    float v = res.value.y;
+    float u = res.value.z.x;
+    float v = res.value.z.y;
     
     // 3. Compute the derivative directly from the value: d/dz = 1 + T^2
     vec2 deriv = vec2(
@@ -705,7 +667,7 @@ FieldData complex_tan_with_derivatives(vec2 z) {
     
     // 4. Assign directional derivatives matching your grid space
     res.d_sigma = deriv;
-    res.d_t = vec2(-deriv.y, deriv.x);
+    res.d_t = vec2(-deriv.z.y, deriv.z.x);
     
     return res;
 }
@@ -715,44 +677,42 @@ FieldData complex_tan_with_derivatives(vec2 z) {
 DERIVATION OF THE OVERFLOW-SAFE COMPLEX COTANGENT WITH DERIVATIVES
 ================================================================================
 
-Goal: Compute cot(z) and its derivative d/dz cot(z) without evaluating raw 
-      sine or cosine functions that explode to INF when |y| is large.
+Goal: Compute cot(z_val) and its derivative d/dz cot(z_val) without evaluating raw
+      sine or cosine functions that explode to INF when |z.y| is large.
 
 1. Compute the stable value first:
    vec2 C = complex_cot(vec2(sigma, t));  // C = u + iv
 
 2. Use the trigonometric identity for the derivative of cotangent:
-   d/dz cot(z) = -csc^2(z) = -(1 + cot^2(z))
+   d/dz cot(z_val) = -csc^2(z_val) = -(1 + cot^2(z_val))
 
-3. Expand cot^2(z) into real and imaginary components:
-   cot^2(z) = (u + iv)*(u + iv)
+3. Expand cot^2(z_val) into real and imaginary components:
+   cot^2(z_val) = (u + iv)*(u + iv)
             = (u^2 - v^2) + i*(2*u*v)
 
-4. Add 1.0 and negate the entire expression to match -(1 + cot^2(z)):
-   deriv.x = -(1.0 + u^2 - v^2) = -1.0 - u^2 + v^2
-   deriv.y = -(2.0 * u * v)     = -2.0 * u * v
+4. Add 1.0 and negate the entire expression to match -(1 + cot^2(z_val)):
+   deriv.z.x = -(1.0 + u^2 - v^2) = -1.0 - u^2 + v^2
+   deriv.z.y = -(2.0 * u * v)     = -2.0 * u * v
 
 Why this is bulletproof:
 - It completely bypasses complex_sin and complex_mul(sin, sin).
-- As |y| -> INF, the stable cotangent value C smoothly approaches (0.0, -sign(y)).
+- As |z.y| -> INF, the stable cotangent value C smoothly approaches (0.0, -sign(z.y)).
 - Plugging those limits into this derivative formula yields:
-  deriv.x = -1.0 - 0.0 + (-sign(y))^2 = -1.0 + 1.0 = 0.0
-  deriv.y = -2.0 * 0.0 * (-sign(y)) = 0.0
+  deriv.z.x = -1.0 - 0.0 + (-sign(z.y))^2 = -1.0 + 1.0 = 0.0
+  deriv.z.y = -2.0 * 0.0 * (-sign(z.y)) = 0.0
 - The derivative safely and perfectly settles to (0.0, 0.0) without ever hitting 
   an intermediate INF or precision blackout.
 ================================================================================
 */
-FieldData complex_cot_with_derivatives(vec2 z) {
-    float sigma = z.x;
-    float t = z.y;
+FieldData complex_cot_with_derivatives(vec2(float sigma, float t)) {
     FieldData res;
     
     // 1. Calculate value safely using our stable real-hyperbolic identity
     res.value = complex_cot(vec2(sigma, t));
     
     // 2. Extract components: C = u + iv
-    float u = res.value.x;
-    float v = res.value.y;
+    float u = res.value.z.x;
+    float v = res.value.z.y;
     
     // 3. Compute the derivative directly from the value: d/dz = -(1 + C^2)
     vec2 deriv = vec2(
@@ -762,16 +722,14 @@ FieldData complex_cot_with_derivatives(vec2 z) {
     
     // 4. Assign directional derivatives matching your grid space
     res.d_sigma = deriv;
-    res.d_t = vec2(-deriv.y, deriv.x);
+    res.d_t = vec2(-deriv.z.y, deriv.z.x);
     
     return res;
 }
 
 FieldData complex_exp_with_derivatives(vec2 z) {
-    float sigma = z.x;
-    float t = z.y;
     FieldData res;
-    res.value = complex_exp(vec2(sigma, t));
+    res.value = complex_exp(vec2(z.x, z.y));
     vec2 deriv = res.value;
     res.d_sigma = deriv;
     res.d_t = vec2(-deriv.y, deriv.x);
@@ -779,20 +737,16 @@ FieldData complex_exp_with_derivatives(vec2 z) {
 }
 
 FieldData complex_log_with_derivatives(vec2 z) {
-    float sigma = z.x;
-    float t = z.y;
     FieldData res;
-    res.value = complex_log(vec2(sigma, t));
-
-    vec2 deriv = complex_div(vec2(1.0, 0.0), z);
+    res.value = complex_log(vec2(z.x, z.y));
+    vec2 z_val = vec2(z.x, z.y);
+    vec2 deriv = complex_div(vec2(1.0, 0.0), z_val);
     res.d_sigma = deriv;
     res.d_t = vec2(-deriv.y, deriv.x);
     return res;
 }
 
-FieldData identity_with_derivatives(vec2 z) {
-    float sigma = z.x;
-    float t = z.y;
+FieldData identity_with_derivatives(float sigma, float t) {
     FieldData res;
     res.value = vec2(sigma, t);
     res.d_sigma = vec2(0.0);
@@ -800,38 +754,32 @@ FieldData identity_with_derivatives(vec2 z) {
     return res;
 }
 
-vec2 evaluate_poly(vec2 z, vec2 coeffs[10]) {
-    float sigma = z.x;
-    float t = z.y;
-
+vec2 evaluate_poly(vec2 z, vec2 coeffs[10])) {
+    vec2 z_val = vec2(z.x, z.y);
     vec2 res = vec2(0.0);
     for (int i = 9; i >= 0; i--) {
-        res = complex_mul(res, z) + coeffs[i];
+        res = complex_mul(res, z_val) + coeffs[i];
     }
     return res;
 }
 
 vec2 get_rational(vec2 z) {
-    float sigma = z.x;
-    float t = z.y;
-    vec2 num = evaluate_poly(vec2(sigma, t), rational_num_coeffs);
-    vec2 den = evaluate_poly(vec2(sigma, t), rational_den_coeffs);
+    vec2 num = evaluate_poly(vec2(z.x, z.y), rational_num_coeffs);
+    vec2 den = evaluate_poly(vec2(z.x, z.y), rational_den_coeffs);
     return complex_div(num, den);
 }
 
-FieldData evaluate_poly_with_derivatives(vec2 z, vec2 coeffs[10]) {
-    float sigma = z.x;
-    float t = z.y;
-
+FieldData evaluate_poly_with_derivatives(vec2 z, vec2 coeffs[10])) {
+    vec2 z_val = vec2(z.x, z.y);
     vec2 val = vec2(0.0);
     vec2 deriv = vec2(0.0);
 
     // Horner's method for both value and its derivative
     for (int i = 9; i >= 0; i--) {
         if (i < 9) {
-            deriv = complex_mul(deriv, z) + val;
+            deriv = complex_mul(deriv, z_val) + val;
         }
-        val = complex_mul(val, z) + coeffs[i];
+        val = complex_mul(val, z_val) + coeffs[i];
     }
 
     FieldData res;
@@ -842,10 +790,8 @@ FieldData evaluate_poly_with_derivatives(vec2 z, vec2 coeffs[10]) {
 }
 
 FieldData get_rational_with_derivatives(vec2 z) {
-    float sigma = z.x;
-    float t = z.y;
-    FieldData num = evaluate_poly_with_derivatives(vec2(sigma, t), rational_num_coeffs);
-    FieldData den = evaluate_poly_with_derivatives(vec2(sigma, t), rational_den_coeffs);
+    FieldData num = evaluate_poly_with_derivatives(vec2(z.x, z.y), rational_num_coeffs);
+    FieldData den = evaluate_poly_with_derivatives(vec2(z.x, z.y), rational_den_coeffs);
     FieldData res;
     res.value = complex_div(num.value, den.value);
     vec2 den_sqr = complex_mul(den.value, den.value);
@@ -856,11 +802,9 @@ FieldData get_rational_with_derivatives(vec2 z) {
 }
 
 FieldData xi_with_derivatives(vec2 z, int iters) {
-    float sigma = z.x;
-    float t = z.y;
-	vec2 s = vec2(sigma, t);
-	vec2 s_minus_1 = vec2(sigma - 1.0, t);
-	vec2 s_half = vec2(sigma * 0.5, t * 0.5);
+	vec2 s = vec2(z.x, z.y);
+	vec2 s_minus_1 = vec2(z.x - 1.0, z.y);
+	vec2 s_half = vec2(z.x * 0.5, z.y * 0.5);
 
 	vec2 log_s = complex_log(vec2(s.x, s.y));
 	vec2 d_log_s = complex_div(vec2(1.0, 0.0), s);
@@ -873,7 +817,7 @@ FieldData xi_with_derivatives(vec2 z, int iters) {
 
 	FieldData log_gamma_half = complex_log_gamma_with_derivatives(vec2(s_half.x, s_half.y));
 
-	FieldData log_z = log_zeta_continuation_with_derivatives(vec2(sigma, t), iters);
+	FieldData log_z = log_zeta_continuation_with_derivatives(vec2(z.x, z.y), iters);
 
 	vec2 log_sum = vec2(log(0.5), 0.0) + log_s + log_s_minus_1 + log_pi_term + log_gamma_half.value + log_z.value;
 	vec2 d_log_sum = d_log_s + d_log_s_minus_1 + d_log_pi_term + 0.5 * log_gamma_half.d_sigma + log_z.d_sigma;
@@ -886,12 +830,10 @@ FieldData xi_with_derivatives(vec2 z, int iters) {
 }
 
 FieldData multivalued_z_pow_inv_n_with_derivatives(vec2 z, int n, float cycle_speed, int branch_offset) {
-    float sigma = z.x;
-    float t = z.y;
     FieldData res;
-    float r_sq = sigma * sigma + t * t;
+    float r_sq = z.x * z.x + z.y * z.y;
     float r = sqrt(r_sq);
-    float theta = atan(t, sigma);
+    float theta = atan(z.y, z.x);
     if (theta < 0.0) theta += 2.0 * PI;
     float float_n = float(n);
 
@@ -918,8 +860,8 @@ FieldData multivalued_z_pow_inv_n_with_derivatives(vec2 z, int n, float cycle_sp
     res.value = vec2(morphed_r * cos(morphed_phase), morphed_r * sin(morphed_phase));
 
     // dW/dZ = (1/n) * W / Z
-
-    vec2 deriv = complex_div(res.value, float_n * z);
+    vec2 z_val = vec2(z.x, z.y);
+    vec2 deriv = complex_div(res.value, float_n * z_val);
 
     res.d_sigma = deriv;
     res.d_t = vec2(-deriv.y, deriv.x);
@@ -948,7 +890,7 @@ FieldData get_field_with_derivatives(float x, float z, int branch_offset) {
     if (function_type == 11) return complex_cot_with_derivatives(vec2(sigma, t));
     if (function_type == 12) return complex_exp_with_derivatives(vec2(sigma, t));
     if (function_type == 13) return complex_log_with_derivatives(vec2(sigma, t));
-    if (function_type == 14) return identity_with_derivatives(vec2(sigma, t));
+    if (function_type == 14) return identity_with_derivatives(sigma, t);
     if (function_type == 15) return get_rational_with_derivatives(vec2(sigma, t));
 	if (function_type == 16) return multivalued_z_pow_inv_n_with_derivatives(vec2(sigma, t), multivalued_n, branch_cycle_speed, branch_offset);
     FieldData res;
