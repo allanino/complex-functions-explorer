@@ -236,7 +236,7 @@ static func get_rational(sigma: float, t: float) -> Vector2:
 	var den = evaluate_poly(sigma, t, Config.rational_den_coeffs)
 	return complex_div(num, den)
 
-static func xi(sigma: float, t: float, iterations: int) -> Vector2:
+static func xi(sigma: float, t: float) -> Vector2:
 	var s = Vector2(sigma, t)
 	var s_minus_1 = Vector2(sigma - 1.0, t)
 	var s_half = Vector2(sigma * 0.5, t * 0.5)
@@ -301,7 +301,6 @@ static func get_field(x: float, z: float) -> Vector2:
 	match Config.function_type:
 		Config.ComplexFunc.ZETA: return zeta(sigma, t)
 		Config.ComplexFunc.ZETA_REFLECTION: return zeta_continuation(sigma, t)
-		Config.ComplexFunc.XI: return xi(sigma, t, Config.iterations)
 		Config.ComplexFunc.DIRICHLET_ETA: return dirichlet_eta(sigma, t, Config.iterations)
 		Config.ComplexFunc.DIRICHLET_BETA: return dirichlet_beta(sigma, t, Config.iterations)
 		Config.ComplexFunc.GAMMA: return complex_gamma(sigma, t)

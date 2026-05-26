@@ -5,7 +5,6 @@ const SAVE_PATH = "user://settings.cfg"
 enum ComplexFunc {
 	ZETA,
 	ZETA_REFLECTION,
-	XI,
 	DIRICHLET_ETA,
 	DIRICHLET_BETA,
 	GAMMA,
@@ -21,9 +20,11 @@ enum ComplexFunc {
 	IDENTITY,
 	RATIONAL,
 	MULTIVALUED_Z_POW,
+
+	# Not exposed in UI
 	MULTIVALUED_RSVD1,
 	MULTIVALUED_RSVD2,
-	MULTIVALUED_RSVD3
+	MULTIVALUED_RSVD3,
 }
 
 const FUNCTIONS = {
@@ -39,10 +40,6 @@ const FUNCTIONS = {
 		"is_dirichlect": true,
 		"has_von_mangoldt": true,
 		"iters_range": [100.0, 5000.0, 100.0, 500.0],
-	},
-	ComplexFunc.XI: {
-		"name": "Riemann Xi",
-		"iters_range": [50.0, 5000.0, 10.0, 256.0],
 	},
 	ComplexFunc.DIRICHLET_ETA: {
 		"name": "Dirichlet Eta (σ > 0)",
