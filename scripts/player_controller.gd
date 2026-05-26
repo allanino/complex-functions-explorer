@@ -3,7 +3,6 @@ extends CharacterBody3D
 const MOUSE_SENSITIVITY = 0.002
 const DOUBLE_PRESS_TIME = 0.3
 const CRITICAL_LINE_X = 5.0
-const AUTO_WALK_PITCH = -0.523598776 # -30 degrees in radians
 
 enum AutoWalkState { NONE, MOVING_TO_LINE, WALKING }
 
@@ -197,25 +196,17 @@ func _physics_process(delta):
 		# Smoothly rotate to the target yaw
 		rotation.y = lerp_angle(rotation.y, target_yaw, 5.0 * delta)
 
-		# Smoothly transition camera to horizontal
-		rotation_x = lerp(rotation_x, 0.0, 5.0 * delta)
-		camera.rotation.x = rotation_x
-
 		# Smoothly move to the critical line X
 		global_position.x = move_toward(global_position.x, target_x, current_speed * delta)
 
 		direction = Vector3.ZERO
 
-		if abs(global_position.x - target_x) < 0.01 and abs(angle_difference(rotation.y, 0.0)) < 0.01 and abs(rotation_x) < 0.01:
+		if abs(global_position.x - target_x) < 0.01 and abs(angle_difference(rotation.y, 0.0)) < 0.01:
 			auto_walk_state = AutoWalkState.WALKING
 
 	elif auto_walk_state == AutoWalkState.WALKING:
 		direction = Vector3(0, 0, -1)
 		global_position.x = move_toward(global_position.x, CRITICAL_LINE_X * Config.effective_zoom, 2.0 * delta)
-
-		# Smoothly transition to downward tilt only after positioning
-		rotation_x = lerp(rotation_x, AUTO_WALK_PITCH, 5.0 * delta)
-		camera.rotation.x = rotation_x
 
 	if direction != Vector3.ZERO:
 		velocity.x = direction.x * current_speed
@@ -272,3 +263,71 @@ func _physics_process(delta):
 				last_detected_z = z
 
 	move_and_slide()
+
+
+func demo_actions():
+	Config.environment_type = 0
+
+	auto_walk_state = AutoWalkState.NONE
+	is_resetting_height = false
+
+	var ez = Config.effective_zoom
+	global_position.x = -30.0 * ez
+	global_position.z = 0.0
+
+	rotation.y = -PI / 2.0
+	rotation_x = 0.0
+	camera.rotation.x = rotation_x
+	height_offset = 0.0
+
+	var tween = create_tween()
+
+	# Wait a moment before start
+	tween.tween_interval(2.0)
+
+	var tween_duration = 5.0
+
+	# Phase 1: go up to 50.0 while camera slowly turns downwards
+	tween.tween_property(self, "height_offset", 50.0 * ez, tween_duration)
+	tween.parallel().tween_property(camera, "rotation:x", -PI / 2.0, tween_duration)
+
+	# Phase 2: rotate CCW while tilting upwards to face zeta wall towards -sigma
+	tween.tween_property(self, "rotation:y", PI / 2.0, tween_duration)
+	tween.parallel().tween_property(camera, "rotation:x", 0.0, tween_duration)
+
+	# Phase 3: height decrease to 3.5 while rotating towards +sigma
+	tween.tween_property(self, "height_offset", 3.5 * ez, tween_duration)
+
+	# Phase 4: walk backwards to see the trivial zero at (-2, 0)
+	tween.tween_property(camera, "rotation:x", -PI / 2.0, tween_duration * 0.6)
+	tween.parallel().tween_property(self, "global_position:x", -20.0 * ez, tween_duration * 0.6)
+
+	# Wait a moment to contemplate the trivial zero
+	tween.tween_interval(2.0)
+
+	# Phase 5: rotate towards the pole and walk slightly to its side
+	# Math coordinates (1, 1) -> x = 10.0 * ez, z = -10.0 * ez
+	tween.tween_property(camera, "rotation:x", PI / 8.0, tween_duration)
+	tween.parallel().tween_property(self, "rotation:y", - PI / 2.0, tween_duration)
+
+	tween.tween_property(self, "global_position:x", 5.0 * ez, tween_duration)
+	tween.parallel().tween_property(self, "global_position:z", -10.0 * ez, tween_duration)
+
+	tween.parallel().tween_property(camera, "rotation:x", - PI / 8.0, tween_duration)
+
+	# Wait a moment to contemplate the sunrise
+	tween.tween_interval(2.0)
+
+	# Phase 6: rotate back to horizontal and start auto-walk
+	tween.tween_property(self, "rotation:y", 0.0, tween_duration * 0.5)
+
+	tween.tween_interval(1.0)
+
+	tween.tween_callback(self._start_auto_walk_from_demo)
+
+func _start_auto_walk_from_demo():
+	auto_walk_state = AutoWalkState.MOVING_TO_LINE
+	Config.visited_zeros.clear()
+	last_detected_z = Vector2(0.0, 0.0)
+	Config.show_hud_zeros = true
+	Config.rvm_start_t = abs(global_position.z * 0.1 / Config.effective_zoom)
