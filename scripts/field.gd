@@ -152,8 +152,11 @@ static func complex_gamma(sigma: float, t: float) -> Vector2:
 		return complex_exp(log_sum.x, log_sum.y)
 	return lanczos_gamma(Vector2(sigma, t))
 
-static func zeta_continuation(sigma: float, t: float) -> Vector2:
-	if sigma >= 0.5: return zeta(sigma, t)
+static func log_zeta_continuation(sigma: float, t: float) -> Vector2:
+	if sigma >= 0.5:
+		var z = zeta(sigma, t)
+		return complex_log(z.x, z.y)
+
 	var s = Vector2(sigma, t)
 	var s1 = Vector2(1.0 - sigma, -t)
 
@@ -168,7 +171,11 @@ static func zeta_continuation(sigma: float, t: float) -> Vector2:
 	var zeta_part = zeta(s1.x, s1.y)
 	log_sum += complex_log(zeta_part.x, zeta_part.y)
 
-	return complex_exp(log_sum.x, log_sum.y)
+	return log_sum
+
+static func zeta_continuation(sigma: float, t: float) -> Vector2:
+	var log_val = log_zeta_continuation(sigma, t)
+	return complex_exp(log_val.x, log_val.y)
 
 static func lanczos_log_gamma(z: Vector2) -> Vector2:
 	var z_m1 = z - Vector2(1.0, 0.0)
@@ -228,6 +235,22 @@ static func get_rational(sigma: float, t: float) -> Vector2:
 	var num = evaluate_poly(sigma, t, Config.rational_num_coeffs)
 	var den = evaluate_poly(sigma, t, Config.rational_den_coeffs)
 	return complex_div(num, den)
+
+static func xi(sigma: float, t: float) -> Vector2:
+	var s = Vector2(sigma, t)
+	var s_minus_1 = Vector2(sigma - 1.0, t)
+	var s_half = Vector2(sigma * 0.5, t * 0.5)
+
+	var log_sum = Vector2(log(0.5), 0.0)
+	log_sum += complex_log(s.x, s.y)
+	log_sum += complex_log(s_minus_1.x, s_minus_1.y)
+
+	log_sum -= complex_mul(s_half, Vector2(LOG_PI, 0.0))
+	log_sum += complex_log_gamma(s_half.x, s_half.y)
+
+	log_sum += log_zeta_continuation(sigma, t)
+
+	return complex_exp(log_sum.x, log_sum.y)
 
 static func multivalued_z_pow_inv_n(sigma: float, t: float, n: int, cycle_speed: float) -> Vector2:
 	var r = sqrt(sigma * sigma + t * t)
