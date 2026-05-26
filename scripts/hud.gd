@@ -153,6 +153,7 @@ const DESCRIPTIONS = {
 	"Camera Height": "Vertical height of the player's camera above the terrain.",
 	"Move Speed": "Horizontal movement speed when navigating the complex plane.",
 	"Zoom Factor": "Increase detail by scaling coordinates (1.0 / Zoom).",
+	"Zeros proximity": "Terrain height threshold for detecting function zeros. Actually we look for minima along the path with magnitude below this value.",
 	"Speed near Zeros": "Slows down movement speed near function zeros to allow closer inspection.",
 	"Automatic Walking": "Automatically follow the critical line (Re = 0.5) to find Riemann Zeta zeros.",
 	"Terrain Details": "Quality and subdivision level of the procedurally generated terrain meshes.",
