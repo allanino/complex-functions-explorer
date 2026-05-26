@@ -411,6 +411,8 @@ func apply_aa():
 	# Reset both
 	vp.msaa_3d = Viewport.MSAA_DISABLED
 	vp.screen_space_aa = Viewport.SCREEN_SPACE_AA_DISABLED
+	vp.use_taa = false
+	vp.use_debanding = false
 
 	match Config.antialiasing_mode:
 		1: vp.msaa_3d = Viewport.MSAA_2X
