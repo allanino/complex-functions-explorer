@@ -149,9 +149,7 @@ const DESCRIPTIONS = {
 	"Automatic Walking": "Automatically follow the critical line (Re = 0.5) to find Riemann Zeta zeros.",
 	"Terrain Details": "Quality and subdivision level of the procedurally generated terrain meshes.",
 	"Antialiasing": "Choose a technique to reduce jagged edges in the 3D view.",
-	"Branch Experience": "Choose how to visualize multiple branches: temporal cycling or spatial portals.",
 	"Branches (n)": "Number of branches for the multivalued function z^(1/n).",
-	"Cycle Speed": "Temporal branch morphing speed.",
 	"Morph Time": "Duration of the smooth transition between branches.",
 	"Color Scheme": "Select the color mapping for the complex plane of the target function.",
 	"View Distance": "Number of terrain chunks loaded around the player.",
@@ -252,8 +250,6 @@ func _ready():
 	shadows_checkbox.toggled.connect(_on_shadows_toggled)
 	get_viewport().size_changed.connect(_update_hud_layout)
 	multivalued_slider.value_changed.connect(_on_multivalued_n_value_changed)
-	cycle_speed_slider.value_changed.connect(_on_cycle_speed_value_changed)
-	morph_time_slider.value_changed.connect(_on_morph_time_value_changed)
 
 	brightness_slider.value_changed.connect(_on_terrain_brightness_value_changed)
 	saturation_slider.value_changed.connect(_on_terrain_saturation_value_changed)
@@ -1025,8 +1021,6 @@ func _process(_delta):
 	var material = complex_rect.material as ShaderMaterial
 	material.set_shader_parameter("current_f", f)
 	material.set_shader_parameter("multivalued_n", Config.multivalued_n)
-	material.set_shader_parameter("branch_cycle_speed", Config.branch_cycle_speed)
-	material.set_shader_parameter("multivalued_morph_time", Config.multivalued_morph_time)
 	material.set_shader_parameter("function_type", Config.function_type)
 	material.set_shader_parameter("color_scheme", Config.color_scheme)
 	material.set_shader_parameter("scale", current_scale)
