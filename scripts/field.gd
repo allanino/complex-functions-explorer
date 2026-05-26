@@ -111,15 +111,34 @@ static func dirichlet_beta(sigma: float, t: float, iterations: int) -> Vector2:
 		if (amp < 1e-6 || amp2 < 1e-6 || amp > 1e6 || amp2 > 1e6): break
 	return beta
 
+static var _zeta_cache: Dictionary = {}
+static var _zeta_cache_iterations: int = -1
+
 static func zeta(sigma: float, t: float) -> Vector2:
 	var iterations = Config.iterations
+
+	if _zeta_cache_iterations != iterations:
+		_zeta_cache.clear()
+		_zeta_cache_iterations = iterations
+
+	var key = Vector2(sigma, t)
+	if _zeta_cache.has(key):
+		return _zeta_cache[key]
+
 	var eta = dirichlet_eta(sigma, t, iterations)
 
 	var amp2 = pow(2.0, 1.0 - sigma)
 	var theta2 = -t * LOG_2
 	var two_term = amp2 * Vector2(cos(theta2), sin(theta2))
 	var denom = Vector2(1.0, 0.0) - two_term
-	return complex_div(eta, denom)
+	var result = complex_div(eta, denom)
+
+	# Prevent unbounded memory growth if left running indefinitely
+	if _zeta_cache.size() > 100000:
+		_zeta_cache.clear()
+
+	_zeta_cache[key] = result
+	return result
 
 const LANCZOS_P = [
 	0.99999999999980993,
