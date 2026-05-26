@@ -292,6 +292,38 @@ func test_multivalued_z_pow_inv_n():
 	Config.branch_time = orig_branch_time
 	Config.multivalued_morph_time = orig_morph_time
 
+func test_multivalued_log():
+	# Save original config values to restore them later
+	var orig_mode = Config.multivalued_mode
+	var orig_current_branch = Config.current_branch
+	var orig_branch_time = Config.branch_time
+	var orig_morph_time = Config.multivalued_morph_time
+
+	# Test 1: Branch Portals mode (mode 1), branch 0, z = e
+	Config.multivalued_mode = 1
+	Config.current_branch = 0
+	var res1 = TestField.multivalued_log(2.718281828459, 0.0, 2, 1.0)
+	assert_almost_eq(res1.x, 1.0, 0.0001)
+	assert_almost_eq(res1.y, 0.0, 0.0001)
+
+	# Test 2: Branch Portals mode (mode 1), branch 1, z = e
+	Config.current_branch = 1
+	var res2 = TestField.multivalued_log(2.718281828459, 0.0, 2, 1.0)
+	assert_almost_eq(res2.x, 1.0, 0.0001)
+	assert_almost_eq(res2.y, 2.0 * PI, 0.0001)
+
+	# Test 3: Branch Portals mode (mode 1), branch 2, z = e
+	Config.current_branch = 2
+	var res3 = TestField.multivalued_log(2.718281828459, 0.0, 2, 1.0)
+	assert_almost_eq(res3.x, 1.0, 0.0001)
+	assert_almost_eq(res3.y, 4.0 * PI, 0.0001)
+
+	# Restore config values
+	Config.multivalued_mode = orig_mode
+	Config.current_branch = orig_current_branch
+	Config.branch_time = orig_branch_time
+	Config.multivalued_morph_time = orig_morph_time
+
 func test_get_height_from_field():
 	var orig_height_type = Config.height_type
 	var orig_height_a = Config.height_a

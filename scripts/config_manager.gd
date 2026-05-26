@@ -20,6 +20,7 @@ enum ComplexFunc {
 	IDENTITY,
 	RATIONAL,
 	MULTIVALUED_Z_POW,
+	MULTIVALUED_LOG,
 
 	# Not exposed in UI
 	MULTIVALUED_RSVD1,
@@ -94,6 +95,10 @@ const FUNCTIONS = {
 	},
 	ComplexFunc.MULTIVALUED_Z_POW: {
 		"name": "Multivalued z^(1/n)",
+		"is_multivalued": true,
+	},
+	ComplexFunc.MULTIVALUED_LOG: {
+		"name": "Multivalued Log",
 		"is_multivalued": true,
 	},
 	ComplexFunc.MULTIVALUED_RSVD1: {
