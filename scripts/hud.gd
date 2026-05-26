@@ -67,9 +67,9 @@ extends CanvasLayer
 @onready var day_duration_container = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/DayDurationContainer
 @onready var day_duration_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/DayDurationContainer/DayDurationSlider
 @onready var day_duration_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/DayDurationContainer/DayDurationValue
-@onready var static_time_container = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/StaticTimeContainer
-@onready var static_time_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/StaticTimeContainer/StaticTimeSlider
-@onready var static_time_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/StaticTimeContainer/StaticTimeValue
+@onready var day_time_container = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/StaticTimeContainer
+@onready var day_time_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/StaticTimeContainer/StaticTimeSlider
+@onready var day_time_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/StaticTimeContainer/StaticTimeValue
 @onready var sunrise_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/SunriseContainer/SunriseSlider
 @onready var sunrise_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/SunriseContainer/SunriseValue
 @onready var sky_luminosity_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/SkyLuminosityContainer/SkyLuminositySlider
@@ -213,9 +213,9 @@ var _initial_hud_scale: float
 var _initial_sky_luminosity: float
 var _initial_sun_luminosity: float
 var _initial_self_illumination: float
-var _initial_environment_type: int
+var _initial_freeze_time: bool
 var _initial_day_duration: float
-var _initial_static_time: float
+var _initial_day_time: float
 var _initial_fog_enabled: bool
 var _initial_fog_density: float
 var _initial_terrain_detail: int
@@ -246,7 +246,7 @@ func _ready():
 	view_distance_slider.value_changed.connect(_on_view_distance_value_changed)
 	freeze_time_checkbox.toggled.connect(_on_freeze_time_toggled)
 	day_duration_slider.value_changed.connect(_on_day_duration_value_changed)
-	static_time_slider.value_changed.connect(_on_static_time_value_changed)
+	day_time_slider.value_changed.connect(_on_day_time_value_changed)
 	sunrise_slider.value_changed.connect(_on_sunrise_value_changed)
 	sky_luminosity_slider.value_changed.connect(_on_sky_luminosity_value_changed)
 	sun_luminosity_slider.value_changed.connect(_on_sun_luminosity_value_changed)
@@ -449,9 +449,9 @@ func toggle_menu(applied: bool = false):
 		_initial_sky_luminosity = Config.sky_luminosity
 		_initial_sun_luminosity = Config.sun_luminosity
 		_initial_self_illumination = Config.self_illumination
-		_initial_environment_type = Config.environment_type
+		_initial_freeze_time = Config.freeze_time
 		_initial_day_duration = Config.day_duration
-		_initial_static_time = Config.static_time
+		_initial_day_time = Config.day_time
 		_initial_fog_enabled = Config.fog_enabled
 		_initial_fog_density = Config.fog_density
 		_initial_terrain_detail = Config.terrain_detail
@@ -459,7 +459,7 @@ func toggle_menu(applied: bool = false):
 		_initial_view_distance = Config.view_distance
 		_initial_shadows_enabled = Config.shadows_enabled
 
-		freeze_time_checkbox.button_pressed = (Config.environment_type != 0)
+		freeze_time_checkbox.button_pressed = Config.freeze_time
 
 		if player:
 			var scale_factor = 1.0 / Config.effective_zoom
@@ -492,8 +492,8 @@ func toggle_menu(applied: bool = false):
 		critical_checkbox.button_pressed = Config.show_critical_stripe
 		day_duration_slider.value = Config.day_duration
 		_on_day_duration_value_changed(Config.day_duration)
-		static_time_slider.value = Config.static_time
-		_on_static_time_value_changed(Config.static_time)
+		day_time_slider.value = Config.day_time
+		_on_day_time_value_changed(Config.day_time)
 		sunrise_slider.value = Config.sunrise_direction
 		_on_sunrise_value_changed(Config.sunrise_direction)
 		sky_luminosity_slider.value = Config.sky_luminosity * 100.0
@@ -577,9 +577,9 @@ func toggle_menu(applied: bool = false):
 			Config.sky_luminosity = _initial_sky_luminosity
 			Config.sun_luminosity = _initial_sun_luminosity
 			Config.self_illumination = _initial_self_illumination
-			Config.environment_type = _initial_environment_type
+			Config.freeze_time = _initial_freeze_time
 			Config.day_duration = _initial_day_duration
-			Config.static_time = _initial_static_time
+			Config.day_time = _initial_day_time
 			Config.fog_enabled = _initial_fog_enabled
 			Config.fog_density = _initial_fog_density
 			Config.terrain_detail = _initial_terrain_detail
@@ -631,11 +631,7 @@ func _on_multivalued_mode_selected(index):
 	morph_time_container.visible = is_multivalued and is_cycle
 
 func _on_freeze_time_toggled(pressed: bool):
-	if pressed:
-		if Config.environment_type == 0:
-			Config.environment_type = 4 # Static
-	else:
-		Config.environment_type = 0 # Dynamic
+	Config.freeze_time = pressed
 
 func _format_time(total_seconds: float) -> String:
 	var hours = int(total_seconds) / 3600
@@ -647,9 +643,9 @@ func _on_day_duration_value_changed(value):
 	Config.day_duration = value
 	day_duration_value.text = _format_time(value)
 
-func _on_static_time_value_changed(value):
-	Config.static_time = value
-	static_time_value.text = _format_time(value)
+func _on_day_time_value_changed(value):
+	Config.day_time = value
+	day_time_value.text = _format_time(value)
 func _on_master_volume_value_changed(value):
 	Config.master_volume = value
 	master_volume_value.text = str(int(value)) + "%"
@@ -938,7 +934,7 @@ func _on_set_pos_pressed():
 	Config.terrain_surface_texture = surface_texture_slider.value / 100.0
 	Config.view_distance = int(view_distance_slider.value)
 	Config.day_duration = day_duration_slider.value
-	Config.static_time = static_time_slider.value
+	Config.day_time = day_time_slider.value
 	Config.fog_enabled = fog_enabled_checkbox.button_pressed
 	Config.fog_density = fog_density_slider.value / 100.0
 	Config.hud_scale = hud_scale_slider.value / 100.0
@@ -1022,9 +1018,9 @@ func _process(_delta):
 				camera_height_input.text = formatted_height
 
 		# Live update time slider if time is flowing
-		if Config.environment_type == 0:
-			static_time_slider.value = Config.static_time
-			static_time_value.text = _format_time(Config.static_time)
+		if not Config.freeze_time:
+			day_time_slider.value = Config.day_time
+			day_time_value.text = _format_time(Config.day_time)
 
 	perf_label.visible = Config.performance_protection_active
 
@@ -1172,13 +1168,21 @@ func _apply_stack_layout(stack: VBoxContainer, desired_cards: Array):
 		if not child in desired_cards:
 			stack.remove_child(child)
 
+	# Optimization: The original code moved each card to index 0 in forward order,
+	# which inverted the final display order. By iterating backwards through the
+	# desired_cards array, we can safely target absolute indices (0 to N-1) as we build
+	# the stack from top to bottom. This ensures `move_child` operates within valid
+	# index bounds even when new cards are being added, and eliminates redundant moves.
 	for i in range(desired_cards.size()):
-		var card = desired_cards[i]
+		var target_index = i
+		var card = desired_cards[desired_cards.size() - 1 - i]
 		if card.get_parent() != stack:
 			if card.get_parent():
 				card.get_parent().remove_child(card)
 			stack.add_child(card)
-		stack.move_child(card, 0)
+
+		if card.get_index() != target_index:
+			stack.move_child(card, target_index)
 
 func _rescale_card(card: Control, scale: float):
 	if card == null: return
