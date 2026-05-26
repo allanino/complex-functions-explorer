@@ -99,7 +99,6 @@ extends CanvasLayer
 @onready var bg_music_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/AUDIO/Margin/VBox/BgMusicContainer/BgMusicValue
 @onready var drone_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/AUDIO/Margin/VBox/DroneContainer/DroneSlider
 @onready var drone_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/AUDIO/Margin/VBox/DroneContainer/DroneValue
-@onready var zero_proximity_audio_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/AUDIO/Margin/VBox/ZeroProximityAudioContainer/ZeroProximityAudioSlider
 
 @onready var detach_overlay = $Control/DetachOverlay
 @onready var detach_slider = $Control/DetachOverlay/MarginContainer/HBox/DetachSlider
@@ -109,7 +108,6 @@ extends CanvasLayer
 
 var active_detached_slider: HSlider = null
 var active_detached_value: Label = null
-@onready var zero_proximity_audio_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/AUDIO/Margin/VBox/ZeroProximityAudioContainer/ZeroProximityAudioValue
 
 @onready var brightness_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/BrightnessContainer/BrightnessSlider
 @onready var brightness_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/BrightnessContainer/BrightnessValue
@@ -155,6 +153,7 @@ const DESCRIPTIONS = {
 	"Camera Height": "Vertical height of the player's camera above the terrain.",
 	"Move Speed": "Horizontal movement speed when navigating the complex plane.",
 	"Zoom Factor": "Increase detail by scaling coordinates (1.0 / Zoom).",
+	"Zeros proximity": "Terrain height threshold for detecting function zeros. Actually we look for minima along the path with magnitude below this value.",
 	"Speed near Zeros": "Slows down movement speed near function zeros to allow closer inspection.",
 	"Automatic Walking": "Automatically follow the critical line (Re = 0.5) to find Riemann Zeta zeros.",
 	"Terrain Details": "Quality and subdivision level of the procedurally generated terrain meshes.",
@@ -186,7 +185,6 @@ const DESCRIPTIONS = {
 	"Master Volume": "Control the global volume level of all sound sources.",
 	"Background Music": "Adjust the volume of the ambient mathematical soundscape.",
 	"Topographic Drone": "Adjust the volume of the terrain-responsive spatial audio.",
-	"Zeros proximity": "Terrain height threshold for detecting and reacting to function zeros.",
 	"Brightness": "Adjust the overall brightness of the terrain surface.",
 	"Terrain Morph": "Transition between the flat complex plane and the 3D terrain.",
 	"Flow": "Overlay flowing arrows that follow the terrain gradient.",
@@ -203,7 +201,6 @@ var _initial_master_volume: float
 var _initial_bg_music_volume: float
 var _initial_drone_volume: float
 var _initial_zero_proximity_nav: float
-var _initial_zero_proximity_audio: float
 var _initial_iterations: int
 var _initial_terrain_brightness: float
 var _initial_terrain_saturation: float
@@ -245,7 +242,6 @@ func _ready():
 	bg_music_slider.value_changed.connect(_on_bg_music_value_changed)
 	drone_slider.value_changed.connect(_on_drone_value_changed)
 	zero_proximity_nav_slider.value_changed.connect(_on_zero_proximity_nav_value_changed)
-	zero_proximity_audio_slider.value_changed.connect(_on_zero_proximity_audio_value_changed)
 	zoom_slider.value_changed.connect(_on_zoom_value_changed)
 	zero_speed_slider.value_changed.connect(_on_zero_speed_value_changed)
 	view_distance_slider.value_changed.connect(_on_view_distance_value_changed)
@@ -438,7 +434,6 @@ func toggle_menu(applied: bool = false):
 		_initial_bg_music_volume = Config.bg_music_volume
 		_initial_drone_volume = Config.drone_volume
 		_initial_zero_proximity_nav = Config.zero_proximity_nav
-		_initial_zero_proximity_audio = Config.zero_proximity_audio
 		_initial_iterations = Config.iterations
 		_initial_terrain_brightness = Config.terrain_brightness
 		_initial_terrain_saturation = Config.terrain_saturation
@@ -527,8 +522,6 @@ func toggle_menu(applied: bool = false):
 		_on_bg_music_value_changed(Config.bg_music_volume)
 		drone_slider.value = Config.drone_volume
 		_on_drone_value_changed(Config.drone_volume)
-		zero_proximity_audio_slider.value = Config.zero_proximity_audio
-		_on_zero_proximity_audio_value_changed(Config.zero_proximity_audio)
 
 		brightness_slider.value = Config.terrain_brightness * 50.0
 		_on_terrain_brightness_value_changed(brightness_slider.value)
@@ -569,7 +562,6 @@ func toggle_menu(applied: bool = false):
 			Config.bg_music_volume = _initial_bg_music_volume
 			Config.drone_volume = _initial_drone_volume
 			Config.zero_proximity_nav = _initial_zero_proximity_nav
-			Config.zero_proximity_audio = _initial_zero_proximity_audio
 			Config.iterations = _initial_iterations
 			Config.terrain_brightness = _initial_terrain_brightness
 			Config.terrain_saturation = _initial_terrain_saturation
@@ -674,9 +666,6 @@ func _on_zero_proximity_nav_value_changed(value):
 	Config.zero_proximity_nav = value
 	zero_proximity_nav_value.text = "%.2f" % value
 
-func _on_zero_proximity_audio_value_changed(value):
-	Config.zero_proximity_audio = value
-	zero_proximity_audio_value.text = "%.2f" % value
 
 func _on_zoom_value_changed(value):
 	var z = _slider_to_zoom(value)
@@ -920,7 +909,6 @@ func _on_set_pos_pressed():
 	Config.effective_zoom = float(Config.zoom_factor)
 	Config.speed_near_zeros = zero_speed_slider.value
 	Config.zero_proximity_nav = zero_proximity_nav_slider.value
-	Config.zero_proximity_audio = zero_proximity_audio_slider.value
 	Config.camera_height = c_height
 	Config.height_a = h_a
 	Config.height_epsilon = h_eps
