@@ -168,7 +168,6 @@ var morph_type: int = 0
 var morph_value: float = 1.0
 var fog_enabled: bool = false
 var fog_density: float = 0.4
-var fog_distance: float = 100.0
 
 # Player parameters
 var movement_speed: float = 10.0
@@ -245,7 +244,6 @@ func save_settings():
 	config.set_value("rendering", "morph_value", morph_value)
 	config.set_value("rendering", "fog_enabled", fog_enabled)
 	config.set_value("rendering", "fog_density", fog_density)
-	config.set_value("rendering", "fog_distance", fog_distance)
 
 	config.set_value("player", "movement_speed", movement_speed)
 	config.set_value("player", "speed_near_zeros", speed_near_zeros)
@@ -320,7 +318,6 @@ func load_settings():
 	morph_value = config.get_value("rendering", "morph_value", morph_value)
 	fog_enabled = config.get_value("rendering", "fog_enabled", fog_enabled)
 	fog_density = config.get_value("rendering", "fog_density", fog_density)
-	fog_distance = config.get_value("rendering", "fog_distance", fog_distance)
 
 	movement_speed = config.get_value("player", "movement_speed", movement_speed)
 	speed_near_zeros = config.get_value("player", "speed_near_zeros", speed_near_zeros)

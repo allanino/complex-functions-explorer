@@ -159,16 +159,13 @@ func _process(delta):
 		#Setup fog	
 		var env = world_environment.environment
 	
-		var fog_color = lerp(Color(0.6, 0.8, 1.0), Color(1.0, 0.4, 0.1), _golden_hour_transition)
+		var fog_color = lerp(Color(0.3, 0.4, 0.5), Color(1.0, 0.4, 0.1), _golden_hour_transition)
 		fog_color = lerp(fog_color, Color(0.01, 0.02, 0.05), night_factor)
 
 		env.fog_enabled = Config.fog_enabled
-		env.fog_mode = Environment.FOG_MODE_DEPTH
+		env.fog_mode = Environment.FOG_MODE_EXPONENTIAL
 		env.fog_light_color = fog_color
-		env.fog_density = 1.0
-		env.fog_depth_begin = Config.fog_distance
-		env.fog_depth_end = Config.fog_distance * 3.0
-		env.fog_depth_curve = 0.2
+		env.fog_density = Config.fog_density * 0.05
 		env.fog_aerial_perspective = (1.0 - Config.fog_density)
 
 	# Only update branch time on branch functions
@@ -215,7 +212,6 @@ func _process(delta):
 		"sun_luminosity": Config.sun_luminosity,
 		"fog_enabled": Config.fog_enabled,
 		"fog_density": Config.fog_density,
-		"fog_distance": Config.fog_distance
 	}
 
 	var state_changed = current_field_state != _last_field_state
