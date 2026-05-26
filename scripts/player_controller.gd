@@ -266,6 +266,8 @@ func _physics_process(delta):
 
 
 func demo_actions():
+	Config.environment_type = 0
+
 	auto_walk_state = AutoWalkState.NONE
 	is_resetting_height = false
 
