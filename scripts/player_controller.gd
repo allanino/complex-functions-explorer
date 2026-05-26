@@ -299,8 +299,8 @@ func demo_actions():
 	tween.tween_property(self, "height_offset", 3.5 * ez, tween_duration)
 
 	# Phase 4: walk backwards to see the trivial zero at (-2, 0)
-	tween.tween_property(camera, "rotation:x", -PI / 2.0, tween_duration)
-	tween.parallel().tween_property(self, "global_position:x", -20.0 * ez, tween_duration)
+	tween.tween_property(camera, "rotation:x", -PI / 2.0, tween_duration * 0.6)
+	tween.parallel().tween_property(self, "global_position:x", -20.0 * ez, tween_duration * 0.6)
 
 	# Wait a moment to contemplate the trivial zero
 	tween.tween_interval(2.0)
