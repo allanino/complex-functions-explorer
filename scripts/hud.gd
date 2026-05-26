@@ -1081,8 +1081,12 @@ func _process(_delta):
 	if f_data.get("is_multivalued", false):
 		var k = 0
 		if Config.multivalued_mode == 0:
-			var progress = fmod(Config.branch_time * Config.branch_cycle_speed, 1.0) * Config.multivalued_n
-			k = int(floor(progress))
+			if Config.function_type == Config.ComplexFunc.MULTIVALUED_LOG:
+				var progress = Config.branch_time * Config.branch_cycle_speed * Config.multivalued_n
+				k = int(floor(progress))
+			else:
+				var progress = fmod(Config.branch_time * Config.branch_cycle_speed, 1.0) * Config.multivalued_n
+				k = int(floor(progress))
 		else:
 			k = Config.current_branch
 		target_text += "\nBranch k = %d" % k

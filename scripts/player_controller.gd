@@ -231,11 +231,17 @@ func _physics_process(delta):
 			var branch_changed = false
 			if last_t < 0.0 and current_t >= 0.0:
 				# Crossed from -t to +t (counter-clockwise around origin)
-				Config.current_branch = (Config.current_branch + 1) % Config.multivalued_n
+				if Config.function_type == Config.ComplexFunc.MULTIVALUED_LOG:
+					Config.current_branch += 1
+				else:
+					Config.current_branch = (Config.current_branch + 1) % Config.multivalued_n
 				branch_changed = true
 			elif last_t > 0.0 and current_t <= 0.0:
 				# Crossed from +t to -t (clockwise around origin)
-				Config.current_branch = (Config.current_branch + Config.multivalued_n - 1) % Config.multivalued_n
+				if Config.function_type == Config.ComplexFunc.MULTIVALUED_LOG:
+					Config.current_branch -= 1
+				else:
+					Config.current_branch = (Config.current_branch + Config.multivalued_n - 1) % Config.multivalued_n
 				branch_changed = true
 
 			if branch_changed:

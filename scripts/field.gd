@@ -295,7 +295,7 @@ static func multivalued_log(sigma: float, t: float, n: int, cycle_speed: float) 
 
 	if Config.multivalued_mode == 0: # Time cycle
 		var time = Config.branch_time
-		var progress = fmod(time * cycle_speed, 1.0) * float_n
+		var progress = time * cycle_speed * float_n
 		k_current = floor(progress)
 		var t_in_branch = progress - k_current
 

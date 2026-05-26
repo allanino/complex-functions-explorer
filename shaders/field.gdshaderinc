@@ -881,7 +881,7 @@ FieldData multivalued_log_with_derivatives(float sigma, float t, int n, float cy
 
     if (multivalued_mode == 0) { // Time cycle
         // Temporal branch selection & blending factor
-        float progress = fract(branch_time * cycle_speed) * float_n;
+        float progress = (branch_time * cycle_speed) * float_n;
         k_val = floor(progress);
         float t_in_branch = fract(progress);
 
