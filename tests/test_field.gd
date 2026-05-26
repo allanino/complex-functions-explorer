@@ -291,3 +291,52 @@ func test_multivalued_z_pow_inv_n():
 	Config.current_branch = orig_current_branch
 	Config.branch_time = orig_branch_time
 	Config.multivalued_morph_time = orig_morph_time
+
+func test_get_height_from_field():
+	var orig_height_type = Config.height_type
+	var orig_height_a = Config.height_a
+	var orig_height_epsilon = Config.height_epsilon
+	var orig_morph_value = Config.morph_value
+	var orig_effective_zoom = Config.effective_zoom
+
+	# Test 1: Non-finite inputs
+	var res1 = TestField.get_height_from_field(Vector2(INF, 0))
+	assert_almost_eq(res1, 0.0, 0.0001)
+
+	var res2 = TestField.get_height_from_field(Vector2(NAN, 0))
+	assert_almost_eq(res2, 0.0, 0.0001)
+
+	# Test 2: height_type = 0 (Logarithmic), morph_value = 1.0
+	Config.height_type = 0
+	Config.height_a = 3.0
+	Config.height_epsilon = 1.0
+	Config.morph_value = 1.0
+	Config.effective_zoom = 1.0
+	var f3 = Vector2(3, 4) # mag = 5
+	# log(1.0 + 5) = log(6) ~ 1.791759 * 3.0 = 5.375278
+	var expected_log = 3.0 * log(6.0)
+	var res3 = TestField.get_height_from_field(f3)
+	assert_almost_eq(res3, expected_log, 0.0001)
+
+	# Test 3: height_type = 1 (Linear), morph_value = 1.0
+	Config.height_type = 1
+	var expected_linear = 5.0
+	var res4 = TestField.get_height_from_field(f3)
+	assert_almost_eq(res4, expected_linear, 0.0001)
+
+	# Test 4: Morph and zoom scaling
+	Config.morph_value = 0.5
+	Config.effective_zoom = 2.0
+	# s = 0.5 - 0.5 * cos(PI * 0.5) = 0.5 - 0.5 * 0 = 0.5
+	# blend = log(1.0 + 8.0 * 0.5) / log(9.0) = log(5.0) / log(9.0) ~ 0.732486
+	# height = expected_linear * blend * effective_zoom
+	var expected_blend = log(5.0) / log(9.0)
+	var expected_scaled = 5.0 * expected_blend * 2.0
+	var res5 = TestField.get_height_from_field(f3)
+	assert_almost_eq(res5, expected_scaled, 0.0001)
+
+	Config.height_type = orig_height_type
+	Config.height_a = orig_height_a
+	Config.height_epsilon = orig_height_epsilon
+	Config.morph_value = orig_morph_value
+	Config.effective_zoom = orig_effective_zoom
