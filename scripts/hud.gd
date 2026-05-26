@@ -81,8 +81,6 @@ extends CanvasLayer
 @onready var fog_enabled_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/FogEnabledCheckbox
 @onready var fog_density_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/FogDensityContainer/FogDensitySlider
 @onready var fog_density_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/FogDensityContainer/FogDensityValue
-@onready var fog_distance_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/FogDistanceContainer/FogDistanceSlider
-@onready var fog_distance_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/FogDistanceContainer/FogDistanceValue
 @onready var shadows_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/GRAPHICS/Margin/VBox/ShadowsCheckbox
 
 @onready var hud_complex_checkbox = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/HUD/Margin/VBox/HudComplexCheckbox
@@ -221,7 +219,6 @@ var _initial_day_duration: float
 var _initial_static_time: float
 var _initial_fog_enabled: bool
 var _initial_fog_density: float
-var _initial_fog_distance: float
 var _initial_terrain_detail: int
 var _initial_antialiasing_mode: int
 var _initial_view_distance: int
@@ -258,7 +255,6 @@ func _ready():
 	self_illumination_slider.value_changed.connect(_on_self_illumination_value_changed)
 	fog_enabled_checkbox.toggled.connect(_on_fog_enabled_toggled)
 	fog_density_slider.value_changed.connect(_on_fog_density_value_changed)
-	fog_distance_slider.value_changed.connect(_on_fog_distance_value_changed)
 	hud_scale_slider.value_changed.connect(_on_hud_scale_value_changed)
 	iter_slider.value_changed.connect(_on_iterations_value_changed)
 
@@ -456,7 +452,6 @@ func toggle_menu(applied: bool = false):
 		_initial_static_time = Config.static_time
 		_initial_fog_enabled = Config.fog_enabled
 		_initial_fog_density = Config.fog_density
-		_initial_fog_distance = Config.fog_distance
 		_initial_terrain_detail = Config.terrain_detail
 		_initial_antialiasing_mode = Config.antialiasing_mode
 		_initial_view_distance = Config.view_distance
@@ -508,8 +503,6 @@ func toggle_menu(applied: bool = false):
 		fog_enabled_checkbox.button_pressed = Config.fog_enabled
 		fog_density_slider.value = Config.fog_density * 100.0
 		_on_fog_density_value_changed(fog_density_slider.value)
-		fog_distance_slider.value = Config.fog_distance
-		_on_fog_distance_value_changed(fog_distance_slider.value)
 		shadows_checkbox.button_pressed = Config.shadows_enabled
 		hud_complex_checkbox.button_pressed = Config.show_hud_complex
 		hud_navigation_checkbox.button_pressed = Config.show_hud_navigation
@@ -589,7 +582,6 @@ func toggle_menu(applied: bool = false):
 			Config.static_time = _initial_static_time
 			Config.fog_enabled = _initial_fog_enabled
 			Config.fog_density = _initial_fog_density
-			Config.fog_distance = _initial_fog_distance
 			Config.terrain_detail = _initial_terrain_detail
 			Config.antialiasing_mode = _initial_antialiasing_mode
 			Config.view_distance = _initial_view_distance
@@ -711,10 +703,6 @@ func _on_fog_enabled_toggled(pressed: bool):
 func _on_fog_density_value_changed(value):
 	Config.fog_density = value / 100.0
 	fog_density_value.text = "%.2f" % Config.fog_density
-
-func _on_fog_distance_value_changed(value):
-	Config.fog_distance = value
-	fog_distance_value.text = str(int(value))
 
 func _on_hud_scale_value_changed(value):
 	hud_scale_value.text = str(int(value)) + "%"
@@ -958,7 +946,6 @@ func _on_set_pos_pressed():
 	Config.static_time = static_time_slider.value
 	Config.fog_enabled = fog_enabled_checkbox.button_pressed
 	Config.fog_density = fog_density_slider.value / 100.0
-	Config.fog_distance = fog_distance_slider.value
 	Config.hud_scale = hud_scale_slider.value / 100.0
 	Config.function_type = func_button.get_item_id(func_button.selected)
 	Config.height_type = height_button.selected
