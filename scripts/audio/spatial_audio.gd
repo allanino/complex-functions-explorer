@@ -51,7 +51,7 @@ var player: Node3D
 
 func _ready():
 	# Finding the player to sample position
-	player = get_tree().root.find_child("Player", true, false)
+	player = get_tree().get_first_node_in_group("player")
 
 	setup_audio_bus_and_effects()
 
@@ -181,7 +181,7 @@ func _process(delta):
 	if player:
 		pos = player.global_position
 	else:
-		player = get_tree().root.find_child("Player", true, false)
+		player = get_tree().get_first_node_in_group("player")
 		if player: pos = player.global_position
 
 	# Sample complex field
