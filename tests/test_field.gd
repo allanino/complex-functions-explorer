@@ -91,6 +91,23 @@ func test_evaluate_poly():
 	assert_almost_eq(res.x, 17.0, 0.0001)
 	assert_almost_eq(res.y, 0.0, 0.0001)
 
+func test_lanczos_gamma():
+	var res = TestField.lanczos_gamma(Vector2(1, 0))
+	assert_almost_eq(res.x, 1.0, 0.0001)
+	assert_almost_eq(res.y, 0.0, 0.0001)
+
+	var res2 = TestField.lanczos_gamma(Vector2(2, 0))
+	assert_almost_eq(res2.x, 1.0, 0.0001)
+	assert_almost_eq(res2.y, 0.0, 0.0001)
+
+	var res3 = TestField.lanczos_gamma(Vector2(3, 0))
+	assert_almost_eq(res3.x, 2.0, 0.0001)
+	assert_almost_eq(res3.y, 0.0, 0.0001)
+
+	var res4 = TestField.lanczos_gamma(Vector2(0.5, 0))
+	assert_almost_eq(res4.x, sqrt(PI), 0.0001)
+	assert_almost_eq(res4.y, 0.0, 0.0001)
+
 func test_complex_gamma():
 	var res = TestField.complex_gamma(1, 0)
 	assert_almost_eq(res.x, 1.0, 0.0001)
