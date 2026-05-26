@@ -297,6 +297,7 @@ func demo_actions():
 	Config.show_hud_zeros = false
 	Config.show_hud_monitor_fps = false
 	Config.show_hud_monitor_chunks = false
+	Config.shadows_enabled = false
 	Config.show_curves = true
 
 
@@ -352,6 +353,7 @@ func demo_actions():
 
 	# Phase 6: rotate back to horizontal and start auto-walk
 	tween.tween_property(self, "rotation:y", 0.0, tween_duration * 0.5)
+	tween.parallel().tween_property(camera, "rotation:x",  - PI / 8.0, tween_duration)
 
 	tween.tween_interval(1.0)
 
