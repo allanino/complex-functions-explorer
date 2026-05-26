@@ -75,15 +75,15 @@ vec2 complex_pow(vec2 z, vec2 w) {
 
 vec2 complex_sin(vec2 z) {
     return vec2(
-        sin(z.x) * cosh(z.y),
-        cos(z.x) * sinh(z.y)
+        sin(z.x) * cosh(y),
+        cos(z.x) * sinh(y)
     );
 }
 
 vec2 complex_cos(vec2 z) {
     return vec2(
-        cos(z.x) * cosh(z.y),
-        -sin(z.x) * sinh(z.y)
+        cos(z.x) * cosh(y),
+        -sin(z.x) * sinh(y)
     );
 }
 
@@ -167,19 +167,19 @@ vec2 complex_tan(vec2 z) {
 DERIVATION OF THE OVERFLOW-SAFE COMPLEX COTANGENT FORMULA
 ================================================================================
 
-Goal: Compute cot(z.x + iy) in a single Cartesian vec2 without evaluating raw
-      hyperbolic functions that explode to INF when |z.y| is large.
+Goal: Compute cot(x + iy) in a single Cartesian vec2 without evaluating raw
+      hyperbolic functions that explode to INF when |y| is large.
 
 1. Start with the standard real-hyperbolic identity for complex cotangent:
-   cot(z.x + iy) = [ sin(2x) - i*sinh(2y) ] / [ cosh(2y) - cos(2x) ]
+   cot(x + iy) = [ sin(2x) - i*sinh(2y) ] / [ cosh(2y) - cos(2x) ]
 
 2. Express the hyperbolic terms using their exponential definitions:
    cosh(2y) = (e^(2y) + e^(-2y)) / 2
    sinh(2y) = (e^(2y) - e^(-2y)) / 2
 
-3. To prevent overflow when |z.y| is large, we can algebraically multiply the
+3. To prevent overflow when |y| is large, we can algebraically multiply the
    entire numerator and denominator by a scaling factor of e^(-2|z.y|):
-   cot(z.x + iy) = [ (sin(2x) - i*sinh(2y)) * e^(-2|z.y|) ]
+   cot(x + iy) = [ (sin(2x) - i*sinh(2y)) * e^(-2|z.y|) ]
                  --------------------------------------
                  [ (cosh(2y) - cos(2x)) * e^(-2|z.y|) ]
 
@@ -187,7 +187,7 @@ Goal: Compute cot(z.x + iy) in a single Cartesian vec2 without evaluating raw
    cosh(2y) * e^(-2|z.y|) = [(e^(2y) + e^(-2y)) / 2] * e^(-2|z.y|)
                         = (e^(2y - 2|z.y|) + e^(-2y - 2|z.y|)) / 2
 
-   - When z.y >= 0:  1/2 * (e^(0) + e^(-4y))  = 0.5 * (1.0 + e^(-4|z.y|))
+   - When y >= 0:  1/2 * (e^(0) + e^(-4y))  = 0.5 * (1.0 + e^(-4|z.y|))
    - When z.y < 0:   1/2 * (e^(-4|z.y|) + e^0)  = 0.5 * (1.0 + e^(-4|z.y|))
    Therefore, scaled_cosh = 0.5 * (1.0 + e^(-4|z.y|)) globally.
 
@@ -195,7 +195,7 @@ Goal: Compute cot(z.x + iy) in a single Cartesian vec2 without evaluating raw
    sinh(2y) * e^(-2|z.y|) = [(e^(2y) - e^(-2y)) / 2] * e^(-2|z.y|)
                         = (e^(2y - 2|z.y|) - e^(-2y - 2|z.y|)) / 2
 
-   - When z.y >= 0:  1/2 * (e^(0) - e^(-4y))  =  0.5 * (1.0 - e^(-4|z.y|))
+   - When y >= 0:  1/2 * (e^(0) - e^(-4y))  =  0.5 * (1.0 - e^(-4|z.y|))
    - When z.y < 0:   1/2 * (e^(-4|z.y|) - e^0)  = -0.5 * (1.0 - e^(-4|z.y|))
    Therefore, scaled_sinh = 0.5 * (1.0 - e^(-4|z.y|)) * sign(z.y) globally.
 
@@ -245,31 +245,31 @@ vec2 complex_cot(vec2 z) {
 DERIVATION OF THE OVERFLOW-SAFE COMPLEX LOG SINE FORMULA
 ================================================================================
 
-Goal: Compute ln(sin(z.x + iy)) directly in log-space without evaluating massive
+Goal: Compute ln(sin(x + iy)) directly in log-space without evaluating massive
       exponential terms that overflow standard floating-point limits.
 
 1. Start with the standard Cartesian definition of complex sine:
-   sin(z.x + iy) = sin(z.x)*cosh(z.y) + i*cos(z.x)*sinh(z.y)
+   sin(x + iy) = sin(x)*cosh(y) + i*cos(x)*sinh(y)
 
 2. Express the hyperbolic functions in terms of their exponential components:
-   cosh(z.y) = (e^|z.y| + e^-|z.y|) / 2
-   sinh(z.y) = sign(z.y) * (e^|z.y| - e^-|z.y|) / 2
+   cosh(y) = (e^|y| + e^-|y|) / 2
+   sinh(y) = sign(z.y) * (e^|y| - e^-|y|) / 2
 
 3. Substitute these exponential definitions back into step 1:
-   sin(z.x + iy) = sin(z.x) * [(e^|z.y| + e^-|z.y|) / 2] + i*cos(z.x) * [sign(z.y) * (e^|z.y| - e^-|z.y|) / 2]
+   sin(z.x + iy) = sin(z.x) * [(e^|y| + e^-|y|) / 2] + i*cos(z.x) * [sign(z.y) * (e^|y| - e^-|y|) / 2]
 
-4. Factor out the dominant scaling factor, (e^|z.y| / 2), from both terms:
-   sin(z.x + iy) = (e^|z.y| / 2) * [ sin(z.x)*(1 + e^(-2|z.y|)) + i * sign(z.y)*cos(z.x)*(1 - e^(-2|z.y|)) ]
+4. Factor out the dominant scaling factor, (e^|y| / 2), from both terms:
+   sin(z.x + iy) = (e^|y| / 2) * [ sin(z.x)*(1 + e^(-2|z.y|)) + i * sign(z.y)*cos(z.x)*(1 - e^(-2|z.y|)) ]
 
 5. Apply the complex logarithm identity, ln(A * B) = ln(A) + ln(B):
-   ln(sin(z.x + iy)) = ln(e^|z.y| / 2) + ln[ sin(z.x)*(1 + e^(-2|z.y|)) + i * sign(z.y)*cos(z.x)*(1 - e^(-2|z.y|)) ]
+   ln(sin(x + iy)) = ln(e^|y| / 2) + ln[ sin(z.x)*(1 + e^(-2|z.y|)) + i * sign(z.y)*cos(z.x)*(1 - e^(-2|z.y|)) ]
 
 6. Simplify the first log term using basic logarithm rules:
-   ln(e^|z.y| / 2) = ln(e^|z.y|) - ln(2)
-                 = |z.y| - ln(2)
+   ln(e^|y| / 2) = ln(e^|y|) - ln(2)
+                 = |y| - ln(2)
 
 7. This yields the final, completely stable two-part equation:
-   Real Scaler (log_scale) = |z.y| - ln(2)
+   Real Scaler (log_scale) = |y| - ln(2)
    Bounded Internal Z      = vec2( sin(z.x)*(1 + e^(-2|z.y|)), sign(z.y)*cos(z.x)*(1 - e^(-2|z.y|)) )
 
    Result = vec2(log_scale, 0.0) + complex_log(Internal Z)
@@ -678,10 +678,10 @@ DERIVATION OF THE OVERFLOW-SAFE COMPLEX COTANGENT WITH DERIVATIVES
 ================================================================================
 
 Goal: Compute cot(z_val) and its derivative d/dz cot(z_val) without evaluating raw
-      sine or cosine functions that explode to INF when |z.y| is large.
+      sine or cosine functions that explode to INF when |y| is large.
 
 1. Compute the stable value first:
-   vec2 C = complex_cot(vec2(sigma, t));  // C = u + iv
+   vec2 C = complex_cot(z_val);  // C = u + iv
 
 2. Use the trigonometric identity for the derivative of cotangent:
    d/dz cot(z_val) = -csc^2(z_val) = -(1 + cot^2(z_val))
