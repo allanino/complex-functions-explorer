@@ -124,6 +124,37 @@ func test_mandelbrot():
 	assert_almost_eq(res.x, 0.0, 0.0001)
 	assert_almost_eq(res.y, 0.0, 0.0001)
 
+func test_get_rational():
+	var orig_num = Config.rational_num_coeffs
+	var orig_den = Config.rational_den_coeffs
+
+	# f(z) = (1 + 2z) / (1 + z)
+	var test_num = PackedVector2Array()
+	var test_den = PackedVector2Array()
+	for i in range(10):
+		test_num.append(Vector2.ZERO)
+		test_den.append(Vector2.ZERO)
+
+	test_num[0] = Vector2(1, 0)
+	test_num[1] = Vector2(2, 0)
+	test_den[0] = Vector2(1, 0)
+	test_den[1] = Vector2(1, 0)
+
+	Config.rational_num_coeffs = test_num
+	Config.rational_den_coeffs = test_den
+
+	# Test with z = 2.0 + 0.0i -> f(2) = (1 + 4) / (1 + 2) = 5/3
+	var res1 = TestField.get_rational(2.0, 0.0)
+	assert_almost_eq(res1.x, 5.0/3.0, 0.0001)
+	assert_almost_eq(res1.y, 0.0, 0.0001)
+
+	# Test with z = 0.0 + 1.0i -> f(i) = (1 + 2i) / (1 + i) = (1 + 2i)(1 - i) / 2 = (1 - i + 2i + 2) / 2 = (3 + i) / 2 = 1.5 + 0.5i
+	var res2 = TestField.get_rational(0.0, 1.0)
+	assert_almost_eq(res2.x, 1.5, 0.0001)
+	assert_almost_eq(res2.y, 0.5, 0.0001)
+
+	Config.rational_num_coeffs = orig_num
+	Config.rational_den_coeffs = orig_den
 func test_multivalued_z_pow_inv_n():
 	# Save original config values to restore them later
 	var orig_mode = Config.multivalued_mode
