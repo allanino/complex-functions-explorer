@@ -152,8 +152,11 @@ static func complex_gamma(sigma: float, t: float) -> Vector2:
 		return complex_exp(log_sum.x, log_sum.y)
 	return lanczos_gamma(Vector2(sigma, t))
 
-static func zeta_continuation(sigma: float, t: float) -> Vector2:
-	if sigma >= 0.5: return zeta(sigma, t)
+static func log_zeta_continuation(sigma: float, t: float) -> Vector2:
+	if sigma >= 0.5:
+		var z = zeta(sigma, t)
+		return complex_log(z.x, z.y)
+
 	var s = Vector2(sigma, t)
 	var s1 = Vector2(1.0 - sigma, -t)
 
@@ -168,7 +171,11 @@ static func zeta_continuation(sigma: float, t: float) -> Vector2:
 	var zeta_part = zeta(s1.x, s1.y)
 	log_sum += complex_log(zeta_part.x, zeta_part.y)
 
-	return complex_exp(log_sum.x, log_sum.y)
+	return log_sum
+
+static func zeta_continuation(sigma: float, t: float) -> Vector2:
+	var log_val = log_zeta_continuation(sigma, t)
+	return complex_exp(log_val.x, log_val.y)
 
 static func lanczos_log_gamma(z: Vector2) -> Vector2:
 	var z_m1 = z - Vector2(1.0, 0.0)
@@ -241,8 +248,7 @@ static func xi(sigma: float, t: float, iterations: int) -> Vector2:
 	log_sum -= complex_mul(s_half, Vector2(LOG_PI, 0.0))
 	log_sum += complex_log_gamma(s_half.x, s_half.y)
 
-	var z = zeta_continuation(sigma, t)
-	log_sum += complex_log(z.x, z.y)
+	log_sum += log_zeta_continuation(sigma, t)
 
 	return complex_exp(log_sum.x, log_sum.y)
 
@@ -295,6 +301,7 @@ static func get_field(x: float, z: float) -> Vector2:
 	match Config.function_type:
 		Config.ComplexFunc.ZETA: return zeta(sigma, t)
 		Config.ComplexFunc.ZETA_REFLECTION: return zeta_continuation(sigma, t)
+		Config.ComplexFunc.XI: return xi(sigma, t, Config.iterations)
 		Config.ComplexFunc.DIRICHLET_ETA: return dirichlet_eta(sigma, t, Config.iterations)
 		Config.ComplexFunc.DIRICHLET_BETA: return dirichlet_beta(sigma, t, Config.iterations)
 		Config.ComplexFunc.GAMMA: return complex_gamma(sigma, t)
@@ -309,7 +316,6 @@ static func get_field(x: float, z: float) -> Vector2:
 		Config.ComplexFunc.LOG: return complex_log(sigma, t)
 		Config.ComplexFunc.IDENTITY: return Vector2(sigma, t)
 		Config.ComplexFunc.RATIONAL: return get_rational(sigma, t)
-		Config.ComplexFunc.XI: return xi(sigma, t, Config.iterations)
 		Config.ComplexFunc.MULTIVALUED_Z_POW: return multivalued_z_pow_inv_n(sigma, t, Config.multivalued_n, Config.branch_cycle_speed)
 
 	return Vector2.ZERO
