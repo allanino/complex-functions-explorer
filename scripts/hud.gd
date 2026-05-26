@@ -31,17 +31,9 @@ extends CanvasLayer
 @onready var iter_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/IterContainer/IterValue
 @onready var rational_container = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/RationalContainer
 @onready var rational_input = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/RationalContainer/RationalInput
-@onready var multivalued_mode_container = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/MultivaluedModeContainer
-@onready var multivalued_mode_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/MultivaluedModeContainer/MultivaluedModeButton
 @onready var multivalued_container = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/MultivaluedContainer
 @onready var multivalued_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/MultivaluedContainer/MultivaluedSlider
 @onready var multivalued_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/MultivaluedContainer/MultivaluedValue
-@onready var cycle_speed_container = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/CycleSpeedContainer
-@onready var cycle_speed_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/CycleSpeedContainer/CycleSpeedSlider
-@onready var cycle_speed_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/CycleSpeedContainer/CycleSpeedValue
-@onready var morph_time_container = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/MorphTimeContainer
-@onready var morph_time_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/MorphTimeContainer/MorphTimeSlider
-@onready var morph_time_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/MorphTimeContainer/MorphTimeValue
 
 @onready var re_input = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox/ReContainer/ReInput
 @onready var im_input = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox/ImContainer/ImInput
@@ -235,7 +227,6 @@ func _ready():
 	quit_button.pressed.connect(_on_quit_pressed)
 	func_button.item_selected.connect(_on_func_item_selected)
 	height_button.item_selected.connect(_on_height_selected)
-	multivalued_mode_button.item_selected.connect(_on_multivalued_mode_selected)
 
 	master_volume_slider.value_changed.connect(_on_master_volume_value_changed)
 	bg_music_slider.value_changed.connect(_on_bg_music_value_changed)
@@ -283,10 +274,6 @@ func _ready():
 		if f_data.get("hidden", false):
 			continue
 		func_button.add_item(f_data.get("name", "Unknown"), f_key)
-
-	multivalued_mode_button.clear()
-	multivalued_mode_button.add_item("Time cycle")
-	multivalued_mode_button.add_item("Branch portals")
 
 	height_button.clear()
 	height_button.add_item("Logarithmic (a*log(ε + abs))")
@@ -381,7 +368,6 @@ func _any_dropdown_popup():
 		|| terrain_detail_button.get_popup().visible
 		|| aa_button.get_popup().visible
 		|| color_scheme_button.get_popup().visible
-		|| multivalued_mode_button.get_popup().visible
 	)
 
 func _on_tooltip_timer_timeout():
@@ -542,12 +528,6 @@ func toggle_menu(applied: bool = false):
 
 		multivalued_slider.value = Config.multivalued_n
 		_on_multivalued_n_value_changed(Config.multivalued_n)
-		multivalued_mode_button.selected = Config.multivalued_mode
-		_on_multivalued_mode_selected(Config.multivalued_mode)
-		cycle_speed_slider.value = Config.branch_cycle_speed
-		_on_cycle_speed_value_changed(Config.branch_cycle_speed)
-		morph_time_slider.value = Config.multivalued_morph_time
-		_on_morph_time_value_changed(Config.multivalued_morph_time)
 
 		func_button.select(func_button.get_item_index(Config.function_type))
 		height_button.selected = Config.height_type
@@ -611,9 +591,7 @@ func _on_func_selected(f_type: int):
 		_on_iterations_value_changed(Config.iterations)
 
 	rational_container.visible = is_rational
-	multivalued_mode_container.visible = is_multivalued
 	multivalued_container.visible = is_multivalued
-	_on_multivalued_mode_selected(multivalued_mode_button.selected)
 	iter_container.visible = has_iters
 	critical_checkbox.visible = is_dirichlect
 	auto_walk_checkbox.visible = is_dirichlect
@@ -623,12 +601,6 @@ func _on_height_selected(index):
 	var is_log = (index == 0)
 	height_a_container.visible = is_log
 	height_eps_container.visible = is_log
-
-func _on_multivalued_mode_selected(index):
-	var is_multivalued = Config.function.get("is_multivalued", false)
-	var is_cycle = (index == 0)
-	cycle_speed_container.visible = is_multivalued and is_cycle
-	morph_time_container.visible = is_multivalued and is_cycle
 
 func _on_freeze_time_toggled(pressed: bool):
 	Config.freeze_time = pressed
@@ -709,14 +681,6 @@ func _on_iterations_value_changed(value):
 func _on_multivalued_n_value_changed(value):
 	multivalued_value.text = str(int(value))
 	Config.multivalued_n = int(value)
-
-func _on_cycle_speed_value_changed(value):
-	cycle_speed_value.text = "%.1f" % value
-	Config.branch_cycle_speed = value
-
-func _on_morph_time_value_changed(value):
-	morph_time_value.text = "%.2f" % value
-	Config.multivalued_morph_time = value
 
 func _on_terrain_brightness_value_changed(value):
 	Config.terrain_brightness = value / 50.0
@@ -941,9 +905,6 @@ func _on_set_pos_pressed():
 	Config.function_type = func_button.get_item_id(func_button.selected)
 	Config.height_type = height_button.selected
 	Config.multivalued_n = int(multivalued_slider.value)
-	Config.multivalued_mode = multivalued_mode_button.selected
-	Config.branch_cycle_speed = cycle_speed_slider.value
-	Config.multivalued_morph_time = morph_time_slider.value
 
 	apply_aa()
 
@@ -1075,17 +1036,7 @@ func _process(_delta):
 	domain_label.text = "Re = %.3f\nIm = %.3f" % [x * 0.1 * scale_factor, -z * 0.1 * scale_factor]
 	var target_text = "Re = %.3f\nIm = %.3f\n|f| = %.3f" % [f.x, f.y, f.length()]
 	if f_data.get("is_multivalued", false):
-		var k = 0
-		if Config.multivalued_mode == 0:
-			if Config.function_type == Config.ComplexFunc.MULTIVALUED_LOG:
-				var progress = Config.branch_time * Config.branch_cycle_speed * Config.multivalued_n
-				k = int(floor(progress))
-			else:
-				var progress = fmod(Config.branch_time * Config.branch_cycle_speed, 1.0) * Config.multivalued_n
-				k = int(floor(progress))
-		else:
-			k = Config.current_branch
-		target_text += "\nBranch k = %d" % k
+		target_text += "\nBranch k = %d" % Config.current_branch
 	target_label.text = target_text
 
 	complex_panel.visible = Config.show_hud_complex
