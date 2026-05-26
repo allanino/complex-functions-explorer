@@ -116,7 +116,7 @@ func get_terrain_height(x: float, z: float, field_val: Vector2 = Vector2.INF) ->
 		return Field.get_height_from_field(field_val)
 	return Field.get_height(x, z)
 
-func _process(delta):
+func _physics_process(delta):
 	var is_detached = false
 	var hud_node = get_node_or_null("/root/Main/HUD")
 	if hud_node and hud_node.detach_overlay and hud_node.detach_overlay.visible:
@@ -271,4 +271,4 @@ func _process(delta):
 				Config.visited_zeros.push_back(z)
 				last_detected_z = z
 
-	global_position += velocity * delta
+	move_and_slide()
