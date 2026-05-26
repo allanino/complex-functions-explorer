@@ -125,6 +125,15 @@ func test_complex_gamma():
 	assert_almost_eq(res2.x, 0.133910, 0.0001)
 	assert_almost_eq(res2.y, 0.0962865, 0.0001)
 
+func test_complex_log_gamma():
+	var res = TestField.complex_log_gamma(1, 0)
+	assert_almost_eq(res.x, 0.0, 0.0001)
+	assert_almost_eq(res.y, 0.0, 0.0001)
+
+	var res2 = TestField.complex_log_gamma(-2, -1)
+	assert_almost_eq(res2.x, -1.802215, 0.0001)
+	assert_almost_eq(res2.y, 0.62339, 0.0001)
+
 func test_zeta():
 	var res = TestField.zeta(0.5, 14.134725)
 	assert_almost_eq(res.x, 0.0, 0.015)
