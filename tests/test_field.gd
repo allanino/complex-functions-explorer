@@ -123,3 +123,24 @@ func test_mandelbrot():
 	var res = TestField.mandelbrot(0, 0, 10)
 	assert_almost_eq(res.x, 0.0, 0.0001)
 	assert_almost_eq(res.y, 0.0, 0.0001)
+
+func test_lanczos_log_gamma():
+	var res = TestField.lanczos_log_gamma(Vector2(1.0, 0.0))
+	assert_almost_eq(res.x, 0.0, 0.0001)
+	assert_almost_eq(res.y, 0.0, 0.0001)
+
+	res = TestField.lanczos_log_gamma(Vector2(2.0, 0.0))
+	assert_almost_eq(res.x, 0.0, 0.0001)
+	assert_almost_eq(res.y, 0.0, 0.0001)
+
+	res = TestField.lanczos_log_gamma(Vector2(3.0, 0.0))
+	assert_almost_eq(res.x, log(2.0), 0.0001)
+	assert_almost_eq(res.y, 0.0, 0.0001)
+
+	res = TestField.lanczos_log_gamma(Vector2(1.0, 1.0))
+	assert_almost_eq(res.x, -0.6509, 0.0001)
+	assert_almost_eq(res.y, -0.3016, 0.0001)
+
+	res = TestField.lanczos_log_gamma(Vector2(-2.0, -1.0))
+	assert_almost_eq(res.x, -1.8022, 0.0001)
+	assert_almost_eq(res.y, 0.6233, 0.0001)
