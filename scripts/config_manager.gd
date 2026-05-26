@@ -136,7 +136,6 @@ var branch_cycle_speed: float = 0.5
 var multivalued_morph_time: float = 0.1
 var branch_time: float = 0.0
 var current_branch: int = 0 # Session state for Portals mode
-var zero_threshold: float = 0.5
 var zoom_factor: float = 1.0
 var zoom_damping: float = 0.5
 
@@ -187,7 +186,6 @@ var hud_scale: float = 1.0
 var master_volume: float = 100.0
 var bg_music_volume: float = 100.0
 var drone_volume: float = 100.0
-var zero_proximity_audio: float = 0.5
 
 # Session state (not saved)
 var visited_zeros: Array[Vector2] = []
@@ -216,7 +214,6 @@ func save_settings():
 	config.set_value("field", "multivalued_mode", multivalued_mode)
 	config.set_value("field", "branch_cycle_speed", branch_cycle_speed)
 	config.set_value("field", "multivalued_morph_time", multivalued_morph_time)
-	config.set_value("field", "zero_threshold", zero_threshold)
 	config.set_value("field", "zoom_factor", zoom_factor)
 	config.set_value("field", "zoom_damping", zoom_damping)
 
@@ -263,7 +260,6 @@ func save_settings():
 	config.set_value("audio", "master_volume", master_volume)
 	config.set_value("audio", "bg_music_volume", bg_music_volume)
 	config.set_value("audio", "drone_volume", drone_volume)
-	config.set_value("audio", "zero_proximity_audio", zero_proximity_audio)
 
 	var err = config.save(SAVE_PATH)
 	if err != OK:
@@ -293,7 +289,6 @@ func load_settings():
 	multivalued_mode = config.get_value("field", "multivalued_mode", multivalued_mode)
 	branch_cycle_speed = config.get_value("field", "branch_cycle_speed", branch_cycle_speed)
 	multivalued_morph_time = config.get_value("field", "multivalued_morph_time", multivalued_morph_time)
-	zero_threshold = config.get_value("field", "zero_threshold", zero_threshold)
 	zoom_factor = config.get_value("field", "zoom_factor", zoom_factor)
 	zoom_damping = config.get_value("field", "zoom_damping", zoom_damping)
 
@@ -340,4 +335,3 @@ func load_settings():
 	master_volume = config.get_value("audio", "master_volume", master_volume)
 	bg_music_volume = config.get_value("audio", "bg_music_volume", bg_music_volume)
 	drone_volume = config.get_value("audio", "drone_volume", drone_volume)
-	zero_proximity_audio = config.get_value("audio", "zero_proximity_audio", zero_proximity_audio)
