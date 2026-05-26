@@ -395,11 +395,15 @@ func _on_tooltip_timer_timeout():
 	if _pending_tooltip_key != "":
 		tooltip_label.custom_minimum_size.x = 250
 		tooltip_label.text = DESCRIPTIONS[_pending_tooltip_key]
+		# Hide it during layout processing to prevent flicker
+		tooltip.modulate.a = 0.0
 		tooltip.visible = true
 		# Force a complete layout recalculation to fix the first-render height bug
+		await get_tree().process_frame
 		tooltip.size = Vector2.ZERO
 		tooltip.reset_size()
 		_update_tooltip_position()
+		tooltip.modulate.a = 1.0
 
 func _update_tooltip_position():
 	var mouse_pos = get_viewport().get_mouse_position()
