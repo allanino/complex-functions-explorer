@@ -1164,13 +1164,21 @@ func _apply_stack_layout(stack: VBoxContainer, desired_cards: Array):
 		if not child in desired_cards:
 			stack.remove_child(child)
 
+	# Optimization: The original code moved each card to index 0 in forward order,
+	# which inverted the final display order. By iterating backwards through the
+	# desired_cards array, we can safely target absolute indices (0 to N-1) as we build
+	# the stack from top to bottom. This ensures `move_child` operates within valid
+	# index bounds even when new cards are being added, and eliminates redundant moves.
 	for i in range(desired_cards.size()):
-		var card = desired_cards[i]
+		var target_index = i
+		var card = desired_cards[desired_cards.size() - 1 - i]
 		if card.get_parent() != stack:
 			if card.get_parent():
 				card.get_parent().remove_child(card)
 			stack.add_child(card)
-		stack.move_child(card, 0)
+
+		if card.get_index() != target_index:
+			stack.move_child(card, target_index)
 
 func _rescale_card(card: Control, scale: float):
 	if card == null: return
