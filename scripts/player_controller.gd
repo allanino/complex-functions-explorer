@@ -28,6 +28,7 @@ var current_z: Vector2 = Vector2(0.0, 0.0)
 @onready var camera = $Camera3D
 
 func _ready():
+	add_to_group("player")
 	# Set the global position directly using a Vector3(x, y, z)
 	global_position = Vector3(5.0, 0.0, 0.0)
 	var scale_factor = 1.0 / Config.effective_zoom
