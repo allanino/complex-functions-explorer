@@ -229,14 +229,14 @@ func _physics_process(delta):
 		# Detect crossing of the positive real axis (sigma > 0, t=0)
 		if current_sigma > 0.0:
 			var branch_changed = false
-			if last_t < 0.0 and current_t >= 0.0:
+			if last_z.y < 0.0 and current_z.y >= 0.0:
 				# Crossed from -t to +t (counter-clockwise around origin)
 				if Config.function_type == Config.ComplexFunc.MULTIVALUED_LOG:
 					Config.current_branch += 1
 				else:
 					Config.current_branch = (Config.current_branch + 1) % Config.multivalued_n
 				branch_changed = true
-			elif last_t > 0.0 and current_t <= 0.0:
+			elif last_z.y > 0.0 and current_z.y <= 0.0:
 				# Crossed from +t to -t (clockwise around origin)
 				if Config.function_type == Config.ComplexFunc.MULTIVALUED_LOG:
 					Config.current_branch -= 1
