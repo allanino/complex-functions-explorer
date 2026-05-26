@@ -263,9 +263,7 @@ func save_settings():
 	config.set_value("audio", "bg_music_volume", bg_music_volume)
 	config.set_value("audio", "drone_volume", drone_volume)
 
-	var err = config.save(SAVE_PATH)
-	if err != OK:
-		print("Error saving settings: ", err)
+	config.save(SAVE_PATH)
 
 func load_settings():
 	var config = ConfigFile.new()
