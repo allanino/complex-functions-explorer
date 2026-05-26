@@ -342,7 +342,7 @@ func test_get_height():
 	var orig_type = Config.height_type
 	var orig_morph = Config.morph_value
 
-	Config.function_type = Config.ComplexFunc.ZETA
+	Config.set("function_type", Config.ComplexFunc.ZETA_REFLECTION)
 	Config.effective_zoom = 1.0
 	Config.height_type = 1 # linear height
 	Config.morph_value = 1.0 # blend = 1.0
@@ -361,7 +361,7 @@ func test_get_height():
 	assert_almost_eq(h2, 0.5, 0.0001)
 
 	Config.performance_protection_active = orig_perf
-	Config.function_type = orig_func
+	Config.set("function_type", orig_func)
 	Config.effective_zoom = orig_zoom
 	Config.height_type = orig_type
 	Config.morph_value = orig_morph
