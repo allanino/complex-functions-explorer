@@ -1,6 +1,6 @@
 extends Node
 
-const SAVE_PATH = "user://settings.cfg"
+var save_path = "user://settings.cfg"
 
 enum ComplexFunc {
 	ZETA,
@@ -265,11 +265,11 @@ func save_settings():
 	config.set_value("audio", "bg_music_volume", bg_music_volume)
 	config.set_value("audio", "drone_volume", drone_volume)
 
-	config.save(SAVE_PATH)
+	config.save(save_path)
 
 func load_settings():
 	var config = ConfigFile.new()
-	var err = config.load(SAVE_PATH)
+	var err = config.load(save_path)
 	if err != OK:
 		return
 

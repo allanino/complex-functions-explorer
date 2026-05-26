@@ -3,37 +3,16 @@ extends GutTest
 const ConfigManager = preload("res://scripts/config_manager.gd")
 var config_manager
 
-var _has_backup = false
-
 func before_each():
-	_backup_settings()
 	config_manager = ConfigManager.new()
+	config_manager.save_path = "user://test_settings.cfg"
 
 func after_each():
 	if is_instance_valid(config_manager):
 		config_manager.free()
-	_restore_settings()
-
-func _backup_settings():
 	var dir = DirAccess.open("user://")
-	if dir != null and dir.file_exists("settings.cfg"):
-		dir.copy("settings.cfg", "settings_backup.cfg")
-		dir.remove("settings.cfg")
-		_has_backup = true
-	else:
-		_has_backup = false
-
-func _restore_settings():
-	var dir = DirAccess.open("user://")
-	if dir != null:
-		if _has_backup:
-			if dir.file_exists("settings.cfg"):
-				dir.remove("settings.cfg")
-			dir.copy("settings_backup.cfg", "settings.cfg")
-			dir.remove("settings_backup.cfg")
-		else:
-			if dir.file_exists("settings.cfg"):
-				dir.remove("settings.cfg")
+	if dir != null and dir.file_exists("test_settings.cfg"):
+		dir.remove("test_settings.cfg")
 
 func test_function_type_setter():
 	# Initial state
@@ -64,6 +43,7 @@ func test_save_and_load_settings():
 
 	# Create a new instance
 	var new_config = ConfigManager.new()
+	new_config.save_path = "user://test_settings.cfg"
 	new_config.load_settings()
 
 	assert_almost_eq(new_config.movement_speed, 99.9, 0.001)
@@ -75,8 +55,8 @@ func test_save_and_load_settings():
 
 func test_load_settings_no_file():
 	var dir = DirAccess.open("user://")
-	if dir != null and dir.file_exists("settings.cfg"):
-		dir.remove("settings.cfg")
+	if dir != null and dir.file_exists("test_settings.cfg"):
+		dir.remove("test_settings.cfg")
 
 	# Should not crash, and should keep defaults
 	var initial_speed = config_manager.movement_speed
@@ -91,6 +71,7 @@ func test_ready_initializes_properly():
 	config_manager.save_settings()
 
 	var new_config = ConfigManager.new()
+	new_config.save_path = "user://test_settings.cfg"
 	new_config._ready()
 
 	assert_almost_eq(new_config.effective_zoom, 3.5, 0.001)
