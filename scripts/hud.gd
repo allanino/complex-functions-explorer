@@ -573,7 +573,7 @@ func _on_func_selected(f_type: int):
 	var iters_range = f_data.get("iters_range", {})
 	var has_iters = !iters_range.is_empty()
 	var is_rational = f_data.get("is_rational", false)
-	var is_multivalued = f_data.get("is_multivalued", false)
+	var is_multivalued_n = f_type == Config.ComplexFunc.MULTIVALUED_Z_POW
 
 	if has_iters:
 		iter_slider.min_value = iters_range[0]
@@ -585,7 +585,7 @@ func _on_func_selected(f_type: int):
 		_on_iterations_value_changed(Config.iterations)
 
 	rational_container.visible = is_rational
-	multivalued_container.visible = is_multivalued
+	multivalued_container.visible = is_multivalued_n
 	iter_container.visible = has_iters
 	critical_checkbox.visible = is_dirichlect
 	auto_walk_checkbox.visible = is_dirichlect

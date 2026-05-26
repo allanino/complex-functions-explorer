@@ -848,7 +848,7 @@ FieldData multivalued_z_pow_inv_n_with_derivatives(float sigma, float t, int n, 
     return res;
 }
 
-FieldData multivalued_log_with_derivatives(float sigma, float t, int n, int branch_offset) {
+FieldData multivalued_log_with_derivatives(float sigma, float t, int branch_offset) {
     FieldData res;
     float r_sq = sigma * sigma + t * t;
     float r = sqrt(r_sq);
@@ -896,7 +896,7 @@ FieldData get_field_with_derivatives(float x, float z, int branch_offset) {
     if (function_type == 14) return identity_with_derivatives(sigma, t);
     if (function_type == 15) return get_rational_with_derivatives(sigma, t);
 	if (function_type == 16) return multivalued_z_pow_inv_n_with_derivatives(sigma, t, multivalued_n, branch_offset);
-	if (function_type == 17) return multivalued_log_with_derivatives(sigma, t, multivalued_n, branch_offset);
+	if (function_type == 17) return multivalued_log_with_derivatives(sigma, t, branch_offset);
     FieldData res;
     res.value = vec2(0.0);
     res.d_sigma = vec2(0.0);
