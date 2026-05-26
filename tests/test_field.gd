@@ -291,3 +291,77 @@ func test_multivalued_z_pow_inv_n():
 	Config.current_branch = orig_current_branch
 	Config.branch_time = orig_branch_time
 	Config.multivalued_morph_time = orig_morph_time
+
+func test_get_height_from_field():
+	var orig_type = Config.height_type
+	var orig_a = Config.height_a
+	var orig_epsilon = Config.height_epsilon
+	var orig_zoom = Config.effective_zoom
+	var orig_morph = Config.morph_value
+
+	Config.height_type = 0
+	Config.height_a = 3.0
+	Config.height_epsilon = 1.0
+	Config.effective_zoom = 2.0
+	Config.morph_value = 0.0 # cos(0) = 1 => s = 0 => blend = log(1)/log(9) = 0 => h = 0
+
+	var f = Vector2(3.0, 4.0) # mag = 5.0
+
+	# Test with morph_value = 0 (blend = 0)
+	var h1 = TestField.get_height_from_field(f)
+	assert_eq(h1, 0.0)
+
+	# Test with morph_value = 1.0 (blend = 1.0)
+	Config.morph_value = 1.0 # cos(PI) = -1 => s = 1 => blend = log(9)/log(9) = 1
+	var h2 = TestField.get_height_from_field(f)
+	# Expected log height: 3.0 * ln(1.0 + 5.0) * 1.0 * 2.0 = 6.0 * ln(6) = 10.75055
+	assert_almost_eq(h2, 6.0 * log(6.0), 0.0001)
+
+	# Test with height_type = 1 (linear height)
+	Config.height_type = 1
+	var h3 = TestField.get_height_from_field(f)
+	# Expected linear height: mag * blend * zoom = 5.0 * 1.0 * 2.0 = 10.0
+	assert_almost_eq(h3, 10.0, 0.0001)
+
+	# Test non-finite field components
+	var h_inf_x = TestField.get_height_from_field(Vector2(INF, 0))
+	assert_eq(h_inf_x, 0.0)
+	var h_nan_y = TestField.get_height_from_field(Vector2(0, NAN))
+	assert_eq(h_nan_y, 0.0)
+
+	Config.height_type = orig_type
+	Config.height_a = orig_a
+	Config.height_epsilon = orig_epsilon
+	Config.effective_zoom = orig_zoom
+	Config.morph_value = orig_morph
+
+func test_get_height():
+	var orig_perf = Config.performance_protection_active
+	var orig_func = Config.function_type
+	var orig_zoom = Config.effective_zoom
+	var orig_type = Config.height_type
+	var orig_morph = Config.morph_value
+
+	Config.function_type = Config.ComplexFunc.ZETA
+	Config.effective_zoom = 1.0
+	Config.height_type = 1 # linear height
+	Config.morph_value = 1.0 # blend = 1.0
+
+	# Test performance protection early exit
+	Config.performance_protection_active = true
+	var h1 = TestField.get_height(0.0, 0.0)
+	assert_eq(h1, 0.0)
+
+	Config.performance_protection_active = false
+
+	# x=0, z=0 -> sigma=0, t=0 -> zeta(0, 0) = -0.5
+	# mag = 0.5
+	# height_type = 1 -> h = 0.5 * 1.0 * 1.0 = 0.5
+	var h2 = TestField.get_height(0.0, 0.0)
+	assert_almost_eq(h2, 0.5, 0.0001)
+
+	Config.performance_protection_active = orig_perf
+	Config.function_type = orig_func
+	Config.effective_zoom = orig_zoom
+	Config.height_type = orig_type
+	Config.morph_value = orig_morph
