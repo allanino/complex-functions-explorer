@@ -42,6 +42,14 @@ func test_complex_pow():
 	assert_almost_eq(res.x, -1.0, 0.0001)
 	assert_almost_eq(res.y, 0.0, 0.0001)
 
+	res = TestField.complex_pow(Vector2(0, 0), Vector2(2, 0))
+	assert_almost_eq(res.x, 0.0, 0.0001)
+	assert_almost_eq(res.y, 0.0, 0.0001)
+
+	res = TestField.complex_pow(Vector2(0, 0), Vector2(0, 0))
+	assert_almost_eq(res.x, 1.0, 0.0001)
+	assert_almost_eq(res.y, 0.0, 0.0001)
+
 func test_complex_sin():
 	var res = TestField.complex_sin(0, 0)
 	assert_almost_eq(res.x, 0.0, 0.0001)
