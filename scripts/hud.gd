@@ -810,19 +810,17 @@ func _parse_poly(text: String) -> PackedVector2Array:
 	# We want to split by terms. A term usually starts with + or -
 	# unless it's inside parentheses.
 	var terms = []
-	var current_term = ""
 	var depth = 0
+	var start_idx = 0
 	for i in range(text.length()):
 		var c = text[i]
 		if c == "(": depth += 1
 		elif c == ")": depth -= 1
 
 		if depth == 0 and i > 0 and (c == "+" or c == "-"):
-			terms.append(current_term)
-			current_term = c
-		else:
-			current_term += c
-	terms.append(current_term)
+			terms.append(text.substr(start_idx, i - start_idx))
+			start_idx = i
+	terms.append(text.substr(start_idx))
 
 	for term in terms:
 		if term == "": continue
