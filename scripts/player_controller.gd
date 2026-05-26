@@ -295,7 +295,8 @@ func demo_actions():
 	Config.environment_type = 0
 	Config.show_critical_stripe = 0
 	Config.show_hud_zeros = false
-	Config.show_hud_monitor = false
+	Config.show_hud_monitor_fps = false
+	Config.show_hud_monitor_chunks = false
 	Config.show_curves = true
 
 
