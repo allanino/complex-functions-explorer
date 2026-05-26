@@ -94,8 +94,6 @@ func setup_portal_sfx():
 	if sfx_stream:
 		portal_sfx_player.stream = sfx_stream
 		portal_sfx_player.volume_db = -20.0
-	else:
-		print("Warning: Portal SFX not found at ", sfx_path)
 
 func setup_background_music():
 	var music_player = AudioStreamPlayer.new()
@@ -111,8 +109,6 @@ func setup_background_music():
 			music_player.stream.loop = true
 		music_player.volume_db = -12.0
 		music_player.play()
-	else:
-		print("Warning: Background music not found at ", music_path)
 
 func setup_audio_bus_and_effects():
 	var bus_name = "MathematicalSoundscape"
