@@ -163,12 +163,9 @@ func _process(delta):
 		fog_color = lerp(fog_color, Color(0.01, 0.02, 0.05), night_factor)
 
 		env.fog_enabled = Config.fog_enabled
-		env.fog_mode = Environment.FOG_MODE_DEPTH
+		env.fog_mode = Environment.FOG_MODE_EXPONENTIAL
 		env.fog_light_color = fog_color
-		env.fog_density = 1.0
-		env.fog_depth_begin = Config.fog_distance
-		env.fog_depth_end = Config.fog_distance * 3.0
-		env.fog_depth_curve = 0.2
+		env.fog_density = (5.5 / max(Config.fog_distance, 1.0)) * Config.fog_density
 		env.fog_aerial_perspective = (1.0 - Config.fog_density)
 
 	# Only update branch time on branch functions
