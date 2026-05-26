@@ -360,6 +360,8 @@ func _update_terrain_material_uniforms():
 	terrain_material.set_shader_parameter("branch_cycle_speed", Config.branch_cycle_speed)
 	terrain_material.set_shader_parameter("multivalued_morph_time", Config.multivalued_morph_time)
 	terrain_material.set_shader_parameter("self_illumination", Config.self_illumination)
+	terrain_material.set_shader_parameter("fog_enabled", Config.fog_enabled)
+	terrain_material.set_shader_parameter("fog_density", Config.fog_density)
 	terrain_material.set_shader_parameter("brightness", Config.terrain_brightness)
 	terrain_material.set_shader_parameter("saturation", Config.terrain_saturation)
 	terrain_material.set_shader_parameter("albedo", Config.terrain_albedo)
