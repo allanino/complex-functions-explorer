@@ -35,6 +35,8 @@ func _ready():
 	
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
+	# demo_actions()
+
 func _unhandled_input(event):
 	if event.is_action_pressed("ui_cancel"):
 		var hud = get_node_or_null("/root/Main/HUD")
@@ -287,7 +289,14 @@ func _physics_process(delta):
 
 
 func demo_actions():
+	Config.static_time = 19860
+	Config.day_duration = 600.0
 	Config.environment_type = 0
+	Config.show_critical_stripe = 0
+	Config.show_hud_zeros = false
+	Config.show_hud_monitor = false
+	Config.show_curves = true
+
 
 	auto_walk_state = AutoWalkState.NONE
 	is_resetting_height = false
@@ -351,4 +360,5 @@ func _start_auto_walk_from_demo():
 	Config.visited_zeros.clear()
 	last_detected_z = Vector2(0.0, 0.0)
 	Config.show_hud_zeros = true
+	Config.show_critical_stripe = true
 	Config.rvm_start_t = abs(global_position.z * 0.1 / Config.effective_zoom)
