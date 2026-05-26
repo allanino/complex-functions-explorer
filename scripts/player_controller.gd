@@ -16,8 +16,8 @@ var last_t = 0.0
 var last_z: Vector2 = Vector2(0.0, 0.0)
 
 # Zero detection history
-var mag_history: Array[float] = [1.0, 1.0, 1.0, 1.0, 1.0]
-var z_history: Array[Vector2] = [Vector2(0.0, 0.0), Vector2(0.0, 0.0), Vector2(0.0, 0.0), Vector2(0.0, 0.0), Vector2(0.0, 0.0)]
+var mag_history: Array[float] = [1.0, 1.0, 1.0]
+var z_history: Array[Vector2] = [Vector2(0.0, 0.0), Vector2(0.0, 0.0), Vector2(0.0, 0.0)]
 var last_detected_z = Vector2(0.0, 0.0)
 var current_f: Vector2 = Vector2.ZERO
 var current_sigma: float = 0.0
@@ -251,16 +251,37 @@ func _physics_process(delta):
 		mag_history.pop_front()
 
 
-		# Check for local minimum: f[0] > f[1] > f[2] < f[3] < f[4]
-		if mag_history[0] > mag_history[1] and mag_history[1] > mag_history[2] and \
-		   mag_history[2] < mag_history[3] and mag_history[3] < mag_history[4]:
-			var z = z_history[2] # Middle value is the reported zero
+		# 1. First, find a basic local minimum using the 3 center points
+		if mag_history[0] > mag_history[1] and mag_history[1] < mag_history[2]:
+			if mag_history[1] < Config.zero_proximity_nav:
 
-			# Check if the magnitude is reasonably low (e.g. < zero_proximity_nav) to avoid false positives
-			# from tiny oscillations far from zeros
-			if mag_history[2] < Config.zero_proximity_nav:
-				Config.visited_zeros.push_back(z)
-				last_detected_z = z
+				# 2. Extract magnitudes for the parabola
+				var y0 = mag_history[0]
+				var y1 = mag_history[1]
+				var y2 = mag_history[2]
+
+				# Avoid division by zero if the curve is perfectly flat
+				var denominator = y0 - (2.0 * y1) + y2
+				if abs(denominator) > 0.0001:
+					# 3. Calculate how far between points the true zero lies (-0.5 to 0.5)
+					var offset_fraction = 0.5 * (y0 - y2) / denominator
+
+					# 4. Interpolate the actual 'z' position along your path
+					var z_left = z_history[0]
+					var z_mid = z_history[1]
+					var z_right = z_history[2]
+
+					var true_z: Vector2
+					if offset_fraction < 0:
+						# True zero is between left and mid
+						true_z = z_mid.lerp(z_left, -offset_fraction)
+					else:
+						# True zero is between mid and right
+						true_z = z_mid.lerp(z_right, offset_fraction)
+
+					if true_z.distance_to(last_detected_z) > 0.01:
+						Config.visited_zeros.push_back(true_z)
+						last_detected_z = true_z
 
 	move_and_slide()
 
