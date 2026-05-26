@@ -84,16 +84,11 @@ func _unhandled_input(event):
 
 	if event is InputEventKey and event.pressed and event.ctrl_pressed:
 		if event.keycode == KEY_G:
-			if Config.environment_type == 1:
-				Config.environment_type = 0
-			else:
-				Config.environment_type = 1
+			Config.freeze_time = true
+			Config.day_time = 19860
 			Config.save_settings()
 		elif event.keycode == KEY_N:
-			if Config.environment_type == 2:
-				Config.environment_type = 0
-			else:
-				Config.environment_type = 2
+			Config.freeze_time = false
 			Config.save_settings()
 		elif event.keycode == KEY_C:
 			if auto_walk_state == AutoWalkState.NONE:
@@ -290,9 +285,9 @@ func _physics_process(delta):
 
 
 func demo_actions():
-	Config.static_time = 19860
+	Config.day_time = 19860
 	Config.day_duration = 600.0
-	Config.environment_type = 0
+	Config.freeze_time = false
 	Config.show_critical_stripe = 0
 	Config.show_hud_zeros = false
 	Config.show_hud_monitor = false
