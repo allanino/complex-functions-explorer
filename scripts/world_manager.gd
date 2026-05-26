@@ -106,14 +106,20 @@ func _process(delta):
 	var orbit_axis = Vector3(sin(sunrise_rad), 0, -cos(sunrise_rad))
 
 	var progress = 0.0
-	if not Config.freeze_time: # Dynamic
-		# Increment day time based on day duration
+	if Config.environment_type == 0: # Dynamic
+		# Increment static time based on day duration
 		# 86400 seconds in a day / day_duration = speed multiplier
-		Config.day_time += delta * (86400.0 / Config.day_duration)
-		if Config.day_time >= 86400.0:
-			Config.day_time -= 86400.0
+		Config.static_time += delta * (86400.0 / Config.day_duration)
+		if Config.static_time >= 86400.0:
+			Config.static_time -= 86400.0
+		progress = Config.static_time / 86400.0
+	else: # Static or presets
+		match Config.environment_type:
+			1: Config.static_time = 43200.0 # Noon
+			2: Config.static_time = 21600.0 # Sunrise (6 AM)
+			3: Config.static_time = 0.0 # Midnight
 
-	progress = Config.day_time / 86400.0
+		progress = Config.static_time / 86400.0
 
 	# angle = PI is Midnight (progress 0.0), angle = 0.0 is Noon (progress 0.5)
 	var angle = (progress + 0.5) * TAU
@@ -360,8 +366,6 @@ func _update_terrain_material_uniforms():
 	terrain_material.set_shader_parameter("branch_cycle_speed", Config.branch_cycle_speed)
 	terrain_material.set_shader_parameter("multivalued_morph_time", Config.multivalued_morph_time)
 	terrain_material.set_shader_parameter("self_illumination", Config.self_illumination)
-	terrain_material.set_shader_parameter("fog_enabled", Config.fog_enabled)
-	terrain_material.set_shader_parameter("fog_density", Config.fog_density)
 	terrain_material.set_shader_parameter("brightness", Config.terrain_brightness)
 	terrain_material.set_shader_parameter("saturation", Config.terrain_saturation)
 	terrain_material.set_shader_parameter("albedo", Config.terrain_albedo)

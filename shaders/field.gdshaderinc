@@ -542,6 +542,16 @@ FieldData mandelbrot_with_derivatives(float sigma, float t, int iters) {
 //-------------------------------------------------------------------------
 
 FieldData log_zeta_continuation_with_derivatives(float sigma, float t, int iters) {
+    // Analytically handle the origin where the reflection formula has a numerical singularity
+    if (sigma * sigma + t * t < 1e-10) {
+        FieldData res;
+        res.value = complex_log(-0.5, 0.0);
+        // zeta'(0)/zeta(0) = ln(2*pi)
+        res.d_sigma = vec2(1.837877, 0.0);
+        res.d_t = vec2(0.0, 1.837877);
+        return res;
+    }
+
     if (sigma >= 0.5) {
         FieldData z = zeta_with_derivatives(sigma, t, iters);
         FieldData res;
@@ -868,46 +878,6 @@ FieldData multivalued_z_pow_inv_n_with_derivatives(float sigma, float t, int n, 
     return res;
 }
 
-FieldData multivalued_log_with_derivatives(float sigma, float t, int n, float cycle_speed, int branch_offset) {
-    FieldData res;
-    float r_sq = sigma * sigma + t * t;
-    float r = sqrt(r_sq);
-    float theta = atan(t, sigma);
-    if (theta < 0.0) theta += 2.0 * PI;
-    float float_n = float(n);
-
-    float blend_factor = 0.0;
-    float k_val = 0.0;
-
-    if (multivalued_mode == 0) { // Time cycle
-        // Temporal branch selection & blending factor
-        float progress = (branch_time * cycle_speed) * float_n;
-        k_val = floor(progress);
-        float t_in_branch = fract(progress);
-
-        // Non-linear transition: stay on branch, then morph
-        float dwell_time = (1.0 / float_n) - multivalued_morph_time * cycle_speed;
-        dwell_time = max(dwell_time, 0.0);
-        float transition_threshold = dwell_time * float_n;
-        blend_factor = smoothstep(transition_threshold, 1.0, t_in_branch);
-    } else { // Branch portals
-        k_val = float(current_branch + branch_offset);
-    }
-
-    float morphed_phase = theta + 2.0 * PI * (k_val + blend_factor);
-
-    // Log(z) = ln|z| + i(arg(z) + 2pi*k)
-    res.value = vec2(log(r), morphed_phase);
-
-    // dW/dZ = 1 / Z
-    vec2 z = vec2(sigma, t);
-    vec2 deriv = complex_div(vec2(1.0, 0.0), z);
-
-    res.d_sigma = deriv;
-    res.d_t = vec2(-deriv.y, deriv.x);
-    return res;
-}
-
 //-------------------------------------------------------------------------
 // Dispatchers
 //-------------------------------------------------------------------------
@@ -933,7 +903,6 @@ FieldData get_field_with_derivatives(float x, float z, int branch_offset) {
     if (function_type == 14) return identity_with_derivatives(sigma, t);
     if (function_type == 15) return get_rational_with_derivatives(sigma, t);
 	if (function_type == 16) return multivalued_z_pow_inv_n_with_derivatives(sigma, t, multivalued_n, branch_cycle_speed, branch_offset);
-	if (function_type == 17) return multivalued_log_with_derivatives(sigma, t, multivalued_n, branch_cycle_speed, branch_offset);
     FieldData res;
     res.value = vec2(0.0);
     res.d_sigma = vec2(0.0);

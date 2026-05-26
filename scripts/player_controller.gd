@@ -84,11 +84,16 @@ func _unhandled_input(event):
 
 	if event is InputEventKey and event.pressed and event.ctrl_pressed:
 		if event.keycode == KEY_G:
-			Config.freeze_time = true
-			Config.day_time = 22740
+			if Config.environment_type == 1:
+				Config.environment_type = 0
+			else:
+				Config.environment_type = 1
 			Config.save_settings()
 		elif event.keycode == KEY_N:
-			Config.freeze_time = false
+			if Config.environment_type == 2:
+				Config.environment_type = 0
+			else:
+				Config.environment_type = 2
 			Config.save_settings()
 		elif event.keycode == KEY_C:
 			if auto_walk_state == AutoWalkState.NONE:
@@ -224,19 +229,13 @@ func _physics_process(delta):
 		# Detect crossing of the positive real axis (sigma > 0, t=0)
 		if current_sigma > 0.0:
 			var branch_changed = false
-			if last_z.y < 0.0 and current_z.y >= 0.0:
+			if last_t < 0.0 and current_t >= 0.0:
 				# Crossed from -t to +t (counter-clockwise around origin)
-				if Config.function_type == Config.ComplexFunc.MULTIVALUED_LOG:
-					Config.current_branch += 1
-				else:
-					Config.current_branch = (Config.current_branch + 1) % Config.multivalued_n
+				Config.current_branch = (Config.current_branch + 1) % Config.multivalued_n
 				branch_changed = true
-			elif last_z.y > 0.0 and current_z.y <= 0.0:
+			elif last_t > 0.0 and current_t <= 0.0:
 				# Crossed from +t to -t (clockwise around origin)
-				if Config.function_type == Config.ComplexFunc.MULTIVALUED_LOG:
-					Config.current_branch -= 1
-				else:
-					Config.current_branch = (Config.current_branch + Config.multivalued_n - 1) % Config.multivalued_n
+				Config.current_branch = (Config.current_branch + Config.multivalued_n - 1) % Config.multivalued_n
 				branch_changed = true
 
 			if branch_changed:
@@ -291,9 +290,9 @@ func _physics_process(delta):
 
 
 func demo_actions():
-	Config.day_time = 19860
+	Config.static_time = 19860
 	Config.day_duration = 600.0
-	Config.freeze_time = false
+	Config.environment_type = 0
 	Config.show_critical_stripe = 0
 	Config.show_hud_zeros = false
 	Config.show_hud_monitor_fps = false
