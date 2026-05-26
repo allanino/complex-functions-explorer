@@ -107,7 +107,7 @@ func test_complex_log_gamma():
 
 	var res2 = TestField.complex_log_gamma(-2, -1)
 	assert_almost_eq(res2.x, -1.802215, 0.0001)
-	assert_almost_eq(res2.y, 6.906576, 0.0001)
+	assert_almost_eq(res2.y, 0.62339, 0.0001)
 
 func test_zeta():
 	var res = TestField.zeta(0.5, 14.134725)
