@@ -180,7 +180,8 @@ var show_hud_complex: bool = true
 var show_hud_navigation: bool = true
 var show_hud_zeros: bool = true
 var show_rvm: bool = true
-var show_hud_monitor: bool = false
+var show_hud_monitor_fps: bool = false
+var show_hud_monitor_chunks: bool = false
 var hud_scale: float = 1.0
 
 # Audio parameters
@@ -254,7 +255,8 @@ func save_settings():
 	config.set_value("ui", "show_hud_navigation", show_hud_navigation)
 	config.set_value("ui", "show_hud_zeros", show_hud_zeros)
 	config.set_value("ui", "show_rvm", show_rvm)
-	config.set_value("ui", "show_hud_monitor", show_hud_monitor)
+	config.set_value("ui", "show_hud_monitor_fps", show_hud_monitor_fps)
+	config.set_value("ui", "show_hud_monitor_chunks", show_hud_monitor_chunks)
 	config.set_value("ui", "hud_scale", hud_scale)
 
 	config.set_value("audio", "master_volume", master_volume)
@@ -328,7 +330,8 @@ func load_settings():
 	show_hud_navigation = config.get_value("ui", "show_hud_navigation", show_hud_navigation)
 	show_hud_zeros = config.get_value("ui", "show_hud_zeros", show_hud_zeros)
 	show_rvm = config.get_value("ui", "show_rvm", show_rvm)
-	show_hud_monitor = config.get_value("ui", "show_hud_monitor", show_hud_monitor)
+	show_hud_monitor_fps = config.get_value("ui", "show_hud_monitor_fps", show_hud_monitor_fps)
+	show_hud_monitor_chunks = config.get_value("ui", "show_hud_monitor_chunks", show_hud_monitor_chunks)
 	hud_scale = config.get_value("ui", "hud_scale", hud_scale)
 
 	master_volume = config.get_value("audio", "master_volume", master_volume)
