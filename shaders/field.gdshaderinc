@@ -41,10 +41,7 @@ vec2 complex_mul(vec2 a, vec2 b) {
 }
 
 vec2 complex_div(vec2 a, vec2 b) {
-    float denom = b.x * b.x + b.y * b.y;
-    if (denom < 1e-24) {
-        return vec2(1e12, 0.0); // Handle exact pole
-    }
+    float denom = b.x * b.x + b.y * b.y + 1e-24;
     return vec2(
         (a.x * b.x + a.y * b.y) / denom,
         (a.y * b.x - a.x * b.y) / denom
@@ -379,16 +376,6 @@ FieldData zeta_with_derivatives(float sigma, float t, int iters) {
     vec2 denom = vec2(1.0, 0.0) - two_term;
     vec2 ddenom_dsigma = LOG_2 * two_term;
     FieldData result;
-
-    float d_sqr = denom.x * denom.x + denom.y * denom.y;
-    // Apply L'Hopital rule near denominator roots, but skip the pole at s=1 (where t=0)
-    if (d_sqr < 1e-4 && abs(t) > 1e-2) {
-        result.value = complex_div(deta_dsigma, ddenom_dsigma);
-        result.d_sigma = vec2(0.0); // Zero derivatives exactly at the removable singularity to prevent artifacts
-        result.d_t = vec2(0.0);
-        return result;
-    }
-
     result.value = complex_div(eta, denom);
     vec2 denom_sqr = complex_mul(denom, denom);
     vec2 num_sigma = complex_mul(deta_dsigma, denom) - complex_mul(eta, ddenom_dsigma);

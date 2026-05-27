@@ -12,9 +12,7 @@ static func complex_mul(a: Vector2, b: Vector2) -> Vector2:
 	)
 
 static func complex_div(a: Vector2, b: Vector2) -> Vector2:
-	var denom = b.x * b.x + b.y * b.y
-	if denom < 1e-24:
-		return Vector2(1e12, 0.0) # Handle exact pole
+	var denom = b.x * b.x + b.y * b.y + 1e-24
 	return Vector2(
 		(a.x * b.x + a.y * b.y) / denom,
 		(a.y * b.x - a.x * b.y) / denom
@@ -78,25 +76,6 @@ static func complex_log_sin(x: float, y: float) -> Vector2:
 const LOG_2 = 0.6931471805599453
 const LOG_PI = 1.1447298858494002
 
-static func dirichlet_eta_derivative(sigma: float, t: float, iterations: int) -> Vector2:
-	if iterations <= 0: return Vector2.ZERO
-	var deta = Vector2.ZERO
-	for n in range(1, iterations + 1, 2):
-		var nf = float(n)
-		var amp = pow(nf, -sigma)
-		var log_n = log(nf)
-		var theta = -t * log_n
-		deta -= log_n * amp * Vector2(cos(theta), sin(theta))
-
-		var nf2 = float(n + 1)
-		var amp2 = pow(nf2, -sigma)
-		var log_n2 = log(nf2)
-		var theta2 = -t * log_n2
-		deta += log_n2 * amp2 * Vector2(cos(theta2), sin(theta2))
-
-		if (amp < 1e-6 || amp2 < 1e-6 || amp > 1e6 || amp2 > 1e6): break
-	return deta
-
 static func dirichlet_eta(sigma: float, t: float, iterations: int) -> Vector2:
 	if iterations <= 0: return Vector2.ZERO
 	var eta = Vector2.ZERO
@@ -140,14 +119,6 @@ static func zeta(sigma: float, t: float) -> Vector2:
 	var theta2 = -t * LOG_2
 	var two_term = amp2 * Vector2(cos(theta2), sin(theta2))
 	var denom = Vector2(1.0, 0.0) - two_term
-
-	var denom_sqr = denom.x * denom.x + denom.y * denom.y
-	# If we are near a root of the denominator but NOT at the pole s=1 (where t=0)
-	if denom_sqr < 1e-4 and abs(t) > 1e-2:
-		var deta = dirichlet_eta_derivative(sigma, t, iterations)
-		var ddenom = LOG_2 * two_term
-		return complex_div(deta, ddenom)
-
 	return complex_div(eta, denom)
 
 const LANCZOS_P = [
