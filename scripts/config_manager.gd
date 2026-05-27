@@ -171,7 +171,6 @@ var terrain_roughness: float = 0.1
 var terrain_surface_texture: float = 0.0
 var morph_type: int = 0
 var morph_value: float = 1.0
-var fog_enabled: bool = false
 var fog_density: float = 0.4
 
 # Player parameters
@@ -245,7 +244,6 @@ func save_settings():
 	config.set_value("rendering", "terrain_surface_texture", terrain_surface_texture)
 	config.set_value("rendering", "morph_type", morph_type)
 	config.set_value("rendering", "morph_value", morph_value)
-	config.set_value("rendering", "fog_enabled", fog_enabled)
 	config.set_value("rendering", "fog_density", fog_density)
 
 	config.set_value("player", "movement_speed", movement_speed)
@@ -315,7 +313,6 @@ func load_settings():
 	terrain_surface_texture = config.get_value("rendering", "terrain_surface_texture", terrain_surface_texture)
 	morph_type = config.get_value("rendering", "morph_type", morph_type)
 	morph_value = config.get_value("rendering", "morph_value", morph_value)
-	fog_enabled = config.get_value("rendering", "fog_enabled", fog_enabled)
 	fog_density = config.get_value("rendering", "fog_density", fog_density)
 
 	movement_speed = config.get_value("player", "movement_speed", movement_speed)

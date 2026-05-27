@@ -70,7 +70,6 @@ extends CanvasLayer
 @onready var sun_luminosity_value = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/SunLuminosityContainer/SunLuminosityValue
 @onready var self_illumination_slider = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/SelfIlluminationContainer/SelfIlluminationSlider
 @onready var self_illumination_value = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/SelfIlluminationContainer/SelfIlluminationValue
-@onready var fog_enabled_checkbox = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/FogEnabledContainer/FogEnabledControl/FogEnabledCheckbox
 @onready var fog_density_container = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/FogDensityContainer
 @onready var fog_density_slider = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/FogDensityContainer/FogDensitySlider
 @onready var fog_density_value = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/FogDensityContainer/FogDensityValue
@@ -206,7 +205,6 @@ var _initial_self_illumination: float
 var _initial_freeze_time: bool
 var _initial_day_duration: float
 var _initial_day_time: float
-var _initial_fog_enabled: bool
 var _initial_fog_density: float
 var _initial_terrain_detail: int
 var _initial_antialiasing_mode: int
@@ -260,7 +258,6 @@ func _ready():
 	sky_luminosity_slider.value_changed.connect(_on_sky_luminosity_value_changed)
 	sun_luminosity_slider.value_changed.connect(_on_sun_luminosity_value_changed)
 	self_illumination_slider.value_changed.connect(_on_self_illumination_value_changed)
-	fog_enabled_checkbox.toggled.connect(_on_fog_enabled_toggled)
 	fog_density_slider.value_changed.connect(_on_fog_density_value_changed)
 	hud_scale_slider.value_changed.connect(_on_hud_scale_value_changed)
 	iter_slider.value_changed.connect(_on_iterations_value_changed)
@@ -281,8 +278,6 @@ func _ready():
 	morph_button.item_selected.connect(_on_morph_selected)
 	morph_slider.value_changed.connect(_on_morph_slider_changed)
 	exit_morph_button.pressed.connect(_on_exit_morph_pressed)
-
-	fog_density_container.visible = fog_enabled_checkbox.button_pressed
 
 	func_button.clear()
 	var sorted_keys = Config.FUNCTIONS.keys()
@@ -456,7 +451,6 @@ func toggle_menu(applied: bool = false):
 		_initial_freeze_time = Config.freeze_time
 		_initial_day_duration = Config.day_duration
 		_initial_day_time = Config.day_time
-		_initial_fog_enabled = Config.fog_enabled
 		_initial_fog_density = Config.fog_density
 		_initial_terrain_detail = Config.terrain_detail
 		_initial_antialiasing_mode = Config.antialiasing_mode
@@ -508,7 +502,6 @@ func toggle_menu(applied: bool = false):
 		_on_sun_luminosity_value_changed(sun_luminosity_slider.value)
 		self_illumination_slider.value = Config.self_illumination * 100.0
 		_on_self_illumination_value_changed(self_illumination_slider.value)
-		fog_enabled_checkbox.button_pressed = Config.fog_enabled
 		fog_density_slider.value = Config.fog_density * 100.0
 		_on_fog_density_value_changed(fog_density_slider.value)
 		shadows_checkbox.button_pressed = Config.shadows_enabled
@@ -580,7 +573,6 @@ func toggle_menu(applied: bool = false):
 			Config.freeze_time = _initial_freeze_time
 			Config.day_duration = _initial_day_duration
 			Config.day_time = _initial_day_time
-			Config.fog_enabled = _initial_fog_enabled
 			Config.fog_density = _initial_fog_density
 			Config.terrain_detail = _initial_terrain_detail
 			Config.antialiasing_mode = _initial_antialiasing_mode
@@ -688,17 +680,9 @@ func _on_self_illumination_value_changed(value):
 	Config.self_illumination = value / 100.0
 	self_illumination_value.text = str(int(value)) + "%"
 
-func _on_fog_enabled_toggled(pressed: bool):
-	Config.fog_enabled = pressed
-
-	if fog_enabled_checkbox:
-		fog_enabled_checkbox.text = "On" if pressed else "Off"
-		fog_density_container.visible = pressed
-
-
 func _on_fog_density_value_changed(value):
 	Config.fog_density = value / 100.0
-	fog_density_value.text = "%.2f" % Config.fog_density
+	fog_density_value.text = "%.3f" % Config.fog_density
 
 func _on_hud_scale_value_changed(value):
 	hud_scale_value.text = str(int(value)) + "%"
@@ -930,7 +914,6 @@ func _on_set_pos_pressed():
 	Config.view_distance = int(view_distance_slider.value)
 	Config.day_duration = day_duration_slider.value
 	Config.day_time = day_time_slider.value
-	Config.fog_enabled = fog_enabled_checkbox.button_pressed
 	Config.fog_density = fog_density_slider.value / 100.0
 	Config.hud_scale = hud_scale_slider.value / 100.0
 	Config.function_type = func_button.get_item_id(func_button.selected)
@@ -1383,8 +1366,6 @@ func _update_all_checkbox_labels():
 		critical_checkbox.text = "On" if critical_checkbox.button_pressed else "Off"
 	if flow_checkbox:
 		flow_checkbox.text = "On" if flow_checkbox.button_pressed else "Off"
-	if fog_enabled_checkbox:
-		fog_enabled_checkbox.text = "On" if fog_enabled_checkbox.button_pressed else "Off"
 	if shadows_checkbox:
 		shadows_checkbox.text = "On" if shadows_checkbox.button_pressed else "Off"
 	if hud_complex_checkbox:
