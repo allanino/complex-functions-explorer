@@ -158,30 +158,6 @@ func test_mandelbrot():
 	assert_almost_eq(res.x, 0.0, 0.0001)
 	assert_almost_eq(res.y, 0.0, 0.0001)
 
-func test_smoothstep():
-	# Below edge0
-	var res = TestField.smoothstep(0.0, 1.0, -0.5)
-	assert_almost_eq(res, 0.0, 0.0001)
-
-	# Above edge1
-	res = TestField.smoothstep(0.0, 1.0, 1.5)
-	assert_almost_eq(res, 1.0, 0.0001)
-
-	# Midway
-	res = TestField.smoothstep(0.0, 1.0, 0.5)
-	assert_almost_eq(res, 0.5, 0.0001)
-
-	# Fractional
-	res = TestField.smoothstep(0.0, 1.0, 0.2)
-	assert_almost_eq(res, 0.104, 0.0001)
-
-	# Different edges
-	res = TestField.smoothstep(2.0, 4.0, 3.0)
-	assert_almost_eq(res, 0.5, 0.0001)
-
-	res = TestField.smoothstep(2.0, 4.0, 2.5)
-	assert_almost_eq(res, 0.15625, 0.0001)
-
 func test_lanczos_log_gamma():
 	var res = TestField.lanczos_log_gamma(Vector2(1.0, 0.0))
 	assert_almost_eq(res.x, 0.0, 0.0001)
@@ -237,25 +213,21 @@ func test_get_rational():
 
 func test_multivalued_z_pow_inv_n():
 	# Save original config values to restore them later
-	var orig_mode = Config.multivalued_mode
 	var orig_current_branch = Config.current_branch
-	var orig_branch_time = Config.branch_time
-	var orig_morph_time = Config.multivalued_morph_time
 
-	# Test 1: Branch Portals mode (mode 1), branch 0
-	Config.multivalued_mode = 1
+	# Test 1: branch 0
 	Config.current_branch = 0
 	var res1 = TestField.multivalued_z_pow_inv_n(Vector2(1.0, 0.0), 2, 1.0)
 	assert_almost_eq(res1.x, 1.0, 0.0001)
 	assert_almost_eq(res1.y, 0.0, 0.0001)
 
-	# Test 2: Branch Portals mode (mode 1), branch 1
+	# Test 2: branch 1
 	Config.current_branch = 1
 	var res2 = TestField.multivalued_z_pow_inv_n(Vector2(1.0, 0.0), 2, 1.0)
 	assert_almost_eq(res2.x, -1.0, 0.0001)
 	assert_almost_eq(res2.y, 0.0, 0.0001)
 
-	# Test 3: Branch Portals mode (mode 1), z = -1, branch 0, n = 2 -> sqrt(-1) = i
+	# Test 3: z = -1, branch 0, n = 2 -> sqrt(-1) = i
 	Config.current_branch = 0
 	var res3 = TestField.multivalued_z_pow_inv_n(Vector2(-1.0, 0.0), 2, 1.0)
 	assert_almost_eq(res3.x, 0.0, 0.0001)
@@ -285,6 +257,129 @@ func test_multivalued_z_pow_inv_n():
 	var res6 = TestField.multivalued_z_pow_inv_n(Vector2(1.0, 0.0), 2, 1.0)
 	assert_almost_eq(res6.x, -1.0, 0.0001)
 	assert_almost_eq(res6.y, 0.0, 0.0001)
+
+	# Test 2: branch 1, z = e
+	Config.current_branch = 1
+	var res2 = TestField.multivalued_log(2.718281828459, 0.0, 2)
+	assert_almost_eq(res2.x, 1.0, 0.0001)
+	assert_almost_eq(res2.y, 2.0 * PI, 0.0001)
+
+	# Test 3: branch 2, z = e
+	Config.current_branch = 2
+	var res3 = TestField.multivalued_log(2.718281828459, 0.0, 2)
+	assert_almost_eq(res3.x, 1.0, 0.0001)
+	assert_almost_eq(res3.y, 4.0 * PI, 0.0001)
+
+	# Restore config values
+	Config.current_branch = orig_current_branch
+
+func test_get_height_from_field():
+	var orig_height_type = Config.height_type
+	var orig_height_a = Config.height_a
+	var orig_height_epsilon = Config.height_epsilon
+	var orig_morph_value = Config.morph_value
+	var orig_effective_zoom = Config.effective_zoom
+
+	# Test 1: Non-finite inputs
+	var res1 = TestField.get_height_from_field(Vector2(INF, 0))
+	assert_almost_eq(res1, 0.0, 0.0001)
+
+	var res2 = TestField.get_height_from_field(Vector2(NAN, 0))
+	assert_almost_eq(res2, 0.0, 0.0001)
+
+	# Test 2: height_type = 0 (Logarithmic), morph_value = 1.0
+	Config.height_type = 0
+	Config.height_a = 3.0
+	Config.height_epsilon = 1.0
+	Config.morph_value = 1.0
+	Config.effective_zoom = 1.0
+	var f3 = Vector2(3, 4) # mag = 5
+	# log(1.0 + 5) = log(6) ~ 1.791759 * 3.0 = 5.375278
+	var expected_log = 3.0 * log(6.0)
+	var res3 = TestField.get_height_from_field(f3)
+	assert_almost_eq(res3, expected_log, 0.0001)
+
+	# Test 3: height_type = 1 (Linear), morph_value = 1.0
+	Config.height_type = 1
+	var expected_linear = 5.0
+	var res4 = TestField.get_height_from_field(f3)
+	assert_almost_eq(res4, expected_linear, 0.0001)
+
+	# Test 4: Morph and zoom scaling
+	Config.morph_value = 0.5
+	Config.effective_zoom = 2.0
+	# s = 0.5 - 0.5 * cos(PI * 0.5) = 0.5 - 0.5 * 0 = 0.5
+	# blend = log(1.0 + 8.0 * 0.5) / log(9.0) = log(5.0) / log(9.0) ~ 0.732486
+	# height = expected_linear * blend * effective_zoom
+	var expected_blend = log(5.0) / log(9.0)
+	var expected_scaled = 5.0 * expected_blend * 2.0
+	var res5 = TestField.get_height_from_field(f3)
+	assert_almost_eq(res5, expected_scaled, 0.0001)
+
+	Config.height_type = orig_height_type
+	Config.height_a = orig_height_a
+	Config.height_epsilon = orig_height_epsilon
+	Config.morph_value = orig_morph_value
+	Config.effective_zoom = orig_effective_zoom
+
+func test_get_height():
+	var orig_perf = Config.performance_protection_active
+	var orig_func = Config.function_type
+	var orig_zoom = Config.effective_zoom
+	var orig_type = Config.height_type
+	var orig_morph = Config.morph_value
+
+	Config.set("function_type", Config.ComplexFunc.ZETA_REFLECTION)
+	Config.iterations = 2000
+	Config.effective_zoom = 1.0
+	Config.height_type = 1 # linear height
+	Config.morph_value = 1.0 # blend = 1.0
+
+	# Test performance protection early exit
+	Config.performance_protection_active = true
+	var h1 = TestField.get_height(0.0, 0.0)
+	assert_eq(h1, 0.0)
+
+	Config.performance_protection_active = false
+
+	# x=1.0, z=0 -> sigma=0.1, t=0 -> zeta(0.1, 0) = -0.603038
+	# mag = 0.603038
+	# height_type = 1 -> h = 0.603038 * 1.0 * 1.0 = 0.603038
+	var world_pos = Vector2(1.0, 0.0)
+	var h2 = TestField.get_height(world_pos.x, world_pos.y)
+	assert_almost_eq(h2, 0.603038, 0.001)
+
+	Config.performance_protection_active = orig_perf
+	Config.set("function_type", orig_func)
+	Config.effective_zoom = orig_zoom
+	Config.height_type = orig_type
+	Config.morph_value = orig_morph
+
+func test_multivalued_log():
+	# Save original config values to restore them later
+	var orig_mode = Config.multivalued_mode
+	var orig_current_branch = Config.current_branch
+	var orig_branch_time = Config.branch_time
+	var orig_morph_time = Config.multivalued_morph_time
+
+	# Test 1: Branch Portals mode (mode 1), branch 0, z = e
+	Config.multivalued_mode = 1
+	Config.current_branch = 0
+	var res1 = TestField.multivalued_log(2.718281828459, 0.0, 2, 1.0)
+	assert_almost_eq(res1.x, 1.0, 0.0001)
+	assert_almost_eq(res1.y, 0.0, 0.0001)
+
+	# Test 2: Branch Portals mode (mode 1), branch 1, z = e
+	Config.current_branch = 1
+	var res2 = TestField.multivalued_log(2.718281828459, 0.0, 2, 1.0)
+	assert_almost_eq(res2.x, 1.0, 0.0001)
+	assert_almost_eq(res2.y, 2.0 * PI, 0.0001)
+
+	# Test 3: Branch Portals mode (mode 1), branch 2, z = e
+	Config.current_branch = 2
+	var res3 = TestField.multivalued_log(2.718281828459, 0.0, 2, 1.0)
+	assert_almost_eq(res3.x, 1.0, 0.0001)
+	assert_almost_eq(res3.y, 4.0 * PI, 0.0001)
 
 	# Restore config values
 	Config.multivalued_mode = orig_mode

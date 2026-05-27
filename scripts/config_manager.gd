@@ -1,6 +1,6 @@
 extends Node
 
-const SAVE_PATH = "user://settings.cfg"
+var save_path = "user://settings.cfg"
 
 enum ComplexFunc {
 	ZETA,
@@ -20,6 +20,7 @@ enum ComplexFunc {
 	IDENTITY,
 	RATIONAL,
 	MULTIVALUED_Z_POW,
+	MULTIVALUED_LOG,
 
 	# Not exposed in UI
 	MULTIVALUED_RSVD1,
@@ -94,6 +95,10 @@ const FUNCTIONS = {
 	},
 	ComplexFunc.MULTIVALUED_Z_POW: {
 		"name": "Multivalued z^(1/n)",
+		"is_multivalued": true,
+	},
+	ComplexFunc.MULTIVALUED_LOG: {
+		"name": "Multivalued Log",
 		"is_multivalued": true,
 	},
 	ComplexFunc.MULTIVALUED_RSVD1: {
@@ -213,9 +218,6 @@ func save_settings():
 	config.set_value("field", "rational_num_coeffs", rational_num_coeffs)
 	config.set_value("field", "rational_den_coeffs", rational_den_coeffs)
 	config.set_value("field", "multivalued_n", multivalued_n)
-	config.set_value("field", "multivalued_mode", multivalued_mode)
-	config.set_value("field", "branch_cycle_speed", branch_cycle_speed)
-	config.set_value("field", "multivalued_morph_time", multivalued_morph_time)
 	config.set_value("field", "zoom_factor", zoom_factor)
 	config.set_value("field", "zoom_damping", zoom_damping)
 
@@ -263,11 +265,11 @@ func save_settings():
 	config.set_value("audio", "bg_music_volume", bg_music_volume)
 	config.set_value("audio", "drone_volume", drone_volume)
 
-	config.save(SAVE_PATH)
+	config.save(save_path)
 
 func load_settings():
 	var config = ConfigFile.new()
-	var err = config.load(SAVE_PATH)
+	var err = config.load(save_path)
 	if err != OK:
 		return
 
@@ -286,9 +288,6 @@ func load_settings():
 	rational_num_coeffs = config.get_value("field", "rational_num_coeffs", rational_num_coeffs)
 	rational_den_coeffs = config.get_value("field", "rational_den_coeffs", rational_den_coeffs)
 	multivalued_n = config.get_value("field", "multivalued_n", multivalued_n)
-	multivalued_mode = config.get_value("field", "multivalued_mode", multivalued_mode)
-	branch_cycle_speed = config.get_value("field", "branch_cycle_speed", branch_cycle_speed)
-	multivalued_morph_time = config.get_value("field", "multivalued_morph_time", multivalued_morph_time)
 	zoom_factor = config.get_value("field", "zoom_factor", zoom_factor)
 	zoom_damping = config.get_value("field", "zoom_damping", zoom_damping)
 

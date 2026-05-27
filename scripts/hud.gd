@@ -31,17 +31,9 @@ extends CanvasLayer
 @onready var iter_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/IterContainer/IterValue
 @onready var rational_container = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/RationalContainer
 @onready var rational_input = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/RationalContainer/RationalInput
-@onready var multivalued_mode_container = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/MultivaluedModeContainer
-@onready var multivalued_mode_button = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/MultivaluedModeContainer/MultivaluedModeButton
 @onready var multivalued_container = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/MultivaluedContainer
 @onready var multivalued_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/MultivaluedContainer/MultivaluedSlider
 @onready var multivalued_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/MultivaluedContainer/MultivaluedValue
-@onready var cycle_speed_container = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/CycleSpeedContainer
-@onready var cycle_speed_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/CycleSpeedContainer/CycleSpeedSlider
-@onready var cycle_speed_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/CycleSpeedContainer/CycleSpeedValue
-@onready var morph_time_container = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/MorphTimeContainer
-@onready var morph_time_slider = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/MorphTimeContainer/MorphTimeSlider
-@onready var morph_time_value = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/MorphTimeContainer/MorphTimeValue
 
 @onready var re_input = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox/ReContainer/ReInput
 @onready var im_input = $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox/ImContainer/ImInput
@@ -147,25 +139,23 @@ const DESCRIPTIONS = {
 	"Parameter ε": "Small offset in logarithmic mapping to prevent log(0) at zeros.",
 	"Iterations": "Number of terms used in the summation for Zeta and Eta functions, or steps for Mandelbrot recursion.",
 	"Expression": "Enter a rational function expression with complext coefficients using 'z' as variable and 'i' as imaginary unit (e.g., z^2 - i).",
-	"Real (x)": "Manually set the real part of the player's position in the complex plane.",
-	"Imaginary (y)": "Manually set the imaginary part of the player's position.",
-	"Camera Height": "Vertical height of the player's camera above the terrain.",
-	"Move Speed": "Horizontal movement speed when navigating the complex plane.",
-	"Zoom Factor": "Increase detail by scaling coordinates (1.0 / Zoom).",
+	"Real (x)": "Manually set the real part of the player's position in the complex plane.  Shortcut: CTRL + R to reset to (0, 0)",
+	"Imaginary (y)": "Manually set the imaginary part of the player's position. Shortcut: CTRL + R to reset to (0, 0)",
+	"Camera Height": "Vertical height of the player's camera above the terrain. Shortcut: SPACE (double press to reset)",
+	"Move Speed": "Horizontal movement speed when navigating the complex plane. Shortcut: SHIFT (fast) / CTRL (slow)",
+	"Zoom Factor": "Increase detail by scaling coordinates (1.0 / Zoom). Shortcut: Mouse Wheel (click to reset)",
 	"Zeros proximity": "Terrain height threshold for detecting function zeros. Actually we look for minima along the path with magnitude below this value.",
 	"Speed near Zeros": "Slows down movement speed near function zeros to allow closer inspection.",
-	"Automatic Walking": "Automatically follow the critical line (Re = 0.5) to find Riemann Zeta zeros.",
+	"Automatic Walking": "Automatically follow the critical line (Re = 0.5) to find Riemann Zeta zeros. Shortcut: CTRL + C",
 	"Terrain Details": "Quality and subdivision level of the procedurally generated terrain meshes.",
 	"Antialiasing": "Choose a technique to reduce jagged edges in the 3D view.",
-	"Branch Experience": "Choose how to visualize multiple branches: temporal cycling or spatial portals.",
 	"Branches (n)": "Number of branches for the multivalued function z^(1/n).",
-	"Cycle Speed": "Temporal branch morphing speed.",
 	"Morph Time": "Duration of the smooth transition between branches.",
 	"Color Scheme": "Select the color mapping for the complex plane of the target function.",
 	"View Distance": "Number of terrain chunks loaded around the player.",
 	"Level Curves": "Overlay contour lines for integer values of Re(f) (black) and Im(f) (white).",
 	"Critical Stripe": "Visual guide indicating the 0 < Re < 1 region where non-trivial zeros reside.",
-	"Freeze time": "Choose between a dynamic day/night cycle or a fixed time of day.",
+	"Freeze time": "Choose between a dynamic day/night cycle or a fixed time of day. Shortcut: CTRL + G (Golden Hour) / CTRL + N (Freeze / Unfreeze time)",
 	"Day Duration": "Set the real-time duration for a full 24-hour mathematical day cycle.",
 	"Time of day": "Manually set the current time of day when time is frozen.",
 	"Sunrise Direction": "Adjust the angle from which the sun rises (180° is towards +σ).",
@@ -229,13 +219,31 @@ var _camera_height_modified: bool = false
 func _ready():
 	hud_columns.offset_top = -1000
 	speed_input.text_changed.connect(func(_t): _speed_modified = true)
+	speed_input.text_submitted.connect(_on_speed_text_submitted)
 	camera_height_input.text_changed.connect(func(_t): _camera_height_modified = true)
+	camera_height_input.text_submitted.connect(_on_camera_height_text_submitted)
+	re_input.text_submitted.connect(_on_re_text_submitted)
+	im_input.text_submitted.connect(_on_im_text_submitted)
+	height_a_input.text_submitted.connect(_on_height_a_text_submitted)
+	height_eps_input.text_submitted.connect(_on_height_eps_text_submitted)
+	rational_input.text_submitted.connect(_on_rational_text_submitted)
+
+	curves_checkbox.toggled.connect(_on_curves_toggled)
+	critical_checkbox.toggled.connect(_on_critical_toggled)
+	flow_checkbox.toggled.connect(_on_flow_toggled)
+	hud_complex_checkbox.toggled.connect(_on_hud_complex_toggled)
+	hud_navigation_checkbox.toggled.connect(_on_hud_navigation_toggled)
+	hud_zeros_checkbox.toggled.connect(_on_hud_zeros_toggled)
+	rvm_checkbox.toggled.connect(_on_rvm_toggled)
+	hud_monitor_fps_checkbox.toggled.connect(_on_hud_monitor_fps_toggled)
+	hud_monitor_chunks_checkbox.toggled.connect(_on_hud_monitor_chunks_toggled)
+	color_scheme_button.item_selected.connect(_on_color_scheme_selected)
+
 	apply_button.pressed.connect(_on_set_pos_pressed)
 	close_button.pressed.connect(toggle_menu)
 	quit_button.pressed.connect(_on_quit_pressed)
 	func_button.item_selected.connect(_on_func_item_selected)
 	height_button.item_selected.connect(_on_height_selected)
-	multivalued_mode_button.item_selected.connect(_on_multivalued_mode_selected)
 
 	master_volume_slider.value_changed.connect(_on_master_volume_value_changed)
 	bg_music_slider.value_changed.connect(_on_bg_music_value_changed)
@@ -261,8 +269,6 @@ func _ready():
 	shadows_checkbox.toggled.connect(_on_shadows_toggled)
 	get_viewport().size_changed.connect(_update_hud_layout)
 	multivalued_slider.value_changed.connect(_on_multivalued_n_value_changed)
-	cycle_speed_slider.value_changed.connect(_on_cycle_speed_value_changed)
-	morph_time_slider.value_changed.connect(_on_morph_time_value_changed)
 
 	brightness_slider.value_changed.connect(_on_terrain_brightness_value_changed)
 	saturation_slider.value_changed.connect(_on_terrain_saturation_value_changed)
@@ -283,10 +289,6 @@ func _ready():
 		if f_data.get("hidden", false):
 			continue
 		func_button.add_item(f_data.get("name", "Unknown"), f_key)
-
-	multivalued_mode_button.clear()
-	multivalued_mode_button.add_item("Time cycle")
-	multivalued_mode_button.add_item("Branch portals")
 
 	height_button.clear()
 	height_button.add_item("Logarithmic (a*log(ε + abs))")
@@ -324,8 +326,6 @@ func _ready():
 	exit_detach_button.pressed.connect(_on_exit_detach_pressed)
 	$Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/IterContainer/IterDetachButton.pressed.connect(func(): _on_detach_pressed($Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/IterContainer/IterSlider, $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/IterContainer/IterValue, "Iterations"))
 	$Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/MultivaluedContainer/MultivaluedDetachButton.pressed.connect(func(): _on_detach_pressed($Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/MultivaluedContainer/MultivaluedSlider, $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/MultivaluedContainer/MultivaluedValue, "Branches (n)"))
-	$Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/CycleSpeedContainer/CycleSpeedDetachButton.pressed.connect(func(): _on_detach_pressed($Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/CycleSpeedContainer/CycleSpeedSlider, $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/CycleSpeedContainer/CycleSpeedValue, "Cycle Speed"))
-	$Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/MorphTimeContainer/MorphTimeDetachButton.pressed.connect(func(): _on_detach_pressed($Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/MorphTimeContainer/MorphTimeSlider, $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/MorphTimeContainer/MorphTimeValue, "Morph Time"))
 	$Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/DayDurationContainer/DayDurationDetachButton.pressed.connect(func(): _on_detach_pressed($Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/DayDurationContainer/DayDurationSlider, $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/DayDurationContainer/DayDurationValue, "Day Duration"))
 	$Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/StaticTimeContainer/StaticTimeDetachButton.pressed.connect(func(): _on_detach_pressed($Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/StaticTimeContainer/StaticTimeSlider, $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/StaticTimeContainer/StaticTimeValue, "Time of day"))
 	$Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/SunriseContainer/SunriseDetachButton.pressed.connect(func(): _on_detach_pressed($Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/SunriseContainer/SunriseSlider, $Control/MenuOverlay/CenterContainer/MainPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/SunriseContainer/SunriseValue, "Sunrise Direction"))
@@ -381,7 +381,6 @@ func _any_dropdown_popup():
 		|| terrain_detail_button.get_popup().visible
 		|| aa_button.get_popup().visible
 		|| color_scheme_button.get_popup().visible
-		|| multivalued_mode_button.get_popup().visible
 	)
 
 func _on_tooltip_timer_timeout():
@@ -392,6 +391,8 @@ func _on_tooltip_timer_timeout():
 	if _pending_tooltip_key != "":
 		tooltip_label.custom_minimum_size.x = 250
 		tooltip_label.text = DESCRIPTIONS[_pending_tooltip_key]
+		if "Shortcut: " in tooltip_label.text:
+			tooltip_label.text = tooltip_label.text.replace("Shortcut: ", "\n\n[color=gray]Shortcut: ") + "[/color]"
 		# Hide it during layout processing to prevent flicker
 		tooltip.modulate.a = 0.0
 		tooltip.visible = true
@@ -542,12 +543,6 @@ func toggle_menu(applied: bool = false):
 
 		multivalued_slider.value = Config.multivalued_n
 		_on_multivalued_n_value_changed(Config.multivalued_n)
-		multivalued_mode_button.selected = Config.multivalued_mode
-		_on_multivalued_mode_selected(Config.multivalued_mode)
-		cycle_speed_slider.value = Config.branch_cycle_speed
-		_on_cycle_speed_value_changed(Config.branch_cycle_speed)
-		morph_time_slider.value = Config.multivalued_morph_time
-		_on_morph_time_value_changed(Config.multivalued_morph_time)
 
 		func_button.select(func_button.get_item_index(Config.function_type))
 		height_button.selected = Config.height_type
@@ -599,7 +594,7 @@ func _on_func_selected(f_type: int):
 	var iters_range = f_data.get("iters_range", {})
 	var has_iters = !iters_range.is_empty()
 	var is_rational = f_data.get("is_rational", false)
-	var is_multivalued = f_data.get("is_multivalued", false)
+	var is_multivalued_n = f_type == Config.ComplexFunc.MULTIVALUED_Z_POW
 
 	if has_iters:
 		iter_slider.min_value = iters_range[0]
@@ -611,24 +606,17 @@ func _on_func_selected(f_type: int):
 		_on_iterations_value_changed(Config.iterations)
 
 	rational_container.visible = is_rational
-	multivalued_mode_container.visible = is_multivalued
-	multivalued_container.visible = is_multivalued
-	_on_multivalued_mode_selected(multivalued_mode_button.selected)
+	multivalued_container.visible = is_multivalued_n
 	iter_container.visible = has_iters
 	critical_checkbox.visible = is_dirichlect
 	auto_walk_checkbox.visible = is_dirichlect
 	rvm_checkbox.visible = is_dirichlect
 
 func _on_height_selected(index):
+	Config.height_type = index
 	var is_log = (index == 0)
 	height_a_container.visible = is_log
 	height_eps_container.visible = is_log
-
-func _on_multivalued_mode_selected(index):
-	var is_multivalued = Config.function.get("is_multivalued", false)
-	var is_cycle = (index == 0)
-	cycle_speed_container.visible = is_multivalued and is_cycle
-	morph_time_container.visible = is_multivalued and is_cycle
 
 func _on_freeze_time_toggled(pressed: bool):
 	Config.freeze_time = pressed
@@ -709,14 +697,6 @@ func _on_iterations_value_changed(value):
 func _on_multivalued_n_value_changed(value):
 	multivalued_value.text = str(int(value))
 	Config.multivalued_n = int(value)
-
-func _on_cycle_speed_value_changed(value):
-	cycle_speed_value.text = "%.1f" % value
-	Config.branch_cycle_speed = value
-
-func _on_morph_time_value_changed(value):
-	morph_time_value.text = "%.2f" % value
-	Config.multivalued_morph_time = value
 
 func _on_terrain_brightness_value_changed(value):
 	Config.terrain_brightness = value / 50.0
@@ -941,9 +921,6 @@ func _on_set_pos_pressed():
 	Config.function_type = func_button.get_item_id(func_button.selected)
 	Config.height_type = height_button.selected
 	Config.multivalued_n = int(multivalued_slider.value)
-	Config.multivalued_mode = multivalued_mode_button.selected
-	Config.branch_cycle_speed = cycle_speed_slider.value
-	Config.multivalued_morph_time = morph_time_slider.value
 
 	apply_aa()
 
@@ -1064,8 +1041,6 @@ func _process(_delta):
 	var material = complex_rect.material as ShaderMaterial
 	material.set_shader_parameter("current_f", f)
 	material.set_shader_parameter("multivalued_n", Config.multivalued_n)
-	material.set_shader_parameter("branch_cycle_speed", Config.branch_cycle_speed)
-	material.set_shader_parameter("multivalued_morph_time", Config.multivalued_morph_time)
 	material.set_shader_parameter("function_type", Config.function_type)
 	material.set_shader_parameter("color_scheme", Config.color_scheme)
 	material.set_shader_parameter("scale", current_scale)
@@ -1075,13 +1050,7 @@ func _process(_delta):
 	domain_label.text = "Re = %.3f\nIm = %.3f" % [x * 0.1 * scale_factor, -z * 0.1 * scale_factor]
 	var target_text = "Re = %.3f\nIm = %.3f\n|f| = %.3f" % [f.x, f.y, f.length()]
 	if f_data.get("is_multivalued", false):
-		var k = 0
-		if Config.multivalued_mode == 0:
-			var progress = fmod(Config.branch_time * Config.branch_cycle_speed, 1.0) * Config.multivalued_n
-			k = int(floor(progress))
-		else:
-			k = Config.current_branch
-		target_text += "\nBranch k = %d" % k
+		target_text += "\nBranch k = %d" % Config.current_branch
 	target_label.text = target_text
 
 	complex_panel.visible = Config.show_hud_complex
@@ -1164,13 +1133,21 @@ func _apply_stack_layout(stack: VBoxContainer, desired_cards: Array):
 		if not child in desired_cards:
 			stack.remove_child(child)
 
+	# Optimization: The original code moved each card to index 0 in forward order,
+	# which inverted the final display order. By iterating backwards through the
+	# desired_cards array, we can safely target absolute indices (0 to N-1) as we build
+	# the stack from top to bottom. This ensures `move_child` operates within valid
+	# index bounds even when new cards are being added, and eliminates redundant moves.
 	for i in range(desired_cards.size()):
-		var card = desired_cards[i]
+		var target_index = i
+		var card = desired_cards[desired_cards.size() - 1 - i]
 		if card.get_parent() != stack:
 			if card.get_parent():
 				card.get_parent().remove_child(card)
 			stack.add_child(card)
-		stack.move_child(card, 0)
+
+		if card.get_index() != target_index:
+			stack.move_child(card, target_index)
 
 func _rescale_card(card: Control, scale: float):
 	if card == null: return
@@ -1267,3 +1244,87 @@ func _on_aa_selected(index: int):
 
 func _on_shadows_toggled(pressed: bool):
 	Config.shadows_enabled = pressed
+
+func _on_curves_toggled(pressed: bool):
+	Config.show_curves = pressed
+
+func _on_critical_toggled(pressed: bool):
+	Config.show_critical_stripe = pressed
+
+func _on_flow_toggled(pressed: bool):
+	Config.show_flow = pressed
+
+func _on_hud_complex_toggled(pressed: bool):
+	Config.show_hud_complex = pressed
+
+func _on_hud_navigation_toggled(pressed: bool):
+	Config.show_hud_navigation = pressed
+
+func _on_hud_zeros_toggled(pressed: bool):
+	Config.show_hud_zeros = pressed
+	if not pressed:
+		Config.visited_zeros.clear()
+
+func _on_rvm_toggled(pressed: bool):
+	Config.show_rvm = pressed
+
+func _on_hud_monitor_fps_toggled(pressed: bool):
+	Config.show_hud_monitor_fps = pressed
+
+func _on_hud_monitor_chunks_toggled(pressed: bool):
+	Config.show_hud_monitor_chunks = pressed
+
+func _on_color_scheme_selected(index: int):
+	Config.color_scheme = index
+
+func _on_speed_text_submitted(new_text: String):
+	var m_speed = float(new_text) * 10.0
+	if is_finite(m_speed):
+		Config.movement_speed = m_speed
+		_speed_modified = false
+
+func _on_camera_height_text_submitted(new_text: String):
+	var c_height = float(new_text)
+	if is_finite(c_height):
+		Config.camera_height = c_height
+		_camera_height_modified = false
+
+func _on_re_text_submitted(new_text: String):
+	var re = float(new_text)
+	if is_finite(re) and player:
+		var zoom_mult = Config.zoom_factor
+		player.global_position.x = 10.0 * re * zoom_mult
+
+func _on_im_text_submitted(new_text: String):
+	var im = float(new_text)
+	if is_finite(im) and player:
+		var zoom_mult = Config.zoom_factor
+		player.global_position.z = -10.0 * im * zoom_mult
+
+func _on_height_a_text_submitted(new_text: String):
+	var h_a = float(new_text)
+	if is_finite(h_a):
+		Config.height_a = h_a
+
+func _on_height_eps_text_submitted(new_text: String):
+	var h_eps = float(new_text)
+	if is_finite(h_eps):
+		Config.height_epsilon = h_eps
+
+func _on_rational_text_submitted(new_text: String):
+	if Config.function_type == Config.ComplexFunc.RATIONAL:
+		var expr = new_text.replace(" ", "")
+		if "/" in expr:
+			var parts = expr.split("/")
+			var num_str = parts[0]
+			if num_str.begins_with("(") and num_str.ends_with(")"):
+				num_str = num_str.substr(1, num_str.length() - 2)
+			var den_str = parts[1]
+			if den_str.begins_with("(") and den_str.ends_with(")"):
+				den_str = den_str.substr(1, den_str.length() - 2)
+
+			Config.rational_num_coeffs = _parse_poly(num_str)
+			Config.rational_den_coeffs = _parse_poly(den_str)
+		else:
+			Config.rational_num_coeffs = _parse_poly(expr)
+			Config.rational_den_coeffs = PackedVector2Array([Vector2(1, 0), Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO])

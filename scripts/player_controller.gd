@@ -220,17 +220,23 @@ func _physics_process(delta):
 	global_position.y = terrain_h + Config.camera_height + height_offset
 
 	# Multivalued branch crossing detection
-	if Config.function.get("is_multivalued", false) and Config.multivalued_mode == 1:
+	if Config.function.get("is_multivalued", false):
 		# Detect crossing of the positive real axis (sigma > 0, t=0)
 		if current_sigma > 0.0:
 			var branch_changed = false
-			if last_t < 0.0 and current_t >= 0.0:
+			if last_z.y < 0.0 and current_z.y >= 0.0:
 				# Crossed from -t to +t (counter-clockwise around origin)
-				Config.current_branch = (Config.current_branch + 1) % Config.multivalued_n
+				if Config.function_type == Config.ComplexFunc.MULTIVALUED_LOG:
+					Config.current_branch += 1
+				else:
+					Config.current_branch = (Config.current_branch + 1) % Config.multivalued_n
 				branch_changed = true
-			elif last_t > 0.0 and current_t <= 0.0:
+			elif last_z.y > 0.0 and current_z.y <= 0.0:
 				# Crossed from +t to -t (clockwise around origin)
-				Config.current_branch = (Config.current_branch + Config.multivalued_n - 1) % Config.multivalued_n
+				if Config.function_type == Config.ComplexFunc.MULTIVALUED_LOG:
+					Config.current_branch -= 1
+				else:
+					Config.current_branch = (Config.current_branch + Config.multivalued_n - 1) % Config.multivalued_n
 				branch_changed = true
 
 			if branch_changed:
