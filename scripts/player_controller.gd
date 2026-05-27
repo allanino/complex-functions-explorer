@@ -152,8 +152,9 @@ func _physics_process(delta):
 	var current_speed = Config.movement_speed
 
 	# Speed reduction near zeros
-	if current_mag < Config.zero_proximity_nav:
-		current_speed *= (Config.speed_near_zeros / 100.0)
+	if current_mag <= Config.zero_proximity_nav and Config.zero_proximity_nav > 0.0:
+		# The multiplicative factor goes from 1.0 to speed_near_zeros back to 1.0 if walking in line
+		current_speed = Config.movement_speed * max(current_mag / Config.zero_proximity_nav, Config.speed_near_zeros / 100.0)
 
 	if auto_walk_state != AutoWalkState.NONE:
 		current_speed = min(current_speed, 50.0)
