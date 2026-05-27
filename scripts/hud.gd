@@ -238,7 +238,6 @@ func _ready():
 	hud_monitor_fps_checkbox.toggled.connect(_on_hud_monitor_fps_toggled)
 	hud_monitor_chunks_checkbox.toggled.connect(_on_hud_monitor_chunks_toggled)
 	color_scheme_button.item_selected.connect(_on_color_scheme_selected)
-	auto_walk_checkbox.toggled.connect(_on_auto_walk_toggled)
 
 	apply_button.pressed.connect(_on_set_pos_pressed)
 	close_button.pressed.connect(toggle_menu)
@@ -1275,13 +1274,6 @@ func _on_hud_monitor_chunks_toggled(pressed: bool):
 
 func _on_color_scheme_selected(index: int):
 	Config.color_scheme = index
-
-func _on_auto_walk_toggled(pressed: bool):
-	if player:
-		if pressed:
-			player.start_auto_walk()
-		else:
-			player.stop_auto_walk()
 
 func _on_speed_text_submitted(new_text: String):
 	var m_speed = float(new_text) * 10.0
