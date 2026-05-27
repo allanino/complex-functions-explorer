@@ -5,11 +5,7 @@ var hud_instance
 
 func before_each():
 	hud_instance = hud_scene.instantiate()
-	add_child(hud_instance)
-
-func after_each():
-	if is_instance_valid(hud_instance):
-		hud_instance.queue_free()
+	add_child_autoqfree(hud_instance)
 
 func test_parse_complex():
 	assert_eq(hud_instance._parse_complex(""), Vector2.ZERO)
@@ -45,7 +41,7 @@ func test_parse_poly():
 	assert_eq(res4[1], Vector2(2, 0))
 	assert_eq(res4[2], Vector2(1, 0))
 
-	var res5 = hud_instance._parse_poly("(1+i)z^2 - iz + (2-i)")
+	var res5 = hud_instance._parse_poly("(1+i)z^2 - iz + 2-i")
 	assert_eq(res5[0], Vector2(2, -1))
 
 	var res7 = hud_instance._parse_poly("(1+i)z^2 - iz + 2-i")
