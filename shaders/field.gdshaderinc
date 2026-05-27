@@ -474,10 +474,10 @@ FieldData complex_log_gamma_with_derivatives(vec2 z) {
     FieldData res;
     if (z.x < 0.5) {
         vec2 pi_z = vec2(PI * z.x, PI * z.y);
-        // ln Gamma(z_val) = ln pi - ln sin(pi z_val) - ln Gamma(1-z_val)
-        // d/dz = -pi cot(pi z_val) - (-psi(1-z_val)) = -pi cot(pi z_val) + psi(1-z_val)
+        // ln Gamma(z) = ln pi - ln sin(pi z) - ln Gamma(1-z)
+        // d/dz = -pi cot(pi z) - (-psi(1-z)) = -pi cot(pi z) + psi(1-z)
 
-        FieldData lg1z = lanczos_log_gamma_with_derivatives(vec2(1.0 - z.x, -z.y));
+        FieldData lg1z = lanczos_log_gamma_with_derivatives(vec2(1.0, 0.0) - z);
 
         vec2 log_sin_pi_z = complex_log_sin(pi_z);
 
