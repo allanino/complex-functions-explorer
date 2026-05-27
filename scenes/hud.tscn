@@ -765,9 +765,26 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 15
 
-[node name="FreezeTimeCheckbox" type="CheckBox" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox"]
+[node name="FreezeTimeContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox"]
 layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="FreezeTimeLabel" type="Label" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/FreezeTimeContainer"]
+custom_minimum_size = Vector2(160, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 18
+text = "Freeze time"
+
+[node name="FreezeTimeControl" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/FreezeTimeContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="FreezeTimeCheckbox" type="CheckBox" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/FreezeTimeContainer/FreezeTimeControl"]
+layout_mode = 2
+size_flags_horizontal = 3
 focus_mode = 0
+toggle_mode = true
 theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
 theme_override_constants/h_separation = 15
 theme_override_font_sizes/font_size = 18
@@ -776,7 +793,7 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_checkbox_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_checkbox")
 theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_checkbox_hover")
 theme_override_styles/focus = SubResource("StyleBoxFlat_checkbox")
-text = "Freeze time"
+text = "Off"
 
 [node name="DayDurationContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox"]
 layout_mode = 2

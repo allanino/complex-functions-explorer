@@ -55,7 +55,7 @@ extends CanvasLayer
 @onready var curves_checkbox = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/CurvesCheckbox
 @onready var critical_checkbox = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/CriticalCheckbox
 @onready var flow_checkbox = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/FlowCheckbox
-@onready var freeze_time_checkbox = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/FreezeTimeCheckbox
+@onready var freeze_time_checkbox = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/FreezeTimeContainer/FreezeTimeControl/FreezeTimeCheckbox
 @onready var day_duration_container = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/DayDurationContainer
 @onready var day_duration_slider = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/DayDurationContainer/DayDurationSlider
 @onready var day_duration_value = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/DayDurationContainer/DayDurationValue
@@ -461,6 +461,7 @@ func toggle_menu(applied: bool = false):
 		_initial_shadows_enabled = Config.shadows_enabled
 
 		freeze_time_checkbox.button_pressed = Config.freeze_time
+		_update_freeze_time_state_label()
 
 		if player:
 			var scale_factor = 1.0 / Config.effective_zoom
@@ -620,6 +621,11 @@ func _on_height_selected(index):
 
 func _on_freeze_time_toggled(pressed: bool):
 	Config.freeze_time = pressed
+	_update_freeze_time_state_label()
+
+func _update_freeze_time_state_label():
+	if freeze_time_checkbox:
+		freeze_time_checkbox.text = "On" if freeze_time_checkbox.button_pressed else "Off"
 
 func _format_time(total_seconds: float) -> String:
 	var hours = int(total_seconds) / 3600
