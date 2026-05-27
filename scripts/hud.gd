@@ -809,17 +809,17 @@ func _parse_poly(text: String) -> PackedVector2Array:
 			if coeff_str == "" or coeff_str == "+": coeff = Vector2(1, 0)
 			elif coeff_str == "-": coeff = Vector2(-1, 0)
 			else:
-				var sign = 1.0
+				var _sign = 1.0
 				if coeff_str.begins_with("+"):
 					coeff_str = coeff_str.substr(1)
 				elif coeff_str.begins_with("-"):
-					sign = -1.0
+					_sign = -1.0
 					coeff_str = coeff_str.substr(1)
 
 				# Remove surrounding parentheses if any
 				if coeff_str.begins_with("(") and coeff_str.ends_with(")"):
 					coeff_str = coeff_str.substr(1, coeff_str.length() - 2)
-				coeff = _parse_complex(coeff_str) * sign
+				coeff = _parse_complex(coeff_str) * _sign
 
 			var degree_str = parts[1]
 			if degree_str == "": degree = 1
@@ -1155,12 +1155,12 @@ func _apply_stack_layout(stack: VBoxContainer, desired_cards: Array):
 		if card.get_index() != target_index:
 			stack.move_child(card, target_index)
 
-func _rescale_card(card: Control, scale: float):
+func _rescale_card(card: Control, _scale: float):
 	if card == null: return
 
-	if card.has_meta("last_applied_scale") and card.get_meta("last_applied_scale") == scale:
+	if card.has_meta("last_applied_scale") and card.get_meta("last_applied_scale") == _scale:
 		return
-	card.set_meta("last_applied_scale", scale)
+	card.set_meta("last_applied_scale", _scale)
 
 	var stack = [card]
 	while stack.size() > 0:
@@ -1168,22 +1168,22 @@ func _rescale_card(card: Control, scale: float):
 		if node is Label:
 			if not node.has_meta("base_font_size"):
 				node.set_meta("base_font_size", node.get_theme_font_size("font_size"))
-			node.add_theme_font_size_override("font_size", int(round(node.get_meta("base_font_size") * scale)))
+			node.add_theme_font_size_override("font_size", int(round(node.get_meta("base_font_size") * _scale)))
 		elif node is RichTextLabel:
 			if not node.has_meta("base_font_size"):
 				node.set_meta("base_font_size", node.get_theme_font_size("normal_font_size"))
-			node.add_theme_font_size_override("normal_font_size", int(round(node.get_meta("base_font_size") * scale)))
+			node.add_theme_font_size_override("normal_font_size", int(round(node.get_meta("base_font_size") * _scale)))
 
 		if node is Control:
 			# Only scale custom minimum size for specific panels to maintain layout proportions
 			if node.name == "ComplexAspect":
 				if not node.has_meta("base_min_size"):
 					node.set_meta("base_min_size", Vector2(150, 150))
-				node.custom_minimum_size = node.get_meta("base_min_size") * scale
+				node.custom_minimum_size = node.get_meta("base_min_size") * _scale
 			elif node.name == "ZerosPanel" or node.name == "InfoPanel":
 				if not node.has_meta("base_min_size"):
 					node.set_meta("base_min_size", node.custom_minimum_size)
-				node.custom_minimum_size.y = node.get_meta("base_min_size").y * scale
+				node.custom_minimum_size.y = node.get_meta("base_min_size").y * _scale
 
 			# Keep container separations and margins constant at their original design values
 			if node is BoxContainer:
