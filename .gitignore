@@ -44,6 +44,6 @@ desktop.ini
 *.godot_exported
 
 # Binaries
-*.sh
+complex-functions.sh
 *.x86*
 addons/*
