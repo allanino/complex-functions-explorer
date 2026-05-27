@@ -1,21 +1,21 @@
 extends CanvasLayer
 
 @export var player: Node3D
-@onready var hud_columns = $Control/HUDColumns
-@onready var hud_stack_left = $Control/HUDColumns/HUDStackLeft
-@onready var hud_stack_right = $Control/HUDColumns/HUDStackRight
-@onready var complex_panel = $Control/HUDColumns/HUDStackRight/ComplexAspect
-@onready var info_panel = $Control/HUDColumns/HUDStackRight/InfoPanel
-@onready var monitor_panel = $Control/HUDColumns/HUDStackRight/MonitorPanel
-@onready var fps_label = $Control/HUDColumns/HUDStackRight/MonitorPanel/MarginContainer/VBox/FpsLabel
-@onready var complex_rect = $Control/HUDColumns/HUDStackRight/ComplexAspect/ComplexPanel/MarginContainer/ClipPanel/ComplexPlane
+@onready var hud_columns = $Control/MainUIColumns
+@onready var hud_stack_left = $Control/MainUIColumns/MainUIStackLeft
+@onready var hud_stack_right = $Control/MainUIColumns/MainUIStackRight
+@onready var complex_panel = $Control/MainUIColumns/MainUIStackRight/ComplexAspect
+@onready var info_panel = $Control/MainUIColumns/MainUIStackRight/InfoPanel
+@onready var monitor_panel = $Control/MainUIColumns/MainUIStackRight/MonitorPanel
+@onready var fps_label = $Control/MainUIColumns/MainUIStackRight/MonitorPanel/MarginContainer/VBox/FpsLabel
+@onready var complex_rect = $Control/MainUIColumns/MainUIStackRight/ComplexAspect/ComplexPanel/MarginContainer/ClipPanel/ComplexPlane
 @onready var world_manager = get_node_or_null("../WorldManager")
-@onready var domain_label = $Control/HUDColumns/HUDStackRight/InfoPanel/MarginContainer/VBox/DomainLabel
-@onready var target_label = $Control/HUDColumns/HUDStackRight/InfoPanel/MarginContainer/VBox/TargetLabel
-@onready var zeros_panel = $Control/HUDColumns/HUDStackRight/ZerosPanel
-@onready var zeros_count_label = $Control/HUDColumns/HUDStackRight/ZerosPanel/MarginContainer/VBox/CountLabel
-@onready var rvm_label = $Control/HUDColumns/HUDStackRight/ZerosPanel/MarginContainer/VBox/RvmLabel
-@onready var zeros_list_label = $Control/HUDColumns/HUDStackRight/ZerosPanel/MarginContainer/VBox/Scroll/ListLabel
+@onready var domain_label = $Control/MainUIColumns/MainUIStackRight/InfoPanel/MarginContainer/VBox/DomainLabel
+@onready var target_label = $Control/MainUIColumns/MainUIStackRight/InfoPanel/MarginContainer/VBox/TargetLabel
+@onready var zeros_panel = $Control/MainUIColumns/MainUIStackRight/ZerosPanel
+@onready var zeros_count_label = $Control/MainUIColumns/MainUIStackRight/ZerosPanel/MarginContainer/VBox/CountLabel
+@onready var rvm_label = $Control/MainUIColumns/MainUIStackRight/ZerosPanel/MarginContainer/VBox/RvmLabel
+@onready var zeros_list_label = $Control/MainUIColumns/MainUIStackRight/ZerosPanel/MarginContainer/VBox/Scroll/ListLabel
 @onready var menu_overlay = $Control/MenuOverlay
 
 # New UI Node Paths
@@ -75,14 +75,14 @@ extends CanvasLayer
 @onready var fog_density_value = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/FogDensityContainer/FogDensityValue
 @onready var shadows_checkbox = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/GRAPHICS/Margin/VBox/ShadowsCheckbox
 
-@onready var hud_complex_checkbox = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/HUD/Margin/VBox/HudComplexCheckbox
-@onready var hud_navigation_checkbox = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/HUD/Margin/VBox/HudNavigationCheckbox
-@onready var hud_zeros_checkbox = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/HUD/Margin/VBox/HudZerosDetectionCheckbox
-@onready var rvm_checkbox = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/HUD/Margin/VBox/RvmCheckbox
-@onready var hud_monitor_fps_checkbox = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/HUD/Margin/VBox/HudMonitorFpsCheckbox
-@onready var hud_monitor_chunks_checkbox = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/HUD/Margin/VBox/HudMonitorChunksCheckbox
-@onready var hud_scale_slider = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/HUD/Margin/VBox/HudScaleContainer/HudScaleSlider
-@onready var hud_scale_value = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/HUD/Margin/VBox/HudScaleContainer/HudScaleValue
+@onready var hud_complex_checkbox = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/MainUI/Margin/VBox/HudComplexCheckbox
+@onready var hud_navigation_checkbox = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/MainUI/Margin/VBox/HudNavigationCheckbox
+@onready var hud_zeros_checkbox = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/MainUI/Margin/VBox/HudZerosDetectionCheckbox
+@onready var rvm_checkbox = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/MainUI/Margin/VBox/RvmCheckbox
+@onready var hud_monitor_fps_checkbox = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/MainUI/Margin/VBox/HudMonitorFpsCheckbox
+@onready var hud_monitor_chunks_checkbox = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/MainUI/Margin/VBox/HudMonitorChunksCheckbox
+@onready var hud_scale_slider = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/MainUI/Margin/VBox/HudScaleContainer/HudScaleSlider
+@onready var hud_scale_value = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/MainUI/Margin/VBox/HudScaleContainer/HudScaleValue
 
 @onready var master_volume_slider = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/AUDIO/Margin/VBox/MasterVolumeContainer/MasterVolumeSlider
 @onready var master_volume_value = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/AUDIO/Margin/VBox/MasterVolumeContainer/MasterVolumeValue
@@ -124,7 +124,7 @@ var active_detached_value: Label = null
 @onready var apply_button = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/ButtonsHBox/ApplyButton
 @onready var close_button = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/ButtonsHBox/CloseButton
 @onready var quit_button = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/ButtonsHBox/QuitContainer/QuitButton
-@onready var perf_label = $Control/HUDColumns/HUDStackRight/PerfProtectionLabel
+@onready var perf_label = $Control/MainUIColumns/MainUIStackRight/PerfProtectionLabel
 
 @onready var tooltip = $TooltipLayer/Tooltip
 @onready var tooltip_label = $TooltipLayer/Tooltip/MarginContainer/Label
@@ -164,13 +164,13 @@ const DESCRIPTIONS = {
 	"Fog": "Enable or disable global volumetric fog effects.",
 	"Fog Density": "Adjust the thickness of the fog and aerial perspective.",
 	"Shadows": "Enable real-time directional shadows for terrain features.",
-	"Complex plane": "Show the domain coloring map of the current position on the HUD.",
-	"Navigation": "Show coordinate and magnitude information on the HUD.",
+	"Complex plane": "Show the domain coloring map of the current position on the MainUI.",
+	"Navigation": "Show coordinate and magnitude information on the MainUI.",
 	"Zeros detection": "Show the list of discovered zeros during walking.",
 	"Riemann–von Mangoldt": "Show the estimated number of zeta zeros N(t) based on the Riemann–von Mangoldt formula.",
-	"Monitor FPS": "Show real-time performance metrics (FPS) on the HUD.",
-	"Monitor Chunks": "Show real-time chunks statistics on the HUD.",
-	"HUD Scale": "Adjust the size of the HUD elements.",
+	"Monitor FPS": "Show real-time performance metrics (FPS) on the MainUI.",
+	"Monitor Chunks": "Show real-time chunks statistics on the MainUI.",
+	"MainUI Scale": "Adjust the size of the MainUI elements.",
 	"Master Volume": "Control the global volume level of all sound sources.",
 	"Background Music": "Adjust the volume of the ambient mathematical soundscape.",
 	"Topographic Drone": "Adjust the volume of the terrain-responsive spatial audio.",
