@@ -9,7 +9,7 @@ extends CanvasLayer
 @onready var monitor_panel = $Control/HUDColumns/HUDStackRight/MonitorPanel
 @onready var fps_label = $Control/HUDColumns/HUDStackRight/MonitorPanel/MarginContainer/VBox/FpsLabel
 @onready var complex_rect = $Control/HUDColumns/HUDStackRight/ComplexAspect/ComplexPanel/MarginContainer/ClipPanel/ComplexPlane
-@onready var world_manager = get_node("../WorldManager")
+@onready var world_manager = get_node_or_null("../WorldManager")
 @onready var domain_label = $Control/HUDColumns/HUDStackRight/InfoPanel/MarginContainer/VBox/DomainLabel
 @onready var target_label = $Control/HUDColumns/HUDStackRight/InfoPanel/MarginContainer/VBox/TargetLabel
 @onready var zeros_panel = $Control/HUDColumns/HUDStackRight/ZerosPanel
