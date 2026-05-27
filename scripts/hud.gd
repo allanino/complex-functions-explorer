@@ -219,7 +219,26 @@ var _camera_height_modified: bool = false
 func _ready():
 	hud_columns.offset_top = -1000
 	speed_input.text_changed.connect(func(_t): _speed_modified = true)
+	speed_input.text_submitted.connect(_on_speed_text_submitted)
 	camera_height_input.text_changed.connect(func(_t): _camera_height_modified = true)
+	camera_height_input.text_submitted.connect(_on_camera_height_text_submitted)
+	re_input.text_submitted.connect(_on_re_text_submitted)
+	im_input.text_submitted.connect(_on_im_text_submitted)
+	height_a_input.text_submitted.connect(_on_height_a_text_submitted)
+	height_eps_input.text_submitted.connect(_on_height_eps_text_submitted)
+	rational_input.text_submitted.connect(_on_rational_text_submitted)
+
+	curves_checkbox.toggled.connect(_on_curves_toggled)
+	critical_checkbox.toggled.connect(_on_critical_toggled)
+	flow_checkbox.toggled.connect(_on_flow_toggled)
+	hud_complex_checkbox.toggled.connect(_on_hud_complex_toggled)
+	hud_navigation_checkbox.toggled.connect(_on_hud_navigation_toggled)
+	hud_zeros_checkbox.toggled.connect(_on_hud_zeros_toggled)
+	rvm_checkbox.toggled.connect(_on_rvm_toggled)
+	hud_monitor_fps_checkbox.toggled.connect(_on_hud_monitor_fps_toggled)
+	hud_monitor_chunks_checkbox.toggled.connect(_on_hud_monitor_chunks_toggled)
+	color_scheme_button.item_selected.connect(_on_color_scheme_selected)
+
 	apply_button.pressed.connect(_on_set_pos_pressed)
 	close_button.pressed.connect(toggle_menu)
 	quit_button.pressed.connect(_on_quit_pressed)
@@ -592,6 +611,7 @@ func _on_func_selected(f_type: int):
 	rvm_checkbox.visible = is_dirichlect
 
 func _on_height_selected(index):
+	Config.height_type = index
 	var is_log = (index == 0)
 	height_a_container.visible = is_log
 	height_eps_container.visible = is_log
@@ -1222,3 +1242,87 @@ func _on_aa_selected(index: int):
 
 func _on_shadows_toggled(pressed: bool):
 	Config.shadows_enabled = pressed
+
+func _on_curves_toggled(pressed: bool):
+	Config.show_curves = pressed
+
+func _on_critical_toggled(pressed: bool):
+	Config.show_critical_stripe = pressed
+
+func _on_flow_toggled(pressed: bool):
+	Config.show_flow = pressed
+
+func _on_hud_complex_toggled(pressed: bool):
+	Config.show_hud_complex = pressed
+
+func _on_hud_navigation_toggled(pressed: bool):
+	Config.show_hud_navigation = pressed
+
+func _on_hud_zeros_toggled(pressed: bool):
+	Config.show_hud_zeros = pressed
+	if not pressed:
+		Config.visited_zeros.clear()
+
+func _on_rvm_toggled(pressed: bool):
+	Config.show_rvm = pressed
+
+func _on_hud_monitor_fps_toggled(pressed: bool):
+	Config.show_hud_monitor_fps = pressed
+
+func _on_hud_monitor_chunks_toggled(pressed: bool):
+	Config.show_hud_monitor_chunks = pressed
+
+func _on_color_scheme_selected(index: int):
+	Config.color_scheme = index
+
+func _on_speed_text_submitted(new_text: String):
+	var m_speed = float(new_text) * 10.0
+	if is_finite(m_speed):
+		Config.movement_speed = m_speed
+		_speed_modified = false
+
+func _on_camera_height_text_submitted(new_text: String):
+	var c_height = float(new_text)
+	if is_finite(c_height):
+		Config.camera_height = c_height
+		_camera_height_modified = false
+
+func _on_re_text_submitted(new_text: String):
+	var re = float(new_text)
+	if is_finite(re) and player:
+		var zoom_mult = Config.zoom_factor
+		player.global_position.x = 10.0 * re * zoom_mult
+
+func _on_im_text_submitted(new_text: String):
+	var im = float(new_text)
+	if is_finite(im) and player:
+		var zoom_mult = Config.zoom_factor
+		player.global_position.z = -10.0 * im * zoom_mult
+
+func _on_height_a_text_submitted(new_text: String):
+	var h_a = float(new_text)
+	if is_finite(h_a):
+		Config.height_a = h_a
+
+func _on_height_eps_text_submitted(new_text: String):
+	var h_eps = float(new_text)
+	if is_finite(h_eps):
+		Config.height_epsilon = h_eps
+
+func _on_rational_text_submitted(new_text: String):
+	if Config.function_type == Config.ComplexFunc.RATIONAL:
+		var expr = new_text.replace(" ", "")
+		if "/" in expr:
+			var parts = expr.split("/")
+			var num_str = parts[0]
+			if num_str.begins_with("(") and num_str.ends_with(")"):
+				num_str = num_str.substr(1, num_str.length() - 2)
+			var den_str = parts[1]
+			if den_str.begins_with("(") and den_str.ends_with(")"):
+				den_str = den_str.substr(1, den_str.length() - 2)
+
+			Config.rational_num_coeffs = _parse_poly(num_str)
+			Config.rational_den_coeffs = _parse_poly(den_str)
+		else:
+			Config.rational_num_coeffs = _parse_poly(expr)
+			Config.rational_den_coeffs = PackedVector2Array([Vector2(1, 0), Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO])
