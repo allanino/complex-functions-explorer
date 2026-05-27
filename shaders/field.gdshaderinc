@@ -13,10 +13,6 @@ uniform bool is_multivalued = false;
 uniform vec2 rational_num_coeffs[10];
 uniform vec2 rational_den_coeffs[10];
 uniform int multivalued_n = 2;
-uniform int multivalued_mode = 0;
-uniform float branch_cycle_speed = 0.5;
-uniform float multivalued_morph_time = 0.1;
-uniform float branch_time = 0.0;
 uniform int current_branch = 0;
 
 struct FieldData {
@@ -837,31 +833,38 @@ FieldData multivalued_z_pow_inv_n_with_derivatives(vec2 z, int n, float cycle_sp
     if (theta < 0.0) theta += 2.0 * PI;
     float float_n = float(n);
 
-    float blend_factor = 0.0;
-    float k_val = 0.0;
+    float k_val = float((current_branch + branch_offset + n) % n);
 
-    if (multivalued_mode == 0) { // Time cycle
-        // Temporal branch selection & blending factor
-        float progress = fract(branch_time * cycle_speed) * float_n;
-        k_val = floor(progress);
-        float t_in_branch = fract(progress);
-
-        // Non-linear transition: stay on branch, then morph
-        float dwell_time = (1.0 / float_n) - multivalued_morph_time * cycle_speed;
-        dwell_time = max(dwell_time, 0.0);
-        float transition_threshold = dwell_time * float_n;
-        blend_factor = smoothstep(transition_threshold, 1.0, t_in_branch);
-    } else { // Branch portals
-        k_val = float((current_branch + branch_offset + n) % n);
-    }
-
-    float morphed_phase = (theta + 2.0 * PI * (k_val + blend_factor)) / float_n;
+    float morphed_phase = (theta + 2.0 * PI * k_val) / float_n;
     float morphed_r = pow(r, 1.0 / float_n);
     res.value = vec2(morphed_r * cos(morphed_phase), morphed_r * sin(morphed_phase));
 
     // dW/dZ = (1/n) * W / Z
     vec2 z_val = vec2(z.x, z.y);
     vec2 deriv = complex_div(res.value, float_n * z_val);
+
+    res.d_sigma = deriv;
+    res.d_t = vec2(-deriv.y, deriv.x);
+    return res;
+}
+
+FieldData multivalued_log_with_derivatives(float sigma, float t, int branch_offset) {
+    FieldData res;
+    float r_sq = sigma * sigma + t * t;
+    float r = sqrt(r_sq);
+    float theta = atan(t, sigma);
+    if (theta < 0.0) theta += 2.0 * PI;
+
+    float k_val = float(current_branch + branch_offset);
+
+    float morphed_phase = theta + 2.0 * PI * k_val;
+
+    // Log(z) = ln|z| + i(arg(z) + 2pi*k)
+    res.value = vec2(log(r), morphed_phase);
+
+    // dW/dZ = 1 / Z
+    vec2 z = vec2(sigma, t);
+    vec2 deriv = complex_div(vec2(1.0, 0.0), z);
 
     res.d_sigma = deriv;
     res.d_t = vec2(-deriv.y, deriv.x);
@@ -890,9 +893,10 @@ FieldData get_field_with_derivatives(float x, float z, int branch_offset) {
     if (function_type == 11) return complex_cot_with_derivatives(vec2(sigma, t));
     if (function_type == 12) return complex_exp_with_derivatives(vec2(sigma, t));
     if (function_type == 13) return complex_log_with_derivatives(vec2(sigma, t));
-    if (function_type == 14) return identity_with_derivatives(sigma, t);
+    if (function_type == 14) return identity_with_derivatives(vec2(sigma, t));
     if (function_type == 15) return get_rational_with_derivatives(vec2(sigma, t));
-	if (function_type == 16) return multivalued_z_pow_inv_n_with_derivatives(vec2(sigma, t), multivalued_n, branch_cycle_speed, branch_offset);
+	  if (function_type == 16) return multivalued_z_pow_inv_n_with_derivatives(vec2(sigma, t), multivalued_n, branch_offset);
+	  if (function_type == 17) return multivalued_log_with_derivatives(float sigma, float t, branch_offset);
     FieldData res;
     res.value = vec2(0.0);
     res.d_sigma = vec2(0.0);

@@ -31,7 +31,11 @@ uniform float surface_texture : hint_range(0.0, 1.0) = 0.0;
 uniform float morph : hint_range(0.0, 1.0) = 1.0;
 uniform float portal_height = 50.0;
 uniform float portal_width = 100.0;
+
 uniform float self_illumination = 0.0;
+uniform bool fog_enabled = false;
+uniform float fog_density = 0.0;
+
 
 // Helper function to convert HSV to RGB
 vec3 hsv2rgb(vec3 c) {
@@ -129,7 +133,7 @@ void vertex() {
         vec3 world_v_pos = (MODEL_MATRIX * vec4(snap_v, 1.0)).xyz;
 
         int branch_offset = 0;
-        if (is_multivalued && multivalued_mode == 1) {
+        if (is_multivalued) {
             vec3 cam_pos = (INV_VIEW_MATRIX * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
             if (cam_pos.z * world_v_pos.z < 0.0) {
                 float r = cam_pos.z / (cam_pos.z - world_v_pos.z);
@@ -329,7 +333,7 @@ void fragment() {
         ALBEDO = base * albedo;
         vec3 final_emission = base * emission;
 
-        if (is_multivalued && multivalued_mode == 1) {
+        if (is_multivalued) {
             // Highlight the branch cut portal area
             float dist_to_cut = abs(world_pos.z);
             if (world_pos.x > 0.0 && world_pos.x < portal_width) {
@@ -513,30 +517,34 @@ void fragment() {
             }
         }
 
+        // Self-Illumination Glow around camera
+        if (self_illumination > 0.0 && !performance_protection_active) {
+            // Position slightly below the camera
+            vec3 light_pos = CAMERA_POSITION_WORLD - vec3(0.0, 0.2 / zoom_factor, 0.0);
+
+            float dist_to_camera = length(world_pos - light_pos) * 0.1;
+
+            // Exponent decay
+            float glow_factor = exp(-dist_to_camera);
+
+            // Fog Transmittance
+            if (fog_enabled) {
+                float actual_dist = length(world_pos - CAMERA_POSITION_WORLD);
+                float fog_transmittance = exp(-actual_dist * fog_density * 0.05);
+                glow_factor *= fog_transmittance;
+            }
+
+            // Gentle pulsing
+            float pulse = 1.0 + 0.03 * sin(TIME * 0.7);
+
+            vec3 warm_glow = vec3(1.0, 0.88, 0.72) * self_illumination * glow_factor * pulse * 5.0;
+            final_emission += ALBEDO * warm_glow;
+        }
+
         // Reinhard Tone Mapping to keep high emissions from blowing out to absolute white
         final_emission = final_emission / (final_emission + vec3(1.0));
 
         EMISSION = final_emission;
-    // Self-Illumination Glow around camera
-    if (self_illumination > 0.0 && !performance_protection_active) {
-        // Position slightly below the camera
-        vec3 light_pos = CAMERA_POSITION_WORLD - vec3(0.0, 0.2 / zoom_factor, 0.0);
-
-        // We could apply zoom here to preserve the same radius of light
-        // I think it is better to have the radius scale with the player
-        // like it is a light source being shrinked or enlarged,
-        // like we are doing here.
-        float dist_to_camera = length(world_pos - light_pos) * 0.1;
-
-        // Exponent decay
-        float glow_factor = exp(-dist_to_camera);
-
-        // Gentle pulsing
-        float pulse = 1.0 + 0.03 * sin(TIME * 0.7);
-
-        vec3 warm_glow = vec3(1.0, 0.88, 0.72) * self_illumination * glow_factor * pulse * 5.0;
-        EMISSION += ALBEDO * warm_glow;
-    }
 
         ROUGHNESS = clamp(roughness + roughness_variation, 0.0, 1.0);
         METALLIC = metallic;
