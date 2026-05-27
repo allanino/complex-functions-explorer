@@ -258,13 +258,9 @@ func _update_chunks(p_x: int, p_z: int):
 				_load_chunk(chunk_coord)
 
 	# Unload distant chunks
-	var chunks_to_remove = []
 	for chunk_coord in chunks.keys():
 		if abs(chunk_coord.x - p_x) > Config.view_distance or abs(chunk_coord.y - p_z) > Config.view_distance:
-			chunks_to_remove.append(chunk_coord)
-
-	for chunk_coord in chunks_to_remove:
-		_unload_chunk(chunk_coord)
+			_unload_chunk(chunk_coord)
 
 	_update_all_chunks_lod()
 
