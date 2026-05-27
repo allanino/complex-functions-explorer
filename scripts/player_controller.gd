@@ -38,11 +38,11 @@ func _ready():
 
 func _unhandled_input(event):
 	if event.is_action_pressed("ui_cancel"):
-		var hud = get_node_or_null("/root/Main/HUD")
+		var hud = get_node_or_null("/root/Main/MainUI")
 		if hud:
 			hud.toggle_menu()
 		else:
-			# Fallback if HUD is not found
+			# Fallback if MainUI is not found
 			if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 				Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 			else:
@@ -50,7 +50,7 @@ func _unhandled_input(event):
 		return
 
 	var is_detached = false
-	var hud_node = get_node_or_null("/root/Main/HUD")
+	var hud_node = get_node_or_null("/root/Main/MainUI")
 	if hud_node and hud_node.detach_overlay and hud_node.detach_overlay.visible:
 		is_detached = true
 
@@ -113,7 +113,7 @@ func get_terrain_height(x: float, z: float, field_val: Vector2 = Vector2.INF) ->
 
 func _physics_process(delta):
 	var is_detached = false
-	var hud_node = get_node_or_null("/root/Main/HUD")
+	var hud_node = get_node_or_null("/root/Main/MainUI")
 	if hud_node and hud_node.detach_overlay and hud_node.detach_overlay.visible:
 		is_detached = true
 
