@@ -156,7 +156,7 @@ func _process(delta):
 		var fog_color = lerp(Color(0.3, 0.4, 0.5), Color(1.0, 0.4, 0.1), _golden_hour_transition)
 		fog_color = lerp(fog_color, Color(0.01, 0.02, 0.05), night_factor)
 
-		env.fog_enabled = Config.fog_enabled
+		env.fog_enabled = Config.fog_density > 0.0
 		env.fog_mode = Environment.FOG_MODE_EXPONENTIAL
 		env.fog_light_color = fog_color
 		env.fog_density = Config.fog_density * 0.05
@@ -195,7 +195,6 @@ func _process(delta):
 		"morph_value": Config.morph_value,
 		"sky_luminosity": Config.sky_luminosity,
 		"sun_luminosity": Config.sun_luminosity,
-		"fog_enabled": Config.fog_enabled,
 		"fog_density": Config.fog_density,
 	}
 
@@ -348,7 +347,6 @@ func _update_terrain_material_uniforms():
 	terrain_material.set_shader_parameter("rational_den_coeffs", Config.rational_den_coeffs)
 	terrain_material.set_shader_parameter("multivalued_n", Config.multivalued_n)
 	terrain_material.set_shader_parameter("self_illumination", Config.self_illumination)
-	terrain_material.set_shader_parameter("fog_enabled", Config.fog_enabled)
 	terrain_material.set_shader_parameter("fog_density", Config.fog_density)
 	terrain_material.set_shader_parameter("brightness", Config.terrain_brightness)
 	terrain_material.set_shader_parameter("saturation", Config.terrain_saturation)

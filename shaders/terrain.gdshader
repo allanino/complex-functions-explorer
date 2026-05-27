@@ -33,7 +33,6 @@ uniform float portal_height = 50.0;
 uniform float portal_width = 100.0;
 
 uniform float self_illumination = 0.0;
-uniform bool fog_enabled = false;
 uniform float fog_density = 0.0;
 
 
@@ -528,7 +527,7 @@ void fragment() {
             float glow_factor = exp(-dist_to_camera);
 
             // Fog Transmittance
-            if (fog_enabled) {
+            if (fog_density > 0.0) {
                 float actual_dist = length(world_pos - CAMERA_POSITION_WORLD);
                 float fog_transmittance = exp(-actual_dist * fog_density * 0.05);
                 glow_factor *= fog_transmittance;
