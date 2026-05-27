@@ -71,6 +71,7 @@ extends CanvasLayer
 @onready var self_illumination_slider = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/SelfIlluminationContainer/SelfIlluminationSlider
 @onready var self_illumination_value = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/SelfIlluminationContainer/SelfIlluminationValue
 @onready var fog_enabled_checkbox = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/FogEnabledContainer/FogEnabledControl/FogEnabledCheckbox
+@onready var fog_density_container = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/FogDensityContainer
 @onready var fog_density_slider = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/FogDensityContainer/FogDensitySlider
 @onready var fog_density_value = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/FogDensityContainer/FogDensityValue
 @onready var shadows_checkbox = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/GRAPHICS/Margin/VBox/ShadowsContainer/ShadowsControl/ShadowsCheckbox
@@ -161,9 +162,8 @@ const DESCRIPTIONS = {
 	"Sunrise Direction": "Adjust the angle from which the sun rises (180° is towards +σ).",
 	"Sky Luminosity": "Adjust the overall brightness of the sky and clouds.",
 	"Sun Luminosity": "Adjust the intensity of the sun and moon light.",
-	"Fog Enabled": "Enable or disable global volumetric fog effects.",
+	"Fog": "Enable or disable global volumetric fog effects.",
 	"Fog Density": "Adjust the thickness of the fog and aerial perspective.",
-	"Fog Distance": "Set the distance from the camera where fog begins to appear.",
 	"Shadows": "Enable real-time directional shadows for terrain features.",
 	"Complex plane": "Show the domain coloring map of the current position on the HUD.",
 	"Navigation": "Show coordinate and magnitude information on the HUD.",
@@ -281,6 +281,8 @@ func _ready():
 	morph_button.item_selected.connect(_on_morph_selected)
 	morph_slider.value_changed.connect(_on_morph_slider_changed)
 	exit_morph_button.pressed.connect(_on_exit_morph_pressed)
+
+	fog_density_container.visible = fog_enabled_checkbox.button_pressed
 
 	func_button.clear()
 	var sorted_keys = Config.FUNCTIONS.keys()
@@ -691,6 +693,8 @@ func _on_fog_enabled_toggled(pressed: bool):
 
 	if fog_enabled_checkbox:
 		fog_enabled_checkbox.text = "On" if pressed else "Off"
+		fog_density_container.visible = pressed
+
 
 func _on_fog_density_value_changed(value):
 	Config.fog_density = value / 100.0
