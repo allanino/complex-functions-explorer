@@ -264,13 +264,12 @@ static func multivalued_z_pow_inv_n(sigma: float, t: float, n: int) -> Vector2:
 	var morphed_r = pow(r, 1.0 / float_n)
 	return Vector2(morphed_r * cos(morphed_phase), morphed_r * sin(morphed_phase))
 
-static func multivalued_log(sigma: float, t: float, n: int) -> Vector2:
+static func multivalued_log(sigma: float, t: float) -> Vector2:
 	var mag_sq = sigma * sigma + t * t
 	if mag_sq < 1e-48: return Vector2(-60.0, 0.0)
 	var r = sqrt(mag_sq)
 	var theta = atan2(t, sigma)
 	if theta < 0.0: theta += 2.0 * PI
-	var float_n = float(n)
 
 	var k_current = float(Config.current_branch)
 
@@ -307,7 +306,7 @@ static func get_field(x: float, z: float) -> Vector2:
 		Config.ComplexFunc.IDENTITY: return Vector2(sigma, t)
 		Config.ComplexFunc.RATIONAL: return get_rational(sigma, t)
 		Config.ComplexFunc.MULTIVALUED_Z_POW: return multivalued_z_pow_inv_n(sigma, t, Config.multivalued_n)
-		Config.ComplexFunc.MULTIVALUED_LOG: return multivalued_log(sigma, t, Config.multivalued_n)
+		Config.ComplexFunc.MULTIVALUED_LOG: return multivalued_log(sigma, t)
 
 	return Vector2.ZERO
 
