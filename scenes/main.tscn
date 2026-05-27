@@ -62,6 +62,8 @@ shader_parameter/morph = 1.0
 shader_parameter/portal_height = 50.0
 shader_parameter/portal_width = 100.0
 shader_parameter/self_illumination = 0.0
+shader_parameter/fog_enabled = false
+shader_parameter/fog_density = 0.0
 
 [node name="Main" type="Node3D" unique_id=1567576539]
 
