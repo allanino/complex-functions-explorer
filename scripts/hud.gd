@@ -9,7 +9,7 @@ extends CanvasLayer
 @onready var monitor_panel = $Control/HUDColumns/HUDStackRight/MonitorPanel
 @onready var fps_label = $Control/HUDColumns/HUDStackRight/MonitorPanel/MarginContainer/VBox/FpsLabel
 @onready var complex_rect = $Control/HUDColumns/HUDStackRight/ComplexAspect/ComplexPanel/MarginContainer/ClipPanel/ComplexPlane
-@onready var world_manager = get_node("../WorldManager")
+@onready var world_manager = get_node_or_null("../WorldManager")
 @onready var domain_label = $Control/HUDColumns/HUDStackRight/InfoPanel/MarginContainer/VBox/DomainLabel
 @onready var target_label = $Control/HUDColumns/HUDStackRight/InfoPanel/MarginContainer/VBox/TargetLabel
 @onready var zeros_panel = $Control/HUDColumns/HUDStackRight/ZerosPanel
@@ -802,7 +802,7 @@ func _parse_poly(text: String) -> PackedVector2Array:
 		if c == "(": depth += 1
 		elif c == ")": depth -= 1
 
-		if depth == 0 and i > 0 and (c == "+" or c == "-"):
+		if depth == 0 and i > 0 and (c == "+" or c == "-") and text[i-1] != "e" and text[i-1] != "E":
 			terms.append(text.substr(start_idx, i - start_idx))
 			start_idx = i
 	terms.append(text.substr(start_idx))
@@ -835,7 +835,16 @@ func _parse_poly(text: String) -> PackedVector2Array:
 			elif degree_str.begins_with("^"):
 				degree = int(degree_str.substr(1))
 		else:
-			coeff = _parse_complex(term)
+			var coeff_str = term
+			var _sign = 1.0
+			if coeff_str.begins_with("+"):
+				coeff_str = coeff_str.substr(1)
+			elif coeff_str.begins_with("-"):
+				_sign = -1.0
+				coeff_str = coeff_str.substr(1)
+			if coeff_str.begins_with("(") and coeff_str.ends_with(")"):
+				coeff_str = coeff_str.substr(1, coeff_str.length() - 2)
+			coeff = _parse_complex(coeff_str) * _sign
 			degree = 0
 
 		if degree >= 0 and degree < 10:
