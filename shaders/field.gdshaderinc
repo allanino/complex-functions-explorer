@@ -322,8 +322,11 @@ FieldData dirichlet_eta_with_derivatives(float x, float y, int iters) {
         vec2 term2 = amp2 * vec2(cos(theta2), sin(theta2));
         eta -= term2;
         deta_dx += log_n2 * term2;
-
-        if (amp < 1e-6 || amp2 < 1e-6 || amp > 1e6 || amp2 > 1e6) break;
+        
+        // We are basically clamping the flat planice x > 1 restricting amp < 1e-4
+        // and also preventing overflow when x is very negative by clamping amp > 1e4
+        // This improves performance greatly on the acutally interesting region around the critical strip
+        if (amp < 1e-4 || amp2 < 1e-4 || amp > 1e4 || amp2 > 1e4) break;
     }
     FieldData result;
     result.value = eta;
@@ -352,7 +355,7 @@ FieldData dirichlet_beta_with_derivatives(float x, float y, int iters) {
         beta -= term2;
         dbeta_dx += log_k2 * term2;
 
-        if (amp < 1e-6 || amp2 < 1e-6 || amp > 1e6 || amp2 > 1e6) break;
+       if (amp < 1e-4 || amp2 < 1e-4 || amp > 1e4 || amp2 > 1e4) break;
     }
     FieldData result;
     result.value = beta;
