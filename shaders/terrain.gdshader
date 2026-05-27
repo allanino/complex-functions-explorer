@@ -133,7 +133,7 @@ void vertex() {
         vec3 world_v_pos = (MODEL_MATRIX * vec4(snap_v, 1.0)).xyz;
 
         int branch_offset = 0;
-        if (is_multivalued && multivalued_mode == 1) {
+        if (is_multivalued) {
             vec3 cam_pos = (INV_VIEW_MATRIX * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
             if (cam_pos.z * world_v_pos.z < 0.0) {
                 float r = cam_pos.z / (cam_pos.z - world_v_pos.z);
@@ -333,7 +333,7 @@ void fragment() {
         ALBEDO = base * albedo;
         vec3 final_emission = base * emission;
 
-        if (is_multivalued && multivalued_mode == 1) {
+        if (is_multivalued) {
             // Highlight the branch cut portal area
             float dist_to_cut = abs(world_pos.z);
             if (world_pos.x > 0.0 && world_pos.x < portal_width) {
