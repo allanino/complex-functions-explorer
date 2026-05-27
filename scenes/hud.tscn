@@ -2,8 +2,8 @@
 
 [ext_resource type="Script" path="res://scripts/hud.gd" id="1_script"]
 [ext_resource type="Shader" path="res://shaders/hud_complex_plane.gdshader" id="2_shader"]
-[ext_resource type="PackedScene" path="res://scenes/hud_components/settings_checkbox.tscn" id="3_settings_cb"]
-[ext_resource type="PackedScene" path="res://scenes/hud_menu.tscn" id="4_hud_menu"]
+[ext_resource type="PackedScene" path="res://scenes/ui_components/checkbox.tscn" id="3_checkbox"]
+[ext_resource type="PackedScene" path="res://scenes/menu.tscn" id="4_menu"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_1"]
 shader = ExtResource("2_shader")
@@ -529,7 +529,7 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
 text = "Exit"
 
-[node name="MenuOverlay" parent="Control" instance=ExtResource("4_hud_menu")]
+[node name="MenuOverlay" parent="Control" instance=ExtResource("4_menu")]
 
 [node name="TooltipLayer" type="CanvasLayer" parent="."]
 layer = 128
