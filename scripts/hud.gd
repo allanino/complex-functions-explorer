@@ -682,7 +682,7 @@ func _on_self_illumination_value_changed(value):
 
 func _on_fog_density_value_changed(value):
 	Config.fog_density = value / 100.0
-	fog_density_value.text = "%.3f" % Config.fog_density
+	fog_density_value.text = "%.1f%%" % value
 
 func _on_hud_scale_value_changed(value):
 	hud_scale_value.text = str(int(value)) + "%"

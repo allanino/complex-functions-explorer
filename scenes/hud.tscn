@@ -1018,7 +1018,7 @@ custom_minimum_size = Vector2(50, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
 theme_override_font_sizes/font_size = 18
-text = "0.02"
+text = "2.0%"
 horizontal_alignment = 2
 
 [node name="FogDensityDetachButton" type="Button" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/FogDensityContainer"]
