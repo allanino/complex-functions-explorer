@@ -1,0 +1,97 @@
+extends GutTest
+
+var hud_scene = preload("res://scenes/hud.tscn")
+var hud_instance
+
+func before_each():
+	hud_instance = hud_scene.instantiate()
+	add_child(hud_instance)
+
+func after_each():
+	if is_instance_valid(hud_instance):
+		hud_instance.queue_free()
+
+func test_parse_complex():
+	assert_eq(hud_instance._parse_complex(""), Vector2.ZERO)
+	assert_eq(hud_instance._parse_complex("1"), Vector2(1, 0))
+	assert_eq(hud_instance._parse_complex("-1"), Vector2(-1, 0))
+	assert_eq(hud_instance._parse_complex("i"), Vector2(0, 1))
+	assert_eq(hud_instance._parse_complex("-i"), Vector2(0, -1))
+	assert_eq(hud_instance._parse_complex("1+i"), Vector2(1, 1))
+	assert_eq(hud_instance._parse_complex("1-i"), Vector2(1, -1))
+	assert_eq(hud_instance._parse_complex("-1+i"), Vector2(-1, 1))
+	assert_eq(hud_instance._parse_complex("-1-i"), Vector2(-1, -1))
+	assert_eq(hud_instance._parse_complex("2+3i"), Vector2(2, 3))
+	assert_eq(hud_instance._parse_complex("2 - 3i"), Vector2(2, -3)) # handles spaces
+	assert_eq(hud_instance._parse_complex("4.5+1.2i"), Vector2(4.5, 1.2))
+	assert_eq(hud_instance._parse_complex("2i"), Vector2(0, 2))
+	assert_eq(hud_instance._parse_complex("-2i"), Vector2(0, -2))
+
+func test_parse_poly():
+	var res1 = hud_instance._parse_poly("1")
+	assert_eq(res1[0], Vector2(1, 0))
+	assert_eq(res1[1], Vector2(0, 0))
+
+	var res2 = hud_instance._parse_poly("z")
+	assert_eq(res2[0], Vector2(0, 0))
+	assert_eq(res2[1], Vector2(1, 0))
+
+	var res3 = hud_instance._parse_poly("2z")
+	assert_eq(res3[0], Vector2(0, 0))
+	assert_eq(res3[1], Vector2(2, 0))
+
+	var res4 = hud_instance._parse_poly("z^2 + 2z + 1")
+	assert_eq(res4[0], Vector2(1, 0))
+	assert_eq(res4[1], Vector2(2, 0))
+	assert_eq(res4[2], Vector2(1, 0))
+
+	var res5 = hud_instance._parse_poly("(1+i)z^2 - iz + (2-i)")
+	assert_eq(res5[0], Vector2(2, -1))
+	assert_eq(res5[1], Vector2(0, -1))
+	assert_eq(res5[2], Vector2(1, 1))
+
+	var res6 = hud_instance._parse_poly("z^3 - z^3")
+	assert_eq(res6[3], Vector2(0, 0))
+
+func test_format_time():
+	assert_eq(hud_instance._format_time(0.0), "00:00:00")
+	assert_eq(hud_instance._format_time(60.0), "00:01:00")
+	assert_eq(hud_instance._format_time(3600.0), "01:00:00")
+	assert_eq(hud_instance._format_time(3661.0), "01:01:01")
+	assert_eq(hud_instance._format_time(86399.0), "23:59:59")
+	assert_eq(hud_instance._format_time(86400.0), "24:00:00")
+
+func test_zoom_to_slider_and_back():
+	var test_zooms = [0.01, 1.0, 10.0, 100.0, 200.0]
+	for z in test_zooms:
+		var slider_val = hud_instance._zoom_to_slider(z)
+		var back_z = hud_instance._slider_to_zoom(slider_val)
+		assert_almost_eq(back_z, z, 0.001)
+
+	var test_sliders = [0.0, 25.0, 50.0, 75.0, 100.0]
+	for s in test_sliders:
+		var z_val = hud_instance._slider_to_zoom(s)
+		var back_s = hud_instance._zoom_to_slider(z_val)
+		assert_almost_eq(back_s, s, 0.001)
+
+func test_get_rvm_n():
+	var orig_func = Config.function_type
+
+	# Test T <= 0.1
+	assert_eq(hud_instance._get_rvm_n(0.05), 0.0)
+
+	# Test Zeta function
+	Config.function_type = Config.ComplexFunc.ZETA
+	var T_zeta = 14.134725
+	var rvm_zeta = hud_instance._get_rvm_n(T_zeta)
+	var expected_zeta = (T_zeta / (2.0 * PI)) * (log(T_zeta / (2.0 * PI)) - 1.0) + 7.0/8.0
+	assert_almost_eq(rvm_zeta, expected_zeta, 0.001)
+
+	# Test Dirichlet Beta function
+	Config.function_type = Config.ComplexFunc.DIRICHLET_BETA
+	var T_beta = 10.0
+	var rvm_beta = hud_instance._get_rvm_n(T_beta)
+	var expected_beta = (T_beta / (2.0 * PI)) * (log((4.0 * T_beta) / (2.0 * PI)) - 1.0)
+	assert_almost_eq(rvm_beta, expected_beta, 0.001)
+
+	Config.function_type = orig_func
