@@ -994,8 +994,25 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 14
 text = "⇱"
 
-[node name="FogEnabledCheckbox" type="CheckBox" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox"]
+[node name="FogEnabledContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox"]
 layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="FogEnabledLabel" type="Label" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/FogEnabledContainer"]
+custom_minimum_size = Vector2(160, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 18
+text = "Fog Enabled"
+
+[node name="FogEnabledControl" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/FogEnabledContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="FogEnabledCheckbox" type="CheckBox" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/FogEnabledContainer/FogEnabledControl"]
+layout_mode = 2
+size_flags_horizontal = 3
+toggle_mode = true
 focus_mode = 0
 theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
 theme_override_constants/h_separation = 15
@@ -1005,7 +1022,7 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_checkbox_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_checkbox")
 theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_checkbox_hover")
 theme_override_styles/focus = SubResource("StyleBoxFlat_checkbox")
-text = "Fog Enabled"
+text = "Off"
 
 [node name="FogDensityContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox"]
 layout_mode = 2
@@ -1301,21 +1318,25 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 16
 text = "⇱"
 
-[node name="CurvesCheckbox" type="CheckBox" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox"]
+[node name="CurvesContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox"]
 layout_mode = 2
-focus_mode = 0
+size_flags_horizontal = 3
+
+[node name="CurvesLabel" type="Label" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/CurvesContainer"]
+custom_minimum_size = Vector2(160, 0)
+layout_mode = 2
 theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_constants/h_separation = 15
 theme_override_font_sizes/font_size = 18
-theme_override_styles/normal = SubResource("StyleBoxFlat_checkbox")
-theme_override_styles/hover = SubResource("StyleBoxFlat_checkbox_hover")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_checkbox")
-theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_checkbox_hover")
-theme_override_styles/focus = SubResource("StyleBoxFlat_checkbox")
 text = "Level Curves"
 
-[node name="CriticalCheckbox" type="CheckBox" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox"]
+[node name="CurvesControl" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/CurvesContainer"]
 layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="CurvesCheckbox" type="CheckBox" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/CurvesContainer/CurvesControl"]
+layout_mode = 2
+size_flags_horizontal = 3
+toggle_mode = true
 focus_mode = 0
 theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
 theme_override_constants/h_separation = 15
@@ -1325,10 +1346,27 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_checkbox_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_checkbox")
 theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_checkbox_hover")
 theme_override_styles/focus = SubResource("StyleBoxFlat_checkbox")
+text = "Off"
+
+[node name="CriticalContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="CriticalLabel" type="Label" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/CriticalContainer"]
+custom_minimum_size = Vector2(160, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 18
 text = "Critical Stripe"
 
-[node name="FlowCheckbox" type="CheckBox" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox"]
+[node name="CriticalControl" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/CriticalContainer"]
 layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="CriticalCheckbox" type="CheckBox" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/CriticalContainer/CriticalControl"]
+layout_mode = 2
+size_flags_horizontal = 3
+toggle_mode = true
 focus_mode = 0
 theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
 theme_override_constants/h_separation = 15
@@ -1338,7 +1376,37 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_checkbox_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_checkbox")
 theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_checkbox_hover")
 theme_override_styles/focus = SubResource("StyleBoxFlat_checkbox")
+text = "Off"
+
+[node name="FlowContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="FlowLabel" type="Label" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/FlowContainer"]
+custom_minimum_size = Vector2(160, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 18
 text = "Flow"
+
+[node name="FlowControl" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/FlowContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="FlowCheckbox" type="CheckBox" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/FlowContainer/FlowControl"]
+layout_mode = 2
+size_flags_horizontal = 3
+toggle_mode = true
+focus_mode = 0
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_constants/h_separation = 15
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_checkbox")
+theme_override_styles/hover = SubResource("StyleBoxFlat_checkbox_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_checkbox")
+theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_checkbox_hover")
+theme_override_styles/focus = SubResource("StyleBoxFlat_checkbox")
+text = "Off"
 
 [node name="MorphContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox"]
 layout_mode = 2
@@ -1444,8 +1512,25 @@ theme_override_font_sizes/font_size = 14
 text = "⇱"
 
 
-[node name="ShadowsCheckbox" type="CheckBox" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/GRAPHICS/Margin/VBox"]
+[node name="ShadowsContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/GRAPHICS/Margin/VBox"]
 layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ShadowsLabel" type="Label" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/GRAPHICS/Margin/VBox/ShadowsContainer"]
+custom_minimum_size = Vector2(160, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 18
+text = "Shadows"
+
+[node name="ShadowsControl" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/GRAPHICS/Margin/VBox/ShadowsContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ShadowsCheckbox" type="CheckBox" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/GRAPHICS/Margin/VBox/ShadowsContainer/ShadowsControl"]
+layout_mode = 2
+size_flags_horizontal = 3
+toggle_mode = true
 focus_mode = 0
 theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
 theme_override_constants/h_separation = 15
@@ -1455,7 +1540,7 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_checkbox_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_checkbox")
 theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_checkbox_hover")
 theme_override_styles/focus = SubResource("StyleBoxFlat_checkbox")
-text = "Shadows"
+text = "Off"
 
 [node name="NAVIGATION" type="ScrollContainer" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer"]
 layout_mode = 2
@@ -1629,8 +1714,25 @@ text = "0.50"
 horizontal_alignment = 2
 
 
-[node name="AutoWalkCheckbox" type="CheckBox" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox"]
+[node name="AutoWalkContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox"]
 layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="AutoWalkLabel" type="Label" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox/AutoWalkContainer"]
+custom_minimum_size = Vector2(160, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 18
+text = "Automatic Walking"
+
+[node name="AutoWalkControl" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox/AutoWalkContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="AutoWalkCheckbox" type="CheckBox" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox/AutoWalkContainer/AutoWalkControl"]
+layout_mode = 2
+size_flags_horizontal = 3
+toggle_mode = true
 focus_mode = 0
 theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
 theme_override_constants/h_separation = 15
@@ -1640,7 +1742,7 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_checkbox_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_checkbox")
 theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_checkbox_hover")
 theme_override_styles/focus = SubResource("StyleBoxFlat_checkbox")
-text = "Automatic Walking"
+text = "Off"
 
 [node name="HUD" type="ScrollContainer" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer"]
 layout_mode = 2
@@ -1684,21 +1786,25 @@ text = "100%"
 horizontal_alignment = 2
 
 
-[node name="HudComplexCheckbox" type="CheckBox" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/HUD/Margin/VBox"]
+[node name="HudComplexContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/HUD/Margin/VBox"]
 layout_mode = 2
-focus_mode = 0
+size_flags_horizontal = 3
+
+[node name="HudComplexLabel" type="Label" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/HUD/Margin/VBox/HudComplexContainer"]
+custom_minimum_size = Vector2(160, 0)
+layout_mode = 2
 theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_constants/h_separation = 15
 theme_override_font_sizes/font_size = 18
-theme_override_styles/normal = SubResource("StyleBoxFlat_checkbox")
-theme_override_styles/hover = SubResource("StyleBoxFlat_checkbox_hover")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_checkbox")
-theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_checkbox_hover")
-theme_override_styles/focus = SubResource("StyleBoxFlat_checkbox")
 text = "Complex plane"
 
-[node name="HudNavigationCheckbox" type="CheckBox" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/HUD/Margin/VBox"]
+[node name="HudComplexControl" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/HUD/Margin/VBox/HudComplexContainer"]
 layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="HudComplexCheckbox" type="CheckBox" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/HUD/Margin/VBox/HudComplexContainer/HudComplexControl"]
+layout_mode = 2
+size_flags_horizontal = 3
+toggle_mode = true
 focus_mode = 0
 theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
 theme_override_constants/h_separation = 15
@@ -1708,10 +1814,27 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_checkbox_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_checkbox")
 theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_checkbox_hover")
 theme_override_styles/focus = SubResource("StyleBoxFlat_checkbox")
+text = "Off"
+
+[node name="HudNavigationContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/HUD/Margin/VBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="HudNavigationLabel" type="Label" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/HUD/Margin/VBox/HudNavigationContainer"]
+custom_minimum_size = Vector2(160, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 18
 text = "Navigation"
 
-[node name="HudZerosDetectionCheckbox" type="CheckBox" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/HUD/Margin/VBox"]
+[node name="HudNavigationControl" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/HUD/Margin/VBox/HudNavigationContainer"]
 layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="HudNavigationCheckbox" type="CheckBox" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/HUD/Margin/VBox/HudNavigationContainer/HudNavigationControl"]
+layout_mode = 2
+size_flags_horizontal = 3
+toggle_mode = true
 focus_mode = 0
 theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
 theme_override_constants/h_separation = 15
@@ -1721,10 +1844,27 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_checkbox_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_checkbox")
 theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_checkbox_hover")
 theme_override_styles/focus = SubResource("StyleBoxFlat_checkbox")
+text = "Off"
+
+[node name="HudZerosDetectionContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/HUD/Margin/VBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="HudZerosDetectionLabel" type="Label" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/HUD/Margin/VBox/HudZerosDetectionContainer"]
+custom_minimum_size = Vector2(160, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 18
 text = "Zeros detection"
 
-[node name="RvmCheckbox" type="CheckBox" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/HUD/Margin/VBox"]
+[node name="HudZerosDetectionControl" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/HUD/Margin/VBox/HudZerosDetectionContainer"]
 layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="HudZerosDetectionCheckbox" type="CheckBox" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/HUD/Margin/VBox/HudZerosDetectionContainer/HudZerosDetectionControl"]
+layout_mode = 2
+size_flags_horizontal = 3
+toggle_mode = true
 focus_mode = 0
 theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
 theme_override_constants/h_separation = 15
@@ -1734,10 +1874,27 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_checkbox_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_checkbox")
 theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_checkbox_hover")
 theme_override_styles/focus = SubResource("StyleBoxFlat_checkbox")
+text = "Off"
+
+[node name="RvmContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/HUD/Margin/VBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="RvmLabel" type="Label" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/HUD/Margin/VBox/RvmContainer"]
+custom_minimum_size = Vector2(160, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 18
 text = "Riemann–von Mangoldt"
 
-[node name="HudMonitorFpsCheckbox" type="CheckBox" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/HUD/Margin/VBox"]
+[node name="RvmControl" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/HUD/Margin/VBox/RvmContainer"]
 layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="RvmCheckbox" type="CheckBox" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/HUD/Margin/VBox/RvmContainer/RvmControl"]
+layout_mode = 2
+size_flags_horizontal = 3
+toggle_mode = true
 focus_mode = 0
 theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
 theme_override_constants/h_separation = 15
@@ -1747,10 +1904,27 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_checkbox_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_checkbox")
 theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_checkbox_hover")
 theme_override_styles/focus = SubResource("StyleBoxFlat_checkbox")
+text = "Off"
+
+[node name="HudMonitorFpsContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/HUD/Margin/VBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="HudMonitorFpsLabel" type="Label" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/HUD/Margin/VBox/HudMonitorFpsContainer"]
+custom_minimum_size = Vector2(160, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 18
 text = "Monitor FPS"
 
-[node name="HudMonitorChunksCheckbox" type="CheckBox" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/HUD/Margin/VBox"]
+[node name="HudMonitorFpsControl" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/HUD/Margin/VBox/HudMonitorFpsContainer"]
 layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="HudMonitorFpsCheckbox" type="CheckBox" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/HUD/Margin/VBox/HudMonitorFpsContainer/HudMonitorFpsControl"]
+layout_mode = 2
+size_flags_horizontal = 3
+toggle_mode = true
 focus_mode = 0
 theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
 theme_override_constants/h_separation = 15
@@ -1760,7 +1934,37 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_checkbox_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_checkbox")
 theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_checkbox_hover")
 theme_override_styles/focus = SubResource("StyleBoxFlat_checkbox")
+text = "Off"
+
+[node name="HudMonitorChunksContainer" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/HUD/Margin/VBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="HudMonitorChunksLabel" type="Label" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/HUD/Margin/VBox/HudMonitorChunksContainer"]
+custom_minimum_size = Vector2(160, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 18
 text = "Monitor Chunks"
+
+[node name="HudMonitorChunksControl" type="HBoxContainer" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/HUD/Margin/VBox/HudMonitorChunksContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="HudMonitorChunksCheckbox" type="CheckBox" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/HUD/Margin/VBox/HudMonitorChunksContainer/HudMonitorChunksControl"]
+layout_mode = 2
+size_flags_horizontal = 3
+toggle_mode = true
+focus_mode = 0
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_constants/h_separation = 15
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_checkbox")
+theme_override_styles/hover = SubResource("StyleBoxFlat_checkbox_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_checkbox")
+theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_checkbox_hover")
+theme_override_styles/focus = SubResource("StyleBoxFlat_checkbox")
+text = "Off"
 
 [node name="AUDIO" type="ScrollContainer" parent="Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer"]
 layout_mode = 2
