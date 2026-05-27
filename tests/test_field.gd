@@ -242,19 +242,19 @@ func test_multivalued_log():
 
 	# Test 1: branch 0, z = e
 	Config.current_branch = 0
-	var res1 = TestField.multivalued_log(2.718281828459, 0.0, 2)
+	var res1 = TestField.multivalued_log(2.718281828459, 0.0)
 	assert_almost_eq(res1.x, 1.0, 0.0001)
 	assert_almost_eq(res1.y, 0.0, 0.0001)
 
 	# Test 2: branch 1, z = e
 	Config.current_branch = 1
-	var res2 = TestField.multivalued_log(2.718281828459, 0.0, 2)
+	var res2 = TestField.multivalued_log(2.718281828459, 0.0)
 	assert_almost_eq(res2.x, 1.0, 0.0001)
 	assert_almost_eq(res2.y, 2.0 * PI, 0.0001)
 
 	# Test 3: branch 2, z = e
 	Config.current_branch = 2
-	var res3 = TestField.multivalued_log(2.718281828459, 0.0, 2)
+	var res3 = TestField.multivalued_log(2.718281828459, 0.0)
 	assert_almost_eq(res3.x, 1.0, 0.0001)
 	assert_almost_eq(res3.y, 4.0 * PI, 0.0001)
 
