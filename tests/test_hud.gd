@@ -47,6 +47,11 @@ func test_parse_poly():
 
 	var res5 = hud_instance._parse_poly("(1+i)z^2 - iz + (2-i)")
 	assert_eq(res5[0], Vector2(2, -1))
+
+	var res7 = hud_instance._parse_poly("(1+i)z^2 - iz + 2-i")
+	assert_eq(res7[0], Vector2(2, -1))
+	assert_eq(res7[1], Vector2(0, -1))
+	assert_eq(res7[2], Vector2(1, 1))
 	assert_eq(res5[1], Vector2(0, -1))
 	assert_eq(res5[2], Vector2(1, 1))
 
