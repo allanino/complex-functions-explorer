@@ -825,7 +825,7 @@ FieldData xi_with_derivatives(vec2 z, int iters) {
 	return res;
 }
 
-FieldData multivalued_z_pow_inv_n_with_derivatives(vec2 z, int n, float cycle_speed, int branch_offset) {
+FieldData multivalued_z_pow_inv_n_with_derivatives(vec2 z, int n, int branch_offset) {
     FieldData res;
     float r_sq = z.x * z.x + z.y * z.y;
     float r = sqrt(r_sq);
