@@ -1247,54 +1247,34 @@ func _on_aa_selected(index: int):
 func _on_shadows_toggled(pressed: bool):
 	Config.shadows_enabled = pressed
 
-	if shadows_checkbox:
-
 func _on_curves_toggled(pressed: bool):
 	Config.show_curves = pressed
-
-	if curves_checkbox:
 
 func _on_critical_toggled(pressed: bool):
 	Config.show_critical_stripe = pressed
 
-	if critical_checkbox:
-
 func _on_flow_toggled(pressed: bool):
 	Config.show_flow = pressed
-
-	if flow_checkbox:
 
 func _on_hud_complex_toggled(pressed: bool):
 	Config.show_hud_complex = pressed
 
-	if hud_complex_checkbox:
-
 func _on_hud_navigation_toggled(pressed: bool):
 	Config.show_hud_navigation = pressed
-
-	if hud_navigation_checkbox:
 
 func _on_hud_zeros_toggled(pressed: bool):
 	Config.show_hud_zeros = pressed
 	if not pressed:
 		Config.visited_zeros.clear()
 
-	if hud_zeros_checkbox:
-
 func _on_rvm_toggled(pressed: bool):
 	Config.show_rvm = pressed
-
-	if rvm_checkbox:
 
 func _on_hud_monitor_fps_toggled(pressed: bool):
 	Config.show_hud_monitor_fps = pressed
 
-	if hud_monitor_fps_checkbox:
-
 func _on_hud_monitor_chunks_toggled(pressed: bool):
 	Config.show_hud_monitor_chunks = pressed
-
-	if hud_monitor_chunks_checkbox:
 
 func _on_color_scheme_selected(index: int):
 	Config.color_scheme = index
