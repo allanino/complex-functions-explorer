@@ -91,7 +91,7 @@ static func dirichlet_eta(x: float, y: float, iterations: int) -> Vector2:
 		var theta2 = -y * log(nf2)
 		eta -= amp2 * Vector2(cos(theta2), sin(theta2))
 
-		if (amp < 1e-6 || amp2 < 1e-6 || amp > 1e6 || amp2 > 1e6): break
+		if (amp < 1e-4 || amp2 < 1e-4 || amp > 1e4 || amp2 > 1e4): break
 	return eta
 
 static func dirichlet_beta(x: float, y: float, iterations: int) -> Vector2:
@@ -108,7 +108,7 @@ static func dirichlet_beta(x: float, y: float, iterations: int) -> Vector2:
 		var theta2 = -y * log(kf2)
 		beta -= amp2 * Vector2(cos(theta2), sin(theta2))
 
-		if (amp < 1e-6 || amp2 < 1e-6 || amp > 1e6 || amp2 > 1e6): break
+		if (amp < 1e-4 || amp2 < 1e-4 || amp > 1e4 || amp2 > 1e4): break
 	return beta
 
 static func zeta(x: float, y: float) -> Vector2:
