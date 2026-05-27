@@ -149,8 +149,8 @@ void vertex() {
         FieldData final_fd = get_field_with_derivatives(world_v_pos.x, world_v_pos.z, branch_offset);
 
         bool is_invalid = any(isnan(final_fd.value)) || any(isinf(final_fd.value)) ||
-                        any(isnan(final_fd.d_sigma)) || any(isinf(final_fd.d_sigma)) ||
-                        any(isnan(final_fd.d_t)) || any(isinf(final_fd.d_t));
+                any(isnan(final_fd.dx)) || any(isinf(final_fd.dx)) ||
+                any(isnan(final_fd.dy)) || any(isinf(final_fd.dy));
 
         if (is_invalid) {
             v_nan = 1.0;
@@ -197,32 +197,32 @@ void vertex() {
             float v = field_val.y;
 
             // Derivatives of f(z)
-            vec2 df_dsigma = final_fd.d_sigma; // (du/dsigma, dv/dsigma)
-            vec2 df_dt     = final_fd.d_t;     // (du/dt, dv/dt)
+            vec2 df_dx = final_fd.dx; // (du/dx, dv/dx)
+            vec2 df_dy = final_fd.dy;     // (du/dy, dv/dy)
 
-            // Derivatives of identity map z = sigma + i t
-            vec2 dz_dsigma = vec2(1.0, 0.0);
-            vec2 dz_dt     = vec2(0.0, 1.0);
+            // Derivatives of identity map z = x + i y
+            vec2 dz_dx = vec2(1.0, 0.0);
+            vec2 dz_dy = vec2(0.0, 1.0);
 
             // Chain rule for g = (1-blend) z + blend f(z)
-            vec2 dg_dsigma = (1.0 - blend) * dz_dsigma + blend * df_dsigma;
-            vec2 dg_dt     = (1.0 - blend) * dz_dt     + blend * df_dt;
+            vec2 dg_dx = (1.0 - blend) * dz_dx + blend * df_dx;
+            vec2 dg_dy = (1.0 - blend) * dz_dy + blend * df_dy;
 
-            // Convert from (sigma, t) derivatives to world (x, z) derivatives
-            // sigma = 0.1 * x * (1/zoom)
-            // t     = -0.1 * z * (1/zoom)
+            // Convert from (x, y) derivatives to world (wx, wz) derivatives
+            // x = 0.1 * wx * (1/zoom)
+            // y     = -0.1 * wz * (1/zoom)
             // Since we scale the final height h by zoom_factor, the zoom_factor cancels out
             // of the dh_dx and dh_dz derivatives entirely.
-            float d_sigma_dx = 0.1;
-            float d_t_dx     = 0.0;
-            float d_sigma_dz = 0.0;
-            float d_t_dz     = -0.1;
+            float dx_d_wx = 0.1;
+            float dy_d_wx = 0.0;
+            float dx_d_wz = 0.0;
+            float dy_d_wz = -0.1;
 
-            float du_dx = dg_dsigma.x * d_sigma_dx + dg_dt.x * d_t_dx;
-            float dv_dx = dg_dsigma.y * d_sigma_dx + dg_dt.y * d_t_dx;
+            float du_dx = dg_dx.x * dx_d_wx + dg_dy.x * dy_d_wx;
+            float dv_dx = dg_dx.y * dx_d_wx + dg_dy.y * dy_d_wx;
 
-            float du_dz = dg_dsigma.x * d_sigma_dz + dg_dt.x * d_t_dz;
-            float dv_dz = dg_dsigma.y * d_sigma_dz + dg_dt.y * d_t_dz;
+            float du_dz = dg_dx.x * dx_d_wz + dg_dy.x * dy_d_wz;
+            float dv_dz = dg_dx.y * dx_d_wz + dg_dy.y * dy_d_wz;
 
             float safe_mag = max(mag, 1e-12);
             float dmag_dx = (u * du_dx + v * dv_dx) / safe_mag;

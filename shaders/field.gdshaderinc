@@ -16,9 +16,9 @@ uniform int multivalued_n = 2;
 uniform int current_branch = 0;
 
 struct FieldData {
-    vec2 value;    // The actual complex f(sigma, t)
-    vec2 d_sigma;  // Partial derivative with respect to sigma
-    vec2 d_t;      // Partial derivative with respect to t
+    vec2 value;    // The actual complex f(x, y)
+    vec2 dx;       // Partial derivative with respect to x
+    vec2 dy;       // Partial derivative with respect to y
 };
 
 const float SQRT_2PI = 2.5066282746310005;
@@ -44,22 +44,22 @@ vec2 complex_div(vec2 a, vec2 b) {
     );
 }
 
-vec2 complex_exp(float sigma, float t) {
-    float amp = exp(sigma);
+vec2 complex_exp(float x, float y) {
+    float amp = exp(x);
     return vec2(
-        amp * cos(t),
-        amp * sin(t)
+        amp * cos(y),
+        amp * sin(y)
     );
 }
 
-vec2 complex_log(float sigma, float t) {
-    float mag = length(vec2(sigma, t));
+vec2 complex_log(float x, float y) {
+    float mag = length(vec2(x, y));
     if (mag < 1e-24) {
         return vec2(-60.0, 0.0);
     }
     return vec2(
         log(mag),
-        atan(t, sigma)
+        atan(y, x)
     );
 }
 
@@ -69,17 +69,17 @@ vec2 complex_pow(vec2 z, vec2 w) {
     return complex_exp(res_log.x, res_log.y);
 }
 
-vec2 complex_sin(float sigma, float t) {
+vec2 complex_sin(float x, float y) {
     return vec2(
-        sin(sigma) * cosh(t),
-        cos(sigma) * sinh(t)
+        sin(x) * cosh(y),
+        cos(x) * sinh(y)
     );
 }
 
-vec2 complex_cos(float sigma, float t) {
+vec2 complex_cos(float x, float y) {
     return vec2(
-        cos(sigma) * cosh(t),
-        -sin(sigma) * sinh(t)
+        cos(x) * cosh(y),
+        -sin(x) * sinh(y)
     );
 }
 
@@ -303,80 +303,80 @@ vec2 complex_log_sin(float x, float y) {
 // Component Functions: Zeta, Gamma, Dedekind Eta
 //-------------------------------------------------------------------------
 
-FieldData dirichlet_eta_with_derivatives(float sigma, float t, int iters) {
+FieldData dirichlet_eta_with_derivatives(float x, float y, int iters) {
     vec2 eta = vec2(0.0);
-    vec2 deta_dsigma = vec2(0.0);
+    vec2 deta_dx = vec2(0.0);
     for (int n = 1; n <= iters; n += 2) {
         float nf = float(n);
-        float amp = pow(nf, -sigma);
+        float amp = pow(nf, -x);
         float log_n = log(nf);
-        float theta = -t * log_n;
+        float theta = -y * log_n;
         vec2 term = amp * vec2(cos(theta), sin(theta));
         eta += term;
-        deta_dsigma -= log_n * term;
+        deta_dx -= log_n * term;
 
         float nf2 = float(n + 1);
-        float amp2 = pow(nf2, -sigma);
+        float amp2 = pow(nf2, -x);
         float log_n2 = log(nf2);
-        float theta2 = -t * log_n2;
+        float theta2 = -y * log_n2;
         vec2 term2 = amp2 * vec2(cos(theta2), sin(theta2));
         eta -= term2;
-        deta_dsigma += log_n2 * term2;
+        deta_dx += log_n2 * term2;
 
         if (amp < 1e-6 || amp2 < 1e-6 || amp > 1e6 || amp2 > 1e6) break;
     }
     FieldData result;
     result.value = eta;
-    result.d_sigma = deta_dsigma;
-    result.d_t = vec2(-result.d_sigma.y, result.d_sigma.x);
+    result.dx = deta_dx;
+    result.dy = vec2(-result.dx.y, result.dx.x);
     return result;
 }
 
-FieldData dirichlet_beta_with_derivatives(float sigma, float t, int iters) {
+FieldData dirichlet_beta_with_derivatives(float x, float y, int iters) {
     vec2 beta = vec2(0.0);
-    vec2 dbeta_dsigma = vec2(0.0);
+    vec2 dbeta_dx = vec2(0.0);
     for (int n = 0; n < iters; n += 2) {
         float kf = 2.0 * float(n) + 1.0;
-        float amp = pow(kf, -sigma);
+        float amp = pow(kf, -x);
         float log_k = log(kf);
-        float theta = -t * log_k;
+        float theta = -y * log_k;
         vec2 term = amp * vec2(cos(theta), sin(theta));
         beta += term;
-        dbeta_dsigma -= log_k * term;
+        dbeta_dx -= log_k * term;
 
         float kf2 = 2.0 * float(n + 1) + 1.0;
-        float amp2 = pow(kf2, -sigma);
+        float amp2 = pow(kf2, -x);
         float log_k2 = log(kf2);
-        float theta2 = -t * log_k2;
+        float theta2 = -y * log_k2;
         vec2 term2 = amp2 * vec2(cos(theta2), sin(theta2));
         beta -= term2;
-        dbeta_dsigma += log_k2 * term2;
+        dbeta_dx += log_k2 * term2;
 
         if (amp < 1e-6 || amp2 < 1e-6 || amp > 1e6 || amp2 > 1e6) break;
     }
     FieldData result;
     result.value = beta;
-    result.d_sigma = dbeta_dsigma;
-    result.d_t = vec2(-result.d_sigma.y, result.d_sigma.x);
+    result.dx = dbeta_dx;
+    result.dy = vec2(-result.dx.y, result.dx.x);
     return result;
 }
 
-FieldData zeta_with_derivatives(float sigma, float t, int iters) {
-    FieldData eta_data = dirichlet_eta_with_derivatives(sigma, t, iters);
+FieldData zeta_with_derivatives(float x, float y, int iters) {
+    FieldData eta_data = dirichlet_eta_with_derivatives(x, y, iters);
     vec2 eta = eta_data.value;
-    vec2 deta_dsigma = eta_data.d_sigma;
+    vec2 deta_dx = eta_data.dx;
 
-    float amp2 = pow(2.0, 1.0 - sigma);
-    float theta2 = -t * LOG_2;
+    float amp2 = pow(2.0, 1.0 - x);
+    float theta2 = -y * LOG_2;
     vec2 two_term = amp2 * vec2(cos(theta2), sin(theta2));
     vec2 denom = vec2(1.0, 0.0) - two_term;
-    vec2 ddenom_dsigma = LOG_2 * two_term;
+    vec2 ddenom_dx = LOG_2 * two_term;
     FieldData result;
     result.value = complex_div(eta, denom);
     vec2 denom_sqr = complex_mul(denom, denom);
-    vec2 num_sigma = complex_mul(deta_dsigma, denom) - complex_mul(eta, ddenom_dsigma);
-    result.d_sigma = complex_div(num_sigma, denom_sqr);
-    result.d_t = vec2(-result.d_sigma.y, result.d_sigma.x);
+    vec2 num_x = complex_mul(deta_dx, denom) - complex_mul(eta, ddenom_dx);
+    result.dx = complex_div(num_x, denom_sqr);
+    result.dy = vec2(-result.dx.y, result.dx.x);
     return result;
 }
 
@@ -410,48 +410,48 @@ FieldData lanczos_gamma_with_derivatives(vec2 z_orig) {
     vec2 deriv_ratio = log_tmp + complex_div(z + vec2(0.5, 0.0), tmp) - vec2(1.0, 0.0) + complex_div(dx, x);
     FieldData res;
     res.value = value;
-    res.d_sigma = complex_mul(value, deriv_ratio);
-    res.d_t = vec2(-res.d_sigma.y, res.d_sigma.x);
+    res.dx = complex_mul(value, deriv_ratio);
+    res.dy = vec2(-res.dx.y, res.dx.x);
     return res;
 }
 
-FieldData complex_gamma_with_derivatives(float sigma, float t) {
-    if (sigma < 0.5) {
-        vec2 pi_z = vec2(PI * sigma, PI * t);
+FieldData complex_gamma_with_derivatives(float x, float y) {
+    if (x < 0.5) {
+        vec2 pi_z = vec2(PI * x, PI * y);
         // Gamma(z) = pi / (sin(pi z) * Gamma(1-z))
         // d/dz log Gamma(z) = -pi cot(pi z) - d/dz log Gamma(1-z)
         // d/dz log Gamma(1-z) = -psi(1-z)
         // So d/dz log Gamma(z) = -pi cot(pi z) + psi(1-z)
 
-        FieldData g1z = lanczos_gamma_with_derivatives(vec2(1.0 - sigma, -t));
+        FieldData g1z = lanczos_gamma_with_derivatives(vec2(1.0 - x, -y));
         vec2 sin_pi_z = complex_sin(pi_z.x, pi_z.y);
         vec2 cot_pi_z = complex_div(complex_cos(pi_z.x, pi_z.y), sin_pi_z);
 
         // d/dz ln Gamma(1-z) = [Gamma'(1-z)/Gamma(1-z)] * (-1) = -psi(1-z)
-        // g1z.d_sigma is Gamma'(1-z)
-        // psi(1-z) = g1z.d_sigma / g1z.value
+        // g1z.dx is Gamma'(1-z)
+        // psi(1-z) = g1z.dx / g1z.value
         // ratio = -pi cot(pi z) - (-psi(1-z)) = -pi cot(pi z) + psi(1-z)
 
-        vec2 ratio = -PI * cot_pi_z + complex_div(g1z.d_sigma, g1z.value);
+        vec2 ratio = -PI * cot_pi_z + complex_div(g1z.dx, g1z.value);
 
         FieldData res;
         res.value = complex_div(vec2(PI, 0.0), complex_mul(sin_pi_z, g1z.value));
-        res.d_sigma = complex_mul(res.value, ratio);
-        res.d_t = vec2(-res.d_sigma.y, res.d_sigma.x);
+        res.dx = complex_mul(res.value, ratio);
+        res.dy = vec2(-res.dx.y, res.dx.x);
         return res;
     }
-    return lanczos_gamma_with_derivatives(vec2(sigma, t));
+    return lanczos_gamma_with_derivatives(vec2(x, y));
 }
 
 // 3. Log Gamma
 FieldData lanczos_log_gamma_with_derivatives(vec2 z) {
     vec2 z_m1 = z - vec2(1.0, 0.0);
     vec2 x = vec2(LANCZOS_P[0], 0.0);
-    vec2 dx = vec2(0.0, 0.0);
+    vec2 dx_val = vec2(0.0, 0.0);
     for (int i = 1; i < 9; i++) {
         vec2 denom = z_m1 + vec2(float(i), 0.0);
         x += complex_div(vec2(LANCZOS_P[i], 0.0), denom);
-        dx -= complex_div(vec2(LANCZOS_P[i], 0.0), complex_mul(denom, denom));
+        dx_val -= complex_div(vec2(LANCZOS_P[i], 0.0), complex_mul(denom, denom));
     }
     vec2 tmp = z_m1 + vec2(7.5, 0.0);
     vec2 log_tmp = complex_log(tmp.x, tmp.y);
@@ -461,64 +461,64 @@ FieldData lanczos_log_gamma_with_derivatives(vec2 z) {
                - tmp
                + complex_log(x.x, x.y);
 
-    vec2 psi = log_tmp + complex_div(z - vec2(0.5, 0.0), tmp) - vec2(1.0, 0.0) + complex_div(dx, x);
+    vec2 psi = log_tmp + complex_div(z - vec2(0.5, 0.0), tmp) - vec2(1.0, 0.0) + complex_div(dx_val, x);
 
     FieldData res;
     res.value = value;
-    res.d_sigma = psi;
-    res.d_t = vec2(-psi.y, psi.x);
+    res.dx = psi;
+    res.dy = vec2(-psi.y, psi.x);
     return res;
 }
 
-FieldData complex_log_gamma_with_derivatives(float sigma, float t) {
+FieldData complex_log_gamma_with_derivatives(float x, float y) {
     FieldData res;
-    if (sigma < 0.5) {
-        vec2 pi_z = vec2(PI * sigma, PI * t);
+    if (x < 0.5) {
+        vec2 pi_z = vec2(PI * x, PI * y);
         // ln Gamma(z) = ln pi - ln sin(pi z) - ln Gamma(1-z)
         // d/dz = -pi cot(pi z) - (-psi(1-z)) = -pi cot(pi z) + psi(1-z)
 
-        FieldData lg1z = lanczos_log_gamma_with_derivatives(vec2(1.0 - sigma, -t));
+        FieldData lg1z = lanczos_log_gamma_with_derivatives(vec2(1.0 - x, -y));
 
         vec2 log_sin_pi_z = complex_log_sin(pi_z.x, pi_z.y);
 
         res.value = vec2(LOG_PI, 0.0) - log_sin_pi_z - lg1z.value;
 
         vec2 cot_pi_z =  complex_cot(pi_z.x, pi_z.y);
-        res.d_sigma = -PI * cot_pi_z + lg1z.d_sigma;
+        res.dx = -PI * cot_pi_z + lg1z.dx;
     } else {
-        res = lanczos_log_gamma_with_derivatives(vec2(sigma, t));
+        res = lanczos_log_gamma_with_derivatives(vec2(x, y));
     }
-    res.d_t = vec2(-res.d_sigma.y, res.d_sigma.x);
+    res.dy = vec2(-res.dx.y, res.dx.x);
     return res;
 }
 
 // 4. Dedekind Eta
-FieldData dedekind_eta_with_derivatives(float sigma, float t, int iters) {
-    vec2 factor = complex_exp(-PI * t / 12.0, PI * sigma / 12.0);
-    vec2 d_factor_dsigma = complex_mul(vec2(0.0, PI / 12.0), factor);
+FieldData dedekind_eta_with_derivatives(float x, float y, int iters) {
+    vec2 factor = complex_exp(-PI * y / 12.0, PI * x / 12.0);
+    vec2 d_factor_dx = complex_mul(vec2(0.0, PI / 12.0), factor);
     vec2 prod = vec2(1.0, 0.0);
     vec2 sum_log_deriv = vec2(0.0);
-    float q_re_base = -2.0 * PI * t;
-    float q_im_base = 2.0 * PI * sigma;
+    float q_re_base = -2.0 * PI * y;
+    float q_im_base = 2.0 * PI * x;
     for (int n = 1; n <= iters; n++) {
         float nf = float(n);
         vec2 q_n = complex_exp(nf * q_re_base, nf * q_im_base);
-        vec2 dq_n_dsigma = complex_mul(vec2(0.0, 2.0 * PI * nf), q_n);
+        vec2 dq_n_dx = complex_mul(vec2(0.0, 2.0 * PI * nf), q_n);
         vec2 term = vec2(1.0, 0.0) - q_n;
         prod = complex_mul(prod, term);
-        sum_log_deriv += complex_div(-dq_n_dsigma, term);
+        sum_log_deriv += complex_div(-dq_n_dx, term);
         if (nf > 10.0 && length(q_n) < 1e-12) break;
     }
     FieldData res;
     res.value = complex_mul(factor, prod);
-    res.d_sigma = complex_mul(res.value, complex_div(d_factor_dsigma, factor) + sum_log_deriv);
-    res.d_t = vec2(-res.d_sigma.y, res.d_sigma.x);
+    res.dx = complex_mul(res.value, complex_div(d_factor_dx, factor) + sum_log_deriv);
+    res.dy = vec2(-res.dx.y, res.dx.x);
     return res;
 }
 
 // 5. Mandelbrot
-FieldData mandelbrot_with_derivatives(float sigma, float t, int iters) {
-    vec2 c = vec2(sigma, t);
+FieldData mandelbrot_with_derivatives(float x, float y, int iters) {
+    vec2 c = vec2(x, y);
     vec2 z = vec2(0.0);
     vec2 dz = vec2(0.0);
     for (int i = 0; i < iters; i++) {
@@ -528,8 +528,8 @@ FieldData mandelbrot_with_derivatives(float sigma, float t, int iters) {
     }
     FieldData res;
     res.value = z;
-    res.d_sigma = dz;
-    res.d_t = vec2(-dz.y, dz.x);
+    res.dx = dz;
+    res.dy = vec2(-dz.y, dz.x);
     return res;
 }
 
@@ -537,18 +537,18 @@ FieldData mandelbrot_with_derivatives(float sigma, float t, int iters) {
 // Composite Functions
 //-------------------------------------------------------------------------
 
-FieldData log_zeta_continuation_with_derivatives(float sigma, float t, int iters) {
-    if (sigma >= 0.5) {
-        FieldData z = zeta_with_derivatives(sigma, t, iters);
+FieldData log_zeta_continuation_with_derivatives(float x, float y, int iters) {
+    if (x >= 0.5) {
+        FieldData z = zeta_with_derivatives(x, y, iters);
         FieldData res;
         res.value = complex_log(z.value.x, z.value.y);
-        res.d_sigma = complex_div(z.d_sigma, z.value);
-        res.d_t = vec2(-res.d_sigma.y, res.d_sigma.x);
+        res.dx = complex_div(z.dx, z.value);
+        res.dy = vec2(-res.dx.y, res.dx.x);
         return res;
     }
     
-    vec2 s = vec2(sigma, t);
-    vec2 s1 = vec2(1.0 - sigma, -t);
+    vec2 s = vec2(x, y);
+    vec2 s1 = vec2(1.0 - x, -y);
 
     // 1. Core linear log terms
     vec2 log_sum = complex_mul(s, vec2(LOG_2, 0.0))
@@ -568,27 +568,27 @@ FieldData log_zeta_continuation_with_derivatives(float sigma, float t, int iters
     // 3. Bring in the upgraded Log Gamma
     FieldData lg_data = complex_log_gamma_with_derivatives(s1.x, s1.y);
     log_sum += lg_data.value;
-    ratio -= lg_data.d_sigma; // d/ds log Gamma(1-s) = -psi(1-s)
+    ratio -= lg_data.dx; // d/ds log Gamma(1-s) = -psi(1-s)
 
     // 4. Bring in the reflected Zeta
     FieldData z_data = zeta_with_derivatives(s1.x, s1.y, iters);
     log_sum += complex_log(z_data.value.x, z_data.value.y);
-    ratio -= complex_div(z_data.d_sigma, z_data.value); // d/ds log zeta(1-s) = -zeta'(1-s)/zeta(1-s)
+    ratio -= complex_div(z_data.dx, z_data.value); // d/ds log zeta(1-s) = -zeta'(1-s)/zeta(1-s)
 
     FieldData res;
     res.value = log_sum;
-    res.d_sigma = ratio;
-    res.d_t = vec2(-res.d_sigma.y, res.d_sigma.x);
+    res.dx = ratio;
+    res.dy = vec2(-res.dx.y, res.dx.x);
 
     return res;
 }
 
-FieldData zeta_continuation_with_derivatives(float sigma, float t, int iters) {
-    FieldData log_z = log_zeta_continuation_with_derivatives(sigma, t, iters);
+FieldData zeta_continuation_with_derivatives(float x, float y, int iters) {
+    FieldData log_z = log_zeta_continuation_with_derivatives(x, y, iters);
     FieldData res;
     res.value = complex_exp(log_z.value.x, log_z.value.y);
-    res.d_sigma = complex_mul(res.value, log_z.d_sigma);
-    res.d_t = vec2(-res.d_sigma.y, res.d_sigma.x);
+    res.dx = complex_mul(res.value, log_z.dx);
+    res.dy = vec2(-res.dx.y, res.dx.x);
     return res;
 }
 
@@ -596,21 +596,21 @@ FieldData zeta_continuation_with_derivatives(float sigma, float t, int iters) {
 // Other Functions
 //-------------------------------------------------------------------------
 
-FieldData complex_sin_with_derivatives(float sigma, float t) {
+FieldData complex_sin_with_derivatives(float x, float y) {
     FieldData res;
-    res.value = complex_sin(sigma, t);
-    vec2 deriv = complex_cos(sigma, t);
-    res.d_sigma = deriv;
-    res.d_t = vec2(-deriv.y, deriv.x);
+    res.value = complex_sin(x, y);
+    vec2 deriv = complex_cos(x, y);
+    res.dx = deriv;
+    res.dy = vec2(-deriv.y, deriv.x);
     return res;
 }
 
-FieldData complex_cos_with_derivatives(float sigma, float t) {
+FieldData complex_cos_with_derivatives(float x, float y) {
     FieldData res;
-    res.value = complex_cos(sigma, t);
-    vec2 deriv = -complex_sin(sigma, t);
-    res.d_sigma = deriv;
-    res.d_t = vec2(-deriv.y, deriv.x);
+    res.value = complex_cos(x, y);
+    vec2 deriv = -complex_sin(x, y);
+    res.dx = deriv;
+    res.dy = vec2(-deriv.y, deriv.x);
     return res;
 }
 
@@ -623,7 +623,7 @@ Goal: Compute tan(z) and its derivative d/dz tan(z) without evaluating raw
       cosine functions that explode to INF when |y| is large.
 
 1. Compute the stable value first:
-   vec2 T = complex_tan_stable(sigma, t);  // T = u + iv
+   vec2 T = complex_tan_stable(x, y);  // T = u + iv
 
 2. Use the trigonometric identity for the derivative of tangent:
    d/dz tan(z) = sec^2(z) = 1 + tan^2(z)
@@ -645,11 +645,11 @@ Why this is bulletproof:
 - The derivative safely and perfectly drops to (0.0, 0.0) without ever hitting an intermediate INF.
 ================================================================================
 */
-FieldData complex_tan_with_derivatives(float sigma, float t) {
+FieldData complex_tan_with_derivatives(float x, float y) {
     FieldData res;
     
     // 1. Calculate value safely using the real-hyperbolic identity
-    res.value = complex_tan(sigma, t);
+    res.value = complex_tan(x, y);
     
     // 2. Extract components: T = u + iv
     float u = res.value.x;
@@ -662,8 +662,8 @@ FieldData complex_tan_with_derivatives(float sigma, float t) {
     );
     
     // 4. Assign directional derivatives matching your grid space
-    res.d_sigma = deriv;
-    res.d_t = vec2(-deriv.y, deriv.x);
+    res.dx = deriv;
+    res.dy = vec2(-deriv.y, deriv.x);
     
     return res;
 }
@@ -677,7 +677,7 @@ Goal: Compute cot(z) and its derivative d/dz cot(z) without evaluating raw
       sine or cosine functions that explode to INF when |y| is large.
 
 1. Compute the stable value first:
-   vec2 C = complex_cot(sigma, t);  // C = u + iv
+   vec2 C = complex_cot(x, y);  // C = u + iv
 
 2. Use the trigonometric identity for the derivative of cotangent:
    d/dz cot(z) = -csc^2(z) = -(1 + cot^2(z))
@@ -700,11 +700,11 @@ Why this is bulletproof:
   an intermediate INF or precision blackout.
 ================================================================================
 */
-FieldData complex_cot_with_derivatives(float sigma, float t) {
+FieldData complex_cot_with_derivatives(float x, float y) {
     FieldData res;
     
     // 1. Calculate value safely using our stable real-hyperbolic identity
-    res.value = complex_cot(sigma, t);
+    res.value = complex_cot(x, y);
     
     // 2. Extract components: C = u + iv
     float u = res.value.x;
@@ -717,41 +717,41 @@ FieldData complex_cot_with_derivatives(float sigma, float t) {
     );
     
     // 4. Assign directional derivatives matching your grid space
-    res.d_sigma = deriv;
-    res.d_t = vec2(-deriv.y, deriv.x);
+    res.dx = deriv;
+    res.dy = vec2(-deriv.y, deriv.x);
     
     return res;
 }
 
-FieldData complex_exp_with_derivatives(float sigma, float t) {
+FieldData complex_exp_with_derivatives(float x, float y) {
     FieldData res;
-    res.value = complex_exp(sigma, t);
+    res.value = complex_exp(x, y);
     vec2 deriv = res.value;
-    res.d_sigma = deriv;
-    res.d_t = vec2(-deriv.y, deriv.x);
+    res.dx = deriv;
+    res.dy = vec2(-deriv.y, deriv.x);
     return res;
 }
 
-FieldData complex_log_with_derivatives(float sigma, float t) {
+FieldData complex_log_with_derivatives(float x, float y) {
     FieldData res;
-    res.value = complex_log(sigma, t);
-    vec2 z = vec2(sigma, t);
+    res.value = complex_log(x, y);
+    vec2 z = vec2(x, y);
     vec2 deriv = complex_div(vec2(1.0, 0.0), z);
-    res.d_sigma = deriv;
-    res.d_t = vec2(-deriv.y, deriv.x);
+    res.dx = deriv;
+    res.dy = vec2(-deriv.y, deriv.x);
     return res;
 }
 
-FieldData identity_with_derivatives(float sigma, float t) {
+FieldData identity_with_derivatives(float x, float y) {
     FieldData res;
-    res.value = vec2(sigma, t);
-    res.d_sigma = vec2(0.0);
-    res.d_t = vec2(0.0);
+    res.value = vec2(x, y);
+    res.dx = vec2(0.0);
+    res.dy = vec2(0.0);
     return res;
 }
 
-vec2 evaluate_poly(float sigma, float t, vec2 coeffs[10]) {
-    vec2 z = vec2(sigma, t);
+vec2 evaluate_poly(float x, float y, vec2 coeffs[10]) {
+    vec2 z = vec2(x, y);
     vec2 res = vec2(0.0);
     for (int i = 9; i >= 0; i--) {
         res = complex_mul(res, z) + coeffs[i];
@@ -759,14 +759,14 @@ vec2 evaluate_poly(float sigma, float t, vec2 coeffs[10]) {
     return res;
 }
 
-vec2 get_rational(float sigma, float t) {
-    vec2 num = evaluate_poly(sigma, t, rational_num_coeffs);
-    vec2 den = evaluate_poly(sigma, t, rational_den_coeffs);
+vec2 get_rational(float x, float y) {
+    vec2 num = evaluate_poly(x, y, rational_num_coeffs);
+    vec2 den = evaluate_poly(x, y, rational_den_coeffs);
     return complex_div(num, den);
 }
 
-FieldData evaluate_poly_with_derivatives(float sigma, float t, vec2 coeffs[10]) {
-    vec2 z = vec2(sigma, t);
+FieldData evaluate_poly_with_derivatives(float x, float y, vec2 coeffs[10]) {
+    vec2 z = vec2(x, y);
     vec2 val = vec2(0.0);
     vec2 deriv = vec2(0.0);
 
@@ -780,27 +780,27 @@ FieldData evaluate_poly_with_derivatives(float sigma, float t, vec2 coeffs[10]) 
 
     FieldData res;
     res.value = val;
-    res.d_sigma = deriv;
-    res.d_t = vec2(-deriv.y, deriv.x);
+    res.dx = deriv;
+    res.dy = vec2(-deriv.y, deriv.x);
     return res;
 }
 
-FieldData get_rational_with_derivatives(float sigma, float t) {
-    FieldData num = evaluate_poly_with_derivatives(sigma, t, rational_num_coeffs);
-    FieldData den = evaluate_poly_with_derivatives(sigma, t, rational_den_coeffs);
+FieldData get_rational_with_derivatives(float x, float y) {
+    FieldData num = evaluate_poly_with_derivatives(x, y, rational_num_coeffs);
+    FieldData den = evaluate_poly_with_derivatives(x, y, rational_den_coeffs);
     FieldData res;
     res.value = complex_div(num.value, den.value);
     vec2 den_sqr = complex_mul(den.value, den.value);
-    vec2 deriv = complex_div(complex_mul(num.d_sigma, den.value) - complex_mul(num.value, den.d_sigma), den_sqr);
-    res.d_sigma = deriv;
-    res.d_t = vec2(-deriv.y, deriv.x);
+    vec2 deriv = complex_div(complex_mul(num.dx, den.value) - complex_mul(num.value, den.dx), den_sqr);
+    res.dx = deriv;
+    res.dy = vec2(-deriv.y, deriv.x);
     return res;
 }
 
-FieldData xi_with_derivatives(float sigma, float t, int iters) {
-	vec2 s = vec2(sigma, t);
-	vec2 s_minus_1 = vec2(sigma - 1.0, t);
-	vec2 s_half = vec2(sigma * 0.5, t * 0.5);
+FieldData xi_with_derivatives(float x, float y, int iters) {
+	vec2 s = vec2(x, y);
+	vec2 s_minus_1 = vec2(x - 1.0, y);
+	vec2 s_half = vec2(x * 0.5, y * 0.5);
 
 	vec2 log_s = complex_log(s.x, s.y);
 	vec2 d_log_s = complex_div(vec2(1.0, 0.0), s);
@@ -813,23 +813,23 @@ FieldData xi_with_derivatives(float sigma, float t, int iters) {
 
 	FieldData log_gamma_half = complex_log_gamma_with_derivatives(s_half.x, s_half.y);
 
-	FieldData log_z = log_zeta_continuation_with_derivatives(sigma, t, iters);
+	FieldData log_z = log_zeta_continuation_with_derivatives(x, y, iters);
 
 	vec2 log_sum = vec2(log(0.5), 0.0) + log_s + log_s_minus_1 + log_pi_term + log_gamma_half.value + log_z.value;
-	vec2 d_log_sum = d_log_s + d_log_s_minus_1 + d_log_pi_term + 0.5 * log_gamma_half.d_sigma + log_z.d_sigma;
+	vec2 d_log_sum = d_log_s + d_log_s_minus_1 + d_log_pi_term + 0.5 * log_gamma_half.dx + log_z.dx;
 
 	FieldData res;
 	res.value = complex_exp(log_sum.x, log_sum.y);
-	res.d_sigma = complex_mul(res.value, d_log_sum);
-	res.d_t = vec2(-res.d_sigma.y, res.d_sigma.x);
+	res.dx = complex_mul(res.value, d_log_sum);
+	res.dy = vec2(-res.dx.y, res.dx.x);
 	return res;
 }
 
-FieldData multivalued_z_pow_inv_n_with_derivatives(float sigma, float t, int n, int branch_offset) {
+FieldData multivalued_z_pow_inv_n_with_derivatives(float x, float y, int n, int branch_offset) {
     FieldData res;
-    float r_sq = sigma * sigma + t * t;
+    float r_sq = x * x + y * y;
     float r = sqrt(r_sq);
-    float theta = atan(t, sigma);
+    float theta = atan(y, x);
     if (theta < 0.0) theta += 2.0 * PI;
     float float_n = float(n);
 
@@ -840,19 +840,19 @@ FieldData multivalued_z_pow_inv_n_with_derivatives(float sigma, float t, int n, 
     res.value = vec2(morphed_r * cos(morphed_phase), morphed_r * sin(morphed_phase));
 
     // dW/dZ = (1/n) * W / Z
-    vec2 z = vec2(sigma, t);
+    vec2 z = vec2(x, y);
     vec2 deriv = complex_div(res.value, float_n * z);
 
-    res.d_sigma = deriv;
-    res.d_t = vec2(-deriv.y, deriv.x);
+    res.dx = deriv;
+    res.dy = vec2(-deriv.y, deriv.x);
     return res;
 }
 
-FieldData multivalued_log_with_derivatives(float sigma, float t, int branch_offset) {
+FieldData multivalued_log_with_derivatives(float x, float y, int branch_offset) {
     FieldData res;
-    float r_sq = sigma * sigma + t * t;
+    float r_sq = x * x + y * y;
     float r = sqrt(r_sq);
-    float theta = atan(t, sigma);
+    float theta = atan(y, x);
     if (theta < 0.0) theta += 2.0 * PI;
 
     float k_val = float(current_branch + branch_offset);
@@ -863,11 +863,11 @@ FieldData multivalued_log_with_derivatives(float sigma, float t, int branch_offs
     res.value = vec2(log(r), morphed_phase);
 
     // dW/dZ = 1 / Z
-    vec2 z = vec2(sigma, t);
+    vec2 z = vec2(x, y);
     vec2 deriv = complex_div(vec2(1.0, 0.0), z);
 
-    res.d_sigma = deriv;
-    res.d_t = vec2(-deriv.y, deriv.x);
+    res.dx = deriv;
+    res.dy = vec2(-deriv.y, deriv.x);
     return res;
 }
 
@@ -875,31 +875,31 @@ FieldData multivalued_log_with_derivatives(float sigma, float t, int branch_offs
 // Dispatchers
 //-------------------------------------------------------------------------
 
-FieldData get_field_with_derivatives(float x, float z, int branch_offset) {
+FieldData get_field_with_derivatives(float world_x, float world_z, int branch_offset) {
     float zoom = 1.0 / zoom_factor;
-    float sigma = x * 0.1 * zoom;
-    float t = -z * 0.1 * zoom;
-    if (function_type == 0) return zeta_with_derivatives(sigma, t, iterations);
-    if (function_type == 1) return zeta_continuation_with_derivatives(sigma, t, iterations);
-    if (function_type == 2) return dirichlet_eta_with_derivatives(sigma, t, iterations);
-    if (function_type == 3) return dirichlet_beta_with_derivatives(sigma, t, iterations);
-    if (function_type == 4) return complex_gamma_with_derivatives(sigma, t);
-    if (function_type == 5) return complex_log_gamma_with_derivatives(sigma, t);
-    if (function_type == 6) return dedekind_eta_with_derivatives(sigma, t, iterations);
-    if (function_type == 7) return mandelbrot_with_derivatives(sigma, t, iterations);
-    if (function_type == 8) return complex_sin_with_derivatives(sigma, t);
-    if (function_type == 9) return complex_cos_with_derivatives(sigma, t);
-    if (function_type == 10) return complex_tan_with_derivatives(sigma, t);
-    if (function_type == 11) return complex_cot_with_derivatives(sigma, t);
-    if (function_type == 12) return complex_exp_with_derivatives(sigma, t);
-    if (function_type == 13) return complex_log_with_derivatives(sigma, t);
-    if (function_type == 14) return identity_with_derivatives(sigma, t);
-    if (function_type == 15) return get_rational_with_derivatives(sigma, t);
-	if (function_type == 16) return multivalued_z_pow_inv_n_with_derivatives(sigma, t, multivalued_n, branch_offset);
-	if (function_type == 17) return multivalued_log_with_derivatives(sigma, t, branch_offset);
+    float x = world_x * 0.1 * zoom;
+    float y = -world_z * 0.1 * zoom;
+    if (function_type == 0) return zeta_with_derivatives(x, y, iterations);
+    if (function_type == 1) return zeta_continuation_with_derivatives(x, y, iterations);
+    if (function_type == 2) return dirichlet_eta_with_derivatives(x, y, iterations);
+    if (function_type == 3) return dirichlet_beta_with_derivatives(x, y, iterations);
+    if (function_type == 4) return complex_gamma_with_derivatives(x, y);
+    if (function_type == 5) return complex_log_gamma_with_derivatives(x, y);
+    if (function_type == 6) return dedekind_eta_with_derivatives(x, y, iterations);
+    if (function_type == 7) return mandelbrot_with_derivatives(x, y, iterations);
+    if (function_type == 8) return complex_sin_with_derivatives(x, y);
+    if (function_type == 9) return complex_cos_with_derivatives(x, y);
+    if (function_type == 10) return complex_tan_with_derivatives(x, y);
+    if (function_type == 11) return complex_cot_with_derivatives(x, y);
+    if (function_type == 12) return complex_exp_with_derivatives(x, y);
+    if (function_type == 13) return complex_log_with_derivatives(x, y);
+    if (function_type == 14) return identity_with_derivatives(x, y);
+    if (function_type == 15) return get_rational_with_derivatives(x, y);
+	if (function_type == 16) return multivalued_z_pow_inv_n_with_derivatives(x, y, multivalued_n, branch_offset);
+	if (function_type == 17) return multivalued_log_with_derivatives(x, y, branch_offset);
     FieldData res;
     res.value = vec2(0.0);
-    res.d_sigma = vec2(0.0);
-    res.d_t = vec2(0.0);
+    res.dx = vec2(0.0);
+    res.dy = vec2(0.0);
     return res;
 }

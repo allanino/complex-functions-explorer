@@ -20,8 +20,6 @@ var mag_history: Array[float] = [1.0, 1.0, 1.0]
 var z_history: Array[Vector2] = [Vector2(0.0, 0.0), Vector2(0.0, 0.0), Vector2(0.0, 0.0)]
 var last_detected_z = Vector2(0.0, 0.0)
 var current_f: Vector2 = Vector2.ZERO
-var current_sigma: float = 0.0
-var current_t: float = 0.0
 var current_mag: float = 0.0
 var current_z: Vector2 = Vector2(0.0, 0.0)
 
@@ -140,9 +138,9 @@ func _physics_process(delta):
 
 	# Cache current field value and mathematical coordinates for reuse
 	var scale_factor = 1.0 / Config.effective_zoom
-	current_sigma = global_position.x * 0.1 * scale_factor
-	current_t = -global_position.z * 0.1 * scale_factor
-	current_z = Vector2(current_sigma, current_t)
+	var current_x = global_position.x * 0.1 * scale_factor
+	var current_y = -global_position.z * 0.1 * scale_factor
+	current_z = Vector2(current_x, current_y)
 	current_f = Field.get_field(global_position.x, global_position.z)
 	current_mag = current_f.length()
 
@@ -221,8 +219,8 @@ func _physics_process(delta):
 
 	# Multivalued branch crossing detection
 	if Config.function.get("is_multivalued", false):
-		# Detect crossing of the positive real axis (sigma > 0, t=0)
-		if current_sigma > 0.0:
+		# Detect crossing of the positive real axis (x > 0, t=0)
+		if current_z.x > 0.0:
 			var branch_changed = false
 			if last_z.y < 0.0 and current_z.y >= 0.0:
 				# Crossed from -t to +t (counter-clockwise around origin)
@@ -325,11 +323,11 @@ func demo_actions():
 	tween.tween_property(self, "height_offset", 50.0 * ez, tween_duration)
 	tween.parallel().tween_property(camera, "rotation:x", -PI / 2.0, tween_duration)
 
-	# Phase 2: rotate CCW while tilting upwards to face zeta wall towards -sigma
+	# Phase 2: rotate CCW while tilting upwards to face zeta wall towards -x
 	tween.tween_property(self, "rotation:y", PI / 2.0, tween_duration)
 	tween.parallel().tween_property(camera, "rotation:x", 0.0, tween_duration)
 
-	# Phase 3: height decrease to 3.5 while rotating towards +sigma
+	# Phase 3: height decrease to 3.5 while rotating towards +x
 	tween.tween_property(self, "height_offset", 3.5 * ez, tween_duration)
 
 	# Phase 4: walk backwards to see the trivial zero at (-2, 0)

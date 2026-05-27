@@ -330,7 +330,7 @@ func test_get_height():
 
 	Config.performance_protection_active = false
 
-	# x=1.0, z=0 -> sigma=0.1, t=0 -> zeta(0.1, 0) = -0.603038
+	# world_x=1.0, world_z=0 -> x=0.1, t=0 -> zeta(0.1, 0) = -0.603038
 	# mag = 0.603038
 	# height_type = 1 -> h = 0.603038 * 1.0 * 1.0 = 0.603038
 	var world_pos = Vector2(1.0, 0.0)
