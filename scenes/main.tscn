@@ -62,7 +62,7 @@ shader_parameter/surface_texture = 0.0
 shader_parameter/morph = 1.0
 shader_parameter/portal_height = 50.0
 shader_parameter/portal_width = 100.0
-shader_parameter/specular_intensity = 0.5
+shader_parameter/specular_intensity = 0.1
 shader_parameter/self_illumination = 0.0
 shader_parameter/fog_density = 0.0
 
