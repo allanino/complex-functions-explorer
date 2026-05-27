@@ -628,8 +628,8 @@ func _update_freeze_time_state_label():
 		freeze_time_checkbox.text = "On" if freeze_time_checkbox.button_pressed else "Off"
 
 func _format_time(total_seconds: float) -> String:
-	var hours = int(total_seconds) / 3600
-	var minutes = (int(total_seconds) % 3600) / 60
+	var hours = int(total_seconds) / 3600.0
+	var minutes = (int(total_seconds) % 3600) / 60.0
 	var seconds = int(total_seconds) % 60
 	return "%02d:%02d:%02d" % [hours, minutes, seconds]
 
