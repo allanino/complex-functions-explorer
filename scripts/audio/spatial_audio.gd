@@ -12,7 +12,6 @@ var sample_rate: float = 44100.0
 var phase: float = 0.0
 var mod_phase: float = 0.0
 var lfo_phase: float = 0.0
-var noise_state: float = 0.0
 var pulse_phase: float = 0.0
 var target_pulse_rate: float = 0.0
 var current_pulse_rate: float = 0.0

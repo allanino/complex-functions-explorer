@@ -153,11 +153,6 @@ static func complex_gamma(sigma: float, t: float) -> Vector2:
 	return lanczos_gamma(Vector2(sigma, t))
 
 static func log_zeta_continuation(sigma: float, t: float) -> Vector2:
-	# Numerically unstable near the origin due to the pole at zeta(1-s).
-	# Analytically, the reflection formula at s=0 evaluates exactly to -0.5.
-	if sigma * sigma + t * t < 1e-10:
-		return complex_log(-0.5, 0.0)
-
 	if sigma >= 0.5:
 		var z = zeta(sigma, t)
 		return complex_log(z.x, z.y)
@@ -287,6 +282,37 @@ static func multivalued_z_pow_inv_n(sigma: float, t: float, n: int, cycle_speed:
 	var morphed_r = pow(r, 1.0 / float_n)
 	return Vector2(morphed_r * cos(morphed_phase), morphed_r * sin(morphed_phase))
 
+static func multivalued_log(sigma: float, t: float, n: int, cycle_speed: float) -> Vector2:
+	var mag_sq = sigma * sigma + t * t
+	if mag_sq < 1e-48: return Vector2(-60.0, 0.0)
+	var r = sqrt(mag_sq)
+	var theta = atan2(t, sigma)
+	if theta < 0.0: theta += 2.0 * PI
+	var float_n = float(n)
+
+	var blend_factor = 0.0
+	var k_current = 0.0
+
+	if Config.multivalued_mode == 0: # Time cycle
+		var time = Config.branch_time
+		var progress = time * cycle_speed * float_n
+		k_current = floor(progress)
+		var t_in_branch = progress - k_current
+
+		# Non-linear transition: stay on branch, then morph
+		var morph_time = Config.multivalued_morph_time
+		var transition_fraction = clamp(morph_time * float_n * cycle_speed, 0.0, 1.0)
+		var transition_threshold = 1.0 - transition_fraction
+		if transition_threshold < 1.0:
+			blend_factor = smoothstep(transition_threshold, 1.0, t_in_branch)
+		else:
+			blend_factor = 1.0 if t_in_branch >= 1.0 else 0.0
+	else: # Branch portals
+		k_current = float(Config.current_branch)
+
+	var morphed_phase = theta + 2.0 * PI * (k_current + blend_factor)
+	return Vector2(log(r), morphed_phase)
+
 static func smoothstep(edge0: float, edge1: float, x: float) -> float:
 	x = clamp((x - edge0) / (edge1 - edge0), 0.0, 1.0)
 	return x * x * (3.0 - 2.0 * x)
@@ -321,6 +347,7 @@ static func get_field(x: float, z: float) -> Vector2:
 		Config.ComplexFunc.IDENTITY: return Vector2(sigma, t)
 		Config.ComplexFunc.RATIONAL: return get_rational(sigma, t)
 		Config.ComplexFunc.MULTIVALUED_Z_POW: return multivalued_z_pow_inv_n(sigma, t, Config.multivalued_n, Config.branch_cycle_speed)
+		Config.ComplexFunc.MULTIVALUED_LOG: return multivalued_log(sigma, t, Config.multivalued_n, Config.branch_cycle_speed)
 
 	return Vector2.ZERO
 
