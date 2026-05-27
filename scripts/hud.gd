@@ -141,12 +141,12 @@ const DESCRIPTIONS = {
 	"Expression": "Enter a rational function expression with complext coefficients using 'z' as variable and 'i' as imaginary unit (e.g., z^2 - i).",
 	"Real (x)": "Manually set the real part of the player's position in the complex plane.",
 	"Imaginary (y)": "Manually set the imaginary part of the player's position.",
-	"Camera Height": "Vertical height of the player's camera above the terrain.",
-	"Move Speed": "Horizontal movement speed when navigating the complex plane.",
-	"Zoom Factor": "Increase detail by scaling coordinates (1.0 / Zoom).",
+	"Camera Height": "Vertical height of the player's camera above the terrain. Shortcut: SPACE (double press)",
+	"Move Speed": "Horizontal movement speed when navigating the complex plane. Shortcut: SHIFT (fast) / CTRL (slow)",
+	"Zoom Factor": "Increase detail by scaling coordinates (1.0 / Zoom). Shortcut: Mouse Wheel",
 	"Zeros proximity": "Terrain height threshold for detecting function zeros. Actually we look for minima along the path with magnitude below this value.",
 	"Speed near Zeros": "Slows down movement speed near function zeros to allow closer inspection.",
-	"Automatic Walking": "Automatically follow the critical line (Re = 0.5) to find Riemann Zeta zeros.",
+	"Automatic Walking": "Automatically follow the critical line (Re = 0.5) to find Riemann Zeta zeros. Shortcut: CTRL + C",
 	"Terrain Details": "Quality and subdivision level of the procedurally generated terrain meshes.",
 	"Antialiasing": "Choose a technique to reduce jagged edges in the 3D view.",
 	"Branches (n)": "Number of branches for the multivalued function z^(1/n).",
@@ -155,7 +155,7 @@ const DESCRIPTIONS = {
 	"View Distance": "Number of terrain chunks loaded around the player.",
 	"Level Curves": "Overlay contour lines for integer values of Re(f) (black) and Im(f) (white).",
 	"Critical Stripe": "Visual guide indicating the 0 < Re < 1 region where non-trivial zeros reside.",
-	"Freeze time": "Choose between a dynamic day/night cycle or a fixed time of day.",
+	"Freeze time": "Choose between a dynamic day/night cycle or a fixed time of day. Shortcut: CTRL + G (Golden Hour) / CTRL + N (Dynamic Time)",
 	"Day Duration": "Set the real-time duration for a full 24-hour mathematical day cycle.",
 	"Time of day": "Manually set the current time of day when time is frozen.",
 	"Sunrise Direction": "Adjust the angle from which the sun rises (180° is towards +σ).",
@@ -372,6 +372,8 @@ func _on_tooltip_timer_timeout():
 	if _pending_tooltip_key != "":
 		tooltip_label.custom_minimum_size.x = 250
 		tooltip_label.text = DESCRIPTIONS[_pending_tooltip_key]
+		if "Shortcut: " in tooltip_label.text:
+			tooltip_label.text = tooltip_label.text.replace("Shortcut: ", "\n[color=gray]Shortcut: ") + "[/color]"
 		# Hide it during layout processing to prevent flicker
 		tooltip.modulate.a = 0.0
 		tooltip.visible = true
