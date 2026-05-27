@@ -45,16 +45,16 @@ extends CanvasLayer
 @onready var zero_proximity_nav_slider = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox/ZeroProximityNavContainer/ZeroProximityNavSlider
 @onready var zero_proximity_nav_value = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox/ZeroProximityNavContainer/ZeroProximityNavValue
 @onready var camera_height_input = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox/CameraHeightContainer/CameraHeightInput
-@onready var auto_walk_checkbox = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox/AutoWalkCheckbox
+@onready var auto_walk_checkbox = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox/AutoWalkContainer/AutoWalkControl/AutoWalkCheckbox
 
 @onready var terrain_detail_button = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/GRAPHICS/Margin/VBox/TerrainDetailContainer/TerrainDetailButton
 @onready var aa_button = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/GRAPHICS/Margin/VBox/AAContainer/AAButton
 @onready var color_scheme_button = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/ColorSchemeContainer/ColorSchemeButton
 @onready var view_distance_slider = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/GRAPHICS/Margin/VBox/ViewDistanceContainer/ViewDistanceSlider
 @onready var view_distance_value = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/GRAPHICS/Margin/VBox/ViewDistanceContainer/ViewDistanceValue
-@onready var curves_checkbox = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/CurvesCheckbox
-@onready var critical_checkbox = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/CriticalCheckbox
-@onready var flow_checkbox = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/FlowCheckbox
+@onready var curves_checkbox = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/CurvesContainer/CurvesControl/CurvesCheckbox
+@onready var critical_checkbox = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/CriticalContainer/CriticalControl/CriticalCheckbox
+@onready var flow_checkbox = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/FlowContainer/FlowControl/FlowCheckbox
 @onready var freeze_time_checkbox = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/FreezeTimeContainer/FreezeTimeControl/FreezeTimeCheckbox
 @onready var day_duration_container = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/DayDurationContainer
 @onready var day_duration_slider = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/DayDurationContainer/DayDurationSlider
@@ -70,17 +70,18 @@ extends CanvasLayer
 @onready var sun_luminosity_value = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/SunLuminosityContainer/SunLuminosityValue
 @onready var self_illumination_slider = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/SelfIlluminationContainer/SelfIlluminationSlider
 @onready var self_illumination_value = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/SelfIlluminationContainer/SelfIlluminationValue
-@onready var fog_enabled_checkbox = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/FogEnabledCheckbox
+@onready var fog_enabled_checkbox = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/FogEnabledContainer/FogEnabledControl/FogEnabledCheckbox
+@onready var fog_density_container = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/FogDensityContainer
 @onready var fog_density_slider = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/FogDensityContainer/FogDensitySlider
 @onready var fog_density_value = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/FogDensityContainer/FogDensityValue
-@onready var shadows_checkbox = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/GRAPHICS/Margin/VBox/ShadowsCheckbox
+@onready var shadows_checkbox = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/GRAPHICS/Margin/VBox/ShadowsContainer/ShadowsControl/ShadowsCheckbox
 
-@onready var hud_complex_checkbox = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/HUD/Margin/VBox/HudComplexCheckbox
-@onready var hud_navigation_checkbox = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/HUD/Margin/VBox/HudNavigationCheckbox
-@onready var hud_zeros_checkbox = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/HUD/Margin/VBox/HudZerosDetectionCheckbox
-@onready var rvm_checkbox = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/HUD/Margin/VBox/RvmCheckbox
-@onready var hud_monitor_fps_checkbox = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/HUD/Margin/VBox/HudMonitorFpsCheckbox
-@onready var hud_monitor_chunks_checkbox = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/HUD/Margin/VBox/HudMonitorChunksCheckbox
+@onready var hud_complex_checkbox = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/HUD/Margin/VBox/HudComplexContainer/HudComplexControl/HudComplexCheckbox
+@onready var hud_navigation_checkbox = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/HUD/Margin/VBox/HudNavigationContainer/HudNavigationControl/HudNavigationCheckbox
+@onready var hud_zeros_checkbox = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/HUD/Margin/VBox/HudZerosDetectionContainer/HudZerosDetectionControl/HudZerosDetectionCheckbox
+@onready var rvm_checkbox = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/HUD/Margin/VBox/RvmContainer/RvmControl/RvmCheckbox
+@onready var hud_monitor_fps_checkbox = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/HUD/Margin/VBox/HudMonitorFpsContainer/HudMonitorFpsControl/HudMonitorFpsCheckbox
+@onready var hud_monitor_chunks_checkbox = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/HUD/Margin/VBox/HudMonitorChunksContainer/HudMonitorChunksControl/HudMonitorChunksCheckbox
 @onready var hud_scale_slider = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/HUD/Margin/VBox/HudScaleContainer/HudScaleSlider
 @onready var hud_scale_value = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/HUD/Margin/VBox/HudScaleContainer/HudScaleValue
 
@@ -161,9 +162,8 @@ const DESCRIPTIONS = {
 	"Sunrise Direction": "Adjust the angle from which the sun rises (180° is towards +σ).",
 	"Sky Luminosity": "Adjust the overall brightness of the sky and clouds.",
 	"Sun Luminosity": "Adjust the intensity of the sun and moon light.",
-	"Fog Enabled": "Enable or disable global volumetric fog effects.",
+	"Fog": "Enable or disable global volumetric fog effects.",
 	"Fog Density": "Adjust the thickness of the fog and aerial perspective.",
-	"Fog Distance": "Set the distance from the camera where fog begins to appear.",
 	"Shadows": "Enable real-time directional shadows for terrain features.",
 	"Complex plane": "Show the domain coloring map of the current position on the HUD.",
 	"Navigation": "Show coordinate and magnitude information on the HUD.",
@@ -230,6 +230,7 @@ func _ready():
 
 	curves_checkbox.toggled.connect(_on_curves_toggled)
 	critical_checkbox.toggled.connect(_on_critical_toggled)
+	auto_walk_checkbox.toggled.connect(_on_auto_walk_toggled)
 	flow_checkbox.toggled.connect(_on_flow_toggled)
 	hud_complex_checkbox.toggled.connect(_on_hud_complex_toggled)
 	hud_navigation_checkbox.toggled.connect(_on_hud_navigation_toggled)
@@ -280,6 +281,8 @@ func _ready():
 	morph_button.item_selected.connect(_on_morph_selected)
 	morph_slider.value_changed.connect(_on_morph_slider_changed)
 	exit_morph_button.pressed.connect(_on_exit_morph_pressed)
+
+	fog_density_container.visible = fog_enabled_checkbox.button_pressed
 
 	func_button.clear()
 	var sorted_keys = Config.FUNCTIONS.keys()
@@ -462,6 +465,7 @@ func toggle_menu(applied: bool = false):
 
 		freeze_time_checkbox.button_pressed = Config.freeze_time
 		_update_freeze_time_state_label()
+		_update_all_checkbox_labels()
 
 		if player:
 			var scale_factor = 1.0 / Config.effective_zoom
@@ -686,6 +690,11 @@ func _on_self_illumination_value_changed(value):
 
 func _on_fog_enabled_toggled(pressed: bool):
 	Config.fog_enabled = pressed
+
+	if fog_enabled_checkbox:
+		fog_enabled_checkbox.text = "On" if pressed else "Off"
+		fog_density_container.visible = pressed
+
 
 func _on_fog_density_value_changed(value):
 	Config.fog_density = value / 100.0
@@ -1251,34 +1260,64 @@ func _on_aa_selected(index: int):
 func _on_shadows_toggled(pressed: bool):
 	Config.shadows_enabled = pressed
 
+	if shadows_checkbox:
+		shadows_checkbox.text = "On" if pressed else "Off"
+
 func _on_curves_toggled(pressed: bool):
 	Config.show_curves = pressed
+
+	if curves_checkbox:
+		curves_checkbox.text = "On" if pressed else "Off"
 
 func _on_critical_toggled(pressed: bool):
 	Config.show_critical_stripe = pressed
 
+	if critical_checkbox:
+		critical_checkbox.text = "On" if pressed else "Off"
+
 func _on_flow_toggled(pressed: bool):
 	Config.show_flow = pressed
+
+	if flow_checkbox:
+		flow_checkbox.text = "On" if pressed else "Off"
 
 func _on_hud_complex_toggled(pressed: bool):
 	Config.show_hud_complex = pressed
 
+	if hud_complex_checkbox:
+		hud_complex_checkbox.text = "On" if pressed else "Off"
+
 func _on_hud_navigation_toggled(pressed: bool):
 	Config.show_hud_navigation = pressed
+
+	if hud_navigation_checkbox:
+		hud_navigation_checkbox.text = "On" if pressed else "Off"
 
 func _on_hud_zeros_toggled(pressed: bool):
 	Config.show_hud_zeros = pressed
 	if not pressed:
 		Config.visited_zeros.clear()
 
+	if hud_zeros_checkbox:
+		hud_zeros_checkbox.text = "On" if pressed else "Off"
+
 func _on_rvm_toggled(pressed: bool):
 	Config.show_rvm = pressed
+
+	if rvm_checkbox:
+		rvm_checkbox.text = "On" if pressed else "Off"
 
 func _on_hud_monitor_fps_toggled(pressed: bool):
 	Config.show_hud_monitor_fps = pressed
 
+	if hud_monitor_fps_checkbox:
+		hud_monitor_fps_checkbox.text = "On" if pressed else "Off"
+
 func _on_hud_monitor_chunks_toggled(pressed: bool):
 	Config.show_hud_monitor_chunks = pressed
+
+	if hud_monitor_chunks_checkbox:
+		hud_monitor_chunks_checkbox.text = "On" if pressed else "Off"
 
 func _on_color_scheme_selected(index: int):
 	Config.color_scheme = index
@@ -1334,3 +1373,33 @@ func _on_rational_text_submitted(new_text: String):
 		else:
 			Config.rational_num_coeffs = _parse_poly(expr)
 			Config.rational_den_coeffs = PackedVector2Array([Vector2(1, 0), Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO])
+
+func _update_all_checkbox_labels():
+	if auto_walk_checkbox:
+		auto_walk_checkbox.text = "On" if auto_walk_checkbox.button_pressed else "Off"
+	if curves_checkbox:
+		curves_checkbox.text = "On" if curves_checkbox.button_pressed else "Off"
+	if critical_checkbox:
+		critical_checkbox.text = "On" if critical_checkbox.button_pressed else "Off"
+	if flow_checkbox:
+		flow_checkbox.text = "On" if flow_checkbox.button_pressed else "Off"
+	if fog_enabled_checkbox:
+		fog_enabled_checkbox.text = "On" if fog_enabled_checkbox.button_pressed else "Off"
+	if shadows_checkbox:
+		shadows_checkbox.text = "On" if shadows_checkbox.button_pressed else "Off"
+	if hud_complex_checkbox:
+		hud_complex_checkbox.text = "On" if hud_complex_checkbox.button_pressed else "Off"
+	if hud_navigation_checkbox:
+		hud_navigation_checkbox.text = "On" if hud_navigation_checkbox.button_pressed else "Off"
+	if hud_zeros_checkbox:
+		hud_zeros_checkbox.text = "On" if hud_zeros_checkbox.button_pressed else "Off"
+	if rvm_checkbox:
+		rvm_checkbox.text = "On" if rvm_checkbox.button_pressed else "Off"
+	if hud_monitor_fps_checkbox:
+		hud_monitor_fps_checkbox.text = "On" if hud_monitor_fps_checkbox.button_pressed else "Off"
+	if hud_monitor_chunks_checkbox:
+		hud_monitor_chunks_checkbox.text = "On" if hud_monitor_chunks_checkbox.button_pressed else "Off"
+
+func _on_auto_walk_toggled(pressed: bool):
+	if auto_walk_checkbox:
+		auto_walk_checkbox.text = "On" if pressed else "Off"
