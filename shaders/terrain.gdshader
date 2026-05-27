@@ -31,6 +31,7 @@ uniform float surface_texture : hint_range(0.0, 1.0) = 0.0;
 uniform float morph : hint_range(0.0, 1.0) = 1.0;
 uniform float portal_height = 50.0;
 uniform float portal_width = 100.0;
+uniform float specular_intensity : hint_range(0.0, 1.0) = 0.5;
 
 uniform float self_illumination = 0.0;
 uniform float fog_density = 0.0;
@@ -547,6 +548,6 @@ void fragment() {
 
         ROUGHNESS = clamp(roughness + roughness_variation, 0.0, 1.0);
         METALLIC = metallic;
-        SPECULAR = 0.1;
+        SPECULAR = specular_intensity;
     }
 }

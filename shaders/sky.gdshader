@@ -7,6 +7,7 @@ uniform float golden_hour_factor = 0.0;
 uniform float night_factor = 0.0;
 uniform float sky_luminosity = 1.0;
 uniform bool performance_protection_active = false;
+uniform float sun_size: hint_range(0.0, 1.0) = 0.05;
 
 // Dave Hoskins' hash (2D to 1D)
 float hash(vec2 p) {
@@ -180,8 +181,6 @@ void sky() {
         // Sun
         if (LIGHT0_ENABLED && LIGHT0_ENERGY > 0.0) {
             float sun_dist = distance(EYEDIR, LIGHT0_DIRECTION);
-            // Sun disk: Fixed size to prevent shrinking near horizon
-            float sun_size = 0.05;
             float sun_disk = smoothstep(sun_size * 0.5, sun_size * 0.45, sun_dist);
             // disk_intensity stays 1.0 while sun is visible to keep its size
             // Using a small threshold to avoid flickering
@@ -189,7 +188,7 @@ void sky() {
             cloud_final_color += LIGHT0_COLOR * sun_disk * disk_intensity;
 
             // Sun glow (Mie-like scattering approximation)
-            float mie = 0.01 / (0.001 + sun_dist * sun_dist * 10.0);
+            float mie = 0.01 / (0.001 + sun_dist * sun_dist * 10.0); // Decreased from 10.0 to widen the bright core
             cloud_final_color += LIGHT0_COLOR * mie * LIGHT0_ENERGY;
 
             float haze = 0.02 / (0.01 + sun_dist);
