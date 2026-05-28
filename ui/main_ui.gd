@@ -89,6 +89,7 @@ var active_detached_value: Label = null
 @onready var morph_slider = %MenuOverlay/%MorphSliderContainer
 
 
+@onready var preset_button = %MenuOverlay/%PresetButton
 @onready var apply_button = %MenuOverlay/%ApplyButton
 @onready var close_button = %MenuOverlay/%CloseButton
 @onready var quit_button = %MenuOverlay/%QuitButton
@@ -182,6 +183,7 @@ var _initial_shadows_enabled: bool
 
 var _speed_modified: bool = false
 var _camera_height_modified: bool = false
+var _applying_preset: bool = false
 
 func _ready():
 	hud_columns.offset_top = -1000
@@ -205,6 +207,16 @@ func _ready():
 	hud_monitor_fps_checkbox.toggled.connect(_on_hud_monitor_fps_toggled)
 	hud_monitor_chunks_checkbox.toggled.connect(_on_hud_monitor_chunks_toggled)
 	color_scheme_button.item_selected.connect(_on_color_scheme_selected)
+
+
+	for preset_name in Config.PRESETS.keys():
+		preset_button.add_item(preset_name)
+
+	preset_button.item_selected.connect(_on_preset_selected)
+	Config.preset_applied.connect(_on_preset_applied)
+	Config.preset_dirtied.connect(_update_preset_button_text)
+
+	_update_preset_button_text()
 
 	apply_button.pressed.connect(_on_set_pos_pressed)
 	close_button.pressed.connect(toggle_menu)
@@ -580,6 +592,8 @@ func _on_height_selected(index):
 	height_eps_container.visible = is_log
 
 func _on_freeze_time_toggled(pressed: bool):
+	if not _applying_preset:
+		Config.mark_preset_dirty()
 	Config.freeze_time = pressed
 
 
@@ -594,6 +608,8 @@ func _on_day_duration_value_changed(value):
 	day_duration_slider.value_text = _format_time(value)
 
 func _on_day_time_value_changed(value):
+	if not _applying_preset:
+		Config.mark_preset_dirty()
 	Config.day_time = value
 	day_time_slider.value_text = _format_time(value)
 func _on_master_volume_value_changed(value):
@@ -637,10 +653,14 @@ func _on_sun_luminosity_value_changed(value):
 	sun_luminosity_slider.value_text = str(int(value)) + "%"
 
 func _on_self_illumination_value_changed(value):
+	if not _applying_preset:
+		Config.mark_preset_dirty()
 	Config.self_illumination = value / 100.0
 	self_illumination_slider.value_text = str(int(value)) + "%"
 
 func _on_fog_density_value_changed(value):
+	if not _applying_preset:
+		Config.mark_preset_dirty()
 	Config.fog_density = value / 100.0
 	fog_density_slider.value_text = "%.1f%%" % value
 
@@ -658,30 +678,44 @@ func _on_multivalued_n_value_changed(value):
 	Config.multivalued_n = int(value)
 
 func _on_terrain_brightness_value_changed(value):
+	if not _applying_preset:
+		Config.mark_preset_dirty()
 	Config.terrain_brightness = value / 50.0
 	brightness_slider.value_text = str(int(value)) + "%"
 
 func _on_terrain_saturation_value_changed(value):
+	if not _applying_preset:
+		Config.mark_preset_dirty()
 	Config.terrain_saturation = 0.3 + (value / 100.0) * 0.7
 	saturation_slider.value_text = str(int(value)) + "%"
 
 func _on_terrain_albedo_value_changed(value):
+	if not _applying_preset:
+		Config.mark_preset_dirty()
 	Config.terrain_albedo = value / 100.0
 	albedo_slider.value_text = str(int(value)) + "%"
 
 func _on_terrain_emission_value_changed(value):
+	if not _applying_preset:
+		Config.mark_preset_dirty()
 	Config.terrain_emission = value / 100.0
 	emission_slider.value_text = str(int(value)) + "%"
 
 func _on_terrain_metallic_value_changed(value):
+	if not _applying_preset:
+		Config.mark_preset_dirty()
 	Config.terrain_metallic = value / 100.0
 	metallic_slider.value_text = str(int(value)) + "%"
 
 func _on_terrain_roughness_value_changed(value):
+	if not _applying_preset:
+		Config.mark_preset_dirty()
 	Config.terrain_roughness = value / 100.0
 	roughness_slider.value_text = str(int(value)) + "%"
 
 func _on_terrain_surface_texture_value_changed(value):
+	if not _applying_preset:
+		Config.mark_preset_dirty()
 	Config.terrain_surface_texture = value / 100.0
 	surface_texture_slider.value_text = str(int(value)) + "%"
 
@@ -920,6 +954,69 @@ func _on_set_pos_pressed():
 			player.auto_walk_state = 0 # NONE
 
 	toggle_menu(true)
+
+
+func _on_preset_selected(index: int):
+	var preset_name = preset_button.get_item_text(index).trim_suffix("*")
+	Config.apply_preset(preset_name)
+
+func _sync_ui_to_config():
+	_applying_preset = true
+	brightness_slider.value = Config.terrain_brightness * 50.0
+	_on_terrain_brightness_value_changed(brightness_slider.value)
+	saturation_slider.value = (Config.terrain_saturation - 0.3) / 0.7 * 100.0
+	_on_terrain_saturation_value_changed(saturation_slider.value)
+	albedo_slider.value = Config.terrain_albedo * 100.0
+	_on_terrain_albedo_value_changed(albedo_slider.value)
+	emission_slider.value = Config.terrain_emission * 100.0
+	_on_terrain_emission_value_changed(emission_slider.value)
+	metallic_slider.value = Config.terrain_metallic * 100.0
+	_on_terrain_metallic_value_changed(metallic_slider.value)
+	roughness_slider.value = Config.terrain_roughness * 100.0
+	_on_terrain_roughness_value_changed(roughness_slider.value)
+	surface_texture_slider.value = Config.terrain_surface_texture * 100.0
+	_on_terrain_surface_texture_value_changed(surface_texture_slider.value)
+
+	freeze_time_checkbox.button_pressed = Config.freeze_time
+	_on_freeze_time_toggled(Config.freeze_time)
+
+	day_time_slider.value = Config.day_time
+	_on_day_time_value_changed(day_time_slider.value)
+
+	fog_density_slider.value = Config.fog_density * 100.0
+	_on_fog_density_value_changed(fog_density_slider.value)
+
+	self_illumination_slider.value = Config.self_illumination * 100.0
+	_on_self_illumination_value_changed(self_illumination_slider.value)
+
+	_applying_preset = false
+	# Re-enforce preset cleanliness just in case
+	var base_name = Config.current_preset.trim_suffix("*")
+	if Config.current_preset.ends_with("*"):
+		Config.current_preset = base_name
+		Config.preset_dirtied.emit()
+
+func _on_preset_applied():
+	_sync_ui_to_config()
+	_update_preset_button_text()
+
+
+func _update_preset_button_text():
+	var preset_name = Config.current_preset.trim_suffix("*")
+	var is_dirty = Config.current_preset.ends_with("*")
+
+	# Try to select the right item, then set text
+	for i in range(preset_button.item_count):
+		if preset_button.get_item_text(i).trim_suffix("*") == preset_name:
+			preset_button.select(i)
+			break
+
+	if is_dirty:
+		preset_button.set_item_text(preset_button.selected, preset_name + "*")
+	else:
+		# Reset all items
+		for i in range(preset_button.item_count):
+			preset_button.set_item_text(i, preset_button.get_item_text(i).trim_suffix("*"))
 
 func _on_quit_pressed():
 	get_tree().quit()

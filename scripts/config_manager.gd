@@ -119,6 +119,32 @@ const FUNCTIONS = {
 }
 
 # Field parameters
+
+const PRESETS = {
+	"Default": {
+		"terrain_albedo": 0.15,
+		"terrain_brightness": 1.0,
+		"freeze_time": false,
+		"day_time": 43200.0,
+		"fog_density": 0.4,
+		"self_illumination": 0.0
+	},
+	"Mysterious": {
+		"terrain_albedo": 0.0,
+		"terrain_brightness": 0.0,
+		"freeze_time": true,
+		"day_time": 72000.0,
+		"fog_density": 0.4,
+		"self_illumination": 0.1
+	}
+}
+
+var current_preset: String = "Default"
+
+signal preset_applied
+signal preset_dirtied
+
+# Field parameters
 var iterations: int = 500
 var function_iterations: Dictionary = {}
 var function_type: int = ComplexFunc.ZETA:
@@ -194,6 +220,20 @@ var performance_protection_active: bool = false
 var effective_zoom: float = 1.0
 var morph_value: float = 1.0
 
+
+func apply_preset(preset_name: String):
+	if PRESETS.has(preset_name):
+		var preset = PRESETS[preset_name]
+		for key in preset:
+			set(key, preset[key])
+		current_preset = preset_name
+		preset_applied.emit()
+
+func mark_preset_dirty():
+	if not current_preset.ends_with("*"):
+		current_preset += "*"
+		preset_dirtied.emit()
+
 func _ready():
 	load_settings()
 	effective_zoom = float(zoom_factor)
@@ -238,6 +278,7 @@ func save_settings():
 	config.set_value("rendering", "terrain_roughness", terrain_roughness)
 	config.set_value("rendering", "terrain_surface_texture", terrain_surface_texture)
 	config.set_value("rendering", "fog_density", fog_density)
+	config.set_value("session", "current_preset", current_preset)
 
 	config.set_value("player", "movement_speed", movement_speed)
 	config.set_value("player", "speed_near_zeros", speed_near_zeros)
@@ -305,6 +346,7 @@ func load_settings():
 	terrain_roughness = config.get_value("rendering", "terrain_roughness", terrain_roughness)
 	terrain_surface_texture = config.get_value("rendering", "terrain_surface_texture", terrain_surface_texture)
 	fog_density = config.get_value("rendering", "fog_density", fog_density)
+	current_preset = config.get_value("session", "current_preset", "Default")
 
 	movement_speed = config.get_value("player", "movement_speed", movement_speed)
 	speed_near_zeros = config.get_value("player", "speed_near_zeros", speed_near_zeros)

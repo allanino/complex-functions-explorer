@@ -854,9 +854,25 @@ layout_mode = 2
 theme_override_constants/separation = 20
 alignment = 1
 
-[node name="Spacer" type="Control" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/ButtonsHBox" unique_id=1318535870]
+[node name="PresetContainer" type="HBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/ButtonsHBox" unique_id=1318535870]
 layout_mode = 2
 size_flags_horizontal = 3
+
+[node name="Label" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/ButtonsHBox/PresetContainer" unique_id=987654321]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 18
+text = "Preset:"
+
+[node name="PresetButton" type="OptionButton" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/ButtonsHBox/PresetContainer" unique_id=123456789]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/focus = SubResource("StyleBoxFlat_btn_normal")
 
 [node name="CloseButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/ButtonsHBox" unique_id=895379033]
 unique_name_in_owner = true

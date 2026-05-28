@@ -14,6 +14,23 @@ func after_each():
 	if dir != null and dir.file_exists("test_settings.cfg"):
 		dir.remove("test_settings.cfg")
 
+
+func test_presets():
+	# Initially "Default"
+	assert_eq(config_manager.current_preset, "Default")
+
+	# Apply "Mysterious"
+	config_manager.apply_preset("Mysterious")
+	assert_eq(config_manager.current_preset, "Mysterious")
+	assert_eq(config_manager.freeze_time, true)
+	assert_almost_eq(config_manager.fog_density, 0.4, 0.001)
+	assert_almost_eq(config_manager.terrain_albedo, 0.0, 0.001)
+
+	# Mark dirty
+	config_manager.mark_preset_dirty()
+	assert_eq(config_manager.current_preset, "Mysterious*")
+
+
 func test_function_type_setter():
 	# Initial state
 	assert_eq(config_manager.function_type, ConfigManager.ComplexFunc.ZETA)
