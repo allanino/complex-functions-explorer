@@ -1,6 +1,6 @@
 extends GutTest
 
-var hud_scene = preload("res://scenes/main_ui.tscn")
+var hud_scene = preload("res://ui/main_ui.tscn")
 var hud_instance
 
 func before_each():
