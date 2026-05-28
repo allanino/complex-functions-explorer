@@ -19,87 +19,87 @@ extends CanvasLayer
 @onready var menu_overlay = %MenuOverlay
 
 # New UI Node Paths
-@onready var tab_container = %MenuOverlay.get_node("%TabContainer")
-@onready var func_button = %MenuOverlay.get_node("%FuncButton")
-@onready var height_button = %MenuOverlay.get_node("%HeightButton")
-@onready var height_a_container = %MenuOverlay.get_node("%HeightAContainer")
-@onready var height_a_input = %MenuOverlay.get_node("%HeightAInput")
-@onready var height_eps_container = %MenuOverlay.get_node("%HeightEpsContainer")
-@onready var height_eps_input = %MenuOverlay.get_node("%HeightEpsInput")
-@onready var iter_slider = %MenuOverlay.get_node("%IterSlider")
-@onready var rational_container = %MenuOverlay.get_node("%RationalContainer")
-@onready var rational_input = %MenuOverlay.get_node("%RationalInput")
-@onready var multivalued_slider = %MenuOverlay.get_node("%MultivaluedSlider")
+@onready var tab_container = %MenuOverlay/%TabContainer
+@onready var func_button = %MenuOverlay/%FuncButton
+@onready var height_button = %MenuOverlay/%HeightButton
+@onready var height_a_container = %MenuOverlay/%HeightAContainer
+@onready var height_a_input = %MenuOverlay/%HeightAInput
+@onready var height_eps_container = %MenuOverlay/%HeightEpsContainer
+@onready var height_eps_input = %MenuOverlay/%HeightEpsInput
+@onready var iter_slider = %MenuOverlay/%IterSlider
+@onready var rational_container = %MenuOverlay/%RationalContainer
+@onready var rational_input = %MenuOverlay/%RationalInput
+@onready var multivalued_slider = %MenuOverlay/%MultivaluedSlider
 
-@onready var re_input = %MenuOverlay.get_node("%ReInput")
-@onready var im_input = %MenuOverlay.get_node("%ImInput")
-@onready var speed_input = %MenuOverlay.get_node("%SpeedInput")
-@onready var zoom_slider = %MenuOverlay.get_node("%ZoomContainer")
-@onready var zero_speed_slider = %MenuOverlay.get_node("%ZeroSpeedContainer")
-@onready var zero_proximity_nav_slider = %MenuOverlay.get_node("%ZeroProximityNavContainer")
-@onready var camera_height_input = %MenuOverlay.get_node("%CameraHeightInput")
-@onready var auto_walk_checkbox = %MenuOverlay.get_node("%AutoWalkCheckbox")
+@onready var re_input = %MenuOverlay/%ReInput
+@onready var im_input = %MenuOverlay/%ImInput
+@onready var speed_input = %MenuOverlay/%SpeedInput
+@onready var zoom_slider = %MenuOverlay/%ZoomContainer
+@onready var zero_speed_slider = %MenuOverlay/%ZeroSpeedContainer
+@onready var zero_proximity_nav_slider = %MenuOverlay/%ZeroProximityNavContainer
+@onready var camera_height_input = %MenuOverlay/%CameraHeightInput
+@onready var auto_walk_checkbox = %MenuOverlay/%AutoWalkCheckbox
 
-@onready var terrain_detail_button = %MenuOverlay.get_node("%TerrainDetailButton")
-@onready var aa_button = %MenuOverlay.get_node("%AAButton")
-@onready var color_scheme_button = %MenuOverlay.get_node("%ColorSchemeButton")
-@onready var view_distance_slider = %MenuOverlay.get_node("%ViewDistanceContainer")
-@onready var curves_checkbox = %MenuOverlay.get_node("%CurvesCheckbox")
-@onready var critical_checkbox = %MenuOverlay.get_node("%CriticalCheckbox")
-@onready var flow_checkbox = %MenuOverlay.get_node("%FlowCheckbox")
-@onready var freeze_time_checkbox = %MenuOverlay.get_node("%FreezeTimeCheckbox")
-@onready var day_duration_slider = %MenuOverlay.get_node("%DayDurationSlider")
-@onready var day_time_slider = %MenuOverlay.get_node("%DayTimeSlider")
-@onready var sunrise_slider = %MenuOverlay.get_node("%SunriseContainer")
-@onready var sky_luminosity_slider = %MenuOverlay.get_node("%SkyLuminosityContainer")
-@onready var sun_luminosity_slider = %MenuOverlay.get_node("%SunLuminosityContainer")
-@onready var self_illumination_slider = %MenuOverlay.get_node("%SelfIlluminationContainer")
-@onready var fog_density_slider = %MenuOverlay.get_node("%FogDensitySlider")
-@onready var shadows_checkbox = %MenuOverlay.get_node("%ShadowsCheckbox")
+@onready var terrain_detail_button = %MenuOverlay/%TerrainDetailButton
+@onready var aa_button = %MenuOverlay/%AAButton
+@onready var color_scheme_button = %MenuOverlay/%ColorSchemeButton
+@onready var view_distance_slider = %MenuOverlay/%ViewDistanceContainer
+@onready var curves_checkbox = %MenuOverlay/%CurvesCheckbox
+@onready var critical_checkbox = %MenuOverlay/%CriticalCheckbox
+@onready var flow_checkbox = %MenuOverlay/%FlowCheckbox
+@onready var freeze_time_checkbox = %MenuOverlay/%FreezeTimeCheckbox
+@onready var day_duration_slider = %MenuOverlay/%DayDurationSlider
+@onready var day_time_slider = %MenuOverlay/%DayTimeSlider
+@onready var sunrise_slider = %MenuOverlay/%SunriseContainer
+@onready var sky_luminosity_slider = %MenuOverlay/%SkyLuminosityContainer
+@onready var sun_luminosity_slider = %MenuOverlay/%SunLuminosityContainer
+@onready var self_illumination_slider = %MenuOverlay/%SelfIlluminationContainer
+@onready var fog_density_slider = %MenuOverlay/%FogDensitySlider
+@onready var shadows_checkbox = %MenuOverlay/%ShadowsCheckbox
 
-@onready var hud_complex_checkbox = %MenuOverlay.get_node("%HudComplexCheckbox")
-@onready var hud_navigation_checkbox = %MenuOverlay.get_node("%HudNavigationCheckbox")
-@onready var hud_zeros_checkbox = %MenuOverlay.get_node("%HudZerosDetectionCheckbox")
-@onready var rvm_checkbox = %MenuOverlay.get_node("%RvmCheckbox")
-@onready var hud_monitor_fps_checkbox = %MenuOverlay.get_node("%HudMonitorFpsCheckbox")
-@onready var hud_monitor_chunks_checkbox = %MenuOverlay.get_node("%HudMonitorChunksCheckbox")
-@onready var hud_scale_slider = %MenuOverlay.get_node("%HudScaleContainer")
+@onready var hud_complex_checkbox = %MenuOverlay/%HudComplexCheckbox
+@onready var hud_navigation_checkbox = %MenuOverlay/%HudNavigationCheckbox
+@onready var hud_zeros_checkbox = %MenuOverlay/%HudZerosDetectionCheckbox
+@onready var rvm_checkbox = %MenuOverlay/%RvmCheckbox
+@onready var hud_monitor_fps_checkbox = %MenuOverlay/%HudMonitorFpsCheckbox
+@onready var hud_monitor_chunks_checkbox = %MenuOverlay/%HudMonitorChunksCheckbox
+@onready var hud_scale_slider = %MenuOverlay/%HudScaleContainer
 
-@onready var master_volume_slider = %MenuOverlay.get_node("%MasterVolumeContainer")
-@onready var bg_music_slider = %MenuOverlay.get_node("%BgMusicContainer")
-@onready var drone_slider = %MenuOverlay.get_node("%DroneContainer")
+@onready var master_volume_slider = %MenuOverlay/%MasterVolumeContainer
+@onready var bg_music_slider = %MenuOverlay/%BgMusicContainer
+@onready var drone_slider = %MenuOverlay/%DroneContainer
 
-@onready var detach_overlay = %DetachOverlay
-@onready var detach_slider = %DetachSlider
-@onready var detach_label = %Label
-@onready var detach_value = %DetachValue
-@onready var exit_detach_button = %ExitDetachButton
+@onready var detach_overlay = %MenuOverlay/%DetachOverlay
+@onready var detach_slider = %MenuOverlay/%DetachSlider
+@onready var detach_label = %MenuOverlay/%Label
+@onready var detach_value = %MenuOverlay/%DetachValue
+@onready var exit_detach_button = %MenuOverlay/%ExitDetachButton
 
 var active_detached_slider: HSlider = null
 var active_detached_value: Label = null
 
-@onready var brightness_slider = %MenuOverlay.get_node("%BrightnessContainer")
-@onready var saturation_slider = %MenuOverlay.get_node("%SaturationContainer")
-@onready var albedo_slider = %MenuOverlay.get_node("%AlbedoContainer")
-@onready var emission_slider = %MenuOverlay.get_node("%EmissionContainer")
-@onready var metallic_slider = %MenuOverlay.get_node("%MetallicContainer")
-@onready var roughness_slider = %MenuOverlay.get_node("%RoughnessContainer")
+@onready var brightness_slider = %MenuOverlay/%BrightnessContainer
+@onready var saturation_slider = %MenuOverlay/%SaturationContainer
+@onready var albedo_slider = %MenuOverlay/%AlbedoContainer
+@onready var emission_slider = %MenuOverlay/%EmissionContainer
+@onready var metallic_slider = %MenuOverlay/%MetallicContainer
+@onready var roughness_slider = %MenuOverlay/%RoughnessContainer
 
-@onready var surface_texture_slider = %MenuOverlay.get_node("%SurfaceTextureContainer")
-@onready var morph_button = %MenuOverlay.get_node("%MorphButton")
+@onready var surface_texture_slider = %MenuOverlay/%SurfaceTextureContainer
+@onready var morph_button = %MenuOverlay/%MorphButton
 
 @onready var morph_overlay = %MorphOverlay
 @onready var morph_slider = %MorphSlider
 @onready var exit_morph_button = %ExitMorphButton
 
-@onready var apply_button = %MenuOverlay.get_node("%ApplyButton")
-@onready var close_button = %MenuOverlay.get_node("%CloseButton")
-@onready var quit_button = %MenuOverlay.get_node("%QuitButton")
-@onready var perf_label = %PerfProtectionLabel
+@onready var apply_button = %MenuOverlay/%ApplyButton
+@onready var close_button = %MenuOverlay/%CloseButton
+@onready var quit_button = %MenuOverlay/%QuitButton
+@onready var perf_label = %MenuOverlay/%PerfProtectionLabel
 
-@onready var tooltip = %Tooltip
-@onready var tooltip_label = %TooltipLabel
-@onready var tooltip_timer = %TooltipTimer
+@onready var tooltip = %MenuOverlay/%Tooltip
+@onready var tooltip_label = %MenuOverlay/%TooltipLabel
+@onready var tooltip_timer = %MenuOverlay/%TooltipTimer
 
 var _pending_tooltip_key: String = ""
 
