@@ -1,7 +1,7 @@
-[gd_scene format=3 uid="uid://d1juxepm51k2k"]
+[gd_scene format=3 uid="uid://dt1i63qai7fx6"]
 
 [ext_resource type="PackedScene" path="res://ui/components/slider.tscn" id="1"]
-[ext_resource type="PackedScene" uid="uid://cb3s73jdxxabc" path="res://ui/components/checkbox.tscn" id="3_checkbox"]
+[ext_resource type="PackedScene" path="res://ui/components/checkbox.tscn" id="3_checkbox"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_glass"]
 bg_color = Color(0.03, 0.03, 0.03, 0.5)

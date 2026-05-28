@@ -262,7 +262,6 @@ func fill_buffer():
 
 	while to_fill > 0:
 		# --- PHASE INCREMENTS ---
-
 		# LFO for organic drift (0.12 Hz)
 		lfo_phase = fmod(lfo_phase + 0.12 / sample_rate, 1.0)
 		var jitter = sin(lfo_phase * TAU) * 0.008
@@ -292,8 +291,6 @@ func fill_buffer():
 		sample = clamp(sample * 1.1, -1.1, 1.1)
 		var shape = 0.25 + 0.1 * sin(lfo_phase * TAU)
 		sample = sample - (sample * sample * sample * shape)
-
-
 
 		if not is_finite(sample): sample = 0.0
 

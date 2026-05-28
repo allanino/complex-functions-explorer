@@ -155,9 +155,9 @@ func _process(delta):
 
 	# Sun direction: rotate Noon (0, -1, 0) around orbit axis
 	var sun_dir = Quaternion(orbit_axis, angle) * Vector3.DOWN
-	var moon_dir = -sun_dir
+	var moon_dir = - sun_dir
 
-	var sun_elevation = -sun_dir.y
+	var sun_elevation = - sun_dir.y
 	_golden_hour_transition = clamp((0.5 - sun_elevation) / 0.5, 0.0, 1.0)
 
 	if sun_elevation < 0.0:
@@ -173,7 +173,7 @@ func _process(delta):
 
 	if moon:
 		moon.basis = Basis.looking_at(moon_dir, Vector3.UP if abs(moon_dir.y) < 0.99 else Vector3.FORWARD)
-		var moon_elevation = -moon_dir.y
+		var moon_elevation = - moon_dir.y
 		moon.light_energy = smoothstep(-0.02, 0.02, moon_elevation) * 0.4 * Config.sun_luminosity
 		moon.shadow_enabled = Config.shadows_enabled and moon_elevation > 0.01
 
@@ -226,7 +226,6 @@ func _process(delta):
 		"terrain_metallic": Config.terrain_metallic,
 		"terrain_roughness": Config.terrain_roughness,
 		"terrain_surface_texture": Config.terrain_surface_texture,
-		"morph_type": Config.morph_type,
 		"morph_value": Config.morph_value,
 		"sky_luminosity": Config.sky_luminosity,
 		"sun_luminosity": Config.sun_luminosity,
@@ -426,9 +425,7 @@ func _update_terrain_material_uniforms():
 		segments.append(float(sub + 1))
 	terrain_material.set_shader_parameter("lod_segments", segments)
 
-	var morph_param = 1.0
-	if Config.morph_type == 1:
-		morph_param = Config.morph_value
+	var morph_param = Config.morph_value
 	terrain_material.set_shader_parameter("morph", morph_param)
 
 func _update_chunk_uniforms(chunk: MeshInstance3D):

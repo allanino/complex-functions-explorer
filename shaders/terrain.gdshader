@@ -209,14 +209,13 @@ void vertex() {
             // When running usually, morph = 1.0, s = 1.0, blend = 1.0
 
             // Blend parameter in [0, 1]
-            float s = 0.5 - 0.5 * cos(PI * morph);
-            float blend = log(1.0 + 8.0 * s) / log(9.0);
+            float blend = 0.5 - 0.5 * cos(PI * morph);
 
             // Original function value f(z)
             vec2 fz = final_fd.value;
 
             // Identity map
-            vec2 z_id = vec2(world_v_pos.x, world_v_pos.z);
+            vec2 z_id = vec2(0.1 * world_v_pos.x, -0.1 * world_v_pos.z);
 
             // Blended map:
             // g(z, blend) = (1 - blend) * z + blend * f(z)

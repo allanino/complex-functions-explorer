@@ -4,7 +4,7 @@ const MOUSE_SENSITIVITY = 0.002
 const DOUBLE_PRESS_TIME = 0.3
 const CRITICAL_LINE_X = 5.0
 
-enum AutoWalkState { NONE, MOVING_TO_LINE, WALKING }
+enum AutoWalkState {NONE, MOVING_TO_LINE, WALKING}
 
 var rotation_x = 0.0
 var auto_walk_state = AutoWalkState.NONE
@@ -55,14 +55,14 @@ func _unhandled_input(event):
 	if hud_node and hud_node.detach_overlay and hud_node.detach_overlay.visible:
 		is_detached = true
 
-	if Config.morph_type != 0 or is_detached:
+	if is_detached:
 		return
 
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		if auto_walk_state == AutoWalkState.NONE or auto_walk_state == AutoWalkState.WALKING:
 			rotate_y(-event.relative.x * MOUSE_SENSITIVITY)
 			rotation_x -= event.relative.y * MOUSE_SENSITIVITY
-			rotation_x = clamp(rotation_x, -PI/2, PI/2)
+			rotation_x = clamp(rotation_x, -PI / 2, PI / 2)
 			camera.rotation.x = rotation_x
 
 	if event is InputEventMouseButton and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
@@ -124,7 +124,7 @@ func _physics_process(delta):
 	if hud_node and hud_node.detach_overlay and hud_node.detach_overlay.visible:
 		is_detached = true
 
-	if Config.morph_type != 0 or is_detached:
+	if is_detached:
 		velocity = Vector3.ZERO
 		return
 
@@ -146,7 +146,7 @@ func _physics_process(delta):
 	# Cache current field value and mathematical coordinates for reuse
 	var scale_factor = 1.0 / Config.effective_zoom
 	var current_x = global_position.x * 0.1 * scale_factor
-	var current_y = -global_position.z * 0.1 * scale_factor
+	var current_y = - global_position.z * 0.1 * scale_factor
 	current_z = Vector2(current_x, current_y)
 	current_f = Field.get_field(global_position.x, global_position.z)
 	current_mag = current_f.length()
@@ -193,9 +193,9 @@ func _physics_process(delta):
 
 		var target_yaw = 0.0
 		if global_position.x > 10.0 * Config.effective_zoom:
-			target_yaw = PI/2
+			target_yaw = PI / 2
 		elif global_position.x < 0.0:
-			target_yaw = -PI/2
+			target_yaw = - PI / 2
 
 		# Smoothly rotate to the target yaw
 		rotation.y = lerp_angle(rotation.y, target_yaw, 5.0 * delta)
@@ -226,6 +226,10 @@ func _physics_process(delta):
 	global_position.y = terrain_h + Config.camera_height + height_offset
 
 
+			if branch_changed:
+				var audio = get_node_or_null("/root/Main/Audio")
+				if audio and audio.has_method("play_portal_crossing"):
+					audio.play_portal_crossing()
 
 	# Zeta zero detection during auto-walk
 	if Config.show_hud_zeros:
@@ -239,7 +243,6 @@ func _physics_process(delta):
 		# 1. First, find a basic local minimum using the 3 center points
 		if mag_history[0] > mag_history[1] and mag_history[1] < mag_history[2]:
 			if mag_history[1] < Config.zero_proximity_nav:
-
 				# 2. Extract magnitudes for the parabola
 				var y0 = mag_history[0]
 				var y1 = mag_history[1]
@@ -290,7 +293,7 @@ func demo_actions():
 	global_position.x = -30.0 * ez
 	global_position.z = 0.0
 
-	rotation.y = -PI / 2.0
+	rotation.y = - PI / 2.0
 	rotation_x = 0.0
 	camera.rotation.x = rotation_x
 	height_offset = 0.0
@@ -303,19 +306,19 @@ func demo_actions():
 	var tween_duration = 5.0
 
 	# Phase 1: go up to 50.0 while camera slowly turns downwards
-	tween.tween_property(self, "height_offset", 50.0 * ez, tween_duration)
+	tween.tween_property(self , "height_offset", 50.0 * ez, tween_duration)
 	tween.parallel().tween_property(camera, "rotation:x", -PI / 2.0, tween_duration)
 
 	# Phase 2: rotate CCW while tilting upwards to face zeta wall towards -x
-	tween.tween_property(self, "rotation:y", PI / 2.0, tween_duration)
+	tween.tween_property(self , "rotation:y", PI / 2.0, tween_duration)
 	tween.parallel().tween_property(camera, "rotation:x", 0.0, tween_duration)
 
 	# Phase 3: height decrease to 3.5 while rotating towards +x
-	tween.tween_property(self, "height_offset", 3.5 * ez, tween_duration)
+	tween.tween_property(self , "height_offset", 3.5 * ez, tween_duration)
 
 	# Phase 4: walk backwards to see the trivial zero at (-2, 0)
 	tween.tween_property(camera, "rotation:x", -PI / 2.0, tween_duration * 0.6)
-	tween.parallel().tween_property(self, "global_position:x", -20.0 * ez, tween_duration * 0.6)
+	tween.parallel().tween_property(self , "global_position:x", -20.0 * ez, tween_duration * 0.6)
 
 	# Wait a moment to contemplate the trivial zero
 	tween.tween_interval(2.0)
@@ -323,19 +326,19 @@ func demo_actions():
 	# Phase 5: rotate towards the pole and walk slightly to its side
 	# Math coordinates (1, 1) -> x = 10.0 * ez, z = -10.0 * ez
 	tween.tween_property(camera, "rotation:x", PI / 8.0, tween_duration)
-	tween.parallel().tween_property(self, "rotation:y", - PI / 2.0, tween_duration)
+	tween.parallel().tween_property(self , "rotation:y", -PI / 2.0, tween_duration)
 
-	tween.tween_property(self, "global_position:x", 5.0 * ez, tween_duration)
-	tween.parallel().tween_property(self, "global_position:z", -10.0 * ez, tween_duration)
+	tween.tween_property(self , "global_position:x", 5.0 * ez, tween_duration)
+	tween.parallel().tween_property(self , "global_position:z", -10.0 * ez, tween_duration)
 
-	tween.parallel().tween_property(camera, "rotation:x", - PI / 8.0, tween_duration)
+	tween.parallel().tween_property(camera, "rotation:x", -PI / 8.0, tween_duration)
 
 	# Wait a moment to contemplate the sunrise
 	tween.tween_interval(2.0)
 
 	# Phase 6: rotate back to horizontal and start auto-walk
-	tween.tween_property(self, "rotation:y", 0.0, tween_duration * 0.5)
-	tween.parallel().tween_property(camera, "rotation:x",  - PI / 8.0, tween_duration)
+	tween.tween_property(self , "rotation:y", 0.0, tween_duration * 0.5)
+	tween.parallel().tween_property(camera, "rotation:x", -PI / 8.0, tween_duration)
 
 	tween.tween_interval(1.0)
 

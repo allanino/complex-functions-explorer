@@ -1,6 +1,6 @@
 extends GutTest
 
-var hud_scene = preload("res://scenes/main_ui.tscn")
+var hud_scene = preload("res://ui/main_ui.tscn")
 var hud_instance
 
 func before_each():
@@ -85,7 +85,7 @@ func test_get_rvm_n():
 	Config.function_type = Config.ComplexFunc.ZETA
 	var T_zeta = 14.134725
 	var rvm_zeta = hud_instance._get_rvm_n(T_zeta)
-	var expected_zeta = (T_zeta / (2.0 * PI)) * (log(T_zeta / (2.0 * PI)) - 1.0) + 7.0/8.0
+	var expected_zeta = (T_zeta / (2.0 * PI)) * (log(T_zeta / (2.0 * PI)) - 1.0) + 7.0 / 8.0
 	assert_almost_eq(rvm_zeta, expected_zeta, 0.001)
 
 	# Test Dirichlet Beta function
