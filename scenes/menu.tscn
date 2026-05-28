@@ -1,6 +1,7 @@
 [gd_scene load_steps=1 format=3 uid="uid://menu_scene_xyz"]
 
 [ext_resource type="PackedScene" path="res://scenes/ui_components/checkbox.tscn" id="3_checkbox"]
+[ext_resource type="PackedScene" uid="uid://slider_uid_12345" path="res://ui/components/slider.tscn" id="1"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_glass"]
 bg_color = Color(0.03, 0.03, 0.03, 0.5)
@@ -304,40 +305,15 @@ theme_override_styles/focus = SubResource("StyleBoxFlat_input")
 text = "1.0"
 alignment = 1
 
-[node name="IterContainer" type="HBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox"]
+[node name="IterContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox" instance=ExtResource("1")]
 layout_mode = 2
-
-[node name="Label" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/IterContainer"]
-custom_minimum_size = Vector2(180, 0)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 18
 text = "Iterations"
-
-[node name="IterSlider" type="HSlider" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/IterContainer"]
-custom_minimum_size = Vector2(100, 20)
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 4
 min_value = 100.0
 max_value = 5000.0
 step = 100.0
 value = 100.0
-
-[node name="IterValue" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/IterContainer"]
-custom_minimum_size = Vector2(50, 0)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 18
-text = "100"
-horizontal_alignment = 2
-
-[node name="IterDetachButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/IterContainer"]
-custom_minimum_size = Vector2(24, 0)
-layout_mode = 2
-theme_override_font_sizes/font_size = 14
-text = "⇱"
-
+value_text = "100"
+show_detach_button = true
 
 [node name="RationalContainer" type="HBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox"]
 layout_mode = 2
@@ -359,39 +335,14 @@ text = "z^2 - 1"
 placeholder_text = "(z^2 + 1)/(z - 1)"
 alignment = 1
 
-[node name="MultivaluedContainer" type="HBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox"]
+[node name="MultivaluedContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox" instance=ExtResource("1")]
 layout_mode = 2
-
-[node name="Label" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/MultivaluedContainer"]
-custom_minimum_size = Vector2(180, 0)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 18
 text = "Branches (n)"
-
-[node name="MultivaluedSlider" type="HSlider" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/MultivaluedContainer"]
-custom_minimum_size = Vector2(100, 20)
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 4
 min_value = 1.0
 max_value = 10.0
 value = 2.0
-
-[node name="MultivaluedValue" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/MultivaluedContainer"]
-custom_minimum_size = Vector2(50, 0)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 18
-text = "2"
-horizontal_alignment = 2
-
-[node name="MultivaluedDetachButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/MultivaluedContainer"]
-custom_minimum_size = Vector2(24, 0)
-layout_mode = 2
-theme_override_font_sizes/font_size = 14
-text = "⇱"
-
+value_text = "2"
+show_detach_button = true
 
 [node name="ENVIRONMENT" type="ScrollContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer"]
 layout_mode = 2
@@ -412,238 +363,64 @@ size_flags_horizontal = 3
 
 text = "Freeze time"
 
-[node name="DayDurationContainer" type="HBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox"]
+[node name="DayDurationContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox" instance=ExtResource("1")]
 layout_mode = 2
-
-[node name="Label" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/DayDurationContainer"]
-custom_minimum_size = Vector2(180, 0)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 18
 text = "Day Duration"
-
-[node name="DayDurationSlider" type="HSlider" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/DayDurationContainer"]
-custom_minimum_size = Vector2(100, 20)
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 4
 min_value = 10.0
 max_value = 3600.0
 step = 10.0
 value = 60.0
+value_text = "00:08:20"
+show_detach_button = true
 
-[node name="DayDurationValue" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/DayDurationContainer"]
-custom_minimum_size = Vector2(80, 0)
+[node name="StaticTimeContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox" instance=ExtResource("1")]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 18
-text = "00:08:20"
-horizontal_alignment = 2
-
-[node name="DayDurationDetachButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/DayDurationContainer"]
-custom_minimum_size = Vector2(24, 0)
-layout_mode = 2
-theme_override_font_sizes/font_size = 14
-text = "⇱"
-
-
-[node name="StaticTimeContainer" type="HBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox"]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/StaticTimeContainer"]
-custom_minimum_size = Vector2(180, 0)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 18
 text = "Time of day"
-
-[node name="StaticTimeSlider" type="HSlider" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/StaticTimeContainer"]
-custom_minimum_size = Vector2(100, 20)
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 4
 max_value = 86340.0
 step = 60.0
 value = 43200.0
+value_text = "12:00:00"
+show_detach_button = true
 
-[node name="StaticTimeValue" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/StaticTimeContainer"]
-custom_minimum_size = Vector2(80, 0)
+[node name="SunriseContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox" instance=ExtResource("1")]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 18
-text = "12:00:00"
-horizontal_alignment = 2
-
-[node name="StaticTimeDetachButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/StaticTimeContainer"]
-custom_minimum_size = Vector2(24, 0)
-layout_mode = 2
-theme_override_font_sizes/font_size = 14
-text = "⇱"
-
-
-[node name="SunriseContainer" type="HBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox"]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/SunriseContainer"]
-custom_minimum_size = Vector2(180, 0)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 18
 text = "Sunrise Direction"
-
-[node name="SunriseSlider" type="HSlider" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/SunriseContainer"]
-custom_minimum_size = Vector2(100, 20)
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 4
 max_value = 360.0
+value_text = "0°"
+show_detach_button = true
 
-[node name="SunriseValue" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/SunriseContainer"]
-custom_minimum_size = Vector2(50, 0)
+[node name="SkyLuminosityContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox" instance=ExtResource("1")]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 18
-text = "0°"
-horizontal_alignment = 2
-
-[node name="SunriseDetachButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/SunriseContainer"]
-custom_minimum_size = Vector2(24, 0)
-layout_mode = 2
-theme_override_font_sizes/font_size = 14
-text = "⇱"
-
-
-[node name="SkyLuminosityContainer" type="HBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox"]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/SkyLuminosityContainer"]
-custom_minimum_size = Vector2(180, 0)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 18
 text = "Sky Luminosity"
-
-[node name="SkyLuminositySlider" type="HSlider" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/SkyLuminosityContainer"]
-custom_minimum_size = Vector2(100, 20)
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 4
 max_value = 200.0
 value = 100.0
+value_text = "100%"
+show_detach_button = true
 
-[node name="SkyLuminosityValue" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/SkyLuminosityContainer"]
-custom_minimum_size = Vector2(50, 0)
+[node name="SunLuminosityContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox" instance=ExtResource("1")]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 18
-text = "100%"
-horizontal_alignment = 2
-
-[node name="SkyLuminosityDetachButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/SkyLuminosityContainer"]
-custom_minimum_size = Vector2(24, 0)
-layout_mode = 2
-theme_override_font_sizes/font_size = 14
-text = "⇱"
-
-
-[node name="SunLuminosityContainer" type="HBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox"]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/SunLuminosityContainer"]
-custom_minimum_size = Vector2(180, 0)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 18
 text = "Sun Luminosity"
-
-[node name="SunLuminositySlider" type="HSlider" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/SunLuminosityContainer"]
-custom_minimum_size = Vector2(100, 20)
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 4
 max_value = 200.0
 value = 100.0
+value_text = "100%"
+show_detach_button = true
 
-[node name="SunLuminosityValue" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/SunLuminosityContainer"]
-custom_minimum_size = Vector2(50, 0)
+[node name="SelfIlluminationContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox" instance=ExtResource("1")]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 18
-text = "100%"
-horizontal_alignment = 2
-
-[node name="SunLuminosityDetachButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/SunLuminosityContainer"]
-custom_minimum_size = Vector2(24, 0)
-layout_mode = 2
-theme_override_font_sizes/font_size = 14
-text = "⇱"
-
-
-[node name="SelfIlluminationContainer" type="HBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox"]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/SelfIlluminationContainer"]
-custom_minimum_size = Vector2(180, 0)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 18
 text = "Self-Illumination"
-
-[node name="SelfIlluminationSlider" type="HSlider" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/SelfIlluminationContainer"]
-custom_minimum_size = Vector2(100, 20)
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 4
 max_value = 100.0
 value = 0.0
+value_text = "0%"
+show_detach_button = true
 
-[node name="SelfIlluminationValue" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/SelfIlluminationContainer"]
-custom_minimum_size = Vector2(50, 0)
+[node name="FogDensityContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox" instance=ExtResource("1")]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 18
-text = "0%"
-horizontal_alignment = 2
-
-[node name="SelfIlluminationDetachButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/SelfIlluminationContainer"]
-custom_minimum_size = Vector2(24, 0)
-layout_mode = 2
-theme_override_font_sizes/font_size = 14
-text = "⇱"
-
-[node name="FogDensityContainer" type="HBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox"]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/FogDensityContainer"]
-custom_minimum_size = Vector2(180, 0)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 18
 text = "Fog Density"
-
-[node name="FogDensitySlider" type="HSlider" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/FogDensityContainer"]
-custom_minimum_size = Vector2(100, 20)
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 4
 max_value = 100.0
 step = 0.1
 value = 2.0
-
-[node name="FogDensityValue" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/FogDensityContainer"]
-custom_minimum_size = Vector2(50, 0)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 18
-text = "2.0%"
-horizontal_alignment = 2
-
-[node name="FogDensityDetachButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/FogDensityContainer"]
-custom_minimum_size = Vector2(24, 0)
-layout_mode = 2
-theme_override_font_sizes/font_size = 14
-text = "⇱"
-
+value_text = "2.0%"
+show_detach_button = true
 
 [node name="TERRAIN" type="ScrollContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer"]
 layout_mode = 2
@@ -677,234 +454,61 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
 theme_override_styles/focus = SubResource("StyleBoxFlat_btn_normal")
 
-[node name="BrightnessContainer" type="HBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox"]
+[node name="BrightnessContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox" instance=ExtResource("1")]
 layout_mode = 2
-
-[node name="Label" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/BrightnessContainer"]
-custom_minimum_size = Vector2(180, 0)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 18
 text = "Brightness"
-
-[node name="BrightnessSlider" type="HSlider" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/BrightnessContainer"]
-custom_minimum_size = Vector2(100, 20)
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 4
 max_value = 100.0
 value = 50.0
+value_text = "50%"
+show_detach_button = true
 
-[node name="BrightnessValue" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/BrightnessContainer"]
-custom_minimum_size = Vector2(50, 0)
+[node name="SaturationContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox" instance=ExtResource("1")]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 18
-text = "50%"
-horizontal_alignment = 2
-
-[node name="BrightnessDetachButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/BrightnessContainer"]
-custom_minimum_size = Vector2(24, 0)
-layout_mode = 2
-theme_override_font_sizes/font_size = 14
-text = "⇱"
-
-
-[node name="SaturationContainer" type="HBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox"]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/SaturationContainer"]
-custom_minimum_size = Vector2(180, 0)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 18
 text = "Saturation"
-
-[node name="SaturationSlider" type="HSlider" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/SaturationContainer"]
-custom_minimum_size = Vector2(100, 20)
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 4
 max_value = 100.0
 value = 78.0
+value_text = "78%"
+show_detach_button = true
 
-[node name="SaturationValue" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/SaturationContainer"]
-custom_minimum_size = Vector2(50, 0)
+[node name="AlbedoContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox" instance=ExtResource("1")]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 18
-text = "78%"
-horizontal_alignment = 2
-
-[node name="SaturationDetachButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/SaturationContainer"]
-custom_minimum_size = Vector2(24, 0)
-layout_mode = 2
-theme_override_font_sizes/font_size = 14
-text = "⇱"
-
-
-[node name="AlbedoContainer" type="HBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox"]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/AlbedoContainer"]
-custom_minimum_size = Vector2(180, 0)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 18
 text = "Albedo"
-
-[node name="AlbedoSlider" type="HSlider" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/AlbedoContainer"]
-custom_minimum_size = Vector2(100, 20)
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 4
 max_value = 100.0
 value = 15.0
+value_text = "15%"
+show_detach_button = true
 
-[node name="AlbedoValue" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/AlbedoContainer"]
-custom_minimum_size = Vector2(50, 0)
+[node name="EmissionContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox" instance=ExtResource("1")]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 18
-text = "15%"
-horizontal_alignment = 2
-
-[node name="AlbedoDetachButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/AlbedoContainer"]
-custom_minimum_size = Vector2(24, 0)
-layout_mode = 2
-theme_override_font_sizes/font_size = 14
-text = "⇱"
-
-
-[node name="EmissionContainer" type="HBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox"]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/EmissionContainer"]
-custom_minimum_size = Vector2(180, 0)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 18
 text = "Emission"
-
-[node name="EmissionSlider" type="HSlider" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/EmissionContainer"]
-custom_minimum_size = Vector2(100, 20)
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 4
 max_value = 100.0
 value = 10.0
+value_text = "10%"
+show_detach_button = true
 
-[node name="EmissionValue" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/EmissionContainer"]
-custom_minimum_size = Vector2(50, 0)
+[node name="MetallicContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox" instance=ExtResource("1")]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 18
-text = "10%"
-horizontal_alignment = 2
-
-[node name="EmissionDetachButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/EmissionContainer"]
-custom_minimum_size = Vector2(24, 0)
-layout_mode = 2
-theme_override_font_sizes/font_size = 14
-text = "⇱"
-
-
-[node name="MetallicContainer" type="HBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox"]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/MetallicContainer"]
-custom_minimum_size = Vector2(180, 0)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 18
 text = "Metallic"
-
-[node name="MetallicSlider" type="HSlider" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/MetallicContainer"]
-custom_minimum_size = Vector2(100, 20)
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 4
 max_value = 100.0
 value = 70.0
+value_text = "70%"
+show_detach_button = true
 
-[node name="MetallicValue" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/MetallicContainer"]
-custom_minimum_size = Vector2(50, 0)
+[node name="RoughnessContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox" instance=ExtResource("1")]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 18
-text = "70%"
-horizontal_alignment = 2
-
-[node name="MetallicDetachButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/MetallicContainer"]
-custom_minimum_size = Vector2(24, 0)
-layout_mode = 2
-theme_override_font_sizes/font_size = 14
-text = "⇱"
-
-
-[node name="RoughnessContainer" type="HBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox"]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/RoughnessContainer"]
-custom_minimum_size = Vector2(180, 0)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 18
 text = "Roughness"
-
-[node name="RoughnessSlider" type="HSlider" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/RoughnessContainer"]
-custom_minimum_size = Vector2(100, 20)
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 4
 max_value = 100.0
 value = 10.0
+value_text = "10%"
+show_detach_button = true
 
-[node name="RoughnessValue" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/RoughnessContainer"]
-custom_minimum_size = Vector2(50, 0)
+[node name="SurfaceTextureContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox" instance=ExtResource("1")]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 18
-text = "10%"
-horizontal_alignment = 2
-
-[node name="RoughnessDetachButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/RoughnessContainer"]
-custom_minimum_size = Vector2(24, 0)
-layout_mode = 2
-theme_override_font_sizes/font_size = 14
-text = "⇱"
-
-[node name="SurfaceTextureContainer" type="HBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox"]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/SurfaceTextureContainer"]
-custom_minimum_size = Vector2(180, 0)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 18
 text = "Surface Texture"
-
-[node name="SurfaceTextureSlider" type="HSlider" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/SurfaceTextureContainer"]
-custom_minimum_size = Vector2(100, 20)
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 4
 max_value = 100.0
 value = 0.0
-
-[node name="SurfaceTextureValue" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/SurfaceTextureContainer"]
-custom_minimum_size = Vector2(50, 0)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 18
-text = "0%"
-horizontal_alignment = 2
-
-[node name="SurfaceTextureDetachButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/SurfaceTextureContainer"]
-custom_minimum_size = Vector2(24, 0)
-layout_mode = 2
-theme_override_font_sizes/font_size = 16
-text = "⇱"
+value_text = "0%"
+show_detach_button = true
 
 [node name="CurvesCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox" instance=ExtResource("3_checkbox")]
 layout_mode = 2
@@ -994,39 +598,14 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
 theme_override_styles/focus = SubResource("StyleBoxFlat_btn_normal")
 
-[node name="ViewDistanceContainer" type="HBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/GRAPHICS/Margin/VBox"]
+[node name="ViewDistanceContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/GRAPHICS/Margin/VBox" instance=ExtResource("1")]
 layout_mode = 2
-
-[node name="Label" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/GRAPHICS/Margin/VBox/ViewDistanceContainer"]
-custom_minimum_size = Vector2(180, 0)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 18
 text = "View Distance"
-
-[node name="ViewDistanceSlider" type="HSlider" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/GRAPHICS/Margin/VBox/ViewDistanceContainer"]
-custom_minimum_size = Vector2(100, 20)
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 4
 min_value = 2.0
 max_value = 50.0
 value = 7.0
-
-[node name="ViewDistanceValue" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/GRAPHICS/Margin/VBox/ViewDistanceContainer"]
-custom_minimum_size = Vector2(50, 0)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 18
-text = "7"
-horizontal_alignment = 2
-
-[node name="ViewDistanceDetachButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/GRAPHICS/Margin/VBox/ViewDistanceContainer"]
-custom_minimum_size = Vector2(24, 0)
-layout_mode = 2
-theme_override_font_sizes/font_size = 14
-text = "⇱"
-
+value_text = "7"
+show_detach_button = true
 
 [node name="ShadowsCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/GRAPHICS/Margin/VBox" instance=ExtResource("3_checkbox")]
 layout_mode = 2
@@ -1123,88 +702,28 @@ theme_override_styles/focus = SubResource("StyleBoxFlat_input")
 text = "10.0"
 alignment = 1
 
-[node name="ZoomContainer" type="HBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox"]
+[node name="ZoomContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox" instance=ExtResource("1")]
 layout_mode = 2
-
-[node name="Label" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox/ZoomContainer"]
-custom_minimum_size = Vector2(180, 0)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 18
 text = "Zoom Factor"
-
-[node name="ZoomSlider" type="HSlider" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox/ZoomContainer"]
-custom_minimum_size = Vector2(100, 20)
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 4
 max_value = 100.0
 step = 0.01
 value = 1.0
+value_text = "x1"
 
-[node name="ZoomValue" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox/ZoomContainer"]
-custom_minimum_size = Vector2(50, 0)
+[node name="ZeroSpeedContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox" instance=ExtResource("1")]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 18
-text = "x1"
-horizontal_alignment = 2
-
-
-[node name="ZeroSpeedContainer" type="HBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox"]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox/ZeroSpeedContainer"]
-custom_minimum_size = Vector2(180, 0)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 18
 text = "Speed near Zeros"
-
-[node name="ZeroSpeedSlider" type="HSlider" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox/ZeroSpeedContainer"]
-custom_minimum_size = Vector2(100, 20)
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 4
 value = 100.0
+value_text = "100%"
 
-[node name="ZeroSpeedValue" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox/ZeroSpeedContainer"]
-custom_minimum_size = Vector2(50, 0)
+[node name="ZeroProximityNavContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox" instance=ExtResource("1")]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 18
-text = "100%"
-horizontal_alignment = 2
-
-
-[node name="ZeroProximityNavContainer" type="HBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox"]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox/ZeroProximityNavContainer"]
-custom_minimum_size = Vector2(180, 0)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 18
 text = "Zeros proximity"
-
-[node name="ZeroProximityNavSlider" type="HSlider" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox/ZeroProximityNavContainer"]
-custom_minimum_size = Vector2(100, 20)
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 4
 min_value = 0.01
 max_value = 0.5
 step = 0.01
 value = 0.5
-
-[node name="ZeroProximityNavValue" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox/ZeroProximityNavContainer"]
-custom_minimum_size = Vector2(50, 0)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 18
-text = "0.50"
-horizontal_alignment = 2
-
+value_text = "0.50"
 
 [node name="AutoWalkCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox" instance=ExtResource("3_checkbox")]
 layout_mode = 2
@@ -1225,34 +744,14 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 15
 
-[node name="HudScaleContainer" type="HBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/MainUI/Margin/VBox"]
+[node name="HudScaleContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/MainUI/Margin/VBox" instance=ExtResource("1")]
 layout_mode = 2
-
-[node name="Label" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/MainUI/Margin/VBox/HudScaleContainer"]
-custom_minimum_size = Vector2(220, 0)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 18
 text = "MainUI Scale"
-
-[node name="HudScaleSlider" type="HSlider" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/MainUI/Margin/VBox/HudScaleContainer"]
-custom_minimum_size = Vector2(100, 20)
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 4
 min_value = 100.0
 max_value = 200.0
 step = 5.0
 value = 100.0
-
-[node name="HudScaleValue" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/MainUI/Margin/VBox/HudScaleContainer"]
-custom_minimum_size = Vector2(50, 0)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 18
-text = "100%"
-horizontal_alignment = 2
-
+value_text = "100%"
 
 [node name="HudComplexCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/MainUI/Margin/VBox" instance=ExtResource("3_checkbox")]
 layout_mode = 2
@@ -1303,86 +802,26 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 15
 
-[node name="MasterVolumeContainer" type="HBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/AUDIO/Margin/VBox"]
+[node name="MasterVolumeContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/AUDIO/Margin/VBox" instance=ExtResource("1")]
 layout_mode = 2
 theme_override_constants/separation = 0
-
-[node name="Label" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/AUDIO/Margin/VBox/MasterVolumeContainer"]
-custom_minimum_size = Vector2(180, 0)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 18
 text = "Master Volume"
-
-[node name="MasterVolumeSlider" type="HSlider" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/AUDIO/Margin/VBox/MasterVolumeContainer"]
-custom_minimum_size = Vector2(100, 20)
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 4
 value = 100.0
+value_text = "100%"
 
-[node name="MasterVolumeValue" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/AUDIO/Margin/VBox/MasterVolumeContainer"]
-custom_minimum_size = Vector2(50, 0)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 18
-text = "100%"
-horizontal_alignment = 2
-
-
-[node name="BgMusicContainer" type="HBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/AUDIO/Margin/VBox"]
+[node name="BgMusicContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/AUDIO/Margin/VBox" instance=ExtResource("1")]
 layout_mode = 2
 theme_override_constants/separation = 0
-
-[node name="Label" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/AUDIO/Margin/VBox/BgMusicContainer"]
-custom_minimum_size = Vector2(180, 0)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 18
 text = "Background Music"
-
-[node name="BgMusicSlider" type="HSlider" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/AUDIO/Margin/VBox/BgMusicContainer"]
-custom_minimum_size = Vector2(100, 20)
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 4
 value = 100.0
+value_text = "100%"
 
-[node name="BgMusicValue" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/AUDIO/Margin/VBox/BgMusicContainer"]
-custom_minimum_size = Vector2(50, 0)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 18
-text = "100%"
-horizontal_alignment = 2
-
-
-[node name="DroneContainer" type="HBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/AUDIO/Margin/VBox"]
+[node name="DroneContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/AUDIO/Margin/VBox" instance=ExtResource("1")]
 layout_mode = 2
 theme_override_constants/separation = 0
-
-[node name="Label" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/AUDIO/Margin/VBox/DroneContainer"]
-custom_minimum_size = Vector2(180, 0)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 18
 text = "Topographic Drone"
-
-[node name="DroneSlider" type="HSlider" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/AUDIO/Margin/VBox/DroneContainer"]
-custom_minimum_size = Vector2(100, 20)
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 4
 value = 100.0
-
-[node name="DroneValue" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/AUDIO/Margin/VBox/DroneContainer"]
-custom_minimum_size = Vector2(50, 0)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 18
-text = "100%"
-horizontal_alignment = 2
-
+value_text = "100%"
 
 [node name="ButtonsHBox" type="HBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox"]
 layout_mode = 2
