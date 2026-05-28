@@ -907,3 +907,51 @@ theme_override_styles/pressed = SubResource("StyleBoxEmpty_btn")
 theme_override_styles/hover = SubResource("StyleBoxEmpty_btn")
 theme_override_styles/focus = SubResource("StyleBoxEmpty_btn")
 text = "Quit"
+
+[node name="MorphOverlay" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(400, 60)
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -200.0
+offset_top = 20.0
+offset_right = 200.0
+offset_bottom = 80.0
+grow_horizontal = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_glass")
+
+[node name="MarginContainer" type="MarginContainer" parent="MorphOverlay"]
+layout_mode = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_right = 20
+
+[node name="HBox" type="HBoxContainer" parent="MorphOverlay/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="Label" type="Label" parent="MorphOverlay/MarginContainer/HBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Morph"
+
+[node name="MorphSlider" type="HSlider" parent="MorphOverlay/MarginContainer/HBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+min_value = 0.0
+max_value = 1.0
+step = 0.01
+value = 1.0
+
+[node name="ExitMorphButton" type="Button" parent="MorphOverlay/MarginContainer/HBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
+text = "Exit"

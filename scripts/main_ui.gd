@@ -88,9 +88,9 @@ var active_detached_value: Label = null
 @onready var surface_texture_slider = %MenuOverlay/%SurfaceTextureContainer
 @onready var morph_button = %MenuOverlay/%MorphButton
 
-@onready var morph_overlay = %MorphOverlay
-@onready var morph_slider = %MorphSlider
-@onready var exit_morph_button = %ExitMorphButton
+@onready var morph_overlay = %MenuOverlay/%MorphOverlay
+@onready var morph_slider = %MenuOverlay/%MorphSlider
+@onready var exit_morph_button = %MenuOverlay/%ExitMorphButton
 
 @onready var apply_button = %MenuOverlay/%ApplyButton
 @onready var close_button = %MenuOverlay/%CloseButton
