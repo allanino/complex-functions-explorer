@@ -538,25 +538,15 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "Flow"
 
-[node name="MorphContainer" type="HBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox" unique_id=46310374]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/MorphContainer" unique_id=1444667243]
-custom_minimum_size = Vector2(180, 0)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 18
-text = "Terrain Morph"
-
-[node name="MorphButton" type="OptionButton" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/MorphContainer" unique_id=1156528178]
+[node name="MorphSliderContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox" unique_id=1056789267 instance=ExtResource("1")]
 unique_name_in_owner = true
 layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 18
-theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
-theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
-theme_override_styles/focus = SubResource("StyleBoxFlat_btn_normal")
+text = "Terrain Morph"
+max_value = 1.0
+step = 0.01
+value = 1.0
+value_text = "1.00"
+show_detach_button = true
 
 [node name="GRAPHICS" type="ScrollContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer" unique_id=676818739]
 visible = false

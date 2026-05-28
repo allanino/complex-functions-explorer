@@ -138,10 +138,6 @@ var height_epsilon: float = 1.0
 var rational_num_coeffs: PackedVector2Array = PackedVector2Array([Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)])
 var rational_den_coeffs: PackedVector2Array = PackedVector2Array([Vector2(1, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)])
 var multivalued_n: int = 2
-var multivalued_mode: int = 0 # 0: Time cycle, 1: Branch portals
-var branch_cycle_speed: float = 0.5
-var multivalued_morph_time: float = 0.1
-var branch_time: float = 0.0
 var current_branch: int = 0 # Session state for Portals mode
 var zoom_factor: float = 1.0
 var zoom_damping: float = 0.5
@@ -169,8 +165,6 @@ var terrain_emission: float = 0.1
 var terrain_metallic: float = 0.7
 var terrain_roughness: float = 0.1
 var terrain_surface_texture: float = 0.0
-var morph_type: int = 0
-var morph_value: float = 1.0
 var fog_density: float = 0.4
 
 # Player parameters
@@ -198,6 +192,7 @@ var visited_zeros: Array[Vector2] = []
 var rvm_start_t: float = 0.0
 var performance_protection_active: bool = false
 var effective_zoom: float = 1.0
+var morph_value: float = 1.0
 
 func _ready():
 	load_settings()
@@ -242,8 +237,6 @@ func save_settings():
 	config.set_value("rendering", "terrain_metallic", terrain_metallic)
 	config.set_value("rendering", "terrain_roughness", terrain_roughness)
 	config.set_value("rendering", "terrain_surface_texture", terrain_surface_texture)
-	config.set_value("rendering", "morph_type", morph_type)
-	config.set_value("rendering", "morph_value", morph_value)
 	config.set_value("rendering", "fog_density", fog_density)
 
 	config.set_value("player", "movement_speed", movement_speed)
@@ -311,8 +304,6 @@ func load_settings():
 	terrain_metallic = config.get_value("rendering", "terrain_metallic", terrain_metallic)
 	terrain_roughness = config.get_value("rendering", "terrain_roughness", terrain_roughness)
 	terrain_surface_texture = config.get_value("rendering", "terrain_surface_texture", terrain_surface_texture)
-	morph_type = config.get_value("rendering", "morph_type", morph_type)
-	morph_value = config.get_value("rendering", "morph_value", morph_value)
 	fog_density = config.get_value("rendering", "fog_density", fog_density)
 
 	movement_speed = config.get_value("player", "movement_speed", movement_speed)

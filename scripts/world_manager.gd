@@ -191,7 +191,6 @@ func _process(delta):
 		"terrain_metallic": Config.terrain_metallic,
 		"terrain_roughness": Config.terrain_roughness,
 		"terrain_surface_texture": Config.terrain_surface_texture,
-		"morph_type": Config.morph_type,
 		"morph_value": Config.morph_value,
 		"sky_luminosity": Config.sky_luminosity,
 		"sun_luminosity": Config.sun_luminosity,
@@ -363,9 +362,7 @@ func _update_terrain_material_uniforms():
 		segments.append(float(sub + 1))
 	terrain_material.set_shader_parameter("lod_segments", segments)
 
-	var morph_param = 1.0
-	if Config.morph_type == 1:
-		morph_param = Config.morph_value
+	var morph_param = Config.morph_value
 	terrain_material.set_shader_parameter("morph", morph_param)
 
 func _update_chunk_uniforms(chunk: MeshInstance3D):
