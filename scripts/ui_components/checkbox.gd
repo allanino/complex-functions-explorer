@@ -2,13 +2,13 @@ extends HBoxContainer
 
 signal toggled(toggled_on: bool)
 
-@export var text: String = "" :
+@export var text: String = "":
 	set(value):
 		text = value
 		if is_inside_tree():
 			$Label.text = text
 
-@export var button_pressed: bool = false :
+@export var button_pressed: bool = false:
 	set(value):
 		button_pressed = value
 		if is_inside_tree():

@@ -120,9 +120,9 @@ func _process(delta):
 
 	# Sun direction: rotate Noon (0, -1, 0) around orbit axis
 	var sun_dir = Quaternion(orbit_axis, angle) * Vector3.DOWN
-	var moon_dir = -sun_dir
+	var moon_dir = - sun_dir
 
-	var sun_elevation = -sun_dir.y
+	var sun_elevation = - sun_dir.y
 	_golden_hour_transition = clamp((0.5 - sun_elevation) / 0.5, 0.0, 1.0)
 
 	if sun_elevation < 0.0:
@@ -138,7 +138,7 @@ func _process(delta):
 
 	if moon:
 		moon.basis = Basis.looking_at(moon_dir, Vector3.UP if abs(moon_dir.y) < 0.99 else Vector3.FORWARD)
-		var moon_elevation = -moon_dir.y
+		var moon_elevation = - moon_dir.y
 		moon.light_energy = smoothstep(-0.02, 0.02, moon_elevation) * 0.4 * Config.sun_luminosity
 		moon.shadow_enabled = Config.shadows_enabled and moon_elevation > 0.01
 

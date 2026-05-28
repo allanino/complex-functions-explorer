@@ -286,7 +286,7 @@ static func get_field(world_x: float, world_z: float) -> Vector2:
 
 	var zoom: float = 1.0 / Config.effective_zoom
 	var x: float = world_x * 0.1 * zoom
-	var y: float = -world_z * 0.1 * zoom
+	var y: float = - world_z * 0.1 * zoom
 
 	match Config.function_type:
 		Config.ComplexFunc.ZETA: return zeta(x, y)

@@ -1285,4 +1285,3 @@ func _on_rational_text_submitted(new_text: String):
 		else:
 			Config.rational_num_coeffs = _parse_poly(expr)
 			Config.rational_den_coeffs = PackedVector2Array([Vector2(1, 0), Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO])
-
