@@ -261,6 +261,80 @@ func test_multivalued_log():
 	# Restore config values
 	Config.current_branch = orig_current_branch
 
+func test_multivalued_asin_exact_values():
+	var orig_branch = Config.current_branch
+
+	var expected_values = {
+		-2: Vector2(-4.7213, 0.9625),
+		-1: Vector2(-4.7034, -0.9625),
+		0: Vector2(1.5619, 0.9625),
+		1: Vector2(1.5797, -0.9625),
+		2: Vector2(7.8450, 0.9625)
+	}
+
+	for B in expected_values.keys():
+		Config.current_branch = B
+		var res = FieldScript.multivalued_asin(1.5, 0.01)
+		var expected = expected_values[B]
+		assert_almost_eq(res.x, expected.x, 0.005)
+		assert_almost_eq(res.y, expected.y, 0.005)
+
+	Config.current_branch = orig_branch
+
+func test_multivalued_asin_continuity():
+	var orig_branch = Config.current_branch
+
+	for B in [-2, -1, 0, 1, 2]:
+		Config.current_branch = B
+		var val_above = FieldScript.multivalued_asin(1.5, 0.01)
+
+		var B_next_pos = B + 1 if B % 2 == 0 else B - 1
+		Config.current_branch = B_next_pos
+		var val_below = FieldScript.multivalued_asin(1.5, -0.01)
+
+		assert_almost_eq(val_above.x, val_below.x, 0.05)
+		assert_almost_eq(val_above.y, val_below.y, 0.05)
+
+	for B in [-2, -1, 0, 1, 2]:
+		Config.current_branch = B
+		var val_above = FieldScript.multivalued_asin(-1.5, 0.01)
+
+		var B_next_neg = B - 1 if B % 2 == 0 else B + 1
+		Config.current_branch = B_next_neg
+		var val_below = FieldScript.multivalued_asin(-1.5, -0.01)
+
+		assert_almost_eq(val_above.x, val_below.x, 0.05)
+		assert_almost_eq(val_above.y, val_below.y, 0.05)
+
+	Config.current_branch = orig_branch
+
+func test_multivalued_acos_continuity():
+	var orig_branch = Config.current_branch
+
+	for B in [-2, -1, 0, 1, 2]:
+		Config.current_branch = B
+		var val_above = FieldScript.multivalued_acos(1.5, 0.01)
+
+		var B_next_pos = B + 1 if B % 2 == 0 else B - 1
+		Config.current_branch = B_next_pos
+		var val_below = FieldScript.multivalued_acos(1.5, -0.01)
+
+		assert_almost_eq(val_above.x, val_below.x, 0.05)
+		assert_almost_eq(val_above.y, val_below.y, 0.05)
+
+	for B in [-2, -1, 0, 1, 2]:
+		Config.current_branch = B
+		var val_above = FieldScript.multivalued_acos(-1.5, 0.01)
+
+		var B_next_neg = B - 1 if B % 2 == 0 else B + 1
+		Config.current_branch = B_next_neg
+		var val_below = FieldScript.multivalued_acos(-1.5, -0.01)
+
+		assert_almost_eq(val_above.x, val_below.x, 0.05)
+		assert_almost_eq(val_above.y, val_below.y, 0.05)
+
+	Config.current_branch = orig_branch
+
 func test_get_height_from_field():
 	var orig_height_type = Config.height_type
 	var orig_height_a = Config.height_a

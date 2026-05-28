@@ -18,6 +18,8 @@ extends CanvasLayer
 @onready var zeros_list_label = %ListLabel
 @onready var menu_overlay = %MenuOverlay
 
+var portal_flash: ColorRect
+
 # New UI Node Paths
 @onready var tab_container = %MenuOverlay/%TabContainer
 @onready var func_button = %MenuOverlay/%FuncButton
@@ -184,6 +186,15 @@ var _speed_modified: bool = false
 var _camera_height_modified: bool = false
 
 func _ready():
+	# Create the portal crossing flash overlay dynamically
+	portal_flash = ColorRect.new()
+	portal_flash.name = "PortalFlash"
+	portal_flash.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	portal_flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	portal_flash.color = Color(0.0, 0.8, 1.0, 0.0) # Transparent cyan
+	portal_flash.visible = false
+	$Control.add_child(portal_flash)
+
 	hud_columns.offset_top = -1000
 	speed_input.text_changed.connect(func(_t): _speed_modified = true)
 	speed_input.text_submitted.connect(_on_speed_text_submitted)
@@ -1285,3 +1296,22 @@ func _on_rational_text_submitted(new_text: String):
 		else:
 			Config.rational_num_coeffs = _parse_poly(expr)
 			Config.rational_den_coeffs = PackedVector2Array([Vector2(1, 0), Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO])
+
+func play_portal_flash():
+	if not portal_flash:
+		return
+	
+	# Stop any running tween on portal_flash
+	var active_tween = portal_flash.get_meta("tween", null)
+	if active_tween and active_tween.is_valid():
+		active_tween.kill()
+		
+	portal_flash.visible = true
+	portal_flash.color = Color(0.0, 0.8, 1.0, 0.25) # Start with 25% opacity cyan
+	
+	var tween = create_tween()
+	portal_flash.set_meta("tween", tween)
+	
+	# Fade out over 0.25 seconds
+	tween.tween_property(portal_flash, "color:a", 0.0, 0.25).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tween.tween_callback(func(): portal_flash.visible = false)

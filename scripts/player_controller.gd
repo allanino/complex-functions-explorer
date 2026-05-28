@@ -31,6 +31,7 @@ func _ready():
 	global_position = Vector3(5.0, 0.0, 0.0)
 	var scale_factor = 1.0 / Config.effective_zoom
 	last_t = - global_position.z * 0.1 * scale_factor
+	last_z = Vector2(global_position.x * 0.1 * scale_factor, -global_position.z * 0.1 * scale_factor)
 	
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
@@ -105,6 +106,12 @@ func _unhandled_input(event):
 			auto_walk_state = AutoWalkState.NONE
 			height_offset = 0.0
 			is_resetting_height = false
+			Config.current_branch = 0
+			
+			# Immediately update the shader's branch uniform
+			var world_manager = get_node_or_null("/root/Main/WorldManager")
+			if world_manager and world_manager.has_method("_update_terrain_material_uniforms"):
+				world_manager._update_terrain_material_uniforms()
 
 func get_terrain_height(x: float, z: float, field_val: Vector2 = Vector2.INF) -> float:
 	if field_val != Vector2.INF:
@@ -217,33 +224,6 @@ func _physics_process(delta):
 
 	# Snap player to terrain height + offset
 	global_position.y = terrain_h + Config.camera_height + height_offset
-
-	# Multivalued branch crossing detection
-	if Config.function.get("is_multivalued", false):
-		# Detect crossing of the positive real axis (x > 0, t=0)
-		if current_z.x > 0.0:
-			var branch_changed = false
-			if last_z.y < 0.0 and current_z.y >= 0.0:
-				# Crossed from -t to +t (counter-clockwise around origin)
-				if Config.function_type == Config.ComplexFunc.MULTIVALUED_LOG:
-					Config.current_branch += 1
-				else:
-					Config.current_branch = (Config.current_branch + 1) % Config.multivalued_n
-				branch_changed = true
-			elif last_z.y > 0.0 and current_z.y <= 0.0:
-				# Crossed from +t to -t (clockwise around origin)
-				if Config.function_type == Config.ComplexFunc.MULTIVALUED_LOG:
-					Config.current_branch -= 1
-				else:
-					Config.current_branch = (Config.current_branch + Config.multivalued_n - 1) % Config.multivalued_n
-				branch_changed = true
-
-			if branch_changed:
-				var audio = get_node_or_null("/root/Main/Audio")
-				if audio and audio.has_method("play_portal_crossing"):
-					audio.play_portal_crossing()
-
-	last_z = current_z
 
 	# Zeta zero detection during auto-walk
 	if Config.show_hud_zeros:
@@ -365,3 +345,72 @@ func _start_auto_walk_from_demo():
 	Config.show_hud_zeros = true
 	Config.show_critical_stripe = true
 	Config.rvm_start_t = abs(global_position.z * 0.1 / Config.effective_zoom)
+
+func _process(delta):
+	var scale_factor = 1.0 / Config.effective_zoom
+	var current_x = global_position.x * 0.1 * scale_factor
+	var current_y = - global_position.z * 0.1 * scale_factor
+	var frame_z = Vector2(current_x, current_y)
+
+	# If player teleported (e.g. reset, demo actions, or function change),
+	# bypass crossing detection to prevent false branch jumping.
+	if last_z.distance_to(frame_z) > 2.0:
+		last_z = frame_z
+
+	if Config.function.get("is_multivalued", false):
+		var branch_changed = false
+		if Config.function_type == Config.ComplexFunc.MULTIVALUED_ASIN or Config.function_type == Config.ComplexFunc.MULTIVALUED_ACOS:
+			# Portals at x >= 1.0 and x <= -1.0
+			if (last_z.y < 0.0 and frame_z.y >= 0.0) or (last_z.y > 0.0 and frame_z.y <= 0.0): # crossing the real axis
+				if frame_z.x >= 1.0:
+					var is_even = (Config.current_branch % 2 == 0)
+					Config.current_branch += 1 if is_even else -1
+					branch_changed = true
+				elif frame_z.x <= -1.0:
+					var is_even = (Config.current_branch % 2 == 0)
+					Config.current_branch += -1 if is_even else 1
+					branch_changed = true
+		else:
+			# Detect crossing of the negative real axis (x < 0, t=0)
+			if frame_z.x < 0.0:
+				if last_z.y < 0.0 and frame_z.y >= 0.0:
+					# Crossed from -t to +t (counter-clockwise around origin)
+					# Under negative cut, this DECREASES the branch index.
+					if Config.function_type == Config.ComplexFunc.MULTIVALUED_LOG:
+						Config.current_branch -= 1
+					else:
+						Config.current_branch = (Config.current_branch + Config.multivalued_n - 1) % Config.multivalued_n
+					branch_changed = true
+				elif last_z.y > 0.0 and frame_z.y <= 0.0:
+					# Crossed from +t to -t (clockwise around origin)
+					# Under negative cut, this INCREASES the branch index.
+					if Config.function_type == Config.ComplexFunc.MULTIVALUED_LOG:
+						Config.current_branch += 1
+					else:
+						Config.current_branch = (Config.current_branch + 1) % Config.multivalued_n
+					branch_changed = true
+
+		if branch_changed:
+			var audio = get_node_or_null("/root/Main/Audio")
+			if audio and audio.has_method("play_portal_crossing"):
+				audio.play_portal_crossing()
+
+
+			# Play the screen-space flash transition effect
+			var main_ui = get_node_or_null("/root/Main/MainUI")
+			if main_ui and main_ui.has_method("play_portal_flash"):
+				main_ui.play_portal_flash()
+
+			# Immediately update the shader's branch uniform to prevent 1-frame rendering lag
+			var world_manager = get_node_or_null("/root/Main/WorldManager")
+			if world_manager and world_manager.has_method("_update_terrain_material_uniforms"):
+				world_manager._update_terrain_material_uniforms()
+
+	last_z = frame_z
+
+	# Always snap player height to the terrain in _process to prevent camera judder/shaking,
+	# especially when crossing branches.
+	current_f = Field.get_field(global_position.x, global_position.z)
+	current_mag = current_f.length()
+	var terrain_h = get_terrain_height(global_position.x, global_position.z, current_f)
+	global_position.y = terrain_h + Config.camera_height + height_offset
