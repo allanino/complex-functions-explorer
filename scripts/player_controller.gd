@@ -106,6 +106,12 @@ func _unhandled_input(event):
 			auto_walk_state = AutoWalkState.NONE
 			height_offset = 0.0
 			is_resetting_height = false
+			Config.current_branch = 0
+			
+			# Immediately update the shader's branch uniform
+			var world_manager = get_node_or_null("/root/Main/WorldManager")
+			if world_manager and world_manager.has_method("_update_terrain_material_uniforms"):
+				world_manager._update_terrain_material_uniforms()
 
 func get_terrain_height(x: float, z: float, field_val: Vector2 = Vector2.INF) -> float:
 	if field_val != Vector2.INF:
