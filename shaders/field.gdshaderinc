@@ -212,6 +212,33 @@ Why this is bulletproof:
 ================================================================================
 */
 
+
+vec2 complex_asin(float x, float y) {
+    vec2 z = vec2(x, y);
+    vec2 z2 = complex_mul(z, z);
+    vec2 one_minus_z2 = vec2(1.0 - z2.x, -z2.y);
+    float r = sqrt(length(one_minus_z2));
+    float theta = atan(one_minus_z2.y, one_minus_z2.x) * 0.5;
+    vec2 sqrt_part = vec2(r * cos(theta), r * sin(theta));
+    vec2 iz = vec2(-y, x);
+    vec2 sum_val = iz + sqrt_part;
+    vec2 log_val = complex_log(sum_val.x, sum_val.y);
+    return vec2(log_val.y, -log_val.x);
+}
+
+vec2 complex_acos(float x, float y) {
+    vec2 z = vec2(x, y);
+    vec2 z2 = complex_mul(z, z);
+    vec2 one_minus_z2 = vec2(1.0 - z2.x, -z2.y);
+    float r = sqrt(length(one_minus_z2));
+    float theta = atan(one_minus_z2.y, one_minus_z2.x) * 0.5;
+    vec2 sqrt_part = vec2(r * cos(theta), r * sin(theta));
+    vec2 i_sqrt_part = vec2(-sqrt_part.y, sqrt_part.x);
+    vec2 sum_val = z + i_sqrt_part;
+    vec2 log_val = complex_log(sum_val.x, sum_val.y);
+    return vec2(log_val.y, -log_val.x);
+}
+
 vec2 complex_cot(float x, float y) {
     float abs_2y = 2.0 * abs(y);
     
@@ -851,6 +878,50 @@ FieldData multivalued_z_pow_inv_n_with_derivatives(float x, float y, int n, int 
     return res;
 }
 
+
+FieldData multivalued_asin_with_derivatives(float x, float y, int branch_offset) {
+    FieldData res;
+    vec2 z = vec2(x, y);
+    vec2 asin_z = complex_asin(x, y);
+    float k_val = float(current_branch + branch_offset);
+    float multiplier = (mod(float(current_branch + branch_offset), 2.0) == 0.0) ? 1.0 : -1.0;
+
+    res.value = vec2(k_val * PI + multiplier * asin_z.x, multiplier * asin_z.y);
+
+    vec2 z2 = complex_mul(z, z);
+    vec2 one_minus_z2 = vec2(1.0 - z2.x, -z2.y);
+    float r = sqrt(length(one_minus_z2));
+    float theta = atan(one_minus_z2.y, one_minus_z2.x) * 0.5;
+    vec2 sqrt_part = vec2(r * cos(theta), r * sin(theta));
+
+    vec2 deriv = complex_div(vec2(multiplier, 0.0), sqrt_part);
+    res.dx = deriv;
+    res.dy = vec2(-deriv.y, deriv.x);
+    return res;
+}
+
+FieldData multivalued_acos_with_derivatives(float x, float y, int branch_offset) {
+    FieldData res;
+    vec2 z = vec2(x, y);
+    vec2 acos_z = complex_acos(x, y);
+    int k = current_branch + branch_offset;
+    float sign_val = (mod(float(k), 2.0) == 0.0) ? 1.0 : -1.0;
+    float offset = (mod(float(k), 2.0) == 0.0) ? float(k) * PI : float(k + 1) * PI;
+
+    res.value = vec2(offset + sign_val * acos_z.x, sign_val * acos_z.y);
+
+    vec2 z2 = complex_mul(z, z);
+    vec2 one_minus_z2 = vec2(1.0 - z2.x, -z2.y);
+    float r = sqrt(length(one_minus_z2));
+    float theta = atan(one_minus_z2.y, one_minus_z2.x) * 0.5;
+    vec2 sqrt_part = vec2(r * cos(theta), r * sin(theta));
+
+    vec2 deriv = complex_div(vec2(-sign_val, 0.0), sqrt_part);
+    res.dx = deriv;
+    res.dy = vec2(-deriv.y, deriv.x);
+    return res;
+}
+
 FieldData multivalued_log_with_derivatives(float x, float y, int branch_offset) {
     FieldData res;
     float r_sq = x * x + y * y;
@@ -900,6 +971,8 @@ FieldData get_field_with_derivatives(float world_x, float world_z, int branch_of
     if (function_type == 15) return get_rational_with_derivatives(x, y);
 	if (function_type == 16) return multivalued_z_pow_inv_n_with_derivatives(x, y, multivalued_n, branch_offset);
 	if (function_type == 17) return multivalued_log_with_derivatives(x, y, branch_offset);
+	if (function_type == 18) return multivalued_asin_with_derivatives(x, y, branch_offset);
+	if (function_type == 19) return multivalued_acos_with_derivatives(x, y, branch_offset);
     FieldData res;
     res.value = vec2(0.0);
     res.dx = vec2(0.0);

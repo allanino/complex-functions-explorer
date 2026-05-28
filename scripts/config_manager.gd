@@ -21,10 +21,10 @@ enum ComplexFunc {
 	RATIONAL,
 	MULTIVALUED_Z_POW,
 	MULTIVALUED_LOG,
+	MULTIVALUED_ASIN,
+	MULTIVALUED_ACOS,
 
 	# Not exposed in UI
-	MULTIVALUED_RSVD1,
-	MULTIVALUED_RSVD2,
 	MULTIVALUED_RSVD3,
 }
 
@@ -101,15 +101,13 @@ const FUNCTIONS = {
 		"name": "Multivalued Log",
 		"is_multivalued": true,
 	},
-	ComplexFunc.MULTIVALUED_RSVD1: {
-		"name": "Multivalued Reserved 1",
+	ComplexFunc.MULTIVALUED_ASIN: {
+		"name": "Multivalued ArcSin",
 		"is_multivalued": true,
-		"hidden": true,
 	},
-	ComplexFunc.MULTIVALUED_RSVD2: {
-		"name": "Multivalued Reserved 2",
+	ComplexFunc.MULTIVALUED_ACOS: {
+		"name": "Multivalued ArcCos",
 		"is_multivalued": true,
-		"hidden": true,
 	},
 	ComplexFunc.MULTIVALUED_RSVD3: {
 		"name": "Multivalued Reserved 3",
