@@ -1,110 +1,105 @@
 extends CanvasLayer
 
 @export var player: Node3D
-@onready var hud_columns = $Control/MainUIColumns
-@onready var hud_stack_left = $Control/MainUIColumns/MainUIStackLeft
-@onready var hud_stack_right = $Control/MainUIColumns/MainUIStackRight
-@onready var complex_panel = $Control/MainUIColumns/MainUIStackRight/ComplexAspect
-@onready var info_panel = $Control/MainUIColumns/MainUIStackRight/InfoPanel
-@onready var monitor_panel = $Control/MainUIColumns/MainUIStackRight/MonitorPanel
-@onready var fps_label = $Control/MainUIColumns/MainUIStackRight/MonitorPanel/MarginContainer/VBox/FpsLabel
-@onready var complex_rect = $Control/MainUIColumns/MainUIStackRight/ComplexAspect/ComplexPanel/MarginContainer/ClipPanel/ComplexPlane
+@onready var hud_columns = %MainUIColumns
+@onready var hud_stack_left = %MainUIStackLeft
+@onready var hud_stack_right = %MainUIStackRight
+@onready var complex_panel = %ComplexAspect
+@onready var info_panel = %InfoPanel
+@onready var monitor_panel = %MonitorPanel
+@onready var fps_label = %FpsLabel
+@onready var complex_rect = %ComplexPlane
 @onready var world_manager = get_node_or_null("../WorldManager")
-@onready var domain_label = $Control/MainUIColumns/MainUIStackRight/InfoPanel/MarginContainer/VBox/DomainLabel
-@onready var target_label = $Control/MainUIColumns/MainUIStackRight/InfoPanel/MarginContainer/VBox/TargetLabel
-@onready var zeros_panel = $Control/MainUIColumns/MainUIStackRight/ZerosPanel
-@onready var zeros_count_label = $Control/MainUIColumns/MainUIStackRight/ZerosPanel/MarginContainer/VBox/CountLabel
-@onready var rvm_label = $Control/MainUIColumns/MainUIStackRight/ZerosPanel/MarginContainer/VBox/RvmLabel
-@onready var zeros_list_label = $Control/MainUIColumns/MainUIStackRight/ZerosPanel/MarginContainer/VBox/Scroll/ListLabel
-@onready var menu_overlay = $Control/MenuOverlay
+@onready var domain_label = %DomainLabel
+@onready var target_label = %TargetLabel
+@onready var zeros_panel = %ZerosPanel
+@onready var zeros_count_label = %CountLabel
+@onready var rvm_label = %RvmLabel
+@onready var zeros_list_label = %ListLabel
+@onready var menu_overlay = %MenuOverlay
 
 # New UI Node Paths
-@onready var tab_container = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer
-@onready var func_button = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/FuncContainer/FuncButton
-@onready var height_button = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/HeightContainer/HeightButton
-@onready var height_a_container = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/HeightAContainer
-@onready var height_a_input = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/HeightAContainer/HeightAInput
-@onready var height_eps_container = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/HeightEpsContainer
-@onready var height_eps_input = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/HeightEpsContainer/HeightEpsInput
-@onready var iter_container = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/IterContainer
-@onready var iter_slider = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/IterContainer
-@onready var rational_container = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/RationalContainer
-@onready var rational_input = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/RationalContainer/RationalInput
-@onready var multivalued_container = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/MultivaluedContainer
-@onready var multivalued_slider = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/MultivaluedContainer
+@onready var tab_container = %MenuOverlay.get_node("%TabContainer")
+@onready var func_button = %MenuOverlay.get_node("%FuncButton")
+@onready var height_button = %MenuOverlay.get_node("%HeightButton")
+@onready var height_a_container = %MenuOverlay.get_node("%HeightAContainer")
+@onready var height_a_input = %MenuOverlay.get_node("%HeightAInput")
+@onready var height_eps_container = %MenuOverlay.get_node("%HeightEpsContainer")
+@onready var height_eps_input = %MenuOverlay.get_node("%HeightEpsInput")
+@onready var iter_slider = %MenuOverlay.get_node("%IterSlider")
+@onready var rational_container = %MenuOverlay.get_node("%RationalContainer")
+@onready var rational_input = %MenuOverlay.get_node("%RationalInput")
+@onready var multivalued_slider = %MenuOverlay.get_node("%MultivaluedSlider")
 
-@onready var re_input = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox/ReContainer/ReInput
-@onready var im_input = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox/ImContainer/ImInput
-@onready var speed_input = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox/SpeedContainer/SpeedInput
-@onready var zoom_slider = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox/ZoomContainer
-@onready var zero_speed_slider = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox/ZeroSpeedContainer
-@onready var zero_proximity_nav_slider = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox/ZeroProximityNavContainer
-@onready var camera_height_input = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox/CameraHeightContainer/CameraHeightInput
-@onready var auto_walk_checkbox = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox/AutoWalkCheckbox
+@onready var re_input = %MenuOverlay.get_node("%ReInput")
+@onready var im_input = %MenuOverlay.get_node("%ImInput")
+@onready var speed_input = %MenuOverlay.get_node("%SpeedInput")
+@onready var zoom_slider = %MenuOverlay.get_node("%ZoomContainer")
+@onready var zero_speed_slider = %MenuOverlay.get_node("%ZeroSpeedContainer")
+@onready var zero_proximity_nav_slider = %MenuOverlay.get_node("%ZeroProximityNavContainer")
+@onready var camera_height_input = %MenuOverlay.get_node("%CameraHeightInput")
+@onready var auto_walk_checkbox = %MenuOverlay.get_node("%AutoWalkCheckbox")
 
-@onready var terrain_detail_button = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/GRAPHICS/Margin/VBox/TerrainDetailContainer/TerrainDetailButton
-@onready var aa_button = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/GRAPHICS/Margin/VBox/AAContainer/AAButton
-@onready var color_scheme_button = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/ColorSchemeContainer/ColorSchemeButton
-@onready var view_distance_slider = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/GRAPHICS/Margin/VBox/ViewDistanceContainer
-@onready var curves_checkbox = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/CurvesCheckbox
-@onready var critical_checkbox = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/CriticalCheckbox
-@onready var flow_checkbox = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/FlowCheckbox
-@onready var freeze_time_checkbox = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/FreezeTimeCheckbox
-@onready var day_duration_container = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/DayDurationContainer
-@onready var day_duration_slider = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/DayDurationContainer
-@onready var day_time_container = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/StaticTimeContainer
-@onready var day_time_slider = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/StaticTimeContainer
-@onready var sunrise_slider = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/SunriseContainer
-@onready var sky_luminosity_slider = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/SkyLuminosityContainer
-@onready var sun_luminosity_slider = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/SunLuminosityContainer
-@onready var self_illumination_slider = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/SelfIlluminationContainer
-@onready var fog_density_container = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/FogDensityContainer
-@onready var fog_density_slider = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/FogDensityContainer
-@onready var shadows_checkbox = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/GRAPHICS/Margin/VBox/ShadowsCheckbox
+@onready var terrain_detail_button = %MenuOverlay.get_node("%TerrainDetailButton")
+@onready var aa_button = %MenuOverlay.get_node("%AAButton")
+@onready var color_scheme_button = %MenuOverlay.get_node("%ColorSchemeButton")
+@onready var view_distance_slider = %MenuOverlay.get_node("%ViewDistanceContainer")
+@onready var curves_checkbox = %MenuOverlay.get_node("%CurvesCheckbox")
+@onready var critical_checkbox = %MenuOverlay.get_node("%CriticalCheckbox")
+@onready var flow_checkbox = %MenuOverlay.get_node("%FlowCheckbox")
+@onready var freeze_time_checkbox = %MenuOverlay.get_node("%FreezeTimeCheckbox")
+@onready var day_duration_slider = %MenuOverlay.get_node("%DayDurationSlider")
+@onready var day_time_slider = %MenuOverlay.get_node("%DayTimeSlider")
+@onready var sunrise_slider = %MenuOverlay.get_node("%SunriseContainer")
+@onready var sky_luminosity_slider = %MenuOverlay.get_node("%SkyLuminosityContainer")
+@onready var sun_luminosity_slider = %MenuOverlay.get_node("%SunLuminosityContainer")
+@onready var self_illumination_slider = %MenuOverlay.get_node("%SelfIlluminationContainer")
+@onready var fog_density_slider = %MenuOverlay.get_node("%FogDensitySlider")
+@onready var shadows_checkbox = %MenuOverlay.get_node("%ShadowsCheckbox")
 
-@onready var hud_complex_checkbox = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/MainUI/Margin/VBox/HudComplexCheckbox
-@onready var hud_navigation_checkbox = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/MainUI/Margin/VBox/HudNavigationCheckbox
-@onready var hud_zeros_checkbox = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/MainUI/Margin/VBox/HudZerosDetectionCheckbox
-@onready var rvm_checkbox = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/MainUI/Margin/VBox/RvmCheckbox
-@onready var hud_monitor_fps_checkbox = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/MainUI/Margin/VBox/HudMonitorFpsCheckbox
-@onready var hud_monitor_chunks_checkbox = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/MainUI/Margin/VBox/HudMonitorChunksCheckbox
-@onready var hud_scale_slider = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/MainUI/Margin/VBox/HudScaleContainer
+@onready var hud_complex_checkbox = %MenuOverlay.get_node("%HudComplexCheckbox")
+@onready var hud_navigation_checkbox = %MenuOverlay.get_node("%HudNavigationCheckbox")
+@onready var hud_zeros_checkbox = %MenuOverlay.get_node("%HudZerosDetectionCheckbox")
+@onready var rvm_checkbox = %MenuOverlay.get_node("%RvmCheckbox")
+@onready var hud_monitor_fps_checkbox = %MenuOverlay.get_node("%HudMonitorFpsCheckbox")
+@onready var hud_monitor_chunks_checkbox = %MenuOverlay.get_node("%HudMonitorChunksCheckbox")
+@onready var hud_scale_slider = %MenuOverlay.get_node("%HudScaleContainer")
 
-@onready var master_volume_slider = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/AUDIO/Margin/VBox/MasterVolumeContainer
-@onready var bg_music_slider = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/AUDIO/Margin/VBox/BgMusicContainer
-@onready var drone_slider = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/AUDIO/Margin/VBox/DroneContainer
+@onready var master_volume_slider = %MenuOverlay.get_node("%MasterVolumeContainer")
+@onready var bg_music_slider = %MenuOverlay.get_node("%BgMusicContainer")
+@onready var drone_slider = %MenuOverlay.get_node("%DroneContainer")
 
-@onready var detach_overlay = $Control/DetachOverlay
-@onready var detach_slider = $Control/DetachOverlay/MarginContainer/HBox/DetachSlider
-@onready var detach_label = $Control/DetachOverlay/MarginContainer/HBox/Label
-@onready var detach_value = $Control/DetachOverlay/MarginContainer/HBox/DetachValue
-@onready var exit_detach_button = $Control/DetachOverlay/MarginContainer/HBox/ExitDetachButton
+@onready var detach_overlay = %DetachOverlay
+@onready var detach_slider = %DetachSlider
+@onready var detach_label = %Label
+@onready var detach_value = %DetachValue
+@onready var exit_detach_button = %ExitDetachButton
 
 var active_detached_slider: HSlider = null
 var active_detached_value: Label = null
 
-@onready var brightness_slider = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/BrightnessContainer
-@onready var saturation_slider = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/SaturationContainer
-@onready var albedo_slider = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/AlbedoContainer
-@onready var emission_slider = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/EmissionContainer
-@onready var metallic_slider = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/MetallicContainer
-@onready var roughness_slider = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/RoughnessContainer
+@onready var brightness_slider = %MenuOverlay.get_node("%BrightnessContainer")
+@onready var saturation_slider = %MenuOverlay.get_node("%SaturationContainer")
+@onready var albedo_slider = %MenuOverlay.get_node("%AlbedoContainer")
+@onready var emission_slider = %MenuOverlay.get_node("%EmissionContainer")
+@onready var metallic_slider = %MenuOverlay.get_node("%MetallicContainer")
+@onready var roughness_slider = %MenuOverlay.get_node("%RoughnessContainer")
 
-@onready var surface_texture_slider = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/SurfaceTextureContainer
-@onready var morph_button = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/MorphContainer/MorphButton
+@onready var surface_texture_slider = %MenuOverlay.get_node("%SurfaceTextureContainer")
+@onready var morph_button = %MenuOverlay.get_node("%MorphButton")
 
-@onready var morph_overlay = $Control/MorphOverlay
-@onready var morph_slider = $Control/MorphOverlay/MarginContainer/HBox/MorphSlider
-@onready var exit_morph_button = $Control/MorphOverlay/MarginContainer/HBox/ExitMorphButton
+@onready var morph_overlay = %MorphOverlay
+@onready var morph_slider = %MorphSlider
+@onready var exit_morph_button = %ExitMorphButton
 
-@onready var apply_button = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/ButtonsHBox/ApplyButton
-@onready var close_button = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/ButtonsHBox/CloseButton
-@onready var quit_button = $Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/ButtonsHBox/QuitContainer/QuitButton
-@onready var perf_label = $Control/MainUIColumns/MainUIStackRight/PerfProtectionLabel
+@onready var apply_button = %MenuOverlay.get_node("%ApplyButton")
+@onready var close_button = %MenuOverlay.get_node("%CloseButton")
+@onready var quit_button = %MenuOverlay.get_node("%QuitButton")
+@onready var perf_label = %PerfProtectionLabel
 
-@onready var tooltip = $TooltipLayer/Tooltip
-@onready var tooltip_label = $TooltipLayer/Tooltip/MarginContainer/Label
-@onready var tooltip_timer = $TooltipTimer
+@onready var tooltip = %Tooltip
+@onready var tooltip_label = %TooltipLabel
+@onready var tooltip_timer = %TooltipTimer
 
 var _pending_tooltip_key: String = ""
 
@@ -298,23 +293,23 @@ func _ready():
 
 	detach_slider.value_changed.connect(_on_detach_slider_changed)
 	exit_detach_button.pressed.connect(_on_exit_detach_pressed)
-	$Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/IterContainer.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "Iterations"))
-	$Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/MultivaluedContainer.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "Branches (n)"))
-	$Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/DayDurationContainer.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "Day Duration"))
-	$Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/StaticTimeContainer.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "Time of day"))
-	$Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/SunriseContainer.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "Sunrise Direction"))
-	$Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/SkyLuminosityContainer.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "Sky Luminosity"))
-	$Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/SunLuminosityContainer.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "Sun Luminosity"))
-	$Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/SelfIlluminationContainer.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "Self-Illumination"))
-	$Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox/FogDensityContainer.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "Fog Density"))
-	$Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/BrightnessContainer.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "Brightness"))
-	$Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/SaturationContainer.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "Saturation"))
-	$Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/AlbedoContainer.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "Albedo"))
-	$Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/EmissionContainer.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "Emission"))
-	$Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/MetallicContainer.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "Metallic"))
-	$Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/RoughnessContainer.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "Roughness"))
-	$Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/SurfaceTextureContainer.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "SurfaceTexture"))
-	$Control/MenuOverlay/CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/GRAPHICS/Margin/VBox/ViewDistanceContainer.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "View Distance"))
+	iter_slider.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "Iterations"))
+	multivalued_slider.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "Branches (n)"))
+	day_duration_slider.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "Day Duration"))
+	day_time_slider.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "Time of day"))
+	sunrise_slider.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "Sunrise Direction"))
+	sky_luminosity_slider.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "Sky Luminosity"))
+	sun_luminosity_slider.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "Sun Luminosity"))
+	self_illumination_slider.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "Self-Illumination"))
+	fog_density_slider.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "Fog Density"))
+	brightness_slider.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "Brightness"))
+	saturation_slider.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "Saturation"))
+	albedo_slider.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "Albedo"))
+	emission_slider.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "Emission"))
+	metallic_slider.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "Metallic"))
+	roughness_slider.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "Roughness"))
+	surface_texture_slider.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "SurfaceTexture"))
+	view_distance_slider.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "View Distance"))
 
 func _disable_sliders_focus(node: Node):
 	if node is HSlider:
@@ -578,8 +573,8 @@ func _on_func_selected(f_type: int):
 		_on_iterations_value_changed(Config.iterations)
 
 	rational_container.visible = is_rational
-	multivalued_container.visible = is_multivalued_n
-	iter_container.visible = has_iters
+	multivalued_slider.visible = is_multivalued_n
+	iter_slider.visible = has_iters
 	critical_checkbox.visible = is_dirichlect
 	auto_walk_checkbox.visible = is_dirichlect
 	rvm_checkbox.visible = is_dirichlect

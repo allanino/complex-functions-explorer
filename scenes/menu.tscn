@@ -205,7 +205,7 @@ theme_override_constants/margin_bottom = 30
 layout_mode = 2
 theme_override_constants/separation = 30
 
-[node name="TabContainer" type="TabContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox"]
+[node name="TabContainer" type="TabContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox" unique_name_in_owner=true]
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/side_margin = 0
@@ -239,7 +239,7 @@ theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
 theme_override_font_sizes/font_size = 18
 text = "Function"
 
-[node name="FuncButton" type="OptionButton" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/FuncContainer"]
+[node name="FuncButton" type="OptionButton" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/FuncContainer" unique_name_in_owner=true]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 18
@@ -258,7 +258,7 @@ theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
 theme_override_font_sizes/font_size = 18
 text = "Height Map"
 
-[node name="HeightButton" type="OptionButton" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/HeightContainer"]
+[node name="HeightButton" type="OptionButton" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/HeightContainer" unique_name_in_owner=true]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 18
@@ -267,7 +267,7 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
 theme_override_styles/focus = SubResource("StyleBoxFlat_btn_normal")
 
-[node name="HeightAContainer" type="HBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox"]
+[node name="HeightAContainer" type="HBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox" unique_name_in_owner=true]
 layout_mode = 2
 
 [node name="Label" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/HeightAContainer"]
@@ -277,7 +277,7 @@ theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
 theme_override_font_sizes/font_size = 18
 text = "Parameter a"
 
-[node name="HeightAInput" type="LineEdit" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/HeightAContainer"]
+[node name="HeightAInput" type="LineEdit" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/HeightAContainer" unique_name_in_owner=true]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 18
@@ -286,7 +286,7 @@ theme_override_styles/focus = SubResource("StyleBoxFlat_input")
 text = "3.0"
 alignment = 1
 
-[node name="HeightEpsContainer" type="HBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox"]
+[node name="HeightEpsContainer" type="HBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox" unique_name_in_owner=true]
 layout_mode = 2
 
 [node name="Label" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/HeightEpsContainer"]
@@ -296,7 +296,7 @@ theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
 theme_override_font_sizes/font_size = 18
 text = "Parameter ε"
 
-[node name="HeightEpsInput" type="LineEdit" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/HeightEpsContainer"]
+[node name="HeightEpsInput" type="LineEdit" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/HeightEpsContainer" unique_name_in_owner=true]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 18
@@ -305,7 +305,7 @@ theme_override_styles/focus = SubResource("StyleBoxFlat_input")
 text = "1.0"
 alignment = 1
 
-[node name="IterContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox" instance=ExtResource("1")]
+[node name="IterSlider" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox" instance=ExtResource("1") unique_name_in_owner=true]
 layout_mode = 2
 text = "Iterations"
 min_value = 100.0
@@ -315,7 +315,7 @@ value = 100.0
 value_text = "100"
 show_detach_button = true
 
-[node name="RationalContainer" type="HBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox"]
+[node name="RationalContainer" type="HBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox" unique_name_in_owner=true]
 layout_mode = 2
 
 [node name="Label" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/RationalContainer"]
@@ -325,7 +325,7 @@ theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
 theme_override_font_sizes/font_size = 18
 text = "Expression"
 
-[node name="RationalInput" type="LineEdit" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/RationalContainer"]
+[node name="RationalInput" type="LineEdit" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/RationalContainer" unique_name_in_owner=true]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 18
@@ -335,7 +335,7 @@ text = "z^2 - 1"
 placeholder_text = "(z^2 + 1)/(z - 1)"
 alignment = 1
 
-[node name="MultivaluedContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox" instance=ExtResource("1")]
+[node name="MultivaluedSlider" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox" instance=ExtResource("1") unique_name_in_owner=true]
 layout_mode = 2
 text = "Branches (n)"
 min_value = 1.0
@@ -357,13 +357,13 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 15
 
-[node name="FreezeTimeCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox" instance=ExtResource("3_checkbox")]
+[node name="FreezeTimeCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox" instance=ExtResource("3_checkbox") unique_name_in_owner=true]
 layout_mode = 2
 size_flags_horizontal = 3
 
 text = "Freeze time"
 
-[node name="DayDurationContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox" instance=ExtResource("1")]
+[node name="DayDurationSlider" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox" instance=ExtResource("1") unique_name_in_owner=true]
 layout_mode = 2
 text = "Day Duration"
 min_value = 10.0
@@ -373,7 +373,7 @@ value = 60.0
 value_text = "00:08:20"
 show_detach_button = true
 
-[node name="StaticTimeContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox" instance=ExtResource("1")]
+[node name="DayTimeSlider" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox" instance=ExtResource("1") unique_name_in_owner=true]
 layout_mode = 2
 text = "Time of day"
 max_value = 86340.0
@@ -382,14 +382,14 @@ value = 43200.0
 value_text = "12:00:00"
 show_detach_button = true
 
-[node name="SunriseContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox" instance=ExtResource("1")]
+[node name="SunriseContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox" instance=ExtResource("1") unique_name_in_owner=true]
 layout_mode = 2
 text = "Sunrise Direction"
 max_value = 360.0
 value_text = "0°"
 show_detach_button = true
 
-[node name="SkyLuminosityContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox" instance=ExtResource("1")]
+[node name="SkyLuminosityContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox" instance=ExtResource("1") unique_name_in_owner=true]
 layout_mode = 2
 text = "Sky Luminosity"
 max_value = 200.0
@@ -397,7 +397,7 @@ value = 100.0
 value_text = "100%"
 show_detach_button = true
 
-[node name="SunLuminosityContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox" instance=ExtResource("1")]
+[node name="SunLuminosityContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox" instance=ExtResource("1") unique_name_in_owner=true]
 layout_mode = 2
 text = "Sun Luminosity"
 max_value = 200.0
@@ -405,7 +405,7 @@ value = 100.0
 value_text = "100%"
 show_detach_button = true
 
-[node name="SelfIlluminationContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox" instance=ExtResource("1")]
+[node name="SelfIlluminationContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox" instance=ExtResource("1") unique_name_in_owner=true]
 layout_mode = 2
 text = "Self-Illumination"
 max_value = 100.0
@@ -413,7 +413,7 @@ value = 0.0
 value_text = "0%"
 show_detach_button = true
 
-[node name="FogDensityContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox" instance=ExtResource("1")]
+[node name="FogDensitySlider" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox" instance=ExtResource("1") unique_name_in_owner=true]
 layout_mode = 2
 text = "Fog Density"
 max_value = 100.0
@@ -445,7 +445,7 @@ theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
 theme_override_font_sizes/font_size = 18
 text = "Color Scheme"
 
-[node name="ColorSchemeButton" type="OptionButton" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/ColorSchemeContainer"]
+[node name="ColorSchemeButton" type="OptionButton" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/ColorSchemeContainer" unique_name_in_owner=true]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 18
@@ -454,7 +454,7 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
 theme_override_styles/focus = SubResource("StyleBoxFlat_btn_normal")
 
-[node name="BrightnessContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox" instance=ExtResource("1")]
+[node name="BrightnessContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox" instance=ExtResource("1") unique_name_in_owner=true]
 layout_mode = 2
 text = "Brightness"
 max_value = 100.0
@@ -462,7 +462,7 @@ value = 50.0
 value_text = "50%"
 show_detach_button = true
 
-[node name="SaturationContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox" instance=ExtResource("1")]
+[node name="SaturationContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox" instance=ExtResource("1") unique_name_in_owner=true]
 layout_mode = 2
 text = "Saturation"
 max_value = 100.0
@@ -470,7 +470,7 @@ value = 78.0
 value_text = "78%"
 show_detach_button = true
 
-[node name="AlbedoContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox" instance=ExtResource("1")]
+[node name="AlbedoContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox" instance=ExtResource("1") unique_name_in_owner=true]
 layout_mode = 2
 text = "Albedo"
 max_value = 100.0
@@ -478,7 +478,7 @@ value = 15.0
 value_text = "15%"
 show_detach_button = true
 
-[node name="EmissionContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox" instance=ExtResource("1")]
+[node name="EmissionContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox" instance=ExtResource("1") unique_name_in_owner=true]
 layout_mode = 2
 text = "Emission"
 max_value = 100.0
@@ -486,7 +486,7 @@ value = 10.0
 value_text = "10%"
 show_detach_button = true
 
-[node name="MetallicContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox" instance=ExtResource("1")]
+[node name="MetallicContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox" instance=ExtResource("1") unique_name_in_owner=true]
 layout_mode = 2
 text = "Metallic"
 max_value = 100.0
@@ -494,7 +494,7 @@ value = 70.0
 value_text = "70%"
 show_detach_button = true
 
-[node name="RoughnessContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox" instance=ExtResource("1")]
+[node name="RoughnessContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox" instance=ExtResource("1") unique_name_in_owner=true]
 layout_mode = 2
 text = "Roughness"
 max_value = 100.0
@@ -502,7 +502,7 @@ value = 10.0
 value_text = "10%"
 show_detach_button = true
 
-[node name="SurfaceTextureContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox" instance=ExtResource("1")]
+[node name="SurfaceTextureContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox" instance=ExtResource("1") unique_name_in_owner=true]
 layout_mode = 2
 text = "Surface Texture"
 max_value = 100.0
@@ -510,19 +510,19 @@ value = 0.0
 value_text = "0%"
 show_detach_button = true
 
-[node name="CurvesCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox" instance=ExtResource("3_checkbox")]
+[node name="CurvesCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox" instance=ExtResource("3_checkbox") unique_name_in_owner=true]
 layout_mode = 2
 size_flags_horizontal = 3
 
 text = "Level Curves"
 
-[node name="CriticalCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox" instance=ExtResource("3_checkbox")]
+[node name="CriticalCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox" instance=ExtResource("3_checkbox") unique_name_in_owner=true]
 layout_mode = 2
 size_flags_horizontal = 3
 
 text = "Critical Stripe"
 
-[node name="FlowCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox" instance=ExtResource("3_checkbox")]
+[node name="FlowCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox" instance=ExtResource("3_checkbox") unique_name_in_owner=true]
 layout_mode = 2
 size_flags_horizontal = 3
 
@@ -538,7 +538,7 @@ theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
 theme_override_font_sizes/font_size = 18
 text = "Terrain Morph"
 
-[node name="MorphButton" type="OptionButton" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/MorphContainer"]
+[node name="MorphButton" type="OptionButton" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/MorphContainer" unique_name_in_owner=true]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 18
@@ -570,7 +570,7 @@ theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
 theme_override_font_sizes/font_size = 18
 text = "Terrain Details"
 
-[node name="TerrainDetailButton" type="OptionButton" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/GRAPHICS/Margin/VBox/TerrainDetailContainer"]
+[node name="TerrainDetailButton" type="OptionButton" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/GRAPHICS/Margin/VBox/TerrainDetailContainer" unique_name_in_owner=true]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 18
@@ -589,7 +589,7 @@ theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
 theme_override_font_sizes/font_size = 18
 text = "Antialiasing"
 
-[node name="AAButton" type="OptionButton" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/GRAPHICS/Margin/VBox/AAContainer"]
+[node name="AAButton" type="OptionButton" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/GRAPHICS/Margin/VBox/AAContainer" unique_name_in_owner=true]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 18
@@ -598,7 +598,7 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
 theme_override_styles/focus = SubResource("StyleBoxFlat_btn_normal")
 
-[node name="ViewDistanceContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/GRAPHICS/Margin/VBox" instance=ExtResource("1")]
+[node name="ViewDistanceContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/GRAPHICS/Margin/VBox" instance=ExtResource("1") unique_name_in_owner=true]
 layout_mode = 2
 text = "View Distance"
 min_value = 2.0
@@ -607,7 +607,7 @@ value = 7.0
 value_text = "7"
 show_detach_button = true
 
-[node name="ShadowsCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/GRAPHICS/Margin/VBox" instance=ExtResource("3_checkbox")]
+[node name="ShadowsCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/GRAPHICS/Margin/VBox" instance=ExtResource("3_checkbox") unique_name_in_owner=true]
 layout_mode = 2
 size_flags_horizontal = 3
 
@@ -636,7 +636,7 @@ theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
 theme_override_font_sizes/font_size = 18
 text = "Real (x)"
 
-[node name="ReInput" type="LineEdit" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox/ReContainer"]
+[node name="ReInput" type="LineEdit" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox/ReContainer" unique_name_in_owner=true]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 18
@@ -655,7 +655,7 @@ theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
 theme_override_font_sizes/font_size = 18
 text = "Imaginary (y)"
 
-[node name="ImInput" type="LineEdit" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox/ImContainer"]
+[node name="ImInput" type="LineEdit" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox/ImContainer" unique_name_in_owner=true]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 18
@@ -674,7 +674,7 @@ theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
 theme_override_font_sizes/font_size = 18
 text = "Camera Height"
 
-[node name="CameraHeightInput" type="LineEdit" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox/CameraHeightContainer"]
+[node name="CameraHeightInput" type="LineEdit" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox/CameraHeightContainer" unique_name_in_owner=true]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 18
@@ -693,7 +693,7 @@ theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
 theme_override_font_sizes/font_size = 18
 text = "Move Speed"
 
-[node name="SpeedInput" type="LineEdit" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox/SpeedContainer"]
+[node name="SpeedInput" type="LineEdit" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox/SpeedContainer" unique_name_in_owner=true]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 18
@@ -702,7 +702,7 @@ theme_override_styles/focus = SubResource("StyleBoxFlat_input")
 text = "10.0"
 alignment = 1
 
-[node name="ZoomContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox" instance=ExtResource("1")]
+[node name="ZoomContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox" instance=ExtResource("1") unique_name_in_owner=true]
 layout_mode = 2
 text = "Zoom Factor"
 max_value = 100.0
@@ -710,13 +710,13 @@ step = 0.01
 value = 1.0
 value_text = "x1"
 
-[node name="ZeroSpeedContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox" instance=ExtResource("1")]
+[node name="ZeroSpeedContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox" instance=ExtResource("1") unique_name_in_owner=true]
 layout_mode = 2
 text = "Speed near Zeros"
 value = 100.0
 value_text = "100%"
 
-[node name="ZeroProximityNavContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox" instance=ExtResource("1")]
+[node name="ZeroProximityNavContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox" instance=ExtResource("1") unique_name_in_owner=true]
 layout_mode = 2
 text = "Zeros proximity"
 min_value = 0.01
@@ -725,7 +725,7 @@ step = 0.01
 value = 0.5
 value_text = "0.50"
 
-[node name="AutoWalkCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox" instance=ExtResource("3_checkbox")]
+[node name="AutoWalkCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox" instance=ExtResource("3_checkbox") unique_name_in_owner=true]
 layout_mode = 2
 size_flags_horizontal = 3
 
@@ -744,7 +744,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 15
 
-[node name="HudScaleContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/MainUI/Margin/VBox" instance=ExtResource("1")]
+[node name="HudScaleContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/MainUI/Margin/VBox" instance=ExtResource("1") unique_name_in_owner=true]
 layout_mode = 2
 text = "MainUI Scale"
 min_value = 100.0
@@ -753,37 +753,37 @@ step = 5.0
 value = 100.0
 value_text = "100%"
 
-[node name="HudComplexCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/MainUI/Margin/VBox" instance=ExtResource("3_checkbox")]
+[node name="HudComplexCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/MainUI/Margin/VBox" instance=ExtResource("3_checkbox") unique_name_in_owner=true]
 layout_mode = 2
 size_flags_horizontal = 3
 
 text = "Complex plane"
 
-[node name="HudNavigationCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/MainUI/Margin/VBox" instance=ExtResource("3_checkbox")]
+[node name="HudNavigationCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/MainUI/Margin/VBox" instance=ExtResource("3_checkbox") unique_name_in_owner=true]
 layout_mode = 2
 size_flags_horizontal = 3
 
 text = "Navigation"
 
-[node name="HudZerosDetectionCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/MainUI/Margin/VBox" instance=ExtResource("3_checkbox")]
+[node name="HudZerosDetectionCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/MainUI/Margin/VBox" instance=ExtResource("3_checkbox") unique_name_in_owner=true]
 layout_mode = 2
 size_flags_horizontal = 3
 
 text = "Zeros detection"
 
-[node name="RvmCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/MainUI/Margin/VBox" instance=ExtResource("3_checkbox")]
+[node name="RvmCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/MainUI/Margin/VBox" instance=ExtResource("3_checkbox") unique_name_in_owner=true]
 layout_mode = 2
 size_flags_horizontal = 3
 
 text = "Riemann–von Mangoldt"
 
-[node name="HudMonitorFpsCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/MainUI/Margin/VBox" instance=ExtResource("3_checkbox")]
+[node name="HudMonitorFpsCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/MainUI/Margin/VBox" instance=ExtResource("3_checkbox") unique_name_in_owner=true]
 layout_mode = 2
 size_flags_horizontal = 3
 
 text = "Monitor FPS"
 
-[node name="HudMonitorChunksCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/MainUI/Margin/VBox" instance=ExtResource("3_checkbox")]
+[node name="HudMonitorChunksCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/MainUI/Margin/VBox" instance=ExtResource("3_checkbox") unique_name_in_owner=true]
 layout_mode = 2
 size_flags_horizontal = 3
 
@@ -802,21 +802,21 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 15
 
-[node name="MasterVolumeContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/AUDIO/Margin/VBox" instance=ExtResource("1")]
+[node name="MasterVolumeContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/AUDIO/Margin/VBox" instance=ExtResource("1") unique_name_in_owner=true]
 layout_mode = 2
 theme_override_constants/separation = 0
 text = "Master Volume"
 value = 100.0
 value_text = "100%"
 
-[node name="BgMusicContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/AUDIO/Margin/VBox" instance=ExtResource("1")]
+[node name="BgMusicContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/AUDIO/Margin/VBox" instance=ExtResource("1") unique_name_in_owner=true]
 layout_mode = 2
 theme_override_constants/separation = 0
 text = "Background Music"
 value = 100.0
 value_text = "100%"
 
-[node name="DroneContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/AUDIO/Margin/VBox" instance=ExtResource("1")]
+[node name="DroneContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/AUDIO/Margin/VBox" instance=ExtResource("1") unique_name_in_owner=true]
 layout_mode = 2
 theme_override_constants/separation = 0
 text = "Topographic Drone"
@@ -832,7 +832,7 @@ alignment = 1
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="CloseButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/ButtonsHBox"]
+[node name="CloseButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/ButtonsHBox" unique_name_in_owner=true]
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_font_sizes/font_size = 20
@@ -842,7 +842,7 @@ theme_override_styles/pressed = SubResource("StyleBoxFlat_apply_pressed")
 theme_override_styles/focus = SubResource("StyleBoxFlat_apply_normal")
 text = "Close"
 
-[node name="ApplyButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/ButtonsHBox"]
+[node name="ApplyButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/ButtonsHBox" unique_name_in_owner=true]
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_font_sizes/font_size = 20
@@ -857,7 +857,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 alignment = 2
 
-[node name="QuitButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/ButtonsHBox/QuitContainer"]
+[node name="QuitButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/ButtonsHBox/QuitContainer" unique_name_in_owner=true]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.5, 0.5, 0.8)
 theme_override_colors/font_hover_color = Color(0.9, 0.6, 0.6, 0.9)
