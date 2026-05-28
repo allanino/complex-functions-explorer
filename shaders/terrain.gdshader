@@ -135,12 +135,16 @@ void vertex() {
         int branch_offset = 0;
         if (is_multivalued) {
             vec3 cam_pos = (INV_VIEW_MATRIX * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
-            if (cam_pos.z * world_v_pos.z < 0.0) {
-                float r = cam_pos.z / (cam_pos.z - world_v_pos.z);
+            bool in_portal = false;
+            if (cam_pos.z * world_v_pos.z < 0.0 || (cam_pos.z != 0.0 && world_v_pos.z == 0.0)) {
+                float denom = cam_pos.z - world_v_pos.z;
+                if (denom == 0.0) {
+                    denom = 1e-9;
+                }
+                float r = cam_pos.z / denom;
                 float px = cam_pos.x + r * (world_v_pos.x - cam_pos.x);
                 float py = cam_pos.y + r * (world_v_pos.y - cam_pos.y);
 
-                bool in_portal = false;
                 if (function_type == 18 || function_type == 19) {
                     float threshold = 10.0 * zoom_factor;
                     if ((px >= threshold && px < threshold + portal_width) ||
@@ -150,20 +154,37 @@ void vertex() {
                         }
                     }
                 } else {
-                    if (px > 0.0 && px < portal_width && py > -10.0 && py < portal_height) {
+                    if (px < 0.0 && px > -portal_width && py > -10.0 && py < portal_height) {
                         in_portal = true;
                     }
                 }
 
                 if (in_portal) {
-                    if (function_type == 18) { // ASIN
-                        branch_offset = (cam_pos.z > 0.0) ? -1 : 1;
-                    } else if (function_type == 19) { // ACOS
-                        branch_offset = (cam_pos.z > 0.0) ? 1 : -1;
+                    if (function_type == 18 || function_type == 19) { // ASIN or ACOS
+                        bool is_even = (current_branch % 2 == 0);
+                        if (px >= 0.0) {
+                            branch_offset = is_even ? 1 : -1;
+                        } else {
+                            branch_offset = is_even ? -1 : 1;
+                        }
                     } else {
-                        branch_offset = (cam_pos.z > 0.0) ? 1 : -1;
+                        // For negative branch cuts (Log and Power functions),
+                        // the branch offset signs are inverted relative to positive cuts.
+                        branch_offset = (cam_pos.z > 0.0) ? -1 : 1;
                     }
                 }
+            }
+
+            // Perturb boundary vertices exactly on/near the branch cut (world_v_pos.z == 0.0)
+            // to resolve the exact-zero branch discontinuity in atan(y, x).
+            // - If viewed through the portal (in_portal is true), the vertex belongs to the
+            //   opposite side of the camera, so we nudge it in the direction opposite to cam_pos.z.
+            // - If viewed outside the portal (in_portal is false), the vertex belongs to the
+            //   same side as the camera, so we nudge it in the direction of cam_pos.z.
+            if (abs(world_v_pos.z) < 1e-5) {
+                float side_sign = in_portal ? -sign(cam_pos.z) : sign(cam_pos.z);
+                if (side_sign == 0.0) side_sign = 1.0;
+                world_v_pos.z = side_sign * 1e-5;
             }
         }
 
@@ -366,7 +387,7 @@ void fragment() {
                     in_cut = true;
                 }
             } else {
-                if (world_pos.x > 0.0 && world_pos.x < portal_width) {
+                if (world_pos.x < 0.0 && world_pos.x > -portal_width) {
                     in_cut = true;
                 }
             }

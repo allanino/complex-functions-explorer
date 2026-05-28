@@ -48,42 +48,24 @@ static func complex_tan(x: float, y: float) -> Vector2:
 	var denom = scaled_cosh + scaled_cos_2x
 	return Vector2(scaled_sin_2x / denom, scaled_sinh / denom)
 
-static func complex_asin(z: Vector2) -> Vector2:
-	# asin(z) = -i * log(i*z + sqrt(1 - z^2))
-	# z^2
+static func multivalued_asin(x: float, y: float) -> Vector2:
+	var z = Vector2(x, y)
 	var z2 = complex_mul(z, z)
-	# 1 - z^2
 	var one_minus_z2 = Vector2(1.0 - z2.x, -z2.y)
-
-	var r = sqrt(one_minus_z2.length())
-	var theta = atan2(one_minus_z2.y, one_minus_z2.x) * 0.5
-	var sqrt_part = Vector2(r * cos(theta), r * sin(theta))
-
-	# i*z
+	
+	var B = Config.current_branch
+	var sqrt_branch = abs(B) % 2
+	var log_branch = int(floor(float(B + 1) / 2.0)) if x < 0.0 else int(floor(float(B) / 2.0))
+	
+	var sqrt_part = multivalued_z_pow_inv_n(one_minus_z2.x, one_minus_z2.y, 2, sqrt_branch, true)
 	var iz = Vector2(-z.y, z.x)
-
 	var sum_val = Vector2(iz.x + sqrt_part.x, iz.y + sqrt_part.y)
-	var log_val = complex_log(sum_val.x, sum_val.y)
-
-	# -i * log_val
+	var log_val = multivalued_log(sum_val.x, sum_val.y, log_branch, true)
 	return Vector2(log_val.y, -log_val.x)
 
-static func complex_acos(z: Vector2) -> Vector2:
-	# acos(z) = -i * log(z + i * sqrt(1 - z^2))
-	var z2 = complex_mul(z, z)
-	var one_minus_z2 = Vector2(1.0 - z2.x, -z2.y)
-
-	var r = sqrt(one_minus_z2.length())
-	var theta = atan2(one_minus_z2.y, one_minus_z2.x) * 0.5
-	var sqrt_part = Vector2(r * cos(theta), r * sin(theta))
-
-	# i * sqrt_part
-	var i_sqrt_part = Vector2(-sqrt_part.y, sqrt_part.x)
-
-	var sum_val = Vector2(z.x + i_sqrt_part.x, z.y + i_sqrt_part.y)
-	var log_val = complex_log(sum_val.x, sum_val.y)
-
-	return Vector2(log_val.y, -log_val.x)
+static func multivalued_acos(x: float, y: float) -> Vector2:
+	var asin_val = multivalued_asin(x, y)
+	return Vector2(PI * 0.5 - asin_val.x, -asin_val.y)
 
 static func complex_cot(x: float, y: float) -> Vector2:
 	var abs_2y = 2.0 * abs(y)
@@ -289,44 +271,29 @@ static func xi(x: float, y: float) -> Vector2:
 
 	return complex_exp(log_sum.x, log_sum.y)
 
-static func multivalued_z_pow_inv_n(x: float, y: float, n: int) -> Vector2:
+static func multivalued_z_pow_inv_n(x: float, y: float, n: int, branch: int = -99999, use_negative_cut: bool = false) -> Vector2:
 	var r = sqrt(x * x + y * y)
 	var theta = atan2(y, x)
-	if theta < 0.0: theta += 2.0 * PI
+	if not use_negative_cut and theta < 0.0: theta += 2.0 * PI
 	var float_n = float(n)
 
-	var k_current = float(Config.current_branch)
+	var k_current = float(branch if branch != -99999 else Config.current_branch)
 
 	var morphed_phase = (theta + 2.0 * PI * k_current) / float_n
 	var morphed_r = pow(r, 1.0 / float_n)
 	return Vector2(morphed_r * cos(morphed_phase), morphed_r * sin(morphed_phase))
 
-static func multivalued_log(x: float, y: float) -> Vector2:
+static func multivalued_log(x: float, y: float, branch: int = -99999, use_negative_cut: bool = false) -> Vector2:
 	var mag_sq = x * x + y * y
 	if mag_sq < 1e-48: return Vector2(-60.0, 0.0)
 	var r = sqrt(mag_sq)
 	var theta = atan2(y, x)
-	if theta < 0.0: theta += 2.0 * PI
+	if not use_negative_cut and theta < 0.0: theta += 2.0 * PI
 
-	var k_current = float(Config.current_branch)
+	var k_current = float(branch if branch != -99999 else Config.current_branch)
 
 	var morphed_phase = theta + 2.0 * PI * k_current
 	return Vector2(log(r), morphed_phase)
-
-static func multivalued_asin(x: float, y: float) -> Vector2:
-	var z = Vector2(x, y)
-	var asin_z = complex_asin(z)
-	var k = float(Config.current_branch)
-	var multiplier = 1.0 if int(Config.current_branch) % 2 == 0 else -1.0
-	return Vector2(k * PI + multiplier * asin_z.x, multiplier * asin_z.y)
-
-static func multivalued_acos(x: float, y: float) -> Vector2:
-	var z = Vector2(x, y)
-	var acos_z = complex_acos(z)
-	var k = int(Config.current_branch)
-	var sign_val = 1.0 if k % 2 == 0 else -1.0
-	var offset = float(k) * PI if k % 2 == 0 else float(k + 1) * PI
-	return Vector2(offset + sign_val * acos_z.x, sign_val * acos_z.y)
 
 #-------------------------------------------------------------------------
 # Dispatchers
@@ -338,7 +305,7 @@ static func get_field(world_x: float, world_z: float) -> Vector2:
 
 	var zoom: float = 1.0 / Config.effective_zoom
 	var x: float = world_x * 0.1 * zoom
-	var y: float = -world_z * 0.1 * zoom
+	var y: float = - world_z * 0.1 * zoom
 
 	match Config.function_type:
 		Config.ComplexFunc.ZETA: return zeta(x, y)
@@ -357,8 +324,8 @@ static func get_field(world_x: float, world_z: float) -> Vector2:
 		Config.ComplexFunc.LOG: return complex_log(x, y)
 		Config.ComplexFunc.IDENTITY: return Vector2(x, y)
 		Config.ComplexFunc.RATIONAL: return get_rational(x, y)
-		Config.ComplexFunc.MULTIVALUED_Z_POW: return multivalued_z_pow_inv_n(x, y, Config.multivalued_n)
-				Config.ComplexFunc.MULTIVALUED_LOG: return multivalued_log(x, y)
+		Config.ComplexFunc.MULTIVALUED_Z_POW: return multivalued_z_pow_inv_n(x, y, Config.multivalued_n, -99999, true)
+		Config.ComplexFunc.MULTIVALUED_LOG: return multivalued_log(x, y, -99999, true)
 		Config.ComplexFunc.MULTIVALUED_ASIN: return multivalued_asin(x, y)
 		Config.ComplexFunc.MULTIVALUED_ACOS: return multivalued_acos(x, y)
 

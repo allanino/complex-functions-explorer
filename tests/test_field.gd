@@ -12,15 +12,15 @@ func test_complex_div():
 	var z1 = Vector2(5, 7)
 	var z2 = Vector2(2, 3)
 	var res = FieldScript.complex_div(z1, z2)
-	assert_almost_eq(res.x, 31.0/13.0, 0.0001)
-	assert_almost_eq(res.y, -1.0/13.0, 0.0001)
+	assert_almost_eq(res.x, 31.0 / 13.0, 0.0001)
+	assert_almost_eq(res.y, -1.0 / 13.0, 0.0001)
 
 func test_complex_exp():
 	var res = FieldScript.complex_exp(0, PI)
 	assert_almost_eq(res.x, -1.0, 0.0001)
 	assert_almost_eq(res.y, 0.0, 0.0001)
 
-	res = FieldScript.complex_exp(0, PI/2)
+	res = FieldScript.complex_exp(0, PI / 2)
 	assert_almost_eq(res.x, 0.0, 0.0001)
 	assert_almost_eq(res.y, 1.0, 0.0001)
 
@@ -31,7 +31,7 @@ func test_complex_log():
 
 	res = FieldScript.complex_log(0, 1)
 	assert_almost_eq(res.x, 0.0, 0.0001)
-	assert_almost_eq(res.y, PI/2, 0.0001)
+	assert_almost_eq(res.y, PI / 2, 0.0001)
 
 func test_complex_pow():
 	var res = FieldScript.complex_pow(Vector2(2, 0), Vector2(3, 0))
@@ -55,7 +55,7 @@ func test_complex_sin():
 	assert_almost_eq(res.x, 0.0, 0.0001)
 	assert_almost_eq(res.y, 0.0, 0.0001)
 
-	res = FieldScript.complex_sin(PI/2, 0)
+	res = FieldScript.complex_sin(PI / 2, 0)
 	assert_almost_eq(res.x, 1.0, 0.0001)
 	assert_almost_eq(res.y, 0.0, 0.0001)
 
@@ -64,7 +64,7 @@ func test_complex_cos():
 	assert_almost_eq(res.x, 1.0, 0.0001)
 	assert_almost_eq(res.y, 0.0, 0.0001)
 
-	res = FieldScript.complex_cos(PI/2, 0)
+	res = FieldScript.complex_cos(PI / 2, 0)
 	assert_almost_eq(res.x, 0.0, 0.0001)
 	assert_almost_eq(res.y, 0.0, 0.0001)
 
@@ -74,12 +74,12 @@ func test_complex_tan():
 	assert_almost_eq(res.y, 0.0, 0.0001)
 
 func test_complex_cot():
-	var res = FieldScript.complex_cot(PI/2, 0)
+	var res = FieldScript.complex_cot(PI / 2, 0)
 	assert_almost_eq(res.x, 0.0, 0.0001)
 	assert_almost_eq(res.y, 0.0, 0.0001)
 
 func test_complex_log_sin():
-	var res = FieldScript.complex_log_sin(PI/2, 0)
+	var res = FieldScript.complex_log_sin(PI / 2, 0)
 	assert_almost_eq(res.x, 0.0, 0.0001)
 	assert_almost_eq(res.y, 0.0, 0.0001)
 
@@ -90,7 +90,7 @@ func test_dirichlet_eta():
 
 func test_dirichlet_beta():
 	var res = FieldScript.dirichlet_beta(1, 0, 100)
-	assert_almost_eq(res.x, PI/4, 0.01)
+	assert_almost_eq(res.x, PI / 4, 0.01)
 	assert_almost_eq(res.y, 0.0, 0.0001)
 
 func test_evaluate_poly():
@@ -200,7 +200,7 @@ func test_get_rational():
 
 	# Test with z = 2.0 + 0.0i -> f(2) = (1 + 4) / (1 + 2) = 5/3
 	var res1 = FieldScript.get_rational(2.0, 0.0)
-	assert_almost_eq(res1.x, 5.0/3.0, 0.0001)
+	assert_almost_eq(res1.x, 5.0 / 3.0, 0.0001)
 	assert_almost_eq(res1.y, 0.0, 0.0001)
 
 	# Test with z = 0.0 + 1.0i -> f(i) = (1 + 2i) / (1 + i) = (1 + 2i)(1 - i) / 2 = (1 - i + 2i + 2) / 2 = (3 + i) / 2 = 1.5 + 0.5i
@@ -260,6 +260,80 @@ func test_multivalued_log():
 
 	# Restore config values
 	Config.current_branch = orig_current_branch
+
+func test_multivalued_asin_exact_values():
+	var orig_branch = Config.current_branch
+
+	var expected_values = {
+		-2: Vector2(-4.7213, 0.9625),
+		-1: Vector2(-4.7034, -0.9625),
+		0: Vector2(1.5619, 0.9625),
+		1: Vector2(1.5797, -0.9625),
+		2: Vector2(7.8450, 0.9625)
+	}
+
+	for B in expected_values.keys():
+		Config.current_branch = B
+		var res = FieldScript.multivalued_asin(1.5, 0.01)
+		var expected = expected_values[B]
+		assert_almost_eq(res.x, expected.x, 0.005)
+		assert_almost_eq(res.y, expected.y, 0.005)
+
+	Config.current_branch = orig_branch
+
+func test_multivalued_asin_continuity():
+	var orig_branch = Config.current_branch
+
+	for B in [-2, -1, 0, 1, 2]:
+		Config.current_branch = B
+		var val_above = FieldScript.multivalued_asin(1.5, 0.01)
+
+		var B_next_pos = B + 1 if B % 2 == 0 else B - 1
+		Config.current_branch = B_next_pos
+		var val_below = FieldScript.multivalued_asin(1.5, -0.01)
+
+		assert_almost_eq(val_above.x, val_below.x, 0.05)
+		assert_almost_eq(val_above.y, val_below.y, 0.05)
+
+	for B in [-2, -1, 0, 1, 2]:
+		Config.current_branch = B
+		var val_above = FieldScript.multivalued_asin(-1.5, 0.01)
+
+		var B_next_neg = B - 1 if B % 2 == 0 else B + 1
+		Config.current_branch = B_next_neg
+		var val_below = FieldScript.multivalued_asin(-1.5, -0.01)
+
+		assert_almost_eq(val_above.x, val_below.x, 0.05)
+		assert_almost_eq(val_above.y, val_below.y, 0.05)
+
+	Config.current_branch = orig_branch
+
+func test_multivalued_acos_continuity():
+	var orig_branch = Config.current_branch
+
+	for B in [-2, -1, 0, 1, 2]:
+		Config.current_branch = B
+		var val_above = FieldScript.multivalued_acos(1.5, 0.01)
+
+		var B_next_pos = B + 1 if B % 2 == 0 else B - 1
+		Config.current_branch = B_next_pos
+		var val_below = FieldScript.multivalued_acos(1.5, -0.01)
+
+		assert_almost_eq(val_above.x, val_below.x, 0.05)
+		assert_almost_eq(val_above.y, val_below.y, 0.05)
+
+	for B in [-2, -1, 0, 1, 2]:
+		Config.current_branch = B
+		var val_above = FieldScript.multivalued_acos(-1.5, 0.01)
+
+		var B_next_neg = B - 1 if B % 2 == 0 else B + 1
+		Config.current_branch = B_next_neg
+		var val_below = FieldScript.multivalued_acos(-1.5, -0.01)
+
+		assert_almost_eq(val_above.x, val_below.x, 0.05)
+		assert_almost_eq(val_above.y, val_below.y, 0.05)
+
+	Config.current_branch = orig_branch
 
 func test_get_height_from_field():
 	var orig_height_type = Config.height_type

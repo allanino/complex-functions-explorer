@@ -297,13 +297,13 @@ func _process(delta):
 			else:
 				portal_frame.position = Vector3(0.0, 0.0, 0.0)
 				portal_ground_bar.scale = Vector3(p_width, zoom, zoom)
-				portal_ground_bar.position = Vector3(p_width * 0.5, 0.0, 0.0)
+				portal_ground_bar.position = Vector3(-p_width * 0.5, 0.0, 0.0)
 				portal_vert_bar.scale = Vector3(zoom, p_height, zoom)
 				portal_vert_bar.position = Vector3(0.0, p_height * 0.5, 0.0)
 				portal_top_bar.scale = Vector3(p_width, zoom, zoom)
-				portal_top_bar.position = Vector3(p_width * 0.5, p_height, 0.0)
+				portal_top_bar.position = Vector3(-p_width * 0.5, p_height, 0.0)
 				portal_end_bar.scale = Vector3(zoom, p_height, zoom)
-				portal_end_bar.position = Vector3(p_width, p_height * 0.5, 0.0)
+				portal_end_bar.position = Vector3(-p_width, p_height * 0.5, 0.0)
 
 			if terrain_material:
 				terrain_material.set_shader_parameter("portal_height", p_height)
