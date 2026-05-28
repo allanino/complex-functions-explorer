@@ -212,6 +212,33 @@ Why this is bulletproof:
 ================================================================================
 */
 
+
+vec2 complex_asin(float x, float y) {
+    vec2 z = vec2(x, y);
+    vec2 z2 = complex_mul(z, z);
+    vec2 one_minus_z2 = vec2(1.0 - z2.x, -z2.y);
+    float r = sqrt(length(one_minus_z2));
+    float theta = atan(one_minus_z2.y, one_minus_z2.x) * 0.5;
+    vec2 sqrt_part = vec2(r * cos(theta), r * sin(theta));
+    vec2 iz = vec2(-y, x);
+    vec2 sum_val = iz + sqrt_part;
+    vec2 log_val = complex_log(sum_val.x, sum_val.y);
+    return vec2(log_val.y, -log_val.x);
+}
+
+vec2 complex_acos(float x, float y) {
+    vec2 z = vec2(x, y);
+    vec2 z2 = complex_mul(z, z);
+    vec2 one_minus_z2 = vec2(1.0 - z2.x, -z2.y);
+    float r = sqrt(length(one_minus_z2));
+    float theta = atan(one_minus_z2.y, one_minus_z2.x) * 0.5;
+    vec2 sqrt_part = vec2(r * cos(theta), r * sin(theta));
+    vec2 i_sqrt_part = vec2(-sqrt_part.y, sqrt_part.x);
+    vec2 sum_val = z + i_sqrt_part;
+    vec2 log_val = complex_log(sum_val.x, sum_val.y);
+    return vec2(log_val.y, -log_val.x);
+}
+
 vec2 complex_cot(float x, float y) {
     float abs_2y = 2.0 * abs(y);
     
