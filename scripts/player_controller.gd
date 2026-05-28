@@ -239,9 +239,9 @@ func _physics_process(delta):
 				branch_changed = true
 
 			if branch_changed:
-				var spatial_audio = get_node_or_null("/root/Main/SpatialAudio")
-				if spatial_audio and spatial_audio.has_method("play_portal_crossing"):
-					spatial_audio.play_portal_crossing()
+				var audio = get_node_or_null("/root/Main/Audio")
+				if audio and audio.has_method("play_portal_crossing"):
+					audio.play_portal_crossing()
 
 	last_z = current_z
 

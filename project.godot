@@ -8,12 +8,6 @@
 
 config_version=5
 
-[physics]
-
-common/physics_ticks_per_second=60
-common/physics_jitter_fix=0.0
-common/physics_interpolation=true
-
 [application]
 
 config/name="First Person Exploration"
@@ -61,8 +55,11 @@ move_right={
 ]
 }
 
-[rendering]
+[physics]
 
-limits/global_shader_variables/buffer_size=65536
+common/physics_jitter_fix=0.0
+common/physics_interpolation=true
+
+[rendering]
 
 reflections/sky_reflections/roughness_layers=7
