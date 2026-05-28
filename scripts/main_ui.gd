@@ -86,11 +86,8 @@ var active_detached_value: Label = null
 @onready var roughness_slider = %MenuOverlay/%RoughnessContainer
 
 @onready var surface_texture_slider = %MenuOverlay/%SurfaceTextureContainer
-@onready var morph_button = %MenuOverlay/%MorphButton
+@onready var morph_slider = %MenuOverlay/%MorphSliderContainer
 
-@onready var morph_overlay = %MenuOverlay/%MorphOverlay
-@onready var morph_slider = %MenuOverlay/%MorphSlider
-@onready var exit_morph_button = %MenuOverlay/%ExitMorphButton
 
 @onready var apply_button = %MenuOverlay/%ApplyButton
 @onready var close_button = %MenuOverlay/%CloseButton
@@ -177,6 +174,7 @@ var _initial_freeze_time: bool
 var _initial_day_duration: float
 var _initial_day_time: float
 var _initial_fog_density: float
+var _initial_morph_value: float
 var _initial_terrain_detail: int
 var _initial_antialiasing_mode: int
 var _initial_view_distance: int
@@ -246,9 +244,7 @@ func _ready():
 	metallic_slider.value_changed.connect(_on_terrain_metallic_value_changed)
 	roughness_slider.value_changed.connect(_on_terrain_roughness_value_changed)
 	surface_texture_slider.value_changed.connect(_on_terrain_surface_texture_value_changed)
-	morph_button.item_selected.connect(_on_morph_selected)
 	morph_slider.value_changed.connect(_on_morph_slider_changed)
-	exit_morph_button.pressed.connect(_on_exit_morph_pressed)
 
 	func_button.clear()
 	var sorted_keys = Config.FUNCTIONS.keys()
@@ -281,10 +277,6 @@ func _ready():
 	color_scheme_button.add_item("Cyan real line (flipped)")
 	color_scheme_button.add_item("Red real line (standard)")
 
-	morph_button.clear()
-	morph_button.add_item("None")
-	morph_button.add_item("Smooth Morph")
-
 	apply_aa()
 	_setup_tooltips()
 	_disable_sliders_focus(self)
@@ -294,6 +286,7 @@ func _ready():
 	detach_slider.value_changed.connect(_on_detach_slider_changed)
 	exit_detach_button.pressed.connect(_on_exit_detach_pressed)
 	iter_slider.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "Iterations"))
+	morph_slider.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "Terrain Morph"))
 	multivalued_slider.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "Branches (n)"))
 	day_duration_slider.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "Day Duration"))
 	day_time_slider.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "Time of day"))
@@ -396,9 +389,6 @@ func toggle_menu(applied: bool = false):
 	if detach_overlay.visible:
 		_on_exit_detach_pressed()
 		return
-	if morph_overlay.visible:
-		_on_exit_morph_pressed()
-		return
 
 	menu_overlay.visible = !menu_overlay.visible
 	if menu_overlay.visible:
@@ -423,6 +413,7 @@ func toggle_menu(applied: bool = false):
 		_initial_day_duration = Config.day_duration
 		_initial_day_time = Config.day_time
 		_initial_fog_density = Config.fog_density
+		_initial_morph_value = Config.morph_value
 		_initial_terrain_detail = Config.terrain_detail
 		_initial_antialiasing_mode = Config.antialiasing_mode
 		_initial_view_distance = Config.view_distance
@@ -473,6 +464,7 @@ func toggle_menu(applied: bool = false):
 		self_illumination_slider.value = Config.self_illumination * 100.0
 		_on_self_illumination_value_changed(self_illumination_slider.value)
 		fog_density_slider.value = Config.fog_density * 100.0
+		morph_slider.value = Config.morph_value
 		_on_fog_density_value_changed(fog_density_slider.value)
 		shadows_checkbox.button_pressed = Config.shadows_enabled
 		hud_complex_checkbox.button_pressed = Config.show_hud_complex
@@ -544,6 +536,7 @@ func toggle_menu(applied: bool = false):
 			Config.day_duration = _initial_day_duration
 			Config.day_time = _initial_day_time
 			Config.fog_density = _initial_fog_density
+			Config.morph_value = _initial_morph_value
 			Config.terrain_detail = _initial_terrain_detail
 			Config.antialiasing_mode = _initial_antialiasing_mode
 			Config.view_distance = _initial_view_distance
@@ -691,22 +684,9 @@ func _on_terrain_surface_texture_value_changed(value):
 	Config.terrain_surface_texture = value / 100.0
 	surface_texture_slider.value_text = str(int(value)) + "%"
 
-func _on_morph_selected(index):
-	Config.morph_type = index
-	if index == 1:
-		toggle_menu(true)
-		morph_overlay.visible = true
-		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-
 func _on_morph_slider_changed(value):
 	Config.morph_value = value
-
-func _on_exit_morph_pressed():
-	Config.morph_type = 0
-	Config.morph_value = 1.0
-	morph_overlay.visible = false
-	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
-	morph_button.selected = 0
+	morph_slider.value_text = "%.2f" % value
 
 func _parse_complex(text: String) -> Vector2:
 	text = text.replace(" ", "").replace("I", "i").replace("*", "")

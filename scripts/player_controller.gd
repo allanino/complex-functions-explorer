@@ -54,7 +54,7 @@ func _unhandled_input(event):
 	if hud_node and hud_node.detach_overlay and hud_node.detach_overlay.visible:
 		is_detached = true
 
-	if Config.morph_type != 0 or is_detached:
+	if is_detached:
 		return
 
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
@@ -117,7 +117,7 @@ func _physics_process(delta):
 	if hud_node and hud_node.detach_overlay and hud_node.detach_overlay.visible:
 		is_detached = true
 
-	if Config.morph_type != 0 or is_detached:
+	if is_detached:
 		velocity = Vector3.ZERO
 		return
 
