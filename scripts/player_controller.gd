@@ -30,7 +30,7 @@ func _ready():
 	# Set the global position directly using a Vector3(x, y, z)
 	global_position = Vector3(5.0, 0.0, 0.0)
 	var scale_factor = 1.0 / Config.effective_zoom
-	last_t = -global_position.z * 0.1 * scale_factor
+	last_t = - global_position.z * 0.1 * scale_factor
 	last_z = Vector2(global_position.x * 0.1 * scale_factor, -global_position.z * 0.1 * scale_factor)
 	
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
@@ -225,12 +225,6 @@ func _physics_process(delta):
 	# Snap player to terrain height + offset
 	global_position.y = terrain_h + Config.camera_height + height_offset
 
-
-			if branch_changed:
-				var audio = get_node_or_null("/root/Main/Audio")
-				if audio and audio.has_method("play_portal_crossing"):
-					audio.play_portal_crossing()
-
 	# Zeta zero detection during auto-walk
 	if Config.show_hud_zeros:
 		z_history.push_back(current_z)
@@ -355,7 +349,7 @@ func _start_auto_walk_from_demo():
 func _process(delta):
 	var scale_factor = 1.0 / Config.effective_zoom
 	var current_x = global_position.x * 0.1 * scale_factor
-	var current_y = -global_position.z * 0.1 * scale_factor
+	var current_y = - global_position.z * 0.1 * scale_factor
 	var frame_z = Vector2(current_x, current_y)
 
 	# If player teleported (e.g. reset, demo actions, or function change),
@@ -397,9 +391,10 @@ func _process(delta):
 					branch_changed = true
 
 		if branch_changed:
-			var spatial_audio = get_node_or_null("/root/Main/SpatialAudio")
-			if spatial_audio and spatial_audio.has_method("play_portal_crossing"):
-				spatial_audio.play_portal_crossing()
+			var audio = get_node_or_null("/root/Main/Audio")
+			if audio and audio.has_method("play_portal_crossing"):
+				audio.play_portal_crossing()
+
 
 			# Play the screen-space flash transition effect
 			var main_ui = get_node_or_null("/root/Main/MainUI")
