@@ -139,30 +139,9 @@ void vertex() {
                 float r = cam_pos.z / (cam_pos.z - world_v_pos.z);
                 float px = cam_pos.x + r * (world_v_pos.x - cam_pos.x);
                 float py = cam_pos.y + r * (world_v_pos.y - cam_pos.y);
-
-                bool in_portal = false;
-                if (function_type == 18 || function_type == 19) {
-                    float threshold = 10.0 * zoom_factor;
-                    if ((px >= threshold && px < threshold + portal_width) ||
-                        (px <= -threshold && px > -threshold - portal_width)) {
-                        if (py > -10.0 && py < portal_height) {
-                            in_portal = true;
-                        }
-                    }
-                } else {
-                    if (px > 0.0 && px < portal_width && py > -10.0 && py < portal_height) {
-                        in_portal = true;
-                    }
-                }
-
-                if (in_portal) {
-                    if (function_type == 18) { // ASIN
-                        branch_offset = (cam_pos.z > 0.0) ? -1 : 1;
-                    } else if (function_type == 19) { // ACOS
-                        branch_offset = (cam_pos.z > 0.0) ? 1 : -1;
-                    } else {
-                        branch_offset = (cam_pos.z > 0.0) ? 1 : -1;
-                    }
+                // Portal is at z=0, 0 < x < portal_width, with dynamic height py < portal_height
+                if (px > 0.0 && px < portal_width && py > -10.0 && py < portal_height) {
+                    branch_offset = (cam_pos.z > 0.0) ? 1 : -1;
                 }
             }
         }
@@ -357,21 +336,7 @@ void fragment() {
         if (is_multivalued) {
             // Highlight the branch cut portal area
             float dist_to_cut = abs(world_pos.z);
-            bool in_cut = false;
-
-            if (function_type == 18 || function_type == 19) {
-                float threshold = 10.0 * zoom_factor;
-                if ((world_pos.x >= threshold && world_pos.x < threshold + portal_width) ||
-                    (world_pos.x <= -threshold && world_pos.x > -threshold - portal_width)) {
-                    in_cut = true;
-                }
-            } else {
-                if (world_pos.x > 0.0 && world_pos.x < portal_width) {
-                    in_cut = true;
-                }
-            }
-
-            if (in_cut) {
+            if (world_pos.x > 0.0 && world_pos.x < portal_width) {
                 float cut_glow = 1.0 - smoothstep(0.0, 0.1 * zoom_factor, dist_to_cut);
                 final_emission += vec3(0.0, 0.8, 1.0) * cut_glow * 0.4;
             }
