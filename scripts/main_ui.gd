@@ -197,7 +197,6 @@ func _ready():
 
 	curves_checkbox.toggled.connect(_on_curves_toggled)
 	critical_checkbox.toggled.connect(_on_critical_toggled)
-	auto_walk_checkbox.toggled.connect(_on_auto_walk_toggled)
 	flow_checkbox.toggled.connect(_on_flow_toggled)
 	hud_complex_checkbox.toggled.connect(_on_hud_complex_toggled)
 	hud_navigation_checkbox.toggled.connect(_on_hud_navigation_toggled)
@@ -413,7 +412,7 @@ func toggle_menu(applied: bool = false):
 		_initial_day_duration = Config.day_duration
 		_initial_day_time = Config.day_time
 		_initial_fog_density = Config.fog_density
-		_initial_morph_value = Config.morph_value
+		_initial_morph_value = 1.0
 		_initial_terrain_detail = Config.terrain_detail
 		_initial_antialiasing_mode = Config.antialiasing_mode
 		_initial_view_distance = Config.view_distance
@@ -464,7 +463,8 @@ func toggle_menu(applied: bool = false):
 		self_illumination_slider.value = Config.self_illumination * 100.0
 		_on_self_illumination_value_changed(self_illumination_slider.value)
 		fog_density_slider.value = Config.fog_density * 100.0
-		morph_slider.value = Config.morph_value
+		morph_slider.value = 1.0
+		_on_morph_slider_changed(1.0)
 		_on_fog_density_value_changed(fog_density_slider.value)
 		shadows_checkbox.button_pressed = Config.shadows_enabled
 		hud_complex_checkbox.button_pressed = Config.show_hud_complex
@@ -541,6 +541,7 @@ func toggle_menu(applied: bool = false):
 			Config.antialiasing_mode = _initial_antialiasing_mode
 			Config.view_distance = _initial_view_distance
 			Config.shadows_enabled = _initial_shadows_enabled
+
 			apply_aa()
 
 func _on_func_item_selected(index):
@@ -1184,6 +1185,9 @@ func _on_detach_slider_changed(value: float):
 		detach_value.text = active_detached_value.text
 
 func _on_exit_detach_pressed():
+	# Avoid accidental morph blending when returning from a detached slider
+	morph_slider.value = 1.0
+
 	detach_overlay.visible = false
 	menu_overlay.visible = true
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
@@ -1282,6 +1286,3 @@ func _on_rational_text_submitted(new_text: String):
 			Config.rational_num_coeffs = _parse_poly(expr)
 			Config.rational_den_coeffs = PackedVector2Array([Vector2(1, 0), Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO])
 
-
-func _on_auto_walk_toggled(pressed: bool):
-	pass

@@ -165,7 +165,6 @@ var terrain_emission: float = 0.1
 var terrain_metallic: float = 0.7
 var terrain_roughness: float = 0.1
 var terrain_surface_texture: float = 0.0
-var morph_value: float = 1.0
 var fog_density: float = 0.4
 
 # Player parameters
@@ -193,6 +192,7 @@ var visited_zeros: Array[Vector2] = []
 var rvm_start_t: float = 0.0
 var performance_protection_active: bool = false
 var effective_zoom: float = 1.0
+var morph_value: float = 1.0
 
 func _ready():
 	load_settings()
@@ -237,7 +237,6 @@ func save_settings():
 	config.set_value("rendering", "terrain_metallic", terrain_metallic)
 	config.set_value("rendering", "terrain_roughness", terrain_roughness)
 	config.set_value("rendering", "terrain_surface_texture", terrain_surface_texture)
-	config.set_value("rendering", "morph_value", morph_value)
 	config.set_value("rendering", "fog_density", fog_density)
 
 	config.set_value("player", "movement_speed", movement_speed)
@@ -305,7 +304,6 @@ func load_settings():
 	terrain_metallic = config.get_value("rendering", "terrain_metallic", terrain_metallic)
 	terrain_roughness = config.get_value("rendering", "terrain_roughness", terrain_roughness)
 	terrain_surface_texture = config.get_value("rendering", "terrain_surface_texture", terrain_surface_texture)
-	morph_value = config.get_value("rendering", "morph_value", morph_value)
 	fog_density = config.get_value("rendering", "fog_density", fog_density)
 
 	movement_speed = config.get_value("player", "movement_speed", movement_speed)
