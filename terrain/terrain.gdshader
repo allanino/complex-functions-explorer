@@ -517,72 +517,77 @@ void fragment() {
         }
 
         if (show_flow) {
-            float g_size = 0.75;
-            vec2 cell_id = floor(world_pos.xz / g_size);
-            vec2 grid_uv = fract(world_pos.xz / g_size) - 0.5;
+            float dist_to_camera = length(world_pos - CAMERA_POSITION_WORLD);
+            float flow_fade = 1.0 - smoothstep(30.0, 80.0, dist_to_camera);
 
-            // Get gradient from normal (change the sign to change flow direction)
-            vec2 grad = v_normal.xz;
-            float grad_mag = length(grad);
+            if (flow_fade > 0.001) {
+                float g_size = 0.75;
+                vec2 cell_id = floor(world_pos.xz / g_size);
+                vec2 grid_uv = fract(world_pos.xz / g_size) - 0.5;
 
-            if (grad_mag > 0.01) {
-                vec2 dir = grad / grad_mag;
+                // Get gradient from normal (change the sign to change flow direction)
+                vec2 grad = v_normal.xz;
+                float grad_mag = length(grad);
 
-                float arrow_mask = 0.0;
-                float pulse_intensity = 0.0;
+                if (grad_mag > 0.001) {
+                    vec2 dir = grad / grad_mag;
 
-                for (float dx = -1.0; dx <= 1.0; dx += 1.0) {
-                    for (float dy = -1.0; dy <= 1.0; dy += 1.0) {
-                        vec2 offset = vec2(dx, dy);
-                        vec2 local_grid_uv = grid_uv - offset;
-                        vec2 cell_local = local_grid_uv * g_size;
+                    float arrow_mask = 0.0;
+                    float pulse_intensity = 0.0;
 
-                        // Rotate to align with gradient (pointing along +X)
-                        vec2 p = vec2(cell_local.x * dir.x + cell_local.y * dir.y, -cell_local.x * dir.y + cell_local.y * dir.x);
+                    for (float dx = -1.0; dx <= 1.0; dx += 1.0) {
+                        for (float dy = -1.0; dy <= 1.0; dy += 1.0) {
+                            vec2 offset = vec2(dx, dy);
+                            vec2 local_grid_uv = grid_uv - offset;
+                            vec2 cell_local = local_grid_uv * g_size;
 
-                        float arrow_len = clamp(
-                            grad_mag * g_size * 2.2,
-                            0.3 * g_size,
-                            0.85 * g_size
-                        );
-                        float thickness = 0.015 * g_size;
-                        float head_size = arrow_len * 0.2;
+                            // Rotate to align with gradient (pointing along +X)
+                            vec2 p = vec2(cell_local.x * dir.x + cell_local.y * dir.y, -cell_local.x * dir.y + cell_local.y * dir.x);
 
-                        float half_len = arrow_len * 0.5;
-                        vec2 tip = vec2(half_len, 0.0);
-                        vec2 head_base = vec2(half_len - head_size, 0.0);
-                        vec2 tail = vec2(-half_len, 0.0);
+                            float arrow_len = clamp(
+                                grad_mag * g_size * 2.2,
+                                0.3 * g_size,
+                                0.85 * g_size
+                            );
+                            float thickness = 0.015 * g_size;
+                            float head_size = arrow_len * 0.2;
 
-                        // Body
-                        float d_body = sdLine(p, tail, head_base);
+                            float half_len = arrow_len * 0.5;
+                            vec2 tip = vec2(half_len, 0.0);
+                            vec2 head_base = vec2(half_len - head_size, 0.0);
+                            vec2 tail = vec2(-half_len, 0.0);
 
-                        // Triangle head
-                        float d_head = sdTriangle(
-                            p,
-                            tip,
-                            head_base + vec2(0.0,  head_size * 0.45),
-                            head_base + vec2(0.0, -head_size * 0.45)
-                        );
+                            // Body
+                            float d_body = sdLine(p, tail, head_base);
 
-                        float d_arrow = min(d_body - thickness, d_head);
+                            // Triangle head
+                            float d_head = sdTriangle(
+                                p,
+                                tip,
+                                head_base + vec2(0.0,  head_size * 0.45),
+                                head_base + vec2(0.0, -head_size * 0.45)
+                            );
 
-                        float cell_mask = 1.0 - smoothstep(0.0, thickness, d_arrow);
+                            float d_arrow = min(d_body - thickness, d_head);
 
-                        if (cell_mask > 0.0) {
-                            float pulse_time = fract(TIME * 1.2);
-                            float p_coord = (p.x / arrow_len) + 0.5; // 0 to 1
-                            float cell_pulse = smoothstep(pulse_time - 0.3, pulse_time, p_coord) * 
-                                               smoothstep(pulse_time + 0.05, pulse_time, p_coord);
+                            float cell_mask = 1.0 - smoothstep(0.0, thickness, d_arrow);
 
-                            arrow_mask = max(arrow_mask, cell_mask);
-                            pulse_intensity = max(pulse_intensity, cell_mask * cell_pulse);
+                            if (cell_mask > 0.0) {
+                                float pulse_time = fract(TIME * 0.8);
+                                float p_coord = (p.x / arrow_len) + 0.5; // 0 to 1
+                                float cell_pulse = smoothstep(pulse_time - 0.3, pulse_time, p_coord) * 
+                                                   smoothstep(pulse_time + 0.05, pulse_time, p_coord);
+
+                                arrow_mask = max(arrow_mask, cell_mask);
+                                pulse_intensity = max(pulse_intensity, cell_mask * cell_pulse);
+                            }
                         }
                     }
-                }
 
-                vec3 flow_color = vec3(1.0) * arrow_mask * (0.1 + 0.5 * pulse_intensity);
-                final_emission += flow_color * 0.5;
-                ALBEDO = mix(ALBEDO, vec3(1.0), arrow_mask * 0.25);
+                    vec3 flow_color = vec3(1.0) * arrow_mask * (0.1 + 0.5 * pulse_intensity) * flow_fade;
+                    final_emission += flow_color * 0.5;
+                    ALBEDO = mix(ALBEDO, vec3(1.0), arrow_mask * 0.25 * flow_fade);
+                }
             }
         }
 
