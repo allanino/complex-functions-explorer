@@ -18,6 +18,22 @@ shadow_color = Color(0, 0, 0, 0.5)
 shadow_size = 4
 shadow_offset = Vector2(0, 4)
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_disabled"]
+content_margin_left = 15.0
+content_margin_top = 8.0
+content_margin_right = 15.0
+content_margin_bottom = 8.0
+bg_color = Color(1, 1, 1, 0.02)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.05)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_normal"]
 content_margin_left = 15.0
 content_margin_top = 8.0
@@ -105,6 +121,22 @@ corner_radius_top_left = 4
 corner_radius_top_right = 4
 corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_apply_disabled"]
+content_margin_left = 40.0
+content_margin_top = 12.0
+content_margin_right = 40.0
+content_margin_bottom = 12.0
+bg_color = Color(1, 1, 1, 0.02)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.05)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_apply_normal"]
 content_margin_left = 40.0
@@ -225,6 +257,7 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/focus = SubResource("StyleBoxFlat_btn_normal")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_disabled")
 
 [node name="PresetUpdateButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TopPresetHBox" unique_id=99990003]
 unique_name_in_owner = true
@@ -234,6 +267,7 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/focus = SubResource("StyleBoxFlat_btn_normal")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_disabled")
 text = "Save"
 
 [node name="PresetRestoreButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TopPresetHBox" unique_id=99990010]
@@ -244,6 +278,7 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/focus = SubResource("StyleBoxFlat_btn_normal")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_disabled")
 text = "Restore"
 
 [node name="PresetDeleteButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TopPresetHBox" unique_id=99990004]
@@ -254,6 +289,7 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/focus = SubResource("StyleBoxFlat_btn_normal")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_disabled")
 text = "Delete"
 
 [node name="PresetNewButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TopPresetHBox" unique_id=99990005]
@@ -264,6 +300,7 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/focus = SubResource("StyleBoxFlat_btn_normal")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_disabled")
 text = "+ New"
 
 [node name="QuitButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TopPresetHBox" unique_id=781431675]
@@ -277,6 +314,7 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/focus = SubResource("StyleBoxFlat_btn_normal")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_disabled")
 text = "Quit"
 
 [node name="TopHSeparator" type="HSeparator" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox" unique_id=99990006]
@@ -329,6 +367,7 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/focus = SubResource("StyleBoxFlat_btn_normal")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_disabled")
 
 [node name="HeightContainer" type="HBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox" unique_id=2077499212]
 layout_mode = 2
@@ -349,6 +388,7 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/focus = SubResource("StyleBoxFlat_btn_normal")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_disabled")
 
 [node name="HeightAContainer" type="HBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox" unique_id=1616977590]
 unique_name_in_owner = true
@@ -555,6 +595,7 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/focus = SubResource("StyleBoxFlat_btn_normal")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_disabled")
 
 [node name="BrightnessContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox" unique_id=1323455475 instance=ExtResource("1")]
 unique_name_in_owner = true
@@ -674,6 +715,7 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/focus = SubResource("StyleBoxFlat_btn_normal")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_disabled")
 
 [node name="AAContainer" type="HBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/GRAPHICS/Margin/VBox" unique_id=1972959355]
 layout_mode = 2
@@ -694,6 +736,7 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/focus = SubResource("StyleBoxFlat_btn_normal")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_disabled")
 
 [node name="ViewDistanceContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/GRAPHICS/Margin/VBox" unique_id=74672234 instance=ExtResource("1")]
 unique_name_in_owner = true
@@ -958,6 +1001,7 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_apply_normal")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_apply_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_apply_hover")
 theme_override_styles/focus = SubResource("StyleBoxFlat_apply_normal")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_apply_disabled")
 text = "Close"
 
 [node name="ApplyButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/ButtonsHBox" unique_id=1101590507]
@@ -969,6 +1013,7 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_apply_normal")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_apply_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_apply_hover")
 theme_override_styles/focus = SubResource("StyleBoxFlat_apply_normal")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_apply_disabled")
 text = "Apply Changes"
 
 
@@ -1022,6 +1067,7 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/focus = SubResource("StyleBoxFlat_btn_normal")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_disabled")
 text = "Cancel"
 
 [node name="NewPresetSave" type="Button" parent="CenterContainer/NewPresetDialog/MarginContainer/VBoxContainer/HBoxContainer" unique_id=99991007]
@@ -1034,6 +1080,7 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/focus = SubResource("StyleBoxFlat_btn_normal")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_disabled")
 text = "Save"
 
 [node name="DeletePresetDialog" type="PanelContainer" parent="CenterContainer" unique_id=99992000]
@@ -1084,6 +1131,7 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/focus = SubResource("StyleBoxFlat_btn_normal")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_disabled")
 text = "Cancel"
 
 [node name="DeletePresetConfirm" type="Button" parent="CenterContainer/DeletePresetDialog/MarginContainer/VBoxContainer/HBoxContainer" unique_id=99992007]
@@ -1096,4 +1144,5 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/focus = SubResource("StyleBoxFlat_btn_normal")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_disabled")
 text = "Delete"
