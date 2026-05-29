@@ -123,8 +123,6 @@ func _physics_process(delta):
 	var is_detached = false
 	if main_ui and main_ui.detach_overlay and main_ui.detach_overlay.visible:
 		is_detached = true
-	if hud_node and hud_node.menu_overlay and hud_node.menu_overlay.visible:
-		is_detached = true
 
 	if is_detached:
 		velocity = Vector3.ZERO
