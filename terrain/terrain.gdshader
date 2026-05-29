@@ -580,9 +580,9 @@ void fragment() {
                     }
                 }
 
-                vec3 flow_color = vec3(1.0) * arrow_mask * (0.1 + 0.9 * pulse_intensity);
+                vec3 flow_color = vec3(1.0) * arrow_mask * (0.1 + 0.5 * pulse_intensity);
                 final_emission += flow_color * 0.5;
-                ALBEDO = mix(ALBEDO, vec3(1.0), arrow_mask * 0.15);
+                ALBEDO = mix(ALBEDO, vec3(1.0), arrow_mask * 0.25);
             }
         }
 
