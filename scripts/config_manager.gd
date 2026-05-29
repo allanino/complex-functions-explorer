@@ -250,9 +250,9 @@ func _snapshot_current() -> Dictionary:
 	return snapshot
 
 func apply_preset(preset_name: String):
-	# Save current preset's state if valid
+	# Save current preset's state only when switching away to a different preset
 	var old_clean = current_preset.trim_suffix("*")
-	if PRESETS.has(old_clean):
+	if PRESETS.has(old_clean) and old_clean != preset_name:
 		_edited_presets[old_clean] = _snapshot_current()
 
 	if PRESETS.has(preset_name):
@@ -443,9 +443,12 @@ func load_settings():
 	terrain_surface_texture = config.get_value("rendering", "terrain_surface_texture", terrain_surface_texture)
 	fog_density = config.get_value("rendering", "fog_density", fog_density)
 	current_preset = config.get_value("session", "current_preset", "Default")
+	# Only restore custom (non-built-in) presets; built-ins always come from preset_defaults.gd
+	var built_in_keys = PRESET_DEFAULTS.PRESETS.keys()
 	var saved_presets = config.get_value("session", "custom_presets", {})
-	if saved_presets.size() > 0:
-		PRESETS = saved_presets
+	for preset_name in saved_presets:
+		if not built_in_keys.has(preset_name):
+			PRESETS[preset_name] = saved_presets[preset_name]
 
 	movement_speed = config.get_value("player", "movement_speed", movement_speed)
 	speed_near_zeros = config.get_value("player", "speed_near_zeros", speed_near_zeros)

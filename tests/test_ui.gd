@@ -22,6 +22,8 @@ func before_all():
 				
 	# Load clean/empty test settings so the singleton starts fresh
 	Config.load_settings()
+	# Restore PRESETS to built-ins only (in case previous session saved custom presets)
+	Config.PRESETS = Config.PRESET_DEFAULTS.PRESETS.duplicate(true)
 
 func after_all():
 	# Remove the temporary test settings file
@@ -41,6 +43,10 @@ func after_all():
 	Config.load_settings()
 
 func before_each():
+	# Reset Config singleton to a known clean state before every test
+	Config._edited_presets.clear()
+	Config.current_preset = "Default"
+	Config.apply_preset("Default")
 	hud_instance = hud_scene.instantiate()
 	add_child_autoqfree(hud_instance)
 
