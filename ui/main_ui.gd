@@ -232,8 +232,7 @@ func _ready():
 	color_scheme_button.item_selected.connect(_on_color_scheme_selected)
 
 
-	for preset_name in Config.PRESETS.keys():
-		preset_button.add_item(preset_name)
+	_populate_preset_button()
 
 	preset_button.item_selected.connect(_on_preset_selected)
 	Config.preset_applied.connect(_on_preset_applied)
@@ -1008,9 +1007,7 @@ func _on_delete_preset_confirm_pressed():
 		Config.delete_preset(preset_name)
 
 		# Repopulate dropdown
-		preset_button.clear()
-		for p_name in Config.PRESETS.keys():
-			preset_button.add_item(p_name)
+		_populate_preset_button()
 
 		if Config.PRESETS.size() > 0:
 			var new_preset = Config.PRESETS.keys()[0]
@@ -1033,13 +1030,23 @@ func _on_new_preset_save_pressed():
 	if preset_name != "":
 		Config.update_preset(preset_name)
 
-		preset_button.clear()
-		for p_name in Config.PRESETS.keys():
-			preset_button.add_item(p_name)
+		_populate_preset_button()
 
 		Config.apply_preset(preset_name)
 
 	new_preset_dialog.visible = false
+
+func _populate_preset_button():
+	var built_in_keys = Config.PRESET_DEFAULTS.PRESETS.keys()
+	preset_button.clear()
+	# Custom presets first
+	for p_name in Config.PRESETS.keys():
+		if not built_in_keys.has(p_name):
+			preset_button.add_item(p_name)
+	# Built-in presets after
+	for p_name in Config.PRESETS.keys():
+		if built_in_keys.has(p_name):
+			preset_button.add_item(p_name)
 
 func _on_preset_selected(index: int):
 	var preset_name = preset_button.get_item_text(index).trim_suffix("*")
