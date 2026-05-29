@@ -303,6 +303,10 @@ theme_override_styles/focus = SubResource("StyleBoxFlat_btn_normal")
 theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_disabled")
 text = "+ New"
 
+[node name="VSeparator" type="VSeparator" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TopPresetHBox"]
+layout_mode = 2
+theme_override_constants/separation = 15
+
 [node name="QuitButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TopPresetHBox" unique_id=781431675]
 unique_name_in_owner = true
 layout_mode = 2
