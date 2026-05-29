@@ -266,6 +266,19 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/focus = SubResource("StyleBoxFlat_btn_normal")
 text = "+ New"
 
+[node name="QuitButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TopPresetHBox" unique_id=781431675]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.5, 0.5, 1.0)
+theme_override_colors/font_pressed_color = Color(1, 0.4, 0.4, 1)
+theme_override_colors/font_hover_color = Color(0.9, 0.6, 0.6, 0.9)
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/focus = SubResource("StyleBoxFlat_btn_normal")
+text = "Quit"
+
 [node name="TopHSeparator" type="HSeparator" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox" unique_id=99990006]
 layout_mode = 2
 
@@ -935,9 +948,6 @@ layout_mode = 2
 theme_override_constants/separation = 20
 alignment = 1
 
-[node name="Spacer" type="Control" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/ButtonsHBox" unique_id=1318535870]
-layout_mode = 2
-size_flags_horizontal = 3
 
 [node name="CloseButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/ButtonsHBox" unique_id=895379033]
 unique_name_in_owner = true
@@ -961,23 +971,7 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_apply_hover")
 theme_override_styles/focus = SubResource("StyleBoxFlat_apply_normal")
 text = "Apply Changes"
 
-[node name="QuitContainer" type="HBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/ButtonsHBox" unique_id=46162860]
-layout_mode = 2
-size_flags_horizontal = 3
-alignment = 2
 
-[node name="QuitButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/ButtonsHBox/QuitContainer" unique_id=781431675]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_colors/font_color = Color(0.7, 0.5, 0.5, 0.8)
-theme_override_colors/font_pressed_color = Color(1, 0.4, 0.4, 1)
-theme_override_colors/font_hover_color = Color(0.9, 0.6, 0.6, 0.9)
-theme_override_font_sizes/font_size = 20
-theme_override_styles/normal = SubResource("StyleBoxEmpty_btn")
-theme_override_styles/pressed = SubResource("StyleBoxEmpty_btn")
-theme_override_styles/hover = SubResource("StyleBoxEmpty_btn")
-theme_override_styles/focus = SubResource("StyleBoxEmpty_btn")
-text = "Quit"
 
 [node name="NewPresetDialog" type="PanelContainer" parent="CenterContainer" unique_id=99991000]
 unique_name_in_owner = true
