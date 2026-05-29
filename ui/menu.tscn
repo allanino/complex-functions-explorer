@@ -18,6 +18,21 @@ shadow_color = Color(0, 0, 0, 0.5)
 shadow_size = 4
 shadow_offset = Vector2(0, 4)
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dialog_opaque"]
+bg_color = Color(0.03, 0.03, 0.03, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+shadow_color = Color(0, 0, 0, 0.5)
+shadow_size = 4
+shadow_offset = Vector2(0, 4)
+
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_tabpanel"]
 content_margin_left = 0.0
 content_margin_top = 20.0
@@ -964,7 +979,7 @@ visible = false
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
-theme_override_styles/panel = SubResource("StyleBoxFlat_glass")
+theme_override_styles/panel = SubResource("StyleBoxFlat_dialog_opaque")
 
 [node name="MarginContainer" type="MarginContainer" parent="CenterContainer/NewPresetDialog" unique_id=99991001]
 layout_mode = 2
@@ -999,6 +1014,7 @@ alignment = 1
 
 [node name="NewPresetCancel" type="Button" parent="CenterContainer/NewPresetDialog/MarginContainer/VBoxContainer/HBoxContainer" unique_id=99991006]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 18
@@ -1010,13 +1026,14 @@ text = "Cancel"
 
 [node name="NewPresetSave" type="Button" parent="CenterContainer/NewPresetDialog/MarginContainer/VBoxContainer/HBoxContainer" unique_id=99991007]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 18
-theme_override_styles/normal = SubResource("StyleBoxFlat_apply_normal")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_apply_pressed")
-theme_override_styles/hover = SubResource("StyleBoxFlat_apply_hover")
-theme_override_styles/focus = SubResource("StyleBoxFlat_apply_normal")
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/focus = SubResource("StyleBoxFlat_btn_normal")
 text = "Save"
 
 
@@ -1026,7 +1043,7 @@ visible = false
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
-theme_override_styles/panel = SubResource("StyleBoxFlat_glass")
+theme_override_styles/panel = SubResource("StyleBoxFlat_dialog_opaque")
 
 [node name="MarginContainer" type="MarginContainer" parent="CenterContainer/DeletePresetDialog" unique_id=99992001]
 layout_mode = 2
@@ -1059,6 +1076,7 @@ alignment = 1
 
 [node name="DeletePresetCancel" type="Button" parent="CenterContainer/DeletePresetDialog/MarginContainer/VBoxContainer/HBoxContainer" unique_id=99992006]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 18
@@ -1070,11 +1088,12 @@ text = "Cancel"
 
 [node name="DeletePresetConfirm" type="Button" parent="CenterContainer/DeletePresetDialog/MarginContainer/VBoxContainer/HBoxContainer" unique_id=99992007]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 18
-theme_override_styles/normal = SubResource("StyleBoxFlat_apply_normal")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_apply_pressed")
-theme_override_styles/hover = SubResource("StyleBoxFlat_apply_hover")
-theme_override_styles/focus = SubResource("StyleBoxFlat_apply_normal")
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/focus = SubResource("StyleBoxFlat_btn_normal")
 text = "Delete"
