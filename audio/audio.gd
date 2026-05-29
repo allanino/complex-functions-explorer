@@ -9,6 +9,8 @@ const PHASE_PAN_STRENGTH = 1.0
 # --- SYNTHESIS STATE ---
 var playback: AudioStreamGeneratorPlayback
 var sample_rate: float = 44100.0
+var _background_music_player: AudioStreamPlayer
+@onready var _audio_stream_player = $AudioStreamPlayer
 var phase: float = 0.0
 var mod_phase: float = 0.0
 var lfo_phase: float = 0.0
@@ -54,7 +56,7 @@ func _ready():
 
 	setup_audio_bus_and_effects()
 
-	var stream_player = $AudioStreamPlayer
+	var stream_player = _audio_stream_player
 
 	var generator = AudioStreamGenerator.new()
 	generator.mix_rate = 44100
@@ -88,7 +90,7 @@ func setup_portal_sfx():
 	portal_sfx_player.name = "PortalSfx"
 	add_child(portal_sfx_player)
 
-	var sfx_path = "res://assets/portal-crossing.mp3"
+	var sfx_path = "res://audio/assets/portal-crossing.mp3"
 	var sfx_stream = load(sfx_path)
 	if sfx_stream:
 		portal_sfx_player.stream = sfx_stream
@@ -98,8 +100,9 @@ func setup_background_music():
 	var music_player = AudioStreamPlayer.new()
 	music_player.name = "BackgroundMusic"
 	add_child(music_player)
+	_background_music_player = music_player
 
-	var music_path = "res://assets/Shore Contemplation.mp3"
+	var music_path = "res://audio/assets/Shore Contemplation.mp3"
 	var music_stream = load(music_path)
 
 	if music_stream:
@@ -144,34 +147,15 @@ func setup_audio_bus_and_effects():
 	reverb_effect.wet = REVERB_AMOUNT
 	AudioServer.add_bus_effect(bus_index, reverb_effect)
 
-	$AudioStreamPlayer.bus = bus_name
+	_audio_stream_player.bus = bus_name
 
 func _process(delta):
-	# --- PERFORMANCE GUARD ---
-	var frame_time_ms = delta * 1000.0
-	if frame_time_ms > 66.67: # < 15 FPS
-		low_fps_counter += 1
-		stable_fps_counter = 0
-		if low_fps_counter >= 2:
-			is_suppressed = true
-	elif frame_time_ms <= 50.0: # >= 20 FPS
-		stable_fps_counter += 1
-		low_fps_counter = 0
-		if stable_fps_counter >= 60:
-			is_suppressed = false
-	else:
-		low_fps_counter = 0
-		stable_fps_counter = 0
-
 	startup_time += delta
-
-	if Config.performance_protection_active:
-		is_suppressed = true
 
 	_process_audio_toggles()
 
 	if playback == null:
-		var stream_player = $AudioStreamPlayer
+		var stream_player = _audio_stream_player
 		if stream_player.playing:
 			playback = stream_player.get_stream_playback()
 		if playback == null: return
@@ -334,20 +318,19 @@ func _process_audio_toggles():
 	AudioServer.set_bus_volume_db(AudioServer.get_bus_index("Master"), linear_to_db(master_vol))
 
 	# 1. Background Music
-	var music = get_node_or_null("BackgroundMusic")
-	if music:
+	if _background_music_player:
 		if Config.bg_music_volume > 0 and not is_suppressed:
-			if not music.playing:
-				music.play()
+			if not _background_music_player.playing:
+				_background_music_player.play()
 			# Map 0-100 to dB. 100 -> -12dB (original), 1 -> -52dB, 0 -> stop
 			var volume_linear = Config.bg_music_volume / 100.0
-			music.volume_db = linear_to_db(volume_linear) - 12.0
+			_background_music_player.volume_db = linear_to_db(volume_linear) - 12.0
 		else:
-			if music.playing:
-				music.stop()
+			if _background_music_player.playing:
+				_background_music_player.stop()
 
 	# 2. Topographic Drone
-	var drone = $AudioStreamPlayer
+	var drone = _audio_stream_player
 	if Config.drone_volume > 0 and not is_suppressed:
 		if not drone.playing:
 			drone.play()
@@ -357,3 +340,6 @@ func _process_audio_toggles():
 		if drone.playing:
 			drone.stop()
 			playback = null
+
+func set_performance_protection(active: bool):
+	is_suppressed = active

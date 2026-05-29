@@ -1,6 +1,6 @@
 extends Node3D
 
-@export var chunk_scene: PackedScene = preload("res://scenes/chunk.tscn")
+@export var terrain_chunk_scene: PackedScene = preload("res://terrain/terrain_chunk.tscn")
 @export var terrain_material: ShaderMaterial
 @export var player: Node3D
 @export var chunk_size: float = 32.0
@@ -18,14 +18,17 @@ var portal_ground_bar: MeshInstance3D
 var portal_vert_bar: MeshInstance3D
 var portal_top_bar: MeshInstance3D
 var portal_end_bar: MeshInstance3D
+var portal_membrane: MeshInstance3D
 
-@onready var sun = get_node("../DirectionalLight3D")
-@onready var moon = get_node("../MoonLight")
-@onready var world_environment = get_node("../WorldEnvironment")
+var portal_frame_left: Node3D
+var portal_ground_bar_left: MeshInstance3D
+var portal_vert_bar_left: MeshInstance3D
+var portal_top_bar_left: MeshInstance3D
+var portal_end_bar_left: MeshInstance3D
+var portal_membrane_left: MeshInstance3D
 
-# Day night cycle variables
-var _golden_hour_transition: float = 0.0
-var _sun_color = Color("#fc9500")
+@onready var sky = get_node("../Sky")
+@onready var audio = get_node_or_null("../Audio")
 
 func _ready():
 	_update_lod_subs()
@@ -74,6 +77,49 @@ func _setup_portal_frame():
 	portal_end_bar.material_override = mat
 	portal_frame.add_child(portal_end_bar)
 
+	# Membrane
+	portal_membrane = MeshInstance3D.new()
+	portal_membrane.mesh = QuadMesh.new()
+	var membrane_mat = ShaderMaterial.new()
+	membrane_mat.shader = load("res://terrain/portal_membrane.gdshader")
+	portal_membrane.material_override = membrane_mat
+	portal_frame.add_child(portal_membrane)
+
+	# Left portal frame for functions with cuts at x <= -1
+	portal_frame_left = Node3D.new()
+	portal_frame_left.name = "PortalFrameLeft"
+	add_child(portal_frame_left)
+
+	portal_ground_bar_left = MeshInstance3D.new()
+	portal_ground_bar_left.mesh = BoxMesh.new()
+	portal_ground_bar_left.mesh.size = Vector3(1.0, 0.2, 0.2)
+	portal_ground_bar_left.material_override = mat
+	portal_frame_left.add_child(portal_ground_bar_left)
+
+	portal_vert_bar_left = MeshInstance3D.new()
+	portal_vert_bar_left.mesh = BoxMesh.new()
+	portal_vert_bar_left.mesh.size = Vector3(0.2, 1.0, 0.2)
+	portal_vert_bar_left.material_override = mat
+	portal_frame_left.add_child(portal_vert_bar_left)
+
+	portal_top_bar_left = MeshInstance3D.new()
+	portal_top_bar_left.mesh = BoxMesh.new()
+	portal_top_bar_left.mesh.size = Vector3(1.0, 0.2, 0.2)
+	portal_top_bar_left.material_override = mat
+	portal_frame_left.add_child(portal_top_bar_left)
+
+	portal_end_bar_left = MeshInstance3D.new()
+	portal_end_bar_left.mesh = BoxMesh.new()
+	portal_end_bar_left.mesh.size = Vector3(0.2, 1.0, 0.2)
+	portal_end_bar_left.material_override = mat
+	portal_frame_left.add_child(portal_end_bar_left)
+
+	# Left Membrane
+	portal_membrane_left = MeshInstance3D.new()
+	portal_membrane_left.mesh = QuadMesh.new()
+	portal_membrane_left.material_override = membrane_mat
+	portal_frame_left.add_child(portal_membrane_left)
+
 func _process(delta):
 	if not player:
 		return
@@ -98,69 +144,6 @@ func _process(delta):
 	var player_pos = player.global_position
 	var player_chunk_x = floor(player_pos.x / chunk_size)
 	var player_chunk_z = floor(player_pos.z / chunk_size)
-
-	# Environment logic
-	var night_factor = 0.0
-	var sunrise_rad = deg_to_rad(Config.sunrise_direction)
-	# Orbit axis is perpendicular to sunrise vector (cos, 0, sin) and zenith (0, 1, 0)
-	var orbit_axis = Vector3(sin(sunrise_rad), 0, -cos(sunrise_rad))
-
-	var progress = 0.0
-	if not Config.freeze_time: # Dynamic
-		# Increment day time based on day duration
-		# 86400 seconds in a day / day_duration = speed multiplier
-		Config.day_time += delta * (86400.0 / Config.day_duration)
-		if Config.day_time >= 86400.0:
-			Config.day_time -= 86400.0
-
-	progress = Config.day_time / 86400.0
-
-	# angle = PI is Midnight (progress 0.0), angle = 0.0 is Noon (progress 0.5)
-	var angle = (progress + 0.5) * TAU
-
-	# Sun direction: rotate Noon (0, -1, 0) around orbit axis
-	var sun_dir = Quaternion(orbit_axis, angle) * Vector3.DOWN
-	var moon_dir = - sun_dir
-
-	var sun_elevation = - sun_dir.y
-	_golden_hour_transition = clamp((0.5 - sun_elevation) / 0.5, 0.0, 1.0)
-
-	if sun_elevation < 0.0:
-		night_factor = clamp(-sun_elevation / 0.3, 0.0, 1.0)
-	else:
-		night_factor = 0.0
-
-	if sun:
-		sun.basis = Basis.looking_at(sun_dir, Vector3.UP if abs(sun_dir.y) < 0.99 else Vector3.FORWARD)
-		sun.light_energy = smoothstep(-0.02, 0.02, sun_elevation) * Config.sun_luminosity
-		sun.light_color = lerp(_sun_color, Color(1.0, 0.5, 0.2), _golden_hour_transition)
-		sun.shadow_enabled = Config.shadows_enabled and sun_elevation > 0.01
-
-	if moon:
-		moon.basis = Basis.looking_at(moon_dir, Vector3.UP if abs(moon_dir.y) < 0.99 else Vector3.FORWARD)
-		var moon_elevation = - moon_dir.y
-		moon.light_energy = smoothstep(-0.02, 0.02, moon_elevation) * 0.4 * Config.sun_luminosity
-		moon.shadow_enabled = Config.shadows_enabled and moon_elevation > 0.01
-
-	if world_environment and world_environment.environment and world_environment.environment.sky:
-		var sky_mat = world_environment.environment.sky.sky_material as ShaderMaterial
-		if sky_mat:
-			sky_mat.set_shader_parameter("golden_hour_factor", _golden_hour_transition)
-			sky_mat.set_shader_parameter("night_factor", night_factor)
-			sky_mat.set_shader_parameter("sky_luminosity", Config.sky_luminosity)
-
-
-		#Setup fog	
-		var env = world_environment.environment
-	
-		var fog_color = lerp(Color(0.3, 0.4, 0.5), Color(1.0, 0.4, 0.1), _golden_hour_transition)
-		fog_color = lerp(fog_color, Color(0.01, 0.02, 0.05), night_factor)
-
-		env.fog_enabled = Config.fog_density > 0.0
-		env.fog_mode = Environment.FOG_MODE_EXPONENTIAL
-		env.fog_light_color = fog_color
-		env.fog_density = Config.fog_density * 0.05
-		env.fog_aerial_perspective = (1.0 - Config.fog_density)
 
 	if terrain_material:
 		terrain_material.set_shader_parameter("zoom_factor", Config.effective_zoom)
@@ -192,8 +175,6 @@ func _process(delta):
 		"terrain_roughness": Config.terrain_roughness,
 		"terrain_surface_texture": Config.terrain_surface_texture,
 		"morph_value": Config.morph_value,
-		"sky_luminosity": Config.sky_luminosity,
-		"sun_luminosity": Config.sun_luminosity,
 		"fog_density": Config.fog_density,
 	}
 
@@ -219,27 +200,61 @@ func _process(delta):
 	if portal_frame:
 		var is_portal_mode = Config.function.get("is_multivalued", false)
 		portal_frame.visible = is_portal_mode
+		if portal_frame_left:
+			portal_frame_left.visible = false
+
 		if is_portal_mode:
 			var zoom = Config.effective_zoom
 			var cam_h = player.global_position.y
 			var p_height = max(50.0 * zoom, cam_h + 50.0 * zoom)
 
+			var is_asin_acos = Config.function_type == Config.ComplexFunc.MULTIVALUED_ASIN or Config.function_type == Config.ComplexFunc.MULTIVALUED_ACOS
+
 			var player_x = player.global_position.x
-			var p_width = max(100.0 * zoom, player_x + float(Config.view_distance + 1) * chunk_size)
+			var p_width = max(100.0 * zoom, abs(player_x) + float(Config.view_distance + 1) * chunk_size)
 
 			portal_frame.scale = Vector3.ONE # We handle scaling manually on bars
 
-			portal_ground_bar.scale = Vector3(p_width, zoom, zoom)
-			portal_ground_bar.position = Vector3(p_width * 0.5, 0.0, 0.0)
+			if is_asin_acos:
+				var offset_x = 10.0 * zoom
+				portal_frame.position = Vector3(offset_x, 0.0, 0.0)
+				portal_ground_bar.scale = Vector3(p_width, zoom, zoom)
+				portal_ground_bar.position = Vector3(p_width * 0.5, 0.0, 0.0)
+				portal_vert_bar.scale = Vector3(zoom, p_height, zoom)
+				portal_vert_bar.position = Vector3(0.0, p_height * 0.5, 0.0)
+				portal_top_bar.scale = Vector3(p_width, zoom, zoom)
+				portal_top_bar.position = Vector3(p_width * 0.5, p_height, 0.0)
+				portal_end_bar.scale = Vector3(zoom, p_height, zoom)
+				portal_end_bar.position = Vector3(p_width, p_height * 0.5, 0.0)
+				portal_membrane.scale = Vector3(p_width, p_height, 1.0)
+				portal_membrane.position = Vector3(p_width * 0.5, p_height * 0.5, 0.0)
 
-			portal_vert_bar.scale = Vector3(zoom, p_height, zoom)
-			portal_vert_bar.position = Vector3(0.0, p_height * 0.5, 0.0)
-
-			portal_top_bar.scale = Vector3(p_width, zoom, zoom)
-			portal_top_bar.position = Vector3(p_width * 0.5, p_height, 0.0)
-
-			portal_end_bar.scale = Vector3(zoom, p_height, zoom)
-			portal_end_bar.position = Vector3(p_width, p_height * 0.5, 0.0)
+				if portal_frame_left:
+					portal_frame_left.visible = true
+					portal_frame_left.scale = Vector3.ONE
+					portal_frame_left.position = Vector3(-offset_x, 0.0, 0.0)
+					portal_ground_bar_left.scale = Vector3(p_width, zoom, zoom)
+					portal_ground_bar_left.position = Vector3(-p_width * 0.5, 0.0, 0.0)
+					portal_vert_bar_left.scale = Vector3(zoom, p_height, zoom)
+					portal_vert_bar_left.position = Vector3(0.0, p_height * 0.5, 0.0)
+					portal_top_bar_left.scale = Vector3(p_width, zoom, zoom)
+					portal_top_bar_left.position = Vector3(-p_width * 0.5, p_height, 0.0)
+					portal_end_bar_left.scale = Vector3(zoom, p_height, zoom)
+					portal_end_bar_left.position = Vector3(-p_width, p_height * 0.5, 0.0)
+					portal_membrane_left.scale = Vector3(p_width, p_height, 1.0)
+					portal_membrane_left.position = Vector3(-p_width * 0.5, p_height * 0.5, 0.0)
+			else:
+				portal_frame.position = Vector3(0.0, 0.0, 0.0)
+				portal_ground_bar.scale = Vector3(p_width, zoom, zoom)
+				portal_ground_bar.position = Vector3(-p_width * 0.5, 0.0, 0.0)
+				portal_vert_bar.scale = Vector3(zoom, p_height, zoom)
+				portal_vert_bar.position = Vector3(0.0, p_height * 0.5, 0.0)
+				portal_top_bar.scale = Vector3(p_width, zoom, zoom)
+				portal_top_bar.position = Vector3(-p_width * 0.5, p_height, 0.0)
+				portal_end_bar.scale = Vector3(zoom, p_height, zoom)
+				portal_end_bar.position = Vector3(-p_width, p_height * 0.5, 0.0)
+				portal_membrane.scale = Vector3(p_width, p_height, 1.0)
+				portal_membrane.position = Vector3(-p_width * 0.5, p_height * 0.5, 0.0)
 
 			if terrain_material:
 				terrain_material.set_shader_parameter("portal_height", p_height)
@@ -319,10 +334,11 @@ func _apply_performance_protection(active: bool):
 	if terrain_material:
 		terrain_material.set_shader_parameter("performance_protection_active", active)
 
-	if world_environment and world_environment.environment and world_environment.environment.sky:
-		var sky_mat = world_environment.environment.sky.sky_material as ShaderMaterial
-		if sky_mat:
-			sky_mat.set_shader_parameter("performance_protection_active", active)
+	if sky and sky.has_method("set_performance_protection"):
+		sky.set_performance_protection(active)
+
+	if audio and audio.has_method("set_performance_protection"):
+		audio.set_performance_protection(active)
 
 func _update_terrain_material_uniforms():
 	if not terrain_material:
@@ -393,7 +409,7 @@ func _update_neighbor_lod_uniforms(coord: Vector2i):
 	chunk.set_instance_shader_parameter("neighbor_lod_bottom", bottom_lod)
 
 func _load_chunk(coord: Vector2i):
-	var chunk = chunk_scene.instantiate()
+	var chunk = terrain_chunk_scene.instantiate()
 	add_child(chunk)
 	chunk.visible = !Config.performance_protection_active
 

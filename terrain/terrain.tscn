@@ -1,0 +1,44 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" uid="uid://d1wxji711yhuu" path="res://terrain/terrain.gd" id="1_world"]
+[ext_resource type="Shader" uid="uid://cnaj2gf03bm06" path="res://terrain/terrain.gdshader" id="2_terrain"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_1"]
+render_priority = 0
+shader = ExtResource("2_terrain")
+shader_parameter/iterations = 120
+shader_parameter/zoom_factor = 1.0
+shader_parameter/function_type = 0
+shader_parameter/height_type = 0
+shader_parameter/height_a = 3.0
+shader_parameter/height_epsilon = 1.0
+shader_parameter/performance_protection_active = false
+shader_parameter/is_dirichlect = false
+shader_parameter/is_multivalued = false
+shader_parameter/rational_num_coeffs = PackedVector2Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+shader_parameter/rational_den_coeffs = PackedVector2Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+shader_parameter/multivalued_n = 2
+shader_parameter/current_branch = 0
+shader_parameter/lod_segments = PackedFloat32Array(0, 0, 0, 0, 0)
+shader_parameter/chunk_size = 0.0
+shader_parameter/color_scheme = 0
+shader_parameter/show_curves = true
+shader_parameter/show_critical_stripe = true
+shader_parameter/show_flow = false
+shader_parameter/brightness = 1.0
+shader_parameter/saturation = 0.85
+shader_parameter/albedo = 0.15
+shader_parameter/emission = 0.1
+shader_parameter/metallic = 0.7
+shader_parameter/roughness = 0.1
+shader_parameter/surface_texture = 0.0
+shader_parameter/morph = 1.0
+shader_parameter/portal_height = 50.0
+shader_parameter/portal_width = 100.0
+shader_parameter/specular_intensity = 0.1
+shader_parameter/self_illumination = 0.0
+shader_parameter/fog_density = 0.0
+
+[node name="WorldManager" type="Node3D"]
+script = ExtResource("1_world")
+terrain_material = SubResource("ShaderMaterial_1")
