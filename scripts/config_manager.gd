@@ -119,16 +119,6 @@ const FUNCTIONS = {
 # Field parameters
 
 const PRESET_KEYS = [
-	"function_type",
-	"iterations",
-	"height_type",
-	"height_a",
-	"height_epsilon",
-	"rational_num_coeffs",
-	"rational_den_coeffs",
-	"multivalued_n",
-	"zoom_factor",
-	"zoom_damping",
 	"terrain_detail",
 	"antialiasing_mode",
 	"show_curves",
@@ -170,16 +160,6 @@ const PRESET_KEYS = [
 
 var PRESETS = {
 	"Default": {
-		"function_type": ComplexFunc.ZETA,
-		"iterations": 500,
-		"height_type": 0,
-		"height_a": 3.0,
-		"height_epsilon": 1.0,
-		"rational_num_coeffs": PackedVector2Array([Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)]),
-		"rational_den_coeffs": PackedVector2Array([Vector2(1, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)]),
-		"multivalued_n": 2,
-		"zoom_factor": 1.0,
-		"zoom_damping": 0.5,
 		"terrain_detail": 1,
 		"antialiasing_mode": 1,
 		"show_curves": true,
@@ -219,16 +199,6 @@ var PRESETS = {
 		"drone_volume": 100.0
 	},
 	"Mysterious": {
-		"function_type": ComplexFunc.ZETA,
-		"iterations": 500,
-		"height_type": 0,
-		"height_a": 3.0,
-		"height_epsilon": 1.0,
-		"rational_num_coeffs": PackedVector2Array([Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)]),
-		"rational_den_coeffs": PackedVector2Array([Vector2(1, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)]),
-		"multivalued_n": 2,
-		"zoom_factor": 1.0,
-		"zoom_damping": 0.5,
 		"terrain_detail": 1,
 		"antialiasing_mode": 1,
 		"show_curves": true,
