@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://dvnrtkkwrnoxr"]
 
 [ext_resource type="Script" uid="uid://d1wxji711yhuu" path="res://scripts/world_manager.gd" id="1_world"]
-[ext_resource type="PackedScene" path="res://scenes/player.tscn" id="2_player"]
+[ext_resource type="PackedScene" path="res://player/player.tscn" id="2_player"]
 [ext_resource type="PackedScene" path="res://ui/main_ui.tscn" id="3_ui"]
 [ext_resource type="Shader" uid="uid://d3nuaty6clkup" path="res://shaders/sky.gdshader" id="4_sky"]
 [ext_resource type="PackedScene" path="res://audio/audio.tscn" id="5_audio"]
