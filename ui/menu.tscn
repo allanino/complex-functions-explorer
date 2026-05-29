@@ -243,8 +243,8 @@ layout_mode = 2
 
 [node name="TitleLabel" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TitleHBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 24
-text = "Configuration"
+theme_override_font_sizes/font_size = 20
+text = "Complex Functions Explorer"
 
 [node name="Spacer" type="Control" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TitleHBox"]
 layout_mode = 2
@@ -1030,9 +1030,7 @@ theme_override_styles/pressed = SubResource("StyleBoxFlat_apply_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_apply_hover")
 theme_override_styles/focus = SubResource("StyleBoxFlat_apply_normal")
 theme_override_styles/disabled = SubResource("StyleBoxFlat_apply_disabled")
-text = "Apply Changes"
-
-
+text = "Update View"
 
 [node name="NewPresetDialog" type="PanelContainer" parent="CenterContainer" unique_id=99991000]
 unique_name_in_owner = true
