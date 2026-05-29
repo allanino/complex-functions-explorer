@@ -88,7 +88,7 @@ func setup_portal_sfx():
 	portal_sfx_player.name = "PortalSfx"
 	add_child(portal_sfx_player)
 
-	var sfx_path = "res://assets/portal-crossing.mp3"
+	var sfx_path = "res://audio/assets/portal-crossing.mp3"
 	var sfx_stream = load(sfx_path)
 	if sfx_stream:
 		portal_sfx_player.stream = sfx_stream
@@ -99,7 +99,7 @@ func setup_background_music():
 	music_player.name = "BackgroundMusic"
 	add_child(music_player)
 
-	var music_path = "res://assets/Shore Contemplation.mp3"
+	var music_path = "res://audio/assets/Shore Contemplation.mp3"
 	var music_stream = load(music_path)
 
 	if music_stream:
