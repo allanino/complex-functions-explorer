@@ -88,11 +88,11 @@ var active_detached_value: Label = null
 @onready var surface_texture_slider = %MenuOverlay/%SurfaceTextureContainer
 @onready var morph_slider = %MenuOverlay/%MorphSliderContainer
 
-
 @onready var preset_button = %MenuOverlay/%PresetButton
 @onready var preset_update_button = %MenuOverlay/%PresetUpdateButton
 @onready var preset_delete_button = %MenuOverlay/%PresetDeleteButton
 @onready var preset_new_button = %MenuOverlay/%PresetNewButton
+@onready var preset_restore_button = %MenuOverlay/%PresetRestoreButton
 @onready var new_preset_dialog = %MenuOverlay/%NewPresetDialog
 @onready var new_preset_input = %MenuOverlay/%NewPresetInput
 @onready var new_preset_save = %MenuOverlay/%NewPresetSave
@@ -194,7 +194,8 @@ var _initial_shadows_enabled: bool
 
 var _speed_modified: bool = false
 var _camera_height_modified: bool = false
-var _applying_preset: bool = false
+var _syncing_ui: bool = false
+
 
 func _ready():
 	hud_columns.offset_top = -1000
@@ -225,11 +226,13 @@ func _ready():
 
 	preset_button.item_selected.connect(_on_preset_selected)
 	Config.preset_applied.connect(_on_preset_applied)
-	Config.preset_dirtied.connect(_update_preset_button_text)
+
 
 	preset_update_button.pressed.connect(_on_preset_update_pressed)
 	preset_delete_button.pressed.connect(_on_preset_delete_pressed)
 	preset_new_button.pressed.connect(_on_preset_new_pressed)
+	preset_restore_button.pressed.connect(_on_preset_restore_pressed)
+	_connect_preset_dirtiers()
 	new_preset_save.pressed.connect(_on_new_preset_save_pressed)
 	new_preset_cancel.pressed.connect(_on_new_preset_cancel_pressed)
 	delete_preset_cancel.pressed.connect(_on_delete_preset_cancel_pressed)
@@ -309,7 +312,7 @@ func _ready():
 
 	apply_aa()
 	_setup_tooltips()
-	_disable_sliders_focus(self)
+	_disable_sliders_focus(self )
 	tooltip_timer.timeout.connect(_on_tooltip_timer_timeout)
 	_last_zeros_visible = Config.show_hud_zeros
 
@@ -449,13 +452,18 @@ func toggle_menu(applied: bool = false):
 		_initial_view_distance = Config.view_distance
 		_initial_shadows_enabled = Config.shadows_enabled
 
+		_syncing_ui = true
+		var backup = {}
+		for key in Config.PRESET_KEYS:
+			backup[key] = Config.get(key)
+
 		freeze_time_checkbox.button_pressed = Config.freeze_time
 
 
 		if player:
 			var scale_factor = 1.0 / Config.effective_zoom
 			var re_val = player.global_position.x * 0.1 * scale_factor
-			var im_val = -player.global_position.z * 0.1 * scale_factor
+			var im_val = - player.global_position.z * 0.1 * scale_factor
 			if not is_finite(re_val): re_val = 0.5
 			if not is_finite(im_val): im_val = 0.0
 			re_input.text = "%.3f" % re_val
@@ -539,6 +547,12 @@ func toggle_menu(applied: bool = false):
 		height_button.selected = Config.height_type
 		_on_func_selected(Config.function_type)
 		_on_height_selected(Config.height_type)
+
+		for key in Config.PRESET_KEYS:
+			Config.set(key, backup[key])
+		_syncing_ui = false
+		_update_preset_button_text()
+
 	else:
 		tooltip.visible = false
 		tooltip_timer.stop()
@@ -611,8 +625,6 @@ func _on_height_selected(index):
 	height_eps_container.visible = is_log
 
 func _on_freeze_time_toggled(pressed: bool):
-	if not _applying_preset:
-		Config.mark_preset_dirty()
 	Config.freeze_time = pressed
 
 
@@ -627,8 +639,6 @@ func _on_day_duration_value_changed(value):
 	day_duration_slider.value_text = _format_time(value)
 
 func _on_day_time_value_changed(value):
-	if not _applying_preset:
-		Config.mark_preset_dirty()
 	Config.day_time = value
 	day_time_slider.value_text = _format_time(value)
 func _on_master_volume_value_changed(value):
@@ -672,14 +682,10 @@ func _on_sun_luminosity_value_changed(value):
 	sun_luminosity_slider.value_text = str(int(value)) + "%"
 
 func _on_self_illumination_value_changed(value):
-	if not _applying_preset:
-		Config.mark_preset_dirty()
 	Config.self_illumination = value / 100.0
 	self_illumination_slider.value_text = str(int(value)) + "%"
 
 func _on_fog_density_value_changed(value):
-	if not _applying_preset:
-		Config.mark_preset_dirty()
 	Config.fog_density = value / 100.0
 	fog_density_slider.value_text = "%.1f%%" % value
 
@@ -697,44 +703,30 @@ func _on_multivalued_n_value_changed(value):
 	Config.multivalued_n = int(value)
 
 func _on_terrain_brightness_value_changed(value):
-	if not _applying_preset:
-		Config.mark_preset_dirty()
 	Config.terrain_brightness = value / 50.0
 	brightness_slider.value_text = str(int(value)) + "%"
 
 func _on_terrain_saturation_value_changed(value):
-	if not _applying_preset:
-		Config.mark_preset_dirty()
 	Config.terrain_saturation = 0.3 + (value / 100.0) * 0.7
 	saturation_slider.value_text = str(int(value)) + "%"
 
 func _on_terrain_albedo_value_changed(value):
-	if not _applying_preset:
-		Config.mark_preset_dirty()
 	Config.terrain_albedo = value / 100.0
 	albedo_slider.value_text = str(int(value)) + "%"
 
 func _on_terrain_emission_value_changed(value):
-	if not _applying_preset:
-		Config.mark_preset_dirty()
 	Config.terrain_emission = value / 100.0
 	emission_slider.value_text = str(int(value)) + "%"
 
 func _on_terrain_metallic_value_changed(value):
-	if not _applying_preset:
-		Config.mark_preset_dirty()
 	Config.terrain_metallic = value / 100.0
 	metallic_slider.value_text = str(int(value)) + "%"
 
 func _on_terrain_roughness_value_changed(value):
-	if not _applying_preset:
-		Config.mark_preset_dirty()
 	Config.terrain_roughness = value / 100.0
 	roughness_slider.value_text = str(int(value)) + "%"
 
 func _on_terrain_surface_texture_value_changed(value):
-	if not _applying_preset:
-		Config.mark_preset_dirty()
 	Config.terrain_surface_texture = value / 100.0
 	surface_texture_slider.value_text = str(int(value)) + "%"
 
@@ -786,7 +778,7 @@ func _parse_poly(text: String) -> PackedVector2Array:
 		if c == "(": depth += 1
 		elif c == ")": depth -= 1
 
-		if depth == 0 and i > 0 and (c == "+" or c == "-") and text[i-1] != "e" and text[i-1] != "E":
+		if depth == 0 and i > 0 and (c == "+" or c == "-") and text[i - 1] != "e" and text[i - 1] != "E":
 			terms.append(text.substr(start_idx, i - start_idx))
 			start_idx = i
 	terms.append(text.substr(start_idx))
@@ -847,7 +839,7 @@ func _get_rvm_n(T: float) -> float:
 		return (T / (2.0 * PI)) * (log((4.0 * T) / (2.0 * PI)) - 1.0)
 
 	# Riemann-von Mangoldt formula for Zeta: N(T) ≈ (T/2π) log(T/2πe) + 7/8
-	return (T / (2.0 * PI)) * (log(T / (2.0 * PI)) - 1.0) + 7.0/8.0
+	return (T / (2.0 * PI)) * (log(T / (2.0 * PI)) - 1.0) + 7.0 / 8.0
 
 func _zoom_to_slider(zoom: float) -> float:
 	var min_zoom = 0.01
@@ -972,6 +964,7 @@ func _on_set_pos_pressed():
 		else:
 			player.auto_walk_state = 0 # NONE
 
+	_update_preset_button_text()
 	toggle_menu(true)
 
 
@@ -984,7 +977,7 @@ func _on_preset_update_pressed():
 	else:
 		Config.update_preset(preset_name)
 		Config.current_preset = preset_name
-		Config.preset_dirtied.emit()
+		_update_preset_button_text()
 
 func _on_preset_delete_pressed():
 	var preset_name = Config.current_preset.trim_suffix("*")
@@ -1012,7 +1005,7 @@ func _on_delete_preset_confirm_pressed():
 			Config.apply_preset(new_preset)
 		else:
 			Config.current_preset = "Custom"
-			Config.preset_dirtied.emit()
+			_update_preset_button_text()
 	delete_preset_dialog.visible = false
 
 func _on_preset_new_pressed():
@@ -1041,43 +1034,173 @@ func _on_preset_selected(index: int):
 	Config.apply_preset(preset_name)
 
 func _sync_ui_to_config():
-	_applying_preset = true
+	_syncing_ui = true
+	var backup = {}
+	for key in Config.PRESET_KEYS:
+		backup[key] = Config.get(key)
+
+	iter_slider.value = Config.iterations
+	_on_iterations_value_changed(Config.iterations)
+	
+	_speed_modified = false
+	_camera_height_modified = false
+	speed_input.text = "%.1f" % (Config.movement_speed * 0.1)
+	
+	zoom_slider.value = _zoom_to_slider(Config.zoom_factor)
+	_on_zoom_value_changed(zoom_slider.value)
+	
+	zero_speed_slider.value = Config.speed_near_zeros
+	_on_zero_speed_value_changed(Config.speed_near_zeros)
+	
+	zero_proximity_nav_slider.value = Config.zero_proximity_nav
+	_on_zero_proximity_nav_value_changed(Config.zero_proximity_nav)
+	
+	camera_height_input.text = str(Config.camera_height)
+	height_a_input.text = str(Config.height_a)
+	height_eps_input.text = str(Config.height_epsilon)
+	
+	terrain_detail_button.selected = Config.terrain_detail
+	aa_button.selected = Config.antialiasing_mode
+	color_scheme_button.selected = Config.color_scheme
+	
+	view_distance_slider.value = Config.view_distance
+	_on_view_distance_value_changed(Config.view_distance)
+	
+	curves_checkbox.button_pressed = Config.show_curves
+	critical_checkbox.button_pressed = Config.show_critical_stripe
+	
+	day_duration_slider.value = Config.day_duration
+	_on_day_duration_value_changed(Config.day_duration)
+	
+	day_time_slider.value = Config.day_time
+	_on_day_time_value_changed(Config.day_time)
+	
+	sunrise_slider.value = Config.sunrise_direction
+	_on_sunrise_value_changed(Config.sunrise_direction)
+	
+	sky_luminosity_slider.value = Config.sky_luminosity * 100.0
+	_on_sky_luminosity_value_changed(sky_luminosity_slider.value)
+	
+	sun_luminosity_slider.value = Config.sun_luminosity * 100.0
+	_on_sun_luminosity_value_changed(sun_luminosity_slider.value)
+	
+	self_illumination_slider.value = Config.self_illumination * 100.0
+	_on_self_illumination_value_changed(self_illumination_slider.value)
+	
+	fog_density_slider.value = Config.fog_density * 100.0
+	_on_fog_density_value_changed(fog_density_slider.value)
+	
+	shadows_checkbox.button_pressed = Config.shadows_enabled
+	hud_complex_checkbox.button_pressed = Config.show_hud_complex
+	hud_navigation_checkbox.button_pressed = Config.show_hud_navigation
+	hud_zeros_checkbox.button_pressed = Config.show_hud_zeros
+	rvm_checkbox.button_pressed = Config.show_rvm
+	hud_monitor_fps_checkbox.button_pressed = Config.show_hud_monitor_fps
+	hud_monitor_chunks_checkbox.button_pressed = Config.show_hud_monitor_chunks
+	
+	hud_scale_slider.value = Config.hud_scale * 100.0
+	_on_hud_scale_value_changed(hud_scale_slider.value)
+	
+	if player:
+		auto_walk_checkbox.button_pressed = (player.auto_walk_state != 0)
+	
+	flow_checkbox.button_pressed = Config.show_flow
+	
+	master_volume_slider.value = Config.master_volume
+	_on_master_volume_value_changed(Config.master_volume)
+	
+	bg_music_slider.value = Config.bg_music_volume
+	_on_bg_music_value_changed(Config.bg_music_volume)
+	
+	drone_slider.value = Config.drone_volume
+	_on_drone_value_changed(Config.drone_volume)
+
 	brightness_slider.value = Config.terrain_brightness * 50.0
 	_on_terrain_brightness_value_changed(brightness_slider.value)
+	
 	saturation_slider.value = (Config.terrain_saturation - 0.3) / 0.7 * 100.0
 	_on_terrain_saturation_value_changed(saturation_slider.value)
+	
 	albedo_slider.value = Config.terrain_albedo * 100.0
 	_on_terrain_albedo_value_changed(albedo_slider.value)
+	
 	emission_slider.value = Config.terrain_emission * 100.0
 	_on_terrain_emission_value_changed(emission_slider.value)
+	
 	metallic_slider.value = Config.terrain_metallic * 100.0
 	_on_terrain_metallic_value_changed(metallic_slider.value)
+	
 	roughness_slider.value = Config.terrain_roughness * 100.0
 	_on_terrain_roughness_value_changed(roughness_slider.value)
+
 	surface_texture_slider.value = Config.terrain_surface_texture * 100.0
 	_on_terrain_surface_texture_value_changed(surface_texture_slider.value)
 
-	freeze_time_checkbox.button_pressed = Config.freeze_time
-	_on_freeze_time_toggled(Config.freeze_time)
+	multivalued_slider.value = Config.multivalued_n
+	_on_multivalued_n_value_changed(Config.multivalued_n)
 
-	day_time_slider.value = Config.day_time
-	_on_day_time_value_changed(day_time_slider.value)
+	func_button.select(func_button.get_item_index(Config.function_type))
+	height_button.selected = Config.height_type
+	_on_func_selected(Config.function_type)
+	_on_height_selected(Config.height_type)
 
-	fog_density_slider.value = Config.fog_density * 100.0
-	_on_fog_density_value_changed(fog_density_slider.value)
+	for key in Config.PRESET_KEYS:
+		Config.set(key, backup[key])
+	_syncing_ui = false
 
-	self_illumination_slider.value = Config.self_illumination * 100.0
-	_on_self_illumination_value_changed(self_illumination_slider.value)
-
-	_applying_preset = false
 
 func _on_preset_applied():
 	_sync_ui_to_config()
 	_update_preset_button_text()
 
+func _on_preset_restore_pressed():
+	var preset_name = Config.current_preset.trim_suffix("*")
+	Config.restore_preset(preset_name)
+
+func _connect_preset_dirtiers():
+	var on_changed = func(_val = null):
+		if not _syncing_ui:
+			_update_preset_button_text()
+
+	# Connect sliders
+	for slider in [
+		iter_slider, zero_proximity_nav_slider, zoom_slider, zero_speed_slider,
+		view_distance_slider, day_duration_slider, day_time_slider, sunrise_slider,
+		sky_luminosity_slider, sun_luminosity_slider, self_illumination_slider,
+		fog_density_slider, hud_scale_slider, master_volume_slider, bg_music_slider,
+		drone_slider, brightness_slider, saturation_slider, albedo_slider,
+		emission_slider, metallic_slider, roughness_slider, surface_texture_slider,
+		multivalued_slider
+	]:
+		if slider and slider.has_signal("value_changed"):
+			slider.value_changed.connect(on_changed)
+
+	# Connect checkboxes
+	for cb in [
+		curves_checkbox, critical_checkbox, flow_checkbox, hud_complex_checkbox,
+		hud_navigation_checkbox, hud_zeros_checkbox, rvm_checkbox,
+		hud_monitor_fps_checkbox, hud_monitor_chunks_checkbox, shadows_checkbox,
+		auto_walk_checkbox, freeze_time_checkbox
+	]:
+		if cb and cb.has_signal("toggled"):
+			cb.toggled.connect(on_changed)
+
+	# Connect buttons/option buttons
+	for ob in [func_button, height_button, terrain_detail_button, aa_button, color_scheme_button]:
+		if ob and ob.has_signal("item_selected"):
+			ob.item_selected.connect(on_changed)
+
+	# Connect line edits
+	for le in [speed_input, camera_height_input, height_a_input, height_eps_input]:
+		if le and le.has_signal("text_submitted"):
+			le.text_submitted.connect(on_changed)
+
 func _update_preset_button_text():
 	var preset_name = Config.current_preset.trim_suffix("*")
-	var is_dirty = Config.current_preset.ends_with("*")
+	var is_dirty = Config.is_preset_dirty()
+
+	# Update current_preset to match computed state
+	Config.current_preset = preset_name + "*" if is_dirty else preset_name
 
 	# Try to select the right item, then set text
 	for i in range(preset_button.item_count):
@@ -1092,8 +1215,15 @@ func _update_preset_button_text():
 		for i in range(preset_button.item_count):
 			preset_button.set_item_text(i, preset_button.get_item_text(i).trim_suffix("*"))
 
+	# Force OptionButton to update its displayed text by re-selecting the index
+	var selected_idx = preset_button.selected
+	if selected_idx != -1:
+		preset_button.select(-1)
+		preset_button.select(selected_idx)
+
 	# Save/Update button state
 	preset_update_button.disabled = not is_dirty
+	preset_restore_button.disabled = not is_dirty
 
 	# Default & Mysterious are read-only
 	if preset_name in ["Default", "Mysterious"]:
@@ -1267,6 +1397,7 @@ func _apply_stack_layout(stack: VBoxContainer, desired_cards: Array):
 	for child in stack.get_children():
 		if not child in desired_cards:
 			stack.remove_child(child)
+			add_child(child)
 
 	# Optimization: The original code moved each card to index 0 in forward order,
 	# which inverted the final display order. By iterating backwards through the

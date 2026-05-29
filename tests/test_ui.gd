@@ -2,6 +2,43 @@ extends GutTest
 
 var hud_scene = preload("res://ui/main_ui.tscn")
 var hud_instance
+var _original_save_path: String
+var _has_backup: bool = false
+
+func before_all():
+	_original_save_path = Config.save_path
+	Config.save_path = "user://test_ui_settings.cfg"
+	
+	var dir = DirAccess.open("user://")
+	if dir:
+		if dir.file_exists("test_ui_settings.cfg"):
+			dir.remove("test_ui_settings.cfg")
+		
+		# Back up production settings.cfg if it exists
+		if dir.file_exists("settings.cfg"):
+			var err = dir.copy("user://settings.cfg", "user://settings.cfg.bak")
+			if err == OK:
+				_has_backup = true
+				
+	# Load clean/empty test settings so the singleton starts fresh
+	Config.load_settings()
+
+func after_all():
+	# Remove the temporary test settings file
+	var dir = DirAccess.open("user://")
+	if dir:
+		if dir.file_exists("test_ui_settings.cfg"):
+			dir.remove("test_ui_settings.cfg")
+			
+		# Restore original settings.cfg
+		if _has_backup:
+			if dir.file_exists("settings.cfg"):
+				dir.remove("settings.cfg")
+			dir.rename("user://settings.cfg.bak", "user://settings.cfg")
+			
+	# Restore path and reload production settings
+	Config.save_path = _original_save_path
+	Config.load_settings()
 
 func before_each():
 	hud_instance = hud_scene.instantiate()
@@ -96,3 +133,50 @@ func test_get_rvm_n():
 	assert_almost_eq(rvm_beta, expected_beta, 0.001)
 
 	Config.function_type = orig_func
+
+func test_preset_ui_asterisk_workflow():
+	var orig_preset = Config.current_preset
+	
+	# Ensure starting clean
+	Config.apply_preset("Default")
+	hud_instance._update_preset_button_text()
+	assert_false(Config.is_preset_dirty())
+	assert_false(hud_instance.preset_button.get_item_text(hud_instance.preset_button.selected).ends_with("*"))
+
+	# Change a slider value to make it dirty
+	hud_instance.brightness_slider.value = 100.0
+	hud_instance._on_terrain_brightness_value_changed(100.0)
+	hud_instance._update_preset_button_text()
+	
+	assert_true(Config.is_preset_dirty())
+	assert_true(hud_instance.preset_button.get_item_text(hud_instance.preset_button.selected).ends_with("*"))
+
+	# Create a new preset
+	hud_instance.new_preset_input.text = "MyNewUI_Preset"
+	hud_instance._on_new_preset_save_pressed()
+	
+	# Verify that the new preset is active and has no asterisk
+	assert_eq(Config.current_preset, "MyNewUI_Preset")
+	assert_false(Config.is_preset_dirty())
+	var selected_text = hud_instance.preset_button.get_item_text(hud_instance.preset_button.selected)
+	assert_eq(selected_text, "MyNewUI_Preset")
+	assert_false(selected_text.ends_with("*"))
+	
+	# Modify setting to 50.0
+	hud_instance.brightness_slider.value = 50.0
+	hud_instance._on_terrain_brightness_value_changed(50.0)
+	hud_instance._update_preset_button_text()
+	
+	assert_true(Config.is_preset_dirty())
+	assert_true(hud_instance.preset_button.get_item_text(hud_instance.preset_button.selected).ends_with("*"))
+	
+	# Save it
+	hud_instance._on_preset_update_pressed()
+	assert_false(Config.is_preset_dirty())
+	var saved_text = hud_instance.preset_button.get_item_text(hud_instance.preset_button.selected)
+	assert_eq(saved_text, "MyNewUI_Preset")
+	assert_false(saved_text.ends_with("*"))
+
+	# Cleanup
+	Config.delete_preset("MyNewUI_Preset")
+	Config.apply_preset(orig_preset)

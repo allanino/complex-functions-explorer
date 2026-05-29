@@ -272,9 +272,9 @@ var PRESETS = {
 }
 
 var current_preset: String = "Default"
+var _edited_presets: Dictionary = {}
 
 signal preset_applied
-signal preset_dirtied
 
 # Field parameters
 var iterations: int = 500
@@ -353,30 +353,63 @@ var effective_zoom: float = 1.0
 var morph_value: float = 1.0
 
 
+func _snapshot_current() -> Dictionary:
+	var snapshot = {}
+	for key in PRESET_KEYS:
+		snapshot[key] = get(key)
+	return snapshot
+
 func apply_preset(preset_name: String):
+	# Save current preset's state if valid
+	var old_clean = current_preset.trim_suffix("*")
+	if PRESETS.has(old_clean):
+		_edited_presets[old_clean] = _snapshot_current()
+
 	if PRESETS.has(preset_name):
-		var preset = PRESETS[preset_name]
-		for key in preset:
-			set(key, preset[key])
+		var target_preset = _edited_presets.get(preset_name, PRESETS[preset_name])
+		for key in target_preset:
+			set(key, target_preset[key])
 		current_preset = preset_name
 		preset_applied.emit()
 
-func mark_preset_dirty():
-	if not current_preset.ends_with("*"):
-		current_preset += "*"
-		preset_dirtied.emit()
+func is_preset_dirty() -> bool:
+	var clean_name = current_preset.trim_suffix("*")
+	if not PRESETS.has(clean_name):
+		return true
+	var preset = PRESETS[clean_name]
+	for key in PRESET_KEYS:
+		if key == "day_time" and not get("freeze_time"):
+			continue
+		if preset.has(key) and get(key) != preset[key]:
+			return true
+	return false
 
 func update_preset(preset_name: String):
 	var preset_data = {}
 	for key in PRESET_KEYS:
 		preset_data[key] = get(key)
 	PRESETS[preset_name] = preset_data
+	if _edited_presets.has(preset_name):
+		_edited_presets.erase(preset_name)
+	current_preset = preset_name
 	save_settings()
 
 func delete_preset(preset_name: String):
 	if PRESETS.has(preset_name):
 		PRESETS.erase(preset_name)
+		if _edited_presets.has(preset_name):
+			_edited_presets.erase(preset_name)
 		save_settings()
+
+func restore_preset(preset_name: String):
+	if _edited_presets.has(preset_name):
+		_edited_presets.erase(preset_name)
+	if current_preset.trim_suffix("*") == preset_name:
+		if PRESETS.has(preset_name):
+			var preset = PRESETS[preset_name]
+			for key in preset:
+				set(key, preset[key])
+			preset_applied.emit()
 
 func _ready():
 	load_settings()
