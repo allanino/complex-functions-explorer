@@ -853,7 +853,7 @@ func _slider_to_zoom(value: float) -> float:
 	var b = (log(max_zoom) - log(min_zoom)) / 100.0
 	return exp(log(min_zoom) + value * b)
 
-func _on_set_pos_pressed():
+func _on_set_pos_pressed(_toggle_menu: bool = true):
 	Config.performance_protection_active = false
 	var re = float(re_input.text)
 	var im = float(im_input.text)
@@ -965,7 +965,8 @@ func _on_set_pos_pressed():
 			player.auto_walk_state = 0 # NONE
 
 	_update_preset_button_text()
-	toggle_menu(true)
+	if _toggle_menu:
+		toggle_menu(true)
 
 
 func _on_preset_update_pressed():
@@ -1156,6 +1157,7 @@ func _on_preset_applied():
 func _on_preset_restore_pressed():
 	var preset_name = Config.current_preset.trim_suffix("*")
 	Config.restore_preset(preset_name)
+	_on_set_pos_pressed(false)
 
 func _connect_preset_dirtiers():
 	var on_changed = func(_val = null):
