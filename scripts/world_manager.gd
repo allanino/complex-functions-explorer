@@ -1,6 +1,6 @@
 extends Node3D
 
-@export var chunk_scene: PackedScene = preload("res://terrain/chunk.tscn")
+@export var terrain_chunk_scene: PackedScene = preload("res://terrain/terrain_chunk.tscn")
 @export var terrain_material: ShaderMaterial
 @export var player: Node3D
 @export var chunk_size: float = 32.0
@@ -478,7 +478,7 @@ func _update_neighbor_lod_uniforms(coord: Vector2i):
 	chunk.set_instance_shader_parameter("neighbor_lod_bottom", bottom_lod)
 
 func _load_chunk(coord: Vector2i):
-	var chunk = chunk_scene.instantiate()
+	var chunk = terrain_chunk_scene.instantiate()
 	add_child(chunk)
 	chunk.visible = !Config.performance_protection_active
 
