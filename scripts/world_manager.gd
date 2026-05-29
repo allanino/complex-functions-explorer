@@ -18,12 +18,14 @@ var portal_ground_bar: MeshInstance3D
 var portal_vert_bar: MeshInstance3D
 var portal_top_bar: MeshInstance3D
 var portal_end_bar: MeshInstance3D
+var portal_membrane: MeshInstance3D
 
 var portal_frame_left: Node3D
 var portal_ground_bar_left: MeshInstance3D
 var portal_vert_bar_left: MeshInstance3D
 var portal_top_bar_left: MeshInstance3D
 var portal_end_bar_left: MeshInstance3D
+var portal_membrane_left: MeshInstance3D
 
 @onready var sun = get_node("../Sky/DirectionalLight3D")
 @onready var moon = get_node("../Sky/MoonLight")
@@ -80,6 +82,14 @@ func _setup_portal_frame():
 	portal_end_bar.material_override = mat
 	portal_frame.add_child(portal_end_bar)
 
+	# Membrane
+	portal_membrane = MeshInstance3D.new()
+	portal_membrane.mesh = QuadMesh.new()
+	var membrane_mat = ShaderMaterial.new()
+	membrane_mat.shader = load("res://terrain/portal_membrane.gdshader")
+	portal_membrane.material_override = membrane_mat
+	portal_frame.add_child(portal_membrane)
+
 	# Left portal frame for functions with cuts at x <= -1
 	portal_frame_left = Node3D.new()
 	portal_frame_left.name = "PortalFrameLeft"
@@ -108,6 +118,12 @@ func _setup_portal_frame():
 	portal_end_bar_left.mesh.size = Vector3(0.2, 1.0, 0.2)
 	portal_end_bar_left.material_override = mat
 	portal_frame_left.add_child(portal_end_bar_left)
+
+	# Left Membrane
+	portal_membrane_left = MeshInstance3D.new()
+	portal_membrane_left.mesh = QuadMesh.new()
+	portal_membrane_left.material_override = membrane_mat
+	portal_frame_left.add_child(portal_membrane_left)
 
 func _process(delta):
 	if not player:
@@ -280,6 +296,8 @@ func _process(delta):
 				portal_top_bar.position = Vector3(p_width * 0.5, p_height, 0.0)
 				portal_end_bar.scale = Vector3(zoom, p_height, zoom)
 				portal_end_bar.position = Vector3(p_width, p_height * 0.5, 0.0)
+				portal_membrane.scale = Vector3(p_width, p_height, 1.0)
+				portal_membrane.position = Vector3(p_width * 0.5, p_height * 0.5, 0.0)
 
 				if portal_frame_left:
 					portal_frame_left.visible = true
@@ -293,6 +311,8 @@ func _process(delta):
 					portal_top_bar_left.position = Vector3(-p_width * 0.5, p_height, 0.0)
 					portal_end_bar_left.scale = Vector3(zoom, p_height, zoom)
 					portal_end_bar_left.position = Vector3(-p_width, p_height * 0.5, 0.0)
+					portal_membrane_left.scale = Vector3(p_width, p_height, 1.0)
+					portal_membrane_left.position = Vector3(-p_width * 0.5, p_height * 0.5, 0.0)
 			else:
 				portal_frame.position = Vector3(0.0, 0.0, 0.0)
 				portal_ground_bar.scale = Vector3(p_width, zoom, zoom)
@@ -303,6 +323,8 @@ func _process(delta):
 				portal_top_bar.position = Vector3(-p_width * 0.5, p_height, 0.0)
 				portal_end_bar.scale = Vector3(zoom, p_height, zoom)
 				portal_end_bar.position = Vector3(-p_width, p_height * 0.5, 0.0)
+				portal_membrane.scale = Vector3(p_width, p_height, 1.0)
+				portal_membrane.position = Vector3(-p_width * 0.5, p_height * 0.5, 0.0)
 
 			if terrain_material:
 				terrain_material.set_shader_parameter("portal_height", p_height)
