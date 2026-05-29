@@ -28,6 +28,7 @@ var portal_end_bar_left: MeshInstance3D
 var portal_membrane_left: MeshInstance3D
 
 @onready var sky = get_node("../Sky")
+@onready var audio = get_node_or_null("../Audio")
 
 func _ready():
 	_update_lod_subs()
@@ -144,8 +145,6 @@ func _process(delta):
 	var player_chunk_x = floor(player_pos.x / chunk_size)
 	var player_chunk_z = floor(player_pos.z / chunk_size)
 
-
-
 	if terrain_material:
 		terrain_material.set_shader_parameter("zoom_factor", Config.effective_zoom)
 
@@ -176,8 +175,6 @@ func _process(delta):
 		"terrain_roughness": Config.terrain_roughness,
 		"terrain_surface_texture": Config.terrain_surface_texture,
 		"morph_value": Config.morph_value,
-		"sky_luminosity": Config.sky_luminosity,
-		"sun_luminosity": Config.sun_luminosity,
 		"fog_density": Config.fog_density,
 	}
 
@@ -339,6 +336,9 @@ func _apply_performance_protection(active: bool):
 
 	if sky and sky.has_method("set_performance_protection"):
 		sky.set_performance_protection(active)
+
+	if audio and audio.has_method("set_performance_protection"):
+		audio.set_performance_protection(active)
 
 func _update_terrain_material_uniforms():
 	if not terrain_material:

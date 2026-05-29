@@ -150,26 +150,7 @@ func setup_audio_bus_and_effects():
 	_audio_stream_player.bus = bus_name
 
 func _process(delta):
-	# --- PERFORMANCE GUARD ---
-	var frame_time_ms = delta * 1000.0
-	if frame_time_ms > 66.67: # < 15 FPS
-		low_fps_counter += 1
-		stable_fps_counter = 0
-		if low_fps_counter >= 2:
-			is_suppressed = true
-	elif frame_time_ms <= 50.0: # >= 20 FPS
-		stable_fps_counter += 1
-		low_fps_counter = 0
-		if stable_fps_counter >= 60:
-			is_suppressed = false
-	else:
-		low_fps_counter = 0
-		stable_fps_counter = 0
-
 	startup_time += delta
-
-	if Config.performance_protection_active:
-		is_suppressed = true
 
 	_process_audio_toggles()
 
@@ -359,3 +340,6 @@ func _process_audio_toggles():
 		if drone.playing:
 			drone.stop()
 			playback = null
+
+func set_performance_protection(active: bool):
+	is_suppressed = active

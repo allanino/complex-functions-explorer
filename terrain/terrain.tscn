@@ -1,6 +1,6 @@
 [gd_scene load_steps=4 format=3]
 
-[ext_resource type="Script" uid="uid://d1wxji711yhuu" path="res://scripts/world_manager.gd" id="1_world"]
+[ext_resource type="Script" uid="uid://d1wxji711yhuu" path="res://terrain/terrain.gd" id="1_world"]
 [ext_resource type="Shader" uid="uid://cnaj2gf03bm06" path="res://terrain/terrain.gdshader" id="2_terrain"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_1"]
