@@ -23,7 +23,7 @@ func test_presets():
 	config_manager.apply_preset("Mysterious")
 	assert_eq(config_manager.current_preset, "Mysterious")
 	assert_eq(config_manager.freeze_time, true)
-	assert_almost_eq(config_manager.fog_density, 0.4, 0.001)
+	assert_almost_eq(config_manager.fog_density, 0.8, 0.001)
 	assert_almost_eq(config_manager.terrain_albedo, 0.0, 0.001)
 
 	# Check dirty detection
