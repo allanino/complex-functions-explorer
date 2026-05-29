@@ -117,6 +117,164 @@ const FUNCTIONS = {
 }
 
 # Field parameters
+
+const PRESET_KEYS = [
+	"function_type",
+	"iterations",
+	"height_type",
+	"height_a",
+	"height_epsilon",
+	"rational_num_coeffs",
+	"rational_den_coeffs",
+	"multivalued_n",
+	"zoom_factor",
+	"zoom_damping",
+	"terrain_detail",
+	"antialiasing_mode",
+	"show_curves",
+	"show_critical_stripe",
+	"view_distance",
+	"show_flow",
+	"color_scheme",
+	"freeze_time",
+	"day_duration",
+	"day_time",
+	"sunrise_direction",
+	"sky_luminosity",
+	"sun_luminosity",
+	"self_illumination",
+	"shadows_enabled",
+	"terrain_brightness",
+	"terrain_saturation",
+	"terrain_albedo",
+	"terrain_emission",
+	"terrain_metallic",
+	"terrain_roughness",
+	"terrain_surface_texture",
+	"fog_density",
+	"movement_speed",
+	"speed_near_zeros",
+	"camera_height",
+	"zero_proximity_nav",
+	"show_hud_complex",
+	"show_hud_navigation",
+	"show_hud_zeros",
+	"show_rvm",
+	"show_hud_monitor_fps",
+	"show_hud_monitor_chunks",
+	"hud_scale",
+	"master_volume",
+	"bg_music_volume",
+	"drone_volume"
+]
+
+var PRESETS = {
+	"Default": {
+		"function_type": ComplexFunc.ZETA,
+		"iterations": 500,
+		"height_type": 0,
+		"height_a": 3.0,
+		"height_epsilon": 1.0,
+		"rational_num_coeffs": PackedVector2Array([Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)]),
+		"rational_den_coeffs": PackedVector2Array([Vector2(1, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)]),
+		"multivalued_n": 2,
+		"zoom_factor": 1.0,
+		"zoom_damping": 0.5,
+		"terrain_detail": 1,
+		"antialiasing_mode": 1,
+		"show_curves": true,
+		"show_critical_stripe": true,
+		"view_distance": 7,
+		"show_flow": false,
+		"color_scheme": 0,
+		"freeze_time": false,
+		"day_duration": 60.0,
+		"day_time": 43200.0,
+		"sunrise_direction": 0.0,
+		"sky_luminosity": 1.0,
+		"sun_luminosity": 1.0,
+		"self_illumination": 0.0,
+		"shadows_enabled": false,
+		"terrain_brightness": 1.0,
+		"terrain_saturation": 0.85,
+		"terrain_albedo": 0.15,
+		"terrain_emission": 0.1,
+		"terrain_metallic": 0.7,
+		"terrain_roughness": 0.1,
+		"terrain_surface_texture": 0.0,
+		"fog_density": 0.4,
+		"movement_speed": 10.0,
+		"speed_near_zeros": 100.0,
+		"camera_height": 1.8,
+		"zero_proximity_nav": 0.5,
+		"show_hud_complex": true,
+		"show_hud_navigation": true,
+		"show_hud_zeros": true,
+		"show_rvm": true,
+		"show_hud_monitor_fps": false,
+		"show_hud_monitor_chunks": false,
+		"hud_scale": 1.0,
+		"master_volume": 100.0,
+		"bg_music_volume": 100.0,
+		"drone_volume": 100.0
+	},
+	"Mysterious": {
+		"function_type": ComplexFunc.ZETA,
+		"iterations": 500,
+		"height_type": 0,
+		"height_a": 3.0,
+		"height_epsilon": 1.0,
+		"rational_num_coeffs": PackedVector2Array([Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)]),
+		"rational_den_coeffs": PackedVector2Array([Vector2(1, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)]),
+		"multivalued_n": 2,
+		"zoom_factor": 1.0,
+		"zoom_damping": 0.5,
+		"terrain_detail": 1,
+		"antialiasing_mode": 1,
+		"show_curves": true,
+		"show_critical_stripe": true,
+		"view_distance": 7,
+		"show_flow": false,
+		"color_scheme": 0,
+		"freeze_time": true,
+		"day_duration": 60.0,
+		"day_time": 72000.0,
+		"sunrise_direction": 0.0,
+		"sky_luminosity": 1.0,
+		"sun_luminosity": 1.0,
+		"self_illumination": 0.1,
+		"shadows_enabled": false,
+		"terrain_brightness": 0.0,
+		"terrain_saturation": 0.85,
+		"terrain_albedo": 0.0,
+		"terrain_emission": 0.1,
+		"terrain_metallic": 0.7,
+		"terrain_roughness": 0.1,
+		"terrain_surface_texture": 0.0,
+		"fog_density": 0.4,
+		"movement_speed": 10.0,
+		"speed_near_zeros": 100.0,
+		"camera_height": 1.8,
+		"zero_proximity_nav": 0.5,
+		"show_hud_complex": true,
+		"show_hud_navigation": true,
+		"show_hud_zeros": true,
+		"show_rvm": true,
+		"show_hud_monitor_fps": false,
+		"show_hud_monitor_chunks": false,
+		"hud_scale": 1.0,
+		"master_volume": 100.0,
+		"bg_music_volume": 100.0,
+		"drone_volume": 100.0
+	}
+}
+
+var current_preset: String = "Default"
+var _edited_presets: Dictionary = {}
+
+signal preset_applied
+
+# Field parameters
 var iterations: int = 500
 var function_iterations: Dictionary = {}
 var function_type: int = ComplexFunc.ZETA:
@@ -192,6 +350,81 @@ var performance_protection_active: bool = false
 var effective_zoom: float = 1.0
 var morph_value: float = 1.0
 
+
+func _snapshot_current() -> Dictionary:
+	var snapshot = {}
+	for key in PRESET_KEYS:
+		snapshot[key] = get(key)
+	return snapshot
+
+func apply_preset(preset_name: String):
+	# Save current preset's state if valid
+	var old_clean = current_preset.trim_suffix("*")
+	if PRESETS.has(old_clean):
+		_edited_presets[old_clean] = _snapshot_current()
+
+	if PRESETS.has(preset_name):
+		var target_preset = _edited_presets.get(preset_name, PRESETS[preset_name])
+		for key in target_preset:
+			set(key, target_preset[key])
+		current_preset = preset_name
+		preset_applied.emit()
+
+func is_preset_dirty() -> bool:
+	var clean_name = current_preset.trim_suffix("*")
+	if not PRESETS.has(clean_name):
+		return true
+	var preset = PRESETS[clean_name]
+	for key in PRESET_KEYS:
+		if key == "day_time" and not get("freeze_time"):
+			continue
+		if preset.has(key) and get(key) != preset[key]:
+			return true
+	return false
+
+func is_preset_dirty_by_name(preset_name: String) -> bool:
+	if preset_name == current_preset.trim_suffix("*"):
+		return is_preset_dirty()
+	if not PRESETS.has(preset_name):
+		return false
+	if not _edited_presets.has(preset_name):
+		return false
+	var cached = _edited_presets[preset_name]
+	var clean = PRESETS[preset_name]
+	for key in PRESET_KEYS:
+		if key == "day_time" and not cached.get("freeze_time", false):
+			continue
+		if clean.has(key) and cached.has(key) and cached[key] != clean[key]:
+			return true
+	return false
+
+func update_preset(preset_name: String):
+	var preset_data = {}
+	for key in PRESET_KEYS:
+		preset_data[key] = get(key)
+	PRESETS[preset_name] = preset_data
+	if _edited_presets.has(preset_name):
+		_edited_presets.erase(preset_name)
+	current_preset = preset_name
+	save_settings()
+
+func delete_preset(preset_name: String):
+	if PRESETS.has(preset_name):
+		PRESETS.erase(preset_name)
+		if _edited_presets.has(preset_name):
+			_edited_presets.erase(preset_name)
+		save_settings()
+
+func restore_preset(preset_name: String):
+	if _edited_presets.has(preset_name):
+		_edited_presets.erase(preset_name)
+	if current_preset.trim_suffix("*") == preset_name:
+		if PRESETS.has(preset_name):
+			var preset = PRESETS[preset_name]
+			for key in preset:
+				set(key, preset[key])
+			preset_applied.emit()
+
 func _ready():
 	load_settings()
 	effective_zoom = float(zoom_factor)
@@ -236,6 +469,8 @@ func save_settings():
 	config.set_value("rendering", "terrain_roughness", terrain_roughness)
 	config.set_value("rendering", "terrain_surface_texture", terrain_surface_texture)
 	config.set_value("rendering", "fog_density", fog_density)
+	config.set_value("session", "current_preset", current_preset)
+	config.set_value("session", "custom_presets", PRESETS)
 
 	config.set_value("player", "movement_speed", movement_speed)
 	config.set_value("player", "speed_near_zeros", speed_near_zeros)
@@ -303,6 +538,10 @@ func load_settings():
 	terrain_roughness = config.get_value("rendering", "terrain_roughness", terrain_roughness)
 	terrain_surface_texture = config.get_value("rendering", "terrain_surface_texture", terrain_surface_texture)
 	fog_density = config.get_value("rendering", "fog_density", fog_density)
+	current_preset = config.get_value("session", "current_preset", "Default")
+	var saved_presets = config.get_value("session", "custom_presets", {})
+	if saved_presets.size() > 0:
+		PRESETS = saved_presets
 
 	movement_speed = config.get_value("player", "movement_speed", movement_speed)
 	speed_near_zeros = config.get_value("player", "speed_near_zeros", speed_near_zeros)
