@@ -153,6 +153,7 @@ const PRESET_KEYS = [
 	"show_hud_monitor_fps",
 	"show_hud_monitor_chunks",
 	"hud_scale",
+	"menu_scale",
 	"master_volume",
 	"bg_music_volume",
 	"drone_volume"
@@ -229,6 +230,7 @@ var show_rvm: bool = true
 var show_hud_monitor_fps: bool = false
 var show_hud_monitor_chunks: bool = false
 var hud_scale: float = 1.0
+var menu_scale: float = 1.0
 
 # Audio parameters
 var master_volume: float = 100.0
@@ -388,6 +390,7 @@ func save_settings():
 	config.set_value("ui", "show_hud_monitor_fps", show_hud_monitor_fps)
 	config.set_value("ui", "show_hud_monitor_chunks", show_hud_monitor_chunks)
 	config.set_value("ui", "hud_scale", hud_scale)
+	config.set_value("ui", "menu_scale", menu_scale)
 
 	config.set_value("audio", "master_volume", master_volume)
 	config.set_value("audio", "bg_music_volume", bg_music_volume)
@@ -462,6 +465,7 @@ func load_settings():
 	show_hud_monitor_fps = config.get_value("ui", "show_hud_monitor_fps", show_hud_monitor_fps)
 	show_hud_monitor_chunks = config.get_value("ui", "show_hud_monitor_chunks", show_hud_monitor_chunks)
 	hud_scale = config.get_value("ui", "hud_scale", hud_scale)
+	menu_scale = config.get_value("ui", "menu_scale", menu_scale)
 
 	master_volume = config.get_value("audio", "master_volume", master_volume)
 	bg_music_volume = config.get_value("audio", "bg_music_volume", bg_music_volume)

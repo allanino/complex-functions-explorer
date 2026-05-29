@@ -21,6 +21,7 @@ extends CanvasLayer
 var portal_flash: ColorRect
 
 # New UI Node Paths
+@onready var main_menu_panel = %MenuOverlay.get_node("CenterContainer/MainMenuPanel")
 @onready var tab_container = %MenuOverlay/%TabContainer
 @onready var func_button = %MenuOverlay/%FuncButton
 @onready var height_button = %MenuOverlay/%HeightButton
@@ -65,6 +66,7 @@ var portal_flash: ColorRect
 @onready var rvm_checkbox = %MenuOverlay/%RvmCheckbox
 @onready var hud_monitor_fps_checkbox = %MenuOverlay/%HudMonitorFpsCheckbox
 @onready var hud_monitor_chunks_checkbox = %MenuOverlay/%HudMonitorChunksCheckbox
+@onready var menu_scale_slider = %MenuOverlay/%MenuScaleContainer
 @onready var hud_scale_slider = %MenuOverlay/%HudScaleContainer
 
 @onready var master_volume_slider = %MenuOverlay/%MasterVolumeContainer
@@ -152,6 +154,7 @@ const DESCRIPTIONS = {
 	"Riemann–von Mangoldt": "Show the estimated number of zeta zeros N(t) based on the Riemann–von Mangoldt formula.",
 	"Monitor FPS": "Show real-time performance metrics (FPS) on the MainUI.",
 	"Monitor Chunks": "Show real-time chunks statistics on the MainUI.",
+	"Menu Scale": "Adjust the size of the entire menu.",
 	"HUD Scale": "Adjust the size of the HUD elements.",
 	"Master Volume": "Control the global volume level of all sound sources.",
 	"Background Music": "Adjust the volume of the ambient mathematical soundscape.",
@@ -180,6 +183,7 @@ var _initial_terrain_emission: float
 var _initial_terrain_metallic: float
 var _initial_terrain_roughness: float
 var _initial_terrain_surface_texture: float
+var _initial_menu_scale: float
 var _initial_hud_scale: float
 var _initial_sky_luminosity: float
 var _initial_sun_luminosity: float
@@ -271,6 +275,7 @@ func _ready():
 	sun_luminosity_slider.value_changed.connect(_on_sun_luminosity_value_changed)
 	self_illumination_slider.value_changed.connect(_on_self_illumination_value_changed)
 	fog_density_slider.value_changed.connect(_on_fog_density_value_changed)
+	menu_scale_slider.value_changed.connect(_on_menu_scale_value_changed)
 	hud_scale_slider.value_changed.connect(_on_hud_scale_value_changed)
 	iter_slider.value_changed.connect(_on_iterations_value_changed)
 
@@ -368,6 +373,15 @@ func _ready():
 				ctrl.custom_minimum_size = Vector2(664, 0)
 			if checkbox_btn:
 				checkbox_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+
+	if menu_scale_slider:
+		var label = menu_scale_slider.get_node("Label")
+		var slider_btn = menu_scale_slider.get_node("Slider")
+		if label:
+			label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		if slider_btn:
+			slider_btn.size_flags_horizontal = 0
+			slider_btn.custom_minimum_size = Vector2(580, 20)
 
 	if hud_scale_slider:
 		var label = hud_scale_slider.get_node("Label")
@@ -479,6 +493,7 @@ func toggle_menu(applied: bool = false):
 		_initial_terrain_metallic = Config.terrain_metallic
 		_initial_terrain_roughness = Config.terrain_roughness
 		_initial_terrain_surface_texture = Config.terrain_surface_texture
+		_initial_menu_scale = Config.menu_scale
 		_initial_hud_scale = Config.hud_scale
 		_initial_sky_luminosity = Config.sky_luminosity
 		_initial_sun_luminosity = Config.sun_luminosity
@@ -553,6 +568,8 @@ func toggle_menu(applied: bool = false):
 		rvm_checkbox.button_pressed = Config.show_rvm
 		hud_monitor_fps_checkbox.button_pressed = Config.show_hud_monitor_fps
 		hud_monitor_chunks_checkbox.button_pressed = Config.show_hud_monitor_chunks
+		menu_scale_slider.value = Config.menu_scale * 150.0
+		_on_menu_scale_value_changed(menu_scale_slider.value)
 		hud_scale_slider.value = Config.hud_scale * 100.0
 		_on_hud_scale_value_changed(hud_scale_slider.value)
 		if player:
@@ -612,6 +629,9 @@ func toggle_menu(applied: bool = false):
 			Config.terrain_metallic = _initial_terrain_metallic
 			Config.terrain_roughness = _initial_terrain_roughness
 			Config.terrain_surface_texture = _initial_terrain_surface_texture
+			if Config.menu_scale != _initial_menu_scale:
+				Config.menu_scale = _initial_menu_scale
+				_on_menu_scale_value_changed(Config.menu_scale * 150.0)
 			if Config.hud_scale != _initial_hud_scale:
 				Config.hud_scale = _initial_hud_scale
 				_update_hud_layout()
@@ -729,6 +749,12 @@ func _on_self_illumination_value_changed(value):
 func _on_fog_density_value_changed(value):
 	Config.fog_density = value / 100.0
 	fog_density_slider.value_text = "%.1f%%" % value
+
+func _on_menu_scale_value_changed(value):
+	menu_scale_slider.value_text = str(int(value)) + "%"
+	Config.menu_scale = value / 150.0
+	if main_menu_panel:
+		main_menu_panel.scale = Vector2(Config.menu_scale, Config.menu_scale)
 
 func _on_hud_scale_value_changed(value):
 	hud_scale_slider.value_text = str(int(value)) + "%"
@@ -1218,7 +1244,7 @@ func _connect_preset_dirtiers():
 		iter_slider, zero_proximity_nav_slider, zoom_slider, zero_speed_slider,
 		view_distance_slider, day_duration_slider, day_time_slider, sunrise_slider,
 		sky_luminosity_slider, sun_luminosity_slider, self_illumination_slider,
-		fog_density_slider, hud_scale_slider, master_volume_slider, bg_music_slider,
+		fog_density_slider, menu_scale_slider, hud_scale_slider, master_volume_slider, bg_music_slider,
 		drone_slider, brightness_slider, saturation_slider, albedo_slider,
 		emission_slider, metallic_slider, roughness_slider, surface_texture_slider,
 		multivalued_slider
