@@ -53,6 +53,8 @@ func _unhandled_input(event):
 	var hud_node = get_node_or_null("/root/Main/MainUI")
 	if hud_node and hud_node.detach_overlay and hud_node.detach_overlay.visible:
 		is_detached = true
+	if hud_node and hud_node.menu_overlay and hud_node.menu_overlay.visible:
+		is_detached = true
 
 	if is_detached:
 		return
@@ -115,6 +117,8 @@ func _physics_process(delta):
 	var is_detached = false
 	var hud_node = get_node_or_null("/root/Main/MainUI")
 	if hud_node and hud_node.detach_overlay and hud_node.detach_overlay.visible:
+		is_detached = true
+	if hud_node and hud_node.menu_overlay and hud_node.menu_overlay.visible:
 		is_detached = true
 
 	if is_detached:
