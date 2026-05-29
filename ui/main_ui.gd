@@ -983,6 +983,7 @@ func _on_set_pos_pressed(_toggle_menu: bool = true):
 	Config.day_duration = day_duration_slider.value
 	Config.day_time = day_time_slider.value
 	Config.fog_density = fog_density_slider.value / 100.0
+	Config.menu_scale = menu_scale_slider.value / 150.0
 	Config.hud_scale = hud_scale_slider.value / 100.0
 	Config.function_type = func_button.get_item_id(func_button.selected)
 	Config.height_type = height_button.selected
