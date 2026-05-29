@@ -223,7 +223,7 @@ grow_vertical = 2
 mouse_filter = 2
 
 [node name="MainMenuPanel" type="PanelContainer" parent="CenterContainer" unique_id=185131265]
-custom_minimum_size = Vector2(500, 710)
+custom_minimum_size = Vector2(500, 960)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_glass")
 
@@ -237,6 +237,35 @@ theme_override_constants/margin_bottom = 30
 [node name="ContentVBox" type="VBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer" unique_id=1309877729]
 layout_mode = 2
 theme_override_constants/separation = 30
+
+[node name="TitleHBox" type="HBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox"]
+layout_mode = 2
+
+[node name="TitleLabel" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TitleHBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "Complex Functions Explorer"
+
+[node name="Spacer" type="Control" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TitleHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="QuitButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TitleHBox" unique_id=781431675]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.5, 0.5, 1.0)
+theme_override_colors/font_pressed_color = Color(1, 0.4, 0.4, 1)
+theme_override_colors/font_hover_color = Color(0.9, 0.6, 0.6, 0.9)
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/focus = SubResource("StyleBoxFlat_btn_normal")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_disabled")
+text = "Quit"
+
+[node name="TitleHSeparator" type="HSeparator" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox"]
+layout_mode = 2
 
 [node name="TopPresetHBox" type="HBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox" unique_id=99990001]
 layout_mode = 2
@@ -303,23 +332,6 @@ theme_override_styles/focus = SubResource("StyleBoxFlat_btn_normal")
 theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_disabled")
 text = "+ New"
 
-[node name="VSeparator" type="VSeparator" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TopPresetHBox"]
-layout_mode = 2
-theme_override_constants/separation = 15
-
-[node name="QuitButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TopPresetHBox" unique_id=781431675]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_colors/font_color = Color(0.7, 0.5, 0.5, 1.0)
-theme_override_colors/font_pressed_color = Color(1, 0.4, 0.4, 1)
-theme_override_colors/font_hover_color = Color(0.9, 0.6, 0.6, 0.9)
-theme_override_font_sizes/font_size = 18
-theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
-theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
-theme_override_styles/focus = SubResource("StyleBoxFlat_btn_normal")
-theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_disabled")
-text = "Quit"
 
 [node name="TopHSeparator" type="HSeparator" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox" unique_id=99990006]
 layout_mode = 2
@@ -1018,9 +1030,7 @@ theme_override_styles/pressed = SubResource("StyleBoxFlat_apply_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_apply_hover")
 theme_override_styles/focus = SubResource("StyleBoxFlat_apply_normal")
 theme_override_styles/disabled = SubResource("StyleBoxFlat_apply_disabled")
-text = "Apply Changes"
-
-
+text = "Update View"
 
 [node name="NewPresetDialog" type="PanelContainer" parent="CenterContainer" unique_id=99991000]
 unique_name_in_owner = true
