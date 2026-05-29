@@ -1,0 +1,47 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Shader" uid="uid://d3nuaty6clkup" path="res://sky/sky.gdshader" id="1_sky"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_1"]
+shader = ExtResource("1_sky")
+shader_parameter/sky_color = Color(0.41, 0.615, 0.82, 1)
+shader_parameter/horizon_color = Color(0.53400004, 0.712, 0.89, 1)
+shader_parameter/cloud_color = Color(1, 1, 1, 1)
+shader_parameter/golden_hour_factor = 0.0
+shader_parameter/night_factor = 0.0
+shader_parameter/sky_luminosity = 1.0
+shader_parameter/performance_protection_active = false
+shader_parameter/sun_size = 0.05
+
+[sub_resource type="Sky" id="Sky_1"]
+sky_material = SubResource("ShaderMaterial_1")
+process_mode = 3
+
+[sub_resource type="Environment" id="Environment_1"]
+background_mode = 2
+sky = SubResource("Sky_1")
+tonemap_mode = 2
+tonemap_exposure = 0.95
+tonemap_white = 1.05
+glow_enabled = true
+
+[node name="Sky" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_1")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0)
+shadow_enabled = false
+light_energy = 7.667
+light_specular = 1.82
+directional_shadow_blend_splits = false
+directional_shadow_max_distance = 1000.0
+
+[node name="MoonLight" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0)
+light_color = Color(0.7, 0.8, 1, 1)
+light_energy = 0.0
+shadow_enabled = true
+directional_shadow_blend_splits = true
+directional_shadow_max_distance = 1000.0

@@ -1,6 +1,6 @@
 extends Node3D
 
-@export var chunk_scene: PackedScene = preload("res://scenes/chunk.tscn")
+@export var chunk_scene: PackedScene = preload("res://terrain/chunk.tscn")
 @export var terrain_material: ShaderMaterial
 @export var player: Node3D
 @export var chunk_size: float = 32.0
@@ -25,9 +25,9 @@ var portal_vert_bar_left: MeshInstance3D
 var portal_top_bar_left: MeshInstance3D
 var portal_end_bar_left: MeshInstance3D
 
-@onready var sun = get_node("../DirectionalLight3D")
-@onready var moon = get_node("../MoonLight")
-@onready var world_environment = get_node("../WorldEnvironment")
+@onready var sun = get_node("../Sky/DirectionalLight3D")
+@onready var moon = get_node("../Sky/MoonLight")
+@onready var world_environment = get_node("../Sky/WorldEnvironment")
 
 # Day night cycle variables
 var _golden_hour_transition: float = 0.0

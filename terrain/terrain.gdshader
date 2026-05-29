@@ -1,6 +1,6 @@
 shader_type spatial;
 
-#include "res://shaders/field.gdshaderinc"
+#include "res://terrain/field.gdshaderinc"
 
 varying vec3 world_pos;
 varying vec3 v_normal;
