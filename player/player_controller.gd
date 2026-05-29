@@ -25,6 +25,10 @@ var current_z: Vector2 = Vector2(0.0, 0.0)
 
 @onready var camera = $Camera3D
 
+@onready var main_ui = get_node_or_null("/root/Main/MainUI")
+@onready var world_manager = get_node_or_null("/root/Main/WorldManager")
+@onready var audio_system = get_node_or_null("/root/Main/Audio")
+
 func _ready():
 	add_to_group("player")
 	# Set the global position directly using a Vector3(x, y, z)
@@ -39,9 +43,8 @@ func _ready():
 
 func _unhandled_input(event):
 	if event.is_action_pressed("ui_cancel"):
-		var hud = get_node_or_null("/root/Main/MainUI")
-		if hud:
-			hud.toggle_menu()
+		if main_ui:
+			main_ui.toggle_menu()
 		else:
 			# Fallback if MainUI is not found
 			if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
@@ -51,8 +54,7 @@ func _unhandled_input(event):
 		return
 
 	var is_detached = false
-	var hud_node = get_node_or_null("/root/Main/MainUI")
-	if hud_node and hud_node.detach_overlay and hud_node.detach_overlay.visible:
+	if main_ui and main_ui.detach_overlay and main_ui.detach_overlay.visible:
 		is_detached = true
 
 	if is_detached:
@@ -109,7 +111,6 @@ func _unhandled_input(event):
 			Config.current_branch = 0
 			
 			# Immediately update the shader's branch uniform
-			var world_manager = get_node_or_null("/root/Main/WorldManager")
 			if world_manager and world_manager.has_method("_update_terrain_material_uniforms"):
 				world_manager._update_terrain_material_uniforms()
 
@@ -120,8 +121,7 @@ func get_terrain_height(x: float, z: float, field_val: Vector2 = Vector2.INF) ->
 
 func _physics_process(delta):
 	var is_detached = false
-	var hud_node = get_node_or_null("/root/Main/MainUI")
-	if hud_node and hud_node.detach_overlay and hud_node.detach_overlay.visible:
+	if main_ui and main_ui.detach_overlay and main_ui.detach_overlay.visible:
 		is_detached = true
 
 	if is_detached:
@@ -391,18 +391,15 @@ func _process(_delta):
 					branch_changed = true
 
 		if branch_changed:
-			var audio = get_node_or_null("/root/Main/Audio")
-			if audio and audio.has_method("play_portal_crossing"):
-				audio.play_portal_crossing()
+			if audio_system and audio_system.has_method("play_portal_crossing"):
+				audio_system.play_portal_crossing()
 
 
 			# Play the screen-space flash transition effect
-			var main_ui = get_node_or_null("/root/Main/MainUI")
 			if main_ui and main_ui.has_method("play_portal_flash"):
 				main_ui.play_portal_flash()
 
 			# Immediately update the shader's branch uniform to prevent 1-frame rendering lag
-			var world_manager = get_node_or_null("/root/Main/WorldManager")
 			if world_manager and world_manager.has_method("_update_terrain_material_uniforms"):
 				world_manager._update_terrain_material_uniforms()
 
