@@ -97,6 +97,10 @@ var active_detached_value: Label = null
 @onready var new_preset_input = %MenuOverlay/%NewPresetInput
 @onready var new_preset_save = %MenuOverlay/%NewPresetSave
 @onready var new_preset_cancel = %MenuOverlay/%NewPresetCancel
+@onready var delete_preset_dialog = %MenuOverlay/%DeletePresetDialog
+@onready var delete_message_label = %MenuOverlay/%DeleteMessageLabel
+@onready var delete_preset_cancel = %MenuOverlay/%DeletePresetCancel
+@onready var delete_preset_confirm = %MenuOverlay/%DeletePresetConfirm
 @onready var apply_button = %MenuOverlay/%ApplyButton
 @onready var close_button = %MenuOverlay/%CloseButton
 @onready var quit_button = %MenuOverlay/%QuitButton
@@ -228,6 +232,8 @@ func _ready():
 	preset_new_button.pressed.connect(_on_preset_new_pressed)
 	new_preset_save.pressed.connect(_on_new_preset_save_pressed)
 	new_preset_cancel.pressed.connect(_on_new_preset_cancel_pressed)
+	delete_preset_cancel.pressed.connect(_on_delete_preset_cancel_pressed)
+	delete_preset_confirm.pressed.connect(_on_delete_preset_confirm_pressed)
 
 	_update_preset_button_text()
 
@@ -971,11 +977,27 @@ func _on_set_pos_pressed():
 
 func _on_preset_update_pressed():
 	var preset_name = Config.current_preset.trim_suffix("*")
-	Config.update_preset(preset_name)
-	Config.current_preset = preset_name
-	Config.preset_dirtied.emit()
+	if preset_name in ["Default", "Mysterious"]:
+		new_preset_dialog.visible = true
+		new_preset_input.text = preset_name + " Copy"
+		new_preset_input.grab_focus()
+	else:
+		Config.update_preset(preset_name)
+		Config.current_preset = preset_name
+		Config.preset_dirtied.emit()
 
 func _on_preset_delete_pressed():
+	var preset_name = Config.current_preset.trim_suffix("*")
+	if preset_name in ["Default", "Mysterious"]:
+		return
+	delete_message_label.text = "Are you sure you want to delete the
+preset '" + preset_name + "'?"
+	delete_preset_dialog.visible = true
+
+func _on_delete_preset_cancel_pressed():
+	delete_preset_dialog.visible = false
+
+func _on_delete_preset_confirm_pressed():
 	var preset_name = Config.current_preset.trim_suffix("*")
 	if Config.PRESETS.has(preset_name):
 		Config.delete_preset(preset_name)
@@ -991,6 +1013,7 @@ func _on_preset_delete_pressed():
 		else:
 			Config.current_preset = "Custom"
 			Config.preset_dirtied.emit()
+	delete_preset_dialog.visible = false
 
 func _on_preset_new_pressed():
 	new_preset_dialog.visible = true
@@ -1047,11 +1070,6 @@ func _sync_ui_to_config():
 	_on_self_illumination_value_changed(self_illumination_slider.value)
 
 	_applying_preset = false
-	# Re-enforce preset cleanliness just in case
-	var base_name = Config.current_preset.trim_suffix("*")
-	if Config.current_preset.ends_with("*"):
-		Config.current_preset = base_name
-		Config.preset_dirtied.emit()
 
 func _on_preset_applied():
 	_sync_ui_to_config()
@@ -1073,6 +1091,16 @@ func _update_preset_button_text():
 		# Reset all items
 		for i in range(preset_button.item_count):
 			preset_button.set_item_text(i, preset_button.get_item_text(i).trim_suffix("*"))
+
+	# Save/Update button state
+	preset_update_button.disabled = not is_dirty
+
+	# Default & Mysterious are read-only
+	if preset_name in ["Default", "Mysterious"]:
+		preset_delete_button.disabled = true
+	else:
+		preset_delete_button.disabled = false
+
 
 func _on_quit_pressed():
 	get_tree().quit()

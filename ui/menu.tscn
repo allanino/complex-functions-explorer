@@ -220,7 +220,7 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/focus = SubResource("StyleBoxFlat_btn_normal")
-text = "Update"
+text = "Save"
 
 [node name="PresetDeleteButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TopPresetHBox" unique_id=99990004]
 unique_name_in_owner = true
@@ -1018,3 +1018,63 @@ theme_override_styles/pressed = SubResource("StyleBoxFlat_apply_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_apply_hover")
 theme_override_styles/focus = SubResource("StyleBoxFlat_apply_normal")
 text = "Save"
+
+
+[node name="DeletePresetDialog" type="PanelContainer" parent="CenterContainer" unique_id=99992000]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme_override_styles/panel = SubResource("StyleBoxFlat_glass")
+
+[node name="MarginContainer" type="MarginContainer" parent="CenterContainer/DeletePresetDialog" unique_id=99992001]
+layout_mode = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer/DeletePresetDialog/MarginContainer" unique_id=99992002]
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="Label" type="Label" parent="CenterContainer/DeletePresetDialog/MarginContainer/VBoxContainer" unique_id=99992003]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "Delete Preset?"
+horizontal_alignment = 1
+
+[node name="DeleteMessageLabel" type="Label" parent="CenterContainer/DeletePresetDialog/MarginContainer/VBoxContainer" unique_id=99992004]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Are you sure you want to delete the\npreset 'Custom'?"
+horizontal_alignment = 1
+
+[node name="HBoxContainer" type="HBoxContainer" parent="CenterContainer/DeletePresetDialog/MarginContainer/VBoxContainer" unique_id=99992005]
+layout_mode = 2
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="DeletePresetCancel" type="Button" parent="CenterContainer/DeletePresetDialog/MarginContainer/VBoxContainer/HBoxContainer" unique_id=99992006]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/focus = SubResource("StyleBoxFlat_btn_normal")
+text = "Cancel"
+
+[node name="DeletePresetConfirm" type="Button" parent="CenterContainer/DeletePresetDialog/MarginContainer/VBoxContainer/HBoxContainer" unique_id=99992007]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_apply_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_apply_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_apply_hover")
+theme_override_styles/focus = SubResource("StyleBoxFlat_apply_normal")
+text = "Delete"
