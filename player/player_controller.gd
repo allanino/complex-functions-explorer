@@ -346,7 +346,7 @@ func _start_auto_walk_from_demo():
 	Config.show_critical_stripe = true
 	Config.rvm_start_t = abs(global_position.z * 0.1 / Config.effective_zoom)
 
-func _process(delta):
+func _process(_delta):
 	var scale_factor = 1.0 / Config.effective_zoom
 	var current_x = global_position.x * 0.1 * scale_factor
 	var current_y = - global_position.z * 0.1 * scale_factor
