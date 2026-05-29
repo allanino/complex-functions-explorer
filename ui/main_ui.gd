@@ -348,6 +348,37 @@ func _ready():
 	surface_texture_slider.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "SurfaceTexture"))
 	view_distance_slider.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "View Distance"))
 
+	# Adjust HUD tab component widths to be exactly 180 wide (and labels to expand)
+	var hud_checkboxes = [
+		hud_complex_checkbox,
+		hud_navigation_checkbox,
+		hud_zeros_checkbox,
+		rvm_checkbox,
+		hud_monitor_fps_checkbox,
+		hud_monitor_chunks_checkbox
+	]
+	for cb in hud_checkboxes:
+		if cb:
+			var label = cb.get_node("Label")
+			var ctrl = cb.get_node("Control")
+			var checkbox_btn = cb.get_node("Control/CheckBox")
+			if label:
+				label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			if ctrl:
+				ctrl.size_flags_horizontal = 0
+				ctrl.custom_minimum_size = Vector2(664, 0)
+			if checkbox_btn:
+				checkbox_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+
+	if hud_scale_slider:
+		var label = hud_scale_slider.get_node("Label")
+		var slider_btn = hud_scale_slider.get_node("Slider")
+		if label:
+			label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		if slider_btn:
+			slider_btn.size_flags_horizontal = 0
+			slider_btn.custom_minimum_size = Vector2(580, 20)
+
 func _disable_sliders_focus(node: Node):
 	if node is HSlider:
 		node.focus_mode = Control.FOCUS_NONE
