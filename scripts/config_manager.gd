@@ -378,8 +378,14 @@ func is_preset_dirty() -> bool:
 	for key in PRESET_KEYS:
 		if key == "day_time" and not get("freeze_time"):
 			continue
-		if preset.has(key) and get(key) != preset[key]:
-			return true
+		if preset.has(key):
+			var val1 = get(key)
+			var val2 = preset[key]
+			if typeof(val1) == TYPE_FLOAT and typeof(val2) == TYPE_FLOAT:
+				if not is_equal_approx(val1, val2):
+					return true
+			elif val1 != val2:
+				return true
 	return false
 
 func is_preset_dirty_by_name(preset_name: String) -> bool:
@@ -394,8 +400,14 @@ func is_preset_dirty_by_name(preset_name: String) -> bool:
 	for key in PRESET_KEYS:
 		if key == "day_time" and not cached.get("freeze_time", false):
 			continue
-		if clean.has(key) and cached.has(key) and cached[key] != clean[key]:
-			return true
+		if clean.has(key) and cached.has(key):
+			var val1 = cached[key]
+			var val2 = clean[key]
+			if typeof(val1) == TYPE_FLOAT and typeof(val2) == TYPE_FLOAT:
+				if not is_equal_approx(val1, val2):
+					return true
+			elif val1 != val2:
+				return true
 	return false
 
 func update_preset(preset_name: String):
