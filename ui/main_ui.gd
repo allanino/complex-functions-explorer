@@ -1204,16 +1204,19 @@ func _update_preset_button_text():
 
 	# Try to select the right item, then set text
 	for i in range(preset_button.item_count):
-		if preset_button.get_item_text(i).trim_suffix("*") == preset_name:
+		var item_clean_name = preset_button.get_item_text(i).trim_suffix("*")
+		if item_clean_name == preset_name:
 			preset_button.select(i)
 			break
 
-	if is_dirty:
-		preset_button.set_item_text(preset_button.selected, preset_name + "*")
-	else:
-		# Reset all items
-		for i in range(preset_button.item_count):
-			preset_button.set_item_text(i, preset_button.get_item_text(i).trim_suffix("*"))
+	# Update all items' texts based on their dirtiness
+	for i in range(preset_button.item_count):
+		var item_clean_name = preset_button.get_item_text(i).trim_suffix("*")
+		var item_dirty = Config.is_preset_dirty_by_name(item_clean_name)
+		if item_dirty:
+			preset_button.set_item_text(i, item_clean_name + "*")
+		else:
+			preset_button.set_item_text(i, item_clean_name)
 
 	# Force OptionButton to update its displayed text by re-selecting the index
 	var selected_idx = preset_button.selected

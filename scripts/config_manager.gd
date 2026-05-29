@@ -384,6 +384,22 @@ func is_preset_dirty() -> bool:
 			return true
 	return false
 
+func is_preset_dirty_by_name(preset_name: String) -> bool:
+	if preset_name == current_preset.trim_suffix("*"):
+		return is_preset_dirty()
+	if not PRESETS.has(preset_name):
+		return false
+	if not _edited_presets.has(preset_name):
+		return false
+	var cached = _edited_presets[preset_name]
+	var clean = PRESETS[preset_name]
+	for key in PRESET_KEYS:
+		if key == "day_time" and not cached.get("freeze_time", false):
+			continue
+		if clean.has(key) and cached.has(key) and cached[key] != clean[key]:
+			return true
+	return false
+
 func update_preset(preset_name: String):
 	var preset_data = {}
 	for key in PRESET_KEYS:

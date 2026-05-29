@@ -170,6 +170,30 @@ func test_preset_ui_asterisk_workflow():
 	assert_true(Config.is_preset_dirty())
 	assert_true(hud_instance.preset_button.get_item_text(hud_instance.preset_button.selected).ends_with("*"))
 	
+	# Switch to Mysterious, making MyNewUI_Preset a dirty cached preset
+	Config.apply_preset("Mysterious")
+	hud_instance._update_preset_button_text()
+	
+	# Verify that Mysterious is selected and not dirty
+	assert_eq(Config.current_preset, "Mysterious")
+	assert_false(Config.is_preset_dirty())
+	assert_false(hud_instance.preset_button.get_item_text(hud_instance.preset_button.selected).ends_with("*"))
+	
+	# Verify that MyNewUI_Preset in the dropdown list STILL has the asterisk
+	var idx = -1
+	for i in range(hud_instance.preset_button.item_count):
+		if hud_instance.preset_button.get_item_text(i).trim_suffix("*") == "MyNewUI_Preset":
+			idx = i
+			break
+	assert_ne(idx, -1)
+	assert_true(hud_instance.preset_button.get_item_text(idx).ends_with("*"))
+	
+	# Switch back to MyNewUI_Preset
+	Config.apply_preset("MyNewUI_Preset")
+	hud_instance._update_preset_button_text()
+	assert_true(Config.is_preset_dirty())
+	assert_true(hud_instance.preset_button.get_item_text(hud_instance.preset_button.selected).ends_with("*"))
+	
 	# Save it
 	hud_instance._on_preset_update_pressed()
 	assert_false(Config.is_preset_dirty())
