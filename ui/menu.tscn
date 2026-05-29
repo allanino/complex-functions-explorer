@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://dt1i63qai7fx6"]
 
 [ext_resource type="PackedScene" path="res://ui/components/slider.tscn" id="1"]
-[ext_resource type="PackedScene" path="res://ui/components/checkbox.tscn" id="3_checkbox"]
+[ext_resource type="PackedScene" uid="uid://cb3s73jdxxabc" path="res://ui/components/checkbox.tscn" id="3_checkbox"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_glass"]
 bg_color = Color(0.03, 0.03, 0.03, 0.5)
@@ -17,45 +17,6 @@ corner_radius_bottom_left = 10
 shadow_color = Color(0, 0, 0, 0.5)
 shadow_size = 4
 shadow_offset = Vector2(0, 4)
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dialog_opaque"]
-bg_color = Color(0.03, 0.03, 0.03, 1)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(1, 1, 1, 0.1)
-corner_radius_top_left = 10
-corner_radius_top_right = 10
-corner_radius_bottom_right = 10
-corner_radius_bottom_left = 10
-shadow_color = Color(0, 0, 0, 0.5)
-shadow_size = 4
-shadow_offset = Vector2(0, 4)
-
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_tabpanel"]
-content_margin_left = 0.0
-content_margin_top = 20.0
-content_margin_right = 0.0
-content_margin_bottom = 0.0
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tab_unselected"]
-content_margin_left = 20.0
-content_margin_top = 10.0
-content_margin_right = 20.0
-content_margin_bottom = 10.0
-bg_color = Color(0, 0, 0, 0)
-border_width_bottom = 1
-border_color = Color(1, 1, 1, 0.1)
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tab_selected"]
-content_margin_left = 20.0
-content_margin_top = 10.0
-content_margin_right = 20.0
-content_margin_bottom = 10.0
-bg_color = Color(1, 1, 1, 0.08)
-border_width_bottom = 2
-border_color = Color(1, 1, 1, 0.5)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_normal"]
 content_margin_left = 15.0
@@ -104,6 +65,30 @@ corner_radius_top_left = 4
 corner_radius_top_right = 4
 corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_tabpanel"]
+content_margin_left = 0.0
+content_margin_top = 20.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tab_unselected"]
+content_margin_left = 20.0
+content_margin_top = 10.0
+content_margin_right = 20.0
+content_margin_bottom = 10.0
+bg_color = Color(0, 0, 0, 0)
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tab_selected"]
+content_margin_left = 20.0
+content_margin_top = 10.0
+content_margin_right = 20.0
+content_margin_bottom = 10.0
+bg_color = Color(1, 1, 1, 0.08)
+border_width_bottom = 2
+border_color = Color(1, 1, 1, 0.5)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_input"]
 content_margin_left = 12.0
@@ -171,6 +156,21 @@ corner_radius_bottom_left = 6
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_btn"]
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dialog_opaque"]
+bg_color = Color(0.03, 0.03, 0.03, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+shadow_color = Color(0, 0, 0, 0.5)
+shadow_size = 4
+shadow_offset = Vector2(0, 4)
+
 [node name="MenuOverlay" type="ColorRect" unique_id=324048888]
 visible = false
 anchors_preset = 15
@@ -209,7 +209,6 @@ theme_override_constants/separation = 30
 [node name="TopPresetHBox" type="HBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox" unique_id=99990001]
 layout_mode = 2
 theme_override_constants/separation = 10
-alignment = 0
 
 [node name="Label" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TopPresetHBox" unique_id=99990002]
 layout_mode = 2
@@ -928,7 +927,6 @@ text = "Topographic Drone"
 value = 100.0
 value_text = "100%"
 
-
 [node name="BottomHSeparator" type="HSeparator" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox" unique_id=99990007]
 layout_mode = 2
 
@@ -981,8 +979,6 @@ theme_override_styles/hover = SubResource("StyleBoxEmpty_btn")
 theme_override_styles/focus = SubResource("StyleBoxEmpty_btn")
 text = "Quit"
 
-
-
 [node name="NewPresetDialog" type="PanelContainer" parent="CenterContainer" unique_id=99991000]
 unique_name_in_owner = true
 visible = false
@@ -1012,10 +1008,10 @@ horizontal_alignment = 1
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
-placeholder_text = "Preset Name"
-alignment = 1
 theme_override_styles/normal = SubResource("StyleBoxFlat_input")
 theme_override_styles/focus = SubResource("StyleBoxFlat_input")
+placeholder_text = "Preset Name"
+alignment = 1
 
 [node name="HBoxContainer" type="HBoxContainer" parent="CenterContainer/NewPresetDialog/MarginContainer/VBoxContainer" unique_id=99991005]
 layout_mode = 2
@@ -1046,7 +1042,6 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/focus = SubResource("StyleBoxFlat_btn_normal")
 text = "Save"
 
-
 [node name="DeletePresetDialog" type="PanelContainer" parent="CenterContainer" unique_id=99992000]
 unique_name_in_owner = true
 visible = false
@@ -1076,7 +1071,8 @@ horizontal_alignment = 1
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
-text = "Are you sure you want to delete the\npreset 'Custom'?"
+text = "Are you sure you want to delete the
+preset 'Custom'?"
 horizontal_alignment = 1
 
 [node name="HBoxContainer" type="HBoxContainer" parent="CenterContainer/DeletePresetDialog/MarginContainer/VBoxContainer" unique_id=99992005]
