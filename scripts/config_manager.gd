@@ -120,7 +120,7 @@ const FUNCTIONS = {
 
 # Field parameters
 
-const PRESETS = {
+var PRESETS = {
 	"Default": {
 		"terrain_albedo": 0.15,
 		"terrain_brightness": 1.0,
@@ -234,6 +234,22 @@ func mark_preset_dirty():
 		current_preset += "*"
 		preset_dirtied.emit()
 
+func update_preset(preset_name: String):
+	PRESETS[preset_name] = {
+		"terrain_albedo": terrain_albedo,
+		"terrain_brightness": terrain_brightness,
+		"freeze_time": freeze_time,
+		"day_time": day_time,
+		"fog_density": fog_density,
+		"self_illumination": self_illumination
+	}
+	save_settings()
+
+func delete_preset(preset_name: String):
+	if PRESETS.has(preset_name):
+		PRESETS.erase(preset_name)
+		save_settings()
+
 func _ready():
 	load_settings()
 	effective_zoom = float(zoom_factor)
@@ -279,6 +295,7 @@ func save_settings():
 	config.set_value("rendering", "terrain_surface_texture", terrain_surface_texture)
 	config.set_value("rendering", "fog_density", fog_density)
 	config.set_value("session", "current_preset", current_preset)
+	config.set_value("session", "custom_presets", PRESETS)
 
 	config.set_value("player", "movement_speed", movement_speed)
 	config.set_value("player", "speed_near_zeros", speed_near_zeros)
@@ -347,6 +364,9 @@ func load_settings():
 	terrain_surface_texture = config.get_value("rendering", "terrain_surface_texture", terrain_surface_texture)
 	fog_density = config.get_value("rendering", "fog_density", fog_density)
 	current_preset = config.get_value("session", "current_preset", "Default")
+	var saved_presets = config.get_value("session", "custom_presets", {})
+	if saved_presets.size() > 0:
+		PRESETS = saved_presets
 
 	movement_speed = config.get_value("player", "movement_speed", movement_speed)
 	speed_near_zeros = config.get_value("player", "speed_near_zeros", speed_near_zeros)

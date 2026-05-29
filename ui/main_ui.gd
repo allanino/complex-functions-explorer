@@ -90,6 +90,13 @@ var active_detached_value: Label = null
 
 
 @onready var preset_button = %MenuOverlay/%PresetButton
+@onready var preset_update_button = %MenuOverlay/%PresetUpdateButton
+@onready var preset_delete_button = %MenuOverlay/%PresetDeleteButton
+@onready var preset_new_button = %MenuOverlay/%PresetNewButton
+@onready var new_preset_dialog = %MenuOverlay/%NewPresetDialog
+@onready var new_preset_input = %MenuOverlay/%NewPresetInput
+@onready var new_preset_save = %MenuOverlay/%NewPresetSave
+@onready var new_preset_cancel = %MenuOverlay/%NewPresetCancel
 @onready var apply_button = %MenuOverlay/%ApplyButton
 @onready var close_button = %MenuOverlay/%CloseButton
 @onready var quit_button = %MenuOverlay/%QuitButton
@@ -215,6 +222,12 @@ func _ready():
 	preset_button.item_selected.connect(_on_preset_selected)
 	Config.preset_applied.connect(_on_preset_applied)
 	Config.preset_dirtied.connect(_update_preset_button_text)
+
+	preset_update_button.pressed.connect(_on_preset_update_pressed)
+	preset_delete_button.pressed.connect(_on_preset_delete_pressed)
+	preset_new_button.pressed.connect(_on_preset_new_pressed)
+	new_preset_save.pressed.connect(_on_new_preset_save_pressed)
+	new_preset_cancel.pressed.connect(_on_new_preset_cancel_pressed)
 
 	_update_preset_button_text()
 
@@ -956,6 +969,50 @@ func _on_set_pos_pressed():
 	toggle_menu(true)
 
 
+func _on_preset_update_pressed():
+	var preset_name = Config.current_preset.trim_suffix("*")
+	Config.update_preset(preset_name)
+	Config.current_preset = preset_name
+	Config.preset_dirtied.emit()
+
+func _on_preset_delete_pressed():
+	var preset_name = Config.current_preset.trim_suffix("*")
+	if Config.PRESETS.has(preset_name):
+		Config.delete_preset(preset_name)
+
+		# Repopulate dropdown
+		preset_button.clear()
+		for p_name in Config.PRESETS.keys():
+			preset_button.add_item(p_name)
+
+		if Config.PRESETS.size() > 0:
+			var new_preset = Config.PRESETS.keys()[0]
+			Config.apply_preset(new_preset)
+		else:
+			Config.current_preset = "Custom"
+			Config.preset_dirtied.emit()
+
+func _on_preset_new_pressed():
+	new_preset_dialog.visible = true
+	new_preset_input.text = ""
+	new_preset_input.grab_focus()
+
+func _on_new_preset_cancel_pressed():
+	new_preset_dialog.visible = false
+
+func _on_new_preset_save_pressed():
+	var preset_name = new_preset_input.text.strip_edges()
+	if preset_name != "":
+		Config.update_preset(preset_name)
+
+		preset_button.clear()
+		for p_name in Config.PRESETS.keys():
+			preset_button.add_item(p_name)
+
+		Config.apply_preset(preset_name)
+
+	new_preset_dialog.visible = false
+
 func _on_preset_selected(index: int):
 	var preset_name = preset_button.get_item_text(index).trim_suffix("*")
 	Config.apply_preset(preset_name)
@@ -999,7 +1056,6 @@ func _sync_ui_to_config():
 func _on_preset_applied():
 	_sync_ui_to_config()
 	_update_preset_button_text()
-
 
 func _update_preset_button_text():
 	var preset_name = Config.current_preset.trim_suffix("*")

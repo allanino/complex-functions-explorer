@@ -30,6 +30,14 @@ func test_presets():
 	config_manager.mark_preset_dirty()
 	assert_eq(config_manager.current_preset, "Mysterious*")
 
+	config_manager.terrain_albedo = 0.5
+	config_manager.update_preset("CustomPreset")
+	assert_true(config_manager.PRESETS.has("CustomPreset"))
+	assert_eq(config_manager.PRESETS["CustomPreset"]["terrain_albedo"], 0.5)
+
+	config_manager.delete_preset("CustomPreset")
+	assert_false(config_manager.PRESETS.has("CustomPreset"))
+
 
 func test_function_type_setter():
 	# Initial state
