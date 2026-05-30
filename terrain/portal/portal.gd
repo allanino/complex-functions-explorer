@@ -63,7 +63,7 @@ func _setup_portal_frame():
 	portal_membrane = MeshInstance3D.new()
 	portal_membrane.mesh = QuadMesh.new()
 	var membrane_mat = ShaderMaterial.new()
-	membrane_mat.shader = load("res://terrain/portal_membrane.gdshader")
+	membrane_mat.shader = load("res://terrain/portal/portal_membrane.gdshader")
 	portal_membrane.material_override = membrane_mat
 	portal_frame.add_child(portal_membrane)
 

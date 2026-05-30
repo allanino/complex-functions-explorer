@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://terrain/terrain.gd" id="1_world"]
 [ext_resource type="Shader" path="res://terrain/terrain.gdshader" id="2_terrain"]
-[ext_resource type="Script" path="res://terrain/portal.gd" id="3_portal"]
+[ext_resource type="Script" path="res://terrain/portal/portal.gd" id="3_portal"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_1"]
 render_priority = 0
