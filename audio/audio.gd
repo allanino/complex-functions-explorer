@@ -160,12 +160,8 @@ func _process(delta):
 			playback = stream_player.get_stream_playback()
 		if playback == null: return
 
-	var pos = Vector3.ZERO
-	if player:
-		pos = player.global_position
-	else:
+	if player == null:
 		player = get_tree().get_first_node_in_group("player")
-		if player: pos = player.global_position
 
 	# Sample complex field
 	var f = Vector2.ZERO

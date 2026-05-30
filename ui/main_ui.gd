@@ -1,7 +1,5 @@
 extends CanvasLayer
 
-const FormulaParser = preload("res://math/formula_parser.gd")
-
 @export var player: Node3D
 @onready var hud_columns = %MainUIColumns
 @onready var hud_stack_left = %MainUIStackLeft
@@ -520,7 +518,7 @@ func _ready():
 			menu_scale_hslider.drag_started.connect(func():
 				_menu_scale_dragging = true
 			)
-			menu_scale_hslider.drag_ended.connect(func(value_changed: bool):
+			menu_scale_hslider.drag_ended.connect(func(_value_changed: bool):
 				_menu_scale_dragging = false
 				_rescale_menu(Config.menu_scale)
 			)
