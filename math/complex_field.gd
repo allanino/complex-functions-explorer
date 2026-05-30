@@ -1,5 +1,5 @@
 # Shared field and height functions for GDScript
-class_name Field
+class_name ComplexField
 
 #-------------------------------------------------------------------------
 # Complex Arithmetic

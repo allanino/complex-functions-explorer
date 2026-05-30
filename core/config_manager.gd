@@ -159,7 +159,7 @@ const PRESET_KEYS = [
 	"drone_volume"
 ]
 
-const PRESET_DEFAULTS = preload("res://scripts/preset_defaults.gd")
+const PRESET_DEFAULTS = preload("res://core/preset_defaults.gd")
 var PRESETS = PRESET_DEFAULTS.PRESETS.duplicate(true)
 
 var current_preset: String = "Default"

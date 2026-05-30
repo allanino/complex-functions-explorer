@@ -1,5 +1,7 @@
 extends CanvasLayer
 
+const FormulaParser = preload("res://math/formula_parser.gd")
+
 @export var player: Node3D
 @onready var hud_columns = %MainUIColumns
 @onready var hud_stack_left = %MainUIStackLeft
@@ -23,29 +25,29 @@ var portal_flash: ColorRect
 # New UI Node Paths
 @onready var main_menu_panel = %MenuOverlay.get_node("CenterContainer/MainMenuPanel")
 @onready var tab_container = %MenuOverlay/%TabContainer
-@onready var func_button = %MenuOverlay/%FuncButton
-@onready var height_button = %MenuOverlay/%HeightButton
+@onready var func_button = %MenuOverlay/%FuncContainer.get_option_button()
+@onready var height_button = %MenuOverlay/%HeightContainer.get_option_button()
 @onready var height_a_container = %MenuOverlay/%HeightAContainer
-@onready var height_a_input = %MenuOverlay/%HeightAInput
+@onready var height_a_input = %MenuOverlay/%HeightAContainer.get_line_edit()
 @onready var height_eps_container = %MenuOverlay/%HeightEpsContainer
-@onready var height_eps_input = %MenuOverlay/%HeightEpsInput
+@onready var height_eps_input = %MenuOverlay/%HeightEpsContainer.get_line_edit()
 @onready var iter_slider = %MenuOverlay/%IterSlider
 @onready var rational_container = %MenuOverlay/%RationalContainer
-@onready var rational_input = %MenuOverlay/%RationalInput
+@onready var rational_input = %MenuOverlay/%RationalContainer.get_line_edit()
 @onready var multivalued_slider = %MenuOverlay/%MultivaluedSlider
 
-@onready var re_input = %MenuOverlay/%ReInput
-@onready var im_input = %MenuOverlay/%ImInput
-@onready var speed_input = %MenuOverlay/%SpeedInput
+@onready var re_input = %MenuOverlay/%ReContainer.get_line_edit()
+@onready var im_input = %MenuOverlay/%ImContainer.get_line_edit()
+@onready var speed_input = %MenuOverlay/%SpeedContainer.get_line_edit()
 @onready var zoom_slider = %MenuOverlay/%ZoomContainer
 @onready var zero_speed_slider = %MenuOverlay/%ZeroSpeedContainer
 @onready var zero_proximity_nav_slider = %MenuOverlay/%ZeroProximityNavContainer
-@onready var camera_height_input = %MenuOverlay/%CameraHeightInput
+@onready var camera_height_input = %MenuOverlay/%CameraHeightContainer.get_line_edit()
 @onready var auto_walk_checkbox = %MenuOverlay/%AutoWalkCheckbox
 
-@onready var terrain_detail_button = %MenuOverlay/%TerrainDetailButton
-@onready var aa_button = %MenuOverlay/%AAButton
-@onready var color_scheme_button = %MenuOverlay/%ColorSchemeButton
+@onready var terrain_detail_button = %MenuOverlay/%TerrainDetailContainer.get_option_button()
+@onready var aa_button = %MenuOverlay/%AAContainer.get_option_button()
+@onready var color_scheme_button = %MenuOverlay/%ColorSchemeContainer.get_option_button()
 @onready var view_distance_slider = %MenuOverlay/%ViewDistanceContainer
 @onready var curves_checkbox = %MenuOverlay/%CurvesCheckbox
 @onready var critical_checkbox = %MenuOverlay/%CriticalCheckbox
@@ -73,14 +75,7 @@ var portal_flash: ColorRect
 @onready var bg_music_slider = %MenuOverlay/%BgMusicContainer
 @onready var drone_slider = %MenuOverlay/%DroneContainer
 
-@onready var detach_overlay = %MenuOverlay/%DetachOverlay
-@onready var detach_slider = %MenuOverlay/%DetachSlider
-@onready var detach_label = %MenuOverlay/%Label
-@onready var detach_value = %MenuOverlay/%DetachValue
-@onready var exit_detach_button = %MenuOverlay/%ExitDetachButton
-
-var active_detached_slider: HSlider = null
-var active_detached_value: Label = null
+@onready var detach_controller = %DetachOverlay
 
 @onready var brightness_slider = %MenuOverlay/%BrightnessContainer
 @onready var saturation_slider = %MenuOverlay/%SaturationContainer
@@ -92,19 +87,9 @@ var active_detached_value: Label = null
 @onready var surface_texture_slider = %MenuOverlay/%SurfaceTextureContainer
 @onready var morph_slider = %MenuOverlay/%MorphSliderContainer
 
-@onready var preset_button = %MenuOverlay/%PresetButton
-@onready var preset_update_button = %MenuOverlay/%PresetUpdateButton
-@onready var preset_delete_button = %MenuOverlay/%PresetDeleteButton
-@onready var preset_new_button = %MenuOverlay/%PresetNewButton
-@onready var preset_restore_button = %MenuOverlay/%PresetRestoreButton
+@onready var preset_controller = %PresetController
 @onready var new_preset_dialog = %MenuOverlay/%NewPresetDialog
-@onready var new_preset_input = %MenuOverlay/%NewPresetInput
-@onready var new_preset_save = %MenuOverlay/%NewPresetSave
-@onready var new_preset_cancel = %MenuOverlay/%NewPresetCancel
 @onready var delete_preset_dialog = %MenuOverlay/%DeletePresetDialog
-@onready var delete_message_label = %MenuOverlay/%DeleteMessageLabel
-@onready var delete_preset_cancel = %MenuOverlay/%DeletePresetCancel
-@onready var delete_preset_confirm = %MenuOverlay/%DeletePresetConfirm
 @onready var apply_button = %MenuOverlay/%ApplyButton
 @onready var close_button = %MenuOverlay/%CloseButton
 @onready var quit_button = %MenuOverlay/%QuitButton
@@ -115,64 +100,7 @@ var active_detached_value: Label = null
 @onready var quit_confirm = %MenuOverlay/%QuitConfirm
 @onready var perf_label = %MenuOverlay/%PerfProtectionLabel
 
-@onready var tooltip = %MenuOverlay/%Tooltip
-@onready var tooltip_label = %MenuOverlay/%TooltipLabel
-@onready var tooltip_timer = %MenuOverlay/%TooltipTimer
-
-var _pending_tooltip_key: String = ""
-
-const DESCRIPTIONS = {
-	"Function": "Select the complex function to visualize on the terrain.",
-	"Height Map": "Choose how the function's magnitude is mapped to terrain height.",
-	"Parameter a": "Scaling factor for logarithmic height mapping.",
-	"Parameter ε": "Small offset in logarithmic mapping to prevent log(0) at zeros.",
-	"Iterations": "Number of terms used in the summation for Zeta and Eta functions, or steps for Mandelbrot recursion.",
-	"Expression": "Enter a rational function expression with complext coefficients using 'z' as variable and 'i' as imaginary unit (e.g., z^2 - i).",
-	"Real (x)": "Manually set the real part of the player's position in the complex plane.  Shortcut: CTRL + R to reset to (0, 0)",
-	"Imaginary (y)": "Manually set the imaginary part of the player's position. Shortcut: CTRL + R to reset to (0, 0)",
-	"Camera Height": "Vertical height of the player's camera above the terrain. Shortcut: SPACE (double press to reset)",
-	"Move Speed": "Horizontal movement speed when navigating the complex plane. Shortcut: SHIFT (fast) / CTRL (slow)",
-	"Zoom Factor": "Increase detail by scaling coordinates (1.0 / Zoom). Shortcut: Mouse Wheel (click to reset)",
-	"Zeros proximity": "Terrain height threshold for detecting function zeros. Actually we look for minima along the path with magnitude below this value.",
-	"Speed near Zeros": "Slows down movement speed near function zeros to allow closer inspection.",
-	"Automatic Walking": "Automatically follow the critical line (Re = 0.5) to find Riemann Zeta zeros. Shortcut: CTRL + C",
-	"Terrain Details": "Quality and subdivision level of the procedurally generated terrain meshes.",
-	"Antialiasing": "Choose a technique to reduce jagged edges in the 3D view.",
-	"Branches (n)": "Number of branches for the multivalued function z^(1/n).",
-	"Morph Time": "Duration of the smooth transition between branches.",
-	"Color Scheme": "Select the color mapping for the complex plane of the target function.",
-	"View Distance": "Number of terrain chunks loaded around the player.",
-	"Level Curves": "Overlay contour lines for integer values of Re(f) (black) and Im(f) (white).",
-	"Critical Stripe": "Visual guide indicating the 0 < Re < 1 region where non-trivial zeros reside.",
-	"Freeze time": "Choose between a dynamic day/night cycle or a fixed time of day. Shortcut: CTRL + G (Golden Hour) / CTRL + N (Freeze / Unfreeze time)",
-	"Day Duration": "Set the real-time duration for a full 24-hour mathematical day cycle.",
-	"Time of day": "Manually set the current time of day when time is frozen.",
-	"Sunrise Direction": "Adjust the angle from which the sun rises (180° is towards +σ).",
-	"Sky Luminosity": "Adjust the overall brightness of the sky and clouds.",
-	"Sun Luminosity": "Adjust the intensity of the sun and moon light.",
-	"Fog": "Enable or disable global volumetric fog effects.",
-	"Fog Density": "Adjust the thickness of the fog and aerial perspective.",
-	"Shadows": "Enable real-time directional shadows for terrain features.",
-	"Complex plane": "Show the domain coloring map of the current position on the MainUI.",
-	"Navigation": "Show coordinate and magnitude information on the MainUI.",
-	"Zeros detection": "Show the list of discovered zeros during walking.",
-	"Riemann–von Mangoldt": "Show the estimated number of zeta zeros N(t) based on the Riemann–von Mangoldt formula.",
-	"Monitor FPS": "Show real-time performance metrics (FPS) on the MainUI.",
-	"Monitor Chunks": "Show real-time chunks statistics on the MainUI.",
-	"Menu Scale": "Adjust the size of the entire menu.",
-	"HUD Scale": "Adjust the size of the HUD elements.",
-	"Master Volume": "Control the global volume level of all sound sources.",
-	"Background Music": "Adjust the volume of the ambient mathematical soundscape.",
-	"Topographic Drone": "Adjust the volume of the terrain-responsive spatial audio.",
-	"Brightness": "Adjust the overall brightness of the terrain surface.",
-	"Terrain Morph": "Transition between the flat complex plane and the 3D terrain.",
-	"Flow": "Overlay flowing arrows that follow the terrain gradient.",
-	"Saturation": "Control the intensity of the domain colors on the terrain.",
-	"Albedo": "Base reflectivity of the terrain material.",
-	"Emission": "Intensity of the self-illumination of the terrain.",
-	"Metallic": "Adjust how metallic the terrain surface appears.",
-	"Roughness": "Control the surface smoothness; lower values are glossier."
-}
+@onready var tooltip_manager = %TooltipManager
 
 var current_scale = 2.0
 var _last_zeros_visible: bool = false
@@ -206,6 +134,215 @@ var _initial_shadows_enabled: bool
 var _speed_modified: bool = false
 var _camera_height_modified: bool = false
 var _syncing_ui: bool = false
+
+var SLIDER_BINDINGS: Dictionary = {}
+
+func _init_slider_bindings():
+	var bindings = {
+		master_volume_slider: {
+			"config_key": "master_volume",
+			"to_config": func(v): return v,
+			"from_config": func(c): return c,
+			"format": func(v): return str(int(round(v))) + "%",
+			"immediate": true
+		},
+		bg_music_slider: {
+			"config_key": "bg_music_volume",
+			"to_config": func(v): return v,
+			"from_config": func(c): return c,
+			"format": func(v): return str(int(round(v))) + "%",
+			"immediate": true
+		},
+		drone_slider: {
+			"config_key": "drone_volume",
+			"to_config": func(v): return v,
+			"from_config": func(c): return c,
+			"format": func(v): return str(int(round(v))) + "%",
+			"immediate": true
+		},
+		zero_proximity_nav_slider: {
+			"config_key": "zero_proximity_nav",
+			"to_config": func(v): return v,
+			"from_config": func(c): return c,
+			"format": func(v): return "%.2f" % v,
+			"immediate": true
+		},
+		zoom_slider: {
+			"config_key": "zoom_factor",
+			"to_config": func(v): return _slider_to_zoom(v),
+			"from_config": func(c): return _zoom_to_slider(c),
+			"format": func(v): return "x%.2f" % _slider_to_zoom(v),
+			"immediate": true
+		},
+		zero_speed_slider: {
+			"config_key": "speed_near_zeros",
+			"to_config": func(v): return v,
+			"from_config": func(c): return c,
+			"format": func(v): return str(int(round(v))) + "%",
+			"immediate": false
+		},
+		view_distance_slider: {
+			"config_key": "view_distance",
+			"to_config": func(v): return int(round(v)),
+			"from_config": func(c): return c,
+			"format": func(v): return str(int(round(v))),
+			"immediate": true
+		},
+		day_duration_slider: {
+			"config_key": "day_duration",
+			"to_config": func(v): return v,
+			"from_config": func(c): return c,
+			"format": func(v): return _format_time(v),
+			"immediate": true
+		},
+		day_time_slider: {
+			"config_key": "day_time",
+			"to_config": func(v): return v,
+			"from_config": func(c): return c,
+			"format": func(v): return _format_time(v),
+			"immediate": true
+		},
+		sunrise_slider: {
+			"config_key": "sunrise_direction",
+			"to_config": func(v): return v,
+			"from_config": func(c): return c,
+			"format": func(v): return str(int(round(v))) + "°",
+			"immediate": false
+		},
+		sky_luminosity_slider: {
+			"config_key": "sky_luminosity",
+			"to_config": func(v): return v / 100.0,
+			"from_config": func(c): return c * 100.0,
+			"format": func(v): return str(int(round(v))) + "%",
+			"immediate": true
+		},
+		sun_luminosity_slider: {
+			"config_key": "sun_luminosity",
+			"to_config": func(v): return v / 100.0,
+			"from_config": func(c): return c * 100.0,
+			"format": func(v): return str(int(round(v))) + "%",
+			"immediate": true
+		},
+		self_illumination_slider: {
+			"config_key": "self_illumination",
+			"to_config": func(v): return v / 100.0,
+			"from_config": func(c): return c * 100.0,
+			"format": func(v): return str(int(round(v))) + "%",
+			"immediate": true
+		},
+		fog_density_slider: {
+			"config_key": "fog_density",
+			"to_config": func(v): return v / 100.0,
+			"from_config": func(c): return c * 100.0,
+			"format": func(v): return "%.1f%%" % v,
+			"immediate": true
+		},
+		menu_scale_slider: {
+			"config_key": "menu_scale",
+			"to_config": func(v): return v / 100.0,
+			"from_config": func(c): return c * 100.0,
+			"format": func(v): return str(int(round(v))) + "%",
+			"immediate": true,
+			"on_changed": func(_v): _update_hud_layout()
+		},
+		hud_scale_slider: {
+			"config_key": "hud_scale",
+			"to_config": func(v): return v / 100.0,
+			"from_config": func(c): return c * 100.0,
+			"format": func(v): return str(int(round(v))) + "%",
+			"immediate": true,
+			"on_changed": func(_v): _update_hud_layout()
+		},
+		iter_slider: {
+			"config_key": "iterations",
+			"to_config": func(v): return int(round(v)),
+			"from_config": func(c): return c,
+			"format": func(v): return str(int(round(v))),
+			"immediate": true
+		},
+		multivalued_slider: {
+			"config_key": "multivalued_n",
+			"to_config": func(v): return int(round(v)),
+			"from_config": func(c): return c,
+			"format": func(v): return str(int(round(v))),
+			"immediate": true
+		},
+		brightness_slider: {
+			"config_key": "terrain_brightness",
+			"to_config": func(v): return v / 50.0,
+			"from_config": func(c): return c * 50.0,
+			"format": func(v): return str(int(round(v))) + "%",
+			"immediate": true
+		},
+		saturation_slider: {
+			"config_key": "terrain_saturation",
+			"to_config": func(v): return 0.3 + (v / 100.0) * 0.7,
+			"from_config": func(c): return (c - 0.3) / 0.7 * 100.0,
+			"format": func(v): return str(int(round(v))) + "%",
+			"immediate": true
+		},
+		albedo_slider: {
+			"config_key": "terrain_albedo",
+			"to_config": func(v): return v / 100.0,
+			"from_config": func(c): return c * 100.0,
+			"format": func(v): return str(int(round(v))) + "%",
+			"immediate": true
+		},
+		emission_slider: {
+			"config_key": "terrain_emission",
+			"to_config": func(v): return v / 100.0,
+			"from_config": func(c): return c * 100.0,
+			"format": func(v): return str(int(round(v))) + "%",
+			"immediate": true
+		},
+		metallic_slider: {
+			"config_key": "terrain_metallic",
+			"to_config": func(v): return v / 100.0,
+			"from_config": func(c): return c * 100.0,
+			"format": func(v): return str(int(round(v))) + "%",
+			"immediate": true
+		},
+		roughness_slider: {
+			"config_key": "terrain_roughness",
+			"to_config": func(v): return v / 100.0,
+			"from_config": func(c): return c * 100.0,
+			"format": func(v): return str(int(round(v))) + "%",
+			"immediate": true
+		},
+		surface_texture_slider: {
+			"config_key": "terrain_surface_texture",
+			"to_config": func(v): return v / 100.0,
+			"from_config": func(c): return c * 100.0,
+			"format": func(v): return str(int(round(v))) + "%",
+			"immediate": true
+		},
+		morph_slider: {
+			"config_key": "morph_value",
+			"to_config": func(v): return v,
+			"from_config": func(_c): return 1.0,
+			"format": func(v): return "%.2f" % v,
+			"immediate": true
+		}
+	}
+	for slider in bindings:
+		if slider != null:
+			SLIDER_BINDINGS[slider] = bindings[slider]
+
+func _on_generic_slider_changed(slider: Control, value: float):
+	if not SLIDER_BINDINGS.has(slider):
+		return
+	var binding = SLIDER_BINDINGS[slider]
+	
+	if "format" in binding:
+		slider.value_text = binding["format"].call(value)
+	
+	if binding.get("immediate", false) and binding.get("config_key", "") != "":
+		var cfg_val = binding["to_config"].call(value)
+		Config.set(binding["config_key"], cfg_val)
+		
+	if binding.has("on_changed"):
+		binding["on_changed"].call(value)
+
 var _menu_scale_dragging: bool = false
 
 func _ready():
@@ -217,7 +354,6 @@ func _ready():
 	portal_flash.color = Color(0.0, 0.8, 1.0, 0.0) # Transparent cyan
 	portal_flash.visible = false
 	$Control.add_child(portal_flash)
-
 
 
 	hud_columns.offset_top = -1000
@@ -243,24 +379,6 @@ func _ready():
 	color_scheme_button.item_selected.connect(_on_color_scheme_selected)
 
 
-	_populate_preset_button()
-
-	preset_button.item_selected.connect(_on_preset_selected)
-	Config.preset_applied.connect(_on_preset_applied)
-
-
-	preset_update_button.pressed.connect(_on_preset_update_pressed)
-	preset_delete_button.pressed.connect(_on_preset_delete_pressed)
-	preset_new_button.pressed.connect(_on_preset_new_pressed)
-	preset_restore_button.pressed.connect(_on_preset_restore_pressed)
-	_connect_preset_dirtiers()
-	new_preset_save.pressed.connect(_on_new_preset_save_pressed)
-	new_preset_cancel.pressed.connect(_on_new_preset_cancel_pressed)
-	delete_preset_cancel.pressed.connect(_on_delete_preset_cancel_pressed)
-	delete_preset_confirm.pressed.connect(_on_delete_preset_confirm_pressed)
-
-	_update_preset_button_text()
-
 	apply_button.pressed.connect(_on_set_pos_pressed)
 	close_button.pressed.connect(toggle_menu)
 	quit_button.pressed.connect(_on_quit_pressed)
@@ -270,39 +388,17 @@ func _ready():
 	func_button.item_selected.connect(_on_func_item_selected)
 	height_button.item_selected.connect(_on_height_selected)
 
-	master_volume_slider.value_changed.connect(_on_master_volume_value_changed)
-	bg_music_slider.value_changed.connect(_on_bg_music_value_changed)
-	drone_slider.value_changed.connect(_on_drone_value_changed)
-	zero_proximity_nav_slider.value_changed.connect(_on_zero_proximity_nav_value_changed)
-	zoom_slider.value_changed.connect(_on_zoom_value_changed)
-	zero_speed_slider.value_changed.connect(_on_zero_speed_value_changed)
-	view_distance_slider.value_changed.connect(_on_view_distance_value_changed)
+	_init_slider_bindings()
+	for slider in SLIDER_BINDINGS:
+		slider.value_changed.connect(func(v): _on_generic_slider_changed(slider, v))
+
 	freeze_time_checkbox.toggled.connect(_on_freeze_time_toggled)
-	day_duration_slider.value_changed.connect(_on_day_duration_value_changed)
-	day_time_slider.value_changed.connect(_on_day_time_value_changed)
-	sunrise_slider.value_changed.connect(_on_sunrise_value_changed)
-	sky_luminosity_slider.value_changed.connect(_on_sky_luminosity_value_changed)
-	sun_luminosity_slider.value_changed.connect(_on_sun_luminosity_value_changed)
-	self_illumination_slider.value_changed.connect(_on_self_illumination_value_changed)
-	fog_density_slider.value_changed.connect(_on_fog_density_value_changed)
-	menu_scale_slider.value_changed.connect(_on_menu_scale_value_changed)
-	hud_scale_slider.value_changed.connect(_on_hud_scale_value_changed)
-	iter_slider.value_changed.connect(_on_iterations_value_changed)
 
 	terrain_detail_button.item_selected.connect(_on_terrain_detail_selected)
 	aa_button.item_selected.connect(_on_aa_selected)
 	shadows_checkbox.toggled.connect(_on_shadows_toggled)
 	get_viewport().size_changed.connect(_update_hud_layout)
-	multivalued_slider.value_changed.connect(_on_multivalued_n_value_changed)
 
-	brightness_slider.value_changed.connect(_on_terrain_brightness_value_changed)
-	saturation_slider.value_changed.connect(_on_terrain_saturation_value_changed)
-	albedo_slider.value_changed.connect(_on_terrain_albedo_value_changed)
-	emission_slider.value_changed.connect(_on_terrain_emission_value_changed)
-	metallic_slider.value_changed.connect(_on_terrain_metallic_value_changed)
-	roughness_slider.value_changed.connect(_on_terrain_roughness_value_changed)
-	surface_texture_slider.value_changed.connect(_on_terrain_surface_texture_value_changed)
-	morph_slider.value_changed.connect(_on_morph_slider_changed)
 
 	func_button.clear()
 	var sorted_keys = Config.FUNCTIONS.keys()
@@ -336,31 +432,28 @@ func _ready():
 	color_scheme_button.add_item("Red real line (standard)")
 
 	apply_aa()
-	_setup_tooltips()
 	_disable_sliders_focus(self )
-	tooltip_timer.timeout.connect(_on_tooltip_timer_timeout)
 	_last_zeros_visible = Config.show_hud_zeros
 
-	detach_slider.value_changed.connect(_on_detach_slider_changed)
-	exit_detach_button.pressed.connect(_on_exit_detach_pressed)
-	iter_slider.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "Iterations"))
-	morph_slider.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "Terrain Morph"))
-	multivalued_slider.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "Branches (n)"))
-	day_duration_slider.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "Day Duration"))
-	day_time_slider.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "Time of day"))
-	sunrise_slider.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "Sunrise Direction"))
-	sky_luminosity_slider.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "Sky Luminosity"))
-	sun_luminosity_slider.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "Sun Luminosity"))
-	self_illumination_slider.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "Self-Illumination"))
-	fog_density_slider.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "Fog Density"))
-	brightness_slider.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "Brightness"))
-	saturation_slider.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "Saturation"))
-	albedo_slider.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "Albedo"))
-	emission_slider.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "Emission"))
-	metallic_slider.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "Metallic"))
-	roughness_slider.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "Roughness"))
-	surface_texture_slider.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "SurfaceTexture"))
-	view_distance_slider.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "View Distance"))
+	iter_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Iterations"))
+	morph_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Terrain Morph"))
+	multivalued_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Branches (n)"))
+	day_duration_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Day Duration"))
+	day_time_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Time of day"))
+	sunrise_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Sunrise Direction"))
+	sky_luminosity_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Sky Luminosity"))
+	sun_luminosity_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Sun Luminosity"))
+	self_illumination_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Self-Illumination"))
+	fog_density_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Fog Density"))
+	brightness_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Brightness"))
+	saturation_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Saturation"))
+	albedo_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Albedo"))
+	emission_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Emission"))
+	metallic_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Metallic"))
+	roughness_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Roughness"))
+	surface_texture_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "SurfaceTexture"))
+	view_distance_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "View Distance"))
+
 
 	# Adjust HUD tab component widths to be exactly 180 wide (and labels to expand)
 	var hud_checkboxes = [
@@ -425,65 +518,6 @@ func _disable_sliders_focus(node: Node):
 	for child in node.get_children():
 		_disable_sliders_focus(child)
 
-func _setup_tooltips():
-	# We want to find all Labels and CheckBoxes in the menu tabs
-	var tabs = tab_container.get_children()
-	for tab in tabs:
-		_connect_tooltips_recursive(tab)
-
-func _connect_tooltips_recursive(node: Node):
-	if node is Label or node is CheckBox:
-		var text = node.text
-		if text in DESCRIPTIONS:
-			node.mouse_entered.connect(_on_tooltip_mouse_entered.bind(text))
-			node.mouse_exited.connect(_on_tooltip_mouse_exited)
-			node.mouse_filter = Control.MOUSE_FILTER_STOP
-
-	for child in node.get_children():
-		_connect_tooltips_recursive(child)
-
-func _on_tooltip_mouse_entered(key: String):
-	_pending_tooltip_key = key
-	tooltip_timer.start()
-
-func _on_tooltip_mouse_exited():
-	tooltip_timer.stop()
-	tooltip.visible = false
-	_pending_tooltip_key = ""
-
-func _any_dropdown_popup():
-	return (
-		func_button.get_popup().visible
-		|| height_button.get_popup().visible
-		|| terrain_detail_button.get_popup().visible
-		|| aa_button.get_popup().visible
-		|| color_scheme_button.get_popup().visible
-	)
-
-func _on_tooltip_timer_timeout():
-	# Do not draw tooltip behind the dropdown lists
-	if _any_dropdown_popup():
-		return
-
-	if _pending_tooltip_key != "":
-		tooltip_label.custom_minimum_size.x = 250
-		tooltip_label.text = DESCRIPTIONS[_pending_tooltip_key]
-		if "Shortcut: " in tooltip_label.text:
-			tooltip_label.text = tooltip_label.text.replace("Shortcut: ", "\n\n[color=gray]Shortcut: ") + "[/color]"
-		# Hide it during layout processing to prevent flicker
-		tooltip.modulate.a = 0.0
-		tooltip.visible = true
-		# Force a complete layout recalculation to fix the first-render height bug
-		await get_tree().process_frame
-		tooltip.size = Vector2.ZERO
-		tooltip.reset_size()
-		_update_tooltip_position()
-		tooltip.modulate.a = 1.0
-
-func _update_tooltip_position():
-	var mouse_pos = get_viewport().get_mouse_position()
-	# Position at the tip of the mouse
-	tooltip.global_position = mouse_pos + Vector2(5, 5)
 
 func apply_aa():
 	var vp = get_viewport()
@@ -501,8 +535,12 @@ func apply_aa():
 		5: vp.screen_space_aa = Viewport.SCREEN_SPACE_AA_SMAA
 
 func toggle_menu(applied: bool = false):
-	if detach_overlay.visible:
-		_on_exit_detach_pressed()
+	if detach_controller.visible:
+		detach_controller.interaction_active = !detach_controller.interaction_active
+		if detach_controller.interaction_active:
+			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+		else:
+			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 		return
 
 	if main_menu_panel:
@@ -539,13 +577,9 @@ func toggle_menu(applied: bool = false):
 		_initial_view_distance = Config.view_distance
 		_initial_shadows_enabled = Config.shadows_enabled
 
-		_syncing_ui = true
-		var backup = {}
-		for key in Config.PRESET_KEYS:
-			backup[key] = Config.get(key)
+		_sync_ui_to_config()
 
 		freeze_time_checkbox.button_pressed = Config.freeze_time
-
 
 		if player:
 			var scale_factor = 1.0 / Config.effective_zoom
@@ -555,101 +589,11 @@ func toggle_menu(applied: bool = false):
 			if not is_finite(im_val): im_val = 0.0
 			re_input.text = "%.3f" % re_val
 			im_input.text = "%.3f" % im_val
-		iter_slider.value = Config.iterations
-		_on_iterations_value_changed(Config.iterations)
-		_speed_modified = false
-		_camera_height_modified = false
-		speed_input.text = "%.1f" % (Config.movement_speed * 0.1)
-		zoom_slider.value = _zoom_to_slider(Config.zoom_factor)
-		_on_zoom_value_changed(zoom_slider.value)
-		zero_speed_slider.value = Config.speed_near_zeros
-		_on_zero_speed_value_changed(Config.speed_near_zeros)
-		zero_proximity_nav_slider.value = Config.zero_proximity_nav
-		_on_zero_proximity_nav_value_changed(Config.zero_proximity_nav)
-		camera_height_input.text = str(Config.camera_height)
-		height_a_input.text = str(Config.height_a)
-		height_eps_input.text = str(Config.height_epsilon)
-		terrain_detail_button.selected = Config.terrain_detail
-		aa_button.selected = Config.antialiasing_mode
-		color_scheme_button.selected = Config.color_scheme
-		view_distance_slider.value = Config.view_distance
-		_on_view_distance_value_changed(Config.view_distance)
-		curves_checkbox.button_pressed = Config.show_curves
-		critical_checkbox.button_pressed = Config.show_critical_stripe
-		day_duration_slider.value = Config.day_duration
-		_on_day_duration_value_changed(Config.day_duration)
-		day_time_slider.value = Config.day_time
-		_on_day_time_value_changed(Config.day_time)
-		sunrise_slider.value = Config.sunrise_direction
-		_on_sunrise_value_changed(Config.sunrise_direction)
-		sky_luminosity_slider.value = Config.sky_luminosity * 100.0
-		_on_sky_luminosity_value_changed(sky_luminosity_slider.value)
-		sun_luminosity_slider.value = Config.sun_luminosity * 100.0
-		_on_sun_luminosity_value_changed(sun_luminosity_slider.value)
-		self_illumination_slider.value = Config.self_illumination * 100.0
-		_on_self_illumination_value_changed(self_illumination_slider.value)
-		fog_density_slider.value = Config.fog_density * 100.0
-		morph_slider.value = 1.0
-		_on_morph_slider_changed(1.0)
-		_on_fog_density_value_changed(fog_density_slider.value)
-		shadows_checkbox.button_pressed = Config.shadows_enabled
-		hud_complex_checkbox.button_pressed = Config.show_hud_complex
-		hud_navigation_checkbox.button_pressed = Config.show_hud_navigation
-		hud_zeros_checkbox.button_pressed = Config.show_hud_zeros
-		rvm_checkbox.button_pressed = Config.show_rvm
-		hud_monitor_fps_checkbox.button_pressed = Config.show_hud_monitor_fps
-		hud_monitor_chunks_checkbox.button_pressed = Config.show_hud_monitor_chunks
-		menu_scale_slider.value = Config.menu_scale * 150.0
-		_on_menu_scale_value_changed(menu_scale_slider.value)
-		hud_scale_slider.value = Config.hud_scale * 100.0
-		_on_hud_scale_value_changed(hud_scale_slider.value)
-		if player:
-			auto_walk_checkbox.button_pressed = (player.auto_walk_state != 0) # 0 is AutoWalkState.NONE
-		flow_checkbox.button_pressed = Config.show_flow
-		master_volume_slider.value = Config.master_volume
-		_on_master_volume_value_changed(Config.master_volume)
-		bg_music_slider.value = Config.bg_music_volume
-		_on_bg_music_value_changed(Config.bg_music_volume)
-		drone_slider.value = Config.drone_volume
-		_on_drone_value_changed(Config.drone_volume)
 
-		brightness_slider.value = Config.terrain_brightness * 50.0
-		_on_terrain_brightness_value_changed(brightness_slider.value)
-		saturation_slider.value = (Config.terrain_saturation - 0.3) / 0.7 * 100.0
-		_on_terrain_saturation_value_changed(saturation_slider.value)
-		albedo_slider.value = Config.terrain_albedo * 100.0
-		_on_terrain_albedo_value_changed(albedo_slider.value)
-		emission_slider.value = Config.terrain_emission * 100.0
-		_on_terrain_emission_value_changed(emission_slider.value)
-		metallic_slider.value = Config.terrain_metallic * 100.0
-		_on_terrain_metallic_value_changed(metallic_slider.value)
-		roughness_slider.value = Config.terrain_roughness * 100.0
-		_on_terrain_roughness_value_changed(roughness_slider.value)
-
-		surface_texture_slider.value = Config.terrain_surface_texture * 100.0
-		_on_terrain_surface_texture_value_changed(surface_texture_slider.value)
-
-		multivalued_slider.value = Config.multivalued_n
-		_on_multivalued_n_value_changed(Config.multivalued_n)
-
-		func_button.select(func_button.get_item_index(Config.function_type))
-		height_button.selected = Config.height_type
-		_on_func_selected(Config.function_type)
-		_on_height_selected(Config.height_type)
-
-		for key in Config.PRESET_KEYS:
-			Config.set(key, backup[key])
-		_syncing_ui = false
-		_update_preset_button_text()
-		if main_menu_panel:
-			main_menu_panel.scale = Vector2.ONE
-			_rescale_menu(Config.menu_scale)
-
+		preset_controller.update_preset_button_text()
 
 	else:
-		tooltip.visible = false
-		tooltip_timer.stop()
-		_pending_tooltip_key = ""
+		tooltip_manager.hide_tooltip()
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 		if not applied:
 			Config.master_volume = _initial_master_volume
@@ -666,7 +610,6 @@ func toggle_menu(applied: bool = false):
 			Config.terrain_surface_texture = _initial_terrain_surface_texture
 			if Config.menu_scale != _initial_menu_scale:
 				Config.menu_scale = _initial_menu_scale
-				_on_menu_scale_value_changed(Config.menu_scale * 150.0)
 			if Config.hud_scale != _initial_hud_scale:
 				Config.hud_scale = _initial_hud_scale
 				_update_hud_layout()
@@ -705,7 +648,6 @@ func _on_func_selected(f_type: int):
 
 		Config.iterations = Config.function_iterations.get(f_type, iters_range[3])
 		iter_slider.value = Config.iterations
-		_on_iterations_value_changed(Config.iterations)
 
 	rational_container.visible = is_rational
 	multivalued_slider.visible = is_multivalued_n
@@ -729,206 +671,6 @@ func _format_time(total_seconds: float) -> String:
 	var minutes = (int(total_seconds) % 3600) / 60.0
 	var seconds = int(total_seconds) % 60
 	return "%02d:%02d:%02d" % [hours, minutes, seconds]
-
-func _on_day_duration_value_changed(value):
-	Config.day_duration = value
-	day_duration_slider.value_text = _format_time(value)
-
-func _on_day_time_value_changed(value):
-	Config.day_time = value
-	day_time_slider.value_text = _format_time(value)
-func _on_master_volume_value_changed(value):
-	Config.master_volume = value
-	master_volume_slider.value_text = str(int(value)) + "%"
-
-func _on_bg_music_value_changed(value):
-	Config.bg_music_volume = value
-	bg_music_slider.value_text = str(int(value)) + "%"
-
-func _on_drone_value_changed(value):
-	Config.drone_volume = value
-	drone_slider.value_text = str(int(value)) + "%"
-
-func _on_zero_proximity_nav_value_changed(value):
-	Config.zero_proximity_nav = value
-	zero_proximity_nav_slider.value_text = "%.2f" % value
-
-
-func _on_zoom_value_changed(value):
-	var z = _slider_to_zoom(value)
-	zoom_slider.value_text = "x%.2f" % z
-	Config.zoom_factor = z
-
-func _on_zero_speed_value_changed(value):
-	zero_speed_slider.value_text = str(int(value)) + "%"
-
-func _on_view_distance_value_changed(value):
-	view_distance_slider.value_text = str(int(value))
-	Config.view_distance = int(value)
-
-func _on_sunrise_value_changed(value):
-	sunrise_slider.value_text = str(int(value)) + "°"
-
-func _on_sky_luminosity_value_changed(value):
-	Config.sky_luminosity = value / 100.0
-	sky_luminosity_slider.value_text = str(int(value)) + "%"
-
-func _on_sun_luminosity_value_changed(value):
-	Config.sun_luminosity = value / 100.0
-	sun_luminosity_slider.value_text = str(int(value)) + "%"
-
-func _on_self_illumination_value_changed(value):
-	Config.self_illumination = value / 100.0
-	self_illumination_slider.value_text = str(int(value)) + "%"
-
-func _on_fog_density_value_changed(value):
-	Config.fog_density = value / 100.0
-	fog_density_slider.value_text = "%.1f%%" % value
-
-func _on_menu_scale_value_changed(value):
-	menu_scale_slider.value_text = str(int(value)) + "%"
-	Config.menu_scale = value / 150.0
-	if main_menu_panel and not _syncing_ui and not _menu_scale_dragging:
-		_rescale_menu(Config.menu_scale)
-
-func _on_hud_scale_value_changed(value):
-	hud_scale_slider.value_text = str(int(value)) + "%"
-	Config.hud_scale = value / 100.0
-	_update_hud_layout()
-
-func _on_iterations_value_changed(value):
-	Config.iterations = int(value)
-	iter_slider.value_text = str(int(value))
-
-func _on_multivalued_n_value_changed(value):
-	multivalued_slider.value_text = str(int(value))
-	Config.multivalued_n = int(value)
-
-func _on_terrain_brightness_value_changed(value):
-	Config.terrain_brightness = value / 50.0
-	brightness_slider.value_text = str(int(value)) + "%"
-
-func _on_terrain_saturation_value_changed(value):
-	Config.terrain_saturation = 0.3 + (value / 100.0) * 0.7
-	saturation_slider.value_text = str(int(value)) + "%"
-
-func _on_terrain_albedo_value_changed(value):
-	Config.terrain_albedo = value / 100.0
-	albedo_slider.value_text = str(int(value)) + "%"
-
-func _on_terrain_emission_value_changed(value):
-	Config.terrain_emission = value / 100.0
-	emission_slider.value_text = str(int(value)) + "%"
-
-func _on_terrain_metallic_value_changed(value):
-	Config.terrain_metallic = value / 100.0
-	metallic_slider.value_text = str(int(value)) + "%"
-
-func _on_terrain_roughness_value_changed(value):
-	Config.terrain_roughness = value / 100.0
-	roughness_slider.value_text = str(int(value)) + "%"
-
-func _on_terrain_surface_texture_value_changed(value):
-	Config.terrain_surface_texture = value / 100.0
-	surface_texture_slider.value_text = str(int(value)) + "%"
-
-func _on_morph_slider_changed(value):
-	Config.morph_value = value
-	morph_slider.value_text = "%.2f" % value
-
-func _parse_complex(text: String) -> Vector2:
-	text = text.replace(" ", "").replace("I", "i").replace("*", "")
-	if text == "": return Vector2.ZERO
-
-	# Handle pure imaginary "i" or "-i"
-	if text == "i": return Vector2(0, 1)
-	if text == "-i": return Vector2(0, -1)
-
-	if not "i" in text:
-		return Vector2(float(text), 0.0)
-
-	# If we have "i", it might be "1+2i", "2i", "-2i", "1+i", "1-i"
-	# Let's split by + and - but keep signs
-	var re = 0.0
-	var im = 0.0
-
-	var normalized = text.replace("-", "+-")
-	var parts = normalized.split("+", false)
-
-	for p in parts:
-		if p.ends_with("i"):
-			var im_str = p.substr(0, p.length() - 1)
-			if im_str == "" or im_str == "+": im += 1.0
-			elif im_str == "-": im -= 1.0
-			else: im += float(im_str)
-		else:
-			re += float(p)
-
-	return Vector2(re, im)
-
-func _parse_poly(text: String) -> PackedVector2Array:
-	var coeffs = PackedVector2Array([Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO])
-	text = text.replace(" ", "").replace("*", "")
-
-	# We want to split by terms. A term usually starts with + or -
-	# unless it's inside parentheses.
-	var terms = []
-	var depth = 0
-	var start_idx = 0
-	for i in range(text.length()):
-		var c = text[i]
-		if c == "(": depth += 1
-		elif c == ")": depth -= 1
-
-		if depth == 0 and i > 0 and (c == "+" or c == "-") and text[i - 1] != "e" and text[i - 1] != "E":
-			terms.append(text.substr(start_idx, i - start_idx))
-			start_idx = i
-	terms.append(text.substr(start_idx))
-
-	for term in terms:
-		if term == "": continue
-		var coeff = Vector2(1, 0)
-		var degree = 0
-
-		if "z" in term:
-			var parts = term.split("z")
-			var coeff_str = parts[0]
-			if coeff_str == "" or coeff_str == "+": coeff = Vector2(1, 0)
-			elif coeff_str == "-": coeff = Vector2(-1, 0)
-			else:
-				var _sign = 1.0
-				if coeff_str.begins_with("+"):
-					coeff_str = coeff_str.substr(1)
-				elif coeff_str.begins_with("-"):
-					_sign = -1.0
-					coeff_str = coeff_str.substr(1)
-
-				# Remove surrounding parentheses if any
-				if coeff_str.begins_with("(") and coeff_str.ends_with(")"):
-					coeff_str = coeff_str.substr(1, coeff_str.length() - 2)
-				coeff = _parse_complex(coeff_str) * _sign
-
-			var degree_str = parts[1]
-			if degree_str == "": degree = 1
-			elif degree_str.begins_with("^"):
-				degree = int(degree_str.substr(1))
-		else:
-			var coeff_str = term
-			var _sign = 1.0
-			if coeff_str.begins_with("+"):
-				coeff_str = coeff_str.substr(1)
-			elif coeff_str.begins_with("-"):
-				_sign = -1.0
-				coeff_str = coeff_str.substr(1)
-			if coeff_str.begins_with("(") and coeff_str.ends_with(")"):
-				coeff_str = coeff_str.substr(1, coeff_str.length() - 2)
-			coeff = _parse_complex(coeff_str) * _sign
-			degree = 0
-
-		if degree >= 0 and degree < 10:
-			coeffs[degree] += coeff
-
-	return coeffs
 
 func _get_rvm_n(T: float) -> float:
 	if T <= 0.1:
@@ -962,7 +704,6 @@ func _on_set_pos_pressed(_toggle_menu: bool = true):
 	if not is_finite(re): re = 0.5
 	if not is_finite(im): im = 0.0
 
-	var iters = int(iter_slider.value)
 	var h_a = float(height_a_input.text)
 	if not is_finite(h_a): h_a = 3.0
 	var h_eps = float(height_eps_input.text)
@@ -975,15 +716,22 @@ func _on_set_pos_pressed(_toggle_menu: bool = true):
 	if !hud_zeros_checkbox.button_pressed:
 		Config.visited_zeros.clear()
 
-	Config.iterations = iters
+	# Apply non-slider values to Config
 	Config.movement_speed = m_speed
-	Config.zoom_factor = _slider_to_zoom(zoom_slider.value)
-	Config.effective_zoom = float(Config.zoom_factor)
-	Config.speed_near_zeros = zero_speed_slider.value
-	Config.zero_proximity_nav = zero_proximity_nav_slider.value
 	Config.camera_height = c_height
 	Config.height_a = h_a
 	Config.height_epsilon = h_eps
+
+	# Apply all sliders to Config via bindings
+	for slider in SLIDER_BINDINGS:
+		var binding = SLIDER_BINDINGS[slider]
+		var cfg_key = binding.get("config_key", "")
+		if cfg_key != "":
+			var cfg_val = binding["to_config"].call(slider.value)
+			Config.set(cfg_key, cfg_val)
+
+	# Ensure effective zoom is updated from applied zoom_factor
+	Config.effective_zoom = float(Config.zoom_factor)
 
 	_speed_modified = false
 	_camera_height_modified = false
@@ -993,9 +741,6 @@ func _on_set_pos_pressed(_toggle_menu: bool = true):
 	Config.color_scheme = color_scheme_button.selected
 	Config.show_curves = curves_checkbox.button_pressed
 	Config.show_critical_stripe = critical_checkbox.button_pressed
-	Config.sunrise_direction = sunrise_slider.value
-	Config.sky_luminosity = sky_luminosity_slider.value / 100.0
-	Config.sun_luminosity = sun_luminosity_slider.value / 100.0
 	Config.shadows_enabled = shadows_checkbox.button_pressed
 	Config.show_hud_complex = hud_complex_checkbox.button_pressed
 	Config.show_hud_navigation = hud_navigation_checkbox.button_pressed
@@ -1004,25 +749,8 @@ func _on_set_pos_pressed(_toggle_menu: bool = true):
 	Config.show_hud_monitor_fps = hud_monitor_fps_checkbox.button_pressed
 	Config.show_hud_monitor_chunks = hud_monitor_chunks_checkbox.button_pressed
 	Config.show_flow = flow_checkbox.button_pressed
-	Config.master_volume = master_volume_slider.value
-	Config.bg_music_volume = bg_music_slider.value
-	Config.drone_volume = drone_slider.value
-	Config.terrain_brightness = brightness_slider.value / 50.0
-	Config.terrain_saturation = 0.3 + (saturation_slider.value / 100.0) * 0.7
-	Config.terrain_albedo = albedo_slider.value / 100.0
-	Config.terrain_emission = emission_slider.value / 100.0
-	Config.terrain_metallic = metallic_slider.value / 100.0
-	Config.terrain_roughness = roughness_slider.value / 100.0
-	Config.terrain_surface_texture = surface_texture_slider.value / 100.0
-	Config.view_distance = int(view_distance_slider.value)
-	Config.day_duration = day_duration_slider.value
-	Config.day_time = day_time_slider.value
-	Config.fog_density = fog_density_slider.value / 100.0
-	Config.menu_scale = menu_scale_slider.value / 150.0
-	Config.hud_scale = hud_scale_slider.value / 100.0
 	Config.function_type = func_button.get_item_id(func_button.selected)
 	Config.height_type = height_button.selected
-	Config.multivalued_n = int(multivalued_slider.value)
 
 	apply_aa()
 
@@ -1038,14 +766,15 @@ func _on_set_pos_pressed(_toggle_menu: bool = true):
 			if den_str.begins_with("(") and den_str.ends_with(")"):
 				den_str = den_str.substr(1, den_str.length() - 2)
 
-			Config.rational_num_coeffs = _parse_poly(num_str)
-			Config.rational_den_coeffs = _parse_poly(den_str)
+			Config.rational_num_coeffs = FormulaParser.parse_poly(num_str)
+			Config.rational_den_coeffs = FormulaParser.parse_poly(den_str)
 		else:
-			Config.rational_num_coeffs = _parse_poly(expr)
+			Config.rational_num_coeffs = FormulaParser.parse_poly(expr)
 			Config.rational_den_coeffs = PackedVector2Array([Vector2(1, 0), Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO])
 
 	Config.save_settings()
 	_update_hud_layout()
+	preset_controller.update_preset_button_text()
 
 	if player:
 		var zoom_mult = Config.zoom_factor
@@ -1067,83 +796,10 @@ func _on_set_pos_pressed(_toggle_menu: bool = true):
 		else:
 			player.auto_walk_state = 0 # NONE
 
-	_update_preset_button_text()
+	preset_controller.update_preset_button_text()
 	if _toggle_menu:
 		toggle_menu(true)
 
-
-func _on_preset_update_pressed():
-	var preset_name = Config.current_preset.trim_suffix("*")
-	if preset_name in ["Default", "Mysterious"]:
-		new_preset_dialog.visible = true
-		new_preset_input.text = preset_name + " Copy"
-		new_preset_input.grab_focus()
-	else:
-		Config.update_preset(preset_name)
-		Config.current_preset = preset_name
-		_update_preset_button_text()
-
-func _on_preset_delete_pressed():
-	var preset_name = Config.current_preset.trim_suffix("*")
-	if preset_name in ["Default", "Mysterious"]:
-		return
-	delete_message_label.text = "Are you sure you want to delete the
-preset '" + preset_name + "'?"
-	delete_preset_dialog.visible = true
-
-func _on_delete_preset_cancel_pressed():
-	delete_preset_dialog.visible = false
-
-func _on_delete_preset_confirm_pressed():
-	var preset_name = Config.current_preset.trim_suffix("*")
-	if Config.PRESETS.has(preset_name):
-		Config.delete_preset(preset_name)
-
-		# Repopulate dropdown
-		_populate_preset_button()
-
-		if Config.PRESETS.size() > 0:
-			var new_preset = Config.PRESETS.keys()[0]
-			Config.apply_preset(new_preset)
-		else:
-			Config.current_preset = "Custom"
-			_update_preset_button_text()
-	delete_preset_dialog.visible = false
-
-func _on_preset_new_pressed():
-	new_preset_dialog.visible = true
-	new_preset_input.text = ""
-	new_preset_input.grab_focus()
-
-func _on_new_preset_cancel_pressed():
-	new_preset_dialog.visible = false
-
-func _on_new_preset_save_pressed():
-	var preset_name = new_preset_input.text.strip_edges()
-	if preset_name != "":
-		Config.update_preset(preset_name)
-
-		_populate_preset_button()
-
-		Config.apply_preset(preset_name)
-
-	new_preset_dialog.visible = false
-
-func _populate_preset_button():
-	var built_in_keys = Config.PRESET_DEFAULTS.PRESETS.keys()
-	preset_button.clear()
-	# Custom presets first
-	for p_name in Config.PRESETS.keys():
-		if not built_in_keys.has(p_name):
-			preset_button.add_item(p_name)
-	# Built-in presets after
-	for p_name in Config.PRESETS.keys():
-		if built_in_keys.has(p_name):
-			preset_button.add_item(p_name)
-
-func _on_preset_selected(index: int):
-	var preset_name = preset_button.get_item_text(index).trim_suffix("*")
-	Config.apply_preset(preset_name)
 
 func _sync_ui_to_config():
 	_syncing_ui = true
@@ -1151,22 +807,21 @@ func _sync_ui_to_config():
 	for key in Config.PRESET_KEYS:
 		backup[key] = Config.get(key)
 
-	iter_slider.value = Config.iterations
-	_on_iterations_value_changed(Config.iterations)
-	
+	# Sync all sliders programmatically
+	for slider in SLIDER_BINDINGS:
+		var binding = SLIDER_BINDINGS[slider]
+		var cfg_key = binding.get("config_key", "")
+		if cfg_key != "":
+			var cfg_val = Config.get(cfg_key)
+			var ui_val = binding["from_config"].call(cfg_val)
+			slider.set_value_no_signal(ui_val)
+			slider.value_text = binding["format"].call(ui_val)
+			if binding.has("on_changed"):
+				binding["on_changed"].call(ui_val)
+
 	_speed_modified = false
 	_camera_height_modified = false
 	speed_input.text = "%.1f" % (Config.movement_speed * 0.1)
-	
-	zoom_slider.value = _zoom_to_slider(Config.zoom_factor)
-	_on_zoom_value_changed(zoom_slider.value)
-	
-	zero_speed_slider.value = Config.speed_near_zeros
-	_on_zero_speed_value_changed(Config.speed_near_zeros)
-	
-	zero_proximity_nav_slider.value = Config.zero_proximity_nav
-	_on_zero_proximity_nav_value_changed(Config.zero_proximity_nav)
-	
 	camera_height_input.text = str(Config.camera_height)
 	height_a_input.text = str(Config.height_a)
 	height_eps_input.text = str(Config.height_epsilon)
@@ -1175,33 +830,8 @@ func _sync_ui_to_config():
 	aa_button.selected = Config.antialiasing_mode
 	color_scheme_button.selected = Config.color_scheme
 	
-	view_distance_slider.value = Config.view_distance
-	_on_view_distance_value_changed(Config.view_distance)
-	
 	curves_checkbox.button_pressed = Config.show_curves
 	critical_checkbox.button_pressed = Config.show_critical_stripe
-	
-	day_duration_slider.value = Config.day_duration
-	_on_day_duration_value_changed(Config.day_duration)
-	
-	day_time_slider.value = Config.day_time
-	_on_day_time_value_changed(Config.day_time)
-	
-	sunrise_slider.value = Config.sunrise_direction
-	_on_sunrise_value_changed(Config.sunrise_direction)
-	
-	sky_luminosity_slider.value = Config.sky_luminosity * 100.0
-	_on_sky_luminosity_value_changed(sky_luminosity_slider.value)
-	
-	sun_luminosity_slider.value = Config.sun_luminosity * 100.0
-	_on_sun_luminosity_value_changed(sun_luminosity_slider.value)
-	
-	self_illumination_slider.value = Config.self_illumination * 100.0
-	_on_self_illumination_value_changed(self_illumination_slider.value)
-	
-	fog_density_slider.value = Config.fog_density * 100.0
-	_on_fog_density_value_changed(fog_density_slider.value)
-	
 	shadows_checkbox.button_pressed = Config.shadows_enabled
 	hud_complex_checkbox.button_pressed = Config.show_hud_complex
 	hud_navigation_checkbox.button_pressed = Config.show_hud_navigation
@@ -1210,49 +840,10 @@ func _sync_ui_to_config():
 	hud_monitor_fps_checkbox.button_pressed = Config.show_hud_monitor_fps
 	hud_monitor_chunks_checkbox.button_pressed = Config.show_hud_monitor_chunks
 	
-	hud_scale_slider.value = Config.hud_scale * 100.0
-	_on_hud_scale_value_changed(hud_scale_slider.value)
-	
-	menu_scale_slider.value = Config.menu_scale * 150.0
-	_on_menu_scale_value_changed(menu_scale_slider.value)
-	
 	if player:
 		auto_walk_checkbox.button_pressed = (player.auto_walk_state != 0)
 	
 	flow_checkbox.button_pressed = Config.show_flow
-	
-	master_volume_slider.value = Config.master_volume
-	_on_master_volume_value_changed(Config.master_volume)
-	
-	bg_music_slider.value = Config.bg_music_volume
-	_on_bg_music_value_changed(Config.bg_music_volume)
-	
-	drone_slider.value = Config.drone_volume
-	_on_drone_value_changed(Config.drone_volume)
-
-	brightness_slider.value = Config.terrain_brightness * 50.0
-	_on_terrain_brightness_value_changed(brightness_slider.value)
-	
-	saturation_slider.value = (Config.terrain_saturation - 0.3) / 0.7 * 100.0
-	_on_terrain_saturation_value_changed(saturation_slider.value)
-	
-	albedo_slider.value = Config.terrain_albedo * 100.0
-	_on_terrain_albedo_value_changed(albedo_slider.value)
-	
-	emission_slider.value = Config.terrain_emission * 100.0
-	_on_terrain_emission_value_changed(emission_slider.value)
-	
-	metallic_slider.value = Config.terrain_metallic * 100.0
-	_on_terrain_metallic_value_changed(metallic_slider.value)
-	
-	roughness_slider.value = Config.terrain_roughness * 100.0
-	_on_terrain_roughness_value_changed(roughness_slider.value)
-
-	surface_texture_slider.value = Config.terrain_surface_texture * 100.0
-	_on_terrain_surface_texture_value_changed(surface_texture_slider.value)
-
-	multivalued_slider.value = Config.multivalued_n
-	_on_multivalued_n_value_changed(Config.multivalued_n)
 
 	func_button.select(func_button.get_item_index(Config.function_type))
 	height_button.selected = Config.height_type
@@ -1265,94 +856,6 @@ func _sync_ui_to_config():
 	if main_menu_panel:
 		main_menu_panel.scale = Vector2.ONE
 		_rescale_menu(Config.menu_scale)
-
-
-func _on_preset_applied():
-	_sync_ui_to_config()
-	_update_preset_button_text()
-
-func _on_preset_restore_pressed():
-	var preset_name = Config.current_preset.trim_suffix("*")
-	Config.restore_preset(preset_name)
-	_on_set_pos_pressed(false)
-
-func _connect_preset_dirtiers():
-	var on_changed = func(_val = null):
-		if not _syncing_ui:
-			_update_preset_button_text()
-
-	# Connect sliders
-	for slider in [
-		iter_slider, zero_proximity_nav_slider, zoom_slider, zero_speed_slider,
-		view_distance_slider, day_duration_slider, day_time_slider, sunrise_slider,
-		sky_luminosity_slider, sun_luminosity_slider, self_illumination_slider,
-		fog_density_slider, menu_scale_slider, hud_scale_slider, master_volume_slider, bg_music_slider,
-		drone_slider, brightness_slider, saturation_slider, albedo_slider,
-		emission_slider, metallic_slider, roughness_slider, surface_texture_slider,
-		multivalued_slider
-	]:
-		if slider and slider.has_signal("value_changed"):
-			slider.value_changed.connect(on_changed)
-
-	# Connect checkboxes
-	for cb in [
-		curves_checkbox, critical_checkbox, flow_checkbox, hud_complex_checkbox,
-		hud_navigation_checkbox, hud_zeros_checkbox, rvm_checkbox,
-		hud_monitor_fps_checkbox, hud_monitor_chunks_checkbox, shadows_checkbox,
-		auto_walk_checkbox, freeze_time_checkbox
-	]:
-		if cb and cb.has_signal("toggled"):
-			cb.toggled.connect(on_changed)
-
-	# Connect buttons/option buttons
-	for ob in [func_button, height_button, terrain_detail_button, aa_button, color_scheme_button]:
-		if ob and ob.has_signal("item_selected"):
-			ob.item_selected.connect(on_changed)
-
-	# Connect line edits
-	for le in [speed_input, camera_height_input, height_a_input, height_eps_input]:
-		if le and le.has_signal("text_submitted"):
-			le.text_submitted.connect(on_changed)
-
-func _update_preset_button_text():
-	var preset_name = Config.current_preset.trim_suffix("*")
-	var is_dirty = Config.is_preset_dirty()
-
-	# Update current_preset to match computed state
-	Config.current_preset = preset_name + "*" if is_dirty else preset_name
-
-	# Try to select the right item, then set text
-	for i in range(preset_button.item_count):
-		var item_clean_name = preset_button.get_item_text(i).trim_suffix("*")
-		if item_clean_name == preset_name:
-			preset_button.select(i)
-			break
-
-	# Update all items' texts based on their dirtiness
-	for i in range(preset_button.item_count):
-		var item_clean_name = preset_button.get_item_text(i).trim_suffix("*")
-		var item_dirty = Config.is_preset_dirty_by_name(item_clean_name)
-		if item_dirty:
-			preset_button.set_item_text(i, item_clean_name + "*")
-		else:
-			preset_button.set_item_text(i, item_clean_name)
-
-	# Force OptionButton to update its displayed text by re-selecting the index
-	var selected_idx = preset_button.selected
-	if selected_idx != -1:
-		preset_button.select(-1)
-		preset_button.select(selected_idx)
-
-	# Save/Update button state
-	preset_update_button.disabled = not is_dirty
-	preset_restore_button.disabled = not is_dirty
-
-	# Default & Mysterious are read-only
-	if preset_name in ["Default", "Mysterious"]:
-		preset_delete_button.disabled = true
-	else:
-		preset_delete_button.disabled = false
-
 
 func _on_quit_pressed():
 	if Config.is_preset_dirty():
@@ -1382,13 +885,10 @@ func _process(_delta):
 		Config.rvm_start_t = abs(player.global_position.z * 0.1 / Config.effective_zoom)
 	_last_zeros_visible = Config.show_hud_zeros
 
-	if tooltip.visible:
-		_update_tooltip_position()
 
 	if menu_overlay.visible:
 		if abs(_slider_to_zoom(zoom_slider.value) - Config.zoom_factor) > 0.001:
 			zoom_slider.value = _zoom_to_slider(Config.zoom_factor)
-			_on_zoom_value_changed(zoom_slider.value)
 
 		# Live update speed and height inputs as they change smoothly with zoom
 		if not _speed_modified and not speed_input.has_focus():
@@ -1495,9 +995,11 @@ func _update_hud_layout():
 
 	var cards = [complex_panel, info_panel, monitor_panel, zeros_panel, perf_label]
 
+	var actual_hud_scale = Config.hud_scale * 1.2
+
 	# Always rescale all cards to ensure their combined_minimum_size is correct for height check
 	for card in cards:
-		_rescale_card(card, Config.hud_scale)
+		_rescale_card(card, actual_hud_scale)
 
 	var current_state = {
 		"size": get_viewport().size,
@@ -1510,8 +1012,8 @@ func _update_hud_layout():
 	_last_hud_state = current_state
 
 	# Scale stack widths to accommodate wider fonts
-	hud_stack_right.custom_minimum_size.x = 150 * Config.hud_scale
-	hud_stack_left.custom_minimum_size.x = 150 * Config.hud_scale
+	hud_stack_right.custom_minimum_size.x = 150 * actual_hud_scale
+	hud_stack_left.custom_minimum_size.x = 150 * actual_hud_scale
 
 	var available_height = get_viewport().size.y - 40
 	var current_height = 0.0
@@ -1603,49 +1105,6 @@ func _rescale_card(card: Control, _scale: float):
 				stack.push_back(child)
 
 
-func _on_detach_pressed(source_slider: HSlider, source_value_label: Label, title: String):
-	active_detached_slider = null
-
-	detach_label.text = title
-	# Using set_block_signals(true) prevents _on_detach_slider_changed from firing while we update its properties.
-	detach_slider.set_block_signals(true)
-	# Expand bounds first to avoid clamping
-	detach_slider.min_value = min(detach_slider.min_value, source_slider.min_value)
-	detach_slider.max_value = max(detach_slider.max_value, source_slider.max_value)
-	detach_slider.custom_minimum_size = Vector2(200.0, 50.0)
-
-	detach_slider.min_value = source_slider.min_value
-	detach_slider.max_value = source_slider.max_value
-	detach_slider.step = source_slider.step
-	detach_slider.value = source_slider.value
-	detach_slider.set_block_signals(false)
-
-	detach_value.text = source_value_label.text
-
-	active_detached_slider = source_slider
-	active_detached_value = source_value_label
-
-	toggle_menu(true)
-	detach_overlay.visible = true
-	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-
-func _on_detach_slider_changed(value: float):
-	if active_detached_slider:
-		# Emit value_changed to trigger the existing logic on the source slider
-		active_detached_slider.value = value
-		# active_detached_slider.value_changed.emit(value) # value setting already emits if value actually changes
-		# Update the overlay label to match what the menu label would be
-		# It's better to just copy the text from the source_value_label
-		detach_value.text = active_detached_value.text
-
-func _on_exit_detach_pressed():
-	# Avoid accidental morph blending when returning from a detached slider
-	morph_slider.value = 1.0
-
-	detach_overlay.visible = false
-	menu_overlay.visible = true
-	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-
 func _on_terrain_detail_selected(index: int):
 	Config.terrain_detail = index
 
@@ -1734,10 +1193,10 @@ func _on_rational_text_submitted(new_text: String):
 			if den_str.begins_with("(") and den_str.ends_with(")"):
 				den_str = den_str.substr(1, den_str.length() - 2)
 
-			Config.rational_num_coeffs = _parse_poly(num_str)
-			Config.rational_den_coeffs = _parse_poly(den_str)
+			Config.rational_num_coeffs = FormulaParser.parse_poly(num_str)
+			Config.rational_den_coeffs = FormulaParser.parse_poly(den_str)
 		else:
-			Config.rational_num_coeffs = _parse_poly(expr)
+			Config.rational_num_coeffs = FormulaParser.parse_poly(expr)
 			Config.rational_den_coeffs = PackedVector2Array([Vector2(1, 0), Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO])
 
 func play_portal_flash():
@@ -1767,7 +1226,14 @@ func _rescale_menu(_scale: float):
 		return
 	main_menu_panel.set_meta("last_applied_menu_scale", _scale)
 
-	var stack = [main_menu_panel]
+	var actual_scale = _scale * (130.0 / 150.0)
+
+	var stack = []
+	if main_menu_panel: stack.push_back(main_menu_panel)
+	if new_preset_dialog: stack.push_back(new_preset_dialog)
+	if delete_preset_dialog: stack.push_back(delete_preset_dialog)
+	if quit_dialog: stack.push_back(quit_dialog)
+	
 	while stack.size() > 0:
 		var node = stack.pop_back()
 		
@@ -1779,7 +1245,7 @@ func _rescale_menu(_scale: float):
 			
 			if not node.has_meta("base_font_size"):
 				node.set_meta("base_font_size", node.get_theme_font_size(font_size_key))
-			node.add_theme_font_size_override(font_size_key, int(round(node.get_meta("base_font_size") * _scale)))
+			node.add_theme_font_size_override(font_size_key, int(round(node.get_meta("base_font_size") * actual_scale)))
 		
 		# 2. Scale Layout Parameters on Controls
 		if node is Control:
@@ -1787,20 +1253,20 @@ func _rescale_menu(_scale: float):
 			if node.custom_minimum_size != Vector2.ZERO:
 				if not node.has_meta("base_min_size"):
 					node.set_meta("base_min_size", node.custom_minimum_size)
-				node.custom_minimum_size = node.get_meta("base_min_size") * _scale
+				node.custom_minimum_size = node.get_meta("base_min_size") * actual_scale
 			
 			# Scale margins for MarginContainers
 			if node is MarginContainer:
 				for margin in ["margin_left", "margin_top", "margin_right", "margin_bottom"]:
 					if not node.has_meta("base_" + margin):
 						node.set_meta("base_" + margin, node.get_theme_constant(margin))
-					node.add_theme_constant_override(margin, int(round(node.get_meta("base_" + margin) * _scale)))
+					node.add_theme_constant_override(margin, int(round(node.get_meta("base_" + margin) * actual_scale)))
 			
 			# Scale separations for BoxContainers
 			elif node is BoxContainer:
 				if not node.has_meta("base_separation"):
 					node.set_meta("base_separation", node.get_theme_constant("separation"))
-				node.add_theme_constant_override("separation", int(round(node.get_meta("base_separation") * _scale)))
+				node.add_theme_constant_override("separation", int(round(node.get_meta("base_separation") * actual_scale)))
 		
 		# Traverse children
 		for child in node.get_children():
