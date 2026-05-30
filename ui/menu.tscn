@@ -2,6 +2,8 @@
 
 [ext_resource type="PackedScene" path="res://ui/components/slider.tscn" id="1"]
 [ext_resource type="PackedScene" uid="uid://cb3s73jdxxabc" path="res://ui/components/checkbox.tscn" id="3_checkbox"]
+[ext_resource type="PackedScene" uid="uid://dropdown_uid_12345" path="res://ui/components/dropdown.tscn" id="DropdownScene"]
+[ext_resource type="PackedScene" uid="uid://text_input_uid_12345" path="res://ui/components/text_input.tscn" id="TextInputScene"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_glass"]
 bg_color = Color(0.03, 0.03, 0.03, 0.5)
@@ -362,89 +364,27 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 20
 
-[node name="FuncContainer" type="HBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox" unique_id=467199375]
+[node name="FuncContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox" unique_id=467199375 instance=ExtResource("DropdownScene")]
+unique_name_in_owner = true
 layout_mode = 2
-
-[node name="Label" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/FuncContainer" unique_id=1411435921]
-custom_minimum_size = Vector2(180, 0)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 18
 text = "Function"
 
-[node name="FuncButton" type="OptionButton" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/FuncContainer" unique_id=873042999]
+[node name="HeightContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox" unique_id=2077499212 instance=ExtResource("DropdownScene")]
 unique_name_in_owner = true
 layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 18
-theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
-theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
-theme_override_styles/focus = SubResource("StyleBoxFlat_btn_normal")
-theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_disabled")
-
-[node name="HeightContainer" type="HBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox" unique_id=2077499212]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/HeightContainer" unique_id=2034803348]
-custom_minimum_size = Vector2(180, 0)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 18
 text = "Height Map"
 
-[node name="HeightButton" type="OptionButton" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/HeightContainer" unique_id=1731729941]
+[node name="HeightAContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox" unique_id=1616977590 instance=ExtResource("TextInputScene")]
 unique_name_in_owner = true
 layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 18
-theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
-theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
-theme_override_styles/focus = SubResource("StyleBoxFlat_btn_normal")
-theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_disabled")
-
-[node name="HeightAContainer" type="HBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox" unique_id=1616977590]
-unique_name_in_owner = true
-layout_mode = 2
-
-[node name="Label" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/HeightAContainer" unique_id=921426466]
-custom_minimum_size = Vector2(180, 0)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 18
 text = "Parameter a"
+input_text = "3.0"
 
-[node name="HeightAInput" type="LineEdit" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/HeightAContainer" unique_id=1210270417]
+[node name="HeightEpsContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox" unique_id=1234826467 instance=ExtResource("TextInputScene")]
 unique_name_in_owner = true
 layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 18
-theme_override_styles/normal = SubResource("StyleBoxFlat_input")
-theme_override_styles/focus = SubResource("StyleBoxFlat_input")
-text = "3.0"
-alignment = 1
-
-[node name="HeightEpsContainer" type="HBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox" unique_id=1234826467]
-unique_name_in_owner = true
-layout_mode = 2
-
-[node name="Label" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/HeightEpsContainer" unique_id=19857183]
-custom_minimum_size = Vector2(180, 0)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 18
 text = "Parameter ε"
-
-[node name="HeightEpsInput" type="LineEdit" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/HeightEpsContainer" unique_id=1078939278]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 18
-theme_override_styles/normal = SubResource("StyleBoxFlat_input")
-theme_override_styles/focus = SubResource("StyleBoxFlat_input")
-text = "1.0"
-alignment = 1
+input_text = "1.0"
 
 [node name="IterSlider" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox" unique_id=1823340774 instance=ExtResource("1")]
 unique_name_in_owner = true
@@ -457,27 +397,12 @@ value = 100.0
 value_text = "100"
 show_detach_button = true
 
-[node name="RationalContainer" type="HBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox" unique_id=1078901725]
+[node name="RationalContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox" unique_id=1078901725 instance=ExtResource("TextInputScene")]
 unique_name_in_owner = true
 layout_mode = 2
-
-[node name="Label" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/RationalContainer" unique_id=744050870]
-custom_minimum_size = Vector2(180, 0)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 18
 text = "Expression"
-
-[node name="RationalInput" type="LineEdit" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox/RationalContainer" unique_id=803664838]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 18
-theme_override_styles/normal = SubResource("StyleBoxFlat_input")
-theme_override_styles/focus = SubResource("StyleBoxFlat_input")
-text = "z^2 - 1"
+input_text = "z^2 - 1"
 placeholder_text = "(z^2 + 1)/(z - 1)"
-alignment = 1
 
 [node name="MultivaluedSlider" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox" unique_id=946400167 instance=ExtResource("1")]
 unique_name_in_owner = true
@@ -590,26 +515,10 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 15
 
-[node name="ColorSchemeContainer" type="HBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox" unique_id=1766626415]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/ColorSchemeContainer" unique_id=1664346570]
-custom_minimum_size = Vector2(180, 0)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 18
-text = "Color Scheme"
-
-[node name="ColorSchemeButton" type="OptionButton" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox/ColorSchemeContainer" unique_id=1575942063]
+[node name="ColorSchemeContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox" unique_id=1766626415 instance=ExtResource("DropdownScene")]
 unique_name_in_owner = true
 layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 18
-theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
-theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
-theme_override_styles/focus = SubResource("StyleBoxFlat_btn_normal")
-theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_disabled")
+text = "Color Scheme"
 
 [node name="BrightnessContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox" unique_id=1323455475 instance=ExtResource("1")]
 unique_name_in_owner = true
@@ -710,47 +619,15 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 15
 
-[node name="TerrainDetailContainer" type="HBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/GRAPHICS/Margin/VBox" unique_id=2110262796]
+[node name="TerrainDetailContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/GRAPHICS/Margin/VBox" unique_id=2110262796 instance=ExtResource("DropdownScene")]
+unique_name_in_owner = true
 layout_mode = 2
-
-[node name="Label" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/GRAPHICS/Margin/VBox/TerrainDetailContainer" unique_id=224790695]
-custom_minimum_size = Vector2(180, 0)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 18
 text = "Terrain Details"
 
-[node name="TerrainDetailButton" type="OptionButton" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/GRAPHICS/Margin/VBox/TerrainDetailContainer" unique_id=581250930]
+[node name="AAContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/GRAPHICS/Margin/VBox" unique_id=1972959355 instance=ExtResource("DropdownScene")]
 unique_name_in_owner = true
 layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 18
-theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
-theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
-theme_override_styles/focus = SubResource("StyleBoxFlat_btn_normal")
-theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_disabled")
-
-[node name="AAContainer" type="HBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/GRAPHICS/Margin/VBox" unique_id=1972959355]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/GRAPHICS/Margin/VBox/AAContainer" unique_id=1475130905]
-custom_minimum_size = Vector2(180, 0)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 18
 text = "Antialiasing"
-
-[node name="AAButton" type="OptionButton" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/GRAPHICS/Margin/VBox/AAContainer" unique_id=329579194]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 18
-theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
-theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
-theme_override_styles/focus = SubResource("StyleBoxFlat_btn_normal")
-theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_disabled")
 
 [node name="ViewDistanceContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/GRAPHICS/Margin/VBox" unique_id=74672234 instance=ExtResource("1")]
 unique_name_in_owner = true
@@ -784,85 +661,29 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 20
 
-[node name="ReContainer" type="HBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox" unique_id=506999005]
+[node name="ReContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox" unique_id=506999005 instance=ExtResource("TextInputScene")]
+unique_name_in_owner = true
 layout_mode = 2
-
-[node name="Label" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox/ReContainer" unique_id=1115161555]
-custom_minimum_size = Vector2(180, 0)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 18
 text = "Real (x)"
+input_text = "0.5"
 
-[node name="ReInput" type="LineEdit" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox/ReContainer" unique_id=103438667]
+[node name="ImContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox" unique_id=655403703 instance=ExtResource("TextInputScene")]
 unique_name_in_owner = true
 layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 18
-theme_override_styles/normal = SubResource("StyleBoxFlat_input")
-theme_override_styles/focus = SubResource("StyleBoxFlat_input")
-text = "0.5"
-alignment = 1
-
-[node name="ImContainer" type="HBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox" unique_id=655403703]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox/ImContainer" unique_id=968917363]
-custom_minimum_size = Vector2(180, 0)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 18
 text = "Imaginary (y)"
+input_text = "0.0"
 
-[node name="ImInput" type="LineEdit" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox/ImContainer" unique_id=770077262]
+[node name="CameraHeightContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox" unique_id=1021053763 instance=ExtResource("TextInputScene")]
 unique_name_in_owner = true
 layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 18
-theme_override_styles/normal = SubResource("StyleBoxFlat_input")
-theme_override_styles/focus = SubResource("StyleBoxFlat_input")
-text = "0.0"
-alignment = 1
-
-[node name="CameraHeightContainer" type="HBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox" unique_id=1021053763]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox/CameraHeightContainer" unique_id=1724994679]
-custom_minimum_size = Vector2(180, 0)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 18
 text = "Camera Height"
+input_text = "1.8"
 
-[node name="CameraHeightInput" type="LineEdit" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox/CameraHeightContainer" unique_id=2003137109]
+[node name="SpeedContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox" unique_id=127099388 instance=ExtResource("TextInputScene")]
 unique_name_in_owner = true
 layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 18
-theme_override_styles/normal = SubResource("StyleBoxFlat_input")
-theme_override_styles/focus = SubResource("StyleBoxFlat_input")
-text = "1.8"
-alignment = 1
-
-[node name="SpeedContainer" type="HBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox" unique_id=127099388]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox/SpeedContainer" unique_id=60399425]
-custom_minimum_size = Vector2(180, 0)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 18
 text = "Move Speed"
-
-[node name="SpeedInput" type="LineEdit" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox/SpeedContainer" unique_id=1785654793]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 18
-theme_override_styles/normal = SubResource("StyleBoxFlat_input")
-theme_override_styles/focus = SubResource("StyleBoxFlat_input")
-text = "10.0"
-alignment = 1
+input_text = "10.0"
 
 [node name="ZoomContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox" unique_id=1687702584 instance=ExtResource("1")]
 unique_name_in_owner = true
