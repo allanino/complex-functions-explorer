@@ -31,6 +31,7 @@ uniform float surface_texture : hint_range(0.0, 1.0) = 0.0;
 uniform float morph : hint_range(0.0, 1.0) = 1.0;
 uniform float portal_height = 50.0;
 uniform float portal_width = 100.0;
+uniform float portal_min_height = -50.0;
 uniform float specular_intensity : hint_range(0.0, 1.0) = 0.1;
 
 uniform float self_illumination = 0.0;
@@ -176,12 +177,12 @@ void vertex() {
                     float threshold = 10.0 * zoom_factor;
                     if ((px >= threshold && px < threshold + portal_width) ||
                         (px <= -threshold && px > -threshold - portal_width)) {
-                        if (py > -10.0 && py < portal_height) {
+                        if (py > portal_min_height && py < portal_height) {
                             in_portal = true;
                         }
                     }
                 } else {
-                    if (px < 0.0 && px > -portal_width && py > -10.0 && py < portal_height) {
+                    if (px < 0.0 && px > -portal_width && py > portal_min_height && py < portal_height) {
                         in_portal = true;
                     }
                 }
