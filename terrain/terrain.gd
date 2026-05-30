@@ -148,44 +148,39 @@ func _process(delta):
 	if terrain_material:
 		terrain_material.set_shader_parameter("zoom_factor", Config.effective_zoom)
 
-	# Check if any field properties have changed
-	var current_field_state = {
-		"iterations": Config.iterations,
-		"terrain_detail": Config.terrain_detail,
-		"view_distance": Config.view_distance,
-		"show_curves": Config.show_curves,
-		"show_critical_stripe": Config.show_critical_stripe,
-		"show_flow": Config.show_flow,
-		"color_scheme": Config.color_scheme,
-		"function_type": Config.function_type,
-		"height_type": Config.height_type,
-		"height_a": Config.height_a,
-		"height_epsilon": Config.height_epsilon,
-		"zoom_factor": Config.zoom_factor,
-		"rational_num_coeffs": Config.rational_num_coeffs,
-		"rational_den_coeffs": Config.rational_den_coeffs,
-		"multivalued_n": Config.multivalued_n,
-		"self_illumination": Config.self_illumination,
-		"current_branch": Config.current_branch,
-		"terrain_brightness": Config.terrain_brightness,
-		"terrain_saturation": Config.terrain_saturation,
-		"terrain_albedo": Config.terrain_albedo,
-		"terrain_emission": Config.terrain_emission,
-		"terrain_metallic": Config.terrain_metallic,
-		"terrain_roughness": Config.terrain_roughness,
-		"terrain_surface_texture": Config.terrain_surface_texture,
-		"morph_value": Config.morph_value,
-		"fog_density": Config.fog_density,
-	}
-
-	var state_changed = current_field_state != _last_field_state
+	# Check if any field properties have changed (optimized to avoid dictionary allocations per frame)
+	var state_changed = false
 	var view_dist_changed = false
+	var lod_changed = false
+
+	if _last_field_state.get("iterations") != Config.iterations: state_changed = true; _last_field_state["iterations"] = Config.iterations
+	if _last_field_state.get("terrain_detail") != Config.terrain_detail: state_changed = true; lod_changed = true; _last_field_state["terrain_detail"] = Config.terrain_detail
+	if _last_field_state.get("view_distance") != Config.view_distance: state_changed = true; view_dist_changed = true; _last_field_state["view_distance"] = Config.view_distance
+	if _last_field_state.get("show_curves") != Config.show_curves: state_changed = true; _last_field_state["show_curves"] = Config.show_curves
+	if _last_field_state.get("show_critical_stripe") != Config.show_critical_stripe: state_changed = true; _last_field_state["show_critical_stripe"] = Config.show_critical_stripe
+	if _last_field_state.get("show_flow") != Config.show_flow: state_changed = true; _last_field_state["show_flow"] = Config.show_flow
+	if _last_field_state.get("color_scheme") != Config.color_scheme: state_changed = true; _last_field_state["color_scheme"] = Config.color_scheme
+	if _last_field_state.get("function_type") != Config.function_type: state_changed = true; _last_field_state["function_type"] = Config.function_type
+	if _last_field_state.get("height_type") != Config.height_type: state_changed = true; _last_field_state["height_type"] = Config.height_type
+	if _last_field_state.get("height_a") != Config.height_a: state_changed = true; _last_field_state["height_a"] = Config.height_a
+	if _last_field_state.get("height_epsilon") != Config.height_epsilon: state_changed = true; _last_field_state["height_epsilon"] = Config.height_epsilon
+	if _last_field_state.get("zoom_factor") != Config.zoom_factor: state_changed = true; _last_field_state["zoom_factor"] = Config.zoom_factor
+	if _last_field_state.get("rational_num_coeffs") != Config.rational_num_coeffs: state_changed = true; _last_field_state["rational_num_coeffs"] = Config.rational_num_coeffs
+	if _last_field_state.get("rational_den_coeffs") != Config.rational_den_coeffs: state_changed = true; _last_field_state["rational_den_coeffs"] = Config.rational_den_coeffs
+	if _last_field_state.get("multivalued_n") != Config.multivalued_n: state_changed = true; _last_field_state["multivalued_n"] = Config.multivalued_n
+	if _last_field_state.get("self_illumination") != Config.self_illumination: state_changed = true; _last_field_state["self_illumination"] = Config.self_illumination
+	if _last_field_state.get("current_branch") != Config.current_branch: state_changed = true; _last_field_state["current_branch"] = Config.current_branch
+	if _last_field_state.get("terrain_brightness") != Config.terrain_brightness: state_changed = true; _last_field_state["terrain_brightness"] = Config.terrain_brightness
+	if _last_field_state.get("terrain_saturation") != Config.terrain_saturation: state_changed = true; _last_field_state["terrain_saturation"] = Config.terrain_saturation
+	if _last_field_state.get("terrain_albedo") != Config.terrain_albedo: state_changed = true; _last_field_state["terrain_albedo"] = Config.terrain_albedo
+	if _last_field_state.get("terrain_emission") != Config.terrain_emission: state_changed = true; _last_field_state["terrain_emission"] = Config.terrain_emission
+	if _last_field_state.get("terrain_metallic") != Config.terrain_metallic: state_changed = true; _last_field_state["terrain_metallic"] = Config.terrain_metallic
+	if _last_field_state.get("terrain_roughness") != Config.terrain_roughness: state_changed = true; _last_field_state["terrain_roughness"] = Config.terrain_roughness
+	if _last_field_state.get("terrain_surface_texture") != Config.terrain_surface_texture: state_changed = true; _last_field_state["terrain_surface_texture"] = Config.terrain_surface_texture
+	if _last_field_state.get("morph_value") != Config.morph_value: state_changed = true; _last_field_state["morph_value"] = Config.morph_value
+	if _last_field_state.get("fog_density") != Config.fog_density: state_changed = true; _last_field_state["fog_density"] = Config.fog_density
 
 	if state_changed:
-		var lod_changed = _last_field_state.get("terrain_detail", -1) != Config.terrain_detail
-		view_dist_changed = _last_field_state.get("view_distance", -1) != Config.view_distance
-		_last_field_state = current_field_state
-
 		if lod_changed:
 			_update_lod_subs()
 			_lod_mesh_cache.clear()
