@@ -262,6 +262,15 @@ void vertex() {
                 h = field_val.x;
             }
 
+            bool h_clamped = false;
+            if (h < -1e5) {
+                h = -1e5;
+                h_clamped = true;
+            } else if (h > 1e5) {
+                h = 1e5;
+                h_clamped = true;
+            }
+
             h *= blend * zoom_factor;
 
             local_pos = vec3(snap_v.x, snap_v.y + h, snap_v.z);
@@ -304,18 +313,20 @@ void vertex() {
             float dh_dx = 0.0;
             float dh_dz = 0.0;
 
-            if (height_type == 0) {
-                dh_dx = (height_a / (height_epsilon + mag)) * dmag_dx;
-                dh_dz = (height_a / (height_epsilon + mag)) * dmag_dz;
-            } else if (height_type == 1) {
-                dh_dx = dmag_dx;
-                dh_dz = dmag_dz;
-            } else if (height_type == 2) {
-                dh_dx = dv_dx;
-                dh_dz = dv_dz;
-            } else if (height_type == 3) {
-                dh_dx = du_dx;
-                dh_dz = du_dz;
+            if (!h_clamped) {
+                if (height_type == 0) {
+                    dh_dx = (height_a / (height_epsilon + mag)) * dmag_dx;
+                    dh_dz = (height_a / (height_epsilon + mag)) * dmag_dz;
+                } else if (height_type == 1) {
+                    dh_dx = dmag_dx;
+                    dh_dz = dmag_dz;
+                } else if (height_type == 2) {
+                    dh_dx = dv_dx;
+                    dh_dz = dv_dz;
+                } else if (height_type == 3) {
+                    dh_dx = du_dx;
+                    dh_dz = du_dz;
+                }
             }
 
             v_normal = normalize(vec3(-dh_dx, 1.0, -dh_dz));

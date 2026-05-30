@@ -341,6 +341,8 @@ static func get_height_from_field(f: Vector2) -> float:
 	elif Config.height_type == 2: h = f.y
 	elif Config.height_type == 3: h = f.x
 
+	h = clamp(h, -500.0, 500.0)
+
 	# Match shader morphing blend factor (usually 1.0)
 	var s = 0.5 - 0.5 * cos(PI * Config.morph_value)
 	var blend = log(1.0 + 8.0 * s) / log(9.0)
