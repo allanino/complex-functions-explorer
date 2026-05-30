@@ -1,6 +1,6 @@
 extends CanvasLayer
 
-const FormulaParser = preload("res://scripts/formula_parser.gd")
+const FormulaParser = preload("res://math/formula_parser.gd")
 
 @export var player: Node3D
 @onready var hud_columns = %MainUIColumns

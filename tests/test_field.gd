@@ -1,6 +1,6 @@
 extends GutTest
 
-const FieldScript = preload("res://terrain/field.gd")
+const FieldScript = preload("res://math/field.gd")
 
 func test_complex_mul():
 	var z1 = Vector2(1, 2)
