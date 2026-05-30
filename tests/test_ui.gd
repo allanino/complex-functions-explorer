@@ -1,5 +1,7 @@
 extends GutTest
 
+const FormulaParser = preload("res://scripts/formula_parser.gd")
+
 var hud_scene = preload("res://ui/main_ui.tscn")
 var hud_instance
 var _original_save_path: String
@@ -51,50 +53,50 @@ func before_each():
 	add_child_autoqfree(hud_instance)
 
 func test_parse_complex():
-	assert_eq(hud_instance._parse_complex(""), Vector2.ZERO)
-	assert_eq(hud_instance._parse_complex("1"), Vector2(1, 0))
-	assert_eq(hud_instance._parse_complex("-1"), Vector2(-1, 0))
-	assert_eq(hud_instance._parse_complex("i"), Vector2(0, 1))
-	assert_eq(hud_instance._parse_complex("-i"), Vector2(0, -1))
-	assert_eq(hud_instance._parse_complex("1+i"), Vector2(1, 1))
-	assert_eq(hud_instance._parse_complex("1-i"), Vector2(1, -1))
-	assert_eq(hud_instance._parse_complex("-1+i"), Vector2(-1, 1))
-	assert_eq(hud_instance._parse_complex("-1-i"), Vector2(-1, -1))
-	assert_eq(hud_instance._parse_complex("2+3i"), Vector2(2, 3))
-	assert_eq(hud_instance._parse_complex("2 - 3i"), Vector2(2, -3)) # handles spaces
-	assert_eq(hud_instance._parse_complex("4.5+1.2i"), Vector2(4.5, 1.2))
-	assert_eq(hud_instance._parse_complex("2i"), Vector2(0, 2))
-	assert_eq(hud_instance._parse_complex("-2i"), Vector2(0, -2))
+	assert_eq(FormulaParser.parse_complex(""), Vector2.ZERO)
+	assert_eq(FormulaParser.parse_complex("1"), Vector2(1, 0))
+	assert_eq(FormulaParser.parse_complex("-1"), Vector2(-1, 0))
+	assert_eq(FormulaParser.parse_complex("i"), Vector2(0, 1))
+	assert_eq(FormulaParser.parse_complex("-i"), Vector2(0, -1))
+	assert_eq(FormulaParser.parse_complex("1+i"), Vector2(1, 1))
+	assert_eq(FormulaParser.parse_complex("1-i"), Vector2(1, -1))
+	assert_eq(FormulaParser.parse_complex("-1+i"), Vector2(-1, 1))
+	assert_eq(FormulaParser.parse_complex("-1-i"), Vector2(-1, -1))
+	assert_eq(FormulaParser.parse_complex("2+3i"), Vector2(2, 3))
+	assert_eq(FormulaParser.parse_complex("2 - 3i"), Vector2(2, -3)) # handles spaces
+	assert_eq(FormulaParser.parse_complex("4.5+1.2i"), Vector2(4.5, 1.2))
+	assert_eq(FormulaParser.parse_complex("2i"), Vector2(0, 2))
+	assert_eq(FormulaParser.parse_complex("-2i"), Vector2(0, -2))
 
 func test_parse_poly():
-	var res1 = hud_instance._parse_poly("1")
+	var res1 = FormulaParser.parse_poly("1")
 	assert_eq(res1[0], Vector2(1, 0))
 	assert_eq(res1[1], Vector2(0, 0))
 
-	var res2 = hud_instance._parse_poly("z")
+	var res2 = FormulaParser.parse_poly("z")
 	assert_eq(res2[0], Vector2(0, 0))
 	assert_eq(res2[1], Vector2(1, 0))
 
-	var res3 = hud_instance._parse_poly("2z")
+	var res3 = FormulaParser.parse_poly("2z")
 	assert_eq(res3[0], Vector2(0, 0))
 	assert_eq(res3[1], Vector2(2, 0))
 
-	var res4 = hud_instance._parse_poly("z^2 + 2z + 1")
+	var res4 = FormulaParser.parse_poly("z^2 + 2z + 1")
 	assert_eq(res4[0], Vector2(1, 0))
 	assert_eq(res4[1], Vector2(2, 0))
 	assert_eq(res4[2], Vector2(1, 0))
 
-	var res5 = hud_instance._parse_poly("(1+i)z^2 - iz + 2-i")
+	var res5 = FormulaParser.parse_poly("(1+i)z^2 - iz + 2-i")
 	assert_eq(res5[0], Vector2(2, -1))
 
-	var res7 = hud_instance._parse_poly("(1+i)z^2 - iz + 2-i")
+	var res7 = FormulaParser.parse_poly("(1+i)z^2 - iz + 2-i")
 	assert_eq(res7[0], Vector2(2, -1))
 	assert_eq(res7[1], Vector2(0, -1))
 	assert_eq(res7[2], Vector2(1, 1))
 	assert_eq(res5[1], Vector2(0, -1))
 	assert_eq(res5[2], Vector2(1, 1))
 
-	var res6 = hud_instance._parse_poly("z^3 - z^3")
+	var res6 = FormulaParser.parse_poly("z^3 - z^3")
 	assert_eq(res6[3], Vector2(0, 0))
 
 func test_format_time():
