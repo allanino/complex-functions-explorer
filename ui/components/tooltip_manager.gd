@@ -38,6 +38,7 @@ const DESCRIPTIONS = {
 	"Riemann–von Mangoldt": "Show the estimated number of zeta zeros N(t) based on the Riemann–von Mangoldt formula.",
 	"Monitor FPS": "Show real-time performance metrics (FPS) on the MainUI.",
 	"Monitor Chunks": "Show real-time chunks statistics on the MainUI.",
+	"Menu Scale": "Adjust the size of this menu panel. Changes are applied after the slider is released.",
 	"HUD Scale": "Adjust the size of the HUD elements.",
 	"Master Volume": "Control the global volume level of all sound sources.",
 	"Background Music": "Adjust the volume of the ambient mathematical soundscape.",
