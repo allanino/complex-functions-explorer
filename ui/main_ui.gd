@@ -31,7 +31,7 @@ var portal_flash: ColorRect
 @onready var height_a_input = %MenuOverlay/%HeightAContainer.get_line_edit()
 @onready var height_eps_container = %MenuOverlay/%HeightEpsContainer
 @onready var height_eps_input = %MenuOverlay/%HeightEpsContainer.get_line_edit()
-@onready var projected_theta_slider = %MenuOverlay/%ProjectedThetaSlider
+@onready var height_theta_slider = %MenuOverlay/%HeightThetaSlider
 @onready var iter_slider = %MenuOverlay/%IterSlider
 @onready var rational_container = %MenuOverlay/%RationalContainer
 @onready var rational_input = %MenuOverlay/%RationalContainer.get_line_edit()
@@ -261,8 +261,8 @@ func _init_slider_bindings():
 			"format": func(v): return str(int(round(v))),
 			"immediate": true
 		},
-		projected_theta_slider: {
-			"config_key": "projected_theta",
+		height_theta_slider: {
+			"config_key": "height_theta",
 			"to_config": func(v): return v,
 			"from_config": func(c): return c,
 			"format": func(v): return "%.2f rad" % v,
@@ -448,7 +448,7 @@ func _ready():
 	_last_zeros_visible = Config.show_hud_zeros
 
 	iter_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Iterations"))
-	projected_theta_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Projection Angle θ"))
+	height_theta_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Parameter θ"))
 	morph_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Terrain Morph"))
 	multivalued_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Branches (n)"))
 	day_duration_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Day Duration"))
@@ -674,7 +674,7 @@ func _on_height_selected(index):
 	var is_log = (index == 1)
 	height_a_container.visible = is_log
 	height_eps_container.visible = is_log
-	projected_theta_slider.visible = (index == 4)
+	height_theta_slider.visible = (index == 4)
 
 func _on_freeze_time_toggled(pressed: bool):
 	Config.freeze_time = pressed

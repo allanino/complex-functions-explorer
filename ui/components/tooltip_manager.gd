@@ -5,7 +5,7 @@ const DESCRIPTIONS = {
 	"Height Map": "Choose how the function's magnitude is mapped to terrain height.",
 	"Parameter a": "Scaling factor for logarithmic height mapping.",
 	"Parameter ε": "Small offset in logarithmic mapping to prevent log(0) at zeros.",
-	"Parameter θ": "Angle in radians used to project the complex function onto the terrain. If 0 it is equal Re(f) and if π/2 it is equal Im(f) ",
+	"Parameter θ": "Angle in radians used to project the complex function onto the terrain. If 0 it is equal Re(f) and if π/2 it is equal Im(f).",
 	"Iterations": "Number of terms used in the summation for Zeta and Eta functions, or steps for Mandelbrot recursion.",
 	"Expression": "Enter a rational function expression with complex coefficients using 'z' as variable and 'i' as imaginary unit (e.g., z^2 - i).",
 	"Real (x)": "Manually set the real part of the player's position in the complex plane.  Shortcut: CTRL + R to reset to (0, 0)",

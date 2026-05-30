@@ -340,7 +340,7 @@ static func get_height_from_field(f: Vector2) -> float:
 	elif Config.height_type == 1: h = Config.height_a * log(Config.height_epsilon + mag)
 	elif Config.height_type == 2: h = f.y
 	elif Config.height_type == 3: h = f.x
-	elif Config.height_type == 4: h = f.x * cos(Config.projected_theta) + f.y * sin(Config.projected_theta)
+	elif Config.height_type == 4: h = f.x * cos(Config.height_theta) + f.y * sin(Config.height_theta)
 
 	h = clamp(h, -1e5, 1e5)
 

@@ -349,8 +349,8 @@ func test_get_height_from_field():
 	var res2 = ComplexFieldScript.get_height_from_field(Vector2(NAN, 0))
 	assert_almost_eq(res2, 0.0, 0.0001)
 
-	# Test 2: height_type = 0 (Logarithmic), morph_value = 1.0
-	Config.height_type = 0
+	# Test 2: height_type = 1 (Logarithmic), morph_value = 1.0
+	Config.height_type = 1
 	Config.height_a = 3.0
 	Config.height_epsilon = 1.0
 	Config.morph_value = 1.0
@@ -361,8 +361,8 @@ func test_get_height_from_field():
 	var res3 = ComplexFieldScript.get_height_from_field(f3)
 	assert_almost_eq(res3, expected_log, 0.0001)
 
-	# Test 3: height_type = 1 (Linear), morph_value = 1.0
-	Config.height_type = 1
+	# Test 3: height_type = 0 (Linear), morph_value = 1.0
+	Config.height_type = 0
 	var expected_linear = 5.0
 	var res4 = ComplexFieldScript.get_height_from_field(f3)
 	assert_almost_eq(res4, expected_linear, 0.0001)
@@ -387,7 +387,7 @@ func test_get_height_from_field():
 	assert_almost_eq(ComplexFieldScript.get_height_from_field(f4), -2.0, 0.0001)
 
 	# Test 6: Morph and zoom scaling
-	Config.height_type = 1
+	Config.height_type = 0
 	Config.morph_value = 0.5
 	Config.effective_zoom = 2.0
 	# s = 0.5 - 0.5 * cos(PI * 0.5) = 0.5 - 0.5 * 0 = 0.5
@@ -411,15 +411,15 @@ func test_get_height_from_field():
 	assert_almost_eq(res_clamped_pos, 100000.0, 0.0001)
 
 	# Test 8: Projected Complex Component (height_type = 4)
-	var orig_theta = Config.projected_theta
+	var orig_theta = Config.height_theta
 	Config.height_type = 4
 	Config.morph_value = 1.0
 	Config.effective_zoom = 1.0
-	Config.projected_theta = PI / 4.0
+	Config.height_theta = PI / 4.0
 	# f = (3, 4) -> 3 * cos(PI/4) + 4 * sin(PI/4) = 7 * sqrt(2)/2 = 4.949747
 	var res_projected = ComplexFieldScript.get_height_from_field(f3)
 	assert_almost_eq(res_projected, 7.0 * sqrt(2.0) / 2.0, 0.0001)
-	Config.projected_theta = orig_theta
+	Config.height_theta = orig_theta
 
 	Config.height_type = orig_height_type
 	Config.height_a = orig_height_a
@@ -437,7 +437,7 @@ func test_get_height():
 	Config.set("function_type", Config.ComplexFunc.ZETA_REFLECTION)
 	Config.iterations = 2000
 	Config.effective_zoom = 1.0
-	Config.height_type = 1 # linear height
+	Config.height_type = 0 # linear height
 	Config.morph_value = 1.0 # blend = 1.0
 
 	# Test performance protection early exit

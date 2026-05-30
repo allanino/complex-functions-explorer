@@ -33,7 +33,7 @@ uniform float portal_height = 50.0;
 uniform float portal_width = 100.0;
 uniform float portal_min_height = -50.0;
 uniform float specular_intensity : hint_range(0.0, 1.0) = 0.1;
-uniform float projected_theta = 0.0;
+uniform float height_theta = 0.0;
 
 uniform float self_illumination = 0.0;
 uniform float fog_density = 0.0;
@@ -262,7 +262,7 @@ void vertex() {
             } else if (height_type == 3) {
                 h = field_val.x;
             } else if (height_type == 4) {
-                h = field_val.x * cos(projected_theta) + field_val.y * sin(projected_theta);
+                h = field_val.x * cos(height_theta) + field_val.y * sin(height_theta);
             }
 
             bool h_clamped = false;
@@ -330,8 +330,8 @@ void vertex() {
                     dh_dx = du_dx;
                     dh_dz = du_dz;
                 } else if (height_type == 4) {
-                    dh_dx = du_dx * cos(projected_theta) + dv_dx * sin(projected_theta);
-                    dh_dz = du_dz * cos(projected_theta) + dv_dz * sin(projected_theta);
+                    dh_dx = du_dx * cos(height_theta) + dv_dx * sin(height_theta);
+                    dh_dz = du_dz * cos(height_theta) + dv_dz * sin(height_theta);
                 }
             }
 

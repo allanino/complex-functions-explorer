@@ -199,7 +199,7 @@ func _update_terrain_material_uniforms():
 	terrain_material.set_shader_parameter("height_type", Config.height_type)
 	terrain_material.set_shader_parameter("height_a", Config.height_a)
 	terrain_material.set_shader_parameter("height_epsilon", Config.height_epsilon)
-	terrain_material.set_shader_parameter("projected_theta", Config.projected_theta)
+	terrain_material.set_shader_parameter("height_theta", Config.height_theta)
 	terrain_material.set_shader_parameter("zoom_factor", Config.effective_zoom)
 	terrain_material.set_shader_parameter("rational_num_coeffs", Config.rational_num_coeffs)
 	terrain_material.set_shader_parameter("rational_den_coeffs", Config.rational_den_coeffs)
