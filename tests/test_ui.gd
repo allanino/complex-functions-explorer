@@ -254,3 +254,60 @@ func test_menu_scale():
 	assert_not_null(title_label)
 	var base_font_size = title_label.get_meta("base_font_size")
 	assert_eq(title_label.get_theme_font_size("font_size"), int(round(base_font_size * target_menu_scale)))
+
+func test_detached_slider_play_loop():
+	var source_slider = HSlider.new()
+	source_slider.min_value = 0.0
+	source_slider.max_value = 10.0
+	source_slider.value = 0.0
+	source_slider.step = 0.1
+	add_child_autoqfree(source_slider)
+
+	var source_label = Label.new()
+	source_label.text = "0.0"
+	add_child_autoqfree(source_label)
+
+	var dc = hud_instance.detach_controller
+	dc.detach_slider_control(source_slider, source_label, "Test Slider")
+
+	assert_false(dc.is_playing)
+	assert_eq(dc.play_button.text, "▶")
+
+	# Press play
+	dc.play_button.pressed.emit()
+	assert_true(dc.is_playing)
+	assert_eq(dc.play_button.text, "■")
+	assert_eq(dc.play_direction, 1.0)
+
+	# Simulate process for 1 second.
+	# speed = range / 5.0 = 10.0 / 5.0 = 2.0 units per second.
+	# value starts at 0.0. After 1 second, it should be 2.0.
+	dc._process(1.0)
+	assert_almost_eq(dc.detach_slider.value, 2.0, 0.001)
+	assert_almost_eq(source_slider.value, 2.0, 0.001)
+
+	# Simulating enough seconds to go past max_value (e.g. 4 more seconds -> 10.0 total, clamped and reversed).
+	dc._process(4.0)
+	assert_eq(dc.detach_slider.value, 10.0)
+	assert_eq(dc.play_direction, -1.0)
+
+	# Moving backwards. 1 second of -1.0 * 2.0 speed = -2.0.
+	dc._process(1.0)
+	assert_almost_eq(dc.detach_slider.value, 8.0, 0.001)
+
+	# Move all the way back to min
+	dc._process(4.0)
+	assert_eq(dc.detach_slider.value, 0.0)
+	assert_eq(dc.play_direction, 1.0)
+
+	# Press play to stop
+	dc.play_button.pressed.emit()
+	assert_false(dc.is_playing)
+	assert_eq(dc.play_button.text, "▶")
+
+	# If playing is true and we exit detach, it should stop
+	dc.play_button.pressed.emit()
+	assert_true(dc.is_playing)
+	dc._on_exit_detach_pressed()
+	assert_false(dc.is_playing)
+	assert_eq(dc.play_button.text, "▶")
