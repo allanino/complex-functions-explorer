@@ -37,6 +37,12 @@ void fragment() {
         hue = fract(hue + 0.5);
     }
     vec3 base = hsv2rgb(vec3(hue, saturation, brightness));
+
+    if (color_scheme == 2) {
+        float v = 0.5 + 0.5 * cos(phase);
+        base = vec3(v) * brightness;
+    }
+
     vec3 color = base * (albedo + emission ) * 2.0;
 
     // Draw unit circle

@@ -334,6 +334,11 @@ void fragment() {
         }
         vec3 base = hsv2rgb(vec3(hue, saturation, brightness));
 
+        if (color_scheme == 2) {
+            float v = 0.5 + 0.5 * cos(phase);
+            base = vec3(v) * brightness;
+        }
+
         if (show_curves) {
             // 1. Get raw pixel derivatives (true density indicators)
             float raw_w_re = fwidth(f.x);
