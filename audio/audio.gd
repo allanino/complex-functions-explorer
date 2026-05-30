@@ -168,7 +168,9 @@ func _process(delta):
 		if player: pos = player.global_position
 
 	# Sample complex field
-	var f = ComplexField.get_field(pos.x, pos.z)
+	var f = Vector2.ZERO
+	if player:
+		f = player.current_f
 
 	# --- NAN SAFETY ---
 	if not is_finite(f.x) or not is_finite(f.y):

@@ -39,6 +39,8 @@ func _ready():
 	last_z = Vector2(global_position.x * 0.1 * scale_factor, -global_position.z * 0.1 * scale_factor)
 	
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	current_f = ComplexField.get_field(global_position.x, global_position.z)
+	current_mag = current_f.length()
 
 	# demo_actions()
 
@@ -114,6 +116,8 @@ func _unhandled_input(event):
 			height_offset = 0.0
 			is_resetting_height = false
 			Config.current_branch = 0
+			current_f = ComplexField.get_field(global_position.x, global_position.z)
+			current_mag = current_f.length()
 			
 			# Immediately update the shader's branch uniform
 			if world_manager and world_manager.has_method("_update_terrain_material_uniforms"):
@@ -422,8 +426,6 @@ func _process(_delta):
 
 	# Always snap player height to the terrain in _process to prevent camera judder/shaking,
 	# especially when crossing branches.
-	current_f = ComplexField.get_field(global_position.x, global_position.z)
-	current_mag = current_f.length()
 	var terrain_h = get_terrain_height(global_position.x, global_position.z, current_f)
 
 	var is_field_valid = is_finite(current_f.x) and is_finite(current_f.y) and is_finite(current_mag)
