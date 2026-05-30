@@ -210,3 +210,34 @@ func test_preset_ui_asterisk_workflow():
 	# Cleanup
 	Config.delete_preset("MyNewUI_Preset")
 	Config.apply_preset(orig_preset)
+
+func test_menu_scale():
+	# 1. Verify initial scale matches config
+	assert_eq(hud_instance.main_menu_panel.scale, Vector2(Config.menu_scale, Config.menu_scale))
+	
+	# 2. Simulate dragging:
+	var hslider = hud_instance.menu_scale_slider.get_slider()
+	assert_not_null(hslider)
+	
+	# Start drag
+	hslider.drag_started.emit()
+	assert_true(hud_instance._menu_scale_dragging)
+	
+	# Set value to something new
+	var old_scale = Config.menu_scale
+	hud_instance.menu_scale_slider.value = 120.0
+	hud_instance._on_menu_scale_value_changed(120.0)
+	
+	# Config value should be updated, but panel scale should not change while dragging
+	assert_eq(Config.menu_scale, 120.0 / 150.0)
+	assert_eq(hud_instance.main_menu_panel.scale, Vector2(old_scale, old_scale))
+	
+	# End drag
+	hslider.drag_ended.emit(true)
+	assert_false(hud_instance._menu_scale_dragging)
+	assert_eq(hud_instance.main_menu_panel.scale, Vector2(120.0 / 150.0, 120.0 / 150.0))
+	
+	# 3. Simulate opening the menu (toggle_menu)
+	Config.menu_scale = 100.0 / 150.0
+	hud_instance.toggle_menu(false) # Should open and apply scale
+	assert_eq(hud_instance.main_menu_panel.scale, Vector2(100.0 / 150.0, 100.0 / 150.0))

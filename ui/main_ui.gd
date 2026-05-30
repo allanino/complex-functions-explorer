@@ -201,6 +201,7 @@ var _initial_shadows_enabled: bool
 var _speed_modified: bool = false
 var _camera_height_modified: bool = false
 var _syncing_ui: bool = false
+var _menu_scale_dragging: bool = false
 
 
 func _ready():
@@ -392,6 +393,23 @@ func _ready():
 			slider_btn.size_flags_horizontal = 0
 			slider_btn.custom_minimum_size = Vector2(580, 20)
 
+	# Apply initial menu scale on startup
+	if main_menu_panel:
+		main_menu_panel.scale = Vector2(Config.menu_scale, Config.menu_scale)
+
+	# Connect dragging events for the menu scale slider to prevent real-time feedback loop during drag
+	if menu_scale_slider:
+		var menu_scale_hslider = menu_scale_slider.get_slider()
+		if menu_scale_hslider:
+			menu_scale_hslider.drag_started.connect(func():
+				_menu_scale_dragging = true
+			)
+			menu_scale_hslider.drag_ended.connect(func(value_changed: bool):
+				_menu_scale_dragging = false
+				if main_menu_panel:
+					main_menu_panel.scale = Vector2(Config.menu_scale, Config.menu_scale)
+			)
+
 func _disable_sliders_focus(node: Node):
 	if node is HSlider:
 		node.focus_mode = Control.FOCUS_NONE
@@ -477,6 +495,9 @@ func toggle_menu(applied: bool = false):
 	if detach_overlay.visible:
 		_on_exit_detach_pressed()
 		return
+
+	if main_menu_panel:
+		main_menu_panel.scale = Vector2(Config.menu_scale, Config.menu_scale)
 
 	menu_overlay.visible = !menu_overlay.visible
 	if menu_overlay.visible:
@@ -610,6 +631,9 @@ func toggle_menu(applied: bool = false):
 			Config.set(key, backup[key])
 		_syncing_ui = false
 		_update_preset_button_text()
+		if main_menu_panel:
+			main_menu_panel.scale = Vector2(Config.menu_scale, Config.menu_scale)
+
 
 	else:
 		tooltip.visible = false
@@ -753,7 +777,7 @@ func _on_fog_density_value_changed(value):
 func _on_menu_scale_value_changed(value):
 	menu_scale_slider.value_text = str(int(value)) + "%"
 	Config.menu_scale = value / 150.0
-	if main_menu_panel:
+	if main_menu_panel and not _syncing_ui and not _menu_scale_dragging:
 		main_menu_panel.scale = Vector2(Config.menu_scale, Config.menu_scale)
 
 func _on_hud_scale_value_changed(value):
@@ -1178,6 +1202,9 @@ func _sync_ui_to_config():
 	hud_scale_slider.value = Config.hud_scale * 100.0
 	_on_hud_scale_value_changed(hud_scale_slider.value)
 	
+	menu_scale_slider.value = Config.menu_scale * 150.0
+	_on_menu_scale_value_changed(menu_scale_slider.value)
+	
 	if player:
 		auto_walk_checkbox.button_pressed = (player.auto_walk_state != 0)
 	
@@ -1224,6 +1251,8 @@ func _sync_ui_to_config():
 	for key in Config.PRESET_KEYS:
 		Config.set(key, backup[key])
 	_syncing_ui = false
+	if main_menu_panel:
+		main_menu_panel.scale = Vector2(Config.menu_scale, Config.menu_scale)
 
 
 func _on_preset_applied():
