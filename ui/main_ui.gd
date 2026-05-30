@@ -108,6 +108,11 @@ var active_detached_value: Label = null
 @onready var apply_button = %MenuOverlay/%ApplyButton
 @onready var close_button = %MenuOverlay/%CloseButton
 @onready var quit_button = %MenuOverlay/%QuitButton
+@onready var quit_dialog = %MenuOverlay/%QuitDialog
+@onready var quit_message_label = %MenuOverlay/%QuitMessageLabel
+@onready var quit_cancel = %MenuOverlay/%QuitCancel
+@onready var quit_save_and_quit = %MenuOverlay/%QuitSaveAndQuit
+@onready var quit_confirm = %MenuOverlay/%QuitConfirm
 @onready var perf_label = %MenuOverlay/%PerfProtectionLabel
 
 @onready var tooltip = %MenuOverlay/%Tooltip
@@ -259,6 +264,9 @@ func _ready():
 	apply_button.pressed.connect(_on_set_pos_pressed)
 	close_button.pressed.connect(toggle_menu)
 	quit_button.pressed.connect(_on_quit_pressed)
+	quit_cancel.pressed.connect(_on_quit_cancel_pressed)
+	quit_save_and_quit.pressed.connect(_on_quit_save_and_quit_pressed)
+	quit_confirm.pressed.connect(_on_quit_confirm_pressed)
 	func_button.item_selected.connect(_on_func_item_selected)
 	height_button.item_selected.connect(_on_height_selected)
 
@@ -1347,6 +1355,26 @@ func _update_preset_button_text():
 
 
 func _on_quit_pressed():
+	if Config.is_preset_dirty():
+		var preset_name = Config.current_preset.trim_suffix("*")
+		quit_message_label.text = 'Preset "' + preset_name + '" contains unsaved changes.'
+		quit_save_and_quit.visible = true
+		quit_confirm.text = "Quit Without Saving"
+	else:
+		quit_message_label.text = "Any unapplied view changes will be lost."
+		quit_save_and_quit.visible = false
+		quit_confirm.text = "Quit"
+
+	quit_dialog.visible = true
+
+func _on_quit_cancel_pressed():
+	quit_dialog.visible = false
+
+func _on_quit_save_and_quit_pressed():
+	Config.update_preset(Config.current_preset.trim_suffix("*"))
+	get_tree().quit()
+
+func _on_quit_confirm_pressed():
 	get_tree().quit()
 
 func _process(_delta):

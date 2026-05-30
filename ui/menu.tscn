@@ -254,16 +254,13 @@ size_flags_horizontal = 3
 [node name="QuitButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TitleHBox" unique_id=781431675]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.7, 0.5, 0.5, 1.0)
-theme_override_colors/font_pressed_color = Color(1, 0.4, 0.4, 1)
-theme_override_colors/font_hover_color = Color(0.9, 0.6, 0.6, 0.9)
+theme_override_colors/font_color = Color(0.7, 0.35, 0.35, 1.0)
+theme_override_colors/font_pressed_color = Color(1, 0.2, 0.2, 1)
+theme_override_colors/font_hover_color = Color(0.9, 0.4, 0.4, 0.9)
+theme_override_colors/font_focus_color = Color(0.9, 0.4, 0.4, 0.9)
 theme_override_font_sizes/font_size = 18
-theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
-theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
-theme_override_styles/focus = SubResource("StyleBoxFlat_btn_normal")
-theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_disabled")
 text = "Quit"
+flat = true
 
 [node name="TitleHSeparator" type="HSeparator" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox"]
 layout_mode = 2
@@ -1171,3 +1168,79 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/focus = SubResource("StyleBoxFlat_btn_normal")
 theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_disabled")
 text = "Delete"
+
+[node name="QuitDialog" type="PanelContainer" parent="CenterContainer" unique_id=99993000]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme_override_styles/panel = SubResource("StyleBoxFlat_dialog_opaque")
+
+[node name="MarginContainer" type="MarginContainer" parent="CenterContainer/QuitDialog" unique_id=99993001]
+layout_mode = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer/QuitDialog/MarginContainer" unique_id=99993002]
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="Label" type="Label" parent="CenterContainer/QuitDialog/MarginContainer/VBoxContainer" unique_id=99993003]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "Exit Explorer?"
+horizontal_alignment = 1
+
+[node name="QuitMessageLabel" type="Label" parent="CenterContainer/QuitDialog/MarginContainer/VBoxContainer" unique_id=99993004]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Any unapplied view changes will be lost."
+horizontal_alignment = 1
+
+[node name="HBoxContainer" type="HBoxContainer" parent="CenterContainer/QuitDialog/MarginContainer/VBoxContainer" unique_id=99993005]
+layout_mode = 2
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="QuitCancel" type="Button" parent="CenterContainer/QuitDialog/MarginContainer/VBoxContainer/HBoxContainer" unique_id=99993006]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/focus = SubResource("StyleBoxFlat_btn_normal")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_disabled")
+text = "Cancel"
+
+[node name="QuitSaveAndQuit" type="Button" parent="CenterContainer/QuitDialog/MarginContainer/VBoxContainer/HBoxContainer" unique_id=99993007]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/focus = SubResource("StyleBoxFlat_btn_normal")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_disabled")
+text = "Save & Quit"
+
+[node name="QuitConfirm" type="Button" parent="CenterContainer/QuitDialog/MarginContainer/VBoxContainer/HBoxContainer" unique_id=99993008]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/focus = SubResource("StyleBoxFlat_btn_normal")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_disabled")
+text = "Quit"
