@@ -23,30 +23,31 @@ const FormulaParser = preload("res://scripts/formula_parser.gd")
 var portal_flash: ColorRect
 
 # New UI Node Paths
+@onready var main_menu_panel = %MenuOverlay.get_node("CenterContainer/MainMenuPanel")
 @onready var tab_container = %MenuOverlay/%TabContainer
-@onready var func_button = %MenuOverlay/%FuncButton
-@onready var height_button = %MenuOverlay/%HeightButton
+@onready var func_button = %MenuOverlay/%FuncContainer.get_option_button()
+@onready var height_button = %MenuOverlay/%HeightContainer.get_option_button()
 @onready var height_a_container = %MenuOverlay/%HeightAContainer
-@onready var height_a_input = %MenuOverlay/%HeightAInput
+@onready var height_a_input = %MenuOverlay/%HeightAContainer.get_line_edit()
 @onready var height_eps_container = %MenuOverlay/%HeightEpsContainer
-@onready var height_eps_input = %MenuOverlay/%HeightEpsInput
+@onready var height_eps_input = %MenuOverlay/%HeightEpsContainer.get_line_edit()
 @onready var iter_slider = %MenuOverlay/%IterSlider
 @onready var rational_container = %MenuOverlay/%RationalContainer
-@onready var rational_input = %MenuOverlay/%RationalInput
+@onready var rational_input = %MenuOverlay/%RationalContainer.get_line_edit()
 @onready var multivalued_slider = %MenuOverlay/%MultivaluedSlider
 
-@onready var re_input = %MenuOverlay/%ReInput
-@onready var im_input = %MenuOverlay/%ImInput
-@onready var speed_input = %MenuOverlay/%SpeedInput
+@onready var re_input = %MenuOverlay/%ReContainer.get_line_edit()
+@onready var im_input = %MenuOverlay/%ImContainer.get_line_edit()
+@onready var speed_input = %MenuOverlay/%SpeedContainer.get_line_edit()
 @onready var zoom_slider = %MenuOverlay/%ZoomContainer
 @onready var zero_speed_slider = %MenuOverlay/%ZeroSpeedContainer
 @onready var zero_proximity_nav_slider = %MenuOverlay/%ZeroProximityNavContainer
-@onready var camera_height_input = %MenuOverlay/%CameraHeightInput
+@onready var camera_height_input = %MenuOverlay/%CameraHeightContainer.get_line_edit()
 @onready var auto_walk_checkbox = %MenuOverlay/%AutoWalkCheckbox
 
-@onready var terrain_detail_button = %MenuOverlay/%TerrainDetailButton
-@onready var aa_button = %MenuOverlay/%AAButton
-@onready var color_scheme_button = %MenuOverlay/%ColorSchemeButton
+@onready var terrain_detail_button = %MenuOverlay/%TerrainDetailContainer.get_option_button()
+@onready var aa_button = %MenuOverlay/%AAContainer.get_option_button()
+@onready var color_scheme_button = %MenuOverlay/%ColorSchemeContainer.get_option_button()
 @onready var view_distance_slider = %MenuOverlay/%ViewDistanceContainer
 @onready var curves_checkbox = %MenuOverlay/%CurvesCheckbox
 @onready var critical_checkbox = %MenuOverlay/%CriticalCheckbox
@@ -67,6 +68,7 @@ var portal_flash: ColorRect
 @onready var rvm_checkbox = %MenuOverlay/%RvmCheckbox
 @onready var hud_monitor_fps_checkbox = %MenuOverlay/%HudMonitorFpsCheckbox
 @onready var hud_monitor_chunks_checkbox = %MenuOverlay/%HudMonitorChunksCheckbox
+@onready var menu_scale_slider = %MenuOverlay/%MenuScaleContainer
 @onready var hud_scale_slider = %MenuOverlay/%HudScaleContainer
 
 @onready var master_volume_slider = %MenuOverlay/%MasterVolumeContainer
@@ -98,7 +100,6 @@ var portal_flash: ColorRect
 
 @onready var tooltip_manager = %TooltipManager
 
-
 var current_scale = 2.0
 var _last_zeros_visible: bool = false
 var _initial_master_volume: float
@@ -113,6 +114,7 @@ var _initial_terrain_emission: float
 var _initial_terrain_metallic: float
 var _initial_terrain_roughness: float
 var _initial_terrain_surface_texture: float
+var _initial_menu_scale: float
 var _initial_hud_scale: float
 var _initial_sky_luminosity: float
 var _initial_sun_luminosity: float
@@ -331,6 +333,7 @@ func _on_generic_slider_changed(slider: Control, value: float):
 	if binding.has("on_changed"):
 		binding["on_changed"].call(value)
 
+var _menu_scale_dragging: bool = false
 
 func _ready():
 	# Create the portal crossing flash overlay dynamically
@@ -341,6 +344,8 @@ func _ready():
 	portal_flash.color = Color(0.0, 0.8, 1.0, 0.0) # Transparent cyan
 	portal_flash.visible = false
 	$Control.add_child(portal_flash)
+
+
 
 	hud_columns.offset_top = -1000
 	speed_input.text_changed.connect(func(_t): _speed_modified = true)
@@ -463,6 +468,15 @@ func _ready():
 			if checkbox_btn:
 				checkbox_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
+	if menu_scale_slider:
+		var label = menu_scale_slider.get_node("Label")
+		var slider_btn = menu_scale_slider.get_node("Slider")
+		if label:
+			label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		if slider_btn:
+			slider_btn.size_flags_horizontal = 0
+			slider_btn.custom_minimum_size = Vector2(580, 20)
+
 	if hud_scale_slider:
 		var label = hud_scale_slider.get_node("Label")
 		var slider_btn = hud_scale_slider.get_node("Slider")
@@ -471,6 +485,23 @@ func _ready():
 		if slider_btn:
 			slider_btn.size_flags_horizontal = 0
 			slider_btn.custom_minimum_size = Vector2(580, 20)
+
+	# Apply initial menu scale on startup
+	if main_menu_panel:
+		main_menu_panel.scale = Vector2.ONE
+		_rescale_menu(Config.menu_scale)
+
+	# Connect dragging events for the menu scale slider to prevent real-time feedback loop during drag
+	if menu_scale_slider:
+		var menu_scale_hslider = menu_scale_slider.get_slider()
+		if menu_scale_hslider:
+			menu_scale_hslider.drag_started.connect(func():
+				_menu_scale_dragging = true
+			)
+			menu_scale_hslider.drag_ended.connect(func(value_changed: bool):
+				_menu_scale_dragging = false
+				_rescale_menu(Config.menu_scale)
+			)
 
 func _disable_sliders_focus(node: Node):
 	if node is HSlider:
@@ -499,6 +530,9 @@ func toggle_menu(applied: bool = false):
 		detach_controller._on_exit_detach_pressed()
 		return
 
+	if main_menu_panel:
+		main_menu_panel.scale = Vector2.ONE
+		_rescale_menu(Config.menu_scale)
 
 	menu_overlay.visible = !menu_overlay.visible
 	if menu_overlay.visible:
@@ -515,6 +549,7 @@ func toggle_menu(applied: bool = false):
 		_initial_terrain_metallic = Config.terrain_metallic
 		_initial_terrain_roughness = Config.terrain_roughness
 		_initial_terrain_surface_texture = Config.terrain_surface_texture
+		_initial_menu_scale = Config.menu_scale
 		_initial_hud_scale = Config.hud_scale
 		_initial_sky_luminosity = Config.sky_luminosity
 		_initial_sun_luminosity = Config.sun_luminosity
@@ -560,6 +595,9 @@ func toggle_menu(applied: bool = false):
 			Config.terrain_metallic = _initial_terrain_metallic
 			Config.terrain_roughness = _initial_terrain_roughness
 			Config.terrain_surface_texture = _initial_terrain_surface_texture
+			if Config.menu_scale != _initial_menu_scale:
+				Config.menu_scale = _initial_menu_scale
+				_on_menu_scale_value_changed(Config.menu_scale * 150.0)
 			if Config.hud_scale != _initial_hud_scale:
 				Config.hud_scale = _initial_hud_scale
 				_update_hud_layout()
@@ -621,7 +659,6 @@ func _format_time(total_seconds: float) -> String:
 	var minutes = (int(total_seconds) % 3600) / 60.0
 	var seconds = int(total_seconds) % 60
 	return "%02d:%02d:%02d" % [hours, minutes, seconds]
-
 
 func _get_rvm_n(T: float) -> float:
 	if T <= 0.1:
@@ -804,9 +841,9 @@ func _sync_ui_to_config():
 	for key in Config.PRESET_KEYS:
 		Config.set(key, backup[key])
 	_syncing_ui = false
-
-
-
+	if main_menu_panel:
+		main_menu_panel.scale = Vector2.ONE
+		_rescale_menu(Config.menu_scale)
 
 func _on_quit_pressed():
 	if Config.is_preset_dirty():
@@ -1167,3 +1204,51 @@ func play_portal_flash():
 	# Fade out over 0.25 seconds
 	tween.tween_property(portal_flash, "color:a", 0.0, 0.25).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	tween.tween_callback(func(): portal_flash.visible = false)
+
+func _rescale_menu(_scale: float):
+	if main_menu_panel == null: return
+
+	# We use meta to check if we already applied this scale to avoid redundant traversals
+	if main_menu_panel.has_meta("last_applied_menu_scale") and main_menu_panel.get_meta("last_applied_menu_scale") == _scale:
+		return
+	main_menu_panel.set_meta("last_applied_menu_scale", _scale)
+
+	var stack = [main_menu_panel]
+	while stack.size() > 0:
+		var node = stack.pop_back()
+		
+		# 1. Scale Fonts
+		if node is Label or node is Button or node is LineEdit or node is TabContainer:
+			var font_size_key = "font_size"
+			if node is RichTextLabel:
+				font_size_key = "normal_font_size"
+			
+			if not node.has_meta("base_font_size"):
+				node.set_meta("base_font_size", node.get_theme_font_size(font_size_key))
+			node.add_theme_font_size_override(font_size_key, int(round(node.get_meta("base_font_size") * _scale)))
+		
+		# 2. Scale Layout Parameters on Controls
+		if node is Control:
+			# Scale custom minimum sizes proportionally
+			if node.custom_minimum_size != Vector2.ZERO:
+				if not node.has_meta("base_min_size"):
+					node.set_meta("base_min_size", node.custom_minimum_size)
+				node.custom_minimum_size = node.get_meta("base_min_size") * _scale
+			
+			# Scale margins for MarginContainers
+			if node is MarginContainer:
+				for margin in ["margin_left", "margin_top", "margin_right", "margin_bottom"]:
+					if not node.has_meta("base_" + margin):
+						node.set_meta("base_" + margin, node.get_theme_constant(margin))
+					node.add_theme_constant_override(margin, int(round(node.get_meta("base_" + margin) * _scale)))
+			
+			# Scale separations for BoxContainers
+			elif node is BoxContainer:
+				if not node.has_meta("base_separation"):
+					node.set_meta("base_separation", node.get_theme_constant("separation"))
+				node.add_theme_constant_override("separation", int(round(node.get_meta("base_separation") * _scale)))
+		
+		# Traverse children
+		for child in node.get_children():
+			if child is Control:
+				stack.push_back(child)

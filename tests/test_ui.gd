@@ -212,3 +212,45 @@ func test_preset_ui_asterisk_workflow():
 	# Cleanup
 	Config.delete_preset("MyNewUI_Preset")
 	Config.apply_preset(orig_preset)
+
+func test_menu_scale():
+	# 1. Verify parent hierarchy remains CenterContainer
+	var parent = hud_instance.main_menu_panel.get_parent()
+	assert_not_null(parent)
+	assert_true(parent is CenterContainer)
+
+	# 2. Verify main_menu_panel.scale is always Vector2.ONE
+	assert_eq(hud_instance.main_menu_panel.scale, Vector2.ONE)
+	
+	# 3. Verify initial scaled layout size matches config menu_scale
+	var expected_scale = Config.menu_scale
+	var base_panel_min_size = Vector2(500, 960)
+	assert_eq(hud_instance.main_menu_panel.custom_minimum_size, base_panel_min_size * expected_scale)
+	
+	# 4. Simulate dragging:
+	var hslider = hud_instance.menu_scale_slider.get_slider()
+	assert_not_null(hslider)
+	
+	# Start drag
+	hslider.drag_started.emit()
+	assert_true(hud_instance._menu_scale_dragging)
+	
+	# Set value to something new
+	var target_scale = 120.0 / 150.0
+	hud_instance.menu_scale_slider.value = 120.0
+	hud_instance._on_menu_scale_value_changed(120.0)
+	
+	# Config value should be updated, but layout size should not change while dragging
+	assert_eq(Config.menu_scale, target_scale)
+	assert_eq(hud_instance.main_menu_panel.custom_minimum_size, base_panel_min_size * expected_scale)
+	
+	# End drag
+	hslider.drag_ended.emit(true)
+	assert_false(hud_instance._menu_scale_dragging)
+	assert_eq(hud_instance.main_menu_panel.custom_minimum_size, base_panel_min_size * target_scale)
+	
+	# Verify font size override was applied
+	var title_label = hud_instance.main_menu_panel.get_node("MarginContainer/ContentVBox/TitleHBox/TitleLabel")
+	assert_not_null(title_label)
+	var base_font_size = title_label.get_meta("base_font_size")
+	assert_eq(title_label.get_theme_font_size("font_size"), int(round(base_font_size * target_scale)))
