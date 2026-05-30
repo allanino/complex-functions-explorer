@@ -1,6 +1,6 @@
 shader_type spatial;
 
-#include "res://terrain/field.gdshaderinc"
+#include "res://math/complex_field.gdshaderinc"
 
 varying vec3 world_pos;
 varying vec3 v_normal;
@@ -215,7 +215,7 @@ void vertex() {
             }
         }
 
-        FieldData final_fd = get_field_with_derivatives(world_v_pos.x, world_v_pos.z, branch_offset);
+        ComplexFieldData final_fd = get_field_with_derivatives(world_v_pos.x, world_v_pos.z, branch_offset);
 
         bool is_invalid = any(isnan(final_fd.value)) || any(isinf(final_fd.value)) ||
                 any(isnan(final_fd.dx)) || any(isinf(final_fd.dx)) ||

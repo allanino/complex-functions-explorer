@@ -14,6 +14,7 @@ var space_held_time = 0.0
 var is_resetting_height = false
 var last_t = 0.0
 var last_z: Vector2 = Vector2(0.0, 0.0)
+var last_valid_terrain_height: float = 0.0
 
 # Zero detection history
 var mag_history: Array[float] = [1.0, 1.0, 1.0]
@@ -38,6 +39,8 @@ func _ready():
 	last_z = Vector2(global_position.x * 0.1 * scale_factor, -global_position.z * 0.1 * scale_factor)
 	
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	current_f = ComplexField.get_field(global_position.x, global_position.z)
+	current_mag = current_f.length()
 
 	# demo_actions()
 
@@ -53,11 +56,15 @@ func _unhandled_input(event):
 				Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 		return
 
-	var is_detached = false
-	if main_ui and main_ui.detach_overlay and main_ui.detach_overlay.visible:
-		is_detached = true
+	var is_detached_interactive = false
+	var is_menu_open = false
+	if main_ui:
+		if main_ui.detach_controller and main_ui.detach_controller.visible and main_ui.detach_controller.interaction_active:
+			is_detached_interactive = true
+		if main_ui.menu_overlay and main_ui.menu_overlay.visible:
+			is_menu_open = true
 
-	if is_detached:
+	if is_detached_interactive or is_menu_open:
 		return
 
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
@@ -109,6 +116,8 @@ func _unhandled_input(event):
 			height_offset = 0.0
 			is_resetting_height = false
 			Config.current_branch = 0
+			current_f = ComplexField.get_field(global_position.x, global_position.z)
+			current_mag = current_f.length()
 			
 			# Immediately update the shader's branch uniform
 			if world_manager and world_manager.has_method("_update_terrain_material_uniforms"):
@@ -116,15 +125,19 @@ func _unhandled_input(event):
 
 func get_terrain_height(x: float, z: float, field_val: Vector2 = Vector2.INF) -> float:
 	if field_val != Vector2.INF:
-		return Field.get_height_from_field(field_val)
-	return Field.get_height(x, z)
+		return ComplexField.get_height_from_field(field_val)
+	return ComplexField.get_height(x, z)
 
 func _physics_process(delta):
-	var is_detached = false
-	if main_ui and main_ui.detach_overlay and main_ui.detach_overlay.visible:
-		is_detached = true
+	var is_detached_interactive = false
+	var is_menu_open = false
+	if main_ui:
+		if main_ui.detach_controller and main_ui.detach_controller.visible and main_ui.detach_controller.interaction_active:
+			is_detached_interactive = true
+		if main_ui.menu_overlay and main_ui.menu_overlay.visible:
+			is_menu_open = true
 
-	if is_detached:
+	if is_detached_interactive or is_menu_open:
 		velocity = Vector3.ZERO
 		return
 
@@ -148,7 +161,7 @@ func _physics_process(delta):
 	var current_x = global_position.x * 0.1 * scale_factor
 	var current_y = - global_position.z * 0.1 * scale_factor
 	current_z = Vector2(current_x, current_y)
-	current_f = Field.get_field(global_position.x, global_position.z)
+	current_f = ComplexField.get_field(global_position.x, global_position.z)
 	current_mag = current_f.length()
 
 	if auto_walk_state != AutoWalkState.NONE:
@@ -221,6 +234,12 @@ func _physics_process(delta):
 
 	# Calculate current terrain height using cached field
 	var terrain_h = get_terrain_height(global_position.x, global_position.z, current_f)
+
+	var is_field_valid = is_finite(current_f.x) and is_finite(current_f.y) and is_finite(current_mag)
+	if not is_field_valid or not is_finite(terrain_h):
+		terrain_h = last_valid_terrain_height
+	else:
+		last_valid_terrain_height = terrain_h
 
 	# Snap player to terrain height + offset
 	global_position.y = terrain_h + Config.camera_height + height_offset
@@ -407,7 +426,14 @@ func _process(_delta):
 
 	# Always snap player height to the terrain in _process to prevent camera judder/shaking,
 	# especially when crossing branches.
-	current_f = Field.get_field(global_position.x, global_position.z)
-	current_mag = current_f.length()
 	var terrain_h = get_terrain_height(global_position.x, global_position.z, current_f)
+
+	# if the function result is not finite, the player will fall into the void
+	# use the last valid height to keep the player in the air
+	var is_field_valid = is_finite(current_f.x) and is_finite(current_f.y) and is_finite(current_mag)
+	if not is_field_valid or not is_finite(terrain_h):
+		terrain_h = last_valid_terrain_height
+	else:
+		last_valid_terrain_height = terrain_h
+
 	global_position.y = terrain_h + Config.camera_height + height_offset

@@ -1,5 +1,7 @@
 extends GutTest
 
+const FormulaParser = preload("res://math/formula_parser.gd")
+
 var hud_scene = preload("res://ui/main_ui.tscn")
 var hud_instance
 var _original_save_path: String
@@ -51,50 +53,50 @@ func before_each():
 	add_child_autoqfree(hud_instance)
 
 func test_parse_complex():
-	assert_eq(hud_instance._parse_complex(""), Vector2.ZERO)
-	assert_eq(hud_instance._parse_complex("1"), Vector2(1, 0))
-	assert_eq(hud_instance._parse_complex("-1"), Vector2(-1, 0))
-	assert_eq(hud_instance._parse_complex("i"), Vector2(0, 1))
-	assert_eq(hud_instance._parse_complex("-i"), Vector2(0, -1))
-	assert_eq(hud_instance._parse_complex("1+i"), Vector2(1, 1))
-	assert_eq(hud_instance._parse_complex("1-i"), Vector2(1, -1))
-	assert_eq(hud_instance._parse_complex("-1+i"), Vector2(-1, 1))
-	assert_eq(hud_instance._parse_complex("-1-i"), Vector2(-1, -1))
-	assert_eq(hud_instance._parse_complex("2+3i"), Vector2(2, 3))
-	assert_eq(hud_instance._parse_complex("2 - 3i"), Vector2(2, -3)) # handles spaces
-	assert_eq(hud_instance._parse_complex("4.5+1.2i"), Vector2(4.5, 1.2))
-	assert_eq(hud_instance._parse_complex("2i"), Vector2(0, 2))
-	assert_eq(hud_instance._parse_complex("-2i"), Vector2(0, -2))
+	assert_eq(FormulaParser.parse_complex(""), Vector2.ZERO)
+	assert_eq(FormulaParser.parse_complex("1"), Vector2(1, 0))
+	assert_eq(FormulaParser.parse_complex("-1"), Vector2(-1, 0))
+	assert_eq(FormulaParser.parse_complex("i"), Vector2(0, 1))
+	assert_eq(FormulaParser.parse_complex("-i"), Vector2(0, -1))
+	assert_eq(FormulaParser.parse_complex("1+i"), Vector2(1, 1))
+	assert_eq(FormulaParser.parse_complex("1-i"), Vector2(1, -1))
+	assert_eq(FormulaParser.parse_complex("-1+i"), Vector2(-1, 1))
+	assert_eq(FormulaParser.parse_complex("-1-i"), Vector2(-1, -1))
+	assert_eq(FormulaParser.parse_complex("2+3i"), Vector2(2, 3))
+	assert_eq(FormulaParser.parse_complex("2 - 3i"), Vector2(2, -3)) # handles spaces
+	assert_eq(FormulaParser.parse_complex("4.5+1.2i"), Vector2(4.5, 1.2))
+	assert_eq(FormulaParser.parse_complex("2i"), Vector2(0, 2))
+	assert_eq(FormulaParser.parse_complex("-2i"), Vector2(0, -2))
 
 func test_parse_poly():
-	var res1 = hud_instance._parse_poly("1")
+	var res1 = FormulaParser.parse_poly("1")
 	assert_eq(res1[0], Vector2(1, 0))
 	assert_eq(res1[1], Vector2(0, 0))
 
-	var res2 = hud_instance._parse_poly("z")
+	var res2 = FormulaParser.parse_poly("z")
 	assert_eq(res2[0], Vector2(0, 0))
 	assert_eq(res2[1], Vector2(1, 0))
 
-	var res3 = hud_instance._parse_poly("2z")
+	var res3 = FormulaParser.parse_poly("2z")
 	assert_eq(res3[0], Vector2(0, 0))
 	assert_eq(res3[1], Vector2(2, 0))
 
-	var res4 = hud_instance._parse_poly("z^2 + 2z + 1")
+	var res4 = FormulaParser.parse_poly("z^2 + 2z + 1")
 	assert_eq(res4[0], Vector2(1, 0))
 	assert_eq(res4[1], Vector2(2, 0))
 	assert_eq(res4[2], Vector2(1, 0))
 
-	var res5 = hud_instance._parse_poly("(1+i)z^2 - iz + 2-i")
+	var res5 = FormulaParser.parse_poly("(1+i)z^2 - iz + 2-i")
 	assert_eq(res5[0], Vector2(2, -1))
 
-	var res7 = hud_instance._parse_poly("(1+i)z^2 - iz + 2-i")
+	var res7 = FormulaParser.parse_poly("(1+i)z^2 - iz + 2-i")
 	assert_eq(res7[0], Vector2(2, -1))
 	assert_eq(res7[1], Vector2(0, -1))
 	assert_eq(res7[2], Vector2(1, 1))
 	assert_eq(res5[1], Vector2(0, -1))
 	assert_eq(res5[2], Vector2(1, 1))
 
-	var res6 = hud_instance._parse_poly("z^3 - z^3")
+	var res6 = FormulaParser.parse_poly("z^3 - z^3")
 	assert_eq(res6[3], Vector2(0, 0))
 
 func test_format_time():
@@ -145,65 +147,65 @@ func test_preset_ui_asterisk_workflow():
 	
 	# Ensure starting clean
 	Config.apply_preset("Default")
-	hud_instance._update_preset_button_text()
+	hud_instance.preset_controller.update_preset_button_text()
 	assert_false(Config.is_preset_dirty())
-	assert_false(hud_instance.preset_button.get_item_text(hud_instance.preset_button.selected).ends_with("*"))
+	assert_false(hud_instance.preset_controller.preset_button.get_item_text(hud_instance.preset_controller.preset_button.selected).ends_with("*"))
 
 	# Change a slider value to make it dirty
 	hud_instance.brightness_slider.value = 100.0
-	hud_instance._on_terrain_brightness_value_changed(100.0)
-	hud_instance._update_preset_button_text()
+	hud_instance._on_generic_slider_changed(hud_instance.brightness_slider, 100.0)
+	hud_instance.preset_controller.update_preset_button_text()
 	
 	assert_true(Config.is_preset_dirty())
-	assert_true(hud_instance.preset_button.get_item_text(hud_instance.preset_button.selected).ends_with("*"))
+	assert_true(hud_instance.preset_controller.preset_button.get_item_text(hud_instance.preset_controller.preset_button.selected).ends_with("*"))
 
 	# Create a new preset
-	hud_instance.new_preset_input.text = "MyNewUI_Preset"
-	hud_instance._on_new_preset_save_pressed()
+	hud_instance.preset_controller.new_preset_input.text = "MyNewUI_Preset"
+	hud_instance.preset_controller._on_new_preset_save_pressed()
 	
 	# Verify that the new preset is active and has no asterisk
 	assert_eq(Config.current_preset, "MyNewUI_Preset")
 	assert_false(Config.is_preset_dirty())
-	var selected_text = hud_instance.preset_button.get_item_text(hud_instance.preset_button.selected)
+	var selected_text = hud_instance.preset_controller.preset_button.get_item_text(hud_instance.preset_controller.preset_button.selected)
 	assert_eq(selected_text, "MyNewUI_Preset")
 	assert_false(selected_text.ends_with("*"))
 	
 	# Modify setting to 50.0
 	hud_instance.brightness_slider.value = 50.0
-	hud_instance._on_terrain_brightness_value_changed(50.0)
-	hud_instance._update_preset_button_text()
+	hud_instance._on_generic_slider_changed(hud_instance.brightness_slider, 50.0)
+	hud_instance.preset_controller.update_preset_button_text()
 	
 	assert_true(Config.is_preset_dirty())
-	assert_true(hud_instance.preset_button.get_item_text(hud_instance.preset_button.selected).ends_with("*"))
+	assert_true(hud_instance.preset_controller.preset_button.get_item_text(hud_instance.preset_controller.preset_button.selected).ends_with("*"))
 	
 	# Switch to Mysterious, making MyNewUI_Preset a dirty cached preset
 	Config.apply_preset("Mysterious")
-	hud_instance._update_preset_button_text()
+	hud_instance.preset_controller.update_preset_button_text()
 	
 	# Verify that Mysterious is selected and not dirty
 	assert_eq(Config.current_preset, "Mysterious")
 	assert_false(Config.is_preset_dirty())
-	assert_false(hud_instance.preset_button.get_item_text(hud_instance.preset_button.selected).ends_with("*"))
+	assert_false(hud_instance.preset_controller.preset_button.get_item_text(hud_instance.preset_controller.preset_button.selected).ends_with("*"))
 	
 	# Verify that MyNewUI_Preset in the dropdown list STILL has the asterisk
 	var idx = -1
-	for i in range(hud_instance.preset_button.item_count):
-		if hud_instance.preset_button.get_item_text(i).trim_suffix("*") == "MyNewUI_Preset":
+	for i in range(hud_instance.preset_controller.preset_button.item_count):
+		if hud_instance.preset_controller.preset_button.get_item_text(i).trim_suffix("*") == "MyNewUI_Preset":
 			idx = i
 			break
 	assert_ne(idx, -1)
-	assert_true(hud_instance.preset_button.get_item_text(idx).ends_with("*"))
+	assert_true(hud_instance.preset_controller.preset_button.get_item_text(idx).ends_with("*"))
 	
 	# Switch back to MyNewUI_Preset
 	Config.apply_preset("MyNewUI_Preset")
-	hud_instance._update_preset_button_text()
+	hud_instance.preset_controller.update_preset_button_text()
 	assert_true(Config.is_preset_dirty())
-	assert_true(hud_instance.preset_button.get_item_text(hud_instance.preset_button.selected).ends_with("*"))
+	assert_true(hud_instance.preset_controller.preset_button.get_item_text(hud_instance.preset_controller.preset_button.selected).ends_with("*"))
 	
 	# Save it
-	hud_instance._on_preset_update_pressed()
+	hud_instance.preset_controller._on_preset_update_pressed()
 	assert_false(Config.is_preset_dirty())
-	var saved_text = hud_instance.preset_button.get_item_text(hud_instance.preset_button.selected)
+	var saved_text = hud_instance.preset_controller.preset_button.get_item_text(hud_instance.preset_controller.preset_button.selected)
 	assert_eq(saved_text, "MyNewUI_Preset")
 	assert_false(saved_text.ends_with("*"))
 
@@ -220,8 +222,8 @@ func test_menu_scale():
 	# 2. Verify main_menu_panel.scale is always Vector2.ONE
 	assert_eq(hud_instance.main_menu_panel.scale, Vector2.ONE)
 	
-	# 3. Verify initial scaled layout size matches config menu_scale
-	var expected_scale = Config.menu_scale
+	# 3. Verify initial scaled layout size matches config menu_scale * base scale factor (130/150)
+	var expected_scale = Config.menu_scale * (130.0 / 150.0)
 	var base_panel_min_size = Vector2(500, 960)
 	assert_eq(hud_instance.main_menu_panel.custom_minimum_size, base_panel_min_size * expected_scale)
 	
@@ -234,10 +236,9 @@ func test_menu_scale():
 	assert_true(hud_instance._menu_scale_dragging)
 	
 	# Set value to something new
-	var target_scale = 120.0 / 150.0
+	var target_scale = 120.0 / 100.0
 	hud_instance.menu_scale_slider.value = 120.0
-	hud_instance._on_menu_scale_value_changed(120.0)
-	
+
 	# Config value should be updated, but layout size should not change while dragging
 	assert_eq(Config.menu_scale, target_scale)
 	assert_eq(hud_instance.main_menu_panel.custom_minimum_size, base_panel_min_size * expected_scale)
@@ -245,10 +246,11 @@ func test_menu_scale():
 	# End drag
 	hslider.drag_ended.emit(true)
 	assert_false(hud_instance._menu_scale_dragging)
-	assert_eq(hud_instance.main_menu_panel.custom_minimum_size, base_panel_min_size * target_scale)
+	var target_menu_scale = target_scale * (130.0 / 150.0)
+	assert_eq(hud_instance.main_menu_panel.custom_minimum_size, base_panel_min_size * target_menu_scale)
 	
 	# Verify font size override was applied
 	var title_label = hud_instance.main_menu_panel.get_node("MarginContainer/ContentVBox/TitleHBox/TitleLabel")
 	assert_not_null(title_label)
 	var base_font_size = title_label.get_meta("base_font_size")
-	assert_eq(title_label.get_theme_font_size("font_size"), int(round(base_font_size * target_scale)))
+	assert_eq(title_label.get_theme_font_size("font_size"), int(round(base_font_size * target_menu_scale)))
