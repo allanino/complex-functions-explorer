@@ -40,3 +40,40 @@ func test_player_movement_disabled_when_menu_open():
 	
 	# Velocity should be reset to zero and physics process should return early
 	assert_eq(player.velocity, Vector3.ZERO)
+
+func test_detached_slider_esc_toggle():
+	var player = player_scene.instantiate()
+	var main_ui = ui_scene.instantiate()
+	add_child_autoqfree(player)
+	add_child_autoqfree(main_ui)
+	
+	player.main_ui = main_ui
+	
+	# Enter detached mode
+	main_ui.detach_controller.visible = true
+	main_ui.detach_controller.interaction_active = true
+	
+	# 1. While in Interaction mode, movement should be disabled
+	player.velocity = Vector3(10, 0, 10)
+	player._physics_process(0.016)
+	assert_eq(player.velocity, Vector3.ZERO)
+	
+	# 2. Toggle to Movement mode via ESC simulation
+	main_ui.toggle_menu()
+	
+	assert_false(main_ui.detach_controller.interaction_active)
+	
+	# 3. While in Movement mode, movement should be enabled (velocity not forced to zero)
+	player.velocity = Vector3(10, 0, 10)
+	player._physics_process(0.016)
+	# The velocity will change due to physics (or friction/damping, but won't be zeroed instantly to Vector3.ZERO)
+	assert_ne(player.velocity, Vector3.ZERO)
+	
+	# 4. Toggle back to Interaction mode
+	main_ui.toggle_menu()
+	assert_true(main_ui.detach_controller.interaction_active)
+	
+	# 5. Verify movement is disabled again
+	player.velocity = Vector3(10, 0, 10)
+	player._physics_process(0.016)
+	assert_eq(player.velocity, Vector3.ZERO)

@@ -536,7 +536,11 @@ func apply_aa():
 
 func toggle_menu(applied: bool = false):
 	if detach_controller.visible:
-		detach_controller._on_exit_detach_pressed()
+		detach_controller.interaction_active = !detach_controller.interaction_active
+		if detach_controller.interaction_active:
+			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+		else:
+			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 		return
 
 	if main_menu_panel:

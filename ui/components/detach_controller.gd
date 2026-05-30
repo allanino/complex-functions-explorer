@@ -9,6 +9,7 @@ extends PanelContainer
 
 var active_detached_slider: HSlider = null
 var active_detached_value: Label = null
+var interaction_active: bool = true
 
 func _ready():
 	detach_slider.value_changed.connect(_on_detach_slider_changed)
@@ -35,6 +36,7 @@ func detach_slider_control(source_slider: HSlider, source_value_label: Label, ti
 
 	active_detached_slider = source_slider
 	active_detached_value = source_value_label
+	interaction_active = true
 
 	main_ui.toggle_menu(true)
 	visible = true
@@ -54,5 +56,6 @@ func _on_exit_detach_pressed():
 		main_ui.morph_slider.value = 1.0
 
 	visible = false
+	interaction_active = true
 	main_ui.menu_overlay.visible = true
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
