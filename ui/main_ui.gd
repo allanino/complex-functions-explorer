@@ -964,6 +964,10 @@ func _process(_delta):
 	material.set_shader_parameter("color_scheme", Config.color_scheme)
 	material.set_shader_parameter("scale", current_scale)
 	material.set_shader_parameter("performance_protection_active", Config.performance_protection_active)
+	material.set_shader_parameter("brightness", Config.terrain_brightness)
+	material.set_shader_parameter("saturation", Config.terrain_saturation)
+	material.set_shader_parameter("albedo", Config.terrain_albedo)
+	material.set_shader_parameter("emission", Config.terrain_emission)
 
 	var scale_factor = 1.0 / Config.effective_zoom
 	domain_label.text = "Re = %.3f\nIm = %.3f" % [x * 0.1 * scale_factor, -z * 0.1 * scale_factor]

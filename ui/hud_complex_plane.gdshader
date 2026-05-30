@@ -3,6 +3,10 @@ shader_type canvas_item;
 uniform vec2 current_f; // Current value of f(x,z)
 uniform int color_scheme = 0;
 uniform float scale = 2.0; // Current scale of the complex plane view
+uniform float brightness : hint_range(0.0, 2.0) = 1.0;
+uniform float saturation : hint_range(0.3, 1.0) = 0.85;
+uniform float albedo : hint_range(0.0, 1.0) = 0.15;
+uniform float emission : hint_range(0.0, 1.0) = 0.1;
 
 // Helper function to convert HSV to RGB
 vec3 hsv2rgb(vec3 c) {
@@ -32,7 +36,8 @@ void fragment() {
     if (color_scheme == 1) {
         hue = fract(hue + 0.5);
     }
-    vec3 color = hsv2rgb(vec3(hue, 0.6, 0.7)); // Brighter background
+    vec3 base = hsv2rgb(vec3(hue, saturation, brightness));
+    vec3 color = base * (albedo + emission ) * 2.0;
 
     // Draw unit circle
     float unit_circle = abs(mag - 1.0);
