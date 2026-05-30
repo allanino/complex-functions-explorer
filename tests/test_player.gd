@@ -22,3 +22,21 @@ func test_player_loads_and_physics_process_runs():
 	player._unhandled_input(event)
 	
 	assert_not_null(player)
+
+func test_player_movement_disabled_when_menu_open():
+	var player = player_scene.instantiate()
+	var main_ui = ui_scene.instantiate()
+	add_child_autoqfree(player)
+	add_child_autoqfree(main_ui)
+	
+	player.main_ui = main_ui
+	
+	# Open menu
+	main_ui.menu_overlay.visible = true
+	player.velocity = Vector3(10, 0, 10)
+	
+	# Run physics process
+	player._physics_process(0.016)
+	
+	# Velocity should be reset to zero and physics process should return early
+	assert_eq(player.velocity, Vector3.ZERO)

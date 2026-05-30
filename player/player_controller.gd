@@ -54,10 +54,14 @@ func _unhandled_input(event):
 		return
 
 	var is_detached = false
-	if main_ui and main_ui.detach_controller and main_ui.detach_controller.visible:
-		is_detached = true
+	var is_menu_open = false
+	if main_ui:
+		if main_ui.detach_controller and main_ui.detach_controller.visible:
+			is_detached = true
+		if main_ui.menu_overlay and main_ui.menu_overlay.visible:
+			is_menu_open = true
 
-	if is_detached:
+	if is_detached or is_menu_open:
 		return
 
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
@@ -121,10 +125,14 @@ func get_terrain_height(x: float, z: float, field_val: Vector2 = Vector2.INF) ->
 
 func _physics_process(delta):
 	var is_detached = false
-	if main_ui and main_ui.detach_controller and main_ui.detach_controller.visible:
-		is_detached = true
+	var is_menu_open = false
+	if main_ui:
+		if main_ui.detach_controller and main_ui.detach_controller.visible:
+			is_detached = true
+		if main_ui.menu_overlay and main_ui.menu_overlay.visible:
+			is_menu_open = true
 
-	if is_detached:
+	if is_detached or is_menu_open:
 		velocity = Vector3.ZERO
 		return
 
