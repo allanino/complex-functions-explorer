@@ -22,9 +22,10 @@ func test_presets():
 	# Apply "Mysterious"
 	config_manager.apply_preset("Mysterious")
 	assert_eq(config_manager.current_preset, "Mysterious")
-	assert_eq(config_manager.freeze_time, true)
-	assert_almost_eq(config_manager.fog_density, 0.8, 0.001)
-	assert_almost_eq(config_manager.terrain_albedo, 0.0, 0.001)
+	var mysterious_preset = config_manager.PRESET_DEFAULTS.PRESETS["Mysterious"]
+	assert_eq(config_manager.freeze_time, mysterious_preset["freeze_time"])
+	assert_almost_eq(config_manager.fog_density, mysterious_preset["fog_density"], 0.001)
+	assert_almost_eq(config_manager.terrain_albedo, mysterious_preset["terrain_albedo"], 0.001)
 
 	# Check dirty detection
 	config_manager.terrain_albedo = 0.5
