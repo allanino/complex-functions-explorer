@@ -314,8 +314,10 @@ func _ready():
 		func_button.add_item(f_data.get("name", "Unknown"), f_key)
 
 	height_button.clear()
-	height_button.add_item("Logarithmic (a*log(ε + abs))")
-	height_button.add_item("Absolute")
+	height_button.add_item("Log(Abs(f)) (a*log(ε + abs))")
+	height_button.add_item("Abs(f)")
+	height_button.add_item("Im(f)")
+	height_button.add_item("Re(f)")
 
 	terrain_detail_button.clear()
 	terrain_detail_button.add_item("High")

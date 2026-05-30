@@ -367,7 +367,26 @@ func test_get_height_from_field():
 	var res4 = FieldScript.get_height_from_field(f3)
 	assert_almost_eq(res4, expected_linear, 0.0001)
 
-	# Test 4: Morph and zoom scaling
+	# Test 4: height_type = 2 (Im(f)), morph_value = 1.0
+	Config.height_type = 2
+	var expected_im = 4.0
+	var res_im = FieldScript.get_height_from_field(f3)
+	assert_almost_eq(res_im, expected_im, 0.0001)
+
+	# Test 5: height_type = 3 (Re(f)), morph_value = 1.0
+	Config.height_type = 3
+	var expected_re = 3.0
+	var res_re = FieldScript.get_height_from_field(f3)
+	assert_almost_eq(res_re, expected_re, 0.0001)
+
+	# Test negative values for Im(f) and Re(f)
+	var f4 = Vector2(-2, -7)
+	Config.height_type = 2
+	assert_almost_eq(FieldScript.get_height_from_field(f4), -7.0, 0.0001)
+	Config.height_type = 3
+	assert_almost_eq(FieldScript.get_height_from_field(f4), -2.0, 0.0001)
+
+	# Test 6: Morph and zoom scaling
 	Config.morph_value = 0.5
 	Config.effective_zoom = 2.0
 	# s = 0.5 - 0.5 * cos(PI * 0.5) = 0.5 - 0.5 * 0 = 0.5

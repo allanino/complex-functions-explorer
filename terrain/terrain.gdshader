@@ -253,8 +253,12 @@ void vertex() {
 
             if (height_type == 0) {
                 h = height_a * log(height_epsilon + mag);
-            } else {
+            } else if (height_type == 1) {
                 h = mag;
+            } else if (height_type == 2) {
+                h = field_val.y;
+            } else if (height_type == 3) {
+                h = field_val.x;
             }
 
             h *= blend * zoom_factor;
@@ -296,8 +300,22 @@ void vertex() {
             float dmag_dx = (u * du_dx + v * dv_dx) / safe_mag;
             float dmag_dz = (u * du_dz + v * dv_dz) / safe_mag;
 
-            float dh_dx = (height_type == 0) ? (height_a / (height_epsilon + mag)) * dmag_dx : dmag_dx;
-            float dh_dz = (height_type == 0) ? (height_a / (height_epsilon + mag)) * dmag_dz : dmag_dz;
+            float dh_dx = 0.0;
+            float dh_dz = 0.0;
+
+            if (height_type == 0) {
+                dh_dx = (height_a / (height_epsilon + mag)) * dmag_dx;
+                dh_dz = (height_a / (height_epsilon + mag)) * dmag_dz;
+            } else if (height_type == 1) {
+                dh_dx = dmag_dx;
+                dh_dz = dmag_dz;
+            } else if (height_type == 2) {
+                dh_dx = dv_dx;
+                dh_dz = dv_dz;
+            } else if (height_type == 3) {
+                dh_dx = du_dx;
+                dh_dz = du_dz;
+            }
 
             v_normal = normalize(vec3(-dh_dx, 1.0, -dh_dz));
         }
