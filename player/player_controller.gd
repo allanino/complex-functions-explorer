@@ -14,6 +14,7 @@ var space_held_time = 0.0
 var is_resetting_height = false
 var last_t = 0.0
 var last_z: Vector2 = Vector2(0.0, 0.0)
+var last_valid_terrain_height: float = 0.0
 
 # Zero detection history
 var mag_history: Array[float] = [1.0, 1.0, 1.0]
@@ -230,6 +231,12 @@ func _physics_process(delta):
 	# Calculate current terrain height using cached field
 	var terrain_h = get_terrain_height(global_position.x, global_position.z, current_f)
 
+	var is_field_valid = is_finite(current_f.x) and is_finite(current_f.y) and is_finite(current_mag)
+	if not is_field_valid or not is_finite(terrain_h):
+		terrain_h = last_valid_terrain_height
+	else:
+		last_valid_terrain_height = terrain_h
+
 	# Snap player to terrain height + offset
 	global_position.y = terrain_h + Config.camera_height + height_offset
 
@@ -418,4 +425,11 @@ func _process(_delta):
 	current_f = ComplexField.get_field(global_position.x, global_position.z)
 	current_mag = current_f.length()
 	var terrain_h = get_terrain_height(global_position.x, global_position.z, current_f)
+
+	var is_field_valid = is_finite(current_f.x) and is_finite(current_f.y) and is_finite(current_mag)
+	if not is_field_valid or not is_finite(terrain_h):
+		terrain_h = last_valid_terrain_height
+	else:
+		last_valid_terrain_height = terrain_h
+
 	global_position.y = terrain_h + Config.camera_height + height_offset
