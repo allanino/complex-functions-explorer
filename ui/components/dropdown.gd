@@ -4,10 +4,10 @@ extends HBoxContainer
 	set(v):
 		text = v
 		if is_inside_tree():
-			\$Label.text = v
+			$Label.text = v
 
 func _ready():
-	\$Label.text = text
+	$Label.text = text
 
 func get_option_button() -> OptionButton:
-	return \$OptionButton
+	return $OptionButton

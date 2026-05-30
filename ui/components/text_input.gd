@@ -4,24 +4,24 @@ extends HBoxContainer
 	set(v):
 		text = v
 		if is_inside_tree():
-			\$Label.text = v
+			$Label.text = v
 
 @export var input_text: String = "" :
 	set(v):
 		input_text = v
 		if is_inside_tree():
-			\$LineEdit.text = v
+			$LineEdit.text = v
 
 @export var placeholder_text: String = "" :
 	set(v):
 		placeholder_text = v
 		if is_inside_tree():
-			\$LineEdit.placeholder_text = v
+			$LineEdit.placeholder_text = v
 
 func _ready():
-	\$Label.text = text
-	\$LineEdit.text = input_text
-	\$LineEdit.placeholder_text = placeholder_text
+	$Label.text = text
+	$LineEdit.text = input_text
+	$LineEdit.placeholder_text = placeholder_text
 
 func get_line_edit() -> LineEdit:
-	return \$LineEdit
+	return $LineEdit
