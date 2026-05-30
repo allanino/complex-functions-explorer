@@ -73,14 +73,7 @@ var portal_flash: ColorRect
 @onready var bg_music_slider = %MenuOverlay/%BgMusicContainer
 @onready var drone_slider = %MenuOverlay/%DroneContainer
 
-@onready var detach_overlay = %MenuOverlay/%DetachOverlay
-@onready var detach_slider = %MenuOverlay/%DetachSlider
-@onready var detach_label = %MenuOverlay/%Label
-@onready var detach_value = %MenuOverlay/%DetachValue
-@onready var exit_detach_button = %MenuOverlay/%ExitDetachButton
-
-var active_detached_slider: HSlider = null
-var active_detached_value: Label = null
+@onready var detach_controller = %DetachOverlay
 
 @onready var brightness_slider = %MenuOverlay/%BrightnessContainer
 @onready var saturation_slider = %MenuOverlay/%SaturationContainer
@@ -249,26 +242,25 @@ func _ready():
 	_disable_sliders_focus(self )
 	_last_zeros_visible = Config.show_hud_zeros
 
-	detach_slider.value_changed.connect(_on_detach_slider_changed)
-	exit_detach_button.pressed.connect(_on_exit_detach_pressed)
-	iter_slider.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "Iterations"))
-	morph_slider.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "Terrain Morph"))
-	multivalued_slider.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "Branches (n)"))
-	day_duration_slider.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "Day Duration"))
-	day_time_slider.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "Time of day"))
-	sunrise_slider.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "Sunrise Direction"))
-	sky_luminosity_slider.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "Sky Luminosity"))
-	sun_luminosity_slider.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "Sun Luminosity"))
-	self_illumination_slider.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "Self-Illumination"))
-	fog_density_slider.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "Fog Density"))
-	brightness_slider.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "Brightness"))
-	saturation_slider.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "Saturation"))
-	albedo_slider.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "Albedo"))
-	emission_slider.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "Emission"))
-	metallic_slider.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "Metallic"))
-	roughness_slider.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "Roughness"))
-	surface_texture_slider.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "SurfaceTexture"))
-	view_distance_slider.detach_requested.connect(func(s, v): _on_detach_pressed(s, v, "View Distance"))
+	iter_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Iterations"))
+	morph_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Terrain Morph"))
+	multivalued_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Branches (n)"))
+	day_duration_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Day Duration"))
+	day_time_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Time of day"))
+	sunrise_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Sunrise Direction"))
+	sky_luminosity_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Sky Luminosity"))
+	sun_luminosity_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Sun Luminosity"))
+	self_illumination_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Self-Illumination"))
+	fog_density_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Fog Density"))
+	brightness_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Brightness"))
+	saturation_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Saturation"))
+	albedo_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Albedo"))
+	emission_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Emission"))
+	metallic_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Metallic"))
+	roughness_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Roughness"))
+	surface_texture_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "SurfaceTexture"))
+	view_distance_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "View Distance"))
+
 
 	# Adjust HUD tab component widths to be exactly 180 wide (and labels to expand)
 	var hud_checkboxes = [
@@ -324,9 +316,10 @@ func apply_aa():
 		5: vp.screen_space_aa = Viewport.SCREEN_SPACE_AA_SMAA
 
 func toggle_menu(applied: bool = false):
-	if detach_overlay.visible:
-		_on_exit_detach_pressed()
+	if detach_controller.visible:
+		detach_controller._on_exit_detach_pressed()
 		return
+
 
 	menu_overlay.visible = !menu_overlay.visible
 	if menu_overlay.visible:
@@ -1146,48 +1139,6 @@ func _rescale_card(card: Control, _scale: float):
 				stack.push_back(child)
 
 
-func _on_detach_pressed(source_slider: HSlider, source_value_label: Label, title: String):
-	active_detached_slider = null
-
-	detach_label.text = title
-	# Using set_block_signals(true) prevents _on_detach_slider_changed from firing while we update its properties.
-	detach_slider.set_block_signals(true)
-	# Expand bounds first to avoid clamping
-	detach_slider.min_value = min(detach_slider.min_value, source_slider.min_value)
-	detach_slider.max_value = max(detach_slider.max_value, source_slider.max_value)
-	detach_slider.custom_minimum_size = Vector2(200.0, 50.0)
-
-	detach_slider.min_value = source_slider.min_value
-	detach_slider.max_value = source_slider.max_value
-	detach_slider.step = source_slider.step
-	detach_slider.value = source_slider.value
-	detach_slider.set_block_signals(false)
-
-	detach_value.text = source_value_label.text
-
-	active_detached_slider = source_slider
-	active_detached_value = source_value_label
-
-	toggle_menu(true)
-	detach_overlay.visible = true
-	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-
-func _on_detach_slider_changed(value: float):
-	if active_detached_slider:
-		# Emit value_changed to trigger the existing logic on the source slider
-		active_detached_slider.value = value
-		# active_detached_slider.value_changed.emit(value) # value setting already emits if value actually changes
-		# Update the overlay label to match what the menu label would be
-		# It's better to just copy the text from the source_value_label
-		detach_value.text = active_detached_value.text
-
-func _on_exit_detach_pressed():
-	# Avoid accidental morph blending when returning from a detached slider
-	morph_slider.value = 1.0
-
-	detach_overlay.visible = false
-	menu_overlay.visible = true
-	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
 func _on_terrain_detail_selected(index: int):
 	Config.terrain_detail = index

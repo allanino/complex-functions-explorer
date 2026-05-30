@@ -54,7 +54,7 @@ func _unhandled_input(event):
 		return
 
 	var is_detached = false
-	if main_ui and main_ui.detach_overlay and main_ui.detach_overlay.visible:
+	if main_ui and main_ui.detach_controller and main_ui.detach_controller.visible:
 		is_detached = true
 
 	if is_detached:
@@ -121,7 +121,7 @@ func get_terrain_height(x: float, z: float, field_val: Vector2 = Vector2.INF) ->
 
 func _physics_process(delta):
 	var is_detached = false
-	if main_ui and main_ui.detach_overlay and main_ui.detach_overlay.visible:
+	if main_ui and main_ui.detach_controller and main_ui.detach_controller.visible:
 		is_detached = true
 
 	if is_detached:

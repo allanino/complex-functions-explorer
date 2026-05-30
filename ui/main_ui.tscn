@@ -6,6 +6,8 @@
 [ext_resource type="PackedScene" path="res://ui/menu.tscn" id="4_menu"]
 [ext_resource type="Script" path="res://ui/components/tooltip_manager.gd" id="5_tooltip_manager"]
 [ext_resource type="Script" path="res://ui/components/preset_controller.gd" id="6_preset_controller"]
+[ext_resource type="Script" path="res://ui/components/detach_controller.gd" id="7_detach_controller"]
+
 
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_1"]
@@ -452,6 +454,8 @@ layout_mode = 2
 
 [node name="DetachOverlay" type="PanelContainer" parent="Control"]
 unique_name_in_owner = true
+script = ExtResource("7_detach_controller")
+
 visible = false
 custom_minimum_size = Vector2(400, 60)
 layout_mode = 1
