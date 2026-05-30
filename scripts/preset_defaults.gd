@@ -35,7 +35,8 @@ const PRESETS = {
 		"show_rvm": true,
 		"show_hud_monitor_fps": false,
 		"show_hud_monitor_chunks": false,
-		"hud_scale": 1.0833333333,
+		"hud_scale": 1.0,
+		"menu_scale": 1.0,
 		"master_volume": 100.0,
 		"bg_music_volume": 50.0,
 		"drone_volume": 100.0
@@ -74,7 +75,8 @@ const PRESETS = {
 		"show_rvm": true,
 		"show_hud_monitor_fps": false,
 		"show_hud_monitor_chunks": false,
-		"hud_scale": 0.8333333333,
+		"hud_scale": 1.0,
+		"menu_scale": 1.0,
 		"master_volume": 100.0,
 		"bg_music_volume": 100.0,
 		"drone_volume": 100.0
