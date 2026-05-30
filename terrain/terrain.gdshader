@@ -33,7 +33,6 @@ uniform float portal_height = 50.0;
 uniform float portal_width = 100.0;
 uniform float portal_min_height = -50.0;
 uniform float specular_intensity : hint_range(0.0, 1.0) = 0.1;
-uniform float height_theta = 0.0;
 
 uniform float self_illumination = 0.0;
 uniform float fog_density = 0.0;
@@ -250,20 +249,7 @@ void vertex() {
             // g(z, blend) = (1 - blend) * z + blend * f(z)
             field_val = mix(z_id, fz, blend);
 
-            float mag = length(fz);
-            float h = 0.0;
-
-            if (height_type == 0) {
-                h = mag;
-            } else if (height_type == 1) {
-                h = height_a * log(height_epsilon + mag);
-            } else if (height_type == 2) {
-                h = field_val.y;
-            } else if (height_type == 3) {
-                h = field_val.x;
-            } else if (height_type == 4) {
-                h = field_val.x * cos(height_theta) + field_val.y * sin(height_theta);
-            }
+            float h = get_complex_height(fz, field_val);
 
             bool h_clamped = false;
             if (h < -1e5) {
@@ -278,62 +264,9 @@ void vertex() {
 
             local_pos = vec3(snap_v.x, snap_v.y + h, snap_v.z);
 
-            float u = field_val.x;
-            float v = field_val.y;
-
-            // Derivatives of f(z)
-            vec2 df_dx = final_fd.dx; // (du/dx, dv/dx)
-            vec2 df_dy = final_fd.dy;     // (du/dy, dv/dy)
-
-            // Derivatives of identity map z = x + i y
-            vec2 dz_dx = vec2(1.0, 0.0);
-            vec2 dz_dy = vec2(0.0, 1.0);
-
-            // Chain rule for g = (1-blend) z + blend f(z)
-            vec2 dg_dx = (1.0 - blend) * dz_dx + blend * df_dx;
-            vec2 dg_dy = (1.0 - blend) * dz_dy + blend * df_dy;
-
-            // Convert from (x, y) derivatives to world (wx, wz) derivatives
-            // x = 0.1 * wx * (1/zoom)
-            // y     = -0.1 * wz * (1/zoom)
-            // Since we scale the final height h by zoom_factor, the zoom_factor cancels out
-            // of the dh_dx and dh_dz derivatives entirely.
-            float dx_d_wx = 0.1;
-            float dy_d_wx = 0.0;
-            float dx_d_wz = 0.0;
-            float dy_d_wz = -0.1;
-
-            float du_dx = dg_dx.x * dx_d_wx + dg_dy.x * dy_d_wx;
-            float dv_dx = dg_dx.y * dx_d_wx + dg_dy.y * dy_d_wx;
-
-            float du_dz = dg_dx.x * dx_d_wz + dg_dy.x * dy_d_wz;
-            float dv_dz = dg_dx.y * dx_d_wz + dg_dy.y * dy_d_wz;
-
-            float safe_mag = max(mag, 1e-12);
-            float dmag_dx = (u * du_dx + v * dv_dx) / safe_mag;
-            float dmag_dz = (u * du_dz + v * dv_dz) / safe_mag;
-
-            float dh_dx = 0.0;
-            float dh_dz = 0.0;
-
-            if (!h_clamped) {
-                if (height_type == 0) {
-                    dh_dx = dmag_dx;
-                    dh_dz = dmag_dz;
-                } else if (height_type == 1) {
-                    dh_dx = (height_a / (height_epsilon + mag)) * dmag_dx;
-                    dh_dz = (height_a / (height_epsilon + mag)) * dmag_dz;
-                } else if (height_type == 2) {
-                    dh_dx = dv_dx;
-                    dh_dz = dv_dz;
-                } else if (height_type == 3) {
-                    dh_dx = du_dx;
-                    dh_dz = du_dz;
-                } else if (height_type == 4) {
-                    dh_dx = du_dx * cos(height_theta) + dv_dx * sin(height_theta);
-                    dh_dz = du_dz * cos(height_theta) + dv_dz * sin(height_theta);
-                }
-            }
+            vec2 dh_d_world = get_complex_height_derivatives(fz, field_val, final_fd.dx, final_fd.dy, blend, h_clamped);
+            float dh_dx = dh_d_world.x;
+            float dh_dz = dh_d_world.y;
 
             v_normal = normalize(vec3(-dh_dx, 1.0, -dh_dz));
         }

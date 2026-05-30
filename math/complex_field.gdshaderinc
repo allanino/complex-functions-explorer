@@ -14,6 +14,7 @@ uniform vec2 rational_num_coeffs[10];
 uniform vec2 rational_den_coeffs[10];
 uniform int multivalued_n = 2;
 uniform int current_branch = 0;
+uniform float height_theta = 0.0;
 
 struct ComplexFieldData {
     vec2 value;    // The actual complex f(x, y)
@@ -979,4 +980,68 @@ ComplexFieldData get_field_with_derivatives(float world_x, float world_z, int br
     res.dx = vec2(0.0);
     res.dy = vec2(0.0);
     return res;
+}
+
+float get_complex_height(vec2 fz, vec2 field_val) {
+    float mag = length(fz);
+    float h = 0.0;
+    if (height_type == 0) {
+        h = mag;
+    } else if (height_type == 1) {
+        h = height_a * log(height_epsilon + mag);
+    } else if (height_type == 2) {
+        h = field_val.y;
+    } else if (height_type == 3) {
+        h = field_val.x;
+    } else if (height_type == 4) {
+        h = field_val.x * cos(height_theta) + field_val.y * sin(height_theta);
+    }
+    return h;
+}
+
+vec2 get_complex_height_derivatives(vec2 fz, vec2 field_val, vec2 df_dx, vec2 df_dy, float blend, bool h_clamped) {
+    vec2 dz_dx = vec2(1.0, 0.0);
+    vec2 dz_dy = vec2(0.0, 1.0);
+
+    vec2 dg_dx = (1.0 - blend) * dz_dx + blend * df_dx;
+    vec2 dg_dy = (1.0 - blend) * dz_dy + blend * df_dy;
+
+    float dx_d_wx = 0.1;
+    float dy_d_wx = 0.0;
+    float dx_d_wz = 0.0;
+    float dy_d_wz = -0.1;
+
+    float du_dx = dg_dx.x * dx_d_wx + dg_dy.x * dy_d_wx;
+    float dv_dx = dg_dx.y * dx_d_wx + dg_dy.y * dy_d_wx;
+
+    float du_dz = dg_dx.x * dx_d_wz + dg_dy.x * dy_d_wz;
+    float dv_dz = dg_dx.y * dx_d_wz + dg_dy.y * dy_d_wz;
+
+    float mag = length(fz);
+    float safe_mag = max(mag, 1e-12);
+    float dmag_dx = (field_val.x * du_dx + field_val.y * dv_dx) / safe_mag;
+    float dmag_dz = (field_val.x * du_dz + field_val.y * dv_dz) / safe_mag;
+
+    float dh_dx = 0.0;
+    float dh_dz = 0.0;
+
+    if (!h_clamped) {
+        if (height_type == 0) {
+            dh_dx = dmag_dx;
+            dh_dz = dmag_dz;
+        } else if (height_type == 1) {
+            dh_dx = (height_a / (height_epsilon + mag)) * dmag_dx;
+            dh_dz = (height_a / (height_epsilon + mag)) * dmag_dz;
+        } else if (height_type == 2) {
+            dh_dx = dv_dx;
+            dh_dz = dv_dz;
+        } else if (height_type == 3) {
+            dh_dx = du_dx;
+            dh_dz = du_dz;
+        } else if (height_type == 4) {
+            dh_dx = du_dx * cos(height_theta) + dv_dx * sin(height_theta);
+            dh_dz = du_dz * cos(height_theta) + dv_dz * sin(height_theta);
+        }
+    }
+    return vec2(dh_dx, dh_dz);
 }
