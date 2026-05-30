@@ -386,6 +386,17 @@ layout_mode = 2
 text = "Parameter ε"
 input_text = "1.0"
 
+[node name="HeightThetaSlider" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox" unique_id=456789012 instance=ExtResource("1")]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Parameter θ"
+min_value = 0.0
+max_value = 1.57079632679
+step = 0.01
+value = 0.0
+value_text = "0.00"
+show_detach_button = true
+
 [node name="IterSlider" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox" unique_id=1823340774 instance=ExtResource("1")]
 unique_name_in_owner = true
 layout_mode = 2

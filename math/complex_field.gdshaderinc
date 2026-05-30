@@ -3,7 +3,7 @@
 uniform int iterations = 120;
 uniform float zoom_factor = 1.0;
 uniform int function_type = 0; // Maps to Config.ComplexFunc enum in GDScript
-uniform int height_type = 0;   // 0: Log, 1: Abs
+uniform int height_type = 0;   // 0: Abs, 1: Log, 2: Im, 3: Re, 4: Projected
 uniform float height_a = 3.0;
 uniform float height_epsilon = 1.0;
 uniform bool performance_protection_active = false;

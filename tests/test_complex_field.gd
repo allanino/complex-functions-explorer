@@ -349,8 +349,8 @@ func test_get_height_from_field():
 	var res2 = ComplexFieldScript.get_height_from_field(Vector2(NAN, 0))
 	assert_almost_eq(res2, 0.0, 0.0001)
 
-	# Test 2: height_type = 0 (Logarithmic), morph_value = 1.0
-	Config.height_type = 0
+	# Test 2: height_type = 1 (Logarithmic), morph_value = 1.0
+	Config.height_type = 1
 	Config.height_a = 3.0
 	Config.height_epsilon = 1.0
 	Config.morph_value = 1.0
@@ -361,13 +361,33 @@ func test_get_height_from_field():
 	var res3 = ComplexFieldScript.get_height_from_field(f3)
 	assert_almost_eq(res3, expected_log, 0.0001)
 
-	# Test 3: height_type = 1 (Linear), morph_value = 1.0
-	Config.height_type = 1
+	# Test 3: height_type = 0 (Linear), morph_value = 1.0
+	Config.height_type = 0
 	var expected_linear = 5.0
 	var res4 = ComplexFieldScript.get_height_from_field(f3)
 	assert_almost_eq(res4, expected_linear, 0.0001)
 
-	# Test 4: Morph and zoom scaling
+	# Test 4: height_type = 2 (Im(f)), morph_value = 1.0
+	Config.height_type = 2
+	var expected_im = 4.0
+	var res_im = ComplexFieldScript.get_height_from_field(f3)
+	assert_almost_eq(res_im, expected_im, 0.0001)
+
+	# Test 5: height_type = 3 (Re(f)), morph_value = 1.0
+	Config.height_type = 3
+	var expected_re = 3.0
+	var res_re = ComplexFieldScript.get_height_from_field(f3)
+	assert_almost_eq(res_re, expected_re, 0.0001)
+
+	# Test negative values for Im(f) and Re(f)
+	var f4 = Vector2(-2, -7)
+	Config.height_type = 2
+	assert_almost_eq(ComplexFieldScript.get_height_from_field(f4), -7.0, 0.0001)
+	Config.height_type = 3
+	assert_almost_eq(ComplexFieldScript.get_height_from_field(f4), -2.0, 0.0001)
+
+	# Test 6: Morph and zoom scaling
+	Config.height_type = 0
 	Config.morph_value = 0.5
 	Config.effective_zoom = 2.0
 	# s = 0.5 - 0.5 * cos(PI * 0.5) = 0.5 - 0.5 * 0 = 0.5
@@ -377,6 +397,29 @@ func test_get_height_from_field():
 	var expected_scaled = 5.0 * expected_blend * 2.0
 	var res5 = ComplexFieldScript.get_height_from_field(f3)
 	assert_almost_eq(res5, expected_scaled, 0.0001)
+
+	# Test 7: Clamping height to [-1e5, 1e5]
+	Config.height_type = 2
+	Config.morph_value = 1.0
+	Config.effective_zoom = 1.0
+	var f_huge_neg = Vector2(0.0, -200000.0)
+	var res_clamped_neg = ComplexFieldScript.get_height_from_field(f_huge_neg)
+	assert_almost_eq(res_clamped_neg, -100000.0, 0.0001)
+
+	var f_huge_pos = Vector2(0.0, 200000.0)
+	var res_clamped_pos = ComplexFieldScript.get_height_from_field(f_huge_pos)
+	assert_almost_eq(res_clamped_pos, 100000.0, 0.0001)
+
+	# Test 8: Projected Complex Component (height_type = 4)
+	var orig_theta = Config.height_theta
+	Config.height_type = 4
+	Config.morph_value = 1.0
+	Config.effective_zoom = 1.0
+	Config.height_theta = PI / 4.0
+	# f = (3, 4) -> 3 * cos(PI/4) + 4 * sin(PI/4) = 7 * sqrt(2)/2 = 4.949747
+	var res_projected = ComplexFieldScript.get_height_from_field(f3)
+	assert_almost_eq(res_projected, 7.0 * sqrt(2.0) / 2.0, 0.0001)
+	Config.height_theta = orig_theta
 
 	Config.height_type = orig_height_type
 	Config.height_a = orig_height_a
@@ -394,7 +437,7 @@ func test_get_height():
 	Config.set("function_type", Config.ComplexFunc.ZETA_REFLECTION)
 	Config.iterations = 2000
 	Config.effective_zoom = 1.0
-	Config.height_type = 1 # linear height
+	Config.height_type = 0 # linear height
 	Config.morph_value = 1.0 # blend = 1.0
 
 	# Test performance protection early exit

@@ -119,6 +119,7 @@ func _process(_delta):
 		var zoom = Config.effective_zoom
 		var cam_h = player.global_position.y
 		var p_height = max(50.0 * zoom, cam_h + 50.0 * zoom)
+		var p_min_height = min(-50.0 * zoom, cam_h - 50.0 * zoom)
 
 		var is_asin_acos = Config.function_type == Config.ComplexFunc.MULTIVALUED_ASIN or Config.function_type == Config.ComplexFunc.MULTIVALUED_ACOS
 
@@ -131,43 +132,44 @@ func _process(_delta):
 			var offset_x = 10.0 * zoom
 			portal_frame.position = Vector3(offset_x, 0.0, 0.0)
 			portal_ground_bar.scale = Vector3(p_width, zoom, zoom)
-			portal_ground_bar.position = Vector3(p_width * 0.5, 0.0, 0.0)
-			portal_vert_bar.scale = Vector3(zoom, p_height, zoom)
-			portal_vert_bar.position = Vector3(0.0, p_height * 0.5, 0.0)
+			portal_ground_bar.position = Vector3(p_width * 0.5, p_min_height, 0.0)
+			portal_vert_bar.scale = Vector3(zoom, p_height - p_min_height, zoom)
+			portal_vert_bar.position = Vector3(0.0, (p_height + p_min_height) * 0.5, 0.0)
 			portal_top_bar.scale = Vector3(p_width, zoom, zoom)
 			portal_top_bar.position = Vector3(p_width * 0.5, p_height, 0.0)
-			portal_end_bar.scale = Vector3(zoom, p_height, zoom)
-			portal_end_bar.position = Vector3(p_width, p_height * 0.5, 0.0)
-			portal_membrane.scale = Vector3(p_width, p_height, 1.0)
-			portal_membrane.position = Vector3(p_width * 0.5, p_height * 0.5, 0.0)
+			portal_end_bar.scale = Vector3(zoom, p_height - p_min_height, zoom)
+			portal_end_bar.position = Vector3(p_width, (p_height + p_min_height) * 0.5, 0.0)
+			portal_membrane.scale = Vector3(p_width, p_height - p_min_height, 1.0)
+			portal_membrane.position = Vector3(p_width * 0.5, (p_height + p_min_height) * 0.5, 0.0)
 
 			if portal_frame_left:
 				portal_frame_left.visible = true
 				portal_frame_left.scale = Vector3.ONE
 				portal_frame_left.position = Vector3(-offset_x, 0.0, 0.0)
 				portal_ground_bar_left.scale = Vector3(p_width, zoom, zoom)
-				portal_ground_bar_left.position = Vector3(-p_width * 0.5, 0.0, 0.0)
-				portal_vert_bar_left.scale = Vector3(zoom, p_height, zoom)
-				portal_vert_bar_left.position = Vector3(0.0, p_height * 0.5, 0.0)
+				portal_ground_bar_left.position = Vector3(-p_width * 0.5, p_min_height, 0.0)
+				portal_vert_bar_left.scale = Vector3(zoom, p_height - p_min_height, zoom)
+				portal_vert_bar_left.position = Vector3(0.0, (p_height + p_min_height) * 0.5, 0.0)
 				portal_top_bar_left.scale = Vector3(p_width, zoom, zoom)
 				portal_top_bar_left.position = Vector3(-p_width * 0.5, p_height, 0.0)
-				portal_end_bar_left.scale = Vector3(zoom, p_height, zoom)
-				portal_end_bar_left.position = Vector3(-p_width, p_height * 0.5, 0.0)
-				portal_membrane_left.scale = Vector3(p_width, p_height, 1.0)
-				portal_membrane_left.position = Vector3(-p_width * 0.5, p_height * 0.5, 0.0)
+				portal_end_bar_left.scale = Vector3(zoom, p_height - p_min_height, zoom)
+				portal_end_bar_left.position = Vector3(-p_width, (p_height + p_min_height) * 0.5, 0.0)
+				portal_membrane_left.scale = Vector3(p_width, p_height - p_min_height, 1.0)
+				portal_membrane_left.position = Vector3(-p_width * 0.5, (p_height + p_min_height) * 0.5, 0.0)
 		else:
 			portal_frame.position = Vector3(0.0, 0.0, 0.0)
 			portal_ground_bar.scale = Vector3(p_width, zoom, zoom)
-			portal_ground_bar.position = Vector3(-p_width * 0.5, 0.0, 0.0)
-			portal_vert_bar.scale = Vector3(zoom, p_height, zoom)
-			portal_vert_bar.position = Vector3(0.0, p_height * 0.5, 0.0)
+			portal_ground_bar.position = Vector3(-p_width * 0.5, p_min_height, 0.0)
+			portal_vert_bar.scale = Vector3(zoom, p_height - p_min_height, zoom)
+			portal_vert_bar.position = Vector3(0.0, (p_height + p_min_height) * 0.5, 0.0)
 			portal_top_bar.scale = Vector3(p_width, zoom, zoom)
 			portal_top_bar.position = Vector3(-p_width * 0.5, p_height, 0.0)
-			portal_end_bar.scale = Vector3(zoom, p_height, zoom)
-			portal_end_bar.position = Vector3(-p_width, p_height * 0.5, 0.0)
-			portal_membrane.scale = Vector3(p_width, p_height, 1.0)
-			portal_membrane.position = Vector3(-p_width * 0.5, p_height * 0.5, 0.0)
+			portal_end_bar.scale = Vector3(zoom, p_height - p_min_height, zoom)
+			portal_end_bar.position = Vector3(-p_width, (p_height + p_min_height) * 0.5, 0.0)
+			portal_membrane.scale = Vector3(p_width, p_height - p_min_height, 1.0)
+			portal_membrane.position = Vector3(-p_width * 0.5, (p_height + p_min_height) * 0.5, 0.0)
 
 		if terrain_material:
 			terrain_material.set_shader_parameter("portal_height", p_height)
 			terrain_material.set_shader_parameter("portal_width", p_width)
+			terrain_material.set_shader_parameter("portal_min_height", p_min_height)

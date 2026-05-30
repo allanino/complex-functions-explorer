@@ -31,7 +31,9 @@ uniform float surface_texture : hint_range(0.0, 1.0) = 0.0;
 uniform float morph : hint_range(0.0, 1.0) = 1.0;
 uniform float portal_height = 50.0;
 uniform float portal_width = 100.0;
+uniform float portal_min_height = -50.0;
 uniform float specular_intensity : hint_range(0.0, 1.0) = 0.1;
+uniform float height_theta = 0.0;
 
 uniform float self_illumination = 0.0;
 uniform float fog_density = 0.0;
@@ -176,12 +178,12 @@ void vertex() {
                     float threshold = 10.0 * zoom_factor;
                     if ((px >= threshold && px < threshold + portal_width) ||
                         (px <= -threshold && px > -threshold - portal_width)) {
-                        if (py > -10.0 && py < portal_height) {
+                        if (py > portal_min_height && py < portal_height) {
                             in_portal = true;
                         }
                     }
                 } else {
-                    if (px < 0.0 && px > -portal_width && py > -10.0 && py < portal_height) {
+                    if (px < 0.0 && px > -portal_width && py > portal_min_height && py < portal_height) {
                         in_portal = true;
                     }
                 }
@@ -252,9 +254,24 @@ void vertex() {
             float h = 0.0;
 
             if (height_type == 0) {
-                h = height_a * log(height_epsilon + mag);
-            } else {
                 h = mag;
+            } else if (height_type == 1) {
+                h = height_a * log(height_epsilon + mag);
+            } else if (height_type == 2) {
+                h = field_val.y;
+            } else if (height_type == 3) {
+                h = field_val.x;
+            } else if (height_type == 4) {
+                h = field_val.x * cos(height_theta) + field_val.y * sin(height_theta);
+            }
+
+            bool h_clamped = false;
+            if (h < -1e5) {
+                h = -1e5;
+                h_clamped = true;
+            } else if (h > 1e5) {
+                h = 1e5;
+                h_clamped = true;
             }
 
             h *= blend * zoom_factor;
@@ -296,8 +313,27 @@ void vertex() {
             float dmag_dx = (u * du_dx + v * dv_dx) / safe_mag;
             float dmag_dz = (u * du_dz + v * dv_dz) / safe_mag;
 
-            float dh_dx = (height_type == 0) ? (height_a / (height_epsilon + mag)) * dmag_dx : dmag_dx;
-            float dh_dz = (height_type == 0) ? (height_a / (height_epsilon + mag)) * dmag_dz : dmag_dz;
+            float dh_dx = 0.0;
+            float dh_dz = 0.0;
+
+            if (!h_clamped) {
+                if (height_type == 0) {
+                    dh_dx = dmag_dx;
+                    dh_dz = dmag_dz;
+                } else if (height_type == 1) {
+                    dh_dx = (height_a / (height_epsilon + mag)) * dmag_dx;
+                    dh_dz = (height_a / (height_epsilon + mag)) * dmag_dz;
+                } else if (height_type == 2) {
+                    dh_dx = dv_dx;
+                    dh_dz = dv_dz;
+                } else if (height_type == 3) {
+                    dh_dx = du_dx;
+                    dh_dz = du_dz;
+                } else if (height_type == 4) {
+                    dh_dx = du_dx * cos(height_theta) + dv_dx * sin(height_theta);
+                    dh_dz = du_dz * cos(height_theta) + dv_dz * sin(height_theta);
+                }
+            }
 
             v_normal = normalize(vec3(-dh_dx, 1.0, -dh_dz));
         }
