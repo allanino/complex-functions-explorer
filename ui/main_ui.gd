@@ -203,7 +203,6 @@ var _camera_height_modified: bool = false
 var _syncing_ui: bool = false
 var _menu_scale_dragging: bool = false
 
-
 func _ready():
 	# Create the portal crossing flash overlay dynamically
 	portal_flash = ColorRect.new()
@@ -213,6 +212,26 @@ func _ready():
 	portal_flash.color = Color(0.0, 0.8, 1.0, 0.0) # Transparent cyan
 	portal_flash.visible = false
 	$Control.add_child(portal_flash)
+
+	# Restructure layout dynamically so that Godot's CenterContainer does not reset main_menu_panel's scale on layout passes.
+	if main_menu_panel and main_menu_panel.get_parent():
+		var parent_container = main_menu_panel.get_parent()
+		var wrapper = Control.new()
+		wrapper.name = "MainMenuScaleWrapper"
+		wrapper.custom_minimum_size = main_menu_panel.custom_minimum_size
+		wrapper.size_flags_horizontal = main_menu_panel.size_flags_horizontal
+		wrapper.size_flags_vertical = main_menu_panel.size_flags_vertical
+		wrapper.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		
+		var menu_index = main_menu_panel.get_index()
+		parent_container.remove_child(main_menu_panel)
+		parent_container.add_child(wrapper)
+		parent_container.move_child(wrapper, menu_index)
+		
+		wrapper.add_child(main_menu_panel)
+		main_menu_panel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		main_menu_panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
+		main_menu_panel.grow_vertical = Control.GROW_DIRECTION_BOTH
 
 	hud_columns.offset_top = -1000
 	speed_input.text_changed.connect(func(_t): _speed_modified = true)

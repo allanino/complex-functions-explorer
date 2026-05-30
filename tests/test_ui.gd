@@ -212,7 +212,14 @@ func test_preset_ui_asterisk_workflow():
 	Config.apply_preset(orig_preset)
 
 func test_menu_scale():
-	# 1. Verify initial scale matches config
+	# 1. Verify parent hierarchy is correctly restructured with the scale wrapper Control
+	var parent = hud_instance.main_menu_panel.get_parent()
+	assert_not_null(parent)
+	assert_eq(parent.name, "MainMenuScaleWrapper")
+	assert_true(parent is Control)
+	assert_true(parent.get_parent() is CenterContainer)
+
+	# 2. Verify initial scale matches config
 	assert_eq(hud_instance.main_menu_panel.scale, Vector2(Config.menu_scale, Config.menu_scale))
 	
 	# 2. Simulate dragging:
