@@ -428,6 +428,8 @@ func _process(_delta):
 	# especially when crossing branches.
 	var terrain_h = get_terrain_height(global_position.x, global_position.z, current_f)
 
+	# if the function result is not finite, the player will fall into the void
+	# use the last valid height to keep the player in the air
 	var is_field_valid = is_finite(current_f.x) and is_finite(current_f.y) and is_finite(current_mag)
 	if not is_field_valid or not is_finite(terrain_h):
 		terrain_h = last_valid_terrain_height
