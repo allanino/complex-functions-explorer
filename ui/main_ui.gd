@@ -914,7 +914,7 @@ func _process(_delta):
 	var x = player.global_position.x
 	var z = player.global_position.z
 
-	var f = Field.get_field(x, z)
+	var f = ComplexField.get_field(x, z)
 
 	# Update Zeta Zeros display
 	var f_data = Config.function

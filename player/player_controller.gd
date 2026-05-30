@@ -120,8 +120,8 @@ func _unhandled_input(event):
 
 func get_terrain_height(x: float, z: float, field_val: Vector2 = Vector2.INF) -> float:
 	if field_val != Vector2.INF:
-		return Field.get_height_from_field(field_val)
-	return Field.get_height(x, z)
+		return ComplexField.get_height_from_field(field_val)
+	return ComplexField.get_height(x, z)
 
 func _physics_process(delta):
 	var is_detached_interactive = false
@@ -156,7 +156,7 @@ func _physics_process(delta):
 	var current_x = global_position.x * 0.1 * scale_factor
 	var current_y = - global_position.z * 0.1 * scale_factor
 	current_z = Vector2(current_x, current_y)
-	current_f = Field.get_field(global_position.x, global_position.z)
+	current_f = ComplexField.get_field(global_position.x, global_position.z)
 	current_mag = current_f.length()
 
 	if auto_walk_state != AutoWalkState.NONE:
@@ -415,7 +415,7 @@ func _process(_delta):
 
 	# Always snap player height to the terrain in _process to prevent camera judder/shaking,
 	# especially when crossing branches.
-	current_f = Field.get_field(global_position.x, global_position.z)
+	current_f = ComplexField.get_field(global_position.x, global_position.z)
 	current_mag = current_f.length()
 	var terrain_h = get_terrain_height(global_position.x, global_position.z, current_f)
 	global_position.y = terrain_h + Config.camera_height + height_offset

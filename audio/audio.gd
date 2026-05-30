@@ -168,7 +168,7 @@ func _process(delta):
 		if player: pos = player.global_position
 
 	# Sample complex field
-	var f = Field.get_field(pos.x, pos.z)
+	var f = ComplexField.get_field(pos.x, pos.z)
 
 	# --- NAN SAFETY ---
 	if not is_finite(f.x) or not is_finite(f.y):

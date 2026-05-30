@@ -1,181 +1,181 @@
 extends GutTest
 
-const FieldScript = preload("res://math/field.gd")
+const ComplexFieldScript = preload("res://math/complex_field.gd")
 
 func test_complex_mul():
 	var z1 = Vector2(1, 2)
 	var z2 = Vector2(3, 4)
-	var res = FieldScript.complex_mul(z1, z2)
+	var res = ComplexFieldScript.complex_mul(z1, z2)
 	assert_eq(res, Vector2(-5, 10))
 
 func test_complex_div():
 	var z1 = Vector2(5, 7)
 	var z2 = Vector2(2, 3)
-	var res = FieldScript.complex_div(z1, z2)
+	var res = ComplexFieldScript.complex_div(z1, z2)
 	assert_almost_eq(res.x, 31.0 / 13.0, 0.0001)
 	assert_almost_eq(res.y, -1.0 / 13.0, 0.0001)
 
 func test_complex_exp():
-	var res = FieldScript.complex_exp(0, PI)
+	var res = ComplexFieldScript.complex_exp(0, PI)
 	assert_almost_eq(res.x, -1.0, 0.0001)
 	assert_almost_eq(res.y, 0.0, 0.0001)
 
-	res = FieldScript.complex_exp(0, PI / 2)
+	res = ComplexFieldScript.complex_exp(0, PI / 2)
 	assert_almost_eq(res.x, 0.0, 0.0001)
 	assert_almost_eq(res.y, 1.0, 0.0001)
 
 func test_complex_log():
-	var res = FieldScript.complex_log(1, 0)
+	var res = ComplexFieldScript.complex_log(1, 0)
 	assert_almost_eq(res.x, 0.0, 0.0001)
 	assert_almost_eq(res.y, 0.0, 0.0001)
 
-	res = FieldScript.complex_log(0, 1)
+	res = ComplexFieldScript.complex_log(0, 1)
 	assert_almost_eq(res.x, 0.0, 0.0001)
 	assert_almost_eq(res.y, PI / 2, 0.0001)
 
 func test_complex_pow():
-	var res = FieldScript.complex_pow(Vector2(2, 0), Vector2(3, 0))
+	var res = ComplexFieldScript.complex_pow(Vector2(2, 0), Vector2(3, 0))
 	assert_almost_eq(res.x, 8.0, 0.0001)
 	assert_almost_eq(res.y, 0.0, 0.0001)
 
-	res = FieldScript.complex_pow(Vector2(0, 1), Vector2(2, 0))
+	res = ComplexFieldScript.complex_pow(Vector2(0, 1), Vector2(2, 0))
 	assert_almost_eq(res.x, -1.0, 0.0001)
 	assert_almost_eq(res.y, 0.0, 0.0001)
 
-	res = FieldScript.complex_pow(Vector2(0, 0), Vector2(2, 0))
+	res = ComplexFieldScript.complex_pow(Vector2(0, 0), Vector2(2, 0))
 	assert_almost_eq(res.x, 0.0, 0.0001)
 	assert_almost_eq(res.y, 0.0, 0.0001)
 
-	res = FieldScript.complex_pow(Vector2(0, 0), Vector2(0, 0))
+	res = ComplexFieldScript.complex_pow(Vector2(0, 0), Vector2(0, 0))
 	assert_almost_eq(res.x, 1.0, 0.0001)
 	assert_almost_eq(res.y, 0.0, 0.0001)
 
 func test_complex_sin():
-	var res = FieldScript.complex_sin(0, 0)
+	var res = ComplexFieldScript.complex_sin(0, 0)
 	assert_almost_eq(res.x, 0.0, 0.0001)
 	assert_almost_eq(res.y, 0.0, 0.0001)
 
-	res = FieldScript.complex_sin(PI / 2, 0)
+	res = ComplexFieldScript.complex_sin(PI / 2, 0)
 	assert_almost_eq(res.x, 1.0, 0.0001)
 	assert_almost_eq(res.y, 0.0, 0.0001)
 
 func test_complex_cos():
-	var res = FieldScript.complex_cos(0, 0)
+	var res = ComplexFieldScript.complex_cos(0, 0)
 	assert_almost_eq(res.x, 1.0, 0.0001)
 	assert_almost_eq(res.y, 0.0, 0.0001)
 
-	res = FieldScript.complex_cos(PI / 2, 0)
+	res = ComplexFieldScript.complex_cos(PI / 2, 0)
 	assert_almost_eq(res.x, 0.0, 0.0001)
 	assert_almost_eq(res.y, 0.0, 0.0001)
 
 func test_complex_tan():
-	var res = FieldScript.complex_tan(0, 0)
+	var res = ComplexFieldScript.complex_tan(0, 0)
 	assert_almost_eq(res.x, 0.0, 0.0001)
 	assert_almost_eq(res.y, 0.0, 0.0001)
 
 func test_complex_cot():
-	var res = FieldScript.complex_cot(PI / 2, 0)
+	var res = ComplexFieldScript.complex_cot(PI / 2, 0)
 	assert_almost_eq(res.x, 0.0, 0.0001)
 	assert_almost_eq(res.y, 0.0, 0.0001)
 
 func test_complex_log_sin():
-	var res = FieldScript.complex_log_sin(PI / 2, 0)
+	var res = ComplexFieldScript.complex_log_sin(PI / 2, 0)
 	assert_almost_eq(res.x, 0.0, 0.0001)
 	assert_almost_eq(res.y, 0.0, 0.0001)
 
 func test_dirichlet_eta():
-	var res = FieldScript.dirichlet_eta(1, 0, 100)
+	var res = ComplexFieldScript.dirichlet_eta(1, 0, 100)
 	assert_almost_eq(res.x, log(2.0), 0.01)
 	assert_almost_eq(res.y, 0.0, 0.0001)
 
 func test_dirichlet_beta():
-	var res = FieldScript.dirichlet_beta(1, 0, 100)
+	var res = ComplexFieldScript.dirichlet_beta(1, 0, 100)
 	assert_almost_eq(res.x, PI / 4, 0.01)
 	assert_almost_eq(res.y, 0.0, 0.0001)
 
 func test_evaluate_poly():
 	var coeffs = PackedVector2Array([Vector2(1, 0), Vector2(2, 0), Vector2(3, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)]) # 1 + 2z + 3z^2
-	var res = FieldScript.evaluate_poly(2, 0, coeffs)
+	var res = ComplexFieldScript.evaluate_poly(2, 0, coeffs)
 	assert_almost_eq(res.x, 17.0, 0.0001)
 	assert_almost_eq(res.y, 0.0, 0.0001)
 
 func test_lanczos_gamma():
-	var res = FieldScript.lanczos_gamma(Vector2(1, 0))
+	var res = ComplexFieldScript.lanczos_gamma(Vector2(1, 0))
 	assert_almost_eq(res.x, 1.0, 0.0001)
 	assert_almost_eq(res.y, 0.0, 0.0001)
 
-	var res2 = FieldScript.lanczos_gamma(Vector2(2, 0))
+	var res2 = ComplexFieldScript.lanczos_gamma(Vector2(2, 0))
 	assert_almost_eq(res2.x, 1.0, 0.0001)
 	assert_almost_eq(res2.y, 0.0, 0.0001)
 
-	var res3 = FieldScript.lanczos_gamma(Vector2(3, 0))
+	var res3 = ComplexFieldScript.lanczos_gamma(Vector2(3, 0))
 	assert_almost_eq(res3.x, 2.0, 0.0001)
 	assert_almost_eq(res3.y, 0.0, 0.0001)
 
-	var res4 = FieldScript.lanczos_gamma(Vector2(0.5, 0))
+	var res4 = ComplexFieldScript.lanczos_gamma(Vector2(0.5, 0))
 	assert_almost_eq(res4.x, sqrt(PI), 0.0001)
 	assert_almost_eq(res4.y, 0.0, 0.0001)
 
 func test_complex_gamma():
-	var res = FieldScript.complex_gamma(1, 0)
+	var res = ComplexFieldScript.complex_gamma(1, 0)
 	assert_almost_eq(res.x, 1.0, 0.0001)
 	assert_almost_eq(res.y, 0.0, 0.0001)
 	
-	var res2 = FieldScript.complex_gamma(-2, -1)
+	var res2 = ComplexFieldScript.complex_gamma(-2, -1)
 	assert_almost_eq(res2.x, 0.133910, 0.0001)
 	assert_almost_eq(res2.y, 0.0962865, 0.0001)
 
 func test_complex_log_gamma():
-	var res = FieldScript.complex_log_gamma(1, 0)
+	var res = ComplexFieldScript.complex_log_gamma(1, 0)
 	assert_almost_eq(res.x, 0.0, 0.0001)
 	assert_almost_eq(res.y, 0.0, 0.0001)
 
-	var res2 = FieldScript.complex_log_gamma(-2, -1)
+	var res2 = ComplexFieldScript.complex_log_gamma(-2, -1)
 	assert_almost_eq(res2.x, -1.802215, 0.0001)
 	assert_almost_eq(res2.y, 0.62339, 0.0001)
 
 func test_zeta():
-	var res = FieldScript.zeta(0.5, 14.134725)
+	var res = ComplexFieldScript.zeta(0.5, 14.134725)
 	assert_almost_eq(res.x, 0.0, 0.015)
 	assert_almost_eq(res.y, 0.0, 0.015)
 	
 func test_zeta_continuation():
-	var res = FieldScript.zeta_continuation(0.5, 14.134725)
+	var res = ComplexFieldScript.zeta_continuation(0.5, 14.134725)
 	assert_almost_eq(res.x, 0.0, 0.015)
 	assert_almost_eq(res.y, 0.0, 0.015)
 	
-	var res2 = FieldScript.zeta_continuation(-2.0, 3.0)
+	var res2 = ComplexFieldScript.zeta_continuation(-2.0, 3.0)
 	assert_almost_eq(res2.x, 0.132971, 0.015)
 	assert_almost_eq(res2.y, 0.123053, 0.015)
 
 func test_dedekind_eta():
-	var res = FieldScript.dedekind_eta(0, 1)
+	var res = ComplexFieldScript.dedekind_eta(0, 1)
 	assert_almost_eq(res.x, 0.7682, 0.01)
 	assert_almost_eq(res.y, 0.0, 0.01)
 
 func test_mandelbrot():
-	var res = FieldScript.mandelbrot(0, 0, 10)
+	var res = ComplexFieldScript.mandelbrot(0, 0, 10)
 	assert_almost_eq(res.x, 0.0, 0.0001)
 	assert_almost_eq(res.y, 0.0, 0.0001)
 
 func test_lanczos_log_gamma():
-	var res = FieldScript.lanczos_log_gamma(Vector2(1.0, 0.0))
+	var res = ComplexFieldScript.lanczos_log_gamma(Vector2(1.0, 0.0))
 	assert_almost_eq(res.x, 0.0, 0.0001)
 	assert_almost_eq(res.y, 0.0, 0.0001)
 
-	res = FieldScript.lanczos_log_gamma(Vector2(2.0, 0.0))
+	res = ComplexFieldScript.lanczos_log_gamma(Vector2(2.0, 0.0))
 	assert_almost_eq(res.x, 0.0, 0.0001)
 	assert_almost_eq(res.y, 0.0, 0.0001)
 
-	res = FieldScript.lanczos_log_gamma(Vector2(3.0, 0.0))
+	res = ComplexFieldScript.lanczos_log_gamma(Vector2(3.0, 0.0))
 	assert_almost_eq(res.x, log(2.0), 0.0001)
 	assert_almost_eq(res.y, 0.0, 0.0001)
 
-	res = FieldScript.lanczos_log_gamma(Vector2(1.0, 1.0))
+	res = ComplexFieldScript.lanczos_log_gamma(Vector2(1.0, 1.0))
 	assert_almost_eq(res.x, -0.6509, 0.0001)
 	assert_almost_eq(res.y, -0.3016, 0.0001)
 
-	res = FieldScript.lanczos_log_gamma(Vector2(-2.0, -1.0))
+	res = ComplexFieldScript.lanczos_log_gamma(Vector2(-2.0, -1.0))
 	assert_almost_eq(res.x, -1.8022, 0.0001)
 	assert_almost_eq(res.y, 0.6233, 0.0001)
 
@@ -199,12 +199,12 @@ func test_get_rational():
 	Config.rational_den_coeffs = test_den
 
 	# Test with z = 2.0 + 0.0i -> f(2) = (1 + 4) / (1 + 2) = 5/3
-	var res1 = FieldScript.get_rational(2.0, 0.0)
+	var res1 = ComplexFieldScript.get_rational(2.0, 0.0)
 	assert_almost_eq(res1.x, 5.0 / 3.0, 0.0001)
 	assert_almost_eq(res1.y, 0.0, 0.0001)
 
 	# Test with z = 0.0 + 1.0i -> f(i) = (1 + 2i) / (1 + i) = (1 + 2i)(1 - i) / 2 = (1 - i + 2i + 2) / 2 = (3 + i) / 2 = 1.5 + 0.5i
-	var res2 = FieldScript.get_rational(0.0, 1.0)
+	var res2 = ComplexFieldScript.get_rational(0.0, 1.0)
 	assert_almost_eq(res2.x, 1.5, 0.0001)
 	assert_almost_eq(res2.y, 0.5, 0.0001)
 
@@ -217,19 +217,19 @@ func test_multivalued_z_pow_inv_n():
 
 	# Test 1: branch 0
 	Config.current_branch = 0
-	var res1 = FieldScript.multivalued_z_pow_inv_n(1.0, 0.0, 2)
+	var res1 = ComplexFieldScript.multivalued_z_pow_inv_n(1.0, 0.0, 2)
 	assert_almost_eq(res1.x, 1.0, 0.0001)
 	assert_almost_eq(res1.y, 0.0, 0.0001)
 
 	# Test 2: branch 1
 	Config.current_branch = 1
-	var res2 = FieldScript.multivalued_z_pow_inv_n(1.0, 0.0, 2)
+	var res2 = ComplexFieldScript.multivalued_z_pow_inv_n(1.0, 0.0, 2)
 	assert_almost_eq(res2.x, -1.0, 0.0001)
 	assert_almost_eq(res2.y, 0.0, 0.0001)
 
 	# Test 3: z = -1, branch 0, n = 2 -> sqrt(-1) = i
 	Config.current_branch = 0
-	var res3 = FieldScript.multivalued_z_pow_inv_n(-1.0, 0.0, 2)
+	var res3 = ComplexFieldScript.multivalued_z_pow_inv_n(-1.0, 0.0, 2)
 	assert_almost_eq(res3.x, 0.0, 0.0001)
 	assert_almost_eq(res3.y, 1.0, 0.0001)
 
@@ -242,19 +242,19 @@ func test_multivalued_log():
 
 	# Test 1: branch 0, z = e
 	Config.current_branch = 0
-	var res1 = FieldScript.multivalued_log(2.718281828459, 0.0)
+	var res1 = ComplexFieldScript.multivalued_log(2.718281828459, 0.0)
 	assert_almost_eq(res1.x, 1.0, 0.0001)
 	assert_almost_eq(res1.y, 0.0, 0.0001)
 
 	# Test 2: branch 1, z = e
 	Config.current_branch = 1
-	var res2 = FieldScript.multivalued_log(2.718281828459, 0.0)
+	var res2 = ComplexFieldScript.multivalued_log(2.718281828459, 0.0)
 	assert_almost_eq(res2.x, 1.0, 0.0001)
 	assert_almost_eq(res2.y, 2.0 * PI, 0.0001)
 
 	# Test 3: branch 2, z = e
 	Config.current_branch = 2
-	var res3 = FieldScript.multivalued_log(2.718281828459, 0.0)
+	var res3 = ComplexFieldScript.multivalued_log(2.718281828459, 0.0)
 	assert_almost_eq(res3.x, 1.0, 0.0001)
 	assert_almost_eq(res3.y, 4.0 * PI, 0.0001)
 
@@ -274,7 +274,7 @@ func test_multivalued_asin_exact_values():
 
 	for B in expected_values.keys():
 		Config.current_branch = B
-		var res = FieldScript.multivalued_asin(1.5, 0.01)
+		var res = ComplexFieldScript.multivalued_asin(1.5, 0.01)
 		var expected = expected_values[B]
 		assert_almost_eq(res.x, expected.x, 0.005)
 		assert_almost_eq(res.y, expected.y, 0.005)
@@ -286,22 +286,22 @@ func test_multivalued_asin_continuity():
 
 	for B in [-2, -1, 0, 1, 2]:
 		Config.current_branch = B
-		var val_above = FieldScript.multivalued_asin(1.5, 0.01)
+		var val_above = ComplexFieldScript.multivalued_asin(1.5, 0.01)
 
 		var B_next_pos = B + 1 if B % 2 == 0 else B - 1
 		Config.current_branch = B_next_pos
-		var val_below = FieldScript.multivalued_asin(1.5, -0.01)
+		var val_below = ComplexFieldScript.multivalued_asin(1.5, -0.01)
 
 		assert_almost_eq(val_above.x, val_below.x, 0.05)
 		assert_almost_eq(val_above.y, val_below.y, 0.05)
 
 	for B in [-2, -1, 0, 1, 2]:
 		Config.current_branch = B
-		var val_above = FieldScript.multivalued_asin(-1.5, 0.01)
+		var val_above = ComplexFieldScript.multivalued_asin(-1.5, 0.01)
 
 		var B_next_neg = B - 1 if B % 2 == 0 else B + 1
 		Config.current_branch = B_next_neg
-		var val_below = FieldScript.multivalued_asin(-1.5, -0.01)
+		var val_below = ComplexFieldScript.multivalued_asin(-1.5, -0.01)
 
 		assert_almost_eq(val_above.x, val_below.x, 0.05)
 		assert_almost_eq(val_above.y, val_below.y, 0.05)
@@ -313,22 +313,22 @@ func test_multivalued_acos_continuity():
 
 	for B in [-2, -1, 0, 1, 2]:
 		Config.current_branch = B
-		var val_above = FieldScript.multivalued_acos(1.5, 0.01)
+		var val_above = ComplexFieldScript.multivalued_acos(1.5, 0.01)
 
 		var B_next_pos = B + 1 if B % 2 == 0 else B - 1
 		Config.current_branch = B_next_pos
-		var val_below = FieldScript.multivalued_acos(1.5, -0.01)
+		var val_below = ComplexFieldScript.multivalued_acos(1.5, -0.01)
 
 		assert_almost_eq(val_above.x, val_below.x, 0.05)
 		assert_almost_eq(val_above.y, val_below.y, 0.05)
 
 	for B in [-2, -1, 0, 1, 2]:
 		Config.current_branch = B
-		var val_above = FieldScript.multivalued_acos(-1.5, 0.01)
+		var val_above = ComplexFieldScript.multivalued_acos(-1.5, 0.01)
 
 		var B_next_neg = B - 1 if B % 2 == 0 else B + 1
 		Config.current_branch = B_next_neg
-		var val_below = FieldScript.multivalued_acos(-1.5, -0.01)
+		var val_below = ComplexFieldScript.multivalued_acos(-1.5, -0.01)
 
 		assert_almost_eq(val_above.x, val_below.x, 0.05)
 		assert_almost_eq(val_above.y, val_below.y, 0.05)
@@ -343,10 +343,10 @@ func test_get_height_from_field():
 	var orig_effective_zoom = Config.effective_zoom
 
 	# Test 1: Non-finite inputs
-	var res1 = FieldScript.get_height_from_field(Vector2(INF, 0))
+	var res1 = ComplexFieldScript.get_height_from_field(Vector2(INF, 0))
 	assert_almost_eq(res1, 0.0, 0.0001)
 
-	var res2 = FieldScript.get_height_from_field(Vector2(NAN, 0))
+	var res2 = ComplexFieldScript.get_height_from_field(Vector2(NAN, 0))
 	assert_almost_eq(res2, 0.0, 0.0001)
 
 	# Test 2: height_type = 0 (Logarithmic), morph_value = 1.0
@@ -358,13 +358,13 @@ func test_get_height_from_field():
 	var f3 = Vector2(3, 4) # mag = 5
 	# log(1.0 + 5) = log(6) ~ 1.791759 * 3.0 = 5.375278
 	var expected_log = 3.0 * log(6.0)
-	var res3 = FieldScript.get_height_from_field(f3)
+	var res3 = ComplexFieldScript.get_height_from_field(f3)
 	assert_almost_eq(res3, expected_log, 0.0001)
 
 	# Test 3: height_type = 1 (Linear), morph_value = 1.0
 	Config.height_type = 1
 	var expected_linear = 5.0
-	var res4 = FieldScript.get_height_from_field(f3)
+	var res4 = ComplexFieldScript.get_height_from_field(f3)
 	assert_almost_eq(res4, expected_linear, 0.0001)
 
 	# Test 4: Morph and zoom scaling
@@ -375,7 +375,7 @@ func test_get_height_from_field():
 	# height = expected_linear * blend * effective_zoom
 	var expected_blend = log(5.0) / log(9.0)
 	var expected_scaled = 5.0 * expected_blend * 2.0
-	var res5 = FieldScript.get_height_from_field(f3)
+	var res5 = ComplexFieldScript.get_height_from_field(f3)
 	assert_almost_eq(res5, expected_scaled, 0.0001)
 
 	Config.height_type = orig_height_type
@@ -399,7 +399,7 @@ func test_get_height():
 
 	# Test performance protection early exit
 	Config.performance_protection_active = true
-	var h1 = FieldScript.get_height(0.0, 0.0)
+	var h1 = ComplexFieldScript.get_height(0.0, 0.0)
 	assert_eq(h1, 0.0)
 
 	Config.performance_protection_active = false
@@ -408,7 +408,7 @@ func test_get_height():
 	# mag = 0.603038
 	# height_type = 1 -> h = 0.603038 * 1.0 * 1.0 = 0.603038
 	var world_pos = Vector2(1.0, 0.0)
-	var h2 = FieldScript.get_height(world_pos.x, world_pos.y)
+	var h2 = ComplexFieldScript.get_height(world_pos.x, world_pos.y)
 	assert_almost_eq(h2, 0.603038, 0.001)
 
 	Config.performance_protection_active = orig_perf
