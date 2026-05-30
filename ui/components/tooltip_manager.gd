@@ -58,11 +58,11 @@ const DESCRIPTIONS = {
 
 @onready var tab_container = %MenuOverlay/%TabContainer
 
-@onready var func_button = %MenuOverlay/%FuncButton
-@onready var height_button = %MenuOverlay/%HeightButton
-@onready var terrain_detail_button = %MenuOverlay/%TerrainDetailButton
-@onready var aa_button = %MenuOverlay/%AAButton
-@onready var color_scheme_button = %MenuOverlay/%ColorSchemeButton
+@onready var func_button = %MenuOverlay/%FuncContainer.get_option_button()
+@onready var height_button = %MenuOverlay/%HeightContainer.get_option_button()
+@onready var terrain_detail_button = %MenuOverlay/%TerrainDetailContainer.get_option_button()
+@onready var aa_button = %MenuOverlay/%AAContainer.get_option_button()
+@onready var color_scheme_button = %MenuOverlay/%ColorSchemeContainer.get_option_button()
 
 var _pending_tooltip_key: String = ""
 
