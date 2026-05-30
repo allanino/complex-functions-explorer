@@ -736,18 +736,18 @@ theme_override_constants/separation = 15
 unique_name_in_owner = true
 layout_mode = 2
 text = "Menu Scale"
-min_value = 100.0
-max_value = 150.0
+min_value = 75.0
+max_value = 125.0
 step = 5.0
-value = 150.0
-value_text = "150%"
+value = 100.0
+value_text = "100%"
 
 [node name="HudScaleContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/HUD/Margin/VBox" unique_id=102057451 instance=ExtResource("1")]
 unique_name_in_owner = true
 layout_mode = 2
 text = "HUD Scale"
-min_value = 100.0
-max_value = 150.0
+min_value = 75.0
+max_value = 125.0
 step = 5.0
 value = 100.0
 value_text = "100%"

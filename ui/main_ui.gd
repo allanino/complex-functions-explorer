@@ -239,8 +239,8 @@ func _init_slider_bindings():
 		},
 		menu_scale_slider: {
 			"config_key": "menu_scale",
-			"to_config": func(v): return v / 150.0,
-			"from_config": func(c): return c * 150.0,
+			"to_config": func(v): return v / 100.0,
+			"from_config": func(c): return c * 100.0,
 			"format": func(v): return str(int(round(v))) + "%",
 			"immediate": true,
 			"on_changed": func(_v): _update_hud_layout()
@@ -991,9 +991,11 @@ func _update_hud_layout():
 
 	var cards = [complex_panel, info_panel, monitor_panel, zeros_panel, perf_label]
 
+	var actual_hud_scale = Config.hud_scale * 1.2
+
 	# Always rescale all cards to ensure their combined_minimum_size is correct for height check
 	for card in cards:
-		_rescale_card(card, Config.hud_scale)
+		_rescale_card(card, actual_hud_scale)
 
 	var current_state = {
 		"size": get_viewport().size,
@@ -1006,8 +1008,8 @@ func _update_hud_layout():
 	_last_hud_state = current_state
 
 	# Scale stack widths to accommodate wider fonts
-	hud_stack_right.custom_minimum_size.x = 150 * Config.hud_scale
-	hud_stack_left.custom_minimum_size.x = 150 * Config.hud_scale
+	hud_stack_right.custom_minimum_size.x = 150 * actual_hud_scale
+	hud_stack_left.custom_minimum_size.x = 150 * actual_hud_scale
 
 	var available_height = get_viewport().size.y - 40
 	var current_height = 0.0
@@ -1220,6 +1222,8 @@ func _rescale_menu(_scale: float):
 		return
 	main_menu_panel.set_meta("last_applied_menu_scale", _scale)
 
+	var actual_scale = _scale * (130.0 / 150.0)
+
 	var stack = []
 	if main_menu_panel: stack.push_back(main_menu_panel)
 	if new_preset_dialog: stack.push_back(new_preset_dialog)
@@ -1237,7 +1241,7 @@ func _rescale_menu(_scale: float):
 			
 			if not node.has_meta("base_font_size"):
 				node.set_meta("base_font_size", node.get_theme_font_size(font_size_key))
-			node.add_theme_font_size_override(font_size_key, int(round(node.get_meta("base_font_size") * _scale)))
+			node.add_theme_font_size_override(font_size_key, int(round(node.get_meta("base_font_size") * actual_scale)))
 		
 		# 2. Scale Layout Parameters on Controls
 		if node is Control:
@@ -1245,20 +1249,20 @@ func _rescale_menu(_scale: float):
 			if node.custom_minimum_size != Vector2.ZERO:
 				if not node.has_meta("base_min_size"):
 					node.set_meta("base_min_size", node.custom_minimum_size)
-				node.custom_minimum_size = node.get_meta("base_min_size") * _scale
+				node.custom_minimum_size = node.get_meta("base_min_size") * actual_scale
 			
 			# Scale margins for MarginContainers
 			if node is MarginContainer:
 				for margin in ["margin_left", "margin_top", "margin_right", "margin_bottom"]:
 					if not node.has_meta("base_" + margin):
 						node.set_meta("base_" + margin, node.get_theme_constant(margin))
-					node.add_theme_constant_override(margin, int(round(node.get_meta("base_" + margin) * _scale)))
+					node.add_theme_constant_override(margin, int(round(node.get_meta("base_" + margin) * actual_scale)))
 			
 			# Scale separations for BoxContainers
 			elif node is BoxContainer:
 				if not node.has_meta("base_separation"):
 					node.set_meta("base_separation", node.get_theme_constant("separation"))
-				node.add_theme_constant_override("separation", int(round(node.get_meta("base_separation") * _scale)))
+				node.add_theme_constant_override("separation", int(round(node.get_meta("base_separation") * actual_scale)))
 		
 		# Traverse children
 		for child in node.get_children():

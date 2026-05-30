@@ -222,8 +222,8 @@ func test_menu_scale():
 	# 2. Verify main_menu_panel.scale is always Vector2.ONE
 	assert_eq(hud_instance.main_menu_panel.scale, Vector2.ONE)
 	
-	# 3. Verify initial scaled layout size matches config menu_scale
-	var expected_scale = Config.menu_scale
+	# 3. Verify initial scaled layout size matches config menu_scale * base scale factor (130/150)
+	var expected_scale = Config.menu_scale * (130.0 / 150.0)
 	var base_panel_min_size = Vector2(500, 960)
 	assert_eq(hud_instance.main_menu_panel.custom_minimum_size, base_panel_min_size * expected_scale)
 	
@@ -236,7 +236,7 @@ func test_menu_scale():
 	assert_true(hud_instance._menu_scale_dragging)
 	
 	# Set value to something new
-	var target_scale = 120.0 / 150.0
+	var target_scale = 120.0 / 100.0
 	hud_instance.menu_scale_slider.value = 120.0
 
 	# Config value should be updated, but layout size should not change while dragging
@@ -246,10 +246,11 @@ func test_menu_scale():
 	# End drag
 	hslider.drag_ended.emit(true)
 	assert_false(hud_instance._menu_scale_dragging)
-	assert_eq(hud_instance.main_menu_panel.custom_minimum_size, base_panel_min_size * target_scale)
+	var target_menu_scale = target_scale * (130.0 / 150.0)
+	assert_eq(hud_instance.main_menu_panel.custom_minimum_size, base_panel_min_size * target_menu_scale)
 	
 	# Verify font size override was applied
 	var title_label = hud_instance.main_menu_panel.get_node("MarginContainer/ContentVBox/TitleHBox/TitleLabel")
 	assert_not_null(title_label)
 	var base_font_size = title_label.get_meta("base_font_size")
-	assert_eq(title_label.get_theme_font_size("font_size"), int(round(base_font_size * target_scale)))
+	assert_eq(title_label.get_theme_font_size("font_size"), int(round(base_font_size * target_menu_scale)))
