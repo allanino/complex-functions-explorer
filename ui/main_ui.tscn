@@ -4,6 +4,11 @@
 [ext_resource type="Shader" path="res://ui/hud_complex_plane.gdshader" id="2_shader"]
 [ext_resource type="PackedScene" path="res://ui/components/checkbox.tscn" id="3_checkbox"]
 [ext_resource type="PackedScene" path="res://ui/menu.tscn" id="4_menu"]
+[ext_resource type="Script" path="res://ui/components/tooltip_manager.gd" id="5_tooltip_manager"]
+[ext_resource type="Script" path="res://ui/components/preset_controller.gd" id="6_preset_controller"]
+[ext_resource type="Script" path="res://ui/components/detach_controller.gd" id="7_detach_controller"]
+
+
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_1"]
 shader = ExtResource("2_shader")
@@ -221,10 +226,6 @@ corner_radius_bottom_left = 4
 layer = 1
 script = ExtResource("1_script")
 
-[node name="TooltipTimer" type="Timer" parent="."]
-unique_name_in_owner = true
-wait_time = 0.4
-one_shot = true
 
 [node name="Control" type="Control" parent="."]
 layout_mode = 3
@@ -453,6 +454,8 @@ layout_mode = 2
 
 [node name="DetachOverlay" type="PanelContainer" parent="Control"]
 unique_name_in_owner = true
+script = ExtResource("7_detach_controller")
+
 visible = false
 custom_minimum_size = Vector2(400, 60)
 layout_mode = 1
@@ -508,17 +511,24 @@ text = "Exit"
 [node name="MenuOverlay" parent="Control" instance=ExtResource("4_menu")]
 unique_name_in_owner = true
 
-[node name="TooltipLayer" type="CanvasLayer" parent="."]
+[node name="TooltipManager" type="CanvasLayer" parent="."]
+unique_name_in_owner = true
 layer = 128
+script = ExtResource("5_tooltip_manager")
 
-[node name="Tooltip" type="PanelContainer" parent="TooltipLayer"]
+[node name="TooltipTimer" type="Timer" parent="TooltipManager"]
+unique_name_in_owner = true
+wait_time = 0.4
+one_shot = true
+
+[node name="Tooltip" type="PanelContainer" parent="TooltipManager"]
 unique_name_in_owner = true
 visible = false
 layout_mode = 0
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_tooltip")
 
-[node name="MarginContainer" type="MarginContainer" parent="TooltipLayer/Tooltip"]
+[node name="MarginContainer" type="MarginContainer" parent="TooltipManager/Tooltip"]
 layout_mode = 2
 mouse_filter = 2
 theme_override_constants/margin_left = 12
@@ -526,7 +536,7 @@ theme_override_constants/margin_top = 12
 theme_override_constants/margin_right = 12
 theme_override_constants/margin_bottom = 12
 
-[node name="TooltipLabel" type="RichTextLabel" parent="TooltipLayer/Tooltip/MarginContainer"]
+[node name="TooltipLabel" type="RichTextLabel" parent="TooltipManager/Tooltip/MarginContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/default_color = Color(0.9, 0.9, 0.9, 1)
@@ -534,3 +544,7 @@ theme_override_font_sizes/normal_font_size = 14
 bbcode_enabled = true
 fit_content = true
 autowrap_mode = 2
+
+[node name="PresetController" type="Node" parent="."]
+unique_name_in_owner = true
+script = ExtResource("6_preset_controller")

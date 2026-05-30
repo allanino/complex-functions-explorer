@@ -1,7 +1,8 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://terrain/terrain.gd" id="1_world"]
 [ext_resource type="Shader" path="res://terrain/terrain.gdshader" id="2_terrain"]
+[ext_resource type="Script" path="res://terrain/portal.gd" id="3_portal"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_1"]
 render_priority = 0
@@ -42,3 +43,6 @@ shader_parameter/fog_density = 0.0
 [node name="WorldManager" type="Node3D"]
 script = ExtResource("1_world")
 terrain_material = SubResource("ShaderMaterial_1")
+
+[node name="Portal" type="Node3D" parent="."]
+script = ExtResource("3_portal")
