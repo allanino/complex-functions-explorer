@@ -153,7 +153,7 @@ func test_preset_ui_asterisk_workflow():
 
 	# Change a slider value to make it dirty
 	hud_instance.brightness_slider.value = 100.0
-	hud_instance._on_terrain_brightness_value_changed(100.0)
+	hud_instance._on_generic_slider_changed(hud_instance.brightness_slider, 100.0)
 	hud_instance.preset_controller.update_preset_button_text()
 	
 	assert_true(Config.is_preset_dirty())
@@ -172,7 +172,7 @@ func test_preset_ui_asterisk_workflow():
 	
 	# Modify setting to 50.0
 	hud_instance.brightness_slider.value = 50.0
-	hud_instance._on_terrain_brightness_value_changed(50.0)
+	hud_instance._on_generic_slider_changed(hud_instance.brightness_slider, 50.0)
 	hud_instance.preset_controller.update_preset_button_text()
 	
 	assert_true(Config.is_preset_dirty())
