@@ -1,7 +1,5 @@
 extends GutTest
 
-const FormulaParser = preload("res://math/formula_parser.gd")
-
 var hud_scene = preload("res://ui/main_ui.tscn")
 var hud_instance
 var _original_save_path: String
