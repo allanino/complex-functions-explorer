@@ -235,6 +235,14 @@ func _init_slider_bindings():
 			"format": func(v): return "%.1f%%" % v,
 			"immediate": true
 		},
+		menu_scale_slider: {
+			"config_key": "menu_scale",
+			"to_config": func(v): return v / 150.0,
+			"from_config": func(c): return c * 150.0,
+			"format": func(v): return str(int(v)) + "%",
+			"immediate": true,
+			"on_changed": func(_v): _update_hud_layout()
+		},
 		hud_scale_slider: {
 			"config_key": "hud_scale",
 			"to_config": func(v): return v / 100.0,
@@ -344,7 +352,6 @@ func _ready():
 	portal_flash.color = Color(0.0, 0.8, 1.0, 0.0) # Transparent cyan
 	portal_flash.visible = false
 	$Control.add_child(portal_flash)
-
 
 
 	hud_columns.offset_top = -1000
@@ -597,7 +604,6 @@ func toggle_menu(applied: bool = false):
 			Config.terrain_surface_texture = _initial_terrain_surface_texture
 			if Config.menu_scale != _initial_menu_scale:
 				Config.menu_scale = _initial_menu_scale
-				_on_menu_scale_value_changed(Config.menu_scale * 150.0)
 			if Config.hud_scale != _initial_hud_scale:
 				Config.hud_scale = _initial_hud_scale
 				_update_hud_layout()
@@ -786,7 +792,6 @@ func _on_set_pos_pressed(_toggle_menu: bool = true):
 	preset_controller.update_preset_button_text()
 	if _toggle_menu:
 		toggle_menu(true)
-
 
 
 func _sync_ui_to_config():
@@ -1089,7 +1094,6 @@ func _rescale_card(card: Control, _scale: float):
 		for child in node.get_children():
 			if child is Control:
 				stack.push_back(child)
-
 
 
 func _on_terrain_detail_selected(index: int):

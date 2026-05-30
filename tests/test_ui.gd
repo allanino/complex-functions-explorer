@@ -238,8 +238,7 @@ func test_menu_scale():
 	# Set value to something new
 	var target_scale = 120.0 / 150.0
 	hud_instance.menu_scale_slider.value = 120.0
-	hud_instance._on_menu_scale_value_changed(120.0)
-	
+
 	# Config value should be updated, but layout size should not change while dragging
 	assert_eq(Config.menu_scale, target_scale)
 	assert_eq(hud_instance.main_menu_panel.custom_minimum_size, base_panel_min_size * expected_scale)
