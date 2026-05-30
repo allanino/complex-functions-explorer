@@ -768,6 +768,7 @@ func _on_set_pos_pressed(_toggle_menu: bool = true):
 
 	Config.save_settings()
 	_update_hud_layout()
+	preset_controller.update_preset_button_text()
 
 	if player:
 		var zoom_mult = Config.zoom_factor

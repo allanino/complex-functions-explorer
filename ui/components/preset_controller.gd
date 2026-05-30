@@ -33,6 +33,9 @@ func _ready():
 	delete_preset_cancel.pressed.connect(_on_delete_preset_cancel_pressed)
 	delete_preset_confirm.pressed.connect(_on_delete_preset_confirm_pressed)
 	
+	if not main_ui.is_node_ready():
+		await main_ui.ready
+	
 	_connect_preset_dirtiers()
 	update_preset_button_text()
 
@@ -157,21 +160,20 @@ func update_preset_button_text():
 
 	for i in range(preset_button.item_count):
 		var item_clean_name = preset_button.get_item_text(i).trim_suffix("*")
-		if item_clean_name == preset_name:
-			preset_button.select(i)
-			break
-
-	for i in range(preset_button.item_count):
-		var item_clean_name = preset_button.get_item_text(i).trim_suffix("*")
 		var item_dirty = Config.is_preset_dirty_by_name(item_clean_name)
 		if item_dirty:
 			preset_button.set_item_text(i, item_clean_name + "*")
 		else:
 			preset_button.set_item_text(i, item_clean_name)
 
-	var selected_idx = preset_button.selected
+	var selected_idx = -1
+	for i in range(preset_button.item_count):
+		var item_clean_name = preset_button.get_item_text(i).trim_suffix("*")
+		if item_clean_name == preset_name:
+			selected_idx = i
+			break
+
 	if selected_idx != -1:
-		preset_button.select(-1)
 		preset_button.select(selected_idx)
 
 	preset_update_button.disabled = not is_dirty
