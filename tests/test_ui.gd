@@ -309,3 +309,21 @@ func test_detached_slider_play_loop():
 	dc._on_exit_detach_pressed()
 	assert_false(dc.is_playing)
 	assert_eq(dc.play_button.text, "▶")
+
+func test_branch_k_slider_ranges():
+	# Test MULTIVALUED_Z_POW (range 0 to n-1)
+	Config.multivalued_n = 3
+	hud_instance._on_func_selected(Config.ComplexFunc.MULTIVALUED_Z_POW)
+	assert_true(hud_instance.branch_k_slider.visible)
+	assert_eq(hud_instance.branch_k_slider.min_value, 0.0)
+	assert_eq(hud_instance.branch_k_slider.max_value, 2.0)
+	
+	# Test MULTIVALUED_LOG (range -5 to 5)
+	hud_instance._on_func_selected(Config.ComplexFunc.MULTIVALUED_LOG)
+	assert_true(hud_instance.branch_k_slider.visible)
+	assert_eq(hud_instance.branch_k_slider.min_value, -5.0)
+	assert_eq(hud_instance.branch_k_slider.max_value, 5.0)
+	
+	# Test non-multivalued function (hidden)
+	hud_instance._on_func_selected(Config.ComplexFunc.ZETA)
+	assert_false(hud_instance.branch_k_slider.visible)

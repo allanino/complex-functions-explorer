@@ -425,6 +425,16 @@ value = 2.0
 value_text = "2"
 show_detach_button = true
 
+[node name="BranchKSlider" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox" unique_id=946400168 instance=ExtResource("1")]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Branch number"
+min_value = 0.0
+max_value = 1.0
+value = 0.0
+value_text = "0"
+show_detach_button = true
+
 [node name="ENVIRONMENT" type="ScrollContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer" unique_id=2093460961]
 visible = false
 layout_mode = 2

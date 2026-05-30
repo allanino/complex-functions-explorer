@@ -15,6 +15,8 @@ var is_resetting_height = false
 var last_t = 0.0
 var last_z: Vector2 = Vector2(0.0, 0.0)
 var last_valid_terrain_height: float = 0.0
+var is_detached_interactive: bool = false
+var is_menu_open: bool = false
 
 # Zero detection history
 var mag_history: Array[float] = [1.0, 1.0, 1.0]
@@ -44,6 +46,17 @@ func _ready():
 
 	# demo_actions()
 
+func _update_ui_states():
+	if main_ui:
+		if main_ui.detach_controller and main_ui.detach_controller.visible and main_ui.detach_controller.interaction_active:
+			is_detached_interactive = true
+		else:
+			is_detached_interactive = false
+		if main_ui.menu_overlay and main_ui.menu_overlay.visible:
+			is_menu_open = true
+		else:
+			is_menu_open = false
+
 func _unhandled_input(event):
 	if event.is_action_pressed("ui_cancel"):
 		if main_ui:
@@ -55,14 +68,8 @@ func _unhandled_input(event):
 			else:
 				Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 		return
-
-	var is_detached_interactive = false
-	var is_menu_open = false
-	if main_ui:
-		if main_ui.detach_controller and main_ui.detach_controller.visible and main_ui.detach_controller.interaction_active:
-			is_detached_interactive = true
-		if main_ui.menu_overlay and main_ui.menu_overlay.visible:
-			is_menu_open = true
+	
+	_update_ui_states()
 
 	if is_detached_interactive or is_menu_open:
 		return
@@ -129,13 +136,7 @@ func get_terrain_height(x: float, z: float, field_val: Vector2 = Vector2.INF) ->
 	return ComplexField.get_height(x, z)
 
 func _physics_process(delta):
-	var is_detached_interactive = false
-	var is_menu_open = false
-	if main_ui:
-		if main_ui.detach_controller and main_ui.detach_controller.visible and main_ui.detach_controller.interaction_active:
-			is_detached_interactive = true
-		if main_ui.menu_overlay and main_ui.menu_overlay.visible:
-			is_menu_open = true
+	_update_ui_states()
 
 	if is_detached_interactive or is_menu_open:
 		velocity = Vector3.ZERO
@@ -366,6 +367,10 @@ func _start_auto_walk_from_demo():
 	Config.rvm_start_t = abs(global_position.z * 0.1 / Config.effective_zoom)
 
 func _process(_delta):
+	if is_menu_open or is_detached_interactive:
+		current_f = ComplexField.get_field(global_position.x, global_position.z)
+		current_mag = current_f.length()
+
 	var scale_factor = 1.0 / Config.effective_zoom
 	var current_x = global_position.x * 0.1 * scale_factor
 	var current_y = - global_position.z * 0.1 * scale_factor

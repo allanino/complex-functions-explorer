@@ -34,6 +34,7 @@ var portal_flash: ColorRect
 @onready var rational_container = %MenuOverlay/%RationalContainer
 @onready var rational_input = %MenuOverlay/%RationalContainer.get_line_edit()
 @onready var multivalued_slider = %MenuOverlay/%MultivaluedSlider
+@onready var branch_k_slider = %MenuOverlay/%BranchKSlider
 
 @onready var re_input = %MenuOverlay/%ReContainer.get_line_edit()
 @onready var im_input = %MenuOverlay/%ImContainer.get_line_edit()
@@ -272,6 +273,14 @@ func _init_slider_bindings():
 			"to_config": func(v): return int(round(v)),
 			"from_config": func(c): return c,
 			"format": func(v): return str(int(round(v))),
+			"immediate": true,
+			"on_changed": func(_v): _update_branch_k_slider_range()
+		},
+		branch_k_slider: {
+			"config_key": "current_branch",
+			"to_config": func(v): return int(round(v)),
+			"from_config": func(c): return c,
+			"format": func(v): return str(int(round(v))),
 			"immediate": true
 		},
 		brightness_slider: {
@@ -449,6 +458,7 @@ func _ready():
 	height_theta_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Parameter θ"))
 	morph_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Terrain Morph"))
 	multivalued_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Branches (n)"))
+	branch_k_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Branch number"))
 	day_duration_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Day Duration"))
 	day_time_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Time of day"))
 	sunrise_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Sunrise Direction"))
@@ -667,6 +677,20 @@ func _on_func_selected(f_type: int):
 	auto_walk_checkbox.visible = is_dirichlect
 	rvm_checkbox.visible = is_dirichlect
 
+	var is_multivalued = f_data.get("is_multivalued", false)
+	branch_k_slider.visible = is_multivalued
+	_update_branch_k_slider_range()
+
+func _update_branch_k_slider_range():
+	if Config.function_type == Config.ComplexFunc.MULTIVALUED_Z_POW:
+		branch_k_slider.min_value = 0
+		branch_k_slider.max_value = max(0, Config.multivalued_n - 1)
+	else:
+		branch_k_slider.min_value = -5
+		branch_k_slider.max_value = 5
+	# Clamp value to new range
+	branch_k_slider.value = clamp(branch_k_slider.value, branch_k_slider.min_value, branch_k_slider.max_value)
+
 func _on_height_selected(index):
 	Config.height_type = index
 	var is_log = (index == 1)
@@ -815,6 +839,7 @@ func _on_set_pos_pressed(_toggle_menu: bool = true):
 
 func _sync_ui_to_config():
 	_syncing_ui = true
+	_update_branch_k_slider_range()
 	var backup = {}
 	for key in Config.PRESET_KEYS:
 		backup[key] = Config.get(key)
