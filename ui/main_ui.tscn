@@ -5,6 +5,8 @@
 [ext_resource type="PackedScene" path="res://ui/components/checkbox.tscn" id="3_checkbox"]
 [ext_resource type="PackedScene" path="res://ui/menu.tscn" id="4_menu"]
 [ext_resource type="Script" path="res://ui/components/tooltip_manager.gd" id="5_tooltip_manager"]
+[ext_resource type="Script" path="res://ui/components/preset_controller.gd" id="6_preset_controller"]
+
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_1"]
 shader = ExtResource("2_shader")
@@ -538,3 +540,7 @@ theme_override_font_sizes/normal_font_size = 14
 bbcode_enabled = true
 fit_content = true
 autowrap_mode = 2
+
+[node name="PresetController" type="Node" parent="."]
+unique_name_in_owner = true
+script = ExtResource("6_preset_controller")

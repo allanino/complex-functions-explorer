@@ -147,65 +147,65 @@ func test_preset_ui_asterisk_workflow():
 	
 	# Ensure starting clean
 	Config.apply_preset("Default")
-	hud_instance._update_preset_button_text()
+	hud_instance.preset_controller.update_preset_button_text()
 	assert_false(Config.is_preset_dirty())
-	assert_false(hud_instance.preset_button.get_item_text(hud_instance.preset_button.selected).ends_with("*"))
+	assert_false(hud_instance.preset_controller.preset_button.get_item_text(hud_instance.preset_controller.preset_button.selected).ends_with("*"))
 
 	# Change a slider value to make it dirty
 	hud_instance.brightness_slider.value = 100.0
 	hud_instance._on_terrain_brightness_value_changed(100.0)
-	hud_instance._update_preset_button_text()
+	hud_instance.preset_controller.update_preset_button_text()
 	
 	assert_true(Config.is_preset_dirty())
-	assert_true(hud_instance.preset_button.get_item_text(hud_instance.preset_button.selected).ends_with("*"))
+	assert_true(hud_instance.preset_controller.preset_button.get_item_text(hud_instance.preset_controller.preset_button.selected).ends_with("*"))
 
 	# Create a new preset
-	hud_instance.new_preset_input.text = "MyNewUI_Preset"
-	hud_instance._on_new_preset_save_pressed()
+	hud_instance.preset_controller.new_preset_input.text = "MyNewUI_Preset"
+	hud_instance.preset_controller._on_new_preset_save_pressed()
 	
 	# Verify that the new preset is active and has no asterisk
 	assert_eq(Config.current_preset, "MyNewUI_Preset")
 	assert_false(Config.is_preset_dirty())
-	var selected_text = hud_instance.preset_button.get_item_text(hud_instance.preset_button.selected)
+	var selected_text = hud_instance.preset_controller.preset_button.get_item_text(hud_instance.preset_controller.preset_button.selected)
 	assert_eq(selected_text, "MyNewUI_Preset")
 	assert_false(selected_text.ends_with("*"))
 	
 	# Modify setting to 50.0
 	hud_instance.brightness_slider.value = 50.0
 	hud_instance._on_terrain_brightness_value_changed(50.0)
-	hud_instance._update_preset_button_text()
+	hud_instance.preset_controller.update_preset_button_text()
 	
 	assert_true(Config.is_preset_dirty())
-	assert_true(hud_instance.preset_button.get_item_text(hud_instance.preset_button.selected).ends_with("*"))
+	assert_true(hud_instance.preset_controller.preset_button.get_item_text(hud_instance.preset_controller.preset_button.selected).ends_with("*"))
 	
 	# Switch to Mysterious, making MyNewUI_Preset a dirty cached preset
 	Config.apply_preset("Mysterious")
-	hud_instance._update_preset_button_text()
+	hud_instance.preset_controller.update_preset_button_text()
 	
 	# Verify that Mysterious is selected and not dirty
 	assert_eq(Config.current_preset, "Mysterious")
 	assert_false(Config.is_preset_dirty())
-	assert_false(hud_instance.preset_button.get_item_text(hud_instance.preset_button.selected).ends_with("*"))
+	assert_false(hud_instance.preset_controller.preset_button.get_item_text(hud_instance.preset_controller.preset_button.selected).ends_with("*"))
 	
 	# Verify that MyNewUI_Preset in the dropdown list STILL has the asterisk
 	var idx = -1
-	for i in range(hud_instance.preset_button.item_count):
-		if hud_instance.preset_button.get_item_text(i).trim_suffix("*") == "MyNewUI_Preset":
+	for i in range(hud_instance.preset_controller.preset_button.item_count):
+		if hud_instance.preset_controller.preset_button.get_item_text(i).trim_suffix("*") == "MyNewUI_Preset":
 			idx = i
 			break
 	assert_ne(idx, -1)
-	assert_true(hud_instance.preset_button.get_item_text(idx).ends_with("*"))
+	assert_true(hud_instance.preset_controller.preset_button.get_item_text(idx).ends_with("*"))
 	
 	# Switch back to MyNewUI_Preset
 	Config.apply_preset("MyNewUI_Preset")
-	hud_instance._update_preset_button_text()
+	hud_instance.preset_controller.update_preset_button_text()
 	assert_true(Config.is_preset_dirty())
-	assert_true(hud_instance.preset_button.get_item_text(hud_instance.preset_button.selected).ends_with("*"))
+	assert_true(hud_instance.preset_controller.preset_button.get_item_text(hud_instance.preset_controller.preset_button.selected).ends_with("*"))
 	
 	# Save it
-	hud_instance._on_preset_update_pressed()
+	hud_instance.preset_controller._on_preset_update_pressed()
 	assert_false(Config.is_preset_dirty())
-	var saved_text = hud_instance.preset_button.get_item_text(hud_instance.preset_button.selected)
+	var saved_text = hud_instance.preset_controller.preset_button.get_item_text(hud_instance.preset_controller.preset_button.selected)
 	assert_eq(saved_text, "MyNewUI_Preset")
 	assert_false(saved_text.ends_with("*"))
 

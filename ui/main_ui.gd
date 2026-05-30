@@ -92,19 +92,7 @@ var active_detached_value: Label = null
 @onready var surface_texture_slider = %MenuOverlay/%SurfaceTextureContainer
 @onready var morph_slider = %MenuOverlay/%MorphSliderContainer
 
-@onready var preset_button = %MenuOverlay/%PresetButton
-@onready var preset_update_button = %MenuOverlay/%PresetUpdateButton
-@onready var preset_delete_button = %MenuOverlay/%PresetDeleteButton
-@onready var preset_new_button = %MenuOverlay/%PresetNewButton
-@onready var preset_restore_button = %MenuOverlay/%PresetRestoreButton
-@onready var new_preset_dialog = %MenuOverlay/%NewPresetDialog
-@onready var new_preset_input = %MenuOverlay/%NewPresetInput
-@onready var new_preset_save = %MenuOverlay/%NewPresetSave
-@onready var new_preset_cancel = %MenuOverlay/%NewPresetCancel
-@onready var delete_preset_dialog = %MenuOverlay/%DeletePresetDialog
-@onready var delete_message_label = %MenuOverlay/%DeleteMessageLabel
-@onready var delete_preset_cancel = %MenuOverlay/%DeletePresetCancel
-@onready var delete_preset_confirm = %MenuOverlay/%DeletePresetConfirm
+@onready var preset_controller = %PresetController
 @onready var apply_button = %MenuOverlay/%ApplyButton
 @onready var close_button = %MenuOverlay/%CloseButton
 @onready var quit_button = %MenuOverlay/%QuitButton
@@ -183,24 +171,6 @@ func _ready():
 	hud_monitor_chunks_checkbox.toggled.connect(_on_hud_monitor_chunks_toggled)
 	color_scheme_button.item_selected.connect(_on_color_scheme_selected)
 
-
-	_populate_preset_button()
-
-	preset_button.item_selected.connect(_on_preset_selected)
-	Config.preset_applied.connect(_on_preset_applied)
-
-
-	preset_update_button.pressed.connect(_on_preset_update_pressed)
-	preset_delete_button.pressed.connect(_on_preset_delete_pressed)
-	preset_new_button.pressed.connect(_on_preset_new_pressed)
-	preset_restore_button.pressed.connect(_on_preset_restore_pressed)
-	_connect_preset_dirtiers()
-	new_preset_save.pressed.connect(_on_new_preset_save_pressed)
-	new_preset_cancel.pressed.connect(_on_new_preset_cancel_pressed)
-	delete_preset_cancel.pressed.connect(_on_delete_preset_cancel_pressed)
-	delete_preset_confirm.pressed.connect(_on_delete_preset_confirm_pressed)
-
-	_update_preset_button_text()
 
 	apply_button.pressed.connect(_on_set_pos_pressed)
 	close_button.pressed.connect(toggle_menu)
@@ -486,7 +456,7 @@ func toggle_menu(applied: bool = false):
 		for key in Config.PRESET_KEYS:
 			Config.set(key, backup[key])
 		_syncing_ui = false
-		_update_preset_button_text()
+		preset_controller.update_preset_button_text()
 
 	else:
 		tooltip_manager.hide_tooltip()
@@ -805,83 +775,11 @@ func _on_set_pos_pressed(_toggle_menu: bool = true):
 		else:
 			player.auto_walk_state = 0 # NONE
 
-	_update_preset_button_text()
+	preset_controller.update_preset_button_text()
 	if _toggle_menu:
 		toggle_menu(true)
 
 
-func _on_preset_update_pressed():
-	var preset_name = Config.current_preset.trim_suffix("*")
-	if preset_name in ["Default", "Mysterious"]:
-		new_preset_dialog.visible = true
-		new_preset_input.text = preset_name + " Copy"
-		new_preset_input.grab_focus()
-	else:
-		Config.update_preset(preset_name)
-		Config.current_preset = preset_name
-		_update_preset_button_text()
-
-func _on_preset_delete_pressed():
-	var preset_name = Config.current_preset.trim_suffix("*")
-	if preset_name in ["Default", "Mysterious"]:
-		return
-	delete_message_label.text = "Are you sure you want to delete the
-preset '" + preset_name + "'?"
-	delete_preset_dialog.visible = true
-
-func _on_delete_preset_cancel_pressed():
-	delete_preset_dialog.visible = false
-
-func _on_delete_preset_confirm_pressed():
-	var preset_name = Config.current_preset.trim_suffix("*")
-	if Config.PRESETS.has(preset_name):
-		Config.delete_preset(preset_name)
-
-		# Repopulate dropdown
-		_populate_preset_button()
-
-		if Config.PRESETS.size() > 0:
-			var new_preset = Config.PRESETS.keys()[0]
-			Config.apply_preset(new_preset)
-		else:
-			Config.current_preset = "Custom"
-			_update_preset_button_text()
-	delete_preset_dialog.visible = false
-
-func _on_preset_new_pressed():
-	new_preset_dialog.visible = true
-	new_preset_input.text = ""
-	new_preset_input.grab_focus()
-
-func _on_new_preset_cancel_pressed():
-	new_preset_dialog.visible = false
-
-func _on_new_preset_save_pressed():
-	var preset_name = new_preset_input.text.strip_edges()
-	if preset_name != "":
-		Config.update_preset(preset_name)
-
-		_populate_preset_button()
-
-		Config.apply_preset(preset_name)
-
-	new_preset_dialog.visible = false
-
-func _populate_preset_button():
-	var built_in_keys = Config.PRESET_DEFAULTS.PRESETS.keys()
-	preset_button.clear()
-	# Custom presets first
-	for p_name in Config.PRESETS.keys():
-		if not built_in_keys.has(p_name):
-			preset_button.add_item(p_name)
-	# Built-in presets after
-	for p_name in Config.PRESETS.keys():
-		if built_in_keys.has(p_name):
-			preset_button.add_item(p_name)
-
-func _on_preset_selected(index: int):
-	var preset_name = preset_button.get_item_text(index).trim_suffix("*")
-	Config.apply_preset(preset_name)
 
 func _sync_ui_to_config():
 	_syncing_ui = true
@@ -999,91 +897,6 @@ func _sync_ui_to_config():
 	_syncing_ui = false
 
 
-func _on_preset_applied():
-	_sync_ui_to_config()
-	_update_preset_button_text()
-
-func _on_preset_restore_pressed():
-	var preset_name = Config.current_preset.trim_suffix("*")
-	Config.restore_preset(preset_name)
-	_on_set_pos_pressed(false)
-
-func _connect_preset_dirtiers():
-	var on_changed = func(_val = null):
-		if not _syncing_ui:
-			_update_preset_button_text()
-
-	# Connect sliders
-	for slider in [
-		iter_slider, zero_proximity_nav_slider, zoom_slider, zero_speed_slider,
-		view_distance_slider, day_duration_slider, day_time_slider, sunrise_slider,
-		sky_luminosity_slider, sun_luminosity_slider, self_illumination_slider,
-		fog_density_slider, hud_scale_slider, master_volume_slider, bg_music_slider,
-		drone_slider, brightness_slider, saturation_slider, albedo_slider,
-		emission_slider, metallic_slider, roughness_slider, surface_texture_slider,
-		multivalued_slider
-	]:
-		if slider and slider.has_signal("value_changed"):
-			slider.value_changed.connect(on_changed)
-
-	# Connect checkboxes
-	for cb in [
-		curves_checkbox, critical_checkbox, flow_checkbox, hud_complex_checkbox,
-		hud_navigation_checkbox, hud_zeros_checkbox, rvm_checkbox,
-		hud_monitor_fps_checkbox, hud_monitor_chunks_checkbox, shadows_checkbox,
-		auto_walk_checkbox, freeze_time_checkbox
-	]:
-		if cb and cb.has_signal("toggled"):
-			cb.toggled.connect(on_changed)
-
-	# Connect buttons/option buttons
-	for ob in [func_button, height_button, terrain_detail_button, aa_button, color_scheme_button]:
-		if ob and ob.has_signal("item_selected"):
-			ob.item_selected.connect(on_changed)
-
-	# Connect line edits
-	for le in [speed_input, camera_height_input, height_a_input, height_eps_input]:
-		if le and le.has_signal("text_submitted"):
-			le.text_submitted.connect(on_changed)
-
-func _update_preset_button_text():
-	var preset_name = Config.current_preset.trim_suffix("*")
-	var is_dirty = Config.is_preset_dirty()
-
-	# Update current_preset to match computed state
-	Config.current_preset = preset_name + "*" if is_dirty else preset_name
-
-	# Try to select the right item, then set text
-	for i in range(preset_button.item_count):
-		var item_clean_name = preset_button.get_item_text(i).trim_suffix("*")
-		if item_clean_name == preset_name:
-			preset_button.select(i)
-			break
-
-	# Update all items' texts based on their dirtiness
-	for i in range(preset_button.item_count):
-		var item_clean_name = preset_button.get_item_text(i).trim_suffix("*")
-		var item_dirty = Config.is_preset_dirty_by_name(item_clean_name)
-		if item_dirty:
-			preset_button.set_item_text(i, item_clean_name + "*")
-		else:
-			preset_button.set_item_text(i, item_clean_name)
-
-	# Force OptionButton to update its displayed text by re-selecting the index
-	var selected_idx = preset_button.selected
-	if selected_idx != -1:
-		preset_button.select(-1)
-		preset_button.select(selected_idx)
-
-	# Save/Update button state
-	preset_update_button.disabled = not is_dirty
-	preset_restore_button.disabled = not is_dirty
-
-	# Default & Mysterious are read-only
-	if preset_name in ["Default", "Mysterious"]:
-		preset_delete_button.disabled = true
-	else:
-		preset_delete_button.disabled = false
 
 
 func _on_quit_pressed():
