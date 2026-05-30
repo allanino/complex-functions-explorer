@@ -11,13 +11,13 @@ config_version=5
 [application]
 
 config/name="First Person Exploration"
-run/main_scene="res://scenes/main.tscn"
+run/main_scene="res://core/main.tscn"
 config/features=PackedStringArray("4.6", "Forward Plus")
 run/max_fps=60
 
 [autoload]
 
-Config="*res://scripts/config_manager.gd"
+Config="*res://core/config_manager.gd"
 
 [display]
 

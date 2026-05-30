@@ -1,6 +1,6 @@
 extends GutTest
 
-const ConfigManager = preload("res://scripts/config_manager.gd")
+const ConfigManager = preload("res://core/config_manager.gd")
 var config_manager
 
 func before_each():
