@@ -88,6 +88,8 @@ var portal_flash: ColorRect
 @onready var morph_slider = %MenuOverlay/%MorphSliderContainer
 
 @onready var preset_controller = %PresetController
+@onready var new_preset_dialog = %MenuOverlay/%NewPresetDialog
+@onready var delete_preset_dialog = %MenuOverlay/%DeletePresetDialog
 @onready var apply_button = %MenuOverlay/%ApplyButton
 @onready var close_button = %MenuOverlay/%CloseButton
 @onready var quit_button = %MenuOverlay/%QuitButton
@@ -1218,7 +1220,12 @@ func _rescale_menu(_scale: float):
 		return
 	main_menu_panel.set_meta("last_applied_menu_scale", _scale)
 
-	var stack = [main_menu_panel]
+	var stack = []
+	if main_menu_panel: stack.push_back(main_menu_panel)
+	if new_preset_dialog: stack.push_back(new_preset_dialog)
+	if delete_preset_dialog: stack.push_back(delete_preset_dialog)
+	if quit_dialog: stack.push_back(quit_dialog)
+	
 	while stack.size() > 0:
 		var node = stack.pop_back()
 		
