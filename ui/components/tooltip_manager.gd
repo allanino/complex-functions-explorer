@@ -23,6 +23,7 @@ const DESCRIPTIONS = {
 	"Color Scheme": "Select the color mapping for the complex plane of the target function.",
 	"View Distance": "Number of terrain chunks loaded around the player.",
 	"Level Curves": "Overlay contour lines for integer values of Re(f) (black) and Im(f) (white).",
+	"Position marker": "Enable or disable the player's ground projection marker.",
 	"Critical Stripe": "Visual guide indicating the 0 < Re < 1 region where non-trivial zeros reside.",
 	"Freeze time": "Choose between a dynamic day/night cycle or a fixed time of day. Shortcut: CTRL + G (Golden Hour) / CTRL + N (Freeze / Unfreeze time)",
 	"Day Duration": "Set the real-time duration for a full 24-hour mathematical day cycle.",

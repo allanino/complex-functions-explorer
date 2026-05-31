@@ -125,6 +125,7 @@ const PRESET_KEYS = [
 	"show_critical_stripe",
 	"view_distance",
 	"show_flow",
+	"show_position_marker",
 	"color_scheme",
 	"freeze_time",
 	"day_duration",
@@ -199,6 +200,7 @@ var show_curves: bool = true
 var show_critical_stripe: bool = true
 var view_distance: int = 7
 var show_flow: bool = false
+var show_position_marker: bool = true
 var color_scheme: int = 0
 var freeze_time: bool = false
 var day_duration: float = 60.0 # Seconds for a full cycle
@@ -360,6 +362,7 @@ func save_settings():
 	config.set_value("rendering", "show_critical_stripe", show_critical_stripe)
 	config.set_value("rendering", "view_distance", view_distance)
 	config.set_value("rendering", "show_flow", show_flow)
+	config.set_value("rendering", "show_position_marker", show_position_marker)
 	config.set_value("rendering", "color_scheme", color_scheme)
 	config.set_value("rendering", "freeze_time", freeze_time)
 	config.set_value("rendering", "day_duration", day_duration)
@@ -431,6 +434,7 @@ func load_settings():
 	show_critical_stripe = config.get_value("rendering", "show_critical_stripe", show_critical_stripe)
 	view_distance = config.get_value("rendering", "view_distance", view_distance)
 	show_flow = config.get_value("rendering", "show_flow", show_flow)
+	show_position_marker = config.get_value("rendering", "show_position_marker", show_position_marker)
 	color_scheme = config.get_value("rendering", "color_scheme", color_scheme)
 	freeze_time = config.get_value("rendering", "freeze_time", freeze_time)
 	day_duration = config.get_value("rendering", "day_duration", day_duration)

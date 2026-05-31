@@ -20,6 +20,7 @@ uniform int color_scheme = 0;
 uniform bool show_curves = true;
 uniform bool show_critical_stripe = true;
 uniform bool show_flow = false;
+uniform bool show_position_marker = true;
 
 uniform float brightness : hint_range(0.0, 2.0) = 1.0;
 uniform float saturation : hint_range(0.3, 1.0) = 0.85;
@@ -630,7 +631,7 @@ void fragment() {
 
 
         // Player Ground Marker (Cross with Central Dot)
-        {
+        if (show_position_marker) {
             vec2 player_xz = player_position_world.xz;
             vec2 pos_xz = world_pos.xz;
 

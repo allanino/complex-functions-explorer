@@ -52,6 +52,7 @@ var portal_flash: ColorRect
 @onready var curves_checkbox = %MenuOverlay/%CurvesCheckbox
 @onready var critical_checkbox = %MenuOverlay/%CriticalCheckbox
 @onready var flow_checkbox = %MenuOverlay/%FlowCheckbox
+@onready var position_marker_checkbox = %MenuOverlay/%PositionMarkerCheckbox
 @onready var freeze_time_checkbox = %MenuOverlay/%FreezeTimeCheckbox
 @onready var day_duration_slider = %MenuOverlay/%DayDurationSlider
 @onready var day_time_slider = %MenuOverlay/%DayTimeSlider
@@ -386,6 +387,7 @@ func _ready():
 	curves_checkbox.toggled.connect(_on_curves_toggled)
 	critical_checkbox.toggled.connect(_on_critical_toggled)
 	flow_checkbox.toggled.connect(_on_flow_toggled)
+	position_marker_checkbox.toggled.connect(_on_position_marker_toggled)
 	hud_complex_checkbox.toggled.connect(_on_hud_complex_toggled)
 	hud_navigation_checkbox.toggled.connect(_on_hud_navigation_toggled)
 	hud_zeros_checkbox.toggled.connect(_on_hud_zeros_toggled)
@@ -785,6 +787,7 @@ func _on_set_pos_pressed(_toggle_menu: bool = true):
 	Config.show_hud_monitor_fps = hud_monitor_fps_checkbox.button_pressed
 	Config.show_hud_monitor_chunks = hud_monitor_chunks_checkbox.button_pressed
 	Config.show_flow = flow_checkbox.button_pressed
+	Config.show_position_marker = position_marker_checkbox.button_pressed
 	Config.function_type = func_button.get_item_id(func_button.selected)
 	Config.height_type = height_button.selected
 
@@ -881,6 +884,7 @@ func _sync_ui_to_config():
 		auto_walk_checkbox.button_pressed = (player.auto_walk_state != 0)
 	
 	flow_checkbox.button_pressed = Config.show_flow
+	position_marker_checkbox.button_pressed = Config.show_position_marker
 
 	func_button.select(func_button.get_item_index(Config.function_type))
 	height_button.selected = Config.height_type
@@ -1164,6 +1168,9 @@ func _on_critical_toggled(pressed: bool):
 
 func _on_flow_toggled(pressed: bool):
 	Config.show_flow = pressed
+
+func _on_position_marker_toggled(pressed: bool):
+	Config.show_position_marker = pressed
 
 func _on_hud_complex_toggled(pressed: bool):
 	Config.show_hud_complex = pressed

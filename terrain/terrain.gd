@@ -61,6 +61,7 @@ func _process(delta):
 		"show_curves": Config.show_curves,
 		"show_critical_stripe": Config.show_critical_stripe,
 		"show_flow": Config.show_flow,
+		"show_position_marker": Config.show_position_marker,
 		"color_scheme": Config.color_scheme,
 		"function_type": Config.function_type,
 		"height_type": Config.height_type,
@@ -196,6 +197,7 @@ func _update_terrain_material_uniforms():
 	terrain_material.set_shader_parameter("show_curves", Config.show_curves)
 	terrain_material.set_shader_parameter("show_critical_stripe", Config.show_critical_stripe)
 	terrain_material.set_shader_parameter("show_flow", Config.show_flow)
+	terrain_material.set_shader_parameter("show_position_marker", Config.show_position_marker)
 	terrain_material.set_shader_parameter("function_type", Config.function_type)
 	terrain_material.set_shader_parameter("height_type", Config.height_type)
 	terrain_material.set_shader_parameter("height_a", Config.height_a)
