@@ -253,7 +253,7 @@ layout_mode = 2
 
 [node name="TitleLabel" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TitleHBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 22
 text = "Complex Functions Explorer"
 
 [node name="Spacer" type="Control" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TitleHBox"]
@@ -355,56 +355,48 @@ theme_override_constants/separation = 4
 [node name="FunctionTabButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/LeftSidebar" unique_id=101010105]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 15
 text = "FUNCTION"
 flat = true
 
 [node name="EnvironmentTabButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/LeftSidebar" unique_id=101010106]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 15
 text = "ENVIRONMENT"
 flat = true
 
 [node name="TerrainTabButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/LeftSidebar" unique_id=101010107]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 15
 text = "TERRAIN"
 flat = true
 
 [node name="VisualizationTabButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/LeftSidebar" unique_id=101010108]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 15
 text = "VISUALIZATION"
 flat = true
 
 [node name="GraphicsTabButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/LeftSidebar" unique_id=101010109]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 15
 text = "GRAPHICS"
 flat = true
 
 [node name="NavigationTabButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/LeftSidebar" unique_id=101010110]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 15
 text = "NAVIGATION"
 flat = true
 
 [node name="UiTabButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/LeftSidebar" unique_id=101010111]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 15
 text = "UI"
 flat = true
 
 [node name="AudioTabButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/LeftSidebar" unique_id=101010112]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 15
 text = "AUDIO"
 flat = true
 

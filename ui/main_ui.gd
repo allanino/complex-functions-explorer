@@ -404,9 +404,9 @@ func _ready():
 
 	active_tab_style = StyleBoxFlat.new()
 	active_tab_style.content_margin_left = 15.0
-	active_tab_style.content_margin_top = 8.0
+	active_tab_style.content_margin_top = 10.0
 	active_tab_style.content_margin_right = 10.0
-	active_tab_style.content_margin_bottom = 8.0
+	active_tab_style.content_margin_bottom = 10.0
 	active_tab_style.bg_color = Color(1, 1, 1, 0.05)
 	active_tab_style.border_width_left = 4
 	active_tab_style.border_width_top = 0
@@ -416,23 +416,23 @@ func _ready():
 
 	inactive_tab_style = StyleBoxFlat.new()
 	inactive_tab_style.content_margin_left = 19.0
-	inactive_tab_style.content_margin_top = 8.0
+	inactive_tab_style.content_margin_top = 10.0
 	inactive_tab_style.content_margin_right = 10.0
-	inactive_tab_style.content_margin_bottom = 8.0
+	inactive_tab_style.content_margin_bottom = 10.0
 	inactive_tab_style.bg_color = Color(0, 0, 0, 0)
 
 	hover_tab_style = StyleBoxFlat.new()
 	hover_tab_style.content_margin_left = 19.0
-	hover_tab_style.content_margin_top = 8.0
+	hover_tab_style.content_margin_top = 10.0
 	hover_tab_style.content_margin_right = 10.0
-	hover_tab_style.content_margin_bottom = 8.0
+	hover_tab_style.content_margin_bottom = 10.0
 	hover_tab_style.bg_color = Color(1, 1, 1, 0.03)
 
 	hover_active_tab_style = StyleBoxFlat.new()
 	hover_active_tab_style.content_margin_left = 15.0
-	hover_active_tab_style.content_margin_top = 8.0
+	hover_active_tab_style.content_margin_top = 10.0
 	hover_active_tab_style.content_margin_right = 10.0
-	hover_active_tab_style.content_margin_bottom = 8.0
+	hover_active_tab_style.content_margin_bottom = 10.0
 	hover_active_tab_style.bg_color = Color(1, 1, 1, 0.08) # Slightly brighter background on hover
 	hover_active_tab_style.border_width_left = 4
 	hover_active_tab_style.border_width_top = 0
@@ -445,7 +445,7 @@ func _ready():
 		var btn = tab_buttons[i]
 		if btn:
 			btn.flat = false
-			btn.add_theme_font_size_override("font_size", 17)
+			btn.add_theme_font_size_override("font_size", 18)
 			btn.add_theme_stylebox_override("hover", hover_tab_style)
 			btn.add_theme_stylebox_override("pressed", active_tab_style)
 			btn.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
@@ -557,7 +557,6 @@ func _ready():
 	roughness_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Roughness"))
 	surface_texture_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "SurfaceTexture"))
 	view_distance_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "View Distance"))
-
 
 
 	# Apply initial menu scale on startup
