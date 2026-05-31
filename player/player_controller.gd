@@ -63,8 +63,8 @@ func _ready():
 	re_label.font = math_font
 	re_label.font_size = 64
 	re_label.outline_size = 3
-	re_label.modulate = Color(0.15, 0.15, 0.15, 1.0)
-	re_label.outline_modulate = Color(0.15, 0.15, 0.15, 1.0)
+	re_label.modulate = Color(0.12, 0.12, 0.12, 1.0)
+	re_label.outline_modulate = Color(0.12, 0.12, 0.12, 1.0)
 	re_label.outline_render_priority = 0
 	re_label.top_level = true
 	re_label.visible = false
