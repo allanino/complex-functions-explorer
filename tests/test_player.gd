@@ -76,3 +76,53 @@ func test_detached_slider_esc_toggle():
 	player.velocity = Vector3(10, 0, 10)
 	player._physics_process(0.016)
 	assert_eq(player.velocity, Vector3.ZERO)
+
+func test_curve_labels_throttled_update():
+	# 1. Enable curve and label settings
+	var original_show_curves = Config.show_curves
+	var original_show_curves_labels = Config.show_curves_labels
+	var original_function_type = Config.function_type
+	Config.show_curves = true
+	Config.show_curves_labels = true
+	Config.function_type = Config.ComplexFunc.IDENTITY
+
+	var player = player_scene.instantiate()
+	add_child_autoqfree(player)
+	
+	# Set player position and orientation (facing -Z)
+	player.global_position = Vector3(0.0, 0.0, 0.0)
+	player.rotation = Vector3.ZERO
+	player._physics_process(0.016)
+	
+	# Verify labels start visible is false (until updated)
+	assert_false(player.re_label.visible)
+	assert_false(player.im_label.visible)
+	
+	# 2. Call _process once. Since _curve_label_update_timer is initialized to 0.1,
+	# it should immediately run the update.
+	player._process(0.016)
+	
+	# Since we are at origin and facing -Z under identity:
+	# Real part is x, Imaginary part is y.
+	# Marching along -Z means x remains 0, while z goes negative (imaginary part y goes positive).
+	# So we should find imaginary crossings (since y = -z/10 goes up) but no real crossings (since x = 0).
+	assert_true(player.im_label.visible)
+	assert_false(player.re_label.visible)
+	assert_eq(player._curve_label_update_timer, 0.0)
+	
+	# 3. Call _process again with small delta. It should not update the labels (timer goes up but doesn't reach threshold)
+	player.im_label.visible = false # Manually hide to verify it's not set to true
+	player._process(0.016)
+	assert_false(player.im_label.visible)
+	assert_eq(player._curve_label_update_timer, 0.016)
+	
+	# 4. Call _process with a delta large enough to cross the threshold
+	player._process(0.1)
+	assert_true(player.im_label.visible)
+	assert_eq(player._curve_label_update_timer, 0.0)
+
+	# Restore Config settings
+	Config.show_curves = original_show_curves
+	Config.show_curves_labels = original_show_curves_labels
+	Config.function_type = original_function_type
+

@@ -10,6 +10,8 @@ var rotation_x = 0.0
 var auto_walk_state = AutoWalkState.NONE
 var re_label: Label3D
 var im_label: Label3D
+var _curve_label_update_timer = 0.1
+const CURVE_LABEL_UPDATE_INTERVAL = 0.1
 
 var height_offset = 0.0
 var last_space_time = 0.0
@@ -57,6 +59,8 @@ func _ready():
 	re_label.modulate = Color(0.0, 0.0, 0.0, 1.0)
 	re_label.outline_render_priority = 0
 	re_label.outline_modulate = Color(1.0, 1.0, 1.0, 0.8) # Black for real curve
+	re_label.top_level = true
+	re_label.visible = false
 	add_child(re_label)
 
 	im_label = Label3D.new()
@@ -68,6 +72,8 @@ func _ready():
 	im_label.modulate = Color(1.0, 1.0, 1.0, 1.0)
 	im_label.outline_render_priority = 0
 	im_label.outline_modulate = Color(0.0, 0.0, 0.0, 0.8) # White for imaginary curve
+	im_label.top_level = true
+	im_label.visible = false
 	add_child(im_label)
 
 
@@ -473,50 +479,73 @@ func _process(_delta):
 
 
 	if Config.show_curves and Config.show_curves_labels:
-		# Find the closest real and imaginary integer curves in the direction we are facing
-		var cam_dir = -camera.global_transform.basis.z
-		# Raymarch or approximate
-		# For simplicity, since the labels are just visual indicators, we can place them
-		# a bit ahead of the player on the level curves.
-		# Since we can't easily find the intersection with the curve without raymarching the complex field,
-		# let's do a simple raymarch.
-		var step_size = 0.5
-		var max_steps = 50
-		var re_found = false
-		var im_found = false
+		_curve_label_update_timer += _delta
+		if _curve_label_update_timer >= CURVE_LABEL_UPDATE_INTERVAL:
+			_curve_label_update_timer = 0.0
+			
+			# Find the closest real and imaginary integer curves in the direction we are facing
+			var cam_dir = -camera.global_transform.basis.z
+			var step_size = 1.0
+			var max_steps = 25
+			var re_found = false
+			var im_found = false
 
-		var last_val = current_f
-		var p = global_position
+			var last_val = current_f
+			var last_p_x = global_position.x
+			var last_p_z = global_position.z
 
-		re_label.visible = false
-		im_label.visible = false
+			re_label.visible = false
+			im_label.visible = false
 
-		for i in range(1, max_steps):
-			p += cam_dir * step_size
-			var f_val = ComplexField.get_field(p.x, p.z)
-			var h = get_terrain_height(p.x, p.z, f_val)
-			p.y = h
+			for i in range(1, max_steps):
+				var dist = i * step_size
+				var p_x = global_position.x + cam_dir.x * dist
+				var p_z = global_position.z + cam_dir.z * dist
+				var f_val = ComplexField.get_field(p_x, p_z)
 
-			if not re_found:
-				if floor(last_val.x) != floor(f_val.x):
-					re_label.global_position = p + Vector3(0.0, 1.0, 0.0)
-					var nearest_int = round(f_val.x) if abs(f_val.x - round(f_val.x)) < abs(last_val.x - round(last_val.x)) else round(last_val.x)
-					re_label.text = str(int(nearest_int))
+				if not re_found:
+					if floor(last_val.x) != floor(f_val.x):
+						var target_int = floor(f_val.x) if f_val.x > last_val.x else ceil(f_val.x)
+						var denominator = f_val.x - last_val.x
+						var t = 0.5
+						if abs(denominator) > 0.0001:
+							t = (target_int - last_val.x) / denominator
+						t = clamp(t, 0.0, 1.0)
+						
+						var cross_x = lerp(last_p_x, p_x, t)
+						var cross_z = lerp(last_p_z, p_z, t)
+						var cross_f = lerp(last_val, f_val, t)
+						var h = get_terrain_height(cross_x, cross_z, cross_f)
+						
+						re_label.global_position = Vector3(cross_x, h + 1.0, cross_z)
+						re_label.text = str(int(target_int))
+						re_label.visible = true
+						re_found = true
 
-					re_label.visible = true
-					re_found = true
+				if not im_found:
+					if floor(last_val.y) != floor(f_val.y):
+						var target_int = floor(f_val.y) if f_val.y > last_val.y else ceil(f_val.y)
+						var denominator = f_val.y - last_val.y
+						var t = 0.5
+						if abs(denominator) > 0.0001:
+							t = (target_int - last_val.y) / denominator
+						t = clamp(t, 0.0, 1.0)
+						
+						var cross_x = lerp(last_p_x, p_x, t)
+						var cross_z = lerp(last_p_z, p_z, t)
+						var cross_f = lerp(last_val, f_val, t)
+						var h = get_terrain_height(cross_x, cross_z, cross_f)
+						
+						im_label.global_position = Vector3(cross_x, h + 1.0, cross_z)
+						im_label.text = str(int(target_int)) + "i"
+						im_label.visible = true
+						im_found = true
 
-			if not im_found:
-				if floor(last_val.y) != floor(f_val.y):
-					im_label.global_position = p + Vector3(0.0, 1.0, 0.0)
-					var nearest_int = round(f_val.y) if abs(f_val.y - round(f_val.y)) < abs(last_val.y - round(last_val.y)) else round(last_val.y)
-					im_label.text = str(int(nearest_int)) + "i"
-					im_label.visible = true
-					im_found = true
-
-			if re_found and im_found:
-				break
-			last_val = f_val
+				if re_found and im_found:
+					break
+				last_val = f_val
+				last_p_x = p_x
+				last_p_z = p_z
 	else:
 		if re_label:
 			re_label.visible = false
