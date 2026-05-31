@@ -51,16 +51,21 @@ func _ready():
 	current_f = ComplexField.get_field(global_position.x, global_position.z)
 	current_mag = current_f.length()
 
-
+	# Load the font file asset from your project directory
+	var math_font = load("res://assets/latin-modern-math.regular.otf")
+	
 	re_label = Label3D.new()
 	re_label.text = "Re"
 	re_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	re_label.no_depth_test = true
 	re_label.fixed_size = true
-	re_label.pixel_size = 0.005
-	re_label.modulate = Color(0.0, 0.0, 0.0, 1.0)
+	re_label.pixel_size = 0.0025
+	re_label.font = math_font
+	re_label.font_size = 64
+	re_label.outline_size = 3
+	re_label.modulate = Color(0.15, 0.15, 0.15, 1.0)
+	re_label.outline_modulate = Color(0.15, 0.15, 0.15, 1.0)
 	re_label.outline_render_priority = 0
-	re_label.outline_modulate = Color(1.0, 1.0, 1.0, 0.8) # Black for real curve
 	re_label.top_level = true
 	re_label.visible = false
 	add_child(re_label)
@@ -70,10 +75,13 @@ func _ready():
 	im_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	im_label.no_depth_test = true
 	im_label.fixed_size = true
-	im_label.pixel_size = 0.005
-	im_label.modulate = Color(1.0, 1.0, 1.0, 1.0)
+	im_label.pixel_size = 0.0025
+	im_label.font = math_font
+	im_label.font_size = 64
+	im_label.outline_size = 3
+	im_label.modulate = Color(0.9, 0.9, 0.9, 1.0)
+	im_label.outline_modulate = Color(0.9, 0.9, 0.9, 1.0)
 	im_label.outline_render_priority = 0
-	im_label.outline_modulate = Color(0.0, 0.0, 0.0, 0.8) # White for imaginary curve
 	im_label.top_level = true
 	im_label.visible = false
 	add_child(im_label)
@@ -550,7 +558,7 @@ func _process(_delta):
 							im_label.global_position = target_pos
 						_im_label_target_pos = target_pos
 						
-						im_label.text = str(int(target_int)) + "i"
+						im_label.text = str(int(target_int)) + "𝑖"
 						im_label.visible = true
 						im_found = true
 
