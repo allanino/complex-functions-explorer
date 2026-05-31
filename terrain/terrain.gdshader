@@ -18,6 +18,7 @@ uniform float chunk_size;
 
 uniform int color_scheme = 0;
 uniform bool show_curves = true;
+uniform bool show_curves_labels = false;
 uniform bool show_critical_stripe = true;
 uniform bool show_flow = false;
 uniform bool show_position_marker = true;
@@ -84,6 +85,83 @@ float sdLine(vec2 p, vec2 a, vec2 b) {
     vec2 pa = p - a, ba = b - a;
     float h = clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0);
     return length(pa - ba * h);
+}
+
+float sdDigit(vec2 p, int d) {
+    float res = 1000.0;
+    // 7 segment positions
+    vec2 p0 = vec2(-0.5, 1.0);
+    vec2 p1 = vec2(0.5, 1.0);
+    vec2 p2 = vec2(-0.5, 0.0);
+    vec2 p3 = vec2(0.5, 0.0);
+    vec2 p4 = vec2(-0.5, -1.0);
+    vec2 p5 = vec2(0.5, -1.0);
+
+    int s = 0;
+    if (d == 0) s = 119;
+    else if (d == 1) s = 36;
+    else if (d == 2) s = 93;
+    else if (d == 3) s = 109;
+    else if (d == 4) s = 46;
+    else if (d == 5) s = 107;
+    else if (d == 6) s = 123;
+    else if (d == 7) s = 37;
+    else if (d == 8) s = 127;
+    else if (d == 9) s = 111;
+    else if (d == -1) s = 8; // minus sign
+    else if (d == -2) s = 5; // 'i' character: segment 0+4=5? No, just a vertical line maybe, let's use small segment.
+
+    // Custom 'i' for imaginary numbers: small vertical line + dot
+    if (d == -2) {
+        res = min(res, sdLine(p, vec2(0.0, 0.0), vec2(0.0, -1.0)));
+        res = min(res, length(p - vec2(0.0, 0.5)) - 0.1);
+    } else {
+        if ((s & 1) != 0) res = min(res, sdLine(p, p0, p1));
+        if ((s & 2) != 0) res = min(res, sdLine(p, p0, p2));
+        if ((s & 4) != 0) res = min(res, sdLine(p, p1, p3));
+        if ((s & 8) != 0) res = min(res, sdLine(p, p2, p3));
+        if ((s & 16) != 0) res = min(res, sdLine(p, p2, p4));
+        if ((s & 32) != 0) res = min(res, sdLine(p, p3, p5));
+        if ((s & 64) != 0) res = min(res, sdLine(p, p4, p5));
+    }
+
+    return res;
+}
+
+float sdFloat(vec2 p, float val, bool is_imaginary) {
+    float res = 1000.0;
+    int v = int(abs(val));
+    bool is_neg = val < 0.0;
+
+    vec2 size = vec2(0.5, 1.0);
+    float spacing = 1.4;
+
+    int num_digits = 1;
+    if (v >= 10) num_digits = 2;
+    if (v >= 100) num_digits = 3;
+    if (v >= 1000) num_digits = 4;
+
+    int total_chars = num_digits + (is_neg ? 1 : 0) + (is_imaginary ? 1 : 0);
+    float start_x = float(total_chars - 1) * spacing * 0.5;
+
+    if (is_neg) {
+        res = min(res, sdDigit((p - vec2(-start_x, 0.0)) / size, -1));
+        start_x -= spacing;
+    }
+
+    for (int i = 0; i < num_digits; i++) {
+        int power = 1;
+        for(int j=0; j<num_digits - 1 - i; j++) power *= 10;
+        int d = (v / power) % 10;
+        res = min(res, sdDigit((p - vec2(-start_x, 0.0)) / size, d));
+        start_x -= spacing;
+    }
+
+    if (is_imaginary) {
+        res = min(res, sdDigit((p - vec2(-start_x, 0.0)) / size, -2));
+    }
+
+    return res;
 }
 
 float sdTriangle(vec2 p, vec2 p0, vec2 p1, vec2 p2)
@@ -369,6 +447,65 @@ void fragment() {
             base *= 1.0 + line_im * 0.3; 
         }
 
+        vec3 text_color = vec3(0.0);
+        float text_alpha = 0.0;
+
+        // Pre-compute derivatives outside of non-uniform control flow to comply with GLSL spec
+        float dFdx_fx = dFdx(f.x);
+        float dFdx_fy = dFdx(f.y);
+        float dFdy_fx = dFdy(f.x);
+        float dFdy_fy = dFdy(f.y);
+        float det = dFdx_fx * dFdy_fy - dFdy_fx * dFdx_fy;
+
+        if (show_curves && show_curves_labels && abs(det) > 1e-6) {
+            // Re labels
+            vec2 center_re = vec2(round(f.x), floor(f.y) + 0.5);
+            vec2 diff_re = f - center_re;
+
+            if (abs(diff_re.x) < 0.25 && abs(diff_re.y) < 0.25) {
+                vec2 d_screen = vec2(
+                    dFdy_fy * diff_re.x - dFdy_fx * diff_re.y,
+                   -dFdx_fy * diff_re.x + dFdx_fx * diff_re.y
+                ) / det;
+
+                    float text_size_pixels = 20.0;
+                    vec2 p_text = d_screen / text_size_pixels;
+
+                    float d_text = sdFloat(p_text, center_re.x, false);
+                    float w_text = fwidth(d_text);
+                    float alpha = 1.0 - smoothstep(0.0, clamp(w_text, 0.001, 0.05) + 0.05, d_text - 0.1);
+
+                    if (alpha > text_alpha) {
+                        text_alpha = alpha;
+                        text_color = vec3(0.05); // Dark text for Re curves
+                    }
+                }
+
+            // Im labels
+            vec2 center_im = vec2(floor(f.x) + 0.5, round(f.y));
+            vec2 diff_im = f - center_im;
+
+            if (abs(diff_im.x) < 0.25 && abs(diff_im.y) < 0.25) {
+                vec2 d_screen = vec2(
+                    dFdy_fy * diff_im.x - dFdy_fx * diff_im.y,
+                   -dFdx_fy * diff_im.x + dFdx_fx * diff_im.y
+                ) / det;
+
+                    float text_size_pixels = 20.0;
+                    vec2 p_text = d_screen / text_size_pixels;
+
+                    float d_text = sdFloat(p_text, center_im.y, true);
+                    float w_text = fwidth(d_text);
+                    float alpha = 1.0 - smoothstep(0.0, clamp(w_text, 0.001, 0.05) + 0.05, d_text - 0.1);
+
+                if (alpha > text_alpha) {
+                    text_alpha = alpha;
+                    text_color = vec3(0.9); // Light text for Im curves
+                }
+            }
+        }
+
+        base = mix(base, text_color, text_alpha);
 
         ALBEDO = base * albedo;
         vec3 final_emission = base * emission;

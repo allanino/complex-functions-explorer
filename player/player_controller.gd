@@ -8,13 +8,6 @@ enum AutoWalkState {NONE, MOVING_TO_LINE, WALKING}
 
 var rotation_x = 0.0
 var auto_walk_state = AutoWalkState.NONE
-var re_label: Label3D
-var im_label: Label3D
-var _curve_label_update_timer = 0.1
-const CURVE_LABEL_UPDATE_INTERVAL = 0.1
-var _re_label_target_pos: Vector3 = Vector3.ZERO
-var _im_label_target_pos: Vector3 = Vector3.ZERO
-
 var height_offset = 0.0
 var last_space_time = 0.0
 var space_held_time = 0.0
@@ -50,37 +43,6 @@ func _ready():
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	current_f = ComplexField.get_field(global_position.x, global_position.z)
 	current_mag = current_f.length()
-	
-	re_label = Label3D.new()
-	re_label.text = "Re"
-	re_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	re_label.no_depth_test = true
-	re_label.fixed_size = true
-	re_label.pixel_size = 0.0025
-	re_label.font_size = 36
-	re_label.outline_size = 2
-	re_label.modulate = Color(0.12, 0.12, 0.12, 1.0)
-	re_label.outline_modulate = Color(0.12, 0.12, 0.12, 1.0)
-	re_label.outline_render_priority = 0
-	re_label.top_level = true
-	re_label.visible = false
-	add_child(re_label)
-
-	im_label = Label3D.new()
-	im_label.text = "Im"
-	im_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	im_label.no_depth_test = true
-	im_label.fixed_size = true
-	im_label.pixel_size = 0.0025
-	im_label.font_size = 36
-	im_label.outline_size = 2
-	im_label.modulate = Color(0.9, 0.9, 0.9, 1.0)
-	im_label.outline_modulate = Color(0.9, 0.9, 0.9, 1.0)
-	im_label.outline_render_priority = 0
-	im_label.top_level = true
-	im_label.visible = false
-	add_child(im_label)
-
 
 	# demo_actions()
 
@@ -481,95 +443,3 @@ func _process(_delta):
 		last_valid_terrain_height = terrain_h
 
 	global_position.y = terrain_h + Config.camera_height + height_offset
-
-
-	if Config.show_curves and Config.show_curves_labels:
-		_curve_label_update_timer += _delta
-		if _curve_label_update_timer >= CURVE_LABEL_UPDATE_INTERVAL:
-			_curve_label_update_timer = 0.0
-			
-			# Find the closest real and imaginary integer curves in the direction we are facing
-			var cam_dir = - camera.global_transform.basis.z
-			var step_size = 1.0 * Config.effective_zoom
-			var max_steps = 30
-			var re_found = false
-			var im_found = false
-
-			var last_val = current_f
-			var last_p_x = global_position.x
-			var last_p_z = global_position.z
-
-			var re_was_visible = re_label.visible
-			var im_was_visible = im_label.visible
-
-			re_label.visible = false
-			im_label.visible = false
-
-			for i in range(1, max_steps):
-				var dist = i * step_size
-				var p_x = global_position.x + cam_dir.x * dist
-				var p_z = global_position.z + cam_dir.z * dist
-				var f_val = ComplexField.get_field(p_x, p_z)
-
-				if not re_found:
-					if floor(last_val.x) != floor(f_val.x):
-						var target_int = floor(f_val.x) if f_val.x > last_val.x else ceil(f_val.x)
-						var denominator = f_val.x - last_val.x
-						var t = 0.5
-						if abs(denominator) > 0.0001:
-							t = (target_int - last_val.x) / denominator
-						t = clamp(t, 0.0, 1.0)
-						
-						var cross_x = lerp(last_p_x, p_x, t)
-						var cross_z = lerp(last_p_z, p_z, t)
-						var cross_f = lerp(last_val, f_val, t)
-						var h = get_terrain_height(cross_x, cross_z, cross_f)
-						
-						var target_pos = Vector3(cross_x, h + 1.0, cross_z)
-						if not re_was_visible:
-							re_label.global_position = target_pos
-						_re_label_target_pos = target_pos
-						
-						re_label.text = str(int(target_int))
-						re_label.visible = true
-						re_found = true
-
-				if not im_found:
-					if floor(last_val.y) != floor(f_val.y):
-						var target_int = floor(f_val.y) if f_val.y > last_val.y else ceil(f_val.y)
-						var denominator = f_val.y - last_val.y
-						var t = 0.5
-						if abs(denominator) > 0.0001:
-							t = (target_int - last_val.y) / denominator
-						t = clamp(t, 0.0, 1.0)
-						
-						var cross_x = lerp(last_p_x, p_x, t)
-						var cross_z = lerp(last_p_z, p_z, t)
-						var cross_f = lerp(last_val, f_val, t)
-						var h = get_terrain_height(cross_x, cross_z, cross_f)
-						
-						var target_pos = Vector3(cross_x, h + 1.0, cross_z)
-						if not im_was_visible:
-							im_label.global_position = target_pos
-						_im_label_target_pos = target_pos
-						
-						im_label.text = str(int(target_int)) + "𝑖"
-						im_label.visible = true
-						im_found = true
-
-				if re_found and im_found:
-					break
-				last_val = f_val
-				last_p_x = p_x
-				last_p_z = p_z
-
-		# Smoothly slide labels towards target positions
-		if re_label.visible:
-			re_label.global_position = re_label.global_position.lerp(_re_label_target_pos, _delta * 10.0)
-		if im_label.visible:
-			im_label.global_position = im_label.global_position.lerp(_im_label_target_pos, _delta * 10.0)
-	else:
-		if re_label:
-			re_label.visible = false
-		if im_label:
-			im_label.visible = false
