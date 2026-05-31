@@ -105,6 +105,21 @@ var portal_flash: ColorRect
 @onready var quit_confirm = %MenuOverlay/%QuitConfirm
 @onready var perf_label = %MenuOverlay/%PerfProtectionLabel
 
+@onready var func_tab_button = %MenuOverlay/%FunctionTabButton
+@onready var env_tab_button = %MenuOverlay/%EnvironmentTabButton
+@onready var terrain_tab_button = %MenuOverlay/%TerrainTabButton
+@onready var visualization_tab_button = %MenuOverlay/%VisualizationTabButton
+@onready var graphics_tab_button = %MenuOverlay/%GraphicsTabButton
+@onready var navigation_tab_button = %MenuOverlay/%NavigationTabButton
+@onready var ui_tab_button = %MenuOverlay/%UiTabButton
+@onready var audio_tab_button = %MenuOverlay/%AudioTabButton
+
+var tab_buttons: Array = []
+var active_tab_style: StyleBoxFlat
+var inactive_tab_style: StyleBoxFlat
+var hover_tab_style: StyleBoxFlat
+var hover_active_tab_style: StyleBoxFlat
+
 @onready var tooltip_manager = %TooltipManager
 
 var current_scale = 2.0
@@ -376,6 +391,70 @@ func _ready():
 	portal_flash.visible = false
 	$Control.add_child(portal_flash)
 
+	tab_buttons = [
+		func_tab_button,
+		env_tab_button,
+		terrain_tab_button,
+		visualization_tab_button,
+		graphics_tab_button,
+		navigation_tab_button,
+		ui_tab_button,
+		audio_tab_button
+	]
+
+	active_tab_style = StyleBoxFlat.new()
+	active_tab_style.content_margin_left = 15.0
+	active_tab_style.content_margin_top = 8.0
+	active_tab_style.content_margin_right = 10.0
+	active_tab_style.content_margin_bottom = 8.0
+	active_tab_style.bg_color = Color(1, 1, 1, 0.05)
+	active_tab_style.border_width_left = 4
+	active_tab_style.border_width_top = 0
+	active_tab_style.border_width_right = 0
+	active_tab_style.border_width_bottom = 0
+	active_tab_style.border_color = Color(0.8, 0.2, 0.2, 1.0) # Red accent
+
+	inactive_tab_style = StyleBoxFlat.new()
+	inactive_tab_style.content_margin_left = 19.0
+	inactive_tab_style.content_margin_top = 8.0
+	inactive_tab_style.content_margin_right = 10.0
+	inactive_tab_style.content_margin_bottom = 8.0
+	inactive_tab_style.bg_color = Color(0, 0, 0, 0)
+
+	hover_tab_style = StyleBoxFlat.new()
+	hover_tab_style.content_margin_left = 19.0
+	hover_tab_style.content_margin_top = 8.0
+	hover_tab_style.content_margin_right = 10.0
+	hover_tab_style.content_margin_bottom = 8.0
+	hover_tab_style.bg_color = Color(1, 1, 1, 0.03)
+
+	hover_active_tab_style = StyleBoxFlat.new()
+	hover_active_tab_style.content_margin_left = 15.0
+	hover_active_tab_style.content_margin_top = 8.0
+	hover_active_tab_style.content_margin_right = 10.0
+	hover_active_tab_style.content_margin_bottom = 8.0
+	hover_active_tab_style.bg_color = Color(1, 1, 1, 0.08) # Slightly brighter background on hover
+	hover_active_tab_style.border_width_left = 4
+	hover_active_tab_style.border_width_top = 0
+	hover_active_tab_style.border_width_right = 0
+	hover_active_tab_style.border_width_bottom = 0
+	hover_active_tab_style.border_color = Color(0.8, 0.2, 0.2, 1.0)
+
+
+	for i in range(tab_buttons.size()):
+		var btn = tab_buttons[i]
+		if btn:
+			btn.flat = false
+			btn.add_theme_font_size_override("font_size", 17)
+			btn.add_theme_stylebox_override("hover", hover_tab_style)
+			btn.add_theme_stylebox_override("pressed", active_tab_style)
+			btn.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+			btn.alignment = HorizontalAlignment.HORIZONTAL_ALIGNMENT_LEFT
+			btn.pressed.connect(func(): _on_tab_button_pressed(i))
+
+	tab_container.tab_changed.connect(func(_idx): _update_tab_buttons_styling())
+	_update_tab_buttons_styling()
+
 
 	hud_columns.offset_top = -1000
 	speed_input.text_changed.connect(func(_t): _speed_modified = true)
@@ -480,45 +559,6 @@ func _ready():
 	view_distance_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "View Distance"))
 
 
-	# Adjust HUD tab component widths to be exactly 180 wide (and labels to expand)
-	var hud_checkboxes = [
-		hud_complex_checkbox,
-		hud_navigation_checkbox,
-		hud_zeros_checkbox,
-		rvm_checkbox,
-		hud_monitor_fps_checkbox,
-		hud_monitor_chunks_checkbox
-	]
-	for cb in hud_checkboxes:
-		if cb:
-			var label = cb.get_node("Label")
-			var ctrl = cb.get_node("Control")
-			var checkbox_btn = cb.get_node("Control/CheckBox")
-			if label:
-				label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			if ctrl:
-				ctrl.size_flags_horizontal = 0
-				ctrl.custom_minimum_size = Vector2(664, 0)
-			if checkbox_btn:
-				checkbox_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-
-	if menu_scale_slider:
-		var label = menu_scale_slider.get_node("Label")
-		var slider_btn = menu_scale_slider.get_node("Slider")
-		if label:
-			label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		if slider_btn:
-			slider_btn.size_flags_horizontal = 0
-			slider_btn.custom_minimum_size = Vector2(580, 20)
-
-	if hud_scale_slider:
-		var label = hud_scale_slider.get_node("Label")
-		var slider_btn = hud_scale_slider.get_node("Slider")
-		if label:
-			label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		if slider_btn:
-			slider_btn.size_flags_horizontal = 0
-			slider_btn.custom_minimum_size = Vector2(580, 20)
 
 	# Apply initial menu scale on startup
 	if main_menu_panel:
@@ -1394,3 +1434,28 @@ func _rescale_menu(_scale: float):
 		for child in node.get_children():
 			if child is Control:
 				stack.push_back(child)
+
+
+func _on_tab_button_pressed(index: int):
+	tab_container.current_tab = index
+	_update_tab_buttons_styling()
+
+func _update_tab_buttons_styling():
+	if tab_buttons.is_empty(): return
+	for i in range(tab_buttons.size()):
+		var btn = tab_buttons[i]
+		if not btn: continue
+		if i == tab_container.current_tab:
+			btn.add_theme_stylebox_override("normal", active_tab_style)
+			btn.add_theme_stylebox_override("hover", hover_active_tab_style)
+			btn.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0))
+			btn.add_theme_color_override("font_hover_color", Color(1.0, 1.0, 1.0))
+			btn.add_theme_color_override("font_pressed_color", Color(1.0, 1.0, 1.0))
+			btn.add_theme_color_override("font_focus_color", Color(1.0, 1.0, 1.0))
+		else:
+			btn.add_theme_stylebox_override("normal", inactive_tab_style)
+			btn.add_theme_stylebox_override("hover", hover_tab_style)
+			btn.add_theme_color_override("font_color", Color(0.65, 0.65, 0.65))
+			btn.add_theme_color_override("font_hover_color", Color(0.85, 0.85, 0.85))
+			btn.add_theme_color_override("font_pressed_color", Color(0.65, 0.65, 0.65))
+			btn.add_theme_color_override("font_focus_color", Color(0.65, 0.65, 0.65))
