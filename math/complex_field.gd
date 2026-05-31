@@ -299,15 +299,8 @@ static func multivalued_log(x: float, y: float, branch: int = -99999, use_negati
 # Dispatchers
 #-------------------------------------------------------------------------
 
-static func get_field(world_x: float, world_z: float) -> Vector2:
-	if Config.performance_protection_active:
-		return Vector2.ZERO
-
-	var zoom: float = 1.0 / Config.effective_zoom
-	var x: float = world_x * 0.1 * zoom
-	var y: float = - world_z * 0.1 * zoom
-
-	match Config.function_type:
+static func get_field_at(x: float, y: float, function_type: int) -> Vector2:
+	match function_type:
 		Config.ComplexFunc.ZETA: return zeta(x, y)
 		Config.ComplexFunc.ZETA_REFLECTION: return zeta_continuation(x, y)
 		Config.ComplexFunc.DIRICHLET_ETA: return dirichlet_eta(x, y, Config.iterations)
@@ -328,8 +321,19 @@ static func get_field(world_x: float, world_z: float) -> Vector2:
 		Config.ComplexFunc.MULTIVALUED_LOG: return multivalued_log(x, y, -99999, true)
 		Config.ComplexFunc.MULTIVALUED_ASIN: return multivalued_asin(x, y)
 		Config.ComplexFunc.MULTIVALUED_ACOS: return multivalued_acos(x, y)
-
 	return Vector2.ZERO
+
+static func get_field(world_x: float, world_z: float) -> Vector2:
+	if Config.performance_protection_active:
+		return Vector2.ZERO
+
+	var zoom: float = 1.0 / Config.effective_zoom
+	var x: float = world_x * 0.1 * zoom
+	var y: float = - world_z * 0.1 * zoom
+
+	var w: Vector2 = get_field_at(x, y, Config.input_function_type)
+
+	return get_field_at(w.x, w.y, Config.function_type)
 
 static func get_height_from_field(f: Vector2) -> float:
 	if not is_finite(f.x) or not is_finite(f.y): return 0.0

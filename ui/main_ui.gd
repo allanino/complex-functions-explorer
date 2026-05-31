@@ -24,6 +24,7 @@ var portal_flash: ColorRect
 @onready var main_menu_panel = %MenuOverlay.get_node("CenterContainer/MainMenuPanel")
 @onready var tab_container = %MenuOverlay/%TabContainer
 @onready var func_button = %MenuOverlay/%FuncContainer.get_option_button()
+@onready var input_button = %MenuOverlay/%InputContainer.get_option_button()
 @onready var height_button = %MenuOverlay/%HeightContainer.get_option_button()
 @onready var height_a_container = %MenuOverlay/%HeightAContainer
 @onready var height_a_input = %MenuOverlay/%HeightAContainer.get_line_edit()
@@ -402,6 +403,7 @@ func _ready():
 	quit_save_and_quit.pressed.connect(_on_quit_save_and_quit_pressed)
 	quit_confirm.pressed.connect(_on_quit_confirm_pressed)
 	func_button.item_selected.connect(_on_func_item_selected)
+	input_button.item_selected.connect(_on_input_item_selected)
 	height_button.item_selected.connect(_on_height_selected)
 
 	_init_slider_bindings()
@@ -416,14 +418,8 @@ func _ready():
 	get_viewport().size_changed.connect(_update_hud_layout)
 
 
-	func_button.clear()
-	var sorted_keys = Config.FUNCTIONS.keys()
-	sorted_keys.sort()
-	for f_key in sorted_keys:
-		var f_data = Config.FUNCTIONS.get(f_key, {})
-		if f_data.get("hidden", false):
-			continue
-		func_button.add_item(f_data.get("name", "Unknown"), f_key)
+	_populate_function_dropdown(func_button, false)
+	_populate_function_dropdown(input_button, true)
 
 	height_button.clear()
 	height_button.add_item("Absolute: Abs(f)")
@@ -649,8 +645,26 @@ func toggle_menu(applied: bool = false):
 
 			apply_aa()
 
+func _populate_function_dropdown(button: OptionButton, exclude_multivalued: bool):
+	button.clear()
+	var sorted_keys = Config.FUNCTIONS.keys()
+	sorted_keys.sort()
+	for f_key in sorted_keys:
+		var f_data = Config.FUNCTIONS.get(f_key, {})
+		if f_data.get("hidden", false):
+			continue
+		if exclude_multivalued and f_data.get("is_multivalued", false):
+			continue
+		button.add_item(f_data.get("name", "Unknown"), f_key)
+
 func _on_func_item_selected(index):
 	_on_func_selected(func_button.get_item_id(index))
+
+func _on_input_item_selected(index: int):
+	_on_input_selected(input_button.get_item_id(index))
+
+func _on_input_selected(f_type: int):
+	Config.input_function_type = f_type
 
 func _on_func_selected(f_type: int):
 	Config.function_type = f_type
@@ -786,6 +800,7 @@ func _on_set_pos_pressed(_toggle_menu: bool = true):
 	Config.show_hud_monitor_chunks = hud_monitor_chunks_checkbox.button_pressed
 	Config.show_flow = flow_checkbox.button_pressed
 	Config.function_type = func_button.get_item_id(func_button.selected)
+	Config.input_function_type = input_button.get_item_id(input_button.selected)
 	Config.height_type = height_button.selected
 
 	apply_aa()
@@ -883,8 +898,10 @@ func _sync_ui_to_config():
 	flow_checkbox.button_pressed = Config.show_flow
 
 	func_button.select(func_button.get_item_index(Config.function_type))
+	input_button.select(input_button.get_item_index(Config.input_function_type))
 	height_button.selected = Config.height_type
 	_on_func_selected(Config.function_type)
+	_on_input_selected(Config.input_function_type)
 	_on_height_selected(Config.height_type)
 
 	for key in Config.PRESET_KEYS:

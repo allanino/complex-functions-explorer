@@ -196,6 +196,7 @@ func _update_terrain_material_uniforms():
 	terrain_material.set_shader_parameter("show_critical_stripe", Config.show_critical_stripe)
 	terrain_material.set_shader_parameter("show_flow", Config.show_flow)
 	terrain_material.set_shader_parameter("function_type", Config.function_type)
+	terrain_material.set_shader_parameter("input_function_type", Config.input_function_type)
 	terrain_material.set_shader_parameter("height_type", Config.height_type)
 	terrain_material.set_shader_parameter("height_a", Config.height_a)
 	terrain_material.set_shader_parameter("height_epsilon", Config.height_epsilon)

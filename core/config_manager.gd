@@ -180,6 +180,7 @@ var function_type: int = ComplexFunc.ZETA:
 		elif function.has("iters_range"):
 			iterations = int(function["iters_range"][3])
 var function: Dictionary = FUNCTIONS[ComplexFunc.ZETA]
+var input_function_type: int = ComplexFunc.IDENTITY
 
 var height_type: int = 0
 var height_a: float = 3.0
@@ -344,6 +345,7 @@ func save_settings():
 	config.set_value("field", "iterations", iterations)
 	config.set_value("field", "function_iterations", function_iterations)
 	config.set_value("field", "function_type", int(function_type))
+	config.set_value("field", "input_function_type", int(input_function_type))
 	config.set_value("field", "height_type", height_type)
 	config.set_value("field", "height_a", height_a)
 	config.set_value("field", "height_epsilon", height_epsilon)
@@ -408,6 +410,9 @@ func load_settings():
 
 	var ft_raw = config.get_value("field", "function_type", int(function_type))
 	function_type = ft_raw
+
+	var in_ft_raw = config.get_value("field", "input_function_type", int(input_function_type))
+	input_function_type = in_ft_raw
 
 	function_iterations = config.get_value("field", "function_iterations", {})
 	if function_iterations.has(function_type):

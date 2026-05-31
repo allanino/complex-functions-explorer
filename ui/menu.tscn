@@ -369,6 +369,11 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "Function"
 
+[node name="InputContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox" instance=ExtResource("DropdownScene")]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Input"
+
 [node name="HeightContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox" unique_id=2077499212 instance=ExtResource("DropdownScene")]
 unique_name_in_owner = true
 layout_mode = 2
