@@ -612,8 +612,8 @@ func toggle_menu(applied: bool = false):
 			var im_val = - player.global_position.z * 0.1 * scale_factor
 			if not is_finite(re_val): re_val = 0.5
 			if not is_finite(im_val): im_val = 0.0
-			re_input.text = "%.3f" % re_val
-			im_input.text = "%.3f" % im_val
+			re_input.text = _format_float_3(re_val)
+			im_input.text = _format_float_3(im_val)
 
 		preset_controller.update_preset_button_text()
 
@@ -732,6 +732,9 @@ func _format_time(total_seconds: float) -> String:
 	var minutes = (int(total_seconds) % 3600) / 60.0
 	var seconds = int(total_seconds) % 60
 	return "%02d:%02d:%02d" % [hours, minutes, seconds]
+
+func _format_float_3(val: float) -> String:
+	return "%.3f" % snappedf(val, 0.001)
 
 func _get_rvm_n(T: float) -> float:
 	if T <= 0.1:
@@ -983,7 +986,7 @@ func _process(_delta):
 				speed_input.text = formatted_speed
 
 		if not _camera_height_modified and not camera_height_input.has_focus():
-			var formatted_height = "%.3f" % Config.camera_height
+			var formatted_height = _format_float_3(Config.camera_height)
 			if camera_height_input.text != formatted_height:
 				camera_height_input.text = formatted_height
 
@@ -1014,7 +1017,7 @@ func _process(_delta):
 		# Show all visited zeros in the scrolling list
 		for i in range(total_count - 1, -1, -1):
 			zero = Config.visited_zeros[i]
-			last_zeros_text += "(%.3f, %.3f)\n" % [zero[0], zero[1]]
+			last_zeros_text += "(%s, %s)\n" % [_format_float_3(zero[0]), _format_float_3(zero[1])]
 
 		zeros_count_label.text = "Count: %d" % total_count
 
@@ -1044,8 +1047,13 @@ func _process(_delta):
 	material.set_shader_parameter("emission", Config.terrain_emission)
 
 	var scale_factor = 1.0 / Config.effective_zoom
-	domain_label.text = "Re = %.3f\nIm = %.3f" % [x * 0.1 * scale_factor, -z * 0.1 * scale_factor]
-	var target_text = "Re = %.3f\nIm = %.3f\n|f| = %.3f" % [f.x, f.y, f.length()]
+	var val_re = x * 0.1 * scale_factor
+	var val_im = -z * 0.1 * scale_factor
+	var val_fx = f.x
+	var val_fy = f.y
+
+	domain_label.text = "Re = %s\nIm = %s" % [_format_float_3(val_re), _format_float_3(val_im)]
+	var target_text = "Re = %s\nIm = %s\n|f| = %s" % [_format_float_3(val_fx), _format_float_3(val_fy), _format_float_3(f.length())]
 	if f_data.get("is_multivalued", false):
 		target_text += "\nBranch k = %d" % Config.current_branch
 	target_label.text = target_text
