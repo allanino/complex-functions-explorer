@@ -68,6 +68,8 @@ func _process(delta):
 		"zoom_factor": Config.zoom_factor,
 		"rational_num_coeffs": Config.rational_num_coeffs,
 		"rational_den_coeffs": Config.rational_den_coeffs,
+		"input_rational_num_coeffs": Config.input_rational_num_coeffs,
+		"input_rational_den_coeffs": Config.input_rational_den_coeffs,
 		"multivalued_n": Config.multivalued_n,
 		"self_illumination": Config.self_illumination,
 		"current_branch": Config.current_branch,
@@ -204,6 +206,8 @@ func _update_terrain_material_uniforms():
 	terrain_material.set_shader_parameter("zoom_factor", Config.effective_zoom)
 	terrain_material.set_shader_parameter("rational_num_coeffs", Config.rational_num_coeffs)
 	terrain_material.set_shader_parameter("rational_den_coeffs", Config.rational_den_coeffs)
+	terrain_material.set_shader_parameter("input_rational_num_coeffs", Config.input_rational_num_coeffs)
+	terrain_material.set_shader_parameter("input_rational_den_coeffs", Config.input_rational_den_coeffs)
 	terrain_material.set_shader_parameter("multivalued_n", Config.multivalued_n)
 	terrain_material.set_shader_parameter("self_illumination", Config.self_illumination)
 	terrain_material.set_shader_parameter("fog_density", Config.fog_density)

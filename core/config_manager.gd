@@ -188,6 +188,8 @@ var height_epsilon: float = 1.0
 var height_theta: float = 0.0
 var rational_num_coeffs: PackedVector2Array = PackedVector2Array([Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)])
 var rational_den_coeffs: PackedVector2Array = PackedVector2Array([Vector2(1, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)])
+var input_rational_num_coeffs: PackedVector2Array = PackedVector2Array([Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)])
+var input_rational_den_coeffs: PackedVector2Array = PackedVector2Array([Vector2(1, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)])
 var multivalued_n: int = 2
 var current_branch: int = 0 # Session state for Portals mode
 var zoom_factor: float = 1.0
@@ -352,6 +354,8 @@ func save_settings():
 	config.set_value("field", "height_theta", height_theta)
 	config.set_value("field", "rational_num_coeffs", rational_num_coeffs)
 	config.set_value("field", "rational_den_coeffs", rational_den_coeffs)
+	config.set_value("field", "input_rational_num_coeffs", input_rational_num_coeffs)
+	config.set_value("field", "input_rational_den_coeffs", input_rational_den_coeffs)
 	config.set_value("field", "multivalued_n", multivalued_n)
 	config.set_value("field", "zoom_factor", zoom_factor)
 	config.set_value("field", "zoom_damping", zoom_damping)
@@ -426,6 +430,8 @@ func load_settings():
 	height_theta = config.get_value("field", "height_theta", height_theta)
 	rational_num_coeffs = config.get_value("field", "rational_num_coeffs", rational_num_coeffs)
 	rational_den_coeffs = config.get_value("field", "rational_den_coeffs", rational_den_coeffs)
+	input_rational_num_coeffs = config.get_value("field", "input_rational_num_coeffs", input_rational_num_coeffs)
+	input_rational_den_coeffs = config.get_value("field", "input_rational_den_coeffs", input_rational_den_coeffs)
 	multivalued_n = config.get_value("field", "multivalued_n", multivalued_n)
 	zoom_factor = config.get_value("field", "zoom_factor", zoom_factor)
 	zoom_damping = config.get_value("field", "zoom_damping", zoom_damping)

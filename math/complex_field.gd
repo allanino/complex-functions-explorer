@@ -250,9 +250,9 @@ static func evaluate_poly(x: float, y: float, coeffs: PackedVector2Array) -> Vec
 		res = complex_mul(res, z) + coeffs[i]
 	return res
 
-static func get_rational(x: float, y: float) -> Vector2:
-	var num = evaluate_poly(x, y, Config.rational_num_coeffs)
-	var den = evaluate_poly(x, y, Config.rational_den_coeffs)
+static func get_rational(x: float, y: float, num_coeffs: PackedVector2Array, den_coeffs: PackedVector2Array) -> Vector2:
+	var num = evaluate_poly(x, y, num_coeffs)
+	var den = evaluate_poly(x, y, den_coeffs)
 	return complex_div(num, den)
 
 static func xi(x: float, y: float) -> Vector2:
@@ -299,7 +299,7 @@ static func multivalued_log(x: float, y: float, branch: int = -99999, use_negati
 # Dispatchers
 #-------------------------------------------------------------------------
 
-static func get_field_at(x: float, y: float, function_type: int) -> Vector2:
+static func get_field_at(x: float, y: float, function_type: int, is_input: bool) -> Vector2:
 	match function_type:
 		Config.ComplexFunc.ZETA: return zeta(x, y)
 		Config.ComplexFunc.ZETA_REFLECTION: return zeta_continuation(x, y)
@@ -316,7 +316,11 @@ static func get_field_at(x: float, y: float, function_type: int) -> Vector2:
 		Config.ComplexFunc.EXP: return complex_exp(x, y)
 		Config.ComplexFunc.LOG: return complex_log(x, y)
 		Config.ComplexFunc.IDENTITY: return Vector2(x, y)
-		Config.ComplexFunc.RATIONAL: return get_rational(x, y)
+		Config.ComplexFunc.RATIONAL:
+			if is_input:
+				return get_rational(x, y, Config.input_rational_num_coeffs, Config.input_rational_den_coeffs)
+			else:
+				return get_rational(x, y, Config.rational_num_coeffs, Config.rational_den_coeffs)
 		Config.ComplexFunc.MULTIVALUED_Z_POW: return multivalued_z_pow_inv_n(x, y, Config.multivalued_n, -99999, true)
 		Config.ComplexFunc.MULTIVALUED_LOG: return multivalued_log(x, y, -99999, true)
 		Config.ComplexFunc.MULTIVALUED_ASIN: return multivalued_asin(x, y)
@@ -331,9 +335,9 @@ static func get_field(world_x: float, world_z: float) -> Vector2:
 	var x: float = world_x * 0.1 * zoom
 	var y: float = - world_z * 0.1 * zoom
 
-	var w: Vector2 = get_field_at(x, y, Config.input_function_type)
+	var w: Vector2 = get_field_at(x, y, Config.input_function_type, true)
 
-	return get_field_at(w.x, w.y, Config.function_type)
+	return get_field_at(w.x, w.y, Config.function_type, false)
 
 static func get_height_from_field(f: Vector2) -> float:
 	if not is_finite(f.x) or not is_finite(f.y): return 0.0

@@ -32,8 +32,10 @@ var portal_flash: ColorRect
 @onready var height_eps_input = %MenuOverlay/%HeightEpsContainer.get_line_edit()
 @onready var height_theta_slider = %MenuOverlay/%HeightThetaSlider
 @onready var iter_slider = %MenuOverlay/%IterSlider
-@onready var rational_container = %MenuOverlay/%RationalContainer
-@onready var rational_input = %MenuOverlay/%RationalContainer.get_line_edit()
+@onready var func_rational_container = %MenuOverlay/%FuncRationalContainer
+@onready var func_rational_input = %MenuOverlay/%FuncRationalContainer.get_line_edit()
+@onready var input_rational_container = %MenuOverlay/%InputRationalContainer
+@onready var input_rational_input = %MenuOverlay/%InputRationalContainer.get_line_edit()
 @onready var multivalued_slider = %MenuOverlay/%MultivaluedSlider
 @onready var branch_k_slider = %MenuOverlay/%BranchKSlider
 
@@ -382,7 +384,8 @@ func _ready():
 	im_input.text_submitted.connect(_on_im_text_submitted)
 	height_a_input.text_submitted.connect(_on_height_a_text_submitted)
 	height_eps_input.text_submitted.connect(_on_height_eps_text_submitted)
-	rational_input.text_submitted.connect(_on_rational_text_submitted)
+	func_rational_input.text_submitted.connect(_on_func_rational_text_submitted)
+	input_rational_input.text_submitted.connect(_on_input_rational_text_submitted)
 
 	curves_checkbox.toggled.connect(_on_curves_toggled)
 	critical_checkbox.toggled.connect(_on_critical_toggled)
@@ -665,6 +668,9 @@ func _on_input_item_selected(index: int):
 
 func _on_input_selected(f_type: int):
 	Config.input_function_type = f_type
+	var f_data = Config.FUNCTIONS.get(f_type, {})
+	var is_rational = f_data.get("is_rational", false)
+	input_rational_container.visible = is_rational
 
 func _on_func_selected(f_type: int):
 	Config.function_type = f_type
@@ -684,7 +690,7 @@ func _on_func_selected(f_type: int):
 		Config.iterations = Config.function_iterations.get(f_type, iters_range[3])
 		iter_slider.value = Config.iterations
 
-	rational_container.visible = is_rational
+	func_rational_container.visible = is_rational
 	multivalued_slider.visible = is_multivalued_n
 	iter_slider.visible = has_iters
 	critical_checkbox.visible = is_dirichlect
@@ -806,7 +812,7 @@ func _on_set_pos_pressed(_toggle_menu: bool = true):
 	apply_aa()
 
 	if Config.function_type == Config.ComplexFunc.RATIONAL:
-		var expr = rational_input.text.replace(" ", "")
+		var expr = func_rational_input.text.replace(" ", "")
 		if "/" in expr:
 			var parts = expr.split("/")
 			# We only strip outer parentheses if they enclose the whole numerator/denominator
@@ -822,6 +828,23 @@ func _on_set_pos_pressed(_toggle_menu: bool = true):
 		else:
 			Config.rational_num_coeffs = FormulaParser.parse_poly(expr)
 			Config.rational_den_coeffs = PackedVector2Array([Vector2(1, 0), Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO])
+
+	if Config.input_function_type == Config.ComplexFunc.RATIONAL:
+		var expr = input_rational_input.text.replace(" ", "")
+		if "/" in expr:
+			var parts = expr.split("/")
+			var num_str = parts[0]
+			if num_str.begins_with("(") and num_str.ends_with(")"):
+				num_str = num_str.substr(1, num_str.length() - 2)
+			var den_str = parts[1]
+			if den_str.begins_with("(") and den_str.ends_with(")"):
+				den_str = den_str.substr(1, den_str.length() - 2)
+
+			Config.input_rational_num_coeffs = FormulaParser.parse_poly(num_str)
+			Config.input_rational_den_coeffs = FormulaParser.parse_poly(den_str)
+		else:
+			Config.input_rational_num_coeffs = FormulaParser.parse_poly(expr)
+			Config.input_rational_den_coeffs = PackedVector2Array([Vector2(1, 0), Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO])
 
 	Config.save_settings()
 	_update_hud_layout()
@@ -1239,7 +1262,7 @@ func _on_height_eps_text_submitted(new_text: String):
 	if is_finite(h_eps):
 		Config.height_epsilon = h_eps
 
-func _on_rational_text_submitted(new_text: String):
+func _on_func_rational_text_submitted(new_text: String):
 	if Config.function_type == Config.ComplexFunc.RATIONAL:
 		var expr = new_text.replace(" ", "")
 		if "/" in expr:
@@ -1256,6 +1279,24 @@ func _on_rational_text_submitted(new_text: String):
 		else:
 			Config.rational_num_coeffs = FormulaParser.parse_poly(expr)
 			Config.rational_den_coeffs = PackedVector2Array([Vector2(1, 0), Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO])
+
+func _on_input_rational_text_submitted(new_text: String):
+	if Config.input_function_type == Config.ComplexFunc.RATIONAL:
+		var expr = new_text.replace(" ", "")
+		if "/" in expr:
+			var parts = expr.split("/")
+			var num_str = parts[0]
+			if num_str.begins_with("(") and num_str.ends_with(")"):
+				num_str = num_str.substr(1, num_str.length() - 2)
+			var den_str = parts[1]
+			if den_str.begins_with("(") and den_str.ends_with(")"):
+				den_str = den_str.substr(1, den_str.length() - 2)
+
+			Config.input_rational_num_coeffs = FormulaParser.parse_poly(num_str)
+			Config.input_rational_den_coeffs = FormulaParser.parse_poly(den_str)
+		else:
+			Config.input_rational_num_coeffs = FormulaParser.parse_poly(expr)
+			Config.input_rational_den_coeffs = PackedVector2Array([Vector2(1, 0), Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO])
 
 func play_portal_flash():
 	if not portal_flash:

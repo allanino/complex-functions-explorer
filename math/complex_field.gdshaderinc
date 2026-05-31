@@ -13,6 +13,8 @@ uniform bool is_multivalued = false;
 
 uniform vec2 rational_num_coeffs[10];
 uniform vec2 rational_den_coeffs[10];
+uniform vec2 input_rational_num_coeffs[10];
+uniform vec2 input_rational_den_coeffs[10];
 uniform int multivalued_n = 2;
 uniform int current_branch = 0;
 uniform float height_theta = 0.0;
@@ -791,9 +793,9 @@ vec2 evaluate_poly(float x, float y, vec2 coeffs[10]) {
     return res;
 }
 
-vec2 get_rational(float x, float y) {
-    vec2 num = evaluate_poly(x, y, rational_num_coeffs);
-    vec2 den = evaluate_poly(x, y, rational_den_coeffs);
+vec2 get_rational(float x, float y, vec2 num_coeffs[10], vec2 den_coeffs[10]) {
+    vec2 num = evaluate_poly(x, y, num_coeffs);
+    vec2 den = evaluate_poly(x, y, den_coeffs);
     return complex_div(num, den);
 }
 
@@ -817,9 +819,9 @@ ComplexFieldData evaluate_poly_with_derivatives(float x, float y, vec2 coeffs[10
     return res;
 }
 
-ComplexFieldData get_rational_with_derivatives(float x, float y) {
-    ComplexFieldData num = evaluate_poly_with_derivatives(x, y, rational_num_coeffs);
-    ComplexFieldData den = evaluate_poly_with_derivatives(x, y, rational_den_coeffs);
+ComplexFieldData get_rational_with_derivatives(float x, float y, vec2 num_coeffs[10], vec2 den_coeffs[10]) {
+    ComplexFieldData num = evaluate_poly_with_derivatives(x, y, num_coeffs);
+    ComplexFieldData den = evaluate_poly_with_derivatives(x, y, den_coeffs);
     ComplexFieldData res;
     res.value = complex_div(num.value, den.value);
     vec2 den_sqr = complex_mul(den.value, den.value);
@@ -952,7 +954,7 @@ ComplexFieldData multivalued_acos_with_derivatives(float x, float y, int branch_
 // Dispatchers
 //-------------------------------------------------------------------------
 
-ComplexFieldData evaluate_function_with_derivatives(float x, float y, int func_type, int iters, int b_offset) {
+ComplexFieldData evaluate_function_with_derivatives(float x, float y, int func_type, int iters, int b_offset, bool is_input) {
     if (func_type == 0) return zeta_with_derivatives(x, y, iters);
     if (func_type == 1) return zeta_continuation_with_derivatives(x, y, iters);
     if (func_type == 2) return dirichlet_eta_with_derivatives(x, y, iters);
@@ -968,7 +970,13 @@ ComplexFieldData evaluate_function_with_derivatives(float x, float y, int func_t
     if (func_type == 12) return complex_exp_with_derivatives(x, y);
     if (func_type == 13) return complex_log_with_derivatives(x, y);
     if (func_type == 14) return identity_with_derivatives(x, y);
-    if (func_type == 15) return get_rational_with_derivatives(x, y);
+    if (func_type == 15) {
+        if (is_input) {
+            return get_rational_with_derivatives(x, y, input_rational_num_coeffs, input_rational_den_coeffs);
+        } else {
+            return get_rational_with_derivatives(x, y, rational_num_coeffs, rational_den_coeffs);
+        }
+    }
     if (func_type == 16) return multivalued_z_pow_inv_n_with_derivatives(x, y, multivalued_n, b_offset, true);
     if (func_type == 17) return multivalued_log_with_derivatives(x, y, b_offset, true);
     if (func_type == 18) return multivalued_asin_with_derivatives(x, y, b_offset);
@@ -985,8 +993,8 @@ ComplexFieldData get_field_with_derivatives(float world_x, float world_z, int br
     float x = world_x * 0.1 * zoom;
     float y = -world_z * 0.1 * zoom;
 
-    ComplexFieldData input_fd = evaluate_function_with_derivatives(x, y, input_function_type, iterations, 0);
-    ComplexFieldData outer_fd = evaluate_function_with_derivatives(input_fd.value.x, input_fd.value.y, function_type, iterations, branch_offset);
+    ComplexFieldData input_fd = evaluate_function_with_derivatives(x, y, input_function_type, iterations, 0, true);
+    ComplexFieldData outer_fd = evaluate_function_with_derivatives(input_fd.value.x, input_fd.value.y, function_type, iterations, branch_offset, false);
 
     ComplexFieldData res;
     res.value = outer_fd.value;
