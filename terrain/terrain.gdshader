@@ -20,6 +20,7 @@ uniform int color_scheme = 0;
 uniform bool show_curves = true;
 uniform bool show_critical_stripe = true;
 uniform bool show_flow = false;
+uniform bool show_position_marker = true;
 
 uniform float brightness : hint_range(0.0, 2.0) = 1.0;
 uniform float saturation : hint_range(0.3, 1.0) = 0.85;
@@ -36,6 +37,8 @@ uniform float specular_intensity : hint_range(0.0, 1.0) = 0.1;
 
 uniform float self_illumination = 0.0;
 uniform float fog_density = 0.0;
+uniform vec3 player_position_world = vec3(0.0);
+
 
 
 // Helper function to convert HSV to RGB
@@ -624,6 +627,58 @@ void fragment() {
 
             vec3 warm_glow = vec3(1.0, 0.88, 0.72) * self_illumination * glow_factor * pulse * 5.0;
             final_emission += ALBEDO * warm_glow;
+        }
+
+
+        // Player Ground Marker (Small L-shaped coordinate axis indicator, with central dot and arrowheads)
+        if (show_position_marker) {
+            vec2 player_xz = player_position_world.xz;
+            vec2 pos_xz = world_pos.xz;
+
+            float scale = 0.2;
+
+            float length_arms = 0.6 * scale;
+            float thickness = 0.02 * scale;
+            float glow_thickness = 0.04 * scale;
+            float dot_radius = 0.07 * scale;
+            float arrow_len = 0.08 * scale;
+            float arrow_width = 0.04 * scale;
+
+            float d_line1 = sdLine(pos_xz, player_xz, player_xz + vec2(length_arms, 0.0));
+            float d_line2 = sdLine(pos_xz, player_xz, player_xz - vec2(0.0, length_arms));
+
+            float d_cross = min(d_line1, d_line2);
+            float d_dot = length(pos_xz - player_xz) - dot_radius;
+
+            // Arrowheads at the tips of the cross arms
+            vec2 tip_right = player_xz + vec2(length_arms, 0.0);
+            float d_arr_right = min(
+                sdLine(pos_xz, tip_right, tip_right - vec2(arrow_len, arrow_width)),
+                sdLine(pos_xz, tip_right, tip_right - vec2(arrow_len, -arrow_width))
+            );
+
+            vec2 tip_upward = player_xz - vec2(0.0, length_arms);
+            float d_arr_upward = min(
+                sdLine(pos_xz, tip_upward, tip_upward + vec2(-arrow_width, arrow_len)),
+                sdLine(pos_xz, tip_upward, tip_upward + vec2(arrow_width, arrow_len))
+            );
+
+            float d_arrows = min(d_arr_right , d_arr_upward);
+            float d_marker = min(min(d_cross, d_dot), d_arrows);
+
+            if (d_marker < glow_thickness) {
+                // Crisp core
+                float core = 1.0 - step(thickness, d_marker);
+                // Slight glow
+                float glow = (1.0 - smoothstep(thickness, glow_thickness, d_marker)) * 0.5;
+
+                vec3 marker_color = vec3(0.4);
+                float intensity = core + glow;
+
+                // Draw just above terrain means we just render it directly on the terrain surface.
+                ALBEDO = mix(ALBEDO, marker_color, clamp(intensity, 0.0, 1.0));
+                final_emission += marker_color * intensity * 2.0; // Glow emission
+            }
         }
 
         // Reinhard Tone Mapping to keep high emissions from blowing out to absolute white
