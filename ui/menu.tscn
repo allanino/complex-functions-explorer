@@ -369,6 +369,25 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "Function"
 
+[node name="FuncRationalContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox" unique_id=1078901725 instance=ExtResource("TextInputScene")]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Expression"
+input_text = "z^2 - 1"
+placeholder_text = "(z^2 + 1)/(z - 1)"
+
+[node name="InputContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox" instance=ExtResource("DropdownScene")]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Input"
+
+[node name="InputRationalContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox" instance=ExtResource("TextInputScene")]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Expression"
+input_text = "z^2 - 1"
+placeholder_text = "(z^2 + 1)/(z - 1)"
+
 [node name="HeightContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox" unique_id=2077499212 instance=ExtResource("DropdownScene")]
 unique_name_in_owner = true
 layout_mode = 2
@@ -407,13 +426,6 @@ step = 100.0
 value = 100.0
 value_text = "100"
 show_detach_button = true
-
-[node name="RationalContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox" unique_id=1078901725 instance=ExtResource("TextInputScene")]
-unique_name_in_owner = true
-layout_mode = 2
-text = "Expression"
-input_text = "z^2 - 1"
-placeholder_text = "(z^2 + 1)/(z - 1)"
 
 [node name="MultivaluedSlider" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox" unique_id=946400167 instance=ExtResource("1")]
 unique_name_in_owner = true

@@ -24,6 +24,7 @@ var portal_flash: ColorRect
 @onready var main_menu_panel = %MenuOverlay.get_node("CenterContainer/MainMenuPanel")
 @onready var tab_container = %MenuOverlay/%TabContainer
 @onready var func_button = %MenuOverlay/%FuncContainer.get_option_button()
+@onready var input_button = %MenuOverlay/%InputContainer.get_option_button()
 @onready var height_button = %MenuOverlay/%HeightContainer.get_option_button()
 @onready var height_a_container = %MenuOverlay/%HeightAContainer
 @onready var height_a_input = %MenuOverlay/%HeightAContainer.get_line_edit()
@@ -31,8 +32,10 @@ var portal_flash: ColorRect
 @onready var height_eps_input = %MenuOverlay/%HeightEpsContainer.get_line_edit()
 @onready var height_theta_slider = %MenuOverlay/%HeightThetaSlider
 @onready var iter_slider = %MenuOverlay/%IterSlider
-@onready var rational_container = %MenuOverlay/%RationalContainer
-@onready var rational_input = %MenuOverlay/%RationalContainer.get_line_edit()
+@onready var func_rational_container = %MenuOverlay/%FuncRationalContainer
+@onready var func_rational_input = %MenuOverlay/%FuncRationalContainer.get_line_edit()
+@onready var input_rational_container = %MenuOverlay/%InputRationalContainer
+@onready var input_rational_input = %MenuOverlay/%InputRationalContainer.get_line_edit()
 @onready var multivalued_slider = %MenuOverlay/%MultivaluedSlider
 @onready var branch_k_slider = %MenuOverlay/%BranchKSlider
 
@@ -383,7 +386,8 @@ func _ready():
 	im_input.text_submitted.connect(_on_im_text_submitted)
 	height_a_input.text_submitted.connect(_on_height_a_text_submitted)
 	height_eps_input.text_submitted.connect(_on_height_eps_text_submitted)
-	rational_input.text_submitted.connect(_on_rational_text_submitted)
+	func_rational_input.text_submitted.connect(_on_func_rational_text_submitted)
+	input_rational_input.text_submitted.connect(_on_input_rational_text_submitted)
 
 	curves_checkbox.toggled.connect(_on_curves_toggled)
 	curves_labels_checkbox.toggled.connect(_on_curves_labels_toggled)
@@ -406,6 +410,7 @@ func _ready():
 	quit_save_and_quit.pressed.connect(_on_quit_save_and_quit_pressed)
 	quit_confirm.pressed.connect(_on_quit_confirm_pressed)
 	func_button.item_selected.connect(_on_func_item_selected)
+	input_button.item_selected.connect(_on_input_item_selected)
 	height_button.item_selected.connect(_on_height_selected)
 
 	_init_slider_bindings()
@@ -420,14 +425,8 @@ func _ready():
 	get_viewport().size_changed.connect(_update_hud_layout)
 
 
-	func_button.clear()
-	var sorted_keys = Config.FUNCTIONS.keys()
-	sorted_keys.sort()
-	for f_key in sorted_keys:
-		var f_data = Config.FUNCTIONS.get(f_key, {})
-		if f_data.get("hidden", false):
-			continue
-		func_button.add_item(f_data.get("name", "Unknown"), f_key)
+	_populate_function_dropdown(func_button, false)
+	_populate_function_dropdown(input_button, true)
 
 	height_button.clear()
 	height_button.add_item("Absolute: Abs(f)")
@@ -654,8 +653,29 @@ func toggle_menu(applied: bool = false):
 
 			apply_aa()
 
+func _populate_function_dropdown(button: OptionButton, exclude_multivalued: bool):
+	button.clear()
+	var sorted_keys = Config.FUNCTIONS.keys()
+	sorted_keys.sort()
+	for f_key in sorted_keys:
+		var f_data = Config.FUNCTIONS.get(f_key, {})
+		if f_data.get("hidden", false):
+			continue
+		if exclude_multivalued and f_data.get("is_multivalued", false):
+			continue
+		button.add_item(f_data.get("name", "Unknown"), f_key)
+
 func _on_func_item_selected(index):
 	_on_func_selected(func_button.get_item_id(index))
+
+func _on_input_item_selected(index: int):
+	_on_input_selected(input_button.get_item_id(index))
+
+func _on_input_selected(f_type: int):
+	Config.input_function_type = f_type
+	var f_data = Config.FUNCTIONS.get(f_type, {})
+	var is_rational = f_data.get("is_rational", false)
+	input_rational_container.visible = is_rational
 
 func _on_func_selected(f_type: int):
 	Config.function_type = f_type
@@ -675,7 +695,7 @@ func _on_func_selected(f_type: int):
 		Config.iterations = Config.function_iterations.get(f_type, iters_range[3])
 		iter_slider.value = Config.iterations
 
-	rational_container.visible = is_rational
+	func_rational_container.visible = is_rational
 	multivalued_slider.visible = is_multivalued_n
 	iter_slider.visible = has_iters
 	critical_checkbox.visible = is_dirichlect
@@ -793,12 +813,13 @@ func _on_set_pos_pressed(_toggle_menu: bool = true):
 	Config.show_flow = flow_checkbox.button_pressed
 	Config.show_position_marker = position_marker_checkbox.button_pressed
 	Config.function_type = func_button.get_item_id(func_button.selected)
+	Config.input_function_type = input_button.get_item_id(input_button.selected)
 	Config.height_type = height_button.selected
 
 	apply_aa()
 
 	if Config.function_type == Config.ComplexFunc.RATIONAL:
-		var expr = rational_input.text.replace(" ", "")
+		var expr = func_rational_input.text.replace(" ", "")
 		if "/" in expr:
 			var parts = expr.split("/")
 			# We only strip outer parentheses if they enclose the whole numerator/denominator
@@ -814,6 +835,23 @@ func _on_set_pos_pressed(_toggle_menu: bool = true):
 		else:
 			Config.rational_num_coeffs = FormulaParser.parse_poly(expr)
 			Config.rational_den_coeffs = PackedVector2Array([Vector2(1, 0), Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO])
+
+	if Config.input_function_type == Config.ComplexFunc.RATIONAL:
+		var expr = input_rational_input.text.replace(" ", "")
+		if "/" in expr:
+			var parts = expr.split("/")
+			var num_str = parts[0]
+			if num_str.begins_with("(") and num_str.ends_with(")"):
+				num_str = num_str.substr(1, num_str.length() - 2)
+			var den_str = parts[1]
+			if den_str.begins_with("(") and den_str.ends_with(")"):
+				den_str = den_str.substr(1, den_str.length() - 2)
+
+			Config.input_rational_num_coeffs = FormulaParser.parse_poly(num_str)
+			Config.input_rational_den_coeffs = FormulaParser.parse_poly(den_str)
+		else:
+			Config.input_rational_num_coeffs = FormulaParser.parse_poly(expr)
+			Config.input_rational_den_coeffs = PackedVector2Array([Vector2(1, 0), Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO])
 
 	Config.save_settings()
 	_update_hud_layout()
@@ -892,8 +930,10 @@ func _sync_ui_to_config():
 	position_marker_checkbox.button_pressed = Config.show_position_marker
 
 	func_button.select(func_button.get_item_index(Config.function_type))
+	input_button.select(input_button.get_item_index(Config.input_function_type))
 	height_button.selected = Config.height_type
 	_on_func_selected(Config.function_type)
+	_on_input_selected(Config.input_function_type)
 	_on_height_selected(Config.height_type)
 
 	for key in Config.PRESET_KEYS:
@@ -1237,7 +1277,7 @@ func _on_height_eps_text_submitted(new_text: String):
 	if is_finite(h_eps):
 		Config.height_epsilon = h_eps
 
-func _on_rational_text_submitted(new_text: String):
+func _on_func_rational_text_submitted(new_text: String):
 	if Config.function_type == Config.ComplexFunc.RATIONAL:
 		var expr = new_text.replace(" ", "")
 		if "/" in expr:
@@ -1254,6 +1294,24 @@ func _on_rational_text_submitted(new_text: String):
 		else:
 			Config.rational_num_coeffs = FormulaParser.parse_poly(expr)
 			Config.rational_den_coeffs = PackedVector2Array([Vector2(1, 0), Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO])
+
+func _on_input_rational_text_submitted(new_text: String):
+	if Config.input_function_type == Config.ComplexFunc.RATIONAL:
+		var expr = new_text.replace(" ", "")
+		if "/" in expr:
+			var parts = expr.split("/")
+			var num_str = parts[0]
+			if num_str.begins_with("(") and num_str.ends_with(")"):
+				num_str = num_str.substr(1, num_str.length() - 2)
+			var den_str = parts[1]
+			if den_str.begins_with("(") and den_str.ends_with(")"):
+				den_str = den_str.substr(1, den_str.length() - 2)
+
+			Config.input_rational_num_coeffs = FormulaParser.parse_poly(num_str)
+			Config.input_rational_den_coeffs = FormulaParser.parse_poly(den_str)
+		else:
+			Config.input_rational_num_coeffs = FormulaParser.parse_poly(expr)
+			Config.input_rational_den_coeffs = PackedVector2Array([Vector2(1, 0), Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO])
 
 func play_portal_flash():
 	if not portal_flash:
