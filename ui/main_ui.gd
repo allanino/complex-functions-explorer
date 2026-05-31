@@ -431,6 +431,7 @@ func _ready():
 	height_button.add_item("Imaginary component: Im(f)")
 	height_button.add_item("Real component: Re(f)")
 	height_button.add_item("Projected component: Re( e^(-iθ) * f )")
+	height_button.add_item("Flat: 0")
 
 	terrain_detail_button.clear()
 	terrain_detail_button.add_item("High")

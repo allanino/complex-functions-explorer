@@ -995,6 +995,8 @@ float get_complex_height(vec2 fz, vec2 field_val) {
         h = field_val.x;
     } else if (height_type == 4) {
         h = field_val.x * cos(height_theta) + field_val.y * sin(height_theta);
+    } else if (height_type == 5) {
+        h = 0.0;
     }
     return h;
 }
@@ -1041,6 +1043,9 @@ vec2 get_complex_height_derivatives(vec2 fz, vec2 field_val, vec2 df_dx, vec2 df
         } else if (height_type == 4) {
             dh_dx = du_dx * cos(height_theta) + dv_dx * sin(height_theta);
             dh_dz = du_dz * cos(height_theta) + dv_dz * sin(height_theta);
+        } else if (height_type == 5) {
+            dh_dx = 0.0;
+            dh_dz = 0.0;
         }
     }
     return vec2(dh_dx, dh_dz);

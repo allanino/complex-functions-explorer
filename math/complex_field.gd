@@ -341,6 +341,7 @@ static func get_height_from_field(f: Vector2) -> float:
 	elif Config.height_type == 2: h = f.y
 	elif Config.height_type == 3: h = f.x
 	elif Config.height_type == 4: h = f.x * cos(Config.height_theta) + f.y * sin(Config.height_theta)
+	elif Config.height_type == 5: h = 0.0
 
 	h = clamp(h, -1e5, 1e5)
 
