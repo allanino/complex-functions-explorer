@@ -50,6 +50,7 @@ var portal_flash: ColorRect
 @onready var color_scheme_button = %MenuOverlay/%ColorSchemeContainer.get_option_button()
 @onready var view_distance_slider = %MenuOverlay/%ViewDistanceContainer
 @onready var curves_checkbox = %MenuOverlay/%CurvesCheckbox
+@onready var curves_labels_checkbox = %MenuOverlay/%CurvesLabelsCheckbox
 @onready var critical_checkbox = %MenuOverlay/%CriticalCheckbox
 @onready var flow_checkbox = %MenuOverlay/%FlowCheckbox
 @onready var freeze_time_checkbox = %MenuOverlay/%FreezeTimeCheckbox
@@ -384,6 +385,7 @@ func _ready():
 	rational_input.text_submitted.connect(_on_rational_text_submitted)
 
 	curves_checkbox.toggled.connect(_on_curves_toggled)
+	curves_labels_checkbox.toggled.connect(_on_curves_labels_toggled)
 	critical_checkbox.toggled.connect(_on_critical_toggled)
 	flow_checkbox.toggled.connect(_on_flow_toggled)
 	hud_complex_checkbox.toggled.connect(_on_hud_complex_toggled)
@@ -776,6 +778,7 @@ func _on_set_pos_pressed(_toggle_menu: bool = true):
 	Config.antialiasing_mode = aa_button.selected
 	Config.color_scheme = color_scheme_button.selected
 	Config.show_curves = curves_checkbox.button_pressed
+	Config.show_curves_labels = curves_labels_checkbox.button_pressed
 	Config.show_critical_stripe = critical_checkbox.button_pressed
 	Config.shadows_enabled = shadows_checkbox.button_pressed
 	Config.show_hud_complex = hud_complex_checkbox.button_pressed
@@ -868,6 +871,7 @@ func _sync_ui_to_config():
 	color_scheme_button.selected = Config.color_scheme
 	
 	curves_checkbox.button_pressed = Config.show_curves
+	curves_labels_checkbox.button_pressed = Config.show_curves_labels
 	critical_checkbox.button_pressed = Config.show_critical_stripe
 	shadows_checkbox.button_pressed = Config.shadows_enabled
 	hud_complex_checkbox.button_pressed = Config.show_hud_complex
@@ -1158,6 +1162,9 @@ func _on_shadows_toggled(pressed: bool):
 
 func _on_curves_toggled(pressed: bool):
 	Config.show_curves = pressed
+
+func _on_curves_labels_toggled(pressed: bool):
+	Config.show_curves_labels = pressed
 
 func _on_critical_toggled(pressed: bool):
 	Config.show_critical_stripe = pressed
