@@ -11,7 +11,7 @@ var auto_walk_state = AutoWalkState.NONE
 var re_label: Label3D
 var im_label: Label3D
 var _curve_label_update_timer = 0.1
-const CURVE_LABEL_UPDATE_INTERVAL = 0.3
+const CURVE_LABEL_UPDATE_INTERVAL = 0.1
 var _re_label_target_pos: Vector3 = Vector3.ZERO
 var _im_label_target_pos: Vector3 = Vector3.ZERO
 
@@ -50,9 +50,6 @@ func _ready():
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	current_f = ComplexField.get_field(global_position.x, global_position.z)
 	current_mag = current_f.length()
-
-	# Load the font file asset from your project directory
-	var math_font = load("res://assets/latin-modern-math.regular.otf")
 	
 	re_label = Label3D.new()
 	re_label.text = "Re"
@@ -60,9 +57,8 @@ func _ready():
 	re_label.no_depth_test = true
 	re_label.fixed_size = true
 	re_label.pixel_size = 0.0025
-	re_label.font = math_font
-	re_label.font_size = 64
-	re_label.outline_size = 3
+	re_label.font_size = 36
+	re_label.outline_size = 2
 	re_label.modulate = Color(0.12, 0.12, 0.12, 1.0)
 	re_label.outline_modulate = Color(0.12, 0.12, 0.12, 1.0)
 	re_label.outline_render_priority = 0
@@ -76,9 +72,8 @@ func _ready():
 	im_label.no_depth_test = true
 	im_label.fixed_size = true
 	im_label.pixel_size = 0.0025
-	im_label.font = math_font
-	im_label.font_size = 64
-	im_label.outline_size = 3
+	im_label.font_size = 36
+	im_label.outline_size = 2
 	im_label.modulate = Color(0.9, 0.9, 0.9, 1.0)
 	im_label.outline_modulate = Color(0.9, 0.9, 0.9, 1.0)
 	im_label.outline_render_priority = 0
