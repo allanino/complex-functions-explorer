@@ -36,6 +36,8 @@ uniform float specular_intensity : hint_range(0.0, 1.0) = 0.1;
 
 uniform float self_illumination = 0.0;
 uniform float fog_density = 0.0;
+uniform vec3 player_position_world = vec3(0.0);
+
 
 
 // Helper function to convert HSV to RGB
@@ -624,6 +626,42 @@ void fragment() {
 
             vec3 warm_glow = vec3(1.0, 0.88, 0.72) * self_illumination * glow_factor * pulse * 5.0;
             final_emission += ALBEDO * warm_glow;
+        }
+
+
+        // Player Ground Marker (Cross)
+        {
+            vec2 player_xz = player_position_world.xz;
+            vec2 pos_xz = world_pos.xz;
+
+            // Distance to camera for constant screen size approximation
+            float dist_cam = length(world_pos - CAMERA_POSITION_WORLD);
+            // Scale marker by distance to camera to keep apparent size constant
+            // Also divide by zoom_factor so it's consistent if the whole world scales
+            float scale = max(dist_cam * 0.05, 0.01) / zoom_factor;
+
+            float length_cross = 0.4 * scale;
+            float thickness = 0.02 * scale;
+            float glow_thickness = 0.08 * scale;
+
+            float d_line1 = sdLine(pos_xz, player_xz - vec2(length_cross, 0.0), player_xz + vec2(length_cross, 0.0));
+            float d_line2 = sdLine(pos_xz, player_xz - vec2(0.0, length_cross), player_xz + vec2(0.0, length_cross));
+
+            float d_cross = min(d_line1, d_line2);
+
+            if (d_cross < glow_thickness) {
+                // Crisp core
+                float core = 1.0 - step(thickness, d_cross);
+                // Slight glow
+                float glow = (1.0 - smoothstep(thickness, glow_thickness, d_cross)) * 0.5;
+
+                vec3 marker_color = vec3(1.0);
+                float intensity = core + glow;
+
+                // Draw just above terrain means we just render it directly on the terrain surface.
+                ALBEDO = mix(ALBEDO, marker_color, clamp(intensity, 0.0, 1.0));
+                final_emission += marker_color * intensity * 2.0; // Glow emission
+            }
         }
 
         // Reinhard Tone Mapping to keep high emissions from blowing out to absolute white

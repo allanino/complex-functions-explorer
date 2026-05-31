@@ -51,6 +51,7 @@ func _process(delta):
 
 	if terrain_material:
 		terrain_material.set_shader_parameter("zoom_factor", Config.effective_zoom)
+		terrain_material.set_shader_parameter("player_position_world", player_pos)
 
 	# Check if any field properties have changed
 	var current_field_state = {
