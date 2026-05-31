@@ -232,10 +232,10 @@ grow_vertical = 2
 mouse_filter = 2
 
 [node name="MainMenuPanel" type="PanelContainer" parent="CenterContainer" unique_id=185131265]
-custom_minimum_size = Vector2(950, 580)
+custom_minimum_size = Vector2(1000, 780)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_glass")
-pivot_offset = Vector2(475, 290)
+pivot_offset = Vector2(500, 390)
 
 [node name="MarginContainer" type="MarginContainer" parent="CenterContainer/MainMenuPanel" unique_id=2017176305]
 layout_mode = 2
