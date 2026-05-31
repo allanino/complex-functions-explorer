@@ -602,6 +602,12 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "Level Curves"
 
+[node name="CurvesLabelsCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox" instance=ExtResource("3_checkbox")]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Curves Labels"
+
 [node name="CriticalCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox" unique_id=972397465 instance=ExtResource("3_checkbox")]
 unique_name_in_owner = true
 layout_mode = 2

@@ -122,6 +122,7 @@ const PRESET_KEYS = [
 	"terrain_detail",
 	"antialiasing_mode",
 	"show_curves",
+	"show_curves_labels",
 	"show_critical_stripe",
 	"view_distance",
 	"show_flow",
@@ -197,6 +198,7 @@ var zoom_damping: float = 0.5
 var terrain_detail: int = 1
 var antialiasing_mode: int = 1
 var show_curves: bool = true
+var show_curves_labels: bool = false
 var show_critical_stripe: bool = true
 var view_distance: int = 7
 var show_flow: bool = false
@@ -359,6 +361,7 @@ func save_settings():
 	config.set_value("rendering", "terrain_detail", terrain_detail)
 	config.set_value("rendering", "antialiasing_mode", antialiasing_mode)
 	config.set_value("rendering", "show_curves", show_curves)
+	config.set_value("rendering", "show_curves_labels", show_curves_labels)
 	config.set_value("rendering", "show_critical_stripe", show_critical_stripe)
 	config.set_value("rendering", "view_distance", view_distance)
 	config.set_value("rendering", "show_flow", show_flow)
@@ -431,6 +434,7 @@ func load_settings():
 	terrain_detail = config.get_value("rendering", "terrain_detail", terrain_detail)
 	antialiasing_mode = config.get_value("rendering", "antialiasing_mode", antialiasing_mode)
 	show_curves = config.get_value("rendering", "show_curves", show_curves)
+	show_curves_labels = config.get_value("rendering", "show_curves_labels", show_curves_labels)
 	show_critical_stripe = config.get_value("rendering", "show_critical_stripe", show_critical_stripe)
 	view_distance = config.get_value("rendering", "view_distance", view_distance)
 	show_flow = config.get_value("rendering", "show_flow", show_flow)

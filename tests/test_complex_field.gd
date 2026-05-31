@@ -421,6 +421,13 @@ func test_get_height_from_field():
 	assert_almost_eq(res_projected, 7.0 * sqrt(2.0) / 2.0, 0.0001)
 	Config.height_theta = orig_theta
 
+	# Test 9: Flat (height_type = 5)
+	Config.height_type = 5
+	Config.morph_value = 1.0
+	Config.effective_zoom = 1.0
+	var res_flat = ComplexFieldScript.get_height_from_field(f3)
+	assert_almost_eq(res_flat, 0.0, 0.0001)
+
 	Config.height_type = orig_height_type
 	Config.height_a = orig_height_a
 	Config.height_epsilon = orig_height_epsilon
