@@ -116,13 +116,24 @@ func test_curve_labels_throttled_update():
 	assert_false(player.im_label.visible)
 	assert_eq(player._curve_label_update_timer, 0.016)
 	
-	# 4. Call _process with a delta large enough to cross the threshold
+	# 4. Call _process with a delta large enough to cross the threshold, and verify it snaps on first visible transition
 	player._process(0.1)
 	assert_true(player.im_label.visible)
 	assert_eq(player._curve_label_update_timer, 0.0)
+	var start_pos = player.im_label.global_position
+
+	# 5. Move player past the first curve (to z = -11.0) and verify it slides smoothly (lerps) instead of snapping
+	player.global_position = Vector3(0.0, 0.0, -11.0)
+	player._physics_process(0.016)
+	player._curve_label_update_timer = 0.1 # Force throttled update to run on next frame
+	player._process(0.016) # Run update and lerp with 0.016 delta
+	
+	var target_pos = player._im_label_target_pos
+	assert_ne(start_pos, target_pos) # Target should have shifted to next curve (e.g. z = -20)
+	assert_ne(player.im_label.global_position, target_pos) # It should not have snapped instantly
+	assert_true(player.im_label.global_position.distance_to(target_pos) < start_pos.distance_to(target_pos)) # It should be moving towards the target
 
 	# Restore Config settings
 	Config.show_curves = original_show_curves
 	Config.show_curves_labels = original_show_curves_labels
 	Config.function_type = original_function_type
-
