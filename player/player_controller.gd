@@ -26,7 +26,10 @@ var current_f: Vector2 = Vector2.ZERO
 var current_mag: float = 0.0
 var current_z: Vector2 = Vector2(0.0, 0.0)
 
+
 @onready var camera = $Camera3D
+@onready var ground_marker = $GroundMarker
+
 
 @onready var main_ui = get_node_or_null("/root/Main/MainUI")
 @onready var world_manager = get_node_or_null("/root/Main/WorldManager")
@@ -244,6 +247,8 @@ func _physics_process(delta):
 
 	# Snap player to terrain height + offset
 	global_position.y = terrain_h + Config.camera_height + height_offset
+	if ground_marker:
+		ground_marker.global_position = Vector3(global_position.x, terrain_h + 0.02, global_position.z)
 
 	# Zeta zero detection during auto-walk
 	if Config.show_hud_zeros:
@@ -442,3 +447,5 @@ func _process(_delta):
 		last_valid_terrain_height = terrain_h
 
 	global_position.y = terrain_h + Config.camera_height + height_offset
+	if ground_marker:
+		ground_marker.global_position = Vector3(global_position.x, terrain_h + 0.02, global_position.z)
