@@ -1,8 +1,9 @@
 extends Control
 
+var SLIDER_BINDINGS: Dictionary = {}
+
 signal apply_aa_signal()
 signal update_hud_layout_signal()
-signal toggle_menu_signal(applied: bool)
 
 @export var player: Node3D
 @export var world_manager: Node

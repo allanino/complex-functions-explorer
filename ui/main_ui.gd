@@ -24,7 +24,6 @@ var portal_flash: ColorRect
 var current_scale = 2.0
 var _last_zeros_visible: bool = false
 const BASE_HUD_PANEL_SIZE: float = 190.0
-var SLIDER_BINDINGS: Dictionary = {}
 
 func _ready():
 	portal_flash = ColorRect.new()
