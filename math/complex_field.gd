@@ -192,6 +192,134 @@ static func log_zeta_continuation(x: float, y: float) -> Vector2:
 
 	return log_sum
 
+
+static func dirichlet_eta_with_derivatives(x: float, y: float, iterations: int) -> Array:
+	if iterations <= 0: return [Vector2.ZERO, Vector2.ZERO]
+	var eta = Vector2.ZERO
+	var deta_dx = Vector2.ZERO
+	for n in range(1, iterations + 1, 2):
+		var nf = float(n)
+		var amp = pow(nf, -x)
+		var log_n = log(nf)
+		var theta = -y * log_n
+		var term = amp * Vector2(cos(theta), sin(theta))
+		eta += term
+		deta_dx -= log_n * term
+
+		var nf2 = float(n + 1)
+		var amp2 = pow(nf2, -x)
+		var log_n2 = log(nf2)
+		var theta2 = -y * log_n2
+		var term2 = amp2 * Vector2(cos(theta2), sin(theta2))
+		eta -= term2
+		deta_dx += log_n2 * term2
+
+		if (amp < 1e-4 || amp2 < 1e-4 || amp > 1e4 || amp2 > 1e4): break
+	return [eta, deta_dx]
+
+static func zeta_with_derivatives(x: float, y: float) -> Array:
+	var iterations = Config.iterations
+	var eta_data = dirichlet_eta_with_derivatives(x, y, iterations)
+	var eta = eta_data[0]
+	var deta_dx = eta_data[1]
+
+	var amp2 = pow(2.0, 1.0 - x)
+	var theta2 = -y * LOG_2
+	var two_term = amp2 * Vector2(cos(theta2), sin(theta2))
+	var denom = Vector2(1.0, 0.0) - two_term
+	var ddenom_dx = LOG_2 * two_term
+
+	var value = complex_div(eta, denom)
+	var denom_sqr = complex_mul(denom, denom)
+	var num_x = complex_mul(deta_dx, denom) - complex_mul(eta, ddenom_dx)
+	var dx = complex_div(num_x, denom_sqr)
+
+	return [value, dx]
+
+static func lanczos_log_gamma_with_derivatives(z: Vector2) -> Array:
+	var z_m1 = z - Vector2(1.0, 0.0)
+	var x = Vector2(LANCZOS_P[0], 0.0)
+	var dx_val = Vector2(0.0, 0.0)
+	for i in range(1, 9):
+		var denom = z_m1 + Vector2(float(i), 0.0)
+		x += complex_div(Vector2(LANCZOS_P[i], 0.0), denom)
+		dx_val -= complex_div(Vector2(LANCZOS_P[i], 0.0), complex_mul(denom, denom))
+	var tmp = z_m1 + Vector2(7.5, 0.0)
+	var log_tmp = complex_log(tmp.x, tmp.y)
+
+	var value = (Vector2(log(SQRT_2PI), 0.0)
+			   + complex_mul(z - Vector2(0.5, 0.0), log_tmp)
+			   - tmp
+			   + complex_log(x.x, x.y))
+
+	var psi = log_tmp + complex_div(z - Vector2(0.5, 0.0), tmp) - Vector2(1.0, 0.0) + complex_div(dx_val, x)
+
+	return [value, psi]
+
+static func complex_log_gamma_with_derivatives(x: float, y: float) -> Array:
+	var value: Vector2
+	var dx: Vector2
+	if x < 0.5:
+		var pi_z = Vector2(PI * x, PI * y)
+		var lg1z = lanczos_log_gamma_with_derivatives(Vector2(1.0 - x, -y))
+
+		var log_sin_pi_z = complex_log_sin(pi_z.x, pi_z.y)
+
+		value = Vector2(LOG_PI, 0.0) - log_sin_pi_z - lg1z[0]
+
+		var cot_pi_z = complex_cot(pi_z.x, pi_z.y)
+		dx = -PI * cot_pi_z + lg1z[1]
+	else:
+		var res = lanczos_log_gamma_with_derivatives(Vector2(x, y))
+		value = res[0]
+		dx = res[1]
+	return [value, dx]
+
+static func log_zeta_continuation_with_derivatives(x: float, y: float) -> Array:
+	if x >= 0.5:
+		var z_res = zeta_with_derivatives(x, y)
+		var z_val = z_res[0]
+		var z_dx = z_res[1]
+		var value = complex_log(z_val.x, z_val.y)
+		var dx = complex_div(z_dx, z_val)
+		return [value, dx]
+
+	var s = Vector2(x, y)
+	var s1 = Vector2(1.0 - x, -y)
+
+	var log_sum = complex_mul(s, Vector2(LOG_2, 0.0)) + complex_mul(s - Vector2(1.0, 0.0), Vector2(LOG_PI, 0.0))
+	var ratio = Vector2(LOG_2 + LOG_PI, 0.0)
+
+	var pi_s_2 = (PI * 0.5) * s
+
+	log_sum += complex_log_sin(pi_s_2.x, pi_s_2.y)
+	ratio += (PI * 0.5) * complex_cot(pi_s_2.x, pi_s_2.y)
+
+	var lg_data = complex_log_gamma_with_derivatives(s1.x, s1.y)
+	log_sum += lg_data[0]
+	ratio -= lg_data[1]
+
+	var z_data = zeta_with_derivatives(s1.x, s1.y)
+	log_sum += complex_log(z_data[0].x, z_data[0].y)
+	ratio -= complex_div(z_data[1], z_data[0])
+
+	return [log_sum, ratio]
+
+static func zeta_continuation_with_derivatives(x: float, y: float) -> Array:
+	var log_z = log_zeta_continuation_with_derivatives(x, y)
+	var value = complex_exp(log_z[0].x, log_z[0].y)
+	var dx = complex_mul(value, log_z[1])
+	return [value, dx]
+
+static func newton_step_zeta_reflection(z: Vector2) -> Vector2:
+	var res = zeta_continuation_with_derivatives(z.x, z.y)
+	var f_val = res[0]
+	var f_prime = res[1]
+	var step = complex_div(f_val, f_prime)
+	if step.length() > 1.0:
+		step = step.normalized()
+	return z - step
+
 static func zeta_continuation(x: float, y: float) -> Vector2:
 	var log_val = log_zeta_continuation(x, y)
 	return complex_exp(log_val.x, log_val.y)
