@@ -1219,7 +1219,7 @@ func _rescale_card(card: Control, _scale: float):
 			# Only scale custom minimum size for specific panels to maintain layout proportions
 			if node.name == "ComplexAspect":
 				if not node.has_meta("base_min_size"):
-					node.set_meta("base_min_size", Vector2(180, 180))
+					node.set_meta("base_min_size", Vector2(200, 200))
 				node.custom_minimum_size = node.get_meta("base_min_size") * _scale
 			elif node.name == "ZerosPanel" or node.name == "InfoPanel":
 				if not node.has_meta("base_min_size"):
