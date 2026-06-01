@@ -779,8 +779,8 @@ ComplexFieldData complex_log_with_derivatives(float x, float y) {
 ComplexFieldData identity_with_derivatives(float x, float y) {
     ComplexFieldData res;
     res.value = vec2(x, y);
-    res.dx = vec2(0.0);
-    res.dy = vec2(0.0);
+    res.dx = vec2(1.0, 0.0);
+    res.dy = vec2(0.0, 1.0);
     return res;
 }
 
