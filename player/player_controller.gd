@@ -193,7 +193,7 @@ func _unhandled_input(event):
 			if auto_walk_state == AutoWalkState.NONE:
 				auto_walk_state = AutoWalkState.NEWTON_WALK
 				newton_target_z = ComplexField.newton_step_zeta_reflection(Vector2(global_position.x * 0.1 / Config.effective_zoom, -global_position.z * 0.1 / Config.effective_zoom))
-				newton_wait_timer = 0.5
+				newton_wait_timer = 0.1
 				Config.show_hud_zeros = true
 			else:
 				auto_walk_state = AutoWalkState.NONE
@@ -311,16 +311,15 @@ func _physics_process(delta):
 
 	elif auto_walk_state == AutoWalkState.NEWTON_WALK:
 		var target_x = newton_target_z.x * 10.0 * Config.effective_zoom
-		var target_z = -newton_target_z.y * 10.0 * Config.effective_zoom
+		var target_z = - newton_target_z.y * 10.0 * Config.effective_zoom
 
-		var target_pos = Vector3(target_x, global_position.y, target_z)
 		var current_pos2d = Vector2(global_position.x, global_position.z)
 		var target_pos2d = Vector2(target_x, target_z)
 
 		# Always smoothly rotate towards the target
 		if current_pos2d.distance_to(target_pos2d) > 0.01:
 			var target_dir2d = (target_pos2d - current_pos2d).normalized()
-			var target_yaw = atan2(target_dir2d.x, target_dir2d.y) + PI  # Godot's Z points forward
+			var target_yaw = atan2(target_dir2d.x, target_dir2d.y) + PI # Godot's Z points forward
 			rotation.y = lerp_angle(rotation.y, target_yaw, 5.0 * delta)
 
 		if newton_wait_timer > 0.0:
@@ -339,7 +338,7 @@ func _physics_process(delta):
 					print("Newton walk converged at: ", new_target)
 				else:
 					newton_target_z = new_target
-					newton_wait_timer = 0.5
+					newton_wait_timer = 0.1
 	if direction != Vector3.ZERO:
 		velocity.x = direction.x * current_speed
 		velocity.z = direction.z * current_speed
