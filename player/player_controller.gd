@@ -218,6 +218,17 @@ func get_terrain_height(x: float, z: float, field_val: Vector2 = Vector2.INF) ->
 func _physics_process(delta):
 	_update_ui_states()
 
+
+	if main_ui and main_ui.has_node("Control/MobileControls/RightJoystick"):
+		var right_joy = main_ui.get_node("Control/MobileControls/RightJoystick")
+		var joy_output = right_joy.output
+		if joy_output != Vector2.ZERO:
+			if auto_walk_state == AutoWalkState.NONE or auto_walk_state == AutoWalkState.WALKING:
+				rotate_y(-joy_output.x * MOUSE_SENSITIVITY * 20.0)
+				rotation_x -= joy_output.y * MOUSE_SENSITIVITY * 20.0
+				rotation_x = clamp(rotation_x, -PI / 2, PI / 2)
+				camera.rotation.x = rotation_x
+
 	if is_detached_interactive or is_menu_open:
 		velocity = Vector3.ZERO
 		return
