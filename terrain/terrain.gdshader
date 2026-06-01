@@ -437,8 +437,8 @@ void compute_critical_stripe_highlight(vec3 w_pos, inout vec3 final_emission) {
 }
 
 
-void compute_flow_effect(vec3 w_pos, vec3 nrm, inout vec3 out_albedo, inout vec3 final_emission) {
-    float dist_to_camera = length(w_pos - CAMERA_POSITION_WORLD);
+void compute_flow_effect(vec3 w_pos, vec3 nrm, vec3 camera_position_world, inout vec3 out_albedo, inout vec3 final_emission) {
+    float dist_to_camera = length(w_pos - camera_position_world);
     float flow_fade = 1.0 - smoothstep(30.0, 80.0, dist_to_camera);
 
     if (flow_fade > 0.001) {
@@ -513,11 +513,11 @@ void compute_flow_effect(vec3 w_pos, vec3 nrm, inout vec3 out_albedo, inout vec3
 }
 
 
-void compute_surface_texture_effect(vec3 w_pos, inout vec3 nrm, out float roughness_variation) {
+void compute_surface_texture_effect(vec3 w_pos, vec3 camera_position_world, inout vec3 nrm, out float roughness_variation) {
     roughness_variation = 0.0;
     vec3 scaled_world_pos = w_pos /  zoom_factor;
 
-    float dist_to_camera = length(scaled_world_pos - CAMERA_POSITION_WORLD);
+    float dist_to_camera = length(scaled_world_pos - camera_position_world);
     // Fade the texture effect beyond 50 units, reaching 0 at 100 units
     float fade = 1.0 - smoothstep(20.0, 100.0, dist_to_camera);
     fade = mix(0.15, 1.0, fade);
@@ -552,9 +552,9 @@ void compute_surface_texture_effect(vec3 w_pos, inout vec3 nrm, out float roughn
 }
 
 
-void compute_self_illumination_effect(vec3 w_pos, vec3 out_albedo, inout vec3 final_emission) {
+void compute_self_illumination_effect(vec3 w_pos, vec3 camera_position_world, vec3 out_albedo, inout vec3 final_emission) {
     // Position slightly below the camera
-    vec3 light_pos = CAMERA_POSITION_WORLD - vec3(0.0, 0.2 / zoom_factor, 0.0);
+    vec3 light_pos = camera_position_world - vec3(0.0, 0.2 / zoom_factor, 0.0);
 
     float dist_to_camera = length(w_pos - light_pos) * 0.1;
 
@@ -563,7 +563,7 @@ void compute_self_illumination_effect(vec3 w_pos, vec3 out_albedo, inout vec3 fi
 
     // Fog Transmittance
     if (fog_density > 0.0) {
-        float actual_dist = length(w_pos - CAMERA_POSITION_WORLD);
+        float actual_dist = length(w_pos - camera_position_world);
         float fog_transmittance = exp(-actual_dist * fog_density * 0.05);
         glow_factor *= fog_transmittance;
     }
@@ -757,16 +757,16 @@ void fragment() {
         }
 
         if (show_flow) {
-            compute_flow_effect(world_pos, v_normal, ALBEDO, final_emission);
+            compute_flow_effect(world_pos, v_normal, CAMERA_POSITION_WORLD, ALBEDO, final_emission);
         }
 
         float roughness_variation = 0.0;
         if (surface_texture > 0.0) {
-            compute_surface_texture_effect(world_pos, NORMAL, roughness_variation);
+            compute_surface_texture_effect(world_pos, CAMERA_POSITION_WORLD, NORMAL, roughness_variation);
         }
 
         if (self_illumination > 0.0 && !performance_protection_active) {
-            compute_self_illumination_effect(world_pos, ALBEDO, final_emission);
+            compute_self_illumination_effect(world_pos, CAMERA_POSITION_WORLD, ALBEDO, final_emission);
         }
 
         if (show_position_marker) {
