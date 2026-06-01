@@ -84,6 +84,9 @@ func _ready():
 	im_label.visible = false
 	add_child(im_label)
 
+	if main_ui and main_ui.has_node("Control/MobileControls"):
+		var mobile_controls = main_ui.get_node("Control/MobileControls")
+		mobile_controls.visible = enable_joystick
 
 	# demo_actions()
 
@@ -219,11 +222,9 @@ func get_terrain_height(x: float, z: float, field_val: Vector2 = Vector2.INF) ->
 func _physics_process(delta):
 	_update_ui_states()
 
-
-	if main_ui and main_ui.has_node("Control/MobileControls"):
+	if enable_joystick && main_ui and main_ui.has_node("Control/MobileControls"):
 		var mobile_controls = main_ui.get_node("Control/MobileControls")
-		mobile_controls.visible = enable_joystick
-		if enable_joystick and mobile_controls.has_node("RightJoystick"):
+		if mobile_controls.has_node("RightJoystick"):
 			var right_joy = mobile_controls.get_node("RightJoystick")
 			var joy_output = right_joy.output
 			if joy_output != Vector2.ZERO:
