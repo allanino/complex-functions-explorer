@@ -187,11 +187,13 @@ void sky() {
             float disk_intensity = smoothstep(0.0, 0.1, LIGHT0_ENERGY);
             cloud_final_color += LIGHT0_COLOR * sun_disk * disk_intensity;
 
+            float sun_glow_dist = max(0.0, sun_dist - sun_size * 0.45);
+
             // Sun glow (Mie-like scattering approximation)
-            float mie = 0.01 / (0.001 + sun_dist * sun_dist * 10.0); // Decreased from 10.0 to widen the bright core
+            float mie = 0.005 / (0.001 + sun_glow_dist * sun_glow_dist * 5.0); // Decreased from 10.0 to widen the bright core
             cloud_final_color += LIGHT0_COLOR * mie * LIGHT0_ENERGY;
 
-            float haze = 0.02 / (0.01 + sun_dist);
+            float haze = 0.01 / (0.01 + sun_glow_dist);
             cloud_final_color += LIGHT0_COLOR * haze * LIGHT0_ENERGY;
         }
 
@@ -207,8 +209,10 @@ void sky() {
             float moon_disk_intensity = smoothstep(0.0, 0.1, LIGHT1_ENERGY);
             cloud_final_color += LIGHT1_COLOR * moon_disk * moon_disk_intensity;
 
+            float moon_glow_dist = max(0.0, moon_dist - moon_size * 0.45);
+
             // Moon glow
-            float moon_glow = 0.01 / (0.001 + moon_dist * moon_dist * 10.0);
+            float moon_glow = 0.005 / (0.001 + moon_glow_dist * moon_glow_dist * 5.0);
             cloud_final_color += LIGHT1_COLOR * moon_glow * LIGHT1_ENERGY;
         }
 
