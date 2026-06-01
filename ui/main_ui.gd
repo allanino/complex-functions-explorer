@@ -24,6 +24,7 @@ var portal_flash: ColorRect
 @onready var main_menu_panel = %MenuOverlay.get_node("CenterContainer/MainMenuPanel")
 @onready var tab_container = %MenuOverlay/%TabContainer
 @onready var func_button = %MenuOverlay/%FuncContainer.get_option_button()
+@onready var input_button = %MenuOverlay/%InputContainer.get_option_button()
 @onready var height_button = %MenuOverlay/%HeightContainer.get_option_button()
 @onready var height_a_container = %MenuOverlay/%HeightAContainer
 @onready var height_a_input = %MenuOverlay/%HeightAContainer.get_line_edit()
@@ -31,8 +32,10 @@ var portal_flash: ColorRect
 @onready var height_eps_input = %MenuOverlay/%HeightEpsContainer.get_line_edit()
 @onready var height_theta_slider = %MenuOverlay/%HeightThetaSlider
 @onready var iter_slider = %MenuOverlay/%IterSlider
-@onready var rational_container = %MenuOverlay/%RationalContainer
-@onready var rational_input = %MenuOverlay/%RationalContainer.get_line_edit()
+@onready var func_rational_container = %MenuOverlay/%FuncRationalContainer
+@onready var func_rational_input = %MenuOverlay/%FuncRationalContainer.get_line_edit()
+@onready var input_rational_container = %MenuOverlay/%InputRationalContainer
+@onready var input_rational_input = %MenuOverlay/%InputRationalContainer.get_line_edit()
 @onready var multivalued_slider = %MenuOverlay/%MultivaluedSlider
 @onready var branch_k_slider = %MenuOverlay/%BranchKSlider
 
@@ -50,8 +53,10 @@ var portal_flash: ColorRect
 @onready var color_scheme_button = %MenuOverlay/%ColorSchemeContainer.get_option_button()
 @onready var view_distance_slider = %MenuOverlay/%ViewDistanceContainer
 @onready var curves_checkbox = %MenuOverlay/%CurvesCheckbox
+@onready var curves_labels_checkbox = %MenuOverlay/%CurvesLabelsCheckbox
 @onready var critical_checkbox = %MenuOverlay/%CriticalCheckbox
 @onready var flow_checkbox = %MenuOverlay/%FlowCheckbox
+@onready var position_marker_checkbox = %MenuOverlay/%PositionMarkerCheckbox
 @onready var freeze_time_checkbox = %MenuOverlay/%FreezeTimeCheckbox
 @onready var day_duration_slider = %MenuOverlay/%DayDurationSlider
 @onready var day_time_slider = %MenuOverlay/%DayTimeSlider
@@ -99,6 +104,21 @@ var portal_flash: ColorRect
 @onready var quit_save_and_quit = %MenuOverlay/%QuitSaveAndQuit
 @onready var quit_confirm = %MenuOverlay/%QuitConfirm
 @onready var perf_label = %MenuOverlay/%PerfProtectionLabel
+
+@onready var func_tab_button = %MenuOverlay/%FunctionTabButton
+@onready var env_tab_button = %MenuOverlay/%EnvironmentTabButton
+@onready var terrain_tab_button = %MenuOverlay/%TerrainTabButton
+@onready var visualization_tab_button = %MenuOverlay/%VisualizationTabButton
+@onready var graphics_tab_button = %MenuOverlay/%GraphicsTabButton
+@onready var navigation_tab_button = %MenuOverlay/%NavigationTabButton
+@onready var ui_tab_button = %MenuOverlay/%UiTabButton
+@onready var audio_tab_button = %MenuOverlay/%AudioTabButton
+
+var tab_buttons: Array = []
+var active_tab_style: StyleBoxFlat
+var inactive_tab_style: StyleBoxFlat
+var hover_tab_style: StyleBoxFlat
+var hover_active_tab_style: StyleBoxFlat
 
 @onready var tooltip_manager = %TooltipManager
 
@@ -371,6 +391,70 @@ func _ready():
 	portal_flash.visible = false
 	$Control.add_child(portal_flash)
 
+	tab_buttons = [
+		func_tab_button,
+		env_tab_button,
+		terrain_tab_button,
+		visualization_tab_button,
+		graphics_tab_button,
+		navigation_tab_button,
+		ui_tab_button,
+		audio_tab_button
+	]
+
+	active_tab_style = StyleBoxFlat.new()
+	active_tab_style.content_margin_left = 15.0
+	active_tab_style.content_margin_top = 12.0
+	active_tab_style.content_margin_right = 10.0
+	active_tab_style.content_margin_bottom = 12.0
+	active_tab_style.bg_color = Color(1, 1, 1, 0.05)
+	active_tab_style.border_width_left = 4
+	active_tab_style.border_width_top = 0
+	active_tab_style.border_width_right = 0
+	active_tab_style.border_width_bottom = 0
+	active_tab_style.border_color = Color(0.65, 0.65, 0.68, 0.85) # Gray accent
+
+	inactive_tab_style = StyleBoxFlat.new()
+	inactive_tab_style.content_margin_left = 19.0
+	inactive_tab_style.content_margin_top = 12.0
+	inactive_tab_style.content_margin_right = 10.0
+	inactive_tab_style.content_margin_bottom = 12.0
+	inactive_tab_style.bg_color = Color(0, 0, 0, 0)
+
+	hover_tab_style = StyleBoxFlat.new()
+	hover_tab_style.content_margin_left = 19.0
+	hover_tab_style.content_margin_top = 12.0
+	hover_tab_style.content_margin_right = 10.0
+	hover_tab_style.content_margin_bottom = 12.0
+	hover_tab_style.bg_color = Color(1, 1, 1, 0.03)
+
+	hover_active_tab_style = StyleBoxFlat.new()
+	hover_active_tab_style.content_margin_left = 15.0
+	hover_active_tab_style.content_margin_top = 12.0
+	hover_active_tab_style.content_margin_right = 10.0
+	hover_active_tab_style.content_margin_bottom = 12.0
+	hover_active_tab_style.bg_color = Color(1, 1, 1, 0.08) # Slightly brighter background on hover
+	hover_active_tab_style.border_width_left = 4
+	hover_active_tab_style.border_width_top = 0
+	hover_active_tab_style.border_width_right = 0
+	hover_active_tab_style.border_width_bottom = 0
+	hover_active_tab_style.border_color = Color(0.65, 0.65, 0.68, 0.85)
+
+
+	for i in range(tab_buttons.size()):
+		var btn = tab_buttons[i]
+		if btn:
+			btn.flat = false
+			btn.add_theme_font_size_override("font_size", 18)
+			btn.add_theme_stylebox_override("hover", hover_tab_style)
+			btn.add_theme_stylebox_override("pressed", active_tab_style)
+			btn.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+			btn.alignment = HorizontalAlignment.HORIZONTAL_ALIGNMENT_LEFT
+			btn.pressed.connect(func(): _on_tab_button_pressed(i))
+
+	tab_container.tab_changed.connect(func(_idx): _update_tab_buttons_styling())
+	_update_tab_buttons_styling()
+
 
 	hud_columns.offset_top = -1000
 	speed_input.text_changed.connect(func(_t): _speed_modified = true)
@@ -381,11 +465,14 @@ func _ready():
 	im_input.text_submitted.connect(_on_im_text_submitted)
 	height_a_input.text_submitted.connect(_on_height_a_text_submitted)
 	height_eps_input.text_submitted.connect(_on_height_eps_text_submitted)
-	rational_input.text_submitted.connect(_on_rational_text_submitted)
+	func_rational_input.text_submitted.connect(_on_func_rational_text_submitted)
+	input_rational_input.text_submitted.connect(_on_input_rational_text_submitted)
 
 	curves_checkbox.toggled.connect(_on_curves_toggled)
+	curves_labels_checkbox.toggled.connect(_on_curves_labels_toggled)
 	critical_checkbox.toggled.connect(_on_critical_toggled)
 	flow_checkbox.toggled.connect(_on_flow_toggled)
+	position_marker_checkbox.toggled.connect(_on_position_marker_toggled)
 	hud_complex_checkbox.toggled.connect(_on_hud_complex_toggled)
 	hud_navigation_checkbox.toggled.connect(_on_hud_navigation_toggled)
 	hud_zeros_checkbox.toggled.connect(_on_hud_zeros_toggled)
@@ -402,6 +489,7 @@ func _ready():
 	quit_save_and_quit.pressed.connect(_on_quit_save_and_quit_pressed)
 	quit_confirm.pressed.connect(_on_quit_confirm_pressed)
 	func_button.item_selected.connect(_on_func_item_selected)
+	input_button.item_selected.connect(_on_input_item_selected)
 	height_button.item_selected.connect(_on_height_selected)
 
 	_init_slider_bindings()
@@ -416,14 +504,8 @@ func _ready():
 	get_viewport().size_changed.connect(_update_hud_layout)
 
 
-	func_button.clear()
-	var sorted_keys = Config.FUNCTIONS.keys()
-	sorted_keys.sort()
-	for f_key in sorted_keys:
-		var f_data = Config.FUNCTIONS.get(f_key, {})
-		if f_data.get("hidden", false):
-			continue
-		func_button.add_item(f_data.get("name", "Unknown"), f_key)
+	_populate_function_dropdown(func_button, false)
+	_populate_function_dropdown(input_button, true)
 
 	height_button.clear()
 	height_button.add_item("Absolute: Abs(f)")
@@ -431,6 +513,7 @@ func _ready():
 	height_button.add_item("Imaginary component: Im(f)")
 	height_button.add_item("Real component: Re(f)")
 	height_button.add_item("Projected component: Re( e^(-iθ) * f )")
+	height_button.add_item("Flat: 0")
 
 	terrain_detail_button.clear()
 	terrain_detail_button.add_item("High")
@@ -475,46 +558,6 @@ func _ready():
 	surface_texture_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "SurfaceTexture"))
 	view_distance_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "View Distance"))
 
-
-	# Adjust HUD tab component widths to be exactly 180 wide (and labels to expand)
-	var hud_checkboxes = [
-		hud_complex_checkbox,
-		hud_navigation_checkbox,
-		hud_zeros_checkbox,
-		rvm_checkbox,
-		hud_monitor_fps_checkbox,
-		hud_monitor_chunks_checkbox
-	]
-	for cb in hud_checkboxes:
-		if cb:
-			var label = cb.get_node("Label")
-			var ctrl = cb.get_node("Control")
-			var checkbox_btn = cb.get_node("Control/CheckBox")
-			if label:
-				label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			if ctrl:
-				ctrl.size_flags_horizontal = 0
-				ctrl.custom_minimum_size = Vector2(664, 0)
-			if checkbox_btn:
-				checkbox_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-
-	if menu_scale_slider:
-		var label = menu_scale_slider.get_node("Label")
-		var slider_btn = menu_scale_slider.get_node("Slider")
-		if label:
-			label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		if slider_btn:
-			slider_btn.size_flags_horizontal = 0
-			slider_btn.custom_minimum_size = Vector2(580, 20)
-
-	if hud_scale_slider:
-		var label = hud_scale_slider.get_node("Label")
-		var slider_btn = hud_scale_slider.get_node("Slider")
-		if label:
-			label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		if slider_btn:
-			slider_btn.size_flags_horizontal = 0
-			slider_btn.custom_minimum_size = Vector2(580, 20)
 
 	# Apply initial menu scale on startup
 	if main_menu_panel:
@@ -608,8 +651,8 @@ func toggle_menu(applied: bool = false):
 			var im_val = - player.global_position.z * 0.1 * scale_factor
 			if not is_finite(re_val): re_val = 0.5
 			if not is_finite(im_val): im_val = 0.0
-			re_input.text = "%.3f" % re_val
-			im_input.text = "%.3f" % im_val
+			re_input.text = _format_float_3(re_val)
+			im_input.text = _format_float_3(im_val)
 
 		preset_controller.update_preset_button_text()
 
@@ -649,8 +692,29 @@ func toggle_menu(applied: bool = false):
 
 			apply_aa()
 
+func _populate_function_dropdown(button: OptionButton, exclude_multivalued: bool):
+	button.clear()
+	var sorted_keys = Config.FUNCTIONS.keys()
+	sorted_keys.sort()
+	for f_key in sorted_keys:
+		var f_data = Config.FUNCTIONS.get(f_key, {})
+		if f_data.get("hidden", false):
+			continue
+		if exclude_multivalued and f_data.get("is_multivalued", false):
+			continue
+		button.add_item(f_data.get("name", "Unknown"), f_key)
+
 func _on_func_item_selected(index):
 	_on_func_selected(func_button.get_item_id(index))
+
+func _on_input_item_selected(index: int):
+	_on_input_selected(input_button.get_item_id(index))
+
+func _on_input_selected(f_type: int):
+	Config.input_function_type = f_type
+	var f_data = Config.FUNCTIONS.get(f_type, {})
+	var is_rational = f_data.get("is_rational", false)
+	input_rational_container.visible = is_rational
 
 func _on_func_selected(f_type: int):
 	Config.function_type = f_type
@@ -670,7 +734,7 @@ func _on_func_selected(f_type: int):
 		Config.iterations = Config.function_iterations.get(f_type, iters_range[3])
 		iter_slider.value = Config.iterations
 
-	rational_container.visible = is_rational
+	func_rational_container.visible = is_rational
 	multivalued_slider.visible = is_multivalued_n
 	iter_slider.visible = has_iters
 	critical_checkbox.visible = is_dirichlect
@@ -707,6 +771,9 @@ func _format_time(total_seconds: float) -> String:
 	var minutes = (int(total_seconds) % 3600) / 60.0
 	var seconds = int(total_seconds) % 60
 	return "%02d:%02d:%02d" % [hours, minutes, seconds]
+
+func _format_float_3(val: float) -> String:
+	return "%.3f" % snappedf(val, 0.001)
 
 func _get_rvm_n(T: float) -> float:
 	if T <= 0.1:
@@ -776,6 +843,7 @@ func _on_set_pos_pressed(_toggle_menu: bool = true):
 	Config.antialiasing_mode = aa_button.selected
 	Config.color_scheme = color_scheme_button.selected
 	Config.show_curves = curves_checkbox.button_pressed
+	Config.show_curves_labels = curves_labels_checkbox.button_pressed
 	Config.show_critical_stripe = critical_checkbox.button_pressed
 	Config.shadows_enabled = shadows_checkbox.button_pressed
 	Config.show_hud_complex = hud_complex_checkbox.button_pressed
@@ -785,13 +853,15 @@ func _on_set_pos_pressed(_toggle_menu: bool = true):
 	Config.show_hud_monitor_fps = hud_monitor_fps_checkbox.button_pressed
 	Config.show_hud_monitor_chunks = hud_monitor_chunks_checkbox.button_pressed
 	Config.show_flow = flow_checkbox.button_pressed
+	Config.show_position_marker = position_marker_checkbox.button_pressed
 	Config.function_type = func_button.get_item_id(func_button.selected)
+	Config.input_function_type = input_button.get_item_id(input_button.selected)
 	Config.height_type = height_button.selected
 
 	apply_aa()
 
 	if Config.function_type == Config.ComplexFunc.RATIONAL:
-		var expr = rational_input.text.replace(" ", "")
+		var expr = func_rational_input.text.replace(" ", "")
 		if "/" in expr:
 			var parts = expr.split("/")
 			# We only strip outer parentheses if they enclose the whole numerator/denominator
@@ -807,6 +877,23 @@ func _on_set_pos_pressed(_toggle_menu: bool = true):
 		else:
 			Config.rational_num_coeffs = FormulaParser.parse_poly(expr)
 			Config.rational_den_coeffs = PackedVector2Array([Vector2(1, 0), Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO])
+
+	if Config.input_function_type == Config.ComplexFunc.RATIONAL:
+		var expr = input_rational_input.text.replace(" ", "")
+		if "/" in expr:
+			var parts = expr.split("/")
+			var num_str = parts[0]
+			if num_str.begins_with("(") and num_str.ends_with(")"):
+				num_str = num_str.substr(1, num_str.length() - 2)
+			var den_str = parts[1]
+			if den_str.begins_with("(") and den_str.ends_with(")"):
+				den_str = den_str.substr(1, den_str.length() - 2)
+
+			Config.input_rational_num_coeffs = FormulaParser.parse_poly(num_str)
+			Config.input_rational_den_coeffs = FormulaParser.parse_poly(den_str)
+		else:
+			Config.input_rational_num_coeffs = FormulaParser.parse_poly(expr)
+			Config.input_rational_den_coeffs = PackedVector2Array([Vector2(1, 0), Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO])
 
 	Config.save_settings()
 	_update_hud_layout()
@@ -868,6 +955,7 @@ func _sync_ui_to_config():
 	color_scheme_button.selected = Config.color_scheme
 	
 	curves_checkbox.button_pressed = Config.show_curves
+	curves_labels_checkbox.button_pressed = Config.show_curves_labels
 	critical_checkbox.button_pressed = Config.show_critical_stripe
 	shadows_checkbox.button_pressed = Config.shadows_enabled
 	hud_complex_checkbox.button_pressed = Config.show_hud_complex
@@ -881,10 +969,13 @@ func _sync_ui_to_config():
 		auto_walk_checkbox.button_pressed = (player.auto_walk_state != 0)
 	
 	flow_checkbox.button_pressed = Config.show_flow
+	position_marker_checkbox.button_pressed = Config.show_position_marker
 
 	func_button.select(func_button.get_item_index(Config.function_type))
+	input_button.select(input_button.get_item_index(Config.input_function_type))
 	height_button.selected = Config.height_type
 	_on_func_selected(Config.function_type)
+	_on_input_selected(Config.input_function_type)
 	_on_height_selected(Config.height_type)
 
 	for key in Config.PRESET_KEYS:
@@ -934,7 +1025,7 @@ func _process(_delta):
 				speed_input.text = formatted_speed
 
 		if not _camera_height_modified and not camera_height_input.has_focus():
-			var formatted_height = "%.3f" % Config.camera_height
+			var formatted_height = _format_float_3(Config.camera_height)
 			if camera_height_input.text != formatted_height:
 				camera_height_input.text = formatted_height
 
@@ -965,7 +1056,7 @@ func _process(_delta):
 		# Show all visited zeros in the scrolling list
 		for i in range(total_count - 1, -1, -1):
 			zero = Config.visited_zeros[i]
-			last_zeros_text += "(%.3f, %.3f)\n" % [zero[0], zero[1]]
+			last_zeros_text += "(%s, %s)\n" % [_format_float_3(zero[0]), _format_float_3(zero[1])]
 
 		zeros_count_label.text = "Count: %d" % total_count
 
@@ -995,8 +1086,13 @@ func _process(_delta):
 	material.set_shader_parameter("emission", Config.terrain_emission)
 
 	var scale_factor = 1.0 / Config.effective_zoom
-	domain_label.text = "Re = %.3f\nIm = %.3f" % [x * 0.1 * scale_factor, -z * 0.1 * scale_factor]
-	var target_text = "Re = %.3f\nIm = %.3f\n|f| = %.3f" % [f.x, f.y, f.length()]
+	var val_re = x * 0.1 * scale_factor
+	var val_im = -z * 0.1 * scale_factor
+	var val_fx = f.x
+	var val_fy = f.y
+
+	domain_label.text = "Re = %s\nIm = %s" % [_format_float_3(val_re), _format_float_3(val_im)]
+	var target_text = "Re = %s\nIm = %s\n|f| = %s" % [_format_float_3(val_fx), _format_float_3(val_fy), _format_float_3(f.length())]
 	if f_data.get("is_multivalued", false):
 		target_text += "\nBranch k = %d" % Config.current_branch
 	target_label.text = target_text
@@ -1036,7 +1132,7 @@ func _update_hud_layout():
 
 	var cards = [complex_panel, info_panel, monitor_panel, zeros_panel, perf_label]
 
-	var actual_hud_scale = Config.hud_scale * 1.2
+	var actual_hud_scale = Config.hud_scale
 
 	# Always rescale all cards to ensure their combined_minimum_size is correct for height check
 	for card in cards:
@@ -1053,8 +1149,8 @@ func _update_hud_layout():
 	_last_hud_state = current_state
 
 	# Scale stack widths to accommodate wider fonts
-	hud_stack_right.custom_minimum_size.x = 150 * actual_hud_scale
-	hud_stack_left.custom_minimum_size.x = 150 * actual_hud_scale
+	hud_stack_right.custom_minimum_size.x = 180 * actual_hud_scale
+	hud_stack_left.custom_minimum_size.x = 180 * actual_hud_scale
 
 	var available_height = get_viewport().size.y - 40
 	var current_height = 0.0
@@ -1123,7 +1219,7 @@ func _rescale_card(card: Control, _scale: float):
 			# Only scale custom minimum size for specific panels to maintain layout proportions
 			if node.name == "ComplexAspect":
 				if not node.has_meta("base_min_size"):
-					node.set_meta("base_min_size", Vector2(150, 150))
+					node.set_meta("base_min_size", Vector2(180, 180))
 				node.custom_minimum_size = node.get_meta("base_min_size") * _scale
 			elif node.name == "ZerosPanel" or node.name == "InfoPanel":
 				if not node.has_meta("base_min_size"):
@@ -1159,11 +1255,17 @@ func _on_shadows_toggled(pressed: bool):
 func _on_curves_toggled(pressed: bool):
 	Config.show_curves = pressed
 
+func _on_curves_labels_toggled(pressed: bool):
+	Config.show_curves_labels = pressed
+
 func _on_critical_toggled(pressed: bool):
 	Config.show_critical_stripe = pressed
 
 func _on_flow_toggled(pressed: bool):
 	Config.show_flow = pressed
+
+func _on_position_marker_toggled(pressed: bool):
+	Config.show_position_marker = pressed
 
 func _on_hud_complex_toggled(pressed: bool):
 	Config.show_hud_complex = pressed
@@ -1222,7 +1324,7 @@ func _on_height_eps_text_submitted(new_text: String):
 	if is_finite(h_eps):
 		Config.height_epsilon = h_eps
 
-func _on_rational_text_submitted(new_text: String):
+func _on_func_rational_text_submitted(new_text: String):
 	if Config.function_type == Config.ComplexFunc.RATIONAL:
 		var expr = new_text.replace(" ", "")
 		if "/" in expr:
@@ -1239,6 +1341,24 @@ func _on_rational_text_submitted(new_text: String):
 		else:
 			Config.rational_num_coeffs = FormulaParser.parse_poly(expr)
 			Config.rational_den_coeffs = PackedVector2Array([Vector2(1, 0), Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO])
+
+func _on_input_rational_text_submitted(new_text: String):
+	if Config.input_function_type == Config.ComplexFunc.RATIONAL:
+		var expr = new_text.replace(" ", "")
+		if "/" in expr:
+			var parts = expr.split("/")
+			var num_str = parts[0]
+			if num_str.begins_with("(") and num_str.ends_with(")"):
+				num_str = num_str.substr(1, num_str.length() - 2)
+			var den_str = parts[1]
+			if den_str.begins_with("(") and den_str.ends_with(")"):
+				den_str = den_str.substr(1, den_str.length() - 2)
+
+			Config.input_rational_num_coeffs = FormulaParser.parse_poly(num_str)
+			Config.input_rational_den_coeffs = FormulaParser.parse_poly(den_str)
+		else:
+			Config.input_rational_num_coeffs = FormulaParser.parse_poly(expr)
+			Config.input_rational_den_coeffs = PackedVector2Array([Vector2(1, 0), Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO])
 
 func play_portal_flash():
 	if not portal_flash:
@@ -1267,7 +1387,7 @@ func _rescale_menu(_scale: float):
 		return
 	main_menu_panel.set_meta("last_applied_menu_scale", _scale)
 
-	var actual_scale = _scale * (130.0 / 150.0)
+	var actual_scale = _scale
 
 	var stack = []
 	if main_menu_panel: stack.push_back(main_menu_panel)
@@ -1313,3 +1433,28 @@ func _rescale_menu(_scale: float):
 		for child in node.get_children():
 			if child is Control:
 				stack.push_back(child)
+
+
+func _on_tab_button_pressed(index: int):
+	tab_container.current_tab = index
+	_update_tab_buttons_styling()
+
+func _update_tab_buttons_styling():
+	if tab_buttons.is_empty(): return
+	for i in range(tab_buttons.size()):
+		var btn = tab_buttons[i]
+		if not btn: continue
+		if i == tab_container.current_tab:
+			btn.add_theme_stylebox_override("normal", active_tab_style)
+			btn.add_theme_stylebox_override("hover", hover_active_tab_style)
+			btn.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0))
+			btn.add_theme_color_override("font_hover_color", Color(1.0, 1.0, 1.0))
+			btn.add_theme_color_override("font_pressed_color", Color(1.0, 1.0, 1.0))
+			btn.add_theme_color_override("font_focus_color", Color(1.0, 1.0, 1.0))
+		else:
+			btn.add_theme_stylebox_override("normal", inactive_tab_style)
+			btn.add_theme_stylebox_override("hover", hover_tab_style)
+			btn.add_theme_color_override("font_color", Color(0.65, 0.65, 0.65))
+			btn.add_theme_color_override("font_hover_color", Color(0.85, 0.85, 0.85))
+			btn.add_theme_color_override("font_pressed_color", Color(0.65, 0.65, 0.65))
+			btn.add_theme_color_override("font_focus_color", Color(0.65, 0.65, 0.65))

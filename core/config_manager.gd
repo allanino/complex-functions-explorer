@@ -122,9 +122,11 @@ const PRESET_KEYS = [
 	"terrain_detail",
 	"antialiasing_mode",
 	"show_curves",
+	"show_curves_labels",
 	"show_critical_stripe",
 	"view_distance",
 	"show_flow",
+	"show_position_marker",
 	"color_scheme",
 	"freeze_time",
 	"day_duration",
@@ -180,6 +182,7 @@ var function_type: int = ComplexFunc.ZETA:
 		elif function.has("iters_range"):
 			iterations = int(function["iters_range"][3])
 var function: Dictionary = FUNCTIONS[ComplexFunc.ZETA]
+var input_function_type: int = ComplexFunc.IDENTITY
 
 var height_type: int = 0
 var height_a: float = 3.0
@@ -187,6 +190,8 @@ var height_epsilon: float = 1.0
 var height_theta: float = 0.0
 var rational_num_coeffs: PackedVector2Array = PackedVector2Array([Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)])
 var rational_den_coeffs: PackedVector2Array = PackedVector2Array([Vector2(1, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)])
+var input_rational_num_coeffs: PackedVector2Array = PackedVector2Array([Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)])
+var input_rational_den_coeffs: PackedVector2Array = PackedVector2Array([Vector2(1, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)])
 var multivalued_n: int = 2
 var current_branch: int = 0 # Session state for Portals mode
 var zoom_factor: float = 1.0
@@ -196,9 +201,11 @@ var zoom_damping: float = 0.5
 var terrain_detail: int = 1
 var antialiasing_mode: int = 1
 var show_curves: bool = true
+var show_curves_labels: bool = false
 var show_critical_stripe: bool = true
 var view_distance: int = 7
 var show_flow: bool = false
+var show_position_marker: bool = true
 var color_scheme: int = 0
 var freeze_time: bool = false
 var day_duration: float = 60.0 # Seconds for a full cycle
@@ -222,6 +229,8 @@ var movement_speed: float = 10.0
 var speed_near_zeros: float = 100.0
 var camera_height: float = 1.8
 var zero_proximity_nav: float = 0.5
+var real_level_curves_highlighted: Array[float] = []
+var imag_level_curves_highlighted: Array[float] = []
 
 # UI parameters
 var show_hud_complex: bool = true
@@ -344,12 +353,15 @@ func save_settings():
 	config.set_value("field", "iterations", iterations)
 	config.set_value("field", "function_iterations", function_iterations)
 	config.set_value("field", "function_type", int(function_type))
+	config.set_value("field", "input_function_type", int(input_function_type))
 	config.set_value("field", "height_type", height_type)
 	config.set_value("field", "height_a", height_a)
 	config.set_value("field", "height_epsilon", height_epsilon)
 	config.set_value("field", "height_theta", height_theta)
 	config.set_value("field", "rational_num_coeffs", rational_num_coeffs)
 	config.set_value("field", "rational_den_coeffs", rational_den_coeffs)
+	config.set_value("field", "input_rational_num_coeffs", input_rational_num_coeffs)
+	config.set_value("field", "input_rational_den_coeffs", input_rational_den_coeffs)
 	config.set_value("field", "multivalued_n", multivalued_n)
 	config.set_value("field", "zoom_factor", zoom_factor)
 	config.set_value("field", "zoom_damping", zoom_damping)
@@ -357,9 +369,11 @@ func save_settings():
 	config.set_value("rendering", "terrain_detail", terrain_detail)
 	config.set_value("rendering", "antialiasing_mode", antialiasing_mode)
 	config.set_value("rendering", "show_curves", show_curves)
+	config.set_value("rendering", "show_curves_labels", show_curves_labels)
 	config.set_value("rendering", "show_critical_stripe", show_critical_stripe)
 	config.set_value("rendering", "view_distance", view_distance)
 	config.set_value("rendering", "show_flow", show_flow)
+	config.set_value("rendering", "show_position_marker", show_position_marker)
 	config.set_value("rendering", "color_scheme", color_scheme)
 	config.set_value("rendering", "freeze_time", freeze_time)
 	config.set_value("rendering", "day_duration", day_duration)
@@ -409,6 +423,9 @@ func load_settings():
 	var ft_raw = config.get_value("field", "function_type", int(function_type))
 	function_type = ft_raw
 
+	var in_ft_raw = config.get_value("field", "input_function_type", int(input_function_type))
+	input_function_type = in_ft_raw
+
 	function_iterations = config.get_value("field", "function_iterations", {})
 	if function_iterations.has(function_type):
 		iterations = function_iterations[function_type]
@@ -421,6 +438,8 @@ func load_settings():
 	height_theta = config.get_value("field", "height_theta", height_theta)
 	rational_num_coeffs = config.get_value("field", "rational_num_coeffs", rational_num_coeffs)
 	rational_den_coeffs = config.get_value("field", "rational_den_coeffs", rational_den_coeffs)
+	input_rational_num_coeffs = config.get_value("field", "input_rational_num_coeffs", input_rational_num_coeffs)
+	input_rational_den_coeffs = config.get_value("field", "input_rational_den_coeffs", input_rational_den_coeffs)
 	multivalued_n = config.get_value("field", "multivalued_n", multivalued_n)
 	zoom_factor = config.get_value("field", "zoom_factor", zoom_factor)
 	zoom_damping = config.get_value("field", "zoom_damping", zoom_damping)
@@ -428,9 +447,11 @@ func load_settings():
 	terrain_detail = config.get_value("rendering", "terrain_detail", terrain_detail)
 	antialiasing_mode = config.get_value("rendering", "antialiasing_mode", antialiasing_mode)
 	show_curves = config.get_value("rendering", "show_curves", show_curves)
+	show_curves_labels = config.get_value("rendering", "show_curves_labels", show_curves_labels)
 	show_critical_stripe = config.get_value("rendering", "show_critical_stripe", show_critical_stripe)
 	view_distance = config.get_value("rendering", "view_distance", view_distance)
 	show_flow = config.get_value("rendering", "show_flow", show_flow)
+	show_position_marker = config.get_value("rendering", "show_position_marker", show_position_marker)
 	color_scheme = config.get_value("rendering", "color_scheme", color_scheme)
 	freeze_time = config.get_value("rendering", "freeze_time", freeze_time)
 	day_duration = config.get_value("rendering", "day_duration", day_duration)

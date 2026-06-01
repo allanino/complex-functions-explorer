@@ -190,6 +190,13 @@ corner_radius_bottom_left = 6
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_btn"]
 
+[sub_resource type="StyleBoxLine" id="StyleBoxLine_separator"]
+color = Color(1, 1, 1, 0.1)
+grow_begin = 0.0
+grow_end = 0.0
+thickness = 1
+vertical = true
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dialog_opaque"]
 bg_color = Color(0.03, 0.03, 0.03, 1)
 border_width_left = 1
@@ -225,10 +232,10 @@ grow_vertical = 2
 mouse_filter = 2
 
 [node name="MainMenuPanel" type="PanelContainer" parent="CenterContainer" unique_id=185131265]
-custom_minimum_size = Vector2(500, 960)
+custom_minimum_size = Vector2(1000, 780)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_glass")
-pivot_offset = Vector2(250, 480)
+pivot_offset = Vector2(500, 390)
 
 [node name="MarginContainer" type="MarginContainer" parent="CenterContainer/MainMenuPanel" unique_id=2017176305]
 layout_mode = 2
@@ -239,14 +246,14 @@ theme_override_constants/margin_bottom = 30
 
 [node name="ContentVBox" type="VBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer" unique_id=1309877729]
 layout_mode = 2
-theme_override_constants/separation = 30
+theme_override_constants/separation = 20
 
 [node name="TitleHBox" type="HBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox"]
 layout_mode = 2
 
 [node name="TitleLabel" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TitleHBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 22
 text = "Complex Functions Explorer"
 
 [node name="Spacer" type="Control" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TitleHBox"]
@@ -256,10 +263,10 @@ size_flags_horizontal = 3
 [node name="QuitButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TitleHBox" unique_id=781431675]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.7, 0.35, 0.35, 1.0)
-theme_override_colors/font_pressed_color = Color(1, 0.2, 0.2, 1)
-theme_override_colors/font_hover_color = Color(0.9, 0.4, 0.4, 0.9)
-theme_override_colors/font_focus_color = Color(0.9, 0.4, 0.4, 0.9)
+theme_override_colors/font_color         = Color(0.65, 0.65, 0.68, 0.85)
+theme_override_colors/font_hover_color   = Color(0.85, 0.85, 0.88, 1.0)
+theme_override_colors/font_pressed_color = Color(1.0, 1.0, 1.0, 1.0)
+theme_override_colors/font_focus_color   = Color(0.85, 0.85, 0.88, 1.0)
 theme_override_font_sizes/font_size = 18
 text = "Quit"
 flat = true
@@ -332,61 +339,143 @@ theme_override_styles/focus = SubResource("StyleBoxFlat_btn_normal")
 theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_disabled")
 text = "+ New"
 
-
 [node name="TopHSeparator" type="HSeparator" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox" unique_id=99990006]
 layout_mode = 2
 
-[node name="TabContainer" type="TabContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox" unique_id=581547873]
+[node name="MainLayoutHBox" type="HBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox" unique_id=101010100]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 20
+
+[node name="LeftSidebar" type="VBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox" unique_id=101010101]
+custom_minimum_size = Vector2(240, 0)
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="FunctionTabButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/LeftSidebar" unique_id=101010105]
+unique_name_in_owner = true
+layout_mode = 2
+text = "FUNCTION"
+flat = true
+
+[node name="EnvironmentTabButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/LeftSidebar" unique_id=101010106]
+unique_name_in_owner = true
+layout_mode = 2
+text = "ENVIRONMENT"
+flat = true
+
+[node name="TerrainTabButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/LeftSidebar" unique_id=101010107]
+unique_name_in_owner = true
+layout_mode = 2
+text = "TERRAIN"
+flat = true
+
+[node name="VisualizationTabButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/LeftSidebar" unique_id=101010108]
+unique_name_in_owner = true
+layout_mode = 2
+text = "VISUALIZATION"
+flat = true
+
+[node name="GraphicsTabButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/LeftSidebar" unique_id=101010109]
+unique_name_in_owner = true
+layout_mode = 2
+text = "GRAPHICS"
+flat = true
+
+[node name="NavigationTabButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/LeftSidebar" unique_id=101010110]
+unique_name_in_owner = true
+layout_mode = 2
+text = "NAVIGATION"
+flat = true
+
+[node name="UiTabButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/LeftSidebar" unique_id=101010111]
+unique_name_in_owner = true
+layout_mode = 2
+text = "UI"
+flat = true
+
+[node name="AudioTabButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/LeftSidebar" unique_id=101010112]
+unique_name_in_owner = true
+layout_mode = 2
+text = "AUDIO"
+flat = true
+
+[node name="VSeparator" type="VSeparator" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox" unique_id=101010104]
+layout_mode = 2
+theme_override_styles/separator = SubResource("StyleBoxLine_separator")
+
+[node name="RightAreaVBox" type="VBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox" unique_id=101010103]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 15
+
+
+
+[node name="TabContainer" type="TabContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox" unique_id=581547873]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_constants/side_margin = 0
-theme_override_font_sizes/font_size = 19
 theme_override_styles/panel = SubResource("StyleBoxEmpty_tabpanel")
-theme_override_styles/tab_unselected = SubResource("StyleBoxFlat_tab_unselected")
-theme_override_styles/tab_selected = SubResource("StyleBoxFlat_tab_selected")
-tab_alignment = 1
 current_tab = 0
-clip_tabs = false
+tabs_visible = false
 
-[node name="FUNCTION" type="ScrollContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer" unique_id=1719243795]
+[node name="FUNCTION" type="ScrollContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer" unique_id=1719243795]
 layout_mode = 2
 horizontal_scroll_mode = 0
 metadata/_tab_index = 0
 
-[node name="Margin" type="MarginContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION" unique_id=856537282]
+[node name="Margin" type="MarginContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/FUNCTION" unique_id=856537282]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/margin_right = 20
 
-[node name="VBox" type="VBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin" unique_id=388138640]
+[node name="VBox" type="VBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/FUNCTION/Margin" unique_id=388138640]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 20
 
-[node name="FuncContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox" unique_id=467199375 instance=ExtResource("DropdownScene")]
+[node name="FuncContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/FUNCTION/Margin/VBox" unique_id=467199375 instance=ExtResource("DropdownScene")]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Function"
 
-[node name="HeightContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox" unique_id=2077499212 instance=ExtResource("DropdownScene")]
+[node name="FuncRationalContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/FUNCTION/Margin/VBox" unique_id=1078901725 instance=ExtResource("TextInputScene")]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Expression"
+input_text = "z^2 - 1"
+placeholder_text = "(z^2 + 1)/(z - 1)"
+
+[node name="InputContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/FUNCTION/Margin/VBox" instance=ExtResource("DropdownScene")]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Input"
+
+[node name="InputRationalContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/FUNCTION/Margin/VBox" instance=ExtResource("TextInputScene")]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Expression"
+input_text = "z^2 - 1"
+placeholder_text = "(z^2 + 1)/(z - 1)"
+
+[node name="HeightContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/FUNCTION/Margin/VBox" unique_id=2077499212 instance=ExtResource("DropdownScene")]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Height Map"
 
-[node name="HeightAContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox" unique_id=1616977590 instance=ExtResource("TextInputScene")]
+[node name="HeightAContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/FUNCTION/Margin/VBox" unique_id=1616977590 instance=ExtResource("TextInputScene")]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Parameter a"
 input_text = "3.0"
 
-[node name="HeightEpsContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox" unique_id=1234826467 instance=ExtResource("TextInputScene")]
+[node name="HeightEpsContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/FUNCTION/Margin/VBox" unique_id=1234826467 instance=ExtResource("TextInputScene")]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Parameter ε"
 input_text = "1.0"
 
-[node name="HeightThetaSlider" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox" unique_id=456789012 instance=ExtResource("1")]
+[node name="HeightThetaSlider" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/FUNCTION/Margin/VBox" unique_id=456789012 instance=ExtResource("1")]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Parameter θ"
@@ -397,7 +486,7 @@ value = 0.0
 value_text = "0.00"
 show_detach_button = true
 
-[node name="IterSlider" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox" unique_id=1823340774 instance=ExtResource("1")]
+[node name="IterSlider" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/FUNCTION/Margin/VBox" unique_id=1823340774 instance=ExtResource("1")]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Iterations"
@@ -408,14 +497,7 @@ value = 100.0
 value_text = "100"
 show_detach_button = true
 
-[node name="RationalContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox" unique_id=1078901725 instance=ExtResource("TextInputScene")]
-unique_name_in_owner = true
-layout_mode = 2
-text = "Expression"
-input_text = "z^2 - 1"
-placeholder_text = "(z^2 + 1)/(z - 1)"
-
-[node name="MultivaluedSlider" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox" unique_id=946400167 instance=ExtResource("1")]
+[node name="MultivaluedSlider" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/FUNCTION/Margin/VBox" unique_id=946400167 instance=ExtResource("1")]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Branches (n)"
@@ -425,7 +507,7 @@ value = 2.0
 value_text = "2"
 show_detach_button = true
 
-[node name="BranchKSlider" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/FUNCTION/Margin/VBox" unique_id=946400168 instance=ExtResource("1")]
+[node name="BranchKSlider" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/FUNCTION/Margin/VBox" unique_id=946400168 instance=ExtResource("1")]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Branch number"
@@ -435,29 +517,29 @@ value = 0.0
 value_text = "0"
 show_detach_button = true
 
-[node name="ENVIRONMENT" type="ScrollContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer" unique_id=2093460961]
+[node name="ENVIRONMENT" type="ScrollContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer" unique_id=2093460961]
 visible = false
 layout_mode = 2
 horizontal_scroll_mode = 0
 metadata/_tab_index = 1
 
-[node name="Margin" type="MarginContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT" unique_id=1640892498]
+[node name="Margin" type="MarginContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/ENVIRONMENT" unique_id=1640892498]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/margin_right = 20
 
-[node name="VBox" type="VBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin" unique_id=1620274997]
+[node name="VBox" type="VBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/ENVIRONMENT/Margin" unique_id=1620274997]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 15
 
-[node name="FreezeTimeCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox" unique_id=2707504 instance=ExtResource("3_checkbox")]
+[node name="FreezeTimeCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/ENVIRONMENT/Margin/VBox" unique_id=2707504 instance=ExtResource("3_checkbox")]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Freeze time"
 
-[node name="DayDurationSlider" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox" unique_id=1133423840 instance=ExtResource("1")]
+[node name="DayDurationSlider" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/ENVIRONMENT/Margin/VBox" unique_id=1133423840 instance=ExtResource("1")]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Day Duration"
@@ -468,7 +550,7 @@ value = 60.0
 value_text = "00:08:20"
 show_detach_button = true
 
-[node name="DayTimeSlider" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox" unique_id=2098217400 instance=ExtResource("1")]
+[node name="DayTimeSlider" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/ENVIRONMENT/Margin/VBox" unique_id=2098217400 instance=ExtResource("1")]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Time of day"
@@ -478,7 +560,7 @@ value = 43200.0
 value_text = "12:00:00"
 show_detach_button = true
 
-[node name="SunriseContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox" unique_id=1474877961 instance=ExtResource("1")]
+[node name="SunriseContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/ENVIRONMENT/Margin/VBox" unique_id=1474877961 instance=ExtResource("1")]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Sunrise Direction"
@@ -486,7 +568,7 @@ max_value = 360.0
 value_text = "0°"
 show_detach_button = true
 
-[node name="SkyLuminosityContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox" unique_id=2050028518 instance=ExtResource("1")]
+[node name="SkyLuminosityContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/ENVIRONMENT/Margin/VBox" unique_id=2050028518 instance=ExtResource("1")]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Sky Luminosity"
@@ -495,7 +577,7 @@ value = 100.0
 value_text = "100%"
 show_detach_button = true
 
-[node name="SunLuminosityContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox" unique_id=1565150233 instance=ExtResource("1")]
+[node name="SunLuminosityContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/ENVIRONMENT/Margin/VBox" unique_id=1565150233 instance=ExtResource("1")]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Sun Luminosity"
@@ -504,14 +586,14 @@ value = 100.0
 value_text = "100%"
 show_detach_button = true
 
-[node name="SelfIlluminationContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox" unique_id=313775799 instance=ExtResource("1")]
+[node name="SelfIlluminationContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/ENVIRONMENT/Margin/VBox" unique_id=313775799 instance=ExtResource("1")]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Self-Illumination"
 value_text = "0%"
 show_detach_button = true
 
-[node name="FogDensitySlider" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/ENVIRONMENT/Margin/VBox" unique_id=197578242 instance=ExtResource("1")]
+[node name="FogDensitySlider" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/ENVIRONMENT/Margin/VBox" unique_id=197578242 instance=ExtResource("1")]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Fog Density"
@@ -520,28 +602,23 @@ value = 2.0
 value_text = "2.0%"
 show_detach_button = true
 
-[node name="TERRAIN" type="ScrollContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer" unique_id=801626418]
+[node name="TERRAIN" type="ScrollContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer" unique_id=801626418]
 visible = false
 layout_mode = 2
 horizontal_scroll_mode = 0
 metadata/_tab_index = 2
 
-[node name="Margin" type="MarginContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN" unique_id=1188851218]
+[node name="Margin" type="MarginContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/TERRAIN" unique_id=1188851218]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/margin_right = 20
 
-[node name="VBox" type="VBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin" unique_id=1505723631]
+[node name="VBox" type="VBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/TERRAIN/Margin" unique_id=1505723631]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 15
 
-[node name="ColorSchemeContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox" unique_id=1766626415 instance=ExtResource("DropdownScene")]
-unique_name_in_owner = true
-layout_mode = 2
-text = "Color Scheme"
-
-[node name="BrightnessContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox" unique_id=1323455475 instance=ExtResource("1")]
+[node name="BrightnessContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/TERRAIN/Margin/VBox" unique_id=1323455475 instance=ExtResource("1")]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Brightness"
@@ -549,7 +626,7 @@ value = 50.0
 value_text = "50%"
 show_detach_button = true
 
-[node name="SaturationContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox" unique_id=1976813417 instance=ExtResource("1")]
+[node name="SaturationContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/TERRAIN/Margin/VBox" unique_id=1976813417 instance=ExtResource("1")]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Saturation"
@@ -557,7 +634,7 @@ value = 78.0
 value_text = "78%"
 show_detach_button = true
 
-[node name="AlbedoContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox" unique_id=544307656 instance=ExtResource("1")]
+[node name="AlbedoContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/TERRAIN/Margin/VBox" unique_id=544307656 instance=ExtResource("1")]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Albedo"
@@ -565,7 +642,7 @@ value = 15.0
 value_text = "15%"
 show_detach_button = true
 
-[node name="EmissionContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox" unique_id=410627029 instance=ExtResource("1")]
+[node name="EmissionContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/TERRAIN/Margin/VBox" unique_id=410627029 instance=ExtResource("1")]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Emission"
@@ -573,7 +650,7 @@ value = 10.0
 value_text = "10%"
 show_detach_button = true
 
-[node name="MetallicContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox" unique_id=1918567006 instance=ExtResource("1")]
+[node name="MetallicContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/TERRAIN/Margin/VBox" unique_id=1918567006 instance=ExtResource("1")]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Metallic"
@@ -581,7 +658,7 @@ value = 70.0
 value_text = "70%"
 show_detach_button = true
 
-[node name="RoughnessContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox" unique_id=1867951602 instance=ExtResource("1")]
+[node name="RoughnessContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/TERRAIN/Margin/VBox" unique_id=1867951602 instance=ExtResource("1")]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Roughness"
@@ -589,32 +666,65 @@ value = 10.0
 value_text = "10%"
 show_detach_button = true
 
-[node name="SurfaceTextureContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox" unique_id=720981335 instance=ExtResource("1")]
+[node name="SurfaceTextureContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/TERRAIN/Margin/VBox" unique_id=720981335 instance=ExtResource("1")]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Surface Texture"
 value_text = "0%"
 show_detach_button = true
 
-[node name="CurvesCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox" unique_id=1207118863 instance=ExtResource("3_checkbox")]
+[node name="VISUALIZATION" type="ScrollContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer" unique_id=801626419]
+visible = false
+layout_mode = 2
+horizontal_scroll_mode = 0
+metadata/_tab_index = 3
+
+[node name="Margin" type="MarginContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/VISUALIZATION" unique_id=1188851219]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/margin_right = 20
+
+[node name="VBox" type="VBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/VISUALIZATION/Margin" unique_id=1505723632]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 15
+
+[node name="ColorSchemeContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/VISUALIZATION/Margin/VBox" unique_id=1766626415 instance=ExtResource("DropdownScene")]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Color Scheme"
+
+[node name="CurvesCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/VISUALIZATION/Margin/VBox" unique_id=1207118863 instance=ExtResource("3_checkbox")]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Level Curves"
 
-[node name="CriticalCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox" unique_id=972397465 instance=ExtResource("3_checkbox")]
+[node name="CurvesLabelsCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/VISUALIZATION/Margin/VBox" instance=ExtResource("3_checkbox")]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Curves Labels"
+
+[node name="CriticalCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/VISUALIZATION/Margin/VBox" unique_id=972397465 instance=ExtResource("3_checkbox")]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Critical Stripe"
 
-[node name="FlowCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox" unique_id=178055245 instance=ExtResource("3_checkbox")]
+[node name="FlowCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/VISUALIZATION/Margin/VBox" unique_id=178055245 instance=ExtResource("3_checkbox")]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Flow"
 
-[node name="MorphSliderContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/TERRAIN/Margin/VBox" unique_id=1056789267 instance=ExtResource("1")]
+[node name="PositionMarkerCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/VISUALIZATION/Margin/VBox" unique_id=99990020 instance=ExtResource("3_checkbox")]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Position marker"
+
+[node name="MorphSliderContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/VISUALIZATION/Margin/VBox" unique_id=1056789267 instance=ExtResource("1")]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Terrain Morph"
@@ -624,33 +734,33 @@ value = 1.0
 value_text = "1.00"
 show_detach_button = true
 
-[node name="GRAPHICS" type="ScrollContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer" unique_id=676818739]
+[node name="GRAPHICS" type="ScrollContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer" unique_id=676818739]
 visible = false
 layout_mode = 2
 horizontal_scroll_mode = 0
-metadata/_tab_index = 3
+metadata/_tab_index = 4
 
-[node name="Margin" type="MarginContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/GRAPHICS" unique_id=800436584]
+[node name="Margin" type="MarginContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/GRAPHICS" unique_id=800436584]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/margin_right = 20
 
-[node name="VBox" type="VBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/GRAPHICS/Margin" unique_id=2119579914]
+[node name="VBox" type="VBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/GRAPHICS/Margin" unique_id=2119579914]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 15
 
-[node name="TerrainDetailContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/GRAPHICS/Margin/VBox" unique_id=2110262796 instance=ExtResource("DropdownScene")]
+[node name="TerrainDetailContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/GRAPHICS/Margin/VBox" unique_id=2110262796 instance=ExtResource("DropdownScene")]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Terrain Details"
 
-[node name="AAContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/GRAPHICS/Margin/VBox" unique_id=1972959355 instance=ExtResource("DropdownScene")]
+[node name="AAContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/GRAPHICS/Margin/VBox" unique_id=1972959355 instance=ExtResource("DropdownScene")]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Antialiasing"
 
-[node name="ViewDistanceContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/GRAPHICS/Margin/VBox" unique_id=74672234 instance=ExtResource("1")]
+[node name="ViewDistanceContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/GRAPHICS/Margin/VBox" unique_id=74672234 instance=ExtResource("1")]
 unique_name_in_owner = true
 layout_mode = 2
 text = "View Distance"
@@ -660,53 +770,53 @@ value = 7.0
 value_text = "7"
 show_detach_button = true
 
-[node name="ShadowsCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/GRAPHICS/Margin/VBox" unique_id=592187793 instance=ExtResource("3_checkbox")]
+[node name="ShadowsCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/GRAPHICS/Margin/VBox" unique_id=592187793 instance=ExtResource("3_checkbox")]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Shadows"
 
-[node name="NAVIGATION" type="ScrollContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer" unique_id=539401528]
+[node name="NAVIGATION" type="ScrollContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer" unique_id=539401528]
 visible = false
 layout_mode = 2
 horizontal_scroll_mode = 0
-metadata/_tab_index = 4
+metadata/_tab_index = 5
 
-[node name="Margin" type="MarginContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION" unique_id=987186430]
+[node name="Margin" type="MarginContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/NAVIGATION" unique_id=987186430]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/margin_right = 20
 
-[node name="VBox" type="VBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin" unique_id=136999002]
+[node name="VBox" type="VBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/NAVIGATION/Margin" unique_id=136999002]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 20
 
-[node name="ReContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox" unique_id=506999005 instance=ExtResource("TextInputScene")]
+[node name="ReContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/NAVIGATION/Margin/VBox" unique_id=506999005 instance=ExtResource("TextInputScene")]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Real (x)"
 input_text = "0.5"
 
-[node name="ImContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox" unique_id=655403703 instance=ExtResource("TextInputScene")]
+[node name="ImContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/NAVIGATION/Margin/VBox" unique_id=655403703 instance=ExtResource("TextInputScene")]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Imaginary (y)"
 input_text = "0.0"
 
-[node name="CameraHeightContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox" unique_id=1021053763 instance=ExtResource("TextInputScene")]
+[node name="CameraHeightContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/NAVIGATION/Margin/VBox" unique_id=1021053763 instance=ExtResource("TextInputScene")]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Camera Height"
 input_text = "1.8"
 
-[node name="SpeedContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox" unique_id=127099388 instance=ExtResource("TextInputScene")]
+[node name="SpeedContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/NAVIGATION/Margin/VBox" unique_id=127099388 instance=ExtResource("TextInputScene")]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Move Speed"
 input_text = "10.0"
 
-[node name="ZoomContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox" unique_id=1687702584 instance=ExtResource("1")]
+[node name="ZoomContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/NAVIGATION/Margin/VBox" unique_id=1687702584 instance=ExtResource("1")]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Zoom Factor"
@@ -714,14 +824,14 @@ step = 0.01
 value = 1.0
 value_text = "x1"
 
-[node name="ZeroSpeedContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox" unique_id=652885205 instance=ExtResource("1")]
+[node name="ZeroSpeedContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/NAVIGATION/Margin/VBox" unique_id=652885205 instance=ExtResource("1")]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Speed near Zeros"
 value = 100.0
 value_text = "100%"
 
-[node name="ZeroProximityNavContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox" unique_id=2009290908 instance=ExtResource("1")]
+[node name="ZeroProximityNavContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/NAVIGATION/Margin/VBox" unique_id=2009290908 instance=ExtResource("1")]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Zeros proximity"
@@ -731,29 +841,29 @@ step = 0.01
 value = 0.5
 value_text = "0.50"
 
-[node name="AutoWalkCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/NAVIGATION/Margin/VBox" unique_id=295163047 instance=ExtResource("3_checkbox")]
+[node name="AutoWalkCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/NAVIGATION/Margin/VBox" unique_id=295163047 instance=ExtResource("3_checkbox")]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Automatic Walking"
 
-[node name="UI" type="ScrollContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer" unique_id=370743622]
+[node name="UI" type="ScrollContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer" unique_id=370743622]
 visible = false
 layout_mode = 2
 horizontal_scroll_mode = 0
-metadata/_tab_index = 5
+metadata/_tab_index = 6
 
-[node name="Margin" type="MarginContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/UI" unique_id=1914399448]
+[node name="Margin" type="MarginContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/UI" unique_id=1914399448]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/margin_right = 20
 
-[node name="VBox" type="VBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/UI/Margin" unique_id=735320682]
+[node name="VBox" type="VBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/UI/Margin" unique_id=735320682]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 15
 
-[node name="MenuScaleContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/UI/Margin/VBox" unique_id=987654321 instance=ExtResource("1")]
+[node name="MenuScaleContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/UI/Margin/VBox" unique_id=987654321 instance=ExtResource("1")]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Menu Scale"
@@ -763,7 +873,7 @@ step = 5.0
 value = 100.0
 value_text = "100%"
 
-[node name="HudScaleContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/UI/Margin/VBox" unique_id=102057451 instance=ExtResource("1")]
+[node name="HudScaleContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/UI/Margin/VBox" unique_id=102057451 instance=ExtResource("1")]
 unique_name_in_owner = true
 layout_mode = 2
 text = "HUD Scale"
@@ -773,59 +883,59 @@ step = 5.0
 value = 100.0
 value_text = "100%"
 
-[node name="HudComplexCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/UI/Margin/VBox" unique_id=153931705 instance=ExtResource("3_checkbox")]
+[node name="HudComplexCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/UI/Margin/VBox" unique_id=153931705 instance=ExtResource("3_checkbox")]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Complex plane"
 
-[node name="HudNavigationCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/UI/Margin/VBox" unique_id=274307069 instance=ExtResource("3_checkbox")]
+[node name="HudNavigationCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/UI/Margin/VBox" unique_id=274307069 instance=ExtResource("3_checkbox")]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Navigation"
 
-[node name="HudZerosDetectionCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/UI/Margin/VBox" unique_id=1573142176 instance=ExtResource("3_checkbox")]
+[node name="HudZerosDetectionCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/UI/Margin/VBox" unique_id=1573142176 instance=ExtResource("3_checkbox")]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Zeros detection"
 
-[node name="RvmCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/UI/Margin/VBox" unique_id=1539341105 instance=ExtResource("3_checkbox")]
+[node name="RvmCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/UI/Margin/VBox" unique_id=1539341105 instance=ExtResource("3_checkbox")]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Riemann–von Mangoldt"
 
-[node name="HudMonitorFpsCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/UI/Margin/VBox" unique_id=1861309937 instance=ExtResource("3_checkbox")]
+[node name="HudMonitorFpsCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/UI/Margin/VBox" unique_id=1861309937 instance=ExtResource("3_checkbox")]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Monitor FPS"
 
-[node name="HudMonitorChunksCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/UI/Margin/VBox" unique_id=1212894815 instance=ExtResource("3_checkbox")]
+[node name="HudMonitorChunksCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/UI/Margin/VBox" unique_id=1212894815 instance=ExtResource("3_checkbox")]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Monitor Chunks"
 
-[node name="AUDIO" type="ScrollContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer" unique_id=1363046571]
+[node name="AUDIO" type="ScrollContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer" unique_id=1363046571]
 visible = false
 layout_mode = 2
 horizontal_scroll_mode = 0
-metadata/_tab_index = 6
+metadata/_tab_index = 7
 
-[node name="Margin" type="MarginContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/AUDIO" unique_id=291425632]
+[node name="Margin" type="MarginContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/AUDIO" unique_id=291425632]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/margin_right = 20
 
-[node name="VBox" type="VBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/AUDIO/Margin" unique_id=2061315294]
+[node name="VBox" type="VBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/AUDIO/Margin" unique_id=2061315294]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 15
 
-[node name="MasterVolumeContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/AUDIO/Margin/VBox" unique_id=1261819468 instance=ExtResource("1")]
+[node name="MasterVolumeContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/AUDIO/Margin/VBox" unique_id=1261819468 instance=ExtResource("1")]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 0
@@ -833,7 +943,7 @@ text = "Master Volume"
 value = 100.0
 value_text = "100%"
 
-[node name="BgMusicContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/AUDIO/Margin/VBox" unique_id=1936702492 instance=ExtResource("1")]
+[node name="BgMusicContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/AUDIO/Margin/VBox" unique_id=1936702492 instance=ExtResource("1")]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 0
@@ -841,7 +951,7 @@ text = "Background Music"
 value = 100.0
 value_text = "100%"
 
-[node name="DroneContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TabContainer/AUDIO/Margin/VBox" unique_id=1527991363 instance=ExtResource("1")]
+[node name="DroneContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/AUDIO/Margin/VBox" unique_id=1527991363 instance=ExtResource("1")]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 0

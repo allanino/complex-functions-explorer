@@ -199,12 +199,12 @@ func test_get_rational():
 	Config.rational_den_coeffs = test_den
 
 	# Test with z = 2.0 + 0.0i -> f(2) = (1 + 4) / (1 + 2) = 5/3
-	var res1 = ComplexFieldScript.get_rational(2.0, 0.0)
+	var res1 = ComplexFieldScript.get_rational(2.0, 0.0, test_num, test_den)
 	assert_almost_eq(res1.x, 5.0 / 3.0, 0.0001)
 	assert_almost_eq(res1.y, 0.0, 0.0001)
 
 	# Test with z = 0.0 + 1.0i -> f(i) = (1 + 2i) / (1 + i) = (1 + 2i)(1 - i) / 2 = (1 - i + 2i + 2) / 2 = (3 + i) / 2 = 1.5 + 0.5i
-	var res2 = ComplexFieldScript.get_rational(0.0, 1.0)
+	var res2 = ComplexFieldScript.get_rational(0.0, 1.0, test_num, test_den)
 	assert_almost_eq(res2.x, 1.5, 0.0001)
 	assert_almost_eq(res2.y, 0.5, 0.0001)
 
@@ -420,6 +420,13 @@ func test_get_height_from_field():
 	var res_projected = ComplexFieldScript.get_height_from_field(f3)
 	assert_almost_eq(res_projected, 7.0 * sqrt(2.0) / 2.0, 0.0001)
 	Config.height_theta = orig_theta
+
+	# Test 9: Flat (height_type = 5)
+	Config.height_type = 5
+	Config.morph_value = 1.0
+	Config.effective_zoom = 1.0
+	var res_flat = ComplexFieldScript.get_height_from_field(f3)
+	assert_almost_eq(res_flat, 0.0, 0.0001)
 
 	Config.height_type = orig_height_type
 	Config.height_a = orig_height_a

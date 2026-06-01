@@ -222,7 +222,7 @@ func test_menu_scale():
 	
 	# 3. Verify initial scaled layout size matches config menu_scale * base scale factor (130/150)
 	var expected_scale = Config.menu_scale * (130.0 / 150.0)
-	var base_panel_min_size = Vector2(500, 960)
+	var base_panel_min_size = Vector2(1000, 780)
 	assert_eq(hud_instance.main_menu_panel.custom_minimum_size, base_panel_min_size * expected_scale)
 	
 	# 4. Simulate dragging:

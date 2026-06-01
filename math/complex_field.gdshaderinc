@@ -3,6 +3,7 @@
 uniform int iterations = 120;
 uniform float zoom_factor = 1.0;
 uniform int function_type = 0; // Maps to Config.ComplexFunc enum in GDScript
+uniform int input_function_type = 14;
 uniform int height_type = 0;   // 0: Abs, 1: Log, 2: Im, 3: Re, 4: Projected
 uniform float height_a = 3.0;
 uniform float height_epsilon = 1.0;
@@ -12,6 +13,8 @@ uniform bool is_multivalued = false;
 
 uniform vec2 rational_num_coeffs[10];
 uniform vec2 rational_den_coeffs[10];
+uniform vec2 input_rational_num_coeffs[10];
+uniform vec2 input_rational_den_coeffs[10];
 uniform int multivalued_n = 2;
 uniform int current_branch = 0;
 uniform float height_theta = 0.0;
@@ -776,8 +779,8 @@ ComplexFieldData complex_log_with_derivatives(float x, float y) {
 ComplexFieldData identity_with_derivatives(float x, float y) {
     ComplexFieldData res;
     res.value = vec2(x, y);
-    res.dx = vec2(0.0);
-    res.dy = vec2(0.0);
+    res.dx = vec2(1.0, 0.0);
+    res.dy = vec2(0.0, 1.0);
     return res;
 }
 
@@ -790,9 +793,9 @@ vec2 evaluate_poly(float x, float y, vec2 coeffs[10]) {
     return res;
 }
 
-vec2 get_rational(float x, float y) {
-    vec2 num = evaluate_poly(x, y, rational_num_coeffs);
-    vec2 den = evaluate_poly(x, y, rational_den_coeffs);
+vec2 get_rational(float x, float y, vec2 num_coeffs[10], vec2 den_coeffs[10]) {
+    vec2 num = evaluate_poly(x, y, num_coeffs);
+    vec2 den = evaluate_poly(x, y, den_coeffs);
     return complex_div(num, den);
 }
 
@@ -816,9 +819,9 @@ ComplexFieldData evaluate_poly_with_derivatives(float x, float y, vec2 coeffs[10
     return res;
 }
 
-ComplexFieldData get_rational_with_derivatives(float x, float y) {
-    ComplexFieldData num = evaluate_poly_with_derivatives(x, y, rational_num_coeffs);
-    ComplexFieldData den = evaluate_poly_with_derivatives(x, y, rational_den_coeffs);
+ComplexFieldData get_rational_with_derivatives(float x, float y, vec2 num_coeffs[10], vec2 den_coeffs[10]) {
+    ComplexFieldData num = evaluate_poly_with_derivatives(x, y, num_coeffs);
+    ComplexFieldData den = evaluate_poly_with_derivatives(x, y, den_coeffs);
     ComplexFieldData res;
     res.value = complex_div(num.value, den.value);
     vec2 den_sqr = complex_mul(den.value, den.value);
@@ -951,34 +954,52 @@ ComplexFieldData multivalued_acos_with_derivatives(float x, float y, int branch_
 // Dispatchers
 //-------------------------------------------------------------------------
 
-ComplexFieldData get_field_with_derivatives(float world_x, float world_z, int branch_offset) {
-    float zoom = 1.0 / zoom_factor;
-    float x = world_x * 0.1 * zoom;
-    float y = -world_z * 0.1 * zoom;
-    if (function_type == 0) return zeta_with_derivatives(x, y, iterations);
-    if (function_type == 1) return zeta_continuation_with_derivatives(x, y, iterations);
-    if (function_type == 2) return dirichlet_eta_with_derivatives(x, y, iterations);
-    if (function_type == 3) return dirichlet_beta_with_derivatives(x, y, iterations);
-    if (function_type == 4) return complex_gamma_with_derivatives(x, y);
-    if (function_type == 5) return complex_log_gamma_with_derivatives(x, y);
-    if (function_type == 6) return dedekind_eta_with_derivatives(x, y, iterations);
-    if (function_type == 7) return mandelbrot_with_derivatives(x, y, iterations);
-    if (function_type == 8) return complex_sin_with_derivatives(x, y);
-    if (function_type == 9) return complex_cos_with_derivatives(x, y);
-    if (function_type == 10) return complex_tan_with_derivatives(x, y);
-    if (function_type == 11) return complex_cot_with_derivatives(x, y);
-    if (function_type == 12) return complex_exp_with_derivatives(x, y);
-    if (function_type == 13) return complex_log_with_derivatives(x, y);
-    if (function_type == 14) return identity_with_derivatives(x, y);
-    if (function_type == 15) return get_rational_with_derivatives(x, y);
-	if (function_type == 16) return multivalued_z_pow_inv_n_with_derivatives(x, y, multivalued_n, branch_offset, true);
-	if (function_type == 17) return multivalued_log_with_derivatives(x, y, branch_offset, true);
-	if (function_type == 18) return multivalued_asin_with_derivatives(x, y, branch_offset);
-	if (function_type == 19) return multivalued_acos_with_derivatives(x, y, branch_offset);
+ComplexFieldData evaluate_function_with_derivatives(float x, float y, int func_type, int iters, int b_offset, bool is_input) {
+    if (func_type == 0) return zeta_with_derivatives(x, y, iters);
+    if (func_type == 1) return zeta_continuation_with_derivatives(x, y, iters);
+    if (func_type == 2) return dirichlet_eta_with_derivatives(x, y, iters);
+    if (func_type == 3) return dirichlet_beta_with_derivatives(x, y, iters);
+    if (func_type == 4) return complex_gamma_with_derivatives(x, y);
+    if (func_type == 5) return complex_log_gamma_with_derivatives(x, y);
+    if (func_type == 6) return dedekind_eta_with_derivatives(x, y, iters);
+    if (func_type == 7) return mandelbrot_with_derivatives(x, y, iters);
+    if (func_type == 8) return complex_sin_with_derivatives(x, y);
+    if (func_type == 9) return complex_cos_with_derivatives(x, y);
+    if (func_type == 10) return complex_tan_with_derivatives(x, y);
+    if (func_type == 11) return complex_cot_with_derivatives(x, y);
+    if (func_type == 12) return complex_exp_with_derivatives(x, y);
+    if (func_type == 13) return complex_log_with_derivatives(x, y);
+    if (func_type == 14) return identity_with_derivatives(x, y);
+    if (func_type == 15) {
+        if (is_input) {
+            return get_rational_with_derivatives(x, y, input_rational_num_coeffs, input_rational_den_coeffs);
+        } else {
+            return get_rational_with_derivatives(x, y, rational_num_coeffs, rational_den_coeffs);
+        }
+    }
+    if (func_type == 16) return multivalued_z_pow_inv_n_with_derivatives(x, y, multivalued_n, b_offset, true);
+    if (func_type == 17) return multivalued_log_with_derivatives(x, y, b_offset, true);
+    if (func_type == 18) return multivalued_asin_with_derivatives(x, y, b_offset);
+    if (func_type == 19) return multivalued_acos_with_derivatives(x, y, b_offset);
     ComplexFieldData res;
     res.value = vec2(0.0);
     res.dx = vec2(0.0);
     res.dy = vec2(0.0);
+    return res;
+}
+
+ComplexFieldData get_field_with_derivatives(float world_x, float world_z, int branch_offset) {
+    float zoom = 1.0 / zoom_factor;
+    float x = world_x * 0.1 * zoom;
+    float y = -world_z * 0.1 * zoom;
+
+    ComplexFieldData input_fd = evaluate_function_with_derivatives(x, y, input_function_type, iterations, 0, true);
+    ComplexFieldData outer_fd = evaluate_function_with_derivatives(input_fd.value.x, input_fd.value.y, function_type, iterations, branch_offset, false);
+
+    ComplexFieldData res;
+    res.value = outer_fd.value;
+    res.dx = complex_mul(outer_fd.dx, input_fd.dx);
+    res.dy = vec2(-res.dx.y, res.dx.x);
     return res;
 }
 
@@ -995,6 +1016,8 @@ float get_complex_height(vec2 fz, vec2 field_val) {
         h = field_val.x;
     } else if (height_type == 4) {
         h = field_val.x * cos(height_theta) + field_val.y * sin(height_theta);
+    } else if (height_type == 5) {
+        h = 0.0;
     }
     return h;
 }
@@ -1041,6 +1064,9 @@ vec2 get_complex_height_derivatives(vec2 fz, vec2 field_val, vec2 df_dx, vec2 df
         } else if (height_type == 4) {
             dh_dx = du_dx * cos(height_theta) + dv_dx * sin(height_theta);
             dh_dz = du_dz * cos(height_theta) + dv_dz * sin(height_theta);
+        } else if (height_type == 5) {
+            dh_dx = 0.0;
+            dh_dz = 0.0;
         }
     }
     return vec2(dh_dx, dh_dz);

@@ -51,6 +51,7 @@ func _process(delta):
 
 	if terrain_material:
 		terrain_material.set_shader_parameter("zoom_factor", Config.effective_zoom)
+		terrain_material.set_shader_parameter("player_position_world", player_pos)
 
 	# Check if any field properties have changed
 	var current_field_state = {
@@ -60,6 +61,7 @@ func _process(delta):
 		"show_curves": Config.show_curves,
 		"show_critical_stripe": Config.show_critical_stripe,
 		"show_flow": Config.show_flow,
+		"show_position_marker": Config.show_position_marker,
 		"color_scheme": Config.color_scheme,
 		"function_type": Config.function_type,
 		"height_type": Config.height_type,
@@ -68,6 +70,8 @@ func _process(delta):
 		"zoom_factor": Config.zoom_factor,
 		"rational_num_coeffs": Config.rational_num_coeffs,
 		"rational_den_coeffs": Config.rational_den_coeffs,
+		"input_rational_num_coeffs": Config.input_rational_num_coeffs,
+		"input_rational_den_coeffs": Config.input_rational_den_coeffs,
 		"multivalued_n": Config.multivalued_n,
 		"self_illumination": Config.self_illumination,
 		"current_branch": Config.current_branch,
@@ -195,7 +199,9 @@ func _update_terrain_material_uniforms():
 	terrain_material.set_shader_parameter("show_curves", Config.show_curves)
 	terrain_material.set_shader_parameter("show_critical_stripe", Config.show_critical_stripe)
 	terrain_material.set_shader_parameter("show_flow", Config.show_flow)
+	terrain_material.set_shader_parameter("show_position_marker", Config.show_position_marker)
 	terrain_material.set_shader_parameter("function_type", Config.function_type)
+	terrain_material.set_shader_parameter("input_function_type", Config.input_function_type)
 	terrain_material.set_shader_parameter("height_type", Config.height_type)
 	terrain_material.set_shader_parameter("height_a", Config.height_a)
 	terrain_material.set_shader_parameter("height_epsilon", Config.height_epsilon)
@@ -203,6 +209,8 @@ func _update_terrain_material_uniforms():
 	terrain_material.set_shader_parameter("zoom_factor", Config.effective_zoom)
 	terrain_material.set_shader_parameter("rational_num_coeffs", Config.rational_num_coeffs)
 	terrain_material.set_shader_parameter("rational_den_coeffs", Config.rational_den_coeffs)
+	terrain_material.set_shader_parameter("input_rational_num_coeffs", Config.input_rational_num_coeffs)
+	terrain_material.set_shader_parameter("input_rational_den_coeffs", Config.input_rational_den_coeffs)
 	terrain_material.set_shader_parameter("multivalued_n", Config.multivalued_n)
 	terrain_material.set_shader_parameter("self_illumination", Config.self_illumination)
 	terrain_material.set_shader_parameter("fog_density", Config.fog_density)
@@ -214,6 +222,25 @@ func _update_terrain_material_uniforms():
 	terrain_material.set_shader_parameter("roughness", Config.terrain_roughness)
 	terrain_material.set_shader_parameter("surface_texture", Config.terrain_surface_texture)
 	terrain_material.set_shader_parameter("current_branch", Config.current_branch)
+	
+
+	print("real_level_curves_highlighted: ", Config.real_level_curves_highlighted)
+	print("imag_level_curves_highlighted: ", Config.imag_level_curves_highlighted)
+
+	var real_shaded = PackedFloat32Array()
+	for val in Config.real_level_curves_highlighted:
+		real_shaded.append(val)
+	while real_shaded.size() < 10:
+		real_shaded.append(99999.0)
+
+	var imag_shaded = PackedFloat32Array()
+	for val in Config.imag_level_curves_highlighted:
+		imag_shaded.append(val)
+	while imag_shaded.size() < 10:
+		imag_shaded.append(99999.0)
+
+	terrain_material.set_shader_parameter("real_level_curves_highlighted", real_shaded)
+	terrain_material.set_shader_parameter("imag_level_curves_highlighted", imag_shaded)
 
 	terrain_material.set_shader_parameter("chunk_size", chunk_size)
 	var segments = []
