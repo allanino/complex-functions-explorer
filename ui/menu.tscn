@@ -1,3 +1,4 @@
+[ext_resource type="Script" path="res://ui/menu.gd" id="1_menu_gd"]
 [gd_scene format=3 uid="uid://dt1i63qai7fx6"]
 
 [ext_resource type="PackedScene" path="res://ui/components/slider.tscn" id="1"]
@@ -212,7 +213,7 @@ shadow_color = Color(0, 0, 0, 0.5)
 shadow_size = 4
 shadow_offset = Vector2(0, 4)
 
-[node name="MenuOverlay" type="ColorRect" unique_id=324048888]
+[node name="MenuOverlay" type="ColorRect" script=ExtResource("1_menu_gd")]
 visible = false
 anchors_preset = 15
 anchor_right = 1.0
