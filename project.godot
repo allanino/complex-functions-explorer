@@ -32,10 +32,6 @@ window/stretch/aspect="expand"
 
 enabled=PackedStringArray("res://addons/gut/plugin.cfg")
 
-[gui]
-
-theme/custom_font="res://ui/assets/InterVariable.ttf"
-
 [input]
 
 move_forward={
