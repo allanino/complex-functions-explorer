@@ -155,6 +155,8 @@ var _speed_modified: bool = false
 var _camera_height_modified: bool = false
 var _syncing_ui: bool = false
 
+const BASE_HUD_PANEL_SIZE: float = 190.0
+
 var SLIDER_BINDINGS: Dictionary = {}
 
 func _init_slider_bindings():
@@ -1149,8 +1151,8 @@ func _update_hud_layout():
 	_last_hud_state = current_state
 
 	# Scale stack widths to accommodate wider fonts
-	hud_stack_right.custom_minimum_size.x = 180 * actual_hud_scale
-	hud_stack_left.custom_minimum_size.x = 180 * actual_hud_scale
+	hud_stack_right.custom_minimum_size.x = BASE_HUD_PANEL_SIZE * actual_hud_scale
+	hud_stack_left.custom_minimum_size.x = BASE_HUD_PANEL_SIZE * actual_hud_scale
 
 	var available_height = get_viewport().size.y - 40
 	var current_height = 0.0
@@ -1219,7 +1221,7 @@ func _rescale_card(card: Control, _scale: float):
 			# Only scale custom minimum size for specific panels to maintain layout proportions
 			if node.name == "ComplexAspect":
 				if not node.has_meta("base_min_size"):
-					node.set_meta("base_min_size", Vector2(180, 180))
+					node.set_meta("base_min_size", Vector2(BASE_HUD_PANEL_SIZE, BASE_HUD_PANEL_SIZE))
 				node.custom_minimum_size = node.get_meta("base_min_size") * _scale
 			elif node.name == "ZerosPanel" or node.name == "InfoPanel":
 				if not node.has_meta("base_min_size"):
