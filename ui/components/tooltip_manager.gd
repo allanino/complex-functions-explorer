@@ -29,7 +29,7 @@ const DESCRIPTIONS = {
 	"Freeze time": "Choose between a dynamic day/night cycle or a fixed time of day. Shortcut: CTRL + G (Golden Hour) / CTRL + N (Freeze / Unfreeze time)",
 	"Day Duration": "Set the real-time duration for a full 24-hour mathematical day cycle.",
 	"Time of day": "Manually set the current time of day when time is frozen.",
-	"Sunrise Direction": "Adjust the angle from which the sun rises (180° is towards +σ).",
+	"Sunrise Direction": "Adjust the angle from which the sun rises (180° is towards the positive real axis).",
 	"Sky Luminosity": "Adjust the overall brightness of the sky and clouds.",
 	"Sun Luminosity": "Adjust the intensity of the sun and moon light.",
 	"Fog": "Enable or disable global volumetric fog effects.",

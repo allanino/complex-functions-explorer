@@ -30,7 +30,7 @@ enum ComplexFunc {
 
 const FUNCTIONS = {
 	ComplexFunc.ZETA: {
-		"name": "Zeta (σ > 0)",
+		"name": "Zeta (x > 0)",
 		"is_dirichlect": true,
 		"has_von_mangoldt": true,
 		# [min, max, step, initial]
@@ -43,13 +43,13 @@ const FUNCTIONS = {
 		"iters_range": [100.0, 5000.0, 100.0, 500.0],
 	},
 	ComplexFunc.DIRICHLET_ETA: {
-		"name": "Dirichlet Eta (σ > 0)",
+		"name": "Dirichlet Eta (x > 0)",
 		"is_dirichlect": true,
 		"has_von_mangoldt": true,
 		"iters_range": [100.0, 5000.0, 100.0, 500.0],
 	},
 	ComplexFunc.DIRICHLET_BETA: {
-		"name": "Dirichlet Beta (σ > 0)",
+		"name": "Dirichlet Beta (x > 0)",
 		"is_dirichlect": true,
 		"has_von_mangoldt": true,
 		"iters_range": [100.0, 5000.0, 100.0, 500.0],
