@@ -1,4 +1,5 @@
 shader_type spatial;
+render_mode depth_draw_opaque;
 
 #include "res://math/complex_field.gdshaderinc"
 
