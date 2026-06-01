@@ -13,6 +13,8 @@ var _lod_mesh_cache = {}
 var _last_player_chunk = Vector2i(9999, 9999)
 var slow_frame_counter: int = 0
 var _shaders_stopped: bool = false
+# Object pool to avoid expensive GC stutter from repeated instantiate() / queue_free()
+var _chunk_pool: Array[MeshInstance3D] = []
 
 @onready var sky = get_node("../Sky")
 @onready var audio = get_node_or_null("../Audio")
@@ -279,8 +281,15 @@ func _update_neighbor_lod_uniforms(coord: Vector2i):
 	chunk.set_instance_shader_parameter("neighbor_lod_bottom", bottom_lod)
 
 func _load_chunk(coord: Vector2i):
-	var chunk = terrain_chunk_scene.instantiate()
-	add_child(chunk)
+	var chunk: MeshInstance3D
+	if _chunk_pool.size() > 0:
+		# Reuse an existing chunk from the pool instead of instantiating
+		chunk = _chunk_pool.pop_back()
+		chunk.process_mode = Node.PROCESS_MODE_INHERIT
+	else:
+		chunk = terrain_chunk_scene.instantiate() as MeshInstance3D
+		add_child(chunk)
+
 	chunk.visible = !Config.performance_protection_active
 
 	chunk.material_override = terrain_material
@@ -317,6 +326,9 @@ func _update_chunk_lod(chunk: MeshInstance3D, lod: int, coord: Vector2i):
 
 func _unload_chunk(coord: Vector2i):
 	var chunk = chunks[coord]
-	chunk.queue_free()
+	# Hide and disable processing instead of freeing, saving it for the pool
+	chunk.visible = false
+	chunk.process_mode = Node.PROCESS_MODE_DISABLED
+	_chunk_pool.push_back(chunk as MeshInstance3D)
 	chunks.erase(coord)
 	_update_neighbor_lods(coord)
