@@ -342,6 +342,11 @@ void fragment() {
         float highlight_re_glow = 0.0;
         float highlight_im_glow = 0.0;
 
+        if (color_scheme == 2) {
+            float v = 0.5 + 0.5 * cos(phase);
+            base = vec3(v) * brightness;
+        }
+
         if (show_curves) {
             // 1. Get raw pixel derivatives (true density indicators)
             float raw_w_re = fwidth(f.x);

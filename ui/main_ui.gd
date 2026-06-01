@@ -534,6 +534,7 @@ func _ready():
 	color_scheme_button.clear()
 	color_scheme_button.add_item("Cyan real line (flipped)")
 	color_scheme_button.add_item("Red real line (standard)")
+	color_scheme_button.add_item("Grayscale")
 
 	apply_aa()
 	_disable_sliders_focus(self )
