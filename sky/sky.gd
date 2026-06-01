@@ -11,7 +11,7 @@ var _sun_color = Color("#fc9500")
 func _process(delta):
 	# Environment logic
 	var night_factor = 0.0
-	var sunrise_rad = deg_to_rad(Config.sunrise_direction)
+	var sunrise_rad = deg_to_rad(Config.sunrise_direction - 180.0)
 	# Orbit axis is perpendicular to sunrise vector (cos, 0, sin) and zenith (0, 1, 0)
 	var orbit_axis = Vector3(sin(sunrise_rad), 0, -cos(sunrise_rad))
 
