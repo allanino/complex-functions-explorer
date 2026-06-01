@@ -316,6 +316,8 @@ static func newton_step_zeta_reflection(z: Vector2) -> Vector2:
 	var f_val = res[0]
 	var f_prime = res[1]
 	var step = complex_div(f_val, f_prime)
+	if step.length() > 1.0:
+		step = step.normalized()
 	return z - step
 
 static func zeta_continuation(x: float, y: float) -> Vector2:
