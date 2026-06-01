@@ -7,6 +7,8 @@
 [ext_resource type="Script" path="res://ui/components/tooltip_manager.gd" id="5_tooltip_manager"]
 [ext_resource type="Script" path="res://ui/components/preset_controller.gd" id="6_preset_controller"]
 [ext_resource type="Script" path="res://ui/components/detach_controller.gd" id="7_detach_controller"]
+[ext_resource type="PackedScene" path="res://ui/components/virtual_joystick.tscn" id="8_joy"]
+
 
 
 
@@ -234,7 +236,36 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+
+
 mouse_filter = 2
+
+[node name="MobileControls" type="Control" parent="Control"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="LeftJoystick" parent="Control/MobileControls" instance=ExtResource("8_joy")]
+layout_mode = 1
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_right = 0.0
+offset_bottom = 0.0
+
+[node name="RightJoystick" parent="Control/MobileControls" instance=ExtResource("8_joy")]
+layout_mode = 1
+anchor_left = 0.5
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 0.0
+offset_right = 0.0
+offset_bottom = 0.0
+is_camera = true
+use_input_actions = false
 
 [node name="MainUIColumns" type="HBoxContainer" parent="Control"]
 unique_name_in_owner=true
