@@ -257,7 +257,7 @@ void sky() {
         compute_sky_colors(night_factor, golden_hour_factor, sky_color, horizon_color, cloud_color, current_sky, current_horizon, current_cloud);
 
         // Sky gradient
-        vec3 final_color = mix(current_horizon, current_sky, clamp(eye_alt * 2.0, 0.0, 1.0));
+        vec3 final_color = mix(current_horizon, current_sky, clamp(eye_alt, 0.0, 1.0));
 
         // Stars
         compute_stars(EYEDIR, eye_alt, night_factor, TIME, final_color);
