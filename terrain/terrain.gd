@@ -222,6 +222,25 @@ func _update_terrain_material_uniforms():
 	terrain_material.set_shader_parameter("roughness", Config.terrain_roughness)
 	terrain_material.set_shader_parameter("surface_texture", Config.terrain_surface_texture)
 	terrain_material.set_shader_parameter("current_branch", Config.current_branch)
+	
+
+	print("real_level_curves_highlighted: ", Config.real_level_curves_highlighted)
+	print("imag_level_curves_highlighted: ", Config.imag_level_curves_highlighted)
+
+	var real_shaded = PackedFloat32Array()
+	for val in Config.real_level_curves_highlighted:
+		real_shaded.append(val)
+	while real_shaded.size() < 10:
+		real_shaded.append(99999.0)
+
+	var imag_shaded = PackedFloat32Array()
+	for val in Config.imag_level_curves_highlighted:
+		imag_shaded.append(val)
+	while imag_shaded.size() < 10:
+		imag_shaded.append(99999.0)
+
+	terrain_material.set_shader_parameter("real_level_curves_highlighted", real_shaded)
+	terrain_material.set_shader_parameter("imag_level_curves_highlighted", imag_shaded)
 
 	terrain_material.set_shader_parameter("chunk_size", chunk_size)
 	var segments = []

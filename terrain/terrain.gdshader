@@ -16,6 +16,9 @@ instance uniform int neighbor_lod_bottom = -1;
 uniform float lod_segments[6];
 uniform float chunk_size;
 
+uniform float real_level_curves_highlighted[10];
+uniform float imag_level_curves_highlighted[10];
+
 uniform int color_scheme = 0;
 uniform bool show_curves = true;
 uniform bool show_critical_stripe = true;
@@ -336,6 +339,8 @@ void fragment() {
             hue = fract(hue + 0.5);
         }
         vec3 base = hsv2rgb(vec3(hue, saturation, brightness));
+        float highlight_re_glow = 0.0;
+        float highlight_im_glow = 0.0;
 
         if (show_curves) {
             // 1. Get raw pixel derivatives (true density indicators)
@@ -348,30 +353,58 @@ void fragment() {
 
             // 3. Compute contour lines using your padded width for rendering stability
             float d_re = abs(f.x - round(f.x));
-            float w_re = clamp(raw_w_re, 0.000005, 0.001) + 0.02;
+            
+            bool is_real_highlighted = false;
+            for (int i = 0; i < 10; i++) {
+                if (abs(round(f.x) - real_level_curves_highlighted[i]) < 0.1) {
+                    is_real_highlighted = true;
+                    break;
+                }
+            }
+
+            float w_re = clamp(raw_w_re, 0.000005, 0.001) + (is_real_highlighted ? 0.06 : 0.02);
             float line_re = smoothstep(w_re, 0.0, d_re);
 
             // Smoothly fade to 0.0 as raw_w_re approaches the threshold
             float density_re = smoothstep(max_density_threshold, max_density_threshold * 0.7, raw_w_re);
             line_re *= density_re;
 
-            base *= 1.0 - line_re * 0.3;
+            base *= 1.0 - line_re * (is_real_highlighted ? 0.8 : 0.3);
+            if (is_real_highlighted) {
+                highlight_re_glow = line_re;
+            }
 
             // 4. Compute contour lines for f.y
             float d_im = abs(f.y - round(f.y));
-            float w_im = clamp(raw_w_im, 0.000005, 0.001) + 0.02;
+            
+            bool is_imag_highlighted = false;
+            for (int i = 0; i < 10; i++) {
+                if (abs(round(f.y) - imag_level_curves_highlighted[i]) < 0.1) {
+                    is_imag_highlighted = true;
+                    break;
+                }
+            }
+
+            float w_im = clamp(raw_w_im, 0.000005, 0.001) + (is_imag_highlighted ? 0.06 : 0.02);
             float line_im = smoothstep(w_im, 0.0, d_im);
 
             // Smoothly fade to 0.0 as raw_w_im approaches the threshold
             float density_im = smoothstep(max_density_threshold, max_density_threshold * 0.7, raw_w_im);
             line_im *= density_im;
 
-            base *= 1.0 + line_im * 0.3; 
+            base *= 1.0 + line_im * (is_imag_highlighted ? 0.8 : 0.3); 
+            if (is_imag_highlighted) {
+                highlight_im_glow = line_im;
+            }
         }
 
 
         ALBEDO = base * albedo;
         vec3 final_emission = base * emission;
+        if (show_curves) {
+            final_emission += vec3(0.0, 0.6, 1.0) * highlight_re_glow * 0.8;
+            final_emission += vec3(1.0, 0.3, 0.0) * highlight_im_glow * 0.8;
+        }
 
         if (is_multivalued) {
             // Highlight the branch cut portal area

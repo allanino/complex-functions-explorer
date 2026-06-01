@@ -127,7 +127,41 @@ func _unhandled_input(event):
 		elif event.button_index == MOUSE_BUTTON_MIDDLE and event.pressed:
 			Config.zoom_factor = 1.0
 			Config.save_settings()
+		elif event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+			if Config.show_curves:
+				# If close to a real curve level, push or toggle it in the list capped at 10
+				var closest_curve_real = round(current_f.x)
+				if abs(current_f.x - closest_curve_real) < 0.1:
+					if closest_curve_real in Config.real_level_curves_highlighted:
+						Config.real_level_curves_highlighted.erase(closest_curve_real)
+					else:
+						Config.real_level_curves_highlighted.append(closest_curve_real)
+						if Config.real_level_curves_highlighted.size() > 10:
+							Config.real_level_curves_highlighted.pop_front()
+					# Set shader parameter to highlight this curve
+					if world_manager and world_manager.has_method("_update_terrain_material_uniforms"):
+						world_manager._update_terrain_material_uniforms()
 
+					print(Config.real_level_curves_highlighted)
+
+				var closest_curve_imag = round(current_f.y)
+				if abs(current_f.y - closest_curve_imag) < 0.1:
+					if closest_curve_imag in Config.imag_level_curves_highlighted:
+						Config.imag_level_curves_highlighted.erase(closest_curve_imag)
+					else:
+						Config.imag_level_curves_highlighted.append(closest_curve_imag)
+						if Config.imag_level_curves_highlighted.size() > 10:
+							Config.imag_level_curves_highlighted.pop_front()
+					# Set shader parameter to highlight this curve
+					if world_manager and world_manager.has_method("_update_terrain_material_uniforms"):
+						world_manager._update_terrain_material_uniforms()
+		elif event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
+			if Config.show_curves:
+				Config.real_level_curves_highlighted.clear()
+				Config.imag_level_curves_highlighted.clear()
+				if world_manager and world_manager.has_method("_update_terrain_material_uniforms"):
+					world_manager._update_terrain_material_uniforms()
+					
 
 	if event is InputEventKey and event.pressed and event.keycode == KEY_SPACE and not event.echo:
 		var current_time = Time.get_ticks_msec() / 1000.0
