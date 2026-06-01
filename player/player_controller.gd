@@ -127,7 +127,7 @@ func _unhandled_input(event):
 		elif event.button_index == MOUSE_BUTTON_MIDDLE and event.pressed:
 			Config.zoom_factor = 1.0
 			Config.save_settings()
-		elif event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+		elif event.button_index == MOUSE_BUTTON_LEFT and event.pressed and event.ctrl_pressed:
 			if Config.show_curves:
 				# If close to a real curve level, push or toggle it in the list capped at 10
 				var closest_curve_real = round(current_f.x)
