@@ -22,7 +22,7 @@ const DESCRIPTIONS = {
 	"Morph Time": "Duration of the smooth transition between branches.",
 	"Color Scheme": "Select the color mapping for the complex plane of the target function.",
 	"View Distance": "Number of terrain chunks loaded around the player.",
-	"Level Curves": "Overlay contour lines for integer values of Re(f) (black) and Im(f) (white).",
+	"Level Curves": "Overlay contour lines for integer values of Re(f) (black) and Im(f) (white).  Shortcut: CTRL + LEFT CLICK to highlight the curve you are over / RIGHT CLICK to remove all highlights",
 	"Curves Labels": "Show floating labels on level curves for integer values of Re(f) (black) and Im(f) (white). This uses raymarching and can be slow. Disabling it improves performance.",
 	"Position marker": "Enable or disable the player's ground projection marker.",
 	"Critical Stripe": "Visual guide indicating the 0 < Re < 1 region where non-trivial zeros reside.",
