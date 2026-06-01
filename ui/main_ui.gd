@@ -406,9 +406,9 @@ func _ready():
 
 	active_tab_style = StyleBoxFlat.new()
 	active_tab_style.content_margin_left = 15.0
-	active_tab_style.content_margin_top = 12.0
+	active_tab_style.content_margin_top = 10.0
 	active_tab_style.content_margin_right = 10.0
-	active_tab_style.content_margin_bottom = 12.0
+	active_tab_style.content_margin_bottom = 10.0
 	active_tab_style.bg_color = Color(1, 1, 1, 0.05)
 	active_tab_style.border_width_left = 4
 	active_tab_style.border_width_top = 0
@@ -418,23 +418,23 @@ func _ready():
 
 	inactive_tab_style = StyleBoxFlat.new()
 	inactive_tab_style.content_margin_left = 19.0
-	inactive_tab_style.content_margin_top = 12.0
+	inactive_tab_style.content_margin_top = 10.0
 	inactive_tab_style.content_margin_right = 10.0
-	inactive_tab_style.content_margin_bottom = 12.0
+	inactive_tab_style.content_margin_bottom = 10.0
 	inactive_tab_style.bg_color = Color(0, 0, 0, 0)
 
 	hover_tab_style = StyleBoxFlat.new()
 	hover_tab_style.content_margin_left = 19.0
-	hover_tab_style.content_margin_top = 12.0
+	hover_tab_style.content_margin_top = 10.0
 	hover_tab_style.content_margin_right = 10.0
-	hover_tab_style.content_margin_bottom = 12.0
+	hover_tab_style.content_margin_bottom = 10.0
 	hover_tab_style.bg_color = Color(1, 1, 1, 0.03)
 
 	hover_active_tab_style = StyleBoxFlat.new()
 	hover_active_tab_style.content_margin_left = 15.0
-	hover_active_tab_style.content_margin_top = 12.0
+	hover_active_tab_style.content_margin_top = 10.0
 	hover_active_tab_style.content_margin_right = 10.0
-	hover_active_tab_style.content_margin_bottom = 12.0
+	hover_active_tab_style.content_margin_bottom = 10.0
 	hover_active_tab_style.bg_color = Color(1, 1, 1, 0.08) # Slightly brighter background on hover
 	hover_active_tab_style.border_width_left = 4
 	hover_active_tab_style.border_width_top = 0
