@@ -116,6 +116,517 @@ float sdTriangle(vec2 p, vec2 p0, vec2 p1, vec2 p2)
     return -sqrt(d.x) * sign(d.y);
 }
 
+
+
+vec3 apply_lod_snapping(vec3 vertex_pos, float half_size) {
+    float eps = 0.01;
+
+    bool on_left = vertex_pos.x < -half_size + eps;
+    bool on_right = vertex_pos.x > half_size - eps;
+    bool on_top = vertex_pos.z < -half_size + eps;
+    bool on_bottom = vertex_pos.z > half_size - eps;
+
+    int n_lod = -1;
+    bool horizontal_edge = false; // edge along X (Top/Bottom)
+
+    if (on_left && neighbor_lod_left > lod_level) {
+        n_lod = neighbor_lod_left;
+        horizontal_edge = false;
+    } else if (on_right && neighbor_lod_right > lod_level) {
+        n_lod = neighbor_lod_right;
+        horizontal_edge = false;
+    } else if (on_top && neighbor_lod_top > lod_level) {
+        n_lod = neighbor_lod_top;
+        horizontal_edge = true;
+    } else if (on_bottom && neighbor_lod_bottom > lod_level) {
+        n_lod = neighbor_lod_bottom;
+        horizontal_edge = true;
+    }
+
+    vec3 snap_v = vertex_pos;
+    if (n_lod != -1) {
+        float segments = lod_segments[n_lod];
+        float s = chunk_size / segments;
+        if (horizontal_edge) {
+            float t = (vertex_pos.x + half_size) / s;
+            snap_v.x = floor(t + 0.5) * s - half_size;
+        } else {
+            float t = (vertex_pos.z + half_size) / s;
+            snap_v.z = floor(t + 0.5) * s - half_size;
+        }
+    }
+    return snap_v;
+}
+
+
+int calculate_branch_offset(vec3 world_v_pos, vec3 cam_pos, out bool in_portal) {
+    int branch_offset = 0;
+    in_portal = false;
+    if (cam_pos.z * world_v_pos.z < 0.0 || (cam_pos.z != 0.0 && world_v_pos.z == 0.0)) {
+        float denom = cam_pos.z - world_v_pos.z;
+        if (denom == 0.0) {
+            denom = 1e-9;
+        }
+        float r = cam_pos.z / denom;
+        float px = cam_pos.x + r * (world_v_pos.x - cam_pos.x);
+        float py = cam_pos.y + r * (world_v_pos.y - cam_pos.y);
+
+        if (function_type == 18 || function_type == 19) {
+            float threshold = 10.0 * zoom_factor;
+            if ((px >= threshold && px < threshold + portal_width) ||
+                (px <= -threshold && px > -threshold - portal_width)) {
+                if (py > portal_min_height && py < portal_height) {
+                    in_portal = true;
+                }
+            }
+        } else {
+            if (px < 0.0 && px > -portal_width && py > portal_min_height && py < portal_height) {
+                in_portal = true;
+            }
+        }
+
+        if (in_portal) {
+            if (function_type == 18 || function_type == 19) { // ASIN or ACOS
+                bool is_even = (current_branch % 2 == 0);
+                if (px >= 0.0) {
+                    branch_offset = is_even ? 1 : -1;
+                } else {
+                    branch_offset = is_even ? -1 : 1;
+                }
+            } else {
+                // For negative branch cuts (Log and Power functions),
+                // the branch offset signs are inverted relative to positive cuts.
+                branch_offset = (cam_pos.z > 0.0) ? -1 : 1;
+            }
+        }
+    }
+    return branch_offset;
+}
+
+
+vec3 apply_branch_cut_perturbation(vec3 world_v_pos, vec3 cam_pos, bool in_portal) {
+    // Perturb boundary vertices exactly on/near the branch cut (world_v_pos.z == 0.0)
+    // to resolve the exact-zero branch discontinuity in atan(y, x).
+    // - If viewed through the portal (in_portal is true), the vertex belongs to the
+    //   opposite side of the camera, so we nudge it in the direction opposite to cam_pos.z.
+    // - If viewed outside the portal (in_portal is false), the vertex belongs to the
+    //   same side as the camera, so we nudge it in the direction of cam_pos.z.
+    if (abs(world_v_pos.z) < 1e-5) {
+        float side_sign = in_portal ? -sign(cam_pos.z) : sign(cam_pos.z);
+        if (side_sign == 0.0) side_sign = 1.0;
+        world_v_pos.z = side_sign * 1e-5;
+    }
+    return world_v_pos;
+}
+
+
+void compute_matrix_effect(vec2 world_xz, out vec3 albedo, out vec3 emission, out float rgh, out float mtl, out float spec) {
+    albedo = vec3(0.0);
+
+    // Matrix Effect
+    vec2 grid = world_xz * 5.0;
+    vec2 ipos = floor(grid);
+    vec2 fpos = fract(grid);
+
+    float col_rand = matrix_hash(vec2(ipos.x, 0.0));
+    float speed = 2.0 + col_rand * 4.0;
+    float y_offset = TIME * speed;
+
+    // Flow downwards (in Z)
+    float row = ipos.y + y_offset;
+    float irow = floor(row);
+
+    float char_rand = matrix_hash(vec2(ipos.x, irow));
+
+    // Droplet trail
+    float trail = fract(-grid.y * 0.15 + TIME * speed * 0.05 + col_rand * 10.0);
+    trail = pow(trail, 4.0) * 2.5;
+
+    // Character flickering/selection
+    float char_vis = step(0.997, char_rand);
+
+    // Character shape (simple blocky approximation)
+    float char_shape = smoothstep(0.1, 0.2, fpos.x) * smoothstep(0.9, 0.8, fpos.x) *
+                       smoothstep(0.1, 0.2, fpos.y) * smoothstep(0.9, 0.8, fpos.y);
+
+    vec3 matrix_color = vec3(0.0, 0.8, 0.2);
+
+    // Glowy head of the trail
+    if (trail > 2.0) {
+        matrix_color = vec3(0.7, 1.0, 0.7);
+    }
+
+    emission = matrix_color * trail * char_shape * char_vis;
+    rgh = 1.0;
+    mtl = 0.0;
+    spec = 0.0;
+}
+
+
+void compute_curves_highlight(vec2 f, inout vec3 base, out float highlight_re_glow, out float highlight_im_glow) {
+    highlight_re_glow = 0.0;
+    highlight_im_glow = 0.0;
+
+    // 1. Get raw pixel derivatives (true density indicators)
+    float raw_w_re = fwidth(f.x);
+    float raw_w_im = fwidth(f.y);
+
+    // 2. Define a density threshold where curves should completely disappear.
+    // Adjust this value: lower means it fades out sooner/farther away.
+    float max_density_threshold = 0.2;
+
+    // 3. Compute contour lines using your padded width for rendering stability
+    float d_re = abs(f.x - round(f.x));
+
+    bool is_real_highlighted = false;
+    for (int i = 0; i < 10; i++) {
+        if (abs(round(f.x) - real_level_curves_highlighted[i]) < 0.1) {
+            is_real_highlighted = true;
+            break;
+        }
+    }
+
+    float w_re = clamp(raw_w_re, 0.000005, 0.001) + (is_real_highlighted ? 0.06 : 0.02);
+    float line_re = smoothstep(w_re, 0.0, d_re);
+
+    // Smoothly fade to 0.0 as raw_w_re approaches the threshold
+    float density_re = smoothstep(max_density_threshold, max_density_threshold * 0.7, raw_w_re);
+    line_re *= density_re;
+
+    base *= 1.0 - line_re * (is_real_highlighted ? 0.8 : 0.3);
+    if (is_real_highlighted) {
+        highlight_re_glow = line_re;
+    }
+
+    // 4. Compute contour lines for f.y
+    float d_im = abs(f.y - round(f.y));
+
+    bool is_imag_highlighted = false;
+    for (int i = 0; i < 10; i++) {
+        if (abs(round(f.y) - imag_level_curves_highlighted[i]) < 0.1) {
+            is_imag_highlighted = true;
+            break;
+        }
+    }
+
+    float w_im = clamp(raw_w_im, 0.000005, 0.001) + (is_imag_highlighted ? 0.06 : 0.02);
+    float line_im = smoothstep(w_im, 0.0, d_im);
+
+    // Smoothly fade to 0.0 as raw_w_im approaches the threshold
+    float density_im = smoothstep(max_density_threshold, max_density_threshold * 0.7, raw_w_im);
+    line_im *= density_im;
+
+    base *= 1.0 + line_im * (is_imag_highlighted ? 0.8 : 0.3);
+    if (is_imag_highlighted) {
+        highlight_im_glow = line_im;
+    }
+}
+
+
+void compute_multivalued_highlight(vec3 w_pos, inout vec3 final_emission) {
+    // Highlight the branch cut portal area
+    float dist_to_cut = abs(w_pos.z);
+    bool in_cut = false;
+
+    if (function_type == 18 || function_type == 19) {
+        float threshold = 10.0 * zoom_factor;
+        if ((w_pos.x >= threshold && w_pos.x < threshold + portal_width) ||
+            (w_pos.x <= -threshold && w_pos.x > -threshold - portal_width)) {
+            in_cut = true;
+        }
+    } else {
+        if (w_pos.x < 0.0 && w_pos.x > -portal_width) {
+            in_cut = true;
+        }
+    }
+
+    if (in_cut) {
+        float cut_glow = 1.0 - smoothstep(0.0, 0.1 * zoom_factor, dist_to_cut);
+        final_emission += vec3(0.0, 0.8, 1.0) * cut_glow * 0.4;
+    }
+}
+
+
+void compute_critical_stripe_highlight(vec3 w_pos, inout vec3 final_emission) {
+    float zoom = zoom_factor;
+
+    // Pulsing glow intensity
+    float glow = 0.35 + 0.65 * (0.5 + 0.5 * sin(TIME * 2.0));
+
+    // Thin analytic-looking core
+    float line_width = 0.015 * zoom;
+
+    // Screen-space anti-aliasing
+    float aa = fwidth(w_pos.x) * 1.5;
+
+    vec3 critical_color = vec3(0.9, 0.9, 0.0);
+    vec3 boundary_color = vec3(1.0);
+
+    // =========================================================
+    // Critical line (Re = 0.5)
+    // =========================================================
+
+    float d_critical = abs(w_pos.x - 5.0 * zoom);
+
+    float core_critical =
+        1.0 - smoothstep(
+            line_width - aa,
+            line_width + aa,
+            d_critical
+        );
+
+    // Compact exponential glow
+    float glow_critical =
+        exp(-d_critical / (0.02 * zoom));
+
+    // =========================================================
+    // Left boundary (Re = 0)
+    // =========================================================
+
+    float d0 = abs(w_pos.x);
+
+    float core_0 =
+        1.0 - smoothstep(
+            line_width - aa,
+            line_width + aa,
+            d0
+        );
+
+    float glow_0 =
+        exp(-d0 / (0.02 * zoom));
+
+    // =========================================================
+    // Right boundary (Re = 1)
+    // =========================================================
+
+    float d10 = abs(w_pos.x - 10.0 * zoom);
+
+    float core_10 =
+        1.0 - smoothstep(
+            line_width - aa,
+            line_width + aa,
+            d10
+        );
+
+    float glow_10 =
+        exp(-d10 / (0.02 * zoom));
+
+    // =========================================================
+    // Final emission
+    // =========================================================
+
+    // Bright sharp core + animated compact glow
+
+    final_emission += critical_color *
+        (
+            core_critical * 1.4 +
+            glow_critical * glow * 0.9
+        );
+
+    final_emission += boundary_color *
+        (
+            core_0 * 1.1 +
+            glow_0 * glow * 0.5
+        );
+
+    final_emission += boundary_color *
+        (
+            core_10 * 1.1 +
+            glow_10 * glow * 0.5
+        );
+}
+
+
+void compute_flow_effect(vec3 w_pos, vec3 nrm, inout vec3 albedo, inout vec3 final_emission) {
+    float dist_to_camera = length(w_pos - CAMERA_POSITION_WORLD);
+    float flow_fade = 1.0 - smoothstep(30.0, 80.0, dist_to_camera);
+
+    if (flow_fade > 0.001) {
+        float g_size = 0.75;
+        vec2 cell_id = floor(w_pos.xz / g_size);
+        vec2 grid_uv = fract(w_pos.xz / g_size) - 0.5;
+
+        // Get gradient from normal (change the sign to change flow direction)
+        vec2 grad = nrm.xz;
+        float grad_mag = length(grad);
+
+        if (grad_mag > 0.001) {
+            vec2 dir = grad / grad_mag;
+
+            float arrow_mask = 0.0;
+            float pulse_intensity = 0.0;
+
+            for (float dx = -1.0; dx <= 1.0; dx += 1.0) {
+                for (float dy = -1.0; dy <= 1.0; dy += 1.0) {
+                    vec2 offset = vec2(dx, dy);
+                    vec2 local_grid_uv = grid_uv - offset;
+                    vec2 cell_local = local_grid_uv * g_size;
+
+                    // Rotate to align with gradient (pointing along +X)
+                    vec2 p = vec2(cell_local.x * dir.x + cell_local.y * dir.y, -cell_local.x * dir.y + cell_local.y * dir.x);
+
+                    float arrow_len = clamp(
+                        grad_mag * g_size * 2.2,
+                        0.3 * g_size,
+                        0.85 * g_size
+                    );
+                    float thickness = 0.015 * g_size;
+                    float head_size = arrow_len * 0.2;
+
+                    float half_len = arrow_len * 0.5;
+                    vec2 tip = vec2(half_len, 0.0);
+                    vec2 head_base = vec2(half_len - head_size, 0.0);
+                    vec2 tail = vec2(-half_len, 0.0);
+
+                    // Body
+                    float d_body = sdLine(p, tail, head_base);
+
+                    // Triangle head
+                    float d_head = sdTriangle(
+                        p,
+                        tip,
+                        head_base + vec2(0.0,  head_size * 0.45),
+                        head_base + vec2(0.0, -head_size * 0.45)
+                    );
+
+                    float d_arrow = min(d_body - thickness, d_head);
+
+                    float cell_mask = 1.0 - smoothstep(0.0, thickness, d_arrow);
+
+                    if (cell_mask > 0.0) {
+                        float pulse_time = fract(TIME * 0.8);
+                        float p_coord = (p.x / arrow_len) + 0.5; // 0 to 1
+                        float cell_pulse = smoothstep(pulse_time - 0.3, pulse_time, p_coord) *
+                                           smoothstep(pulse_time + 0.05, pulse_time, p_coord);
+
+                        arrow_mask = max(arrow_mask, cell_mask);
+                        pulse_intensity = max(pulse_intensity, cell_mask * cell_pulse);
+                    }
+                }
+            }
+
+            vec3 flow_color = vec3(1.0) * arrow_mask * (0.1 + 0.5 * pulse_intensity) * flow_fade;
+            final_emission += flow_color * 0.5;
+            albedo = mix(albedo, vec3(1.0), arrow_mask * 0.25 * flow_fade);
+        }
+    }
+}
+
+
+void compute_surface_texture_effect(vec3 w_pos, inout vec3 nrm, out float roughness_variation) {
+    roughness_variation = 0.0;
+    vec3 scaled_world_pos = w_pos /  zoom_factor;
+
+    float dist_to_camera = length(scaled_world_pos - CAMERA_POSITION_WORLD);
+    // Fade the texture effect beyond 50 units, reaching 0 at 100 units
+    float fade = 1.0 - smoothstep(20.0, 100.0, dist_to_camera);
+    fade = mix(0.15, 1.0, fade);
+
+    if (fade > 0.001) {
+        // High frequency for fine texture
+        float freq = mix(2.0, 10.0, fade);
+        vec3 noise_pos = scaled_world_pos * freq;
+        float noise_val = fbm3(noise_pos);
+
+        // Approximate tangent and bitangent based on the normal
+        vec3 t = normalize(cross(nrm, vec3(0.0, 1.0, 0.0)));
+        if (length(t) < 0.1) {
+            t = normalize(cross(nrm, vec3(1.0, 0.0, 0.0)));
+        }
+        vec3 b = normalize(cross(nrm, t));
+
+        // Derive normal perturbation by sampling nearby points
+        float eps = 0.05;
+        float nx = fbm3(noise_pos + t * eps) - noise_val;
+        float nz = fbm3(noise_pos + b * eps) - noise_val;
+
+        vec3 perturbed = normalize(
+            nrm + vec3(nx, 0.0, nz) * surface_texture * fade * 2.0
+        );
+
+        nrm = perturbed;
+
+        // Remap noise_val from [0, 1] to [-0.5, 0.5] for roughness
+        roughness_variation = (noise_val - 0.5) * surface_texture * fade * 0.2;
+    }
+}
+
+
+void compute_self_illumination_effect(vec3 w_pos, vec3 albedo, inout vec3 final_emission) {
+    // Position slightly below the camera
+    vec3 light_pos = CAMERA_POSITION_WORLD - vec3(0.0, 0.2 / zoom_factor, 0.0);
+
+    float dist_to_camera = length(w_pos - light_pos) * 0.1;
+
+    // Exponent decay
+    float glow_factor = exp(-dist_to_camera);
+
+    // Fog Transmittance
+    if (fog_density > 0.0) {
+        float actual_dist = length(w_pos - CAMERA_POSITION_WORLD);
+        float fog_transmittance = exp(-actual_dist * fog_density * 0.05);
+        glow_factor *= fog_transmittance;
+    }
+
+    // Gentle pulsing
+    float pulse = 1.0 + 0.03 * sin(TIME * 0.7);
+
+    vec3 warm_glow = vec3(1.0, 0.88, 0.72) * self_illumination * glow_factor * pulse * 5.0;
+    final_emission += albedo * warm_glow;
+}
+
+
+void compute_position_marker(vec3 w_pos, inout vec3 albedo, inout vec3 final_emission) {
+    vec2 player_xz = player_position_world.xz;
+    vec2 pos_xz = w_pos.xz;
+
+    float scale = 0.2;
+
+    float length_arms = 0.6 * scale;
+    float thickness = 0.02 * scale;
+    float glow_thickness = 0.04 * scale;
+    float dot_radius = 0.07 * scale;
+    float arrow_len = 0.08 * scale;
+    float arrow_width = 0.04 * scale;
+
+    float d_line1 = sdLine(pos_xz, player_xz, player_xz + vec2(length_arms, 0.0));
+    float d_line2 = sdLine(pos_xz, player_xz, player_xz - vec2(0.0, length_arms));
+
+    float d_cross = min(d_line1, d_line2);
+    float d_dot = length(pos_xz - player_xz) - dot_radius;
+
+    // Arrowheads at the tips of the cross arms
+    vec2 tip_right = player_xz + vec2(length_arms, 0.0);
+    float d_arr_right = min(
+        sdLine(pos_xz, tip_right, tip_right - vec2(arrow_len, arrow_width)),
+        sdLine(pos_xz, tip_right, tip_right - vec2(arrow_len, -arrow_width))
+    );
+
+    vec2 tip_upward = player_xz - vec2(0.0, length_arms);
+    float d_arr_upward = min(
+        sdLine(pos_xz, tip_upward, tip_upward + vec2(-arrow_width, arrow_len)),
+        sdLine(pos_xz, tip_upward, tip_upward + vec2(arrow_width, arrow_len))
+    );
+
+    float d_arrows = min(d_arr_right , d_arr_upward);
+    float d_marker = min(min(d_cross, d_dot), d_arrows);
+
+    if (d_marker < glow_thickness) {
+        // Crisp core
+        float core = 1.0 - step(thickness, d_marker);
+        // Slight glow
+        float glow = (1.0 - smoothstep(thickness, glow_thickness, d_marker)) * 0.5;
+
+        vec3 marker_color = vec3(0.4);
+        float intensity = core + glow;
+
+        // Draw just above terrain means we just render it directly on the terrain surface.
+        albedo = mix(albedo, marker_color, clamp(intensity, 0.0, 1.0));
+        final_emission += marker_color * intensity * 2.0; // Glow emission
+    }
+}
+
+
 void vertex() {
     vec3 local_pos = VERTEX;
     if (performance_protection_active) {
@@ -127,99 +638,15 @@ void vertex() {
         field_val = vec2(0.0);
     } else {
         float half_size = chunk_size * 0.5;
-        float eps = 0.01;
-
-        bool on_left = VERTEX.x < -half_size + eps;
-        bool on_right = VERTEX.x > half_size - eps;
-        bool on_top = VERTEX.z < -half_size + eps;
-        bool on_bottom = VERTEX.z > half_size - eps;
-
-        int n_lod = -1;
-        bool horizontal_edge = false; // edge along X (Top/Bottom)
-
-        if (on_left && neighbor_lod_left > lod_level) {
-            n_lod = neighbor_lod_left;
-            horizontal_edge = false;
-        } else if (on_right && neighbor_lod_right > lod_level) {
-            n_lod = neighbor_lod_right;
-            horizontal_edge = false;
-        } else if (on_top && neighbor_lod_top > lod_level) {
-            n_lod = neighbor_lod_top;
-            horizontal_edge = true;
-        } else if (on_bottom && neighbor_lod_bottom > lod_level) {
-            n_lod = neighbor_lod_bottom;
-            horizontal_edge = true;
-        }
-
-        vec3 snap_v = VERTEX;
-        if (n_lod != -1) {
-            float segments = lod_segments[n_lod];
-            float s = chunk_size / segments;
-            if (horizontal_edge) {
-                float t = (VERTEX.x + half_size) / s;
-                snap_v.x = floor(t + 0.5) * s - half_size;
-            } else {
-                float t = (VERTEX.z + half_size) / s;
-                snap_v.z = floor(t + 0.5) * s - half_size;
-            }
-        }
-
+        vec3 snap_v = apply_lod_snapping(VERTEX, half_size);
         vec3 world_v_pos = (MODEL_MATRIX * vec4(snap_v, 1.0)).xyz;
 
         int branch_offset = 0;
         if (is_multivalued) {
             vec3 cam_pos = (INV_VIEW_MATRIX * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
             bool in_portal = false;
-            if (cam_pos.z * world_v_pos.z < 0.0 || (cam_pos.z != 0.0 && world_v_pos.z == 0.0)) {
-                float denom = cam_pos.z - world_v_pos.z;
-                if (denom == 0.0) {
-                    denom = 1e-9;
-                }
-                float r = cam_pos.z / denom;
-                float px = cam_pos.x + r * (world_v_pos.x - cam_pos.x);
-                float py = cam_pos.y + r * (world_v_pos.y - cam_pos.y);
-
-                if (function_type == 18 || function_type == 19) {
-                    float threshold = 10.0 * zoom_factor;
-                    if ((px >= threshold && px < threshold + portal_width) ||
-                        (px <= -threshold && px > -threshold - portal_width)) {
-                        if (py > portal_min_height && py < portal_height) {
-                            in_portal = true;
-                        }
-                    }
-                } else {
-                    if (px < 0.0 && px > -portal_width && py > portal_min_height && py < portal_height) {
-                        in_portal = true;
-                    }
-                }
-
-                if (in_portal) {
-                    if (function_type == 18 || function_type == 19) { // ASIN or ACOS
-                        bool is_even = (current_branch % 2 == 0);
-                        if (px >= 0.0) {
-                            branch_offset = is_even ? 1 : -1;
-                        } else {
-                            branch_offset = is_even ? -1 : 1;
-                        }
-                    } else {
-                        // For negative branch cuts (Log and Power functions),
-                        // the branch offset signs are inverted relative to positive cuts.
-                        branch_offset = (cam_pos.z > 0.0) ? -1 : 1;
-                    }
-                }
-            }
-
-            // Perturb boundary vertices exactly on/near the branch cut (world_v_pos.z == 0.0)
-            // to resolve the exact-zero branch discontinuity in atan(y, x).
-            // - If viewed through the portal (in_portal is true), the vertex belongs to the
-            //   opposite side of the camera, so we nudge it in the direction opposite to cam_pos.z.
-            // - If viewed outside the portal (in_portal is false), the vertex belongs to the
-            //   same side as the camera, so we nudge it in the direction of cam_pos.z.
-            if (abs(world_v_pos.z) < 1e-5) {
-                float side_sign = in_portal ? -sign(cam_pos.z) : sign(cam_pos.z);
-                if (side_sign == 0.0) side_sign = 1.0;
-                world_v_pos.z = side_sign * 1e-5;
-            }
+            branch_offset = calculate_branch_offset(world_v_pos, cam_pos, in_portal);
+            world_v_pos = apply_branch_cut_perturbation(world_v_pos, cam_pos, in_portal);
         }
 
         ComplexFieldData final_fd = get_field_with_derivatives(world_v_pos.x, world_v_pos.z, branch_offset);
@@ -235,12 +662,6 @@ void vertex() {
             local_pos = vec3(snap_v.x, 0.0, snap_v.z);
         } else {
             v_nan = 0.0;
-            
-            // Here we have some code to allow the morphing terrain
-            // feature. We can use final_fd directly if we want
-            // to remove this feature later on. 
- 
-            // When running usually, morph = 1.0, s = 1.0, blend = 1.0
 
             // Blend parameter in [0, 1]
             float blend = 0.5 - 0.5 * cos(PI * morph);
@@ -252,7 +673,6 @@ void vertex() {
             vec2 z_id = vec2(0.1 * world_v_pos.x, -0.1 * world_v_pos.z);
 
             // Blended map:
-            // g(z, blend) = (1 - blend) * z + blend * f(z)
             field_val = mix(z_id, fz, blend);
 
             float h = get_complex_height(fz, field_val);
@@ -283,55 +703,25 @@ void vertex() {
     }
 }
 
+
 void fragment() {
     if (performance_protection_active) {
         ALBEDO = vec3(0.01, 0.02, 0.03);
         ROUGHNESS = 1.0;
         METALLIC = 0.0;
     } else if (v_nan > 0.5) {
-        ALBEDO = vec3(0.0);
-
-        // Matrix Effect
-        vec2 grid = world_pos.xz * 5.0;
-        vec2 ipos = floor(grid);
-        vec2 fpos = fract(grid);
-
-        float col_rand = matrix_hash(vec2(ipos.x, 0.0));
-        float speed = 2.0 + col_rand * 4.0;
-        float y_offset = TIME * speed;
-
-        // Flow downwards (in Z)
-        float row = ipos.y + y_offset;
-        float irow = floor(row);
-
-        float char_rand = matrix_hash(vec2(ipos.x, irow));
-
-        // Droplet trail
-        float trail = fract(-grid.y * 0.15 + TIME * speed * 0.05 + col_rand * 10.0);
-        trail = pow(trail, 4.0) * 2.5;
-
-        // Character flickering/selection
-        float char_vis = step(0.997, char_rand);
-
-        // Character shape (simple blocky approximation)
-        float char_shape = smoothstep(0.1, 0.2, fpos.x) * smoothstep(0.9, 0.8, fpos.x) *
-                           smoothstep(0.1, 0.2, fpos.y) * smoothstep(0.9, 0.8, fpos.y);
-
-        vec3 matrix_color = vec3(0.0, 0.8, 0.2);
-
-        // Glowy head of the trail
-        if (trail > 2.0) {
-            matrix_color = vec3(0.7, 1.0, 0.7);
-        }
-
-        EMISSION = matrix_color * trail * char_shape * char_vis;
-        ROUGHNESS = 1.0;
-        METALLIC = 0.0;
-        SPECULAR = 0.0;
+        vec3 albedo, emission;
+        float rgh, mtl, spec;
+        compute_matrix_effect(world_pos.xz, albedo, emission, rgh, mtl, spec);
+        ALBEDO = albedo;
+        EMISSION = emission;
+        ROUGHNESS = rgh;
+        METALLIC = mtl;
+        SPECULAR = spec;
     } else {
         float x = world_pos.x;
         float z = world_pos.z;
-        
+
         vec2 f = field_val;
         float phase = atan(f.y, f.x);
         float hue = (phase + PI) / (2.0 * PI);
@@ -348,61 +738,8 @@ void fragment() {
         }
 
         if (show_curves) {
-            // 1. Get raw pixel derivatives (true density indicators)
-            float raw_w_re = fwidth(f.x);
-            float raw_w_im = fwidth(f.y);
-
-            // 2. Define a density threshold where curves should completely disappear.
-            // Adjust this value: lower means it fades out sooner/farther away.
-            float max_density_threshold = 0.2; 
-
-            // 3. Compute contour lines using your padded width for rendering stability
-            float d_re = abs(f.x - round(f.x));
-            
-            bool is_real_highlighted = false;
-            for (int i = 0; i < 10; i++) {
-                if (abs(round(f.x) - real_level_curves_highlighted[i]) < 0.1) {
-                    is_real_highlighted = true;
-                    break;
-                }
-            }
-
-            float w_re = clamp(raw_w_re, 0.000005, 0.001) + (is_real_highlighted ? 0.06 : 0.02);
-            float line_re = smoothstep(w_re, 0.0, d_re);
-
-            // Smoothly fade to 0.0 as raw_w_re approaches the threshold
-            float density_re = smoothstep(max_density_threshold, max_density_threshold * 0.7, raw_w_re);
-            line_re *= density_re;
-
-            base *= 1.0 - line_re * (is_real_highlighted ? 0.8 : 0.3);
-            if (is_real_highlighted) {
-                highlight_re_glow = line_re;
-            }
-
-            // 4. Compute contour lines for f.y
-            float d_im = abs(f.y - round(f.y));
-            
-            bool is_imag_highlighted = false;
-            for (int i = 0; i < 10; i++) {
-                if (abs(round(f.y) - imag_level_curves_highlighted[i]) < 0.1) {
-                    is_imag_highlighted = true;
-                    break;
-                }
-            }
-
-            float w_im = clamp(raw_w_im, 0.000005, 0.001) + (is_imag_highlighted ? 0.06 : 0.02);
-            float line_im = smoothstep(w_im, 0.0, d_im);
-
-            // Smoothly fade to 0.0 as raw_w_im approaches the threshold
-            float density_im = smoothstep(max_density_threshold, max_density_threshold * 0.7, raw_w_im);
-            line_im *= density_im;
-
-            base *= 1.0 + line_im * (is_imag_highlighted ? 0.8 : 0.3); 
-            if (is_imag_highlighted) {
-                highlight_im_glow = line_im;
-            }
+            compute_curves_highlight(f, base, highlight_re_glow, highlight_im_glow);
         }
-
 
         ALBEDO = base * albedo;
         vec3 final_emission = base * emission;
@@ -412,311 +749,28 @@ void fragment() {
         }
 
         if (is_multivalued) {
-            // Highlight the branch cut portal area
-            float dist_to_cut = abs(world_pos.z);
-            bool in_cut = false;
-
-            if (function_type == 18 || function_type == 19) {
-                float threshold = 10.0 * zoom_factor;
-                if ((world_pos.x >= threshold && world_pos.x < threshold + portal_width) ||
-                    (world_pos.x <= -threshold && world_pos.x > -threshold - portal_width)) {
-                    in_cut = true;
-                }
-            } else {
-                if (world_pos.x < 0.0 && world_pos.x > -portal_width) {
-                    in_cut = true;
-                }
-            }
-
-            if (in_cut) {
-                float cut_glow = 1.0 - smoothstep(0.0, 0.1 * zoom_factor, dist_to_cut);
-                final_emission += vec3(0.0, 0.8, 1.0) * cut_glow * 0.4;
-            }
+            compute_multivalued_highlight(world_pos, final_emission);
         }
 
-        // Only apply the lines rendering for zeta (at x = 0, x = 5.0, x = 10.0)
-        // which corresponds to Re = 0.0, Re = 0.5, Re = 1.0
         if (show_critical_stripe && is_dirichlect) {
-
-            float zoom = zoom_factor;
-
-            // Pulsing glow intensity
-            float glow = 0.35 + 0.65 * (0.5 + 0.5 * sin(TIME * 2.0));
-
-            // Thin analytic-looking core
-            float line_width = 0.015 * zoom;
-
-            // Screen-space anti-aliasing
-            float aa = fwidth(world_pos.x) * 1.5;
-
-            vec3 critical_color = vec3(0.9, 0.9, 0.0);
-            vec3 boundary_color = vec3(1.0);
-
-            // =========================================================
-            // Critical line (Re = 0.5)
-            // =========================================================
-
-            float d_critical = abs(world_pos.x - 5.0 * zoom);
-
-            float core_critical =
-                1.0 - smoothstep(
-                    line_width - aa,
-                    line_width + aa,
-                    d_critical
-                );
-
-            // Compact exponential glow
-            float glow_critical =
-                exp(-d_critical / (0.02 * zoom));
-
-            // =========================================================
-            // Left boundary (Re = 0)
-            // =========================================================
-
-            float d0 = abs(world_pos.x);
-
-            float core_0 =
-                1.0 - smoothstep(
-                    line_width - aa,
-                    line_width + aa,
-                    d0
-                );
-
-            float glow_0 =
-                exp(-d0 / (0.02 * zoom));
-
-            // =========================================================
-            // Right boundary (Re = 1)
-            // =========================================================
-
-            float d10 = abs(world_pos.x - 10.0 * zoom);
-
-            float core_10 =
-                1.0 - smoothstep(
-                    line_width - aa,
-                    line_width + aa,
-                    d10
-                );
-
-            float glow_10 =
-                exp(-d10 / (0.02 * zoom));
-
-            // =========================================================
-            // Final emission
-            // =========================================================
-
-            // Bright sharp core + animated compact glow
-
-            final_emission += critical_color *
-                (
-                    core_critical * 1.4 +
-                    glow_critical * glow * 0.9
-                );
-
-            final_emission += boundary_color *
-                (
-                    core_0 * 1.1 +
-                    glow_0 * glow * 0.5
-                );
-
-            final_emission += boundary_color *
-                (
-                    core_10 * 1.1 +
-                    glow_10 * glow * 0.5
-                );
+            compute_critical_stripe_highlight(world_pos, final_emission);
         }
 
         if (show_flow) {
-            float dist_to_camera = length(world_pos - CAMERA_POSITION_WORLD);
-            float flow_fade = 1.0 - smoothstep(30.0, 80.0, dist_to_camera);
-
-            if (flow_fade > 0.001) {
-                float g_size = 0.75;
-                vec2 cell_id = floor(world_pos.xz / g_size);
-                vec2 grid_uv = fract(world_pos.xz / g_size) - 0.5;
-
-                // Get gradient from normal (change the sign to change flow direction)
-                vec2 grad = v_normal.xz;
-                float grad_mag = length(grad);
-
-                if (grad_mag > 0.001) {
-                    vec2 dir = grad / grad_mag;
-
-                    float arrow_mask = 0.0;
-                    float pulse_intensity = 0.0;
-
-                    for (float dx = -1.0; dx <= 1.0; dx += 1.0) {
-                        for (float dy = -1.0; dy <= 1.0; dy += 1.0) {
-                            vec2 offset = vec2(dx, dy);
-                            vec2 local_grid_uv = grid_uv - offset;
-                            vec2 cell_local = local_grid_uv * g_size;
-
-                            // Rotate to align with gradient (pointing along +X)
-                            vec2 p = vec2(cell_local.x * dir.x + cell_local.y * dir.y, -cell_local.x * dir.y + cell_local.y * dir.x);
-
-                            float arrow_len = clamp(
-                                grad_mag * g_size * 2.2,
-                                0.3 * g_size,
-                                0.85 * g_size
-                            );
-                            float thickness = 0.015 * g_size;
-                            float head_size = arrow_len * 0.2;
-
-                            float half_len = arrow_len * 0.5;
-                            vec2 tip = vec2(half_len, 0.0);
-                            vec2 head_base = vec2(half_len - head_size, 0.0);
-                            vec2 tail = vec2(-half_len, 0.0);
-
-                            // Body
-                            float d_body = sdLine(p, tail, head_base);
-
-                            // Triangle head
-                            float d_head = sdTriangle(
-                                p,
-                                tip,
-                                head_base + vec2(0.0,  head_size * 0.45),
-                                head_base + vec2(0.0, -head_size * 0.45)
-                            );
-
-                            float d_arrow = min(d_body - thickness, d_head);
-
-                            float cell_mask = 1.0 - smoothstep(0.0, thickness, d_arrow);
-
-                            if (cell_mask > 0.0) {
-                                float pulse_time = fract(TIME * 0.8);
-                                float p_coord = (p.x / arrow_len) + 0.5; // 0 to 1
-                                float cell_pulse = smoothstep(pulse_time - 0.3, pulse_time, p_coord) * 
-                                                   smoothstep(pulse_time + 0.05, pulse_time, p_coord);
-
-                                arrow_mask = max(arrow_mask, cell_mask);
-                                pulse_intensity = max(pulse_intensity, cell_mask * cell_pulse);
-                            }
-                        }
-                    }
-
-                    vec3 flow_color = vec3(1.0) * arrow_mask * (0.1 + 0.5 * pulse_intensity) * flow_fade;
-                    final_emission += flow_color * 0.5;
-                    ALBEDO = mix(ALBEDO, vec3(1.0), arrow_mask * 0.25 * flow_fade);
-                }
-            }
+            compute_flow_effect(world_pos, v_normal, ALBEDO, final_emission);
         }
 
-        // Procedural micro-normal perturbation and roughness variation
-        float noise_val = 0.0;
         float roughness_variation = 0.0;
         if (surface_texture > 0.0) {
-            vec3 scaled_world_pos = world_pos /  zoom_factor;
-
-            float dist_to_camera = length(scaled_world_pos - CAMERA_POSITION_WORLD);
-            // Fade the texture effect beyond 50 units, reaching 0 at 100 units
-            float fade = 1.0 - smoothstep(20.0, 100.0, dist_to_camera);
-            fade = mix(0.15, 1.0, fade);
-
-
-            if (fade > 0.001) {
-                // High frequency for fine texture
-                float freq = mix(2.0, 10.0, fade);
-                vec3 noise_pos = scaled_world_pos * freq;
-                noise_val = fbm3(noise_pos);
-
-                // Approximate tangent and bitangent based on the normal
-                vec3 t = normalize(cross(v_normal, vec3(0.0, 1.0, 0.0)));
-                if (length(t) < 0.1) {
-                    t = normalize(cross(v_normal, vec3(1.0, 0.0, 0.0)));
-                }
-                vec3 b = normalize(cross(v_normal, t));
-
-                // Derive normal perturbation by sampling nearby points
-                float eps = 0.05;
-                float nx = fbm3(noise_pos + t * eps) - noise_val;
-                float nz = fbm3(noise_pos + b * eps) - noise_val;
-
-                /* vec3 normal_offset = (t * nx + b * nz) * surface_texture * fade * 2.0; */
-                vec3 perturbed = normalize(
-                    NORMAL + vec3(nx, 0.0, nz) * surface_texture * fade * 2.0
-                );
-
-                NORMAL = perturbed;
-
-                // Remap noise_val from [0, 1] to [-0.5, 0.5] for roughness
-                roughness_variation = (noise_val - 0.5) * surface_texture * fade * 0.2;
-            }
+            compute_surface_texture_effect(world_pos, NORMAL, roughness_variation);
         }
 
-        // Self-Illumination Glow around camera
         if (self_illumination > 0.0 && !performance_protection_active) {
-            // Position slightly below the camera
-            vec3 light_pos = CAMERA_POSITION_WORLD - vec3(0.0, 0.2 / zoom_factor, 0.0);
-
-            float dist_to_camera = length(world_pos - light_pos) * 0.1;
-
-            // Exponent decay
-            float glow_factor = exp(-dist_to_camera);
-
-            // Fog Transmittance
-            if (fog_density > 0.0) {
-                float actual_dist = length(world_pos - CAMERA_POSITION_WORLD);
-                float fog_transmittance = exp(-actual_dist * fog_density * 0.05);
-                glow_factor *= fog_transmittance;
-            }
-
-            // Gentle pulsing
-            float pulse = 1.0 + 0.03 * sin(TIME * 0.7);
-
-            vec3 warm_glow = vec3(1.0, 0.88, 0.72) * self_illumination * glow_factor * pulse * 5.0;
-            final_emission += ALBEDO * warm_glow;
+            compute_self_illumination_effect(world_pos, ALBEDO, final_emission);
         }
 
-
-        // Player Ground Marker (Small L-shaped coordinate axis indicator, with central dot and arrowheads)
         if (show_position_marker) {
-            vec2 player_xz = player_position_world.xz;
-            vec2 pos_xz = world_pos.xz;
-
-            float scale = 0.2;
-
-            float length_arms = 0.6 * scale;
-            float thickness = 0.02 * scale;
-            float glow_thickness = 0.04 * scale;
-            float dot_radius = 0.07 * scale;
-            float arrow_len = 0.08 * scale;
-            float arrow_width = 0.04 * scale;
-
-            float d_line1 = sdLine(pos_xz, player_xz, player_xz + vec2(length_arms, 0.0));
-            float d_line2 = sdLine(pos_xz, player_xz, player_xz - vec2(0.0, length_arms));
-
-            float d_cross = min(d_line1, d_line2);
-            float d_dot = length(pos_xz - player_xz) - dot_radius;
-
-            // Arrowheads at the tips of the cross arms
-            vec2 tip_right = player_xz + vec2(length_arms, 0.0);
-            float d_arr_right = min(
-                sdLine(pos_xz, tip_right, tip_right - vec2(arrow_len, arrow_width)),
-                sdLine(pos_xz, tip_right, tip_right - vec2(arrow_len, -arrow_width))
-            );
-
-            vec2 tip_upward = player_xz - vec2(0.0, length_arms);
-            float d_arr_upward = min(
-                sdLine(pos_xz, tip_upward, tip_upward + vec2(-arrow_width, arrow_len)),
-                sdLine(pos_xz, tip_upward, tip_upward + vec2(arrow_width, arrow_len))
-            );
-
-            float d_arrows = min(d_arr_right , d_arr_upward);
-            float d_marker = min(min(d_cross, d_dot), d_arrows);
-
-            if (d_marker < glow_thickness) {
-                // Crisp core
-                float core = 1.0 - step(thickness, d_marker);
-                // Slight glow
-                float glow = (1.0 - smoothstep(thickness, glow_thickness, d_marker)) * 0.5;
-
-                vec3 marker_color = vec3(0.4);
-                float intensity = core + glow;
-
-                // Draw just above terrain means we just render it directly on the terrain surface.
-                ALBEDO = mix(ALBEDO, marker_color, clamp(intensity, 0.0, 1.0));
-                final_emission += marker_color * intensity * 2.0; // Glow emission
-            }
+            compute_position_marker(world_pos, ALBEDO, final_emission);
         }
 
         // Reinhard Tone Mapping to keep high emissions from blowing out to absolute white
