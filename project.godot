@@ -63,3 +63,4 @@ common/physics_interpolation=true
 [rendering]
 
 reflections/sky_reflections/roughness_layers=7
+driver/depth_prepass/enable=false
