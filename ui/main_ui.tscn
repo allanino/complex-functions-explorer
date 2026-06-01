@@ -271,7 +271,7 @@ unique_name_in_owner = true
 visible = false
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.8, 0, 1)
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 18
 text = "Performance protection activated, adjust settings."
 horizontal_alignment = 1
 autowrap_mode = 3
@@ -296,7 +296,7 @@ layout_mode = 2
 
 [node name="TitleLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/ZerosPanel/MarginContainer/VBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 18
 text = "ZEROS DETECTED"
 horizontal_alignment = 1
 
@@ -306,7 +306,7 @@ layout_mode = 2
 [node name="CountLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/ZerosPanel/MarginContainer/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 18
 text = "Count: 0"
 horizontal_alignment = 1
 
@@ -314,7 +314,7 @@ horizontal_alignment = 1
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 18
 text = "N(t) ≈ 0.00"
 horizontal_alignment = 1
 
@@ -331,7 +331,7 @@ unique_name_in_owner = true
 mouse_filter = 2
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 18
 horizontal_alignment = 1
 autowrap_mode = 3
 
@@ -355,7 +355,7 @@ theme_override_constants/separation = 5
 
 [node name="TitleLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/MonitorPanel/MarginContainer/VBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 18
 text = "MONITOR"
 horizontal_alignment = 1
 
@@ -365,7 +365,7 @@ layout_mode = 2
 [node name="FpsLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/MonitorPanel/MarginContainer/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 18
 text = "FPS: 60"
 horizontal_alignment = 1
 
@@ -389,7 +389,7 @@ theme_override_constants/separation = 5
 
 [node name="DomainTitle" type="Label" parent="Control/MainUIColumns/MainUIStackRight/InfoPanel/MarginContainer/VBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 18
 text = "DOMAIN"
 horizontal_alignment = 1
 
@@ -399,14 +399,14 @@ layout_mode = 2
 [node name="DomainLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/InfoPanel/MarginContainer/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 18
 text = "Re = 0.000
 Im = 0.000"
 horizontal_alignment = 1
 
 [node name="TargetTitle" type="Label" parent="Control/MainUIColumns/MainUIStackRight/InfoPanel/MarginContainer/VBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 18
 text = "\nTARGET"
 horizontal_alignment = 1
 
@@ -416,7 +416,7 @@ layout_mode = 2
 [node name="TargetLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/InfoPanel/MarginContainer/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 18
 text = "Re = 0.000
 Im = 0.000
 |f| = 0.000"
@@ -556,7 +556,7 @@ theme_override_constants/margin_bottom = 12
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/default_color = Color(0.9, 0.9, 0.9, 1)
-theme_override_font_sizes/normal_font_size = 14
+theme_override_font_sizes/normal_font_size = 18
 bbcode_enabled = true
 fit_content = true
 autowrap_mode = 2

@@ -1132,7 +1132,7 @@ func _update_hud_layout():
 
 	var cards = [complex_panel, info_panel, monitor_panel, zeros_panel, perf_label]
 
-	var actual_hud_scale = Config.hud_scale * 1.2
+	var actual_hud_scale = Config.hud_scale
 
 	# Always rescale all cards to ensure their combined_minimum_size is correct for height check
 	for card in cards:
@@ -1149,8 +1149,8 @@ func _update_hud_layout():
 	_last_hud_state = current_state
 
 	# Scale stack widths to accommodate wider fonts
-	hud_stack_right.custom_minimum_size.x = 150 * actual_hud_scale
-	hud_stack_left.custom_minimum_size.x = 150 * actual_hud_scale
+	hud_stack_right.custom_minimum_size.x = 180 * actual_hud_scale
+	hud_stack_left.custom_minimum_size.x = 180 * actual_hud_scale
 
 	var available_height = get_viewport().size.y - 40
 	var current_height = 0.0
@@ -1219,7 +1219,7 @@ func _rescale_card(card: Control, _scale: float):
 			# Only scale custom minimum size for specific panels to maintain layout proportions
 			if node.name == "ComplexAspect":
 				if not node.has_meta("base_min_size"):
-					node.set_meta("base_min_size", Vector2(150, 150))
+					node.set_meta("base_min_size", Vector2(180, 180))
 				node.custom_minimum_size = node.get_meta("base_min_size") * _scale
 			elif node.name == "ZerosPanel" or node.name == "InfoPanel":
 				if not node.has_meta("base_min_size"):
@@ -1387,7 +1387,7 @@ func _rescale_menu(_scale: float):
 		return
 	main_menu_panel.set_meta("last_applied_menu_scale", _scale)
 
-	var actual_scale = _scale * (130.0 / 150.0)
+	var actual_scale = _scale
 
 	var stack = []
 	if main_menu_panel: stack.push_back(main_menu_panel)
