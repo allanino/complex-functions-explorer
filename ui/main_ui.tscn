@@ -223,8 +223,9 @@ corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
 
 [node name="MainUI" type="CanvasLayer"]
-layer = 1
 script = ExtResource("1_script")
+script = ExtResource("1_script")
+layer = 1
 
 
 [node name="Control" type="Control" parent="."]
