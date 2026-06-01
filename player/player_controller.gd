@@ -144,8 +144,6 @@ func _unhandled_input(event):
 					if world_manager and world_manager.has_method("_update_terrain_material_uniforms"):
 						world_manager._update_terrain_material_uniforms()
 
-					print(Config.real_level_curves_highlighted)
-
 				var closest_curve_imag = round(current_f.y)
 				if abs(current_f.y - closest_curve_imag) < 0.1:
 					if closest_curve_imag in Config.imag_level_curves_highlighted:
@@ -335,7 +333,6 @@ func _physics_process(delta):
 				if new_target.distance_to(newton_target_z) < 1e-4:
 					# Converged!
 					auto_walk_state = AutoWalkState.NONE
-					print("Newton walk converged at: ", new_target)
 				else:
 					newton_target_z = new_target
 					newton_wait_timer = 0.1
