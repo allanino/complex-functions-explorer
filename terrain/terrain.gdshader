@@ -220,8 +220,8 @@ vec3 apply_branch_cut_perturbation(vec3 world_v_pos, vec3 cam_pos, bool in_porta
 }
 
 
-void compute_matrix_effect(vec2 world_xz, out vec3 albedo, out vec3 emission, out float rgh, out float mtl, out float spec) {
-    albedo = vec3(0.0);
+void compute_matrix_effect(vec2 world_xz, out vec3 out_albedo, out vec3 out_emission, out float rgh, out float mtl, out float spec) {
+    out_albedo = vec3(0.0);
 
     // Matrix Effect
     vec2 grid = world_xz * 5.0;
@@ -256,7 +256,7 @@ void compute_matrix_effect(vec2 world_xz, out vec3 albedo, out vec3 emission, ou
         matrix_color = vec3(0.7, 1.0, 0.7);
     }
 
-    emission = matrix_color * trail * char_shape * char_vis;
+    out_emission = matrix_color * trail * char_shape * char_vis;
     rgh = 1.0;
     mtl = 0.0;
     spec = 0.0;
@@ -437,7 +437,7 @@ void compute_critical_stripe_highlight(vec3 w_pos, inout vec3 final_emission) {
 }
 
 
-void compute_flow_effect(vec3 w_pos, vec3 nrm, inout vec3 albedo, inout vec3 final_emission) {
+void compute_flow_effect(vec3 w_pos, vec3 nrm, inout vec3 out_albedo, inout vec3 final_emission) {
     float dist_to_camera = length(w_pos - CAMERA_POSITION_WORLD);
     float flow_fade = 1.0 - smoothstep(30.0, 80.0, dist_to_camera);
 
@@ -507,7 +507,7 @@ void compute_flow_effect(vec3 w_pos, vec3 nrm, inout vec3 albedo, inout vec3 fin
 
             vec3 flow_color = vec3(1.0) * arrow_mask * (0.1 + 0.5 * pulse_intensity) * flow_fade;
             final_emission += flow_color * 0.5;
-            albedo = mix(albedo, vec3(1.0), arrow_mask * 0.25 * flow_fade);
+            out_albedo = mix(out_albedo, vec3(1.0), arrow_mask * 0.25 * flow_fade);
         }
     }
 }
@@ -552,7 +552,7 @@ void compute_surface_texture_effect(vec3 w_pos, inout vec3 nrm, out float roughn
 }
 
 
-void compute_self_illumination_effect(vec3 w_pos, vec3 albedo, inout vec3 final_emission) {
+void compute_self_illumination_effect(vec3 w_pos, vec3 out_albedo, inout vec3 final_emission) {
     // Position slightly below the camera
     vec3 light_pos = CAMERA_POSITION_WORLD - vec3(0.0, 0.2 / zoom_factor, 0.0);
 
@@ -572,11 +572,11 @@ void compute_self_illumination_effect(vec3 w_pos, vec3 albedo, inout vec3 final_
     float pulse = 1.0 + 0.03 * sin(TIME * 0.7);
 
     vec3 warm_glow = vec3(1.0, 0.88, 0.72) * self_illumination * glow_factor * pulse * 5.0;
-    final_emission += albedo * warm_glow;
+    final_emission += out_albedo * warm_glow;
 }
 
 
-void compute_position_marker(vec3 w_pos, inout vec3 albedo, inout vec3 final_emission) {
+void compute_position_marker(vec3 w_pos, inout vec3 out_albedo, inout vec3 final_emission) {
     vec2 player_xz = player_position_world.xz;
     vec2 pos_xz = w_pos.xz;
 
@@ -621,7 +621,7 @@ void compute_position_marker(vec3 w_pos, inout vec3 albedo, inout vec3 final_emi
         float intensity = core + glow;
 
         // Draw just above terrain means we just render it directly on the terrain surface.
-        albedo = mix(albedo, marker_color, clamp(intensity, 0.0, 1.0));
+        out_albedo = mix(out_albedo, marker_color, clamp(intensity, 0.0, 1.0));
         final_emission += marker_color * intensity * 2.0; // Glow emission
     }
 }
@@ -710,11 +710,11 @@ void fragment() {
         ROUGHNESS = 1.0;
         METALLIC = 0.0;
     } else if (v_nan > 0.5) {
-        vec3 albedo, emission;
+        vec3 local_albedo, local_emission;
         float rgh, mtl, spec;
-        compute_matrix_effect(world_pos.xz, albedo, emission, rgh, mtl, spec);
-        ALBEDO = albedo;
-        EMISSION = emission;
+        compute_matrix_effect(world_pos.xz, local_albedo, local_emission, rgh, mtl, spec);
+        ALBEDO = local_albedo;
+        EMISSION = local_emission;
         ROUGHNESS = rgh;
         METALLIC = mtl;
         SPECULAR = spec;
