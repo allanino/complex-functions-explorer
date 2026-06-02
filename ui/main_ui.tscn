@@ -8,6 +8,7 @@
 [ext_resource type="Script" path="res://ui/components/preset_controller.gd" id="6_preset_controller"]
 [ext_resource type="Script" path="res://ui/components/detach_controller.gd" id="7_detach_controller"]
 [ext_resource type="PackedScene" path="res://ui/components/virtual_joystick.tscn" id="8_joy"]
+[ext_resource type="PackedScene" path="res://ui/components/virtual_button.tscn" id="9_btn"]
 
 
 
@@ -267,6 +268,18 @@ offset_right = 0.0
 offset_bottom = 0.0
 is_camera = true
 use_input_actions = false
+
+[node name="SettingsButton" parent="Control/MobileControls" instance=ExtResource("9_btn")]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 0.0
+offset_left = -100.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = 100.0
+
 
 [node name="MainUIColumns" type="HBoxContainer" parent="Control"]
 unique_name_in_owner=true
