@@ -675,6 +675,15 @@ void vertex() {
             // Blended map:
             field_val = mix(z_id, fz, blend);
 
+            // Interpolating extremely large values across triangles causes float32 precision
+            // breakdown in the GPU rasterizer, resulting in horizontal scanline tearing artifacts.
+            // We cap the magnitude of field_val to preserve the phase (domain coloring)
+            // while sacrificing curves at extreme heights where they are dense noise anyway.
+            float f_mag = length(field_val);
+            if (f_mag > 50000.0) {
+                field_val = (field_val / f_mag) * 50000.0;
+            }
+
             float h = get_complex_height(fz, field_val);
 
             bool h_clamped = false;
