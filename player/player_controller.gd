@@ -50,9 +50,6 @@ func _ready():
 	# Set the global position directly using a Vector3(x, y, z)
 	global_position = Vector3(5.0, 0.0, 0.0)
 
-	_base_movement_speed = Config.movement_speed / pow(Config.effective_zoom, 1.0 - Config.zoom_damping)
-	_base_camera_height = Config.camera_height / pow(Config.effective_zoom, Config.zoom_damping - 1.0)
-
 	var scale_factor = 1.0 / Config.effective_zoom
 	last_t = - global_position.z * 0.1 * scale_factor
 	last_z = Vector2(global_position.x * 0.1 * scale_factor, -global_position.z * 0.1 * scale_factor)
@@ -241,13 +238,13 @@ func _physics_process(delta):
 					rotation_x = clamp(rotation_x, -PI / 2, PI / 2)
 					camera.rotation.x = rotation_x
 
-	# Check if Config values were modified externally (e.g. by UI sliders or Spacebar)
+	# Use absolute computation to prevent drift from continuous zoom slider adjustments
 	var expected_speed = _base_movement_speed * pow(Config.effective_zoom, 1.0 - Config.zoom_damping)
-	if abs(Config.movement_speed - expected_speed) > 0.001:
+	if abs(Config.movement_speed - expected_speed) > 0.01:
 		_base_movement_speed = Config.movement_speed / pow(Config.effective_zoom, 1.0 - Config.zoom_damping)
 
 	var expected_height = _base_camera_height * pow(Config.effective_zoom, Config.zoom_damping - 1.0)
-	if abs(Config.camera_height - expected_height) > 0.001:
+	if abs(Config.camera_height - expected_height) > 0.01:
 		_base_camera_height = Config.camera_height / pow(Config.effective_zoom, Config.zoom_damping - 1.0)
 
 	# Smooth zoom interpolation

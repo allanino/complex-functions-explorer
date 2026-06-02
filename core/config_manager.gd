@@ -145,6 +145,7 @@ const PRESET_KEYS = [
 	"terrain_surface_texture",
 	"fog_density",
 	"movement_speed",
+	"zoom_factor",
 	"speed_near_zeros",
 	"camera_height",
 	"zero_proximity_nav",
