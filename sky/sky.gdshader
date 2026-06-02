@@ -179,41 +179,41 @@ void compute_clouds(vec3 eye_dir, float eye_alt, float time, vec3 current_cloud,
 
 void compute_sun_moon(vec3 eye_dir, float s_size, bool light0_enabled, vec3 light0_dir, vec3 light0_col, float light0_en, vec3 light1_dir, vec3 light1_col, float light1_en, inout vec3 cloud_final_color) {
     // Sun
-    if (LIGHT0_ENABLED && LIGHT0_ENERGY > 0.0) {
-        float sun_dist = distance(EYEDIR, LIGHT0_DIRECTION);
+    if (light0_enabled && light0_en > 0.0) {
+        float sun_dist = distance(eye_dir, light0_dir);
         float sun_disk = smoothstep(sun_size * 0.5, sun_size * 0.45, sun_dist);
         // disk_intensity stays 1.0 while sun is visible to keep its size
         // Using a small threshold to avoid flickering
-        float disk_intensity = smoothstep(0.0, 0.1, LIGHT0_ENERGY);
-        cloud_final_color += LIGHT0_COLOR * sun_disk * disk_intensity;
+        float disk_intensity = smoothstep(0.0, 0.1, light0_en);
+        cloud_final_color += light0_col * sun_disk * disk_intensity;
 
         float sun_glow_dist = max(0.0, sun_dist - sun_size * 0.45);
 
         // Sun glow (Mie-like scattering approximation)
         float mie = 0.005 / (0.001 + sun_glow_dist * sun_glow_dist * 5.0); // Decreased from 10.0 to widen the bright core
-        cloud_final_color += LIGHT0_COLOR * mie * LIGHT0_ENERGY;
+        cloud_final_color += light0_col * mie * light0_en;
 
         float haze = 0.01 / (0.01 + sun_glow_dist);
-        cloud_final_color += LIGHT0_COLOR * haze * LIGHT0_ENERGY;
+        cloud_final_color += light0_col * haze * light0_en;
     }
 
     // Moon
-    if (LIGHT1_ENERGY > 0.01) {
+    if (light1_en > 0.01) {
         // Subtle whole-sky diffuse contribution from moon
-        cloud_final_color += LIGHT1_COLOR * 0.05 * LIGHT1_ENERGY;
+        cloud_final_color += light1_col * 0.05 * light1_en;
 
-        float moon_dist = distance(EYEDIR, LIGHT1_DIRECTION);
+        float moon_dist = distance(eye_dir, light1_dir);
         // Moon disk: Match sun size
         float moon_size = 0.05;
         float moon_disk = smoothstep(moon_size * 0.5, moon_size * 0.45, moon_dist);
-        float moon_disk_intensity = smoothstep(0.0, 0.1, LIGHT1_ENERGY);
-        cloud_final_color += LIGHT1_COLOR * moon_disk * moon_disk_intensity;
+        float moon_disk_intensity = smoothstep(0.0, 0.1, light1_en);
+        cloud_final_color += light1_col * moon_disk * moon_disk_intensity;
 
         float moon_glow_dist = max(0.0, moon_dist - moon_size * 0.45);
 
         // Moon glow
         float moon_glow = 0.005 / (0.001 + moon_glow_dist * moon_glow_dist * 5.0);
-        cloud_final_color += LIGHT1_COLOR * moon_glow * LIGHT1_ENERGY;
+        cloud_final_color += light1_col * moon_glow * light1_en;
     }
 }
 
