@@ -163,11 +163,11 @@ func _get_lod_level(coord: Vector2i, player_coord: Vector2i) -> int:
 		return 5
 
 func _create_lod_mesh(size: float, subdivisions: int) -> Mesh:
-	var plane = PlaneMesh.new()
-	plane.size = Vector2(size, size)
-	plane.subdivide_width = subdivisions
-	plane.subdivide_depth = subdivisions
-	return plane
+	var box = BoxMesh.new()
+	box.size = Vector3(size, 1.0, size)
+	box.subdivide_width = subdivisions
+	box.subdivide_depth = subdivisions
+	return box
 
 func _apply_performance_protection(active: bool):
 	_shaders_stopped = active

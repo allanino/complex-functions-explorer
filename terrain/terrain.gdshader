@@ -41,7 +41,7 @@ uniform float specular_intensity : hint_range(0.0, 1.0) = 0.1;
 uniform float self_illumination = 0.0;
 uniform float fog_density = 0.0;
 uniform vec3 player_position_world = vec3(0.0);
-
+uniform float terrain_thickness = 0.1;
 
 
 // Helper function to convert HSV to RGB
@@ -624,11 +624,19 @@ void compute_position_marker(vec3 w_pos, inout vec3 out_albedo, inout vec3 final
 
 
 void vertex() {
+    vec3 orig_normal = NORMAL;
+    vec3 orig_tangent = TANGENT;
+    vec3 orig_binormal = BINORMAL;
     vec3 local_pos = VERTEX;
+    float is_top = step(0.0, local_pos.y);
+
     if (performance_protection_active) {
+        v_normal = orig_normal;
+        local_pos.y = 0.0;
+        vec3 N = vec3(0.0, 1.0, 0.0);
+        local_pos -= N * terrain_thickness * (1.0 - is_top);
         VERTEX = local_pos;
         world_pos = (MODEL_MATRIX * vec4(local_pos, 1.0)).xyz;
-        v_normal = vec3(0.0, 1.0, 0.0);
         NORMAL = (MODEL_NORMAL_MATRIX * v_normal);
         v_nan = 0.0;
         field_val = vec2(0.0);
@@ -654,8 +662,12 @@ void vertex() {
         if (is_invalid) {
             v_nan = 1.0;
             field_val = vec2(0.0);
-            v_normal = vec3(0.0, 1.0, 0.0);
-            local_pos = vec3(snap_v.x, 0.0, snap_v.z);
+            vec3 N = vec3(0.0, 1.0, 0.0);
+            vec3 T = vec3(1.0, 0.0, 0.0);
+            vec3 B = vec3(0.0, 0.0, 1.0);
+            mat3 tbn = mat3(T, N, B);
+            v_normal = normalize(tbn * orig_normal);
+            local_pos = vec3(snap_v.x, 0.0, snap_v.z) - N * terrain_thickness * (1.0 - is_top);
         } else {
             v_nan = 0.0;
 
@@ -684,13 +696,17 @@ void vertex() {
 
             h *= blend * zoom_factor;
 
-            local_pos = vec3(snap_v.x, snap_v.y + h, snap_v.z);
-
             vec2 dh_d_world = get_complex_height_derivatives(fz, field_val, final_fd.dx, final_fd.dy, blend, h_clamped);
             float dh_dx = dh_d_world.x;
             float dh_dz = dh_d_world.y;
 
-            v_normal = normalize(vec3(-dh_dx, 1.0, -dh_dz));
+            vec3 N = normalize(vec3(-dh_dx, 1.0, -dh_dz));
+            vec3 T = normalize(vec3(1.0, dh_dx, 0.0));
+            vec3 B = normalize(vec3(0.0, dh_dz, 1.0));
+            mat3 tbn = mat3(T, N, B);
+
+            v_normal = normalize(tbn * orig_normal);
+            local_pos = vec3(snap_v.x, h, snap_v.z) - N * terrain_thickness * (1.0 - is_top);
         }
 
         VERTEX = local_pos;
