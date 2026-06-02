@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://dvnrtkkwrnoxr"]
 
-[ext_resource type="PackedScene" path="res://sky/sky.tscn" id="1_sky"]
+[ext_resource type="PackedScene" path="res://environment/environment.tscn" id="1_sky"]
 [ext_resource type="PackedScene" path="res://player/player.tscn" id="2_player"]
 [ext_resource type="PackedScene" path="res://ui/main_ui.tscn" id="3_ui"]
 [ext_resource type="PackedScene" path="res://audio/audio.tscn" id="4_audio"]
@@ -8,7 +8,7 @@
 
 [node name="Main" type="Node3D" unique_id=1567576539]
 
-[node name="Sky" parent="." unique_id=1134785211 instance=ExtResource("1_sky")]
+[node name="Environment" parent="." unique_id=1134785211 instance=ExtResource("1_sky")]
 
 [node name="Player" parent="." unique_id=40729057 instance=ExtResource("2_player")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, 0)

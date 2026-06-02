@@ -14,7 +14,7 @@ var _last_player_chunk = Vector2i(9999, 9999)
 var slow_frame_counter: int = 0
 var _shaders_stopped: bool = false
 
-@onready var sky = get_node("../Sky")
+@onready var environment_node = get_node("../Environment")
 @onready var audio = get_node_or_null("../Audio")
 
 func _ready():
@@ -180,8 +180,8 @@ func _apply_performance_protection(active: bool):
 	if terrain_material:
 		terrain_material.set_shader_parameter("performance_protection_active", active)
 
-	if sky and sky.has_method("set_performance_protection"):
-		sky.set_performance_protection(active)
+	if environment_node and environment_node.has_method("set_performance_protection"):
+		environment_node.set_performance_protection(active)
 
 	if audio and audio.has_method("set_performance_protection"):
 		audio.set_performance_protection(active)
