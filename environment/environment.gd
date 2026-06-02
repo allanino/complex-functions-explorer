@@ -44,13 +44,13 @@ func _process(delta):
 		sun.basis = Basis.looking_at(sun_dir, Vector3.UP if abs(sun_dir.y) < 0.99 else Vector3.FORWARD)
 		sun.light_energy = smoothstep(-0.02, 0.02, sun_elevation) * Config.sun_luminosity
 		sun.light_color = lerp(_sun_color, Color(1.0, 0.5, 0.2), _golden_hour_transition)
-		sun.shadow_enabled = Config.shadows_enabled and sun_elevation > 0.01
+		sun.shadow_enabled = Config.shadows_enabled and sun_elevation > -0.02
 
 	if moon:
 		moon.basis = Basis.looking_at(moon_dir, Vector3.UP if abs(moon_dir.y) < 0.99 else Vector3.FORWARD)
 		var moon_elevation = - moon_dir.y
 		moon.light_energy = smoothstep(-0.02, 0.02, moon_elevation) * 0.4 * Config.sun_luminosity
-		moon.shadow_enabled = Config.shadows_enabled and moon_elevation > 0.01
+		moon.shadow_enabled = Config.shadows_enabled and moon_elevation > -0.02
 
 	if world_environment and world_environment.environment and world_environment.environment.sky:
 		var sky_mat = world_environment.environment.sky.sky_material as ShaderMaterial
