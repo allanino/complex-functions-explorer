@@ -8,7 +8,6 @@ signal update_hud_layout_signal()
 @export var player: Node3D
 @export var world_manager: Node
 
-
 @onready var main_menu_panel = $CenterContainer/MainMenuPanel
 @onready var tab_container = %TabContainer
 @onready var func_button = %FuncContainer.get_option_button()
@@ -265,7 +264,7 @@ func _ready():
 	color_scheme_button.add_item("Grayscale")
 
 	emit_signal("apply_aa_signal")
-	_disable_sliders_focus(self)
+	_disable_sliders_focus(self )
 
 	iter_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Iterations"))
 	height_theta_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Parameter θ"))
@@ -459,8 +458,8 @@ func _init_slider_bindings():
 		},
 		saturation_slider: {
 			"config_key": "terrain_saturation",
-			"to_config": func(v): return 0.3 + (v / 100.0) * 0.7,
-			"from_config": func(c): return (c - 0.3) / 0.7 * 100.0,
+			"to_config": func(v): return v / 100.0,
+			"from_config": func(c): return c * 100.0,
 			"format": func(v): return str(int(round(v))) + "%",
 			"immediate": true
 		},
