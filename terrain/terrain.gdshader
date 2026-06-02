@@ -263,19 +263,15 @@ void compute_matrix_effect(vec2 world_xz, out vec3 out_albedo, out vec3 out_emis
 }
 
 
-void compute_curves_highlight(vec2 f, inout vec3 base, out float highlight_re_glow, out float highlight_im_glow) {
+void compute_curves_highlight(vec2 f, float raw_w_re, float raw_w_im, inout vec3 base, out float highlight_re_glow, out float highlight_im_glow) {
     highlight_re_glow = 0.0;
     highlight_im_glow = 0.0;
 
-    // 1. Get raw pixel derivatives (true density indicators)
-    float raw_w_re = fwidth(f.x);
-    float raw_w_im = fwidth(f.y);
-
-    // 2. Define a density threshold where curves should completely disappear.
+    // 1. Define a density threshold where curves should completely disappear.
     // Adjust this value: lower means it fades out sooner/farther away.
     float max_density_threshold = 0.2;
 
-    // 3. Compute contour lines using your padded width for rendering stability
+    // 2. Compute contour lines using your padded width for rendering stability
     float d_re = abs(f.x - round(f.x));
 
     bool is_real_highlighted = false;
@@ -705,6 +701,10 @@ void vertex() {
 
 
 void fragment() {
+    // Get raw pixel derivatives unconditionally before any divergent branches
+    float raw_w_re = fwidth(field_val.x);
+    float raw_w_im = fwidth(field_val.y);
+
     if (performance_protection_active) {
         ALBEDO = vec3(0.01, 0.02, 0.03);
         ROUGHNESS = 1.0;
@@ -728,17 +728,28 @@ void fragment() {
         if (color_scheme == 1) {
             hue = fract(hue + 0.5);
         }
-        vec3 base = hsv2rgb(vec3(hue, saturation, brightness));
+
+        // Anti-alias high-frequency phase oscillation (Moiré suppression)
+        float f_mag = length(f);
+        float phase_change = length(vec2(raw_w_re, raw_w_im)) / (f_mag + 1e-12);
+        float moire_suppression = smoothstep(0.5, 3.0, phase_change);
+
+        float eff_sat = mix(saturation, 0.0, moire_suppression * 0.8);
+        float eff_bri = mix(brightness, brightness * 0.5, moire_suppression * 0.5);
+
+        vec3 base = hsv2rgb(vec3(hue, eff_sat, eff_bri));
         float highlight_re_glow = 0.0;
         float highlight_im_glow = 0.0;
 
         if (color_scheme == 2) {
             float v = 0.5 + 0.5 * cos(phase);
-            base = vec3(v) * brightness;
+            // Suppress the Moiré in grayscale by washing it towards a solid gray 0.5
+            v = mix(v, 0.5, moire_suppression);
+            base = vec3(v) * eff_bri;
         }
 
         if (show_curves) {
-            compute_curves_highlight(f, base, highlight_re_glow, highlight_im_glow);
+            compute_curves_highlight(f, raw_w_re, raw_w_im, base, highlight_re_glow, highlight_im_glow);
         }
 
         ALBEDO = base * albedo;
