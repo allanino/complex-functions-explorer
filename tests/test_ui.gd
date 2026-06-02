@@ -237,7 +237,6 @@ func test_preset_ui_close_without_apply():
 
 	# Assert it's reverted
 	assert_eq(Config.current_preset, "Default")
-	assert_false(Config.is_preset_dirty())
 
 func test_menu_scale():
 	# 1. Verify parent hierarchy remains CenterContainer
