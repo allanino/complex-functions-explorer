@@ -50,6 +50,7 @@ signal update_hud_layout_signal()
 @onready var sun_luminosity_slider = %SunLuminosityContainer
 @onready var self_illumination_slider = %SelfIlluminationContainer
 @onready var fog_density_slider = %FogDensitySlider
+@onready var fog_distance_slider = %FogDistanceSlider
 @onready var shadows_checkbox = %ShadowsCheckbox
 @onready var hud_complex_checkbox = %HudComplexCheckbox
 @onready var hud_navigation_checkbox = %HudNavigationCheckbox
@@ -118,6 +119,7 @@ var _initial_freeze_time: bool
 var _initial_day_duration: float
 var _initial_day_time: float
 var _initial_fog_density: float
+var _initial_fog_distance: float
 var _initial_morph_value: float
 var _initial_terrain_detail: int
 var _initial_antialiasing_mode: int
@@ -278,6 +280,7 @@ func _ready():
 	sun_luminosity_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Sun Luminosity"))
 	self_illumination_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Self-Illumination"))
 	fog_density_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Fog Density"))
+	fog_distance_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Fog Distance"))
 	brightness_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Brightness"))
 	saturation_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Saturation"))
 	albedo_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Albedo"))
@@ -445,6 +448,13 @@ func _init_slider_bindings():
 		branch_k_slider: {
 			"config_key": "current_branch",
 			"to_config": func(v): return int(round(v)),
+			"from_config": func(c): return c,
+			"format": func(v): return str(int(round(v))),
+			"immediate": true
+		},
+		fog_distance_slider: {
+			"config_key": "fog_distance",
+			"to_config": func(v): return v,
 			"from_config": func(c): return c,
 			"format": func(v): return str(int(round(v))),
 			"immediate": true
@@ -1079,6 +1089,7 @@ func toggle_menu(applied: bool = false):
 		_initial_day_duration = Config.day_duration
 		_initial_day_time = Config.day_time
 		_initial_fog_density = Config.fog_density
+		_initial_fog_distance = Config.fog_distance
 		_initial_morph_value = 1.0
 		_initial_terrain_detail = Config.terrain_detail
 		_initial_antialiasing_mode = Config.antialiasing_mode
@@ -1128,6 +1139,7 @@ func toggle_menu(applied: bool = false):
 			Config.day_duration = _initial_day_duration
 			Config.day_time = _initial_day_time
 			Config.fog_density = _initial_fog_density
+			Config.fog_distance = _initial_fog_distance
 			Config.morph_value = _initial_morph_value
 			Config.terrain_detail = _initial_terrain_detail
 			Config.antialiasing_mode = _initial_antialiasing_mode

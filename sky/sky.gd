@@ -3,6 +3,7 @@ extends Node3D
 @onready var sun = $DirectionalLight3D
 @onready var moon = $MoonLight
 @onready var world_environment = $WorldEnvironment
+@onready var fog_volume = $FogVolume
 
 # Day night cycle variables
 var _golden_hour_transition: float = 0.0
@@ -65,11 +66,20 @@ func _process(delta):
 		var fog_color = lerp(Color(0.3, 0.4, 0.5), Color(1.0, 0.4, 0.1), _golden_hour_transition)
 		fog_color = lerp(fog_color, Color(0.01, 0.02, 0.05), night_factor)
 
-		env.fog_enabled = Config.fog_density > 0.0
-		env.fog_mode = Environment.FOG_MODE_EXPONENTIAL
-		env.fog_light_color = fog_color
-		env.fog_density = Config.fog_density * 0.05
-		env.fog_aerial_perspective = (1.0 - Config.fog_density)
+		env.fog_enabled = false
+		env.volumetric_fog_enabled = Config.fog_density > 0.0
+		env.volumetric_fog_density = 0.0 # Density provided by FogVolume
+		env.volumetric_fog_albedo = fog_color
+		env.volumetric_fog_sky_affect = (1.0 - Config.fog_density)
+
+		if fog_volume and fog_volume.material:
+			var mat = fog_volume.material as ShaderMaterial
+			mat.set_shader_parameter("fog_color", fog_color)
+			mat.set_shader_parameter("fog_density", Config.fog_density * 0.05)
+			mat.set_shader_parameter("fog_distance", Config.fog_distance)
+			var cam = get_viewport().get_camera_3d()
+			if cam:
+				mat.set_shader_parameter("camera_pos", cam.global_position)
 
 func set_performance_protection(active: bool):
 	if world_environment and world_environment.environment and world_environment.environment.sky:

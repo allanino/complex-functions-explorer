@@ -604,6 +604,15 @@ value = 2.0
 value_text = "2.0%"
 show_detach_button = true
 
+[node name="FogDistanceSlider" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/ENVIRONMENT/Margin/VBox" unique_id=197578243 instance=ExtResource("1")]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Fog Distance"
+step = 0.1
+value = 0.0
+value_text = "0"
+show_detach_button = true
+
 [node name="TERRAIN" type="ScrollContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer" unique_id=801626418]
 visible = false
 layout_mode = 2

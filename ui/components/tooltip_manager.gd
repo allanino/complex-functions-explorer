@@ -34,6 +34,7 @@ const DESCRIPTIONS = {
 	"Sun Luminosity": "Adjust the intensity of the sun and moon light.",
 	"Fog": "Enable or disable global volumetric fog effects.",
 	"Fog Density": "Adjust the thickness of the fog and aerial perspective.",
+	"Fog Distance": "Set the starting distance for the fog falloff.",
 	"Shadows": "Enable real-time directional shadows for terrain features.",
 	"Complex plane": "Show the domain coloring map of the current position on the MainUI.",
 	"Navigation": "Show coordinate and magnitude information on the MainUI.",

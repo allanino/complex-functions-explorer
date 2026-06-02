@@ -144,6 +144,7 @@ const PRESET_KEYS = [
 	"terrain_roughness",
 	"terrain_surface_texture",
 	"fog_density",
+	"fog_distance",
 	"movement_speed",
 	"speed_near_zeros",
 	"camera_height",
@@ -223,6 +224,7 @@ var terrain_metallic: float = 0.7
 var terrain_roughness: float = 0.1
 var terrain_surface_texture: float = 0.0
 var fog_density: float = 0.4
+var fog_distance: float = 0.0
 
 # Player parameters
 var movement_speed: float = 10.0
@@ -391,6 +393,7 @@ func save_settings():
 	config.set_value("rendering", "terrain_roughness", terrain_roughness)
 	config.set_value("rendering", "terrain_surface_texture", terrain_surface_texture)
 	config.set_value("rendering", "fog_density", fog_density)
+	config.set_value("rendering", "fog_distance", fog_distance)
 	config.set_value("session", "current_preset", current_preset)
 	config.set_value("session", "custom_presets", PRESETS)
 
@@ -469,6 +472,7 @@ func load_settings():
 	terrain_roughness = config.get_value("rendering", "terrain_roughness", terrain_roughness)
 	terrain_surface_texture = config.get_value("rendering", "terrain_surface_texture", terrain_surface_texture)
 	fog_density = config.get_value("rendering", "fog_density", fog_density)
+	fog_distance = config.get_value("rendering", "fog_distance", fog_distance)
 	current_preset = config.get_value("session", "current_preset", "Default")
 	# Only restore custom (non-built-in) presets; built-ins always come from preset_defaults.gd
 	var built_in_keys = PRESET_DEFAULTS.PRESETS.keys()
