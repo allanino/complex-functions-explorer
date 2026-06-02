@@ -36,6 +36,9 @@ var current_f: Vector2 = Vector2.ZERO
 var current_mag: float = 0.0
 var current_z: Vector2 = Vector2(0.0, 0.0)
 
+var _base_movement_speed: float = 10.0
+var _base_camera_height: float = 1.8
+
 @onready var camera = $Camera3D
 
 @onready var main_ui = get_node_or_null("/root/Main/MainUI")
@@ -46,6 +49,10 @@ func _ready():
 	add_to_group("player")
 	# Set the global position directly using a Vector3(x, y, z)
 	global_position = Vector3(5.0, 0.0, 0.0)
+
+	_base_movement_speed = Config.movement_speed / pow(Config.effective_zoom, 1.0 - Config.zoom_damping)
+	_base_camera_height = Config.camera_height / pow(Config.effective_zoom, Config.zoom_damping - 1.0)
+
 	var scale_factor = 1.0 / Config.effective_zoom
 	last_t = - global_position.z * 0.1 * scale_factor
 	last_z = Vector2(global_position.x * 0.1 * scale_factor, -global_position.z * 0.1 * scale_factor)
@@ -234,6 +241,15 @@ func _physics_process(delta):
 					rotation_x = clamp(rotation_x, -PI / 2, PI / 2)
 					camera.rotation.x = rotation_x
 
+	# Check if Config values were modified externally (e.g. by UI sliders or Spacebar)
+	var expected_speed = _base_movement_speed * pow(Config.effective_zoom, 1.0 - Config.zoom_damping)
+	if abs(Config.movement_speed - expected_speed) > 0.001:
+		_base_movement_speed = Config.movement_speed / pow(Config.effective_zoom, 1.0 - Config.zoom_damping)
+
+	var expected_height = _base_camera_height * pow(Config.effective_zoom, Config.zoom_damping - 1.0)
+	if abs(Config.camera_height - expected_height) > 0.001:
+		_base_camera_height = Config.camera_height / pow(Config.effective_zoom, Config.zoom_damping - 1.0)
+
 	# Smooth zoom interpolation
 	var old_ez = Config.effective_zoom
 	Config.effective_zoom = lerp(Config.effective_zoom, float(Config.zoom_factor), delta * 8.0)
@@ -245,9 +261,9 @@ func _physics_process(delta):
 		global_position.x *= zoom_ratio
 		global_position.z *= zoom_ratio
 
-		# Scale camera height and movement speed using damping power formula
-		Config.camera_height = Config.camera_height * pow(zoom_ratio, Config.zoom_damping - 1.0)
-		Config.movement_speed = Config.movement_speed * pow(zoom_ratio, 1.0 - Config.zoom_damping)
+		# Scale camera height and movement speed absolutely to eliminate cumulative rounding drift
+		Config.camera_height = _base_camera_height * pow(Config.effective_zoom, Config.zoom_damping - 1.0)
+		Config.movement_speed = _base_movement_speed * pow(Config.effective_zoom, 1.0 - Config.zoom_damping)
 
 	if is_detached_interactive or is_menu_open:
 		velocity = Vector3.ZERO
