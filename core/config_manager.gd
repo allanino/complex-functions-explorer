@@ -145,7 +145,6 @@ const PRESET_KEYS = [
 	"terrain_surface_texture",
 	"fog_density",
 	"movement_speed",
-	"zoom_factor",
 	"speed_near_zeros",
 	"camera_height",
 	"zero_proximity_nav",
@@ -195,17 +194,8 @@ var input_rational_num_coeffs: PackedVector2Array = PackedVector2Array([Vector2(
 var input_rational_den_coeffs: PackedVector2Array = PackedVector2Array([Vector2(1, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)])
 var multivalued_n: int = 2
 var current_branch: int = 0 # Session state for Portals mode
-var zoom_factor: float = 1.0 :
-	set(v):
-		var old_zf = zoom_factor
-		zoom_factor = v
-		if old_zf > 0.0 and v > 0.0 and not _is_applying_preset:
-			var ratio = v / old_zf
-			movement_speed = movement_speed * pow(ratio, 1.0 - zoom_damping)
-			camera_height = camera_height * pow(ratio, zoom_damping - 1.0)
+var zoom_factor: float = 1.0
 var zoom_damping: float = 0.5
-
-var _is_applying_preset: bool = false
 
 # Rendering parameters
 var terrain_detail: int = 1
@@ -279,10 +269,8 @@ func apply_preset(preset_name: String):
 
 	if PRESETS.has(preset_name):
 		var target_preset = _edited_presets.get(preset_name, PRESETS[preset_name])
-		_is_applying_preset = true
 		for key in target_preset:
 			set(key, target_preset[key])
-		_is_applying_preset = false
 		current_preset = preset_name
 		preset_applied.emit()
 
