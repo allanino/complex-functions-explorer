@@ -560,6 +560,8 @@ func _on_input_selected(f_type: int):
 	var f_data = Config.FUNCTIONS.get(f_type, {})
 	var is_rational = f_data.get("is_rational", false)
 	input_rational_container.visible = is_rational
+	if is_rational:
+		_on_input_rational_text_submitted(input_rational_input.text)
 
 func _on_func_selected(f_type: int):
 	Config.function_type = f_type
@@ -580,6 +582,8 @@ func _on_func_selected(f_type: int):
 		iter_slider.value = Config.iterations
 
 	func_rational_container.visible = is_rational
+	if is_rational:
+		_on_func_rational_text_submitted(func_rational_input.text)
 	multivalued_slider.visible = is_multivalued_n
 	iter_slider.visible = has_iters
 	critical_checkbox.visible = is_dirichlect
