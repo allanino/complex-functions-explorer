@@ -88,6 +88,11 @@ func _ready():
 		var mobile_controls = main_ui.get_node("Control/MobileControls")
 		mobile_controls.visible = enable_joystick
 
+		if mobile_controls.has_node("SettingsButton"):
+			var settings_btn = mobile_controls.get_node("SettingsButton")
+			if not settings_btn.pressed.is_connected(main_ui.toggle_menu.bind(false)):
+				settings_btn.pressed.connect(main_ui.toggle_menu.bind(false))
+
 	# demo_actions()
 
 func _update_ui_states():

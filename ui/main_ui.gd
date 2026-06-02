@@ -26,6 +26,11 @@ var _last_zeros_visible: bool = false
 const BASE_HUD_PANEL_SIZE: float = 190.0
 
 func _ready():
+	var mobile_controls = get_node_or_null("Control/MobileControls")
+	if mobile_controls and mobile_controls.has_node("SettingsButton"):
+		var settings_btn = mobile_controls.get_node("SettingsButton")
+		if not settings_btn.pressed.is_connected(toggle_menu.bind(false)):
+			settings_btn.pressed.connect(toggle_menu.bind(false))
 	portal_flash = ColorRect.new()
 	portal_flash.name = "PortalFlash"
 	portal_flash.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
