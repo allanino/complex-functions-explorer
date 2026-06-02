@@ -211,6 +211,34 @@ func test_preset_ui_asterisk_workflow():
 	Config.delete_preset("MyNewUI_Preset")
 	Config.apply_preset(orig_preset)
 
+func test_preset_ui_close_without_apply():
+	Config.apply_preset("Default")
+	main_ui_instance.preset_controller.update_preset_button_text()
+
+	# Open menu (saves initial preset state)
+	main_ui_instance.menu_overlay.toggle_menu(false)
+	assert_true(main_ui_instance.menu_overlay.visible)
+
+	# Change preset to Mysterious in the UI
+	var mysterious_idx = -1
+	for i in range(main_ui_instance.preset_controller.preset_button.item_count):
+		if main_ui_instance.preset_controller.preset_button.get_item_text(i).trim_suffix("*") == "Mysterious":
+			mysterious_idx = i
+			break
+
+	assert_ne(mysterious_idx, -1)
+	main_ui_instance.preset_controller._on_preset_selected(mysterious_idx)
+
+	assert_eq(Config.current_preset, "Mysterious")
+
+	# Close menu without applying
+	main_ui_instance.menu_overlay.toggle_menu(false)
+	assert_false(main_ui_instance.menu_overlay.visible)
+
+	# Assert it's reverted
+	assert_eq(Config.current_preset, "Default")
+	assert_false(Config.is_preset_dirty())
+
 func test_menu_scale():
 	# 1. Verify parent hierarchy remains CenterContainer
 	var parent = main_ui_instance.menu_overlay.main_menu_panel.get_parent()

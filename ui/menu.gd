@@ -123,6 +123,8 @@ var _initial_terrain_detail: int
 var _initial_antialiasing_mode: int
 var _initial_view_distance: int
 var _initial_shadows_enabled: bool
+var _initial_preset: String
+var _initial_edited_presets: Dictionary
 
 func _ready():
 	tab_buttons = [
@@ -1087,6 +1089,8 @@ func toggle_menu(applied: bool = false):
 		_initial_antialiasing_mode = Config.antialiasing_mode
 		_initial_view_distance = Config.view_distance
 		_initial_shadows_enabled = Config.shadows_enabled
+		_initial_preset = Config.current_preset
+		_initial_edited_presets = Config._edited_presets.duplicate(true)
 
 		_sync_ui_to_config()
 
@@ -1136,5 +1140,7 @@ func toggle_menu(applied: bool = false):
 			Config.antialiasing_mode = _initial_antialiasing_mode
 			Config.view_distance = _initial_view_distance
 			Config.shadows_enabled = _initial_shadows_enabled
+			Config.current_preset = _initial_preset
+			Config._edited_presets = _initial_edited_presets
 
 			emit_signal('apply_aa_signal')
