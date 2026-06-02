@@ -409,7 +409,10 @@ func _physics_process(delta):
 						true_z = z_mid.lerp(z_right, offset_fraction)
 
 					if true_z.distance_to(last_detected_z) > 0.01:
+						Config.total_zeros_found += 1
 						Config.visited_zeros.push_back(true_z)
+						if Config.visited_zeros.size() > 10:
+							Config.visited_zeros.pop_front()
 						last_detected_z = true_z
 
 	move_and_slide()

@@ -26,7 +26,6 @@ var _last_zeros_visible: bool = false
 const BASE_HUD_PANEL_SIZE: float = 190.0
 var _skip_hud_update: bool = false
 var _last_zeros_count: int = -1
-var _zeros_string_list: PackedStringArray = []
 
 func _ready():
 	portal_flash = ColorRect.new()
@@ -126,40 +125,25 @@ func _process(_delta):
 
 	# Update Zeta Zeros display
 	var f_data = Config.function
+
 	if not _skip_hud_update:
 		zeros_panel.visible = Config.show_hud_zeros
 
 		if Config.show_hud_zeros:
-			var total_count = Config.visited_zeros.size()
-
+			var total_count = Config.total_zeros_found
 			if total_count != _last_zeros_count:
-				if total_count > _last_zeros_count and _last_zeros_count != -1:
-					var new_count = total_count - _last_zeros_count
-					var new_zeros = []
-					for i in range(total_count - 1, total_count - 1 - new_count, -1):
-						var zero = Config.visited_zeros[i]
-						new_zeros.append("(%s, %s)" % [_format_float_3(zero[0]), _format_float_3(zero[1])])
-
-					var temp = PackedStringArray(new_zeros)
-					temp.append_array(_zeros_string_list)
-					_zeros_string_list = temp
-					if _zeros_string_list.size() > 10:
-						_zeros_string_list = _zeros_string_list.slice(0, 10)
-				else:
-					_zeros_string_list.clear()
-					var iter_count = min(total_count, 10)
-					for i in range(total_count - 1, total_count - 1 - iter_count, -1):
-						var zero = Config.visited_zeros[i]
-						_zeros_string_list.append("(%s, %s)" % [_format_float_3(zero[0]), _format_float_3(zero[1])])
-
 				_last_zeros_count = total_count
+				var last_zeros_text = ""
+				var current_size = Config.visited_zeros.size()
+				for i in range(current_size - 1, -1, -1):
+					var zero = Config.visited_zeros[i]
+					last_zeros_text += "(%s, %s)\n" % [_format_float_3(zero[0]), _format_float_3(zero[1])]
 
-				var display_text = "\n".join(_zeros_string_list)
 				if total_count > 10:
-					display_text += "\n•••"
+					last_zeros_text += "•••\n"
 
-				zeros_list_label.text = display_text
 				zeros_count_label.text = "Count: %d" % total_count
+				zeros_list_label.text = last_zeros_text
 
 			# Riemann-von Mangoldt formula: N(T) ≈ (T/2π) log(T/2πe) + 7/8
 			if Config.show_rvm and f_data.get("has_von_mangoldt", false):
