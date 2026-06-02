@@ -7,6 +7,7 @@ const CRITICAL_LINE_X = 5.0
 enum AutoWalkState {NONE, MOVING_TO_LINE, WALKING, NEWTON_WALK}
 
 var rotation_x = 0.0
+var _mouse_input: Vector2 = Vector2.ZERO
 @export var enable_joystick: bool = false
 var auto_walk_state = AutoWalkState.NONE
 var newton_target_z: Vector2 = Vector2.ZERO
@@ -120,10 +121,7 @@ func _unhandled_input(event):
 
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		if auto_walk_state == AutoWalkState.NONE or auto_walk_state == AutoWalkState.WALKING:
-			rotate_y(-event.relative.x * MOUSE_SENSITIVITY)
-			rotation_x -= event.relative.y * MOUSE_SENSITIVITY
-			rotation_x = clamp(rotation_x, -PI / 2, PI / 2)
-			camera.rotation.x = rotation_x
+			_mouse_input += event.relative
 
 	if event is InputEventMouseButton and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		if event.button_index == MOUSE_BUTTON_WHEEL_UP and event.pressed:
@@ -221,6 +219,13 @@ func get_terrain_height(x: float, z: float, field_val: Vector2 = Vector2.INF) ->
 
 func _physics_process(delta):
 	_update_ui_states()
+
+	if _mouse_input != Vector2.ZERO:
+		rotate_y(-_mouse_input.x * MOUSE_SENSITIVITY)
+		rotation_x -= _mouse_input.y * MOUSE_SENSITIVITY
+		rotation_x = clamp(rotation_x, -PI / 2, PI / 2)
+		camera.rotation.x = rotation_x
+		_mouse_input = Vector2.ZERO
 
 	if enable_joystick && main_ui and main_ui.has_node("Control/MobileControls"):
 		var mobile_controls = main_ui.get_node("Control/MobileControls")
