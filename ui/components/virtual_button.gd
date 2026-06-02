@@ -34,30 +34,68 @@ func reset_button():
     is_pressed = false
     queue_redraw()
 
+
+
 func _draw():
-    # Draw gear teeth
+    # Draw a solid gray gear icon
     var num_teeth = 8
-    var outer_radius = base_radius * 0.9
-    var inner_radius = base_radius * 0.7
-    var hole_radius = base_radius * 0.3
+    var outer_radius = base_radius * 0.8
+    var inner_radius = base_radius * 0.6
+    var hole_radius = base_radius * 0.25
+    var center = size / 2.0
 
-    var color = Color(1, 1, 1, 0.5) if is_pressed else Color(0, 0, 0, 0.3)
+    var fill_color = Color(0.65, 0.65, 0.65, 1.0) if is_pressed else Color(0.5, 0.5, 0.5, 1.0)
+    var shadow_color = Color(0, 0, 0, 0.3)
+    var outline_color = Color(0.2, 0.2, 0.2, 1.0)
+    var inner_fill = Color(0.4, 0.4, 0.4, 1.0) if is_pressed else Color(0.3, 0.3, 0.3, 1.0)
 
-    # Outer circle for the main body
-    draw_circle(size / 2.0, inner_radius, color)
-
-    # Draw teeth
+    # Draw drop shadow
+    var shadow_offset = Vector2(2, 4)
+    # Background circle for shadow
+    draw_circle(center + shadow_offset, inner_radius, shadow_color)
+    # Shadow teeth
     for i in range(num_teeth):
         var angle = i * (PI * 2.0 / num_teeth)
         var next_angle = angle + (PI * 2.0 / num_teeth) * 0.5
+        var p1 = center + shadow_offset + Vector2(cos(angle), sin(angle)) * inner_radius
+        var p2 = center + shadow_offset + Vector2(cos(angle), sin(angle)) * outer_radius
+        var p3 = center + shadow_offset + Vector2(cos(next_angle), sin(next_angle)) * outer_radius
+        var p4 = center + shadow_offset + Vector2(cos(next_angle), sin(next_angle)) * inner_radius
+        draw_polygon(PackedVector2Array([p1, p2, p3, p4]), PackedColorArray([shadow_color, shadow_color, shadow_color, shadow_color]))
 
-        var p1 = size / 2.0 + Vector2(cos(angle), sin(angle)) * inner_radius
-        var p2 = size / 2.0 + Vector2(cos(angle), sin(angle)) * outer_radius
-        var p3 = size / 2.0 + Vector2(cos(next_angle), sin(next_angle)) * outer_radius
-        var p4 = size / 2.0 + Vector2(cos(next_angle), sin(next_angle)) * inner_radius
+    # Draw gear body (circle with hole)
+    # To leave a transparent hole without a background mask, we can draw a thick arc
+    # However draw_arc's thickness grows outward/inward, which is tricky.
+    # Alternatively, we can draw a polygon with a hole.
+
+    # Draw teeth first so they are under the main body ring outlines
+    for i in range(num_teeth):
+        var angle = i * (PI * 2.0 / num_teeth)
+        var next_angle = angle + (PI * 2.0 / num_teeth) * 0.4
+
+        var p1 = center + Vector2(cos(angle), sin(angle)) * inner_radius
+        var p2 = center + Vector2(cos(angle), sin(angle)) * outer_radius
+        var p3 = center + Vector2(cos(next_angle), sin(next_angle)) * outer_radius
+        var p4 = center + Vector2(cos(next_angle), sin(next_angle)) * inner_radius
 
         var points = PackedVector2Array([p1, p2, p3, p4])
-        draw_polygon(points, PackedColorArray([color, color, color, color]))
+        draw_polygon(points, PackedColorArray([fill_color, fill_color, fill_color, fill_color]))
+        # Outline for teeth
+        draw_polyline(PackedVector2Array([p1, p2, p3, p4, p1]), outline_color, 2.0, true)
 
-    # Draw hole
-    draw_circle(size / 2.0, hole_radius, Color(0, 0, 0, 0.0) if not is_pressed else Color(1, 1, 1, 0.5))
+    # Draw main body fill
+    draw_circle(center, inner_radius, fill_color)
+
+    # Draw inner dark circle to represent bevel/hole depth
+    draw_circle(center, hole_radius * 1.5, inner_fill)
+
+    # Draw hole (transparent) by drawing a circle of the background?
+    # Godot _draw doesn't support subtractive drawing natively.
+    # To simulate the hole, we can just leave it as the inner dark circle, or we can use a polygon mask.
+    # A simple gray gear with a dark center is standard enough. Let's make it a dark gray hole.
+    draw_circle(center, hole_radius, Color(0.1, 0.1, 0.1, 1.0))
+
+    # Draw outlines
+    draw_arc(center, inner_radius, 0, PI * 2, 32, outline_color, 2.0, true)
+    draw_arc(center, hole_radius * 1.5, 0, PI * 2, 32, outline_color, 2.0, true)
+    draw_arc(center, hole_radius, 0, PI * 2, 32, outline_color, 2.0, true)
