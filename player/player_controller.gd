@@ -129,11 +129,11 @@ func _unhandled_input(event):
 
 	if event is InputEventMouseButton and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		if event.button_index == MOUSE_BUTTON_WHEEL_UP and event.pressed:
-			Config.zoom_factor = clampf(Config.zoom_factor * 1.1, 0.01, 200.0)
+			Config.set("zoom_factor", clampf(Config.zoom_factor * 1.1, 0.01, 200.0))
 		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN and event.pressed:
-			Config.zoom_factor = clampf(Config.zoom_factor / 1.1, 0.01, 200.0)
+			Config.set("zoom_factor", clampf(Config.zoom_factor / 1.1, 0.01, 200.0))
 		elif event.button_index == MOUSE_BUTTON_MIDDLE and event.pressed:
-			Config.zoom_factor = 1.0
+			Config.set("zoom_factor", 1.0)
 			Config.save_settings()
 		elif event.button_index == MOUSE_BUTTON_LEFT and event.pressed and event.ctrl_pressed:
 			if Config.show_curves:
