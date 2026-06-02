@@ -648,9 +648,7 @@ func _on_set_pos_pressed(_toggle_menu: bool = true):
 			Config.set(cfg_key, cfg_val)
 
 	# Ensure effective zoom is updated from applied zoom_factor
-	# We DO NOT forcefully set effective_zoom here because it breaks smooth zooming and prevents
-	# the damping logic in player_controller.gd from scaling movement_speed and camera_height correctly!
-	# Config.effective_zoom = float(Config.zoom_factor)
+	Config.effective_zoom = float(Config.zoom_factor)
 
 	Config.terrain_detail = terrain_detail_button.selected
 	Config.antialiasing_mode = aa_button.selected
