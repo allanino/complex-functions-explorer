@@ -46,14 +46,14 @@ func _process(delta):
 		sun.light_energy = smoothstep(-0.02, 0.02, sun_elevation) * Config.sun_luminosity
 		sun.light_color = lerp(_sun_color, Color(1.0, 0.5, 0.2), _golden_hour_transition)
 		sun.shadow_enabled = Config.shadows_enabled and sun_elevation > 0.01
-		sun.light_volumetric_fog_energy = 4.0 # Make volumetric rays shine beautifully
+		sun.light_volumetric_fog_energy = 1000.0 # Huge multiplier for gorgeous godrays at low volumetric densities
 
 	if moon:
 		moon.basis = Basis.looking_at(moon_dir, Vector3.UP if abs(moon_dir.y) < 0.99 else Vector3.FORWARD)
 		var moon_elevation = - moon_dir.y
 		moon.light_energy = smoothstep(-0.02, 0.02, moon_elevation) * 0.4 * Config.sun_luminosity
 		moon.shadow_enabled = Config.shadows_enabled and moon_elevation > 0.01
-		moon.light_volumetric_fog_energy = 2.0
+		moon.light_volumetric_fog_energy = 500.0
 
 	if world_environment and world_environment.environment and world_environment.environment.sky:
 		var sky_mat = world_environment.environment.sky.sky_material as ShaderMaterial
@@ -79,7 +79,9 @@ func _process(delta):
 		if fog_volume and fog_volume.material:
 			var mat = fog_volume.material as ShaderMaterial
 			mat.set_shader_parameter("fog_color", fog_color)
-			mat.set_shader_parameter("fog_density", Config.fog_density * 0.05)
+			# Scale down the raw density significantly because true volumetric integration
+			# over 1000m makes higher densities completely opaque.
+			mat.set_shader_parameter("fog_density", Config.fog_density * 0.002)
 			mat.set_shader_parameter("fog_distance", Config.fog_distance)
 			var cam = get_viewport().get_camera_3d()
 			if cam:
