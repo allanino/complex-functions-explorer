@@ -7,7 +7,6 @@ uniform float golden_hour_factor = 0.0;
 uniform float night_factor = 0.0;
 uniform float sky_luminosity = 1.0;
 uniform bool performance_protection_active = false;
-uniform float sun_size: hint_range(0.0, 1.0) = 0.05;
 
 // Dave Hoskins' hash (2D to 1D)
 float hash(vec2 p) {
@@ -177,10 +176,11 @@ void compute_clouds(vec3 eye_dir, float eye_alt, float time, vec3 current_cloud,
 }
 
 
-void compute_sun_moon(vec3 eye_dir, float s_size, bool light0_enabled, vec3 light0_dir, vec3 light0_col, float light0_en, vec3 light1_dir, vec3 light1_col, float light1_en, inout vec3 cloud_final_color) {
+void compute_sun_moon(vec3 eye_dir, bool light0_enabled, vec3 light0_dir, vec3 light0_col, float light0_en, vec3 light1_dir, vec3 light1_col, float light1_en, inout vec3 cloud_final_color) {
     // Sun
     if (light0_enabled && light0_en > 0.0) {
         float sun_dist = distance(eye_dir, light0_dir);
+        float sun_size = 0.05;
         float sun_disk = smoothstep(sun_size * 0.5, sun_size * 0.45, sun_dist);
         // disk_intensity stays 1.0 while sun is visible to keep its size
         // Using a small threshold to avoid flickering
@@ -271,7 +271,7 @@ void sky() {
         compute_clouds(EYEDIR, eye_alt, TIME, current_cloud, final_color, LIGHT0_ENABLED, LIGHT0_DIRECTION, LIGHT0_COLOR, cloud_final_color);
 
         // Sun & Moon
-        compute_sun_moon(EYEDIR, sun_size, LIGHT0_ENABLED, LIGHT0_DIRECTION, LIGHT0_COLOR, LIGHT0_ENERGY, LIGHT1_DIRECTION, LIGHT1_COLOR, LIGHT1_ENERGY, cloud_final_color);
+        compute_sun_moon(EYEDIR, LIGHT0_ENABLED, LIGHT0_DIRECTION, LIGHT0_COLOR, LIGHT0_ENERGY, LIGHT1_DIRECTION, LIGHT1_COLOR, LIGHT1_ENERGY, cloud_final_color);
 
         // Haze
         compute_haze(EYEDIR, night_factor, golden_hour_factor, LIGHT0_ENABLED, LIGHT0_DIRECTION, LIGHT0_COLOR, cloud_final_color);
