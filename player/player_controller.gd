@@ -234,10 +234,6 @@ func _physics_process(delta):
 					rotation_x = clamp(rotation_x, -PI / 2, PI / 2)
 					camera.rotation.x = rotation_x
 
-	if is_detached_interactive or is_menu_open:
-		velocity = Vector3.ZERO
-		return
-
 	# Smooth zoom interpolation
 	var old_ez = Config.effective_zoom
 	Config.effective_zoom = lerp(Config.effective_zoom, float(Config.zoom_factor), delta * 8.0)
@@ -252,6 +248,10 @@ func _physics_process(delta):
 		# Scale camera height and movement speed using damping power formula
 		Config.camera_height = Config.camera_height * pow(zoom_ratio, Config.zoom_damping - 1.0)
 		Config.movement_speed = Config.movement_speed * pow(zoom_ratio, 1.0 - Config.zoom_damping)
+
+	if is_detached_interactive or is_menu_open:
+		velocity = Vector3.ZERO
+		return
 
 	# Cache current field value and mathematical coordinates for reuse
 	var scale_factor = 1.0 / Config.effective_zoom

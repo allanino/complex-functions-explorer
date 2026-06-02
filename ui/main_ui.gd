@@ -91,16 +91,17 @@ func _process(_delta):
 
 	if menu_overlay.visible:
 		if abs(menu_overlay._slider_to_zoom(menu_overlay.zoom_slider.value) - Config.zoom_factor) > 0.001:
-			menu_overlay.zoom_slider.value = menu_overlay._zoom_to_slider(Config.zoom_factor)
+			menu_overlay.zoom_slider.set_value_no_signal(menu_overlay._zoom_to_slider(Config.zoom_factor))
+			menu_overlay.zoom_slider.value_text = "x%.2f" % Config.zoom_factor
 		# Live update speed and height inputs as they change smoothly with zoom
 		var target_speed_val = Config.movement_speed * 0.1
 		if abs(menu_overlay.speed_input.value - target_speed_val) > 0.001:
-			menu_overlay.speed_input.value = target_speed_val
+			menu_overlay.speed_input.set_value_no_signal(target_speed_val)
 			menu_overlay.speed_input.value_text = "%.1f" % target_speed_val
 
 		var target_height_val = Config.camera_height
 		if abs(menu_overlay.camera_height_input.value - target_height_val) > 0.001:
-			menu_overlay.camera_height_input.value = target_height_val
+			menu_overlay.camera_height_input.set_value_no_signal(target_height_val)
 			menu_overlay.camera_height_input.value_text = "%.1f" % target_height_val
 
 		# Live update time slider if time is flowing
