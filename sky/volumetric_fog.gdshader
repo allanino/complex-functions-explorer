@@ -13,4 +13,5 @@ void fog() {
         DENSITY = 0.0;
     }
     ALBEDO = fog_color;
+    EMISSION = fog_color * 0.1;
 }

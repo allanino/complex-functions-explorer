@@ -46,12 +46,14 @@ func _process(delta):
 		sun.light_energy = smoothstep(-0.02, 0.02, sun_elevation) * Config.sun_luminosity
 		sun.light_color = lerp(_sun_color, Color(1.0, 0.5, 0.2), _golden_hour_transition)
 		sun.shadow_enabled = Config.shadows_enabled and sun_elevation > 0.01
+		sun.light_volumetric_fog_energy = 4.0 # Make volumetric rays shine beautifully
 
 	if moon:
 		moon.basis = Basis.looking_at(moon_dir, Vector3.UP if abs(moon_dir.y) < 0.99 else Vector3.FORWARD)
 		var moon_elevation = - moon_dir.y
 		moon.light_energy = smoothstep(-0.02, 0.02, moon_elevation) * 0.4 * Config.sun_luminosity
 		moon.shadow_enabled = Config.shadows_enabled and moon_elevation > 0.01
+		moon.light_volumetric_fog_energy = 2.0
 
 	if world_environment and world_environment.environment and world_environment.environment.sky:
 		var sky_mat = world_environment.environment.sky.sky_material as ShaderMaterial
@@ -71,6 +73,8 @@ func _process(delta):
 		env.volumetric_fog_density = 0.0 # Density provided by FogVolume
 		env.volumetric_fog_albedo = fog_color
 		env.volumetric_fog_sky_affect = (1.0 - Config.fog_density)
+		env.volumetric_fog_length = 1000.0 # Make sure fog reaches far
+		env.volumetric_fog_ambient_inject = 0.2 # So it's not pitch black in shadows
 
 		if fog_volume and fog_volume.material:
 			var mat = fog_volume.material as ShaderMaterial
