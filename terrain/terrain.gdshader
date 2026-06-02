@@ -6,6 +6,8 @@ varying vec3 world_pos;
 varying vec3 v_normal;
 varying vec2 field_val;
 varying float v_nan;
+varying vec2 v_df_dx;
+varying vec2 v_df_dz;
 
 instance uniform int lod_level = 0;
 instance uniform int neighbor_lod_left = -1;
@@ -632,6 +634,8 @@ void vertex() {
         NORMAL = (MODEL_NORMAL_MATRIX * v_normal);
         v_nan = 0.0;
         field_val = vec2(0.0);
+        v_df_dx = vec2(0.0);
+        v_df_dz = vec2(0.0);
     } else {
         float half_size = chunk_size * 0.5;
         vec3 snap_v = apply_lod_snapping(VERTEX, half_size);
@@ -654,10 +658,14 @@ void vertex() {
         if (is_invalid) {
             v_nan = 1.0;
             field_val = vec2(0.0);
+            v_df_dx = vec2(0.0);
+            v_df_dz = vec2(0.0);
             v_normal = vec3(0.0, 1.0, 0.0);
             local_pos = vec3(snap_v.x, 0.0, snap_v.z);
         } else {
             v_nan = 0.0;
+            v_df_dx = final_fd.dx;
+            v_df_dz = final_fd.dy;
 
             // Blend parameter in [0, 1]
             float blend = 0.5 - 0.5 * cos(PI * morph);
@@ -701,9 +709,14 @@ void vertex() {
 
 
 void fragment() {
-    // Get raw pixel derivatives unconditionally before any divergent branches
-    float raw_w_re = fwidth(field_val.x);
-    float raw_w_im = fwidth(field_val.y);
+    // Compute analytical screen-space derivatives to avoid LOD sub-pixel instability
+    float dw_x = fwidth(world_pos.x);
+    float dw_z = fwidth(world_pos.z);
+
+    // final_fd.dx is df/dx_world, final_fd.dy is df/dz_world
+    // Applying chain rule with absolute values for conservative thickness bounding
+    float raw_w_re = abs(v_df_dx.x * dw_x) + abs(v_df_dz.x * dw_z);
+    float raw_w_im = abs(v_df_dx.y * dw_x) + abs(v_df_dz.y * dw_z);
 
     if (performance_protection_active) {
         ALBEDO = vec3(0.01, 0.02, 0.03);
