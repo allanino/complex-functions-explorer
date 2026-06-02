@@ -24,7 +24,8 @@ var portal_flash: ColorRect
 var current_scale = 2.0
 var _last_zeros_visible: bool = false
 const BASE_HUD_PANEL_SIZE: float = 190.0
-var _skip_hud_update: bool = false
+const RENDER_EACH_N_FRAME: int = 3
+var _skip_frame_counter: int = 0
 var _last_zeros_count: int = -1
 
 func _ready():
@@ -69,6 +70,7 @@ func apply_aa():
 
 func toggle_menu(applied: bool = false):
 	menu_overlay.toggle_menu(applied)
+
 func _format_float_3(val: float) -> String:
 	return "%.3f" % snappedf(val, 0.001)
 
@@ -85,13 +87,21 @@ func _get_rvm_n(T: float) -> float:
 	# Riemann-von Mangoldt formula for Zeta: N(T) ≈ (T/2π) log(T/2πe) + 7/8
 	return (T / (2.0 * PI)) * (log(T / (2.0 * PI)) - 1.0) + 7.0 / 8.0
 
+func _skip_render_hud() -> bool:
+	_skip_frame_counter += 1
+	if _skip_frame_counter % RENDER_EACH_N_FRAME != 0:
+		return true
+
+	_skip_frame_counter = 0
+	return false
+
+
 func _process(_delta):
-	_skip_hud_update = not _skip_hud_update
+	if _skip_render_hud(): return
 
 	if Config.show_hud_zeros and not _last_zeros_visible:
 		Config.rvm_start_t = abs(player.global_position.z * 0.1 / Config.effective_zoom)
 	_last_zeros_visible = Config.show_hud_zeros
-
 
 	if menu_overlay.visible:
 		if abs(menu_overlay._slider_to_zoom(menu_overlay.zoom_slider.value) - Config.zoom_factor) > 0.001:
@@ -126,34 +136,33 @@ func _process(_delta):
 	# Update Zeta Zeros display
 	var f_data = Config.function
 
-	if not _skip_hud_update:
-		zeros_panel.visible = Config.show_hud_zeros
+	zeros_panel.visible = Config.show_hud_zeros
 
-		if Config.show_hud_zeros:
-			var total_count = Config.total_zeros_found
-			if total_count != _last_zeros_count:
-				_last_zeros_count = total_count
-				var last_zeros_text = ""
-				var current_size = Config.visited_zeros.size()
-				for i in range(current_size - 1, -1, -1):
-					var zero = Config.visited_zeros[i]
-					last_zeros_text += "(%s, %s)\n" % [_format_float_3(zero[0]), _format_float_3(zero[1])]
+	if Config.show_hud_zeros:
+		var total_count = Config.total_zeros_found
+		if total_count != _last_zeros_count:
+			_last_zeros_count = total_count
+			var last_zeros_text = ""
+			var current_size = Config.visited_zeros.size()
+			for i in range(current_size - 1, -1, -1):
+				var zero = Config.visited_zeros[i]
+				last_zeros_text += "(%s, %s)\n" % [_format_float_3(zero[0]), _format_float_3(zero[1])]
 
-				if total_count > 10:
-					last_zeros_text += "•••\n"
+			if total_count > 10:
+				last_zeros_text += "•••\n"
 
-				zeros_count_label.text = "Count: %d" % total_count
-				zeros_list_label.text = last_zeros_text
+			zeros_count_label.text = "Count: %d" % total_count
+			zeros_list_label.text = last_zeros_text
 
-			# Riemann-von Mangoldt formula: N(T) ≈ (T/2π) log(T/2πe) + 7/8
-			if Config.show_rvm and f_data.get("has_von_mangoldt", false):
-				var T = abs(z * 0.1 / Config.effective_zoom)
-				var val = _get_rvm_n(T) - _get_rvm_n(Config.rvm_start_t)
-				val = max(0.0, val)
-				rvm_label.text = "N(t) ≈ %.2f" % val
-				rvm_label.visible = true
-			else:
-				rvm_label.visible = false
+		# Riemann-von Mangoldt formula: N(T) ≈ (T/2π) log(T/2πe) + 7/8
+		if Config.show_rvm and f_data.get("has_von_mangoldt", false):
+			var T = abs(z * 0.1 / Config.effective_zoom)
+			var val = _get_rvm_n(T) - _get_rvm_n(Config.rvm_start_t)
+			val = max(0.0, val)
+			rvm_label.text = "N(t) ≈ %.2f" % val
+			rvm_label.visible = true
+		else:
+			rvm_label.visible = false
 
 	# Update shader uniforms
 	var material = complex_rect.material as ShaderMaterial
@@ -174,40 +183,39 @@ func _process(_delta):
 	var val_fx = f.x
 	var val_fy = f.y
 
-	if not _skip_hud_update:
-		domain_label.text = "Re = %s\nIm = %s" % [_format_float_3(val_re), _format_float_3(val_im)]
-		var target_text = "Re = %s\nIm = %s\n|f| = %s" % [_format_float_3(val_fx), _format_float_3(val_fy), _format_float_3(f.length())]
-		if f_data.get("is_multivalued", false):
-			target_text += "\nBranch k = %d" % Config.current_branch
-		target_label.text = target_text
+	domain_label.text = "Re = %s\nIm = %s" % [_format_float_3(val_re), _format_float_3(val_im)]
+	var target_text = "Re = %s\nIm = %s\n|f| = %s" % [_format_float_3(val_fx), _format_float_3(val_fy), _format_float_3(f.length())]
+	if f_data.get("is_multivalued", false):
+		target_text += "\nBranch k = %d" % Config.current_branch
+	target_label.text = target_text
 
-		complex_panel.visible = Config.show_hud_complex
-		info_panel.visible = Config.show_hud_navigation
-		monitor_panel.visible = Config.show_hud_monitor_fps or Config.show_hud_monitor_chunks
-		if monitor_panel.visible:
-			var parts = []
-			if Config.show_hud_monitor_fps:
-				parts.append("FPS: %d" % Engine.get_frames_per_second())
-			if Config.show_hud_monitor_chunks and world_manager:
-				var chunks_text = "Chunks"
-				var num_lods = world_manager.LOD_SUBS.size()
-				var lod_counts = []
-				lod_counts.resize(num_lods)
-				lod_counts.fill(0)
+	complex_panel.visible = Config.show_hud_complex
+	info_panel.visible = Config.show_hud_navigation
+	monitor_panel.visible = Config.show_hud_monitor_fps or Config.show_hud_monitor_chunks
+	if monitor_panel.visible:
+		var parts = []
+		if Config.show_hud_monitor_fps:
+			parts.append("FPS: %d" % Engine.get_frames_per_second())
+		if Config.show_hud_monitor_chunks and world_manager:
+			var chunks_text = "Chunks"
+			var num_lods = world_manager.LOD_SUBS.size()
+			var lod_counts = []
+			lod_counts.resize(num_lods)
+			lod_counts.fill(0)
 
-				for chunk in world_manager.chunks.values():
-					var lod = chunk.get_meta("lod_level", 0)
-					if lod >= 0 and lod < num_lods:
-						lod_counts[lod] += 1
+			for chunk in world_manager.chunks.values():
+				var lod = chunk.get_meta("lod_level", 0)
+				if lod >= 0 and lod < num_lods:
+					lod_counts[lod] += 1
 
-				for i in range(num_lods):
-					if lod_counts[i] > 0:
-						chunks_text += "\n%d: %d" % [world_manager.LOD_SUBS[i], lod_counts[i]]
-				parts.append(chunks_text)
+			for i in range(num_lods):
+				if lod_counts[i] > 0:
+					chunks_text += "\n%d: %d" % [world_manager.LOD_SUBS[i], lod_counts[i]]
+			parts.append(chunks_text)
 
-			fps_label.text = "\n\n".join(parts)
+		fps_label.text = "\n\n".join(parts)
 
-		_update_hud_layout()
+	_update_hud_layout()
 
 var _last_hud_state = {}
 
@@ -353,13 +361,11 @@ func _format_time(total_seconds: float) -> String:
 	return "%02d:%02d:%02d" % [hours, minutes, seconds]
 
 
-
 func _slider_to_zoom(value: float) -> float:
 	var min_zoom = 0.01
 	var max_zoom = 200.0
 	var b = (log(max_zoom) - log(min_zoom)) / 100.0
 	return exp(log(min_zoom) + value * b)
-
 
 
 func _zoom_to_slider(zoom: float) -> float:
