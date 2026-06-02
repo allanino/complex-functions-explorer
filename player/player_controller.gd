@@ -438,6 +438,8 @@ func demo_actions():
 	Config.show_hud_monitor_chunks = false
 	Config.shadows_enabled = false
 	Config.show_curves = true
+	Config.show_curves_labels = false
+	Config.show_position_marker = false
 
 
 	auto_walk_state = AutoWalkState.NONE
