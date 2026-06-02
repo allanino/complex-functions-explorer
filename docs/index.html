@@ -139,9 +139,75 @@
             .container { padding: 40px 20px; }
         }
 
+        .layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 250px;
+            background-color: #111;
+            padding: 40px 20px;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            box-sizing: border-box;
+            flex-shrink: 0;
+        }
+
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .sidebar li {
+            padding-left: 0;
+            margin-bottom: 10px;
+        }
+
+        .sidebar li::before {
+            content: none;
+        }
+
+        .sidebar a {
+            color: var(--secondary-text);
+            text-decoration: none;
+            font-size: 1rem;
+            transition: color 0.2s ease;
+            display: block;
+        }
+
+        .sidebar a:hover {
+            color: var(--accent-color);
+        }
+
+        .sidebar ul ul {
+            padding-left: 15px;
+            margin-top: 5px;
+            font-size: 0.9rem;
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar ul ul li {
+            margin-bottom: 8px;
+            padding-left: 10px;
+        }
+
+        .sidebar .nav-title {
+            font-size: 1.2rem;
+            color: var(--text-color);
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
         .content {
+            flex: 1;
             position: relative;
             z-index: 1;
+            overflow-x: hidden;
         }
 
         .hero-image-container {
@@ -219,7 +285,28 @@
     </style>
 </head>
 <body>
-    <div class="content">
+
+    <div class="layout">
+        <nav class="sidebar">
+            <div class="nav-title">Navigation</div>
+            <ul>
+                <li><a href="#download">Download</a></li>
+                <li><a href="#introduction">Introduction</a></li>
+                <li><a href="#domain-coloring">Domain Coloring</a></li>
+                <li><a href="#curve-levels">Curve Levels</a></li>
+                <li><a href="#functions">Functions</a>
+                    <ul>
+                        <li><a href="#riemann-zeta">The Riemann zeta function</a></li>
+                        <li><a href="#dirichlet-beta">The Dirichlet beta function</a></li>
+                        <li><a href="#gamma-function">The Gamma function</a></li>
+                        <li><a href="#mandelbrot-function">The Mandelbrot function</a></li>
+                    </ul>
+                </li>
+                <li><a href="#options">Options</a></li>
+            </ul>
+        </nav>
+        <div class="content">
+
         <div class="container">
             <header>
                 <h1>Complex Functions Explorer</h1>
@@ -338,7 +425,7 @@
                     The explorer supports various standard complex functions, including trigonometric, exponential, and logarithmic functions. However, the centerpiece of the project is the <strong>Riemann zeta function</strong> \( \zeta(s) \).
                 </p>
 
-                <h3>The Riemann zeta function</h3>
+                <h3 id="riemann-zeta">The Riemann zeta function</h3>
 
                 <h4>Eta function analytical continuation</h4>
                 <p>
@@ -372,7 +459,7 @@
                         of the reflection formula, both of which can grow rapidly in magnitude.
                     </div>
 
-                <h3>The Dirichlet beta function</h3>
+                <h3 id="dirichlet-beta">The Dirichlet beta function</h3>
                 <p>
                     The explorer implements the <strong>Dirichlet beta function</strong> \( \beta(s) \) using its series representation:
                 </p>
@@ -383,7 +470,7 @@
                     Similar to the eta function, this series converges for \( \operatorname{Re}(s) > 0 \).
                 </p>
 
-                <h3>The Gamma function</h3>
+                <h3 id="gamma-function">The Gamma function</h3>
                 <p>
                     The Gamma function \( \Gamma(z) \) is implemented using the <strong>Lanczos approximation</strong> (\( g=7, N=9 \)):
                 </p>
@@ -427,7 +514,7 @@
                     </div>
                 </div>
 
-                <h3>The Mandelbrot function</h3>
+                <h3 id="mandelbrot-function">The Mandelbrot function</h3>
                 <p>
                     The explorer visualizes the <strong>Mandelbrot function</strong> by computing the sequence \( z_{n+1} = z_n^2 + c \) recursively,
                     starting at \( z_0 = 0 \), where \( c \) represents the position in the complex plane.
@@ -468,6 +555,7 @@
                 <p>&copy; 2026 Complex Functions Explorer. Built with Godot Engine.</p>
             </footer>
         </div>
+    </div>
     </div>
 </body>
 </html>
