@@ -650,7 +650,7 @@ func _on_set_pos_pressed(_toggle_menu: bool = true):
 			Config.set(cfg_key, cfg_val)
 
 	# Ensure effective zoom is updated from applied zoom_factor
-	Config.effective_zoom = float(Config.zoom_factor)
+	Config.apply_zoom_immediate()
 
 	_speed_modified = false
 	_camera_height_modified = false
@@ -716,19 +716,19 @@ func _on_set_pos_pressed(_toggle_menu: bool = true):
 	preset_controller.update_preset_button_text()
 
 	if player:
-		var zoom_mult = Config.zoom_factor
+		var target_world = Config.complex_to_world(re, im)
 		if not is_finite(player.global_position.x) or not is_finite(player.global_position.y) or not is_finite(player.global_position.z):
 			player.velocity = Vector3.ZERO
-			player.global_position = Vector3(10.0 * re * zoom_mult, 0.0, -10.0 * im * zoom_mult)
+			player.global_position = Vector3(target_world.x, 0.0, target_world.y)
 		else:
-			player.global_position.x = 10.0 * re * zoom_mult
-			player.global_position.z = -10.0 * im * zoom_mult
+			player.global_position.x = target_world.x
+			player.global_position.z = target_world.y
 
 		# Update auto-walk state
 		if auto_walk_checkbox.button_pressed:
 			if player.auto_walk_state == 0: # NONE
 				player.auto_walk_state = 1 # MOVING_TO_LINE
-				Config.rvm_start_t = abs(player.global_position.z * 0.1 / Config.effective_zoom)
+				Config.rvm_start_t = abs(Config.world_to_complex(0.0, player.global_position.z).y)
 				Config.visited_zeros.clear()
 				if "last_detected_t" in player:
 					player.last_detected_t = -1.0
@@ -887,14 +887,14 @@ func _on_camera_height_text_submitted(new_text: String):
 func _on_re_text_submitted(new_text: String):
 	var re = float(new_text)
 	if is_finite(re) and player:
-		var zoom_mult = Config.zoom_factor
-		player.global_position.x = 10.0 * re * zoom_mult
+		var current_complex = Config.world_to_complex(player.global_position.x, player.global_position.z)
+		player.global_position.x = Config.complex_to_world(re, current_complex.y).x
 
 func _on_im_text_submitted(new_text: String):
 	var im = float(new_text)
 	if is_finite(im) and player:
-		var zoom_mult = Config.zoom_factor
-		player.global_position.z = -10.0 * im * zoom_mult
+		var current_complex = Config.world_to_complex(player.global_position.x, player.global_position.z)
+		player.global_position.z = Config.complex_to_world(current_complex.x, im).y
 
 func _on_height_a_text_submitted(new_text: String):
 	var h_a = float(new_text)
@@ -1097,9 +1097,9 @@ func toggle_menu(applied: bool = false):
 		freeze_time_checkbox.button_pressed = Config.freeze_time
 
 		if player:
-			var scale_factor = 1.0 / Config.effective_zoom
-			var re_val = player.global_position.x * 0.1 * scale_factor
-			var im_val = - player.global_position.z * 0.1 * scale_factor
+			var complex_pos = Config.world_to_complex(player.global_position.x, player.global_position.z)
+			var re_val = complex_pos.x
+			var im_val = complex_pos.y
 			if not is_finite(re_val): re_val = 0.5
 			if not is_finite(im_val): im_val = 0.0
 			re_input.text = _format_float_3(re_val)
