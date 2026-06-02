@@ -72,7 +72,7 @@ func _process(delta):
 		env.volumetric_fog_enabled = Config.fog_density > 0.0
 		env.volumetric_fog_density = 0.0 # Density provided by FogVolume
 		env.volumetric_fog_albedo = fog_color
-		env.volumetric_fog_sky_affect = (1.0 - Config.fog_density)
+		env.volumetric_fog_sky_affect = 1.0
 		env.volumetric_fog_length = 1000.0 # Make sure fog reaches far
 		env.volumetric_fog_ambient_inject = 0.2 # So it's not pitch black in shadows
 
