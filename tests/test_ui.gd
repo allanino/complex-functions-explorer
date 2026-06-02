@@ -150,8 +150,8 @@ func test_preset_ui_asterisk_workflow():
 	assert_false(hud_instance.preset_controller.preset_button.get_item_text(hud_instance.preset_controller.preset_button.selected).ends_with("*"))
 
 	# Change a slider value to make it dirty
-	hud_instance.brightness_slider.value = 100.0
-	hud_instance._on_generic_slider_changed(hud_instance.brightness_slider, 100.0)
+	hud_instance.menu_overlay.brightness_slider.value = 100.0
+	hud_instance.menu_overlay._on_generic_slider_changed(hud_instance.menu_overlay.brightness_slider, 100.0)
 	hud_instance.preset_controller.update_preset_button_text()
 	
 	assert_true(Config.is_preset_dirty())
@@ -169,8 +169,8 @@ func test_preset_ui_asterisk_workflow():
 	assert_false(selected_text.ends_with("*"))
 	
 	# Modify setting to 50.0
-	hud_instance.brightness_slider.value = 50.0
-	hud_instance._on_generic_slider_changed(hud_instance.brightness_slider, 50.0)
+	hud_instance.menu_overlay.brightness_slider.value = 50.0
+	hud_instance.menu_overlay._on_generic_slider_changed(hud_instance.menu_overlay.brightness_slider, 50.0)
 	hud_instance.preset_controller.update_preset_button_text()
 	
 	assert_true(Config.is_preset_dirty())
@@ -213,42 +213,42 @@ func test_preset_ui_asterisk_workflow():
 
 func test_menu_scale():
 	# 1. Verify parent hierarchy remains CenterContainer
-	var parent = hud_instance.main_menu_panel.get_parent()
+	var parent = hud_instance.menu_overlay.main_menu_panel.get_parent()
 	assert_not_null(parent)
 	assert_true(parent is CenterContainer)
 
 	# 2. Verify main_menu_panel.scale is always Vector2.ONE
-	assert_eq(hud_instance.main_menu_panel.scale, Vector2.ONE)
+	assert_eq(hud_instance.menu_overlay.main_menu_panel.scale, Vector2.ONE)
 	
 	# 3. Verify initial scaled layout size matches config menu_scale * base scale factor (130/150)
 	var expected_scale = Config.menu_scale * (130.0 / 150.0)
 	var base_panel_min_size = Vector2(1000, 780)
-	assert_eq(hud_instance.main_menu_panel.custom_minimum_size, base_panel_min_size * expected_scale)
+	assert_eq(hud_instance.menu_overlay.main_menu_panel.custom_minimum_size, base_panel_min_size * expected_scale)
 	
 	# 4. Simulate dragging:
-	var hslider = hud_instance.menu_scale_slider.get_slider()
+	var hslider = hud_instance.menu_overlay.menu_scale_slider.get_slider()
 	assert_not_null(hslider)
 	
 	# Start drag
 	hslider.drag_started.emit()
-	assert_true(hud_instance._menu_scale_dragging)
+	assert_true(hud_instance.menu_overlay._menu_scale_dragging)
 	
 	# Set value to something new
 	var target_scale = 120.0 / 100.0
-	hud_instance.menu_scale_slider.value = 120.0
+	hud_instance.menu_overlay.menu_scale_slider.value = 120.0
 
 	# Config value should be updated, but layout size should not change while dragging
 	assert_eq(Config.menu_scale, target_scale)
-	assert_eq(hud_instance.main_menu_panel.custom_minimum_size, base_panel_min_size * expected_scale)
+	assert_eq(hud_instance.menu_overlay.main_menu_panel.custom_minimum_size, base_panel_min_size * expected_scale)
 	
 	# End drag
 	hslider.drag_ended.emit(true)
-	assert_false(hud_instance._menu_scale_dragging)
+	assert_false(hud_instance.menu_overlay._menu_scale_dragging)
 	var target_menu_scale = target_scale * (130.0 / 150.0)
-	assert_eq(hud_instance.main_menu_panel.custom_minimum_size, base_panel_min_size * target_menu_scale)
+	assert_eq(hud_instance.menu_overlay.main_menu_panel.custom_minimum_size, base_panel_min_size * target_menu_scale)
 	
 	# Verify font size override was applied
-	var title_label = hud_instance.main_menu_panel.get_node("MarginContainer/ContentVBox/TitleHBox/TitleLabel")
+	var title_label = hud_instance.menu_overlay.main_menu_panel.get_node("MarginContainer/ContentVBox/TitleHBox/TitleLabel")
 	assert_not_null(title_label)
 	var base_font_size = title_label.get_meta("base_font_size")
 	assert_eq(title_label.get_theme_font_size("font_size"), int(round(base_font_size * target_menu_scale)))
@@ -313,17 +313,17 @@ func test_detached_slider_play_loop():
 func test_branch_k_slider_ranges():
 	# Test MULTIVALUED_Z_POW (range 0 to n-1)
 	Config.multivalued_n = 3
-	hud_instance._on_func_selected(Config.ComplexFunc.MULTIVALUED_Z_POW)
-	assert_true(hud_instance.branch_k_slider.visible)
-	assert_eq(hud_instance.branch_k_slider.min_value, 0.0)
-	assert_eq(hud_instance.branch_k_slider.max_value, 2.0)
+	hud_instance.menu_overlay._on_func_selected(Config.ComplexFunc.MULTIVALUED_Z_POW)
+	assert_true(hud_instance.menu_overlay.branch_k_slider.visible)
+	assert_eq(hud_instance.menu_overlay.branch_k_slider.min_value, 0.0)
+	assert_eq(hud_instance.menu_overlay.branch_k_slider.max_value, 2.0)
 	
 	# Test MULTIVALUED_LOG (range -5 to 5)
-	hud_instance._on_func_selected(Config.ComplexFunc.MULTIVALUED_LOG)
-	assert_true(hud_instance.branch_k_slider.visible)
-	assert_eq(hud_instance.branch_k_slider.min_value, -5.0)
-	assert_eq(hud_instance.branch_k_slider.max_value, 5.0)
+	hud_instance.menu_overlay._on_func_selected(Config.ComplexFunc.MULTIVALUED_LOG)
+	assert_true(hud_instance.menu_overlay.branch_k_slider.visible)
+	assert_eq(hud_instance.menu_overlay.branch_k_slider.min_value, -5.0)
+	assert_eq(hud_instance.menu_overlay.branch_k_slider.max_value, 5.0)
 	
 	# Test non-multivalued function (hidden)
-	hud_instance._on_func_selected(Config.ComplexFunc.ZETA)
-	assert_false(hud_instance.branch_k_slider.visible)
+	hud_instance.menu_overlay._on_func_selected(Config.ComplexFunc.ZETA)
+	assert_false(hud_instance.menu_overlay.branch_k_slider.visible)
