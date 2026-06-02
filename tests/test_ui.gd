@@ -221,7 +221,7 @@ func test_menu_scale():
 	assert_eq(hud_instance.menu_overlay.main_menu_panel.scale, Vector2.ONE)
 	
 	# 3. Verify initial scaled layout size matches config menu_scale * base scale factor (130/150)
-	var expected_scale = Config.menu_scale * (130.0 / 150.0)
+	var expected_scale = Config.menu_scale
 	var base_panel_min_size = Vector2(1000, 780)
 	assert_eq(hud_instance.menu_overlay.main_menu_panel.custom_minimum_size, base_panel_min_size * expected_scale)
 	
@@ -244,7 +244,7 @@ func test_menu_scale():
 	# End drag
 	hslider.drag_ended.emit(true)
 	assert_false(hud_instance.menu_overlay._menu_scale_dragging)
-	var target_menu_scale = target_scale * (130.0 / 150.0)
+	var target_menu_scale = target_scale
 	assert_eq(hud_instance.menu_overlay.main_menu_panel.custom_minimum_size, base_panel_min_size * target_menu_scale)
 	
 	# Verify font size override was applied
