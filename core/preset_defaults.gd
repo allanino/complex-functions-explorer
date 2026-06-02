@@ -30,7 +30,7 @@ const PRESETS = {
 		"movement_speed": 10.0,
 		"speed_near_zeros": 20.0,
 		"camera_height": 3.5,
-		"zero_proximity_nav": 0.5,
+		"zero_proximity_nav": 0.1,
 		"show_hud_complex": true,
 		"show_hud_navigation": true,
 		"show_hud_zeros": true,
@@ -44,7 +44,7 @@ const PRESETS = {
 		"drone_volume": 100.0
 	},
 	"Mysterious": {
-		"terrain_detail": 2,
+		"terrain_detail": 1,
 		"antialiasing_mode": 1,
 		"show_curves": false,
 		"show_curves_labels": false,
@@ -72,7 +72,7 @@ const PRESETS = {
 		"movement_speed": 10.0,
 		"speed_near_zeros": 100.0,
 		"camera_height": 1.8,
-		"zero_proximity_nav": 0.5,
+		"zero_proximity_nav": 0.1,
 		"show_hud_complex": true,
 		"show_hud_navigation": true,
 		"show_hud_zeros": true,
@@ -82,7 +82,7 @@ const PRESETS = {
 		"hud_scale": 1.0,
 		"menu_scale": 1.0,
 		"master_volume": 100.0,
-		"bg_music_volume": 100.0,
+		"bg_music_volume": 50.0,
 		"drone_volume": 100.0
 	}
 }
