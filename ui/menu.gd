@@ -248,7 +248,6 @@ func _ready():
 	terrain_detail_button.add_item("High")
 	terrain_detail_button.add_item("Medium")
 	terrain_detail_button.add_item("Low")
-	terrain_detail_button.add_item("Lowest")
 
 	aa_button.clear()
 	aa_button.add_item("Disabled (fastest)")
