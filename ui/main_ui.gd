@@ -24,6 +24,9 @@ var portal_flash: ColorRect
 var current_scale = 2.0
 var _last_zeros_visible: bool = false
 const BASE_HUD_PANEL_SIZE: float = 190.0
+const RENDER_EACH_N_FRAME: int = 3
+var _skip_frame_counter: int = 0
+var _last_zeros_count: int = -1
 
 func _ready():
 	var mobile_controls = get_node_or_null("Control/MobileControls")
@@ -72,6 +75,7 @@ func apply_aa():
 
 func toggle_menu(applied: bool = false):
 	menu_overlay.toggle_menu(applied)
+
 func _format_float_3(val: float) -> String:
 	return "%.3f" % snappedf(val, 0.001)
 
@@ -88,11 +92,21 @@ func _get_rvm_n(T: float) -> float:
 	# Riemann-von Mangoldt formula for Zeta: N(T) ≈ (T/2π) log(T/2πe) + 7/8
 	return (T / (2.0 * PI)) * (log(T / (2.0 * PI)) - 1.0) + 7.0 / 8.0
 
+func _skip_render_hud() -> bool:
+	_skip_frame_counter += 1
+	if _skip_frame_counter % RENDER_EACH_N_FRAME != 0:
+		return true
+
+	_skip_frame_counter = 0
+	return false
+
+
 func _process(_delta):
+	if _skip_render_hud(): return
+
 	if Config.show_hud_zeros and not _last_zeros_visible:
 		Config.rvm_start_t = abs(player.global_position.z * 0.1 / Config.effective_zoom)
 	_last_zeros_visible = Config.show_hud_zeros
-
 
 	if menu_overlay.visible:
 		if abs(menu_overlay._slider_to_zoom(menu_overlay.zoom_slider.value) - Config.zoom_factor) > 0.001:
@@ -126,19 +140,24 @@ func _process(_delta):
 
 	# Update Zeta Zeros display
 	var f_data = Config.function
+
 	zeros_panel.visible = Config.show_hud_zeros
 
 	if Config.show_hud_zeros:
-		var total_count = Config.visited_zeros.size()
-		var last_zeros_text = ""
-		var zero = Vector2(0.0, 0.0)
+		var total_count = Config.total_zeros_found
+		if total_count != _last_zeros_count:
+			_last_zeros_count = total_count
+			var last_zeros_text = ""
+			var current_size = Config.visited_zeros.size()
+			for i in range(current_size - 1, -1, -1):
+				var zero = Config.visited_zeros[i]
+				last_zeros_text += "(%s, %s)\n" % [_format_float_3(zero[0]), _format_float_3(zero[1])]
 
-		# Show all visited zeros in the scrolling list
-		for i in range(total_count - 1, -1, -1):
-			zero = Config.visited_zeros[i]
-			last_zeros_text += "(%s, %s)\n" % [_format_float_3(zero[0]), _format_float_3(zero[1])]
+			if total_count > 10:
+				last_zeros_text += "•••\n"
 
-		zeros_count_label.text = "Count: %d" % total_count
+			zeros_count_label.text = "Count: %d" % total_count
+			zeros_list_label.text = last_zeros_text
 
 		# Riemann-von Mangoldt formula: N(T) ≈ (T/2π) log(T/2πe) + 7/8
 		if Config.show_rvm and f_data.get("has_von_mangoldt", false):
@@ -149,8 +168,6 @@ func _process(_delta):
 			rvm_label.visible = true
 		else:
 			rvm_label.visible = false
-
-		zeros_list_label.text = last_zeros_text
 
 	# Update shader uniforms
 	var material = complex_rect.material as ShaderMaterial
@@ -349,13 +366,11 @@ func _format_time(total_seconds: float) -> String:
 	return "%02d:%02d:%02d" % [hours, minutes, seconds]
 
 
-
 func _slider_to_zoom(value: float) -> float:
 	var min_zoom = 0.01
 	var max_zoom = 200.0
 	var b = (log(max_zoom) - log(min_zoom)) / 100.0
 	return exp(log(min_zoom) + value * b)
-
 
 
 func _zoom_to_slider(zoom: float) -> float:
