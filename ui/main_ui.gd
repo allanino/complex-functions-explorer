@@ -25,10 +25,8 @@ var current_scale = 2.0
 var _last_zeros_visible: bool = false
 const BASE_HUD_PANEL_SIZE: float = 190.0
 var _skip_hud_update: bool = false
-var _is_scrolling_zeros: bool = false
 var _last_zeros_count: int = -1
-var _last_scrolling_state: bool = false
-var _scroll_timer: float = 0.0
+var _zeros_string_list: PackedStringArray = []
 
 func _ready():
 	portal_flash = ColorRect.new()
@@ -54,22 +52,6 @@ func _ready():
 
 	_last_zeros_visible = Config.show_hud_zeros
 
-	var scroll_container = zeros_list_label.get_parent() as ScrollContainer
-	if scroll_container:
-		scroll_container.gui_input.connect(_on_zeros_scroll_gui_input)
-		var vbar = scroll_container.get_v_scroll_bar()
-		vbar.value_changed.connect(_on_zeros_scroll_changed)
-
-
-func _on_zeros_scroll_gui_input(event: InputEvent):
-	if event is InputEventMouseButton:
-		if event.button_index == MOUSE_BUTTON_WHEEL_UP or event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
-			_scroll_timer = 2.0
-	elif event is InputEventScreenDrag:
-		_scroll_timer = 2.0
-
-func _on_zeros_scroll_changed(_value: float):
-	_scroll_timer = 2.0
 
 func apply_aa():
 	var vp = get_viewport()
@@ -105,12 +87,6 @@ func _get_rvm_n(T: float) -> float:
 	return (T / (2.0 * PI)) * (log(T / (2.0 * PI)) - 1.0) + 7.0 / 8.0
 
 func _process(_delta):
-	if _scroll_timer > 0.0:
-		_scroll_timer -= _delta
-		_is_scrolling_zeros = true
-	else:
-		_is_scrolling_zeros = false
-
 	_skip_hud_update = not _skip_hud_update
 
 	if Config.show_hud_zeros and not _last_zeros_visible:
@@ -148,34 +124,42 @@ func _process(_delta):
 
 	var f = player.current_f
 
+	# Update Zeta Zeros display
 	var f_data = Config.function
 	if not _skip_hud_update:
-		# Update Zeta Zeros display
 		zeros_panel.visible = Config.show_hud_zeros
 
 		if Config.show_hud_zeros:
 			var total_count = Config.visited_zeros.size()
 
-			if total_count != _last_zeros_count or _is_scrolling_zeros != _last_scrolling_state:
+			if total_count != _last_zeros_count:
+				if total_count > _last_zeros_count and _last_zeros_count != -1:
+					var new_count = total_count - _last_zeros_count
+					var new_zeros = []
+					for i in range(total_count - 1, total_count - 1 - new_count, -1):
+						var zero = Config.visited_zeros[i]
+						new_zeros.append("(%s, %s)" % [_format_float_3(zero[0]), _format_float_3(zero[1])])
+
+					var temp = PackedStringArray(new_zeros)
+					temp.append_array(_zeros_string_list)
+					_zeros_string_list = temp
+					if _zeros_string_list.size() > 10:
+						_zeros_string_list = _zeros_string_list.slice(0, 10)
+				else:
+					_zeros_string_list.clear()
+					var iter_count = min(total_count, 10)
+					for i in range(total_count - 1, total_count - 1 - iter_count, -1):
+						var zero = Config.visited_zeros[i]
+						_zeros_string_list.append("(%s, %s)" % [_format_float_3(zero[0]), _format_float_3(zero[1])])
+
 				_last_zeros_count = total_count
-				_last_scrolling_state = _is_scrolling_zeros
 
-				var last_zeros_text = ""
-				var zero = Vector2(0.0, 0.0)
+				var display_text = "\n".join(_zeros_string_list)
+				if total_count > 10:
+					display_text += "\n•••"
 
-				var limit = 1000 if _is_scrolling_zeros else 10
-				var iter_count = min(total_count, limit)
-
-				# Show all visited zeros in the scrolling list
-				for i in range(total_count - 1, total_count - 1 - iter_count, -1):
-					zero = Config.visited_zeros[i]
-					last_zeros_text += "(%s, %s)\n" % [_format_float_3(zero[0]), _format_float_3(zero[1])]
-
-				if total_count > limit:
-					last_zeros_text += "•••\n"
-
+				zeros_list_label.text = display_text
 				zeros_count_label.text = "Count: %d" % total_count
-				zeros_list_label.text = last_zeros_text
 
 			# Riemann-von Mangoldt formula: N(T) ≈ (T/2π) log(T/2πe) + 7/8
 			if Config.show_rvm and f_data.get("has_von_mangoldt", false):
