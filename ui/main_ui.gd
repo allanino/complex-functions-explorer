@@ -24,6 +24,11 @@ var portal_flash: ColorRect
 var current_scale = 2.0
 var _last_zeros_visible: bool = false
 const BASE_HUD_PANEL_SIZE: float = 190.0
+var _skip_hud_update: bool = false
+var _is_scrolling_zeros: bool = false
+var _last_zeros_count: int = -1
+var _last_scrolling_state: bool = false
+var _scroll_timer: float = 0.0
 
 func _ready():
 	portal_flash = ColorRect.new()
@@ -49,6 +54,22 @@ func _ready():
 
 	_last_zeros_visible = Config.show_hud_zeros
 
+	var scroll_container = zeros_list_label.get_parent() as ScrollContainer
+	if scroll_container:
+		scroll_container.gui_input.connect(_on_zeros_scroll_gui_input)
+		var vbar = scroll_container.get_v_scroll_bar()
+		vbar.value_changed.connect(_on_zeros_scroll_changed)
+
+
+func _on_zeros_scroll_gui_input(event: InputEvent):
+	if event is InputEventMouseButton:
+		if event.button_index == MOUSE_BUTTON_WHEEL_UP or event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+			_scroll_timer = 2.0
+	elif event is InputEventScreenDrag:
+		_scroll_timer = 2.0
+
+func _on_zeros_scroll_changed(_value: float):
+	_scroll_timer = 2.0
 
 func apply_aa():
 	var vp = get_viewport()
@@ -84,6 +105,14 @@ func _get_rvm_n(T: float) -> float:
 	return (T / (2.0 * PI)) * (log(T / (2.0 * PI)) - 1.0) + 7.0 / 8.0
 
 func _process(_delta):
+	if _scroll_timer > 0.0:
+		_scroll_timer -= _delta
+		_is_scrolling_zeros = true
+	else:
+		_is_scrolling_zeros = false
+
+	_skip_hud_update = not _skip_hud_update
+
 	if Config.show_hud_zeros and not _last_zeros_visible:
 		Config.rvm_start_t = abs(player.global_position.z * 0.1 / Config.effective_zoom)
 	_last_zeros_visible = Config.show_hud_zeros
@@ -119,33 +148,44 @@ func _process(_delta):
 
 	var f = player.current_f
 
-	# Update Zeta Zeros display
 	var f_data = Config.function
-	zeros_panel.visible = Config.show_hud_zeros
+	if not _skip_hud_update:
+		# Update Zeta Zeros display
+		zeros_panel.visible = Config.show_hud_zeros
 
-	if Config.show_hud_zeros:
-		var total_count = Config.visited_zeros.size()
-		var last_zeros_text = ""
-		var zero = Vector2(0.0, 0.0)
+		if Config.show_hud_zeros:
+			var total_count = Config.visited_zeros.size()
 
-		# Show all visited zeros in the scrolling list
-		for i in range(total_count - 1, -1, -1):
-			zero = Config.visited_zeros[i]
-			last_zeros_text += "(%s, %s)\n" % [_format_float_3(zero[0]), _format_float_3(zero[1])]
+			if total_count != _last_zeros_count or _is_scrolling_zeros != _last_scrolling_state:
+				_last_zeros_count = total_count
+				_last_scrolling_state = _is_scrolling_zeros
 
-		zeros_count_label.text = "Count: %d" % total_count
+				var last_zeros_text = ""
+				var zero = Vector2(0.0, 0.0)
 
-		# Riemann-von Mangoldt formula: N(T) ≈ (T/2π) log(T/2πe) + 7/8
-		if Config.show_rvm and f_data.get("has_von_mangoldt", false):
-			var T = abs(z * 0.1 / Config.effective_zoom)
-			var val = _get_rvm_n(T) - _get_rvm_n(Config.rvm_start_t)
-			val = max(0.0, val)
-			rvm_label.text = "N(t) ≈ %.2f" % val
-			rvm_label.visible = true
-		else:
-			rvm_label.visible = false
+				var limit = 1000 if _is_scrolling_zeros else 10
+				var iter_count = min(total_count, limit)
 
-		zeros_list_label.text = last_zeros_text
+				# Show all visited zeros in the scrolling list
+				for i in range(total_count - 1, total_count - 1 - iter_count, -1):
+					zero = Config.visited_zeros[i]
+					last_zeros_text += "(%s, %s)\n" % [_format_float_3(zero[0]), _format_float_3(zero[1])]
+
+				if total_count > limit:
+					last_zeros_text += "•••\n"
+
+				zeros_count_label.text = "Count: %d" % total_count
+				zeros_list_label.text = last_zeros_text
+
+			# Riemann-von Mangoldt formula: N(T) ≈ (T/2π) log(T/2πe) + 7/8
+			if Config.show_rvm and f_data.get("has_von_mangoldt", false):
+				var T = abs(z * 0.1 / Config.effective_zoom)
+				var val = _get_rvm_n(T) - _get_rvm_n(Config.rvm_start_t)
+				val = max(0.0, val)
+				rvm_label.text = "N(t) ≈ %.2f" % val
+				rvm_label.visible = true
+			else:
+				rvm_label.visible = false
 
 	# Update shader uniforms
 	var material = complex_rect.material as ShaderMaterial
@@ -166,39 +206,40 @@ func _process(_delta):
 	var val_fx = f.x
 	var val_fy = f.y
 
-	domain_label.text = "Re = %s\nIm = %s" % [_format_float_3(val_re), _format_float_3(val_im)]
-	var target_text = "Re = %s\nIm = %s\n|f| = %s" % [_format_float_3(val_fx), _format_float_3(val_fy), _format_float_3(f.length())]
-	if f_data.get("is_multivalued", false):
-		target_text += "\nBranch k = %d" % Config.current_branch
-	target_label.text = target_text
+	if not _skip_hud_update:
+		domain_label.text = "Re = %s\nIm = %s" % [_format_float_3(val_re), _format_float_3(val_im)]
+		var target_text = "Re = %s\nIm = %s\n|f| = %s" % [_format_float_3(val_fx), _format_float_3(val_fy), _format_float_3(f.length())]
+		if f_data.get("is_multivalued", false):
+			target_text += "\nBranch k = %d" % Config.current_branch
+		target_label.text = target_text
 
-	complex_panel.visible = Config.show_hud_complex
-	info_panel.visible = Config.show_hud_navigation
-	monitor_panel.visible = Config.show_hud_monitor_fps or Config.show_hud_monitor_chunks
-	if monitor_panel.visible:
-		var parts = []
-		if Config.show_hud_monitor_fps:
-			parts.append("FPS: %d" % Engine.get_frames_per_second())
-		if Config.show_hud_monitor_chunks and world_manager:
-			var chunks_text = "Chunks"
-			var num_lods = world_manager.LOD_SUBS.size()
-			var lod_counts = []
-			lod_counts.resize(num_lods)
-			lod_counts.fill(0)
+		complex_panel.visible = Config.show_hud_complex
+		info_panel.visible = Config.show_hud_navigation
+		monitor_panel.visible = Config.show_hud_monitor_fps or Config.show_hud_monitor_chunks
+		if monitor_panel.visible:
+			var parts = []
+			if Config.show_hud_monitor_fps:
+				parts.append("FPS: %d" % Engine.get_frames_per_second())
+			if Config.show_hud_monitor_chunks and world_manager:
+				var chunks_text = "Chunks"
+				var num_lods = world_manager.LOD_SUBS.size()
+				var lod_counts = []
+				lod_counts.resize(num_lods)
+				lod_counts.fill(0)
 
-			for chunk in world_manager.chunks.values():
-				var lod = chunk.get_meta("lod_level", 0)
-				if lod >= 0 and lod < num_lods:
-					lod_counts[lod] += 1
+				for chunk in world_manager.chunks.values():
+					var lod = chunk.get_meta("lod_level", 0)
+					if lod >= 0 and lod < num_lods:
+						lod_counts[lod] += 1
 
-			for i in range(num_lods):
-				if lod_counts[i] > 0:
-					chunks_text += "\n%d: %d" % [world_manager.LOD_SUBS[i], lod_counts[i]]
-			parts.append(chunks_text)
+				for i in range(num_lods):
+					if lod_counts[i] > 0:
+						chunks_text += "\n%d: %d" % [world_manager.LOD_SUBS[i], lod_counts[i]]
+				parts.append(chunks_text)
 
-		fps_label.text = "\n\n".join(parts)
+			fps_label.text = "\n\n".join(parts)
 
-	_update_hud_layout()
+		_update_hud_layout()
 
 var _last_hud_state = {}
 
