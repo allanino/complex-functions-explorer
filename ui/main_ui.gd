@@ -335,3 +335,26 @@ func play_portal_flash():
 	# Fade out over 0.25 seconds
 	tween.tween_property(portal_flash, "color:a", 0.0, 0.25).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	tween.tween_callback(func(): portal_flash.visible = false)
+
+
+func _format_time(total_seconds: float) -> String:
+	var hours = int(total_seconds) / 3600.0
+	var minutes = (int(total_seconds) % 3600) / 60.0
+	var seconds = int(total_seconds) % 60
+	return "%02d:%02d:%02d" % [hours, minutes, seconds]
+
+
+
+func _slider_to_zoom(value: float) -> float:
+	var min_zoom = 0.01
+	var max_zoom = 200.0
+	var b = (log(max_zoom) - log(min_zoom)) / 100.0
+	return exp(log(min_zoom) + value * b)
+
+
+
+func _zoom_to_slider(zoom: float) -> float:
+	var min_zoom = 0.01
+	var max_zoom = 200.0
+	var b = (log(max_zoom) - log(min_zoom)) / 100.0
+	return (log(zoom) - log(min_zoom)) / b
