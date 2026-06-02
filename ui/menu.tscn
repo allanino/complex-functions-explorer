@@ -1,9 +1,9 @@
-[gd_scene format=3 uid="uid://dt1i63qai7fx6"]
+[gd_scene format=3]
 
 [ext_resource type="PackedScene" path="res://ui/components/slider.tscn" id="1"]
-[ext_resource type="PackedScene" uid="uid://cb3s73jdxxabc" path="res://ui/components/checkbox.tscn" id="3_checkbox"]
-[ext_resource type="PackedScene" uid="uid://dropdown_uid_12345" path="res://ui/components/dropdown.tscn" id="DropdownScene"]
-[ext_resource type="PackedScene" uid="uid://text_input_uid_12345" path="res://ui/components/text_input.tscn" id="TextInputScene"]
+[ext_resource type="PackedScene" path="res://ui/components/checkbox.tscn" id="3_checkbox"]
+[ext_resource type="PackedScene" path="res://ui/components/dropdown.tscn" id="DropdownScene"]
+[ext_resource type="PackedScene" path="res://ui/components/text_input.tscn" id="TextInputScene"]
 [ext_resource type="Script" path="res://ui/menu.gd" id="1_menu_script"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_glass"]

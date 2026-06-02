@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3 uid="uid://dropdown_uid_12345"]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://ui/components/dropdown.gd" id="1_script"]
 
