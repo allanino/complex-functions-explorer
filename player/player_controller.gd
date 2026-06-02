@@ -18,7 +18,7 @@ const CURVE_LABEL_UPDATE_INTERVAL = 0.1
 var _re_label_target_pos: Vector3 = Vector3.ZERO
 var _im_label_target_pos: Vector3 = Vector3.ZERO
 
-var height_offset = 0.0
+
 var last_space_time = 0.0
 var space_held_time = 0.0
 var is_resetting_height = false
@@ -204,7 +204,7 @@ func _unhandled_input(event):
 			global_position.z = 0.0
 			velocity = Vector3.ZERO
 			auto_walk_state = AutoWalkState.NONE
-			height_offset = 0.0
+			Config.camera_height = 1.8 * pow(Config.effective_zoom, Config.zoom_damping - 1.0)
 			is_resetting_height = false
 			Config.current_branch = 0
 			current_f = ComplexField.get_field(global_position.x, global_position.z)
@@ -281,18 +281,16 @@ func _physics_process(delta):
 			current_speed *= 2.0
 		elif Input.is_key_pressed(KEY_CTRL):
 			current_speed *= 0.05
-
 	if Input.is_key_pressed(KEY_SPACE):
 		space_held_time += delta
 		if space_held_time > DOUBLE_PRESS_TIME:
 			is_resetting_height = false
-			height_offset += delta * current_speed
+			Config.camera_height += delta * current_speed
 	else:
 		space_held_time = 0.0
-
 	if is_resetting_height:
-		height_offset = move_toward(height_offset, 0.0, delta * current_speed)
-		if height_offset <= 0.0:
+		Config.camera_height = move_toward(Config.camera_height, 1.8 * pow(Config.effective_zoom, Config.zoom_damping - 1.0), delta * current_speed)
+		if abs(Config.camera_height - 1.8 * pow(Config.effective_zoom, Config.zoom_damping - 1.0)) <= 0.01:
 			is_resetting_height = false
 
 	var input_dir = Input.get_vector("move_left", "move_right", "move_forward", "move_backward")
@@ -369,7 +367,7 @@ func _physics_process(delta):
 		last_valid_terrain_height = terrain_h
 
 	# Snap player to terrain height + offset
-	global_position.y = terrain_h + Config.camera_height + height_offset
+	global_position.y = terrain_h + Config.camera_height
 
 
 	# Zeta zero detection during auto-walk
@@ -437,7 +435,7 @@ func demo_actions():
 	rotation.y = - PI / 2.0
 	rotation_x = 0.0
 	camera.rotation.x = rotation_x
-	height_offset = 0.0
+	Config.camera_height = 1.8 * pow(Config.effective_zoom, Config.zoom_damping - 1.0)
 
 	var tween = create_tween()
 
@@ -447,7 +445,7 @@ func demo_actions():
 	var tween_duration = 5.0
 
 	# Phase 1: go up to 50.0 while camera slowly turns downwards
-	tween.tween_property(self , "height_offset", 50.0 * ez, tween_duration)
+	tween.tween_property(Config, "camera_height", 50.0 * ez, tween_duration)
 	tween.parallel().tween_property(camera, "rotation:x", -PI / 2.0, tween_duration)
 
 	# Phase 2: rotate CCW while tilting upwards to face zeta wall towards -x
@@ -455,7 +453,7 @@ func demo_actions():
 	tween.parallel().tween_property(camera, "rotation:x", 0.0, tween_duration)
 
 	# Phase 3: height decrease to 3.5 while rotating towards +x
-	tween.tween_property(self , "height_offset", 3.5 * ez, tween_duration)
+	tween.tween_property(Config, "camera_height", 3.5 * ez, tween_duration)
 
 	# Phase 4: walk backwards to see the trivial zero at (-2, 0)
 	tween.tween_property(camera, "rotation:x", -PI / 2.0, tween_duration * 0.6)
@@ -568,7 +566,7 @@ func _process(_delta):
 	else:
 		last_valid_terrain_height = terrain_h
 
-	global_position.y = terrain_h + Config.camera_height + height_offset
+	global_position.y = terrain_h + Config.camera_height
 
 
 	if Config.show_curves and Config.show_curves_labels:
