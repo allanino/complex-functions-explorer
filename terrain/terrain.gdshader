@@ -263,19 +263,15 @@ void compute_matrix_effect(vec2 world_xz, out vec3 out_albedo, out vec3 out_emis
 }
 
 
-void compute_curves_highlight(vec2 f, inout vec3 base, out float highlight_re_glow, out float highlight_im_glow) {
+void compute_curves_highlight(vec2 f, float raw_w_re, float raw_w_im, inout vec3 base, out float highlight_re_glow, out float highlight_im_glow) {
     highlight_re_glow = 0.0;
     highlight_im_glow = 0.0;
 
-    // 1. Get raw pixel derivatives (true density indicators)
-    float raw_w_re = fwidth(f.x);
-    float raw_w_im = fwidth(f.y);
-
-    // 2. Define a density threshold where curves should completely disappear.
+    // 1. Define a density threshold where curves should completely disappear.
     // Adjust this value: lower means it fades out sooner/farther away.
     float max_density_threshold = 0.2;
 
-    // 3. Compute contour lines using your padded width for rendering stability
+    // 2. Compute contour lines using your padded width for rendering stability
     float d_re = abs(f.x - round(f.x));
 
     bool is_real_highlighted = false;
@@ -753,7 +749,7 @@ void fragment() {
         }
 
         if (show_curves) {
-            compute_curves_highlight(f, base, highlight_re_glow, highlight_im_glow);
+            compute_curves_highlight(f, raw_w_re, raw_w_im, base, highlight_re_glow, highlight_im_glow);
         }
 
         ALBEDO = base * albedo;
