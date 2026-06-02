@@ -1,7 +1,7 @@
 [gd_scene load_steps=6 format=3]
 
-[ext_resource type="Shader" path="res://sky/sky.gdshader" id="1_sky"]
-[ext_resource type="Script" path="res://sky/sky.gd" id="2_script"]
+[ext_resource type="Shader" path="res://environment/sky.gdshader" id="1_sky"]
+[ext_resource type="Script" path="res://environment/environment.gd" id="2_script"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_1"]
 shader = ExtResource("1_sky")
@@ -26,7 +26,7 @@ tonemap_exposure = 0.95
 tonemap_white = 1.05
 glow_enabled = true
 
-[node name="Sky" type="Node3D"]
+[node name="Environment" type="Node3D"]
 script = ExtResource("2_script")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
