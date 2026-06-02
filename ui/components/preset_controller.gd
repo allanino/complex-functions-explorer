@@ -106,49 +106,49 @@ func _on_preset_selected(index: int):
 	Config.apply_preset(preset_name)
 
 func _on_preset_applied():
-	main_ui._sync_ui_to_config()
+	main_ui.menu_overlay._sync_ui_to_config()
 	update_preset_button_text()
 
 func _on_preset_restore_pressed():
 	var preset_name = Config.current_preset.trim_suffix("*")
 	Config.restore_preset(preset_name)
-	main_ui._on_set_pos_pressed(false)
+	main_ui.menu_overlay._on_set_pos_pressed(false)
 
 func _connect_preset_dirtiers():
 	var on_changed = func(_val = null):
-		if not main_ui._syncing_ui:
+		if not main_ui.menu_overlay._syncing_ui:
 			update_preset_button_text()
 
 	# Connect sliders
 	for slider in [
-		main_ui.iter_slider, main_ui.zero_proximity_nav_slider, main_ui.zoom_slider, main_ui.zero_speed_slider,
-		main_ui.view_distance_slider, main_ui.day_duration_slider, main_ui.day_time_slider, main_ui.sunrise_slider,
-		main_ui.sky_luminosity_slider, main_ui.sun_luminosity_slider, main_ui.self_illumination_slider,
-		main_ui.fog_density_slider, main_ui.hud_scale_slider, main_ui.master_volume_slider, main_ui.bg_music_slider,
-		main_ui.drone_slider, main_ui.brightness_slider, main_ui.saturation_slider, main_ui.albedo_slider,
-		main_ui.emission_slider, main_ui.metallic_slider, main_ui.roughness_slider, main_ui.surface_texture_slider,
-		main_ui.multivalued_slider
+		main_ui.menu_overlay.iter_slider, main_ui.menu_overlay.zero_proximity_nav_slider, main_ui.menu_overlay.zoom_slider, main_ui.menu_overlay.zero_speed_slider,
+		main_ui.menu_overlay.view_distance_slider, main_ui.menu_overlay.day_duration_slider, main_ui.menu_overlay.day_time_slider, main_ui.menu_overlay.sunrise_slider,
+		main_ui.menu_overlay.sky_luminosity_slider, main_ui.menu_overlay.sun_luminosity_slider, main_ui.menu_overlay.self_illumination_slider,
+		main_ui.menu_overlay.fog_density_slider, main_ui.menu_overlay.hud_scale_slider, main_ui.menu_overlay.master_volume_slider, main_ui.menu_overlay.bg_music_slider,
+		main_ui.menu_overlay.drone_slider, main_ui.menu_overlay.brightness_slider, main_ui.menu_overlay.saturation_slider, main_ui.menu_overlay.albedo_slider,
+		main_ui.menu_overlay.emission_slider, main_ui.menu_overlay.metallic_slider, main_ui.menu_overlay.roughness_slider, main_ui.menu_overlay.surface_texture_slider,
+		main_ui.menu_overlay.multivalued_slider
 	]:
 		if slider and slider.has_signal("value_changed"):
 			slider.value_changed.connect(on_changed)
 
 	# Connect checkboxes
 	for cb in [
-		main_ui.curves_checkbox, main_ui.critical_checkbox, main_ui.flow_checkbox, main_ui.hud_complex_checkbox,
-		main_ui.hud_navigation_checkbox, main_ui.hud_zeros_checkbox, main_ui.rvm_checkbox,
-		main_ui.hud_monitor_fps_checkbox, main_ui.hud_monitor_chunks_checkbox, main_ui.shadows_checkbox,
-		main_ui.auto_walk_checkbox, main_ui.freeze_time_checkbox
+		main_ui.menu_overlay.curves_checkbox, main_ui.menu_overlay.critical_checkbox, main_ui.menu_overlay.flow_checkbox, main_ui.menu_overlay.hud_complex_checkbox,
+		main_ui.menu_overlay.hud_navigation_checkbox, main_ui.menu_overlay.hud_zeros_checkbox, main_ui.menu_overlay.rvm_checkbox,
+		main_ui.menu_overlay.hud_monitor_fps_checkbox, main_ui.menu_overlay.hud_monitor_chunks_checkbox, main_ui.menu_overlay.shadows_checkbox,
+		main_ui.menu_overlay.auto_walk_checkbox, main_ui.menu_overlay.freeze_time_checkbox
 	]:
 		if cb and cb.has_signal("toggled"):
 			cb.toggled.connect(on_changed)
 
 	# Connect buttons/option buttons
-	for ob in [main_ui.func_button, main_ui.height_button, main_ui.terrain_detail_button, main_ui.aa_button, main_ui.color_scheme_button]:
+	for ob in [main_ui.menu_overlay.func_button, main_ui.menu_overlay.height_button, main_ui.menu_overlay.terrain_detail_button, main_ui.menu_overlay.aa_button, main_ui.menu_overlay.color_scheme_button]:
 		if ob and ob.has_signal("item_selected"):
 			ob.item_selected.connect(on_changed)
 
 	# Connect line edits
-	for le in [main_ui.speed_input, main_ui.camera_height_input, main_ui.height_a_input, main_ui.height_eps_input]:
+	for le in [main_ui.menu_overlay.speed_input, main_ui.menu_overlay.camera_height_input, main_ui.menu_overlay.height_a_input, main_ui.menu_overlay.height_eps_input]:
 		if le and le.has_signal("text_submitted"):
 			le.text_submitted.connect(on_changed)
 
