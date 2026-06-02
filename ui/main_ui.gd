@@ -105,7 +105,7 @@ func _process(_delta):
 	if _skip_render_hud(): return
 
 	if Config.show_hud_zeros and not _last_zeros_visible:
-		Config.rvm_start_t = abs(player.global_position.z * 0.1 / Config.effective_zoom)
+		Config.rvm_start_t = abs(Config.world_to_complex(0.0, player.global_position.z).y)
 	_last_zeros_visible = Config.show_hud_zeros
 
 	if menu_overlay.visible:
@@ -161,7 +161,7 @@ func _process(_delta):
 
 		# Riemann-von Mangoldt formula: N(T) ≈ (T/2π) log(T/2πe) + 7/8
 		if Config.show_rvm and f_data.get("has_von_mangoldt", false):
-			var T = abs(z * 0.1 / Config.effective_zoom)
+			var T = abs(Config.world_to_complex(0.0, z).y)
 			var val = _get_rvm_n(T) - _get_rvm_n(Config.rvm_start_t)
 			val = max(0.0, val)
 			rvm_label.text = "N(t) ≈ %.2f" % val
@@ -182,9 +182,9 @@ func _process(_delta):
 	material.set_shader_parameter("albedo", Config.terrain_albedo)
 	material.set_shader_parameter("emission", Config.terrain_emission)
 
-	var scale_factor = 1.0 / Config.effective_zoom
-	var val_re = x * 0.1 * scale_factor
-	var val_im = -z * 0.1 * scale_factor
+	var complex_pos = Config.world_to_complex(x, z)
+	var val_re = complex_pos.x
+	var val_im = complex_pos.y
 	var val_fx = f.x
 	var val_fy = f.y
 

@@ -459,11 +459,9 @@ static func get_field(world_x: float, world_z: float) -> Vector2:
 	if Config.performance_protection_active:
 		return Vector2.ZERO
 
-	var zoom: float = 1.0 / Config.effective_zoom
-	var x: float = world_x * 0.1 * zoom
-	var y: float = - world_z * 0.1 * zoom
+	var complex_pos = Config.world_to_complex(world_x, world_z)
 
-	var w: Vector2 = get_field_at(x, y, Config.input_function_type, true)
+	var w: Vector2 = get_field_at(complex_pos.x, complex_pos.y, Config.input_function_type, true)
 
 	return get_field_at(w.x, w.y, Config.function_type, false)
 

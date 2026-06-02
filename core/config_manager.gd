@@ -194,7 +194,7 @@ var input_rational_num_coeffs: PackedVector2Array = PackedVector2Array([Vector2(
 var input_rational_den_coeffs: PackedVector2Array = PackedVector2Array([Vector2(1, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)])
 var multivalued_n: int = 2
 var current_branch: int = 0 # Session state for Portals mode
-var zoom_factor: float = 1.0
+var zoom_factor: float = 1.0 : set = _set_zoom_factor
 var zoom_damping: float = 0.5
 
 # Rendering parameters
@@ -254,6 +254,24 @@ var rvm_start_t: float = 0.0
 var performance_protection_active: bool = false
 var effective_zoom: float = 1.0
 var morph_value: float = 1.0
+
+func _set_zoom_factor(value: float):
+	zoom_factor = clampf(value, 0.01, 200.0)
+
+func apply_zoom_immediate():
+	effective_zoom = float(zoom_factor)
+
+func get_zoom_scale() -> float:
+	return 1.0 / effective_zoom
+
+# Converts 3D world coordinates (x, z) to 2D complex plane coordinates (Re, Im), accounting for zoom.
+func world_to_complex(world_x: float, world_z: float) -> Vector2:
+	var scale = get_zoom_scale()
+	return Vector2(world_x * 0.1 * scale, -world_z * 0.1 * scale)
+
+# Converts 2D complex plane coordinates (Re, Im) to 3D world coordinates (x, z), accounting for zoom.
+func complex_to_world(complex_x: float, complex_y: float) -> Vector2:
+	return Vector2(complex_x * 10.0 * effective_zoom, -complex_y * 10.0 * effective_zoom)
 
 
 func _snapshot_current() -> Dictionary:
@@ -344,7 +362,7 @@ func restore_preset(preset_name: String):
 
 func _ready():
 	load_settings()
-	effective_zoom = float(zoom_factor)
+	apply_zoom_immediate()
 	function = FUNCTIONS.get(function_type, {})
 
 func save_settings():

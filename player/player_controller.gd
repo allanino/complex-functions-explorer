@@ -2,7 +2,8 @@ extends CharacterBody3D
 
 const MOUSE_SENSITIVITY = 0.002
 const DOUBLE_PRESS_TIME = 0.3
-const CRITICAL_LINE_X = 5.0
+# The critical line in the complex plane is at Re(s) = 0.5
+const CRITICAL_LINE_COMPLEX_X = 0.5
 
 enum AutoWalkState {NONE, MOVING_TO_LINE, WALKING, NEWTON_WALK}
 
@@ -47,9 +48,9 @@ func _ready():
 	add_to_group("player")
 	# Set the global position directly using a Vector3(x, y, z)
 	global_position = Vector3(5.0, 0.0, 0.0)
-	var scale_factor = 1.0 / Config.effective_zoom
-	last_t = - global_position.z * 0.1 * scale_factor
-	last_z = Vector2(global_position.x * 0.1 * scale_factor, -global_position.z * 0.1 * scale_factor)
+	var complex_pos = Config.world_to_complex(global_position.x, global_position.z)
+	last_t = complex_pos.y
+	last_z = complex_pos
 	
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	current_f = ComplexField.get_field(global_position.x, global_position.z)
@@ -129,9 +130,9 @@ func _unhandled_input(event):
 
 	if event is InputEventMouseButton and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		if event.button_index == MOUSE_BUTTON_WHEEL_UP and event.pressed:
-			Config.zoom_factor = clampf(Config.zoom_factor * 1.1, 0.01, 200.0)
+			Config.zoom_factor *= 1.1
 		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN and event.pressed:
-			Config.zoom_factor = clampf(Config.zoom_factor / 1.1, 0.01, 200.0)
+			Config.zoom_factor /= 1.1
 		elif event.button_index == MOUSE_BUTTON_MIDDLE and event.pressed:
 			Config.zoom_factor = 1.0
 			Config.save_settings()
@@ -190,13 +191,14 @@ func _unhandled_input(event):
 				Config.visited_zeros.clear()
 				last_detected_z = Vector2(0.0, 0.0)
 				Config.show_hud_zeros = true
-				Config.rvm_start_t = abs(global_position.z * 0.1 / Config.effective_zoom)
+				Config.rvm_start_t = abs(Config.world_to_complex(0.0, global_position.z).y)
 			else:
 				auto_walk_state = AutoWalkState.NONE
 		elif event.keycode == KEY_Z:
 			if auto_walk_state == AutoWalkState.NONE:
 				auto_walk_state = AutoWalkState.NEWTON_WALK
-				newton_target_z = ComplexField.newton_step_zeta_reflection(Vector2(global_position.x * 0.1 / Config.effective_zoom, -global_position.z * 0.1 / Config.effective_zoom))
+				var complex_pos = Config.world_to_complex(global_position.x, global_position.z)
+				newton_target_z = ComplexField.newton_step_zeta_reflection(complex_pos)
 				newton_wait_timer = 0.1
 				Config.show_hud_zeros = true
 			else:
@@ -264,10 +266,8 @@ func _physics_process(delta):
 		Config.movement_speed = Config.movement_speed * pow(zoom_ratio, 1.0 - Config.zoom_damping)
 
 	# Cache current field value and mathematical coordinates for reuse
-	var scale_factor = 1.0 / Config.effective_zoom
-	var current_x = global_position.x * 0.1 * scale_factor
-	var current_y = - global_position.z * 0.1 * scale_factor
-	current_z = Vector2(current_x, current_y)
+	# Converts player's world position back to the mathematical complex plane to calculate field values
+	current_z = Config.world_to_complex(global_position.x, global_position.z)
 	current_f = ComplexField.get_field(global_position.x, global_position.z)
 	current_mag = current_f.length()
 
@@ -309,10 +309,12 @@ func _physics_process(delta):
 	var direction = (transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
 
 	if auto_walk_state == AutoWalkState.MOVING_TO_LINE:
-		var target_x = CRITICAL_LINE_X * Config.effective_zoom
+		# Navigate towards the critical line using the zoom-aware complex_to_world mapping
+		var target_world_pos = Config.complex_to_world(CRITICAL_LINE_COMPLEX_X, 0.0)
+		var target_x = target_world_pos.x
 
 		var target_yaw = 0.0
-		if global_position.x > 10.0 * Config.effective_zoom:
+		if global_position.x > Config.complex_to_world(1.0, 0.0).x:
 			target_yaw = PI / 2
 		elif global_position.x < 0.0:
 			target_yaw = - PI / 2
@@ -330,12 +332,14 @@ func _physics_process(delta):
 
 	elif auto_walk_state == AutoWalkState.WALKING:
 		direction = Vector3(0, 0, -1)
-		global_position.x = move_toward(global_position.x, CRITICAL_LINE_X * Config.effective_zoom, 2.0 * delta)
+		# Stay firmly locked on the critical line taking current zoom into account
+		global_position.x = move_toward(global_position.x, Config.complex_to_world(CRITICAL_LINE_COMPLEX_X, 0.0).x, 2.0 * delta)
 
 
 	elif auto_walk_state == AutoWalkState.NEWTON_WALK:
-		var target_x = newton_target_z.x * 10.0 * Config.effective_zoom
-		var target_z = - newton_target_z.y * 10.0 * Config.effective_zoom
+		var target_world_pos = Config.complex_to_world(newton_target_z.x, newton_target_z.y)
+		var target_x = target_world_pos.x
+		var target_z = target_world_pos.y
 
 		var current_pos2d = Vector2(global_position.x, global_position.z)
 		var target_pos2d = Vector2(target_x, target_z)
@@ -445,9 +449,9 @@ func demo_actions():
 	auto_walk_state = AutoWalkState.NONE
 	is_resetting_height = false
 
-	var ez = Config.effective_zoom
-	global_position.x = -30.0 * ez
-	global_position.z = 0.0
+	var start_pos = Config.complex_to_world(-3.0, 0.0)
+	global_position.x = start_pos.x
+	global_position.z = start_pos.y
 
 	rotation.y = - PI / 2.0
 	rotation_x = 0.0
@@ -462,7 +466,7 @@ func demo_actions():
 	var tween_duration = 5.0
 
 	# Phase 1: go up to 50.0 while camera slowly turns downwards
-	tween.tween_property(self , "height_offset", 50.0 * ez, tween_duration)
+	tween.tween_property(self , "height_offset", 50.0 * Config.effective_zoom, tween_duration)
 	tween.parallel().tween_property(camera, "rotation:x", -PI / 2.0, tween_duration)
 
 	# Phase 2: rotate CCW while tilting upwards to face zeta wall towards -x
@@ -470,11 +474,11 @@ func demo_actions():
 	tween.parallel().tween_property(camera, "rotation:x", 0.0, tween_duration)
 
 	# Phase 3: height decrease to 3.5 while rotating towards +x
-	tween.tween_property(self , "height_offset", 3.5 * ez, tween_duration)
+	tween.tween_property(self , "height_offset", 3.5 * Config.effective_zoom, tween_duration)
 
 	# Phase 4: walk backwards to see the trivial zero at (-2, 0)
 	tween.tween_property(camera, "rotation:x", -PI / 2.0, tween_duration * 0.6)
-	tween.parallel().tween_property(self , "global_position:x", -20.0 * ez, tween_duration * 0.6)
+	tween.parallel().tween_property(self , "global_position:x", Config.complex_to_world(-2.0, 0.0).x, tween_duration * 0.6)
 
 	# Wait a moment to contemplate the trivial zero
 	tween.tween_interval(2.0)
@@ -484,8 +488,8 @@ func demo_actions():
 	tween.tween_property(camera, "rotation:x", PI / 8.0, tween_duration)
 	tween.parallel().tween_property(self , "rotation:y", -PI / 2.0, tween_duration)
 
-	tween.tween_property(self , "global_position:x", 5.0 * ez, tween_duration)
-	tween.parallel().tween_property(self , "global_position:z", -10.0 * ez, tween_duration)
+	tween.tween_property(self , "global_position:x", Config.complex_to_world(0.5, 0.0).x, tween_duration)
+	tween.parallel().tween_property(self , "global_position:z", Config.complex_to_world(0.0, 1.0).y, tween_duration)
 
 	tween.parallel().tween_property(camera, "rotation:x", -PI / 8.0, tween_duration)
 
@@ -504,17 +508,14 @@ func _start_auto_walk_from_demo():
 	last_detected_z = Vector2(0.0, 0.0)
 	Config.show_hud_zeros = true
 	Config.show_critical_stripe = true
-	Config.rvm_start_t = abs(global_position.z * 0.1 / Config.effective_zoom)
+	Config.rvm_start_t = abs(Config.world_to_complex(0.0, global_position.z).y)
 
 func _process(_delta):
 	if is_menu_open or is_detached_interactive:
 		current_f = ComplexField.get_field(global_position.x, global_position.z)
 		current_mag = current_f.length()
 
-	var scale_factor = 1.0 / Config.effective_zoom
-	var current_x = global_position.x * 0.1 * scale_factor
-	var current_y = - global_position.z * 0.1 * scale_factor
-	var frame_z = Vector2(current_x, current_y)
+	var frame_z = Config.world_to_complex(global_position.x, global_position.z)
 
 	# If player teleported (e.g. reset, demo actions, or function change),
 	# bypass crossing detection to prevent false branch jumping.
@@ -591,7 +592,7 @@ func _process(_delta):
 			
 			# Find the closest real and imaginary integer curves in the direction we are facing
 			var cam_dir = - camera.global_transform.basis.z
-			var step_size = 1.0 * Config.effective_zoom
+			var step_size = Config.complex_to_world(0.1, 0.0).x
 			var max_steps = 30
 			var re_found = false
 			var im_found = false
