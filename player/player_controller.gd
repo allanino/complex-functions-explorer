@@ -22,6 +22,8 @@ var _re_label_target_pos: Vector3 = Vector3.ZERO
 var _im_label_target_pos: Vector3 = Vector3.ZERO
 
 var height_offset = 0.0
+var zoom_height_scale = pow(Config.effective_zoom, Config.zoom_damping - 1.0)
+var zoom_speed_scale = pow(Config.effective_zoom, 1.0 - Config.zoom_damping)
 var last_space_time = 0.0
 var space_held_time = 0.0
 var is_resetting_height = false
@@ -39,6 +41,9 @@ var last_detected_z = Vector2(0.0, 0.0)
 var current_f: Vector2 = Vector2.ZERO
 var current_mag: float = 0.0
 var current_z: Vector2 = Vector2(0.0, 0.0)
+
+@onready var mobile_controls = get_node_or_null("/root/Main/MainUI/Control/MobileControls")
+@onready var right_joy = get_node_or_null("/root/Main/MainUI/Control/MobileControls/RightJoystick")
 
 @onready var camera = $Camera3D
 
@@ -88,27 +93,19 @@ func _ready():
 	im_label.visible = false
 	add_child(im_label)
 
-	if main_ui and main_ui.has_node("Control/MobileControls"):
-		var mobile_controls = main_ui.get_node("Control/MobileControls")
+	if mobile_controls:
 		mobile_controls.visible = enable_joystick
-
-		if mobile_controls.has_node("SettingsButton"):
-			var settings_btn = mobile_controls.get_node("SettingsButton")
-			if not settings_btn.pressed.is_connected(main_ui.toggle_menu.bind(false)):
-				settings_btn.pressed.connect(main_ui.toggle_menu.bind(false))
+		var settings_btn = mobile_controls.get_node_or_null("SettingsButton")
+		if settings_btn and not settings_btn.pressed.is_connected(main_ui.toggle_menu.bind(false)):
+			settings_btn.pressed.connect(main_ui.toggle_menu.bind(false))
 
 	# demo_actions()
-
-func _update_ui_states():
-	if main_ui:
-		if main_ui.detach_controller and main_ui.detach_controller.visible and main_ui.detach_controller.interaction_active:
-			is_detached_interactive = true
-		else:
-			is_detached_interactive = false
-		if main_ui.menu_overlay and main_ui.menu_overlay.visible:
-			is_menu_open = true
-		else:
-			is_menu_open = false
+	if main_ui and main_ui.has_node("MenuOverlay"):
+		var menu = main_ui.get_node("MenuOverlay")
+		menu.menu_opened.connect(func(): is_menu_open = true)
+		menu.menu_closed.connect(func(): is_menu_open = false)
+		menu.detach_started.connect(func(): is_detached_interactive = true)
+		menu.detach_finished.connect(func(): is_detached_interactive = false)
 
 func _unhandled_input(event):
 	if event.is_action_pressed("ui_cancel"):
@@ -122,7 +119,6 @@ func _unhandled_input(event):
 				Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 		return
 	
-	_update_ui_states()
 
 	if is_detached_interactive or is_menu_open:
 		return
@@ -280,7 +276,6 @@ func get_terrain_height(x: float, z: float, field_val: Vector2 = Vector2.INF) ->
 	return ComplexField.get_height(x, z)
 
 func _physics_process(delta):
-	_update_ui_states()
 
 	if camera_input_dir != Vector2.ZERO:
 		if auto_walk_state == AutoWalkState.NONE or auto_walk_state == AutoWalkState.WALKING:
@@ -290,17 +285,14 @@ func _physics_process(delta):
 			camera.rotation.x = rotation_x
 		camera_input_dir = Vector2.ZERO
 
-	if enable_joystick && main_ui and main_ui.has_node("Control/MobileControls"):
-		var mobile_controls = main_ui.get_node("Control/MobileControls")
-		if mobile_controls.has_node("RightJoystick"):
-			var right_joy = mobile_controls.get_node("RightJoystick")
-			var joy_output = right_joy.output
-			if joy_output != Vector2.ZERO:
-				if auto_walk_state == AutoWalkState.NONE or auto_walk_state == AutoWalkState.WALKING:
-					rotate_y(-joy_output.x * MOUSE_SENSITIVITY * 20.0)
-					rotation_x -= joy_output.y * MOUSE_SENSITIVITY * 20.0
-					rotation_x = clamp(rotation_x, -PI / 2, PI / 2)
-					camera.rotation.x = rotation_x
+	if enable_joystick and right_joy:
+		var joy_output = right_joy.output
+		if joy_output != Vector2.ZERO:
+			if auto_walk_state == AutoWalkState.NONE or auto_walk_state == AutoWalkState.WALKING:
+				rotate_y(-joy_output.x * MOUSE_SENSITIVITY * 20.0)
+				rotation_x -= joy_output.y * MOUSE_SENSITIVITY * 20.0
+				rotation_x = clamp(rotation_x, -PI / 2, PI / 2)
+				camera.rotation.x = rotation_x
 
 	if is_detached_interactive or is_menu_open:
 		velocity = Vector3.ZERO
@@ -316,9 +308,11 @@ func _physics_process(delta):
 		var zoom_ratio = Config.effective_zoom / old_ez
 		global_position.x *= zoom_ratio
 		global_position.z *= zoom_ratio
+		zoom_height_scale = pow(Config.effective_zoom, Config.zoom_damping - 1.0)
+		zoom_speed_scale = pow(Config.effective_zoom, 1.0 - Config.zoom_damping)
 
-	var scaled_camera_height = Config.camera_height * pow(Config.effective_zoom, Config.zoom_damping - 1.0)
-	var scaled_movement_speed = Config.movement_speed * pow(Config.effective_zoom, 1.0 - Config.zoom_damping)
+	var scaled_camera_height = Config.camera_height * zoom_height_scale
+	var scaled_movement_speed = Config.movement_speed * zoom_speed_scale
 
 	# Cache current field value and mathematical coordinates for reuse
 	# Converts player's world position back to the mathematical complex plane to calculate field values
@@ -363,8 +357,8 @@ func _physics_process(delta):
 	var input_dir = Input.get_vector("move_left", "move_right", "move_forward", "move_backward")
 	var direction = (transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
 
+
 	if auto_walk_state == AutoWalkState.MOVING_TO_LINE:
-		# Navigate towards the critical line using the zoom-aware complex_to_world mapping
 		var target_world_pos = Config.complex_to_world(CRITICAL_LINE_COMPLEX_X, 0.0)
 		var target_x = target_world_pos.x
 
@@ -374,22 +368,26 @@ func _physics_process(delta):
 		elif global_position.x < 0.0:
 			target_yaw = - PI / 2
 
-		# Smoothly rotate to the target yaw
 		rotation.y = lerp_angle(rotation.y, target_yaw, 5.0 * delta)
 
-		# Smoothly move to the critical line X
-		global_position.x = move_toward(global_position.x, target_x, current_speed * delta)
-
 		direction = Vector3.ZERO
+		var dist_x = target_x - global_position.x
+		if abs(dist_x) > 0.01:
+			velocity.x = sign(dist_x) * min(current_speed, abs(dist_x) / delta)
+		else:
+			velocity.x = 0.0
 
-		if abs(global_position.x - target_x) < 0.01 and abs(angle_difference(rotation.y, 0.0)) < 0.01:
+		if abs(dist_x) < 0.01 and abs(angle_difference(rotation.y, 0.0)) < 0.01:
 			auto_walk_state = AutoWalkState.WALKING
 
 	elif auto_walk_state == AutoWalkState.WALKING:
 		direction = Vector3(0, 0, -1)
-		# Stay firmly locked on the critical line taking current zoom into account
-		global_position.x = move_toward(global_position.x, Config.complex_to_world(CRITICAL_LINE_COMPLEX_X, 0.0).x, 2.0 * delta)
-
+		var target_x = Config.complex_to_world(CRITICAL_LINE_COMPLEX_X, 0.0).x
+		var dist_x = target_x - global_position.x
+		if abs(dist_x) > 0.01:
+			velocity.x = sign(dist_x) * min(current_speed, abs(dist_x) / delta)
+		else:
+			velocity.x = 0.0
 
 	elif auto_walk_state == AutoWalkState.NEWTON_WALK:
 		var target_world_pos = Config.complex_to_world(newton_target_z.x, newton_target_z.y)
@@ -399,10 +397,9 @@ func _physics_process(delta):
 		var current_pos2d = Vector2(global_position.x, global_position.z)
 		var target_pos2d = Vector2(target_x, target_z)
 
-		# Always smoothly rotate towards the target
 		if current_pos2d.distance_to(target_pos2d) > 0.01:
 			var target_dir2d = (target_pos2d - current_pos2d).normalized()
-			var target_yaw = atan2(target_dir2d.x, target_dir2d.y) + PI # Godot's Z points forward
+			var target_yaw = atan2(target_dir2d.x, target_dir2d.y) + PI
 			rotation.y = lerp_angle(rotation.y, target_yaw, 5.0 * delta)
 
 		if newton_wait_timer > 0.0:
@@ -410,9 +407,10 @@ func _physics_process(delta):
 			direction = Vector3.ZERO
 		else:
 			if newton_converged:
-				if current_pos2d.distance_to(target_pos2d) <= current_speed * delta:
-					global_position.x = target_x
-					global_position.z = target_z
+				var dist = current_pos2d.distance_to(target_pos2d)
+				if dist <= current_speed * delta:
+					velocity.x = (target_x - global_position.x) / delta
+					velocity.z = (target_z - global_position.z) / delta
 					auto_walk_state = AutoWalkState.NONE
 				else:
 					var target_dir2d = (target_pos2d - current_pos2d).normalized()
@@ -422,25 +420,114 @@ func _physics_process(delta):
 					var target_dir2d = (target_pos2d - current_pos2d).normalized()
 					direction = Vector3(target_dir2d.x, 0, target_dir2d.y)
 				else:
-					# Use the pre-calculated path to progress
 					var path = Config.newton_path
-
-					# Skip first, since it was already computed in newton_target_z
 					last_newton_idx += 1
-
 					if last_newton_idx < path.size():
 						newton_target_z = path[last_newton_idx]
 					else:
 						newton_converged = true
-
 					newton_wait_timer = 0.01
-						
+
 	if direction != Vector3.ZERO:
-		velocity.x = direction.x * current_speed
+		if auto_walk_state != AutoWalkState.MOVING_TO_LINE and auto_walk_state != AutoWalkState.WALKING:
+			velocity.x = direction.x * current_speed
 		velocity.z = direction.z * current_speed
 	else:
-		velocity.x = move_toward(velocity.x, 0, current_speed)
-		velocity.z = move_toward(velocity.z, 0, current_speed)
+		if auto_walk_state != AutoWalkState.MOVING_TO_LINE and auto_walk_state != AutoWalkState.WALKING and auto_walk_state != AutoWalkState.NEWTON_WALK:
+			velocity.x = move_toward(velocity.x, 0, current_speed)
+			velocity.z = move_toward(velocity.z, 0, current_speed)
+
+	var terrain_h = get_terrain_height(global_position.x, global_position.z, current_f)
+
+	var is_field_valid = is_finite(current_f.x) and is_finite(current_f.y) and is_finite(current_mag)
+	if not is_field_valid or not is_finite(terrain_h):
+		terrain_h = last_valid_terrain_height
+	else:
+		last_valid_terrain_height = terrain_h
+
+
+	var target_y = terrain_h + scaled_camera_height + height_offset
+	velocity.y = (target_y - global_position.y) / delta
+
+	if Config.show_curves and Config.show_curves_labels:
+		_curve_label_update_timer += delta
+		if _curve_label_update_timer >= CURVE_LABEL_UPDATE_INTERVAL:
+			_curve_label_update_timer = 0.0
+
+			# Find the closest real and imaginary integer curves in the direction we are facing
+			var cam_dir = - camera.global_transform.basis.z
+			var step_size = Config.complex_to_world(0.1, 0.0).x
+			var max_steps = 30
+			var re_found = false
+			var im_found = false
+
+			var last_val = current_f
+			var last_p_x = global_position.x
+			var last_p_z = global_position.z
+
+			var re_was_visible = re_label.visible
+			var im_was_visible = im_label.visible
+
+			re_label.visible = false
+			im_label.visible = false
+
+			for i in range(1, max_steps):
+				var dist = i * step_size
+				var p_x = global_position.x + cam_dir.x * dist
+				var p_z = global_position.z + cam_dir.z * dist
+				var f_val = ComplexField.get_field(p_x, p_z)
+
+				if not re_found:
+					if floor(last_val.x) != floor(f_val.x):
+						var target_int = floor(f_val.x) if f_val.x > last_val.x else ceil(f_val.x)
+						var denominator = f_val.x - last_val.x
+						var t = 0.5
+						if abs(denominator) > 0.0001:
+							t = (target_int - last_val.x) / denominator
+						t = clamp(t, 0.0, 1.0)
+
+						var cross_x = lerp(last_p_x, p_x, t)
+						var cross_z = lerp(last_p_z, p_z, t)
+						var cross_f = lerp(last_val, f_val, t)
+						var h = get_terrain_height(cross_x, cross_z, cross_f)
+
+						var target_pos = Vector3(cross_x, h + 1.0, cross_z)
+						if not re_was_visible:
+							re_label.global_position = target_pos
+						_re_label_target_pos = target_pos
+
+						re_label.text = str(int(target_int))
+						re_label.visible = true
+						re_found = true
+
+				if not im_found:
+					if floor(last_val.y) != floor(f_val.y):
+						var target_int = floor(f_val.y) if f_val.y > last_val.y else ceil(f_val.y)
+						var denominator = f_val.y - last_val.y
+						var t = 0.5
+						if abs(denominator) > 0.0001:
+							t = (target_int - last_val.y) / denominator
+						t = clamp(t, 0.0, 1.0)
+
+						var cross_x = lerp(last_p_x, p_x, t)
+						var cross_z = lerp(last_p_z, p_z, t)
+						var cross_f = lerp(last_val, f_val, t)
+						var h = get_terrain_height(cross_x, cross_z, cross_f)
+
+						var target_pos = Vector3(cross_x, h + 1.0, cross_z)
+						if not im_was_visible:
+							im_label.global_position = target_pos
+						_im_label_target_pos = target_pos
+
+						im_label.text = str(int(target_int)) + "𝑖"
+						im_label.visible = true
+						im_found = true
+
+				if re_found and im_found:
+					break
+				last_val = f_val
+				last_p_x = p_x
+				last_p_z = p_z
 
 	# Zeta zero detection during auto-walk
 	if Config.show_hud_zeros:
@@ -567,10 +654,6 @@ func _start_auto_walk_from_demo():
 	Config.rvm_start_t = abs(Config.world_to_complex(0.0, global_position.z).y)
 
 func _process(_delta):
-	if is_menu_open or is_detached_interactive:
-		current_f = ComplexField.get_field(global_position.x, global_position.z)
-		current_mag = current_f.length()
-
 	var frame_z = Config.world_to_complex(global_position.x, global_position.z)
 
 	# If player teleported (e.g. reset, demo actions, or function change),
@@ -626,103 +709,7 @@ func _process(_delta):
 
 	last_z = frame_z
 
-	# Always snap player height to the terrain in _process to prevent camera judder/shaking,
-	# especially when crossing branches.
-	var terrain_h = get_terrain_height(global_position.x, global_position.z, current_f)
-
-	# if the function result is not finite, the player will fall into the void
-	# use the last valid height to keep the player in the air
-	var is_field_valid = is_finite(current_f.x) and is_finite(current_f.y) and is_finite(current_mag)
-	if not is_field_valid or not is_finite(terrain_h):
-		terrain_h = last_valid_terrain_height
-	else:
-		last_valid_terrain_height = terrain_h
-
-	var scaled_camera_height = Config.camera_height * pow(Config.effective_zoom, Config.zoom_damping - 1.0)
-	global_position.y = terrain_h + scaled_camera_height + height_offset
-
-
 	if Config.show_curves and Config.show_curves_labels:
-		_curve_label_update_timer += _delta
-		if _curve_label_update_timer >= CURVE_LABEL_UPDATE_INTERVAL:
-			_curve_label_update_timer = 0.0
-			
-			# Find the closest real and imaginary integer curves in the direction we are facing
-			var cam_dir = - camera.global_transform.basis.z
-			var step_size = Config.complex_to_world(0.1, 0.0).x
-			var max_steps = 30
-			var re_found = false
-			var im_found = false
-
-			var last_val = current_f
-			var last_p_x = global_position.x
-			var last_p_z = global_position.z
-
-			var re_was_visible = re_label.visible
-			var im_was_visible = im_label.visible
-
-			re_label.visible = false
-			im_label.visible = false
-
-			for i in range(1, max_steps):
-				var dist = i * step_size
-				var p_x = global_position.x + cam_dir.x * dist
-				var p_z = global_position.z + cam_dir.z * dist
-				var f_val = ComplexField.get_field(p_x, p_z)
-
-				if not re_found:
-					if floor(last_val.x) != floor(f_val.x):
-						var target_int = floor(f_val.x) if f_val.x > last_val.x else ceil(f_val.x)
-						var denominator = f_val.x - last_val.x
-						var t = 0.5
-						if abs(denominator) > 0.0001:
-							t = (target_int - last_val.x) / denominator
-						t = clamp(t, 0.0, 1.0)
-						
-						var cross_x = lerp(last_p_x, p_x, t)
-						var cross_z = lerp(last_p_z, p_z, t)
-						var cross_f = lerp(last_val, f_val, t)
-						var h = get_terrain_height(cross_x, cross_z, cross_f)
-						
-						var target_pos = Vector3(cross_x, h + 1.0, cross_z)
-						if not re_was_visible:
-							re_label.global_position = target_pos
-						_re_label_target_pos = target_pos
-						
-						re_label.text = str(int(target_int))
-						re_label.visible = true
-						re_found = true
-
-				if not im_found:
-					if floor(last_val.y) != floor(f_val.y):
-						var target_int = floor(f_val.y) if f_val.y > last_val.y else ceil(f_val.y)
-						var denominator = f_val.y - last_val.y
-						var t = 0.5
-						if abs(denominator) > 0.0001:
-							t = (target_int - last_val.y) / denominator
-						t = clamp(t, 0.0, 1.0)
-						
-						var cross_x = lerp(last_p_x, p_x, t)
-						var cross_z = lerp(last_p_z, p_z, t)
-						var cross_f = lerp(last_val, f_val, t)
-						var h = get_terrain_height(cross_x, cross_z, cross_f)
-						
-						var target_pos = Vector3(cross_x, h + 1.0, cross_z)
-						if not im_was_visible:
-							im_label.global_position = target_pos
-						_im_label_target_pos = target_pos
-						
-						im_label.text = str(int(target_int)) + "𝑖"
-						im_label.visible = true
-						im_found = true
-
-				if re_found and im_found:
-					break
-				last_val = f_val
-				last_p_x = p_x
-				last_p_z = p_z
-
-		# Smoothly slide labels towards target positions
 		if re_label.visible:
 			re_label.global_position = re_label.global_position.lerp(_re_label_target_pos, _delta * 10.0)
 		if im_label.visible:
