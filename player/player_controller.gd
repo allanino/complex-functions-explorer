@@ -21,9 +21,11 @@ var _re_label_target_pos: Vector3 = Vector3.ZERO
 var _im_label_target_pos: Vector3 = Vector3.ZERO
 
 var height_offset = 0.0
+var height_velocity = 0.0
 var last_space_time = 0.0
 var space_held_time = 0.0
 var is_resetting_height = false
+var is_double_space_held = false
 var last_t = 0.0
 var last_z: Vector2 = Vector2(0.0, 0.0)
 var last_valid_terrain_height: float = 0.0
@@ -174,7 +176,12 @@ func _unhandled_input(event):
 		var current_time = Time.get_ticks_msec() / 1000.0
 		if current_time - last_space_time < DOUBLE_PRESS_TIME:
 			is_resetting_height = true
+			is_double_space_held = true
+		else:
+			is_double_space_held = false
 		last_space_time = current_time
+	elif event is InputEventKey and not event.pressed and event.keycode == KEY_SPACE:
+		is_double_space_held = false
 
 	if event is InputEventKey and event.pressed and event.ctrl_pressed:
 		if event.keycode == KEY_G:
@@ -295,9 +302,13 @@ func _physics_process(delta):
 		space_held_time += delta
 		if space_held_time > DOUBLE_PRESS_TIME:
 			is_resetting_height = false
-			height_offset += delta * current_speed
+			var vertical_dir = -1.0 if is_double_space_held else 1.0
+			height_velocity += vertical_dir * (current_speed * 1.5) * delta
+			height_velocity = clamp(height_velocity, -current_speed * 2.0, current_speed * 2.0)
+			height_offset += height_velocity * delta
 	else:
 		space_held_time = 0.0
+		height_velocity = 0.0
 
 	if is_resetting_height:
 		height_offset = move_toward(height_offset, 0.0, delta * current_speed)
