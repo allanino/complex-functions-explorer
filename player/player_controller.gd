@@ -100,8 +100,9 @@ func _ready():
 			settings_btn.pressed.connect(main_ui.toggle_menu.bind(false))
 
 	# demo_actions()
-	if main_ui and main_ui.has_node("MenuOverlay"):
-		var menu = main_ui.get_node("MenuOverlay")
+
+	if main_ui and main_ui.has_node("%MenuOverlay"):
+		var menu = main_ui.get_node("%MenuOverlay")
 		menu.menu_opened.connect(func(): is_menu_open = true)
 		menu.menu_closed.connect(func(): is_menu_open = false)
 		menu.detach_started.connect(func(): is_detached_interactive = true)
