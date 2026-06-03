@@ -9,5 +9,6 @@ shader = ExtResource("1_shader")
 [sub_resource type="PlaneMesh" id="PlaneMesh_1"]
 
 [node name="Chunk" type="MeshInstance3D"]
+cast_shadow = 2
 material_override = SubResource("ShaderMaterial_1")
 mesh = SubResource("PlaneMesh_1")
