@@ -580,7 +580,7 @@ void compute_position_marker(vec3 w_pos, inout vec3 out_albedo, inout vec3 final
     vec2 player_xz = player_position_world.xz;
     vec2 pos_xz = w_pos.xz;
 
-    float scale = 0.2;
+    float scale = clamp(0.4 / zoom_factor, 0.2, 0.7);
 
     float length_arms = 0.6 * scale;
     float thickness = 0.02 * scale;
@@ -635,8 +635,8 @@ void compute_position_marker(vec3 w_pos, inout vec3 out_albedo, inout vec3 final
                 vec2 mid = (p1 + p2) * 0.5;
 
                 // Scale arrow size with zoom, but keep it readable
-                float path_arrow_len = 0.08 * scale;
-                float path_arrow_width = 0.04 * scale;
+                float path_arrow_len = 0.16 * scale;
+                float path_arrow_width = 0.08 * scale;
 
                 float d_arr = min(
                     sdLine(pos_xz, mid + dir * path_arrow_len * 0.5, mid - dir * path_arrow_len * 0.5 + perp * path_arrow_width),
