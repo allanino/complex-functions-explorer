@@ -1,5 +1,8 @@
 extends CharacterBody3D
 
+@export var enable_joystick: bool = false
+@export var run_demo: bool = true
+
 const MOUSE_SENSITIVITY = 0.002
 const DOUBLE_PRESS_TIME = 0.3
 # The critical line in the complex plane is at Re(s) = 0.5
@@ -9,7 +12,6 @@ enum AutoWalkState {NONE, MOVING_TO_LINE, WALKING, NEWTON_WALK}
 
 var rotation_x = 0.0
 var camera_input_dir: Vector2 = Vector2.ZERO
-@export var enable_joystick: bool = false
 var auto_walk_state = AutoWalkState.NONE
 var newton_target_z: Vector2 = Vector2.ZERO
 var newton_wait_timer: float = 0.0
@@ -97,7 +99,8 @@ func _ready():
 			if not settings_btn.pressed.is_connected(main_ui.toggle_menu.bind(false)):
 				settings_btn.pressed.connect(main_ui.toggle_menu.bind(false))
 
-	# demo_actions()
+	if run_demo:
+		demo_actions()
 
 func _update_ui_states():
 	if main_ui:
@@ -502,12 +505,12 @@ func _physics_process(delta):
 
 
 func demo_actions():
-	Config.day_time = 19860
+	Config.day_time = 18420
 	Config.day_duration = 600.0
 	Config.freeze_time = false
 	Config.show_critical_stripe = 0
 	Config.show_hud_zeros = false
-	Config.show_hud_monitor_fps = false
+	Config.show_hud_monitor_fps = true
 	Config.show_hud_monitor_chunks = false
 	Config.shadows_enabled = false
 	Config.show_curves = true
