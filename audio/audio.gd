@@ -6,6 +6,7 @@ const BASE_FREQUENCY = 130.8 # C3 (Standard drone)
 const REVERB_AMOUNT = 0.5
 const PHASE_PAN_STRENGTH = 1.0
 const PITCH_DEADZONE := 0.01
+const TARGET_FILL := 2048
 
 # --- SYNTHESIS STATE ---
 var playback: AudioStreamGeneratorPlayback
@@ -157,7 +158,7 @@ func setup_audio_bus_and_effects():
 	_audio_stream_player.bus = bus_name
 	math_bus_index = bus_index
 
-func _process(delta):
+func _physics_process(delta):
 	startup_time += delta
 
 	_process_audio_toggles()
@@ -256,6 +257,9 @@ func fill_buffer():
 	buffer_min_available = min(buffer_min_available, available)
 	buffer_max_available = max(buffer_max_available, available)
 
+	# Fill only enough to keep stable occupancy
+	var to_fill = TARGET_FILL - (4096 - available)
+
 	if Engine.get_process_frames() % 600 == 0:
 		print(
 			"audio available=",
@@ -263,10 +267,15 @@ func fill_buffer():
 			" min=",
 			buffer_min_available,
 			" max=",
-			buffer_max_available
+			buffer_max_available,
+			" to_fill=",
+			to_fill
 		)
 
-	var to_fill = min(available, 4410)
+	if to_fill <= 0:
+		return
+
+	to_fill = min(to_fill, 1024)
 
 	var startup_gain = clamp(startup_time / startup_duration, 0.0, 1.0)
 	startup_gain = startup_gain * startup_gain # smoother fade-in
