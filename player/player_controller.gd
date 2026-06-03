@@ -280,7 +280,6 @@ func get_terrain_height(x: float, z: float, field_val: Vector2 = Vector2.INF) ->
 	return ComplexField.get_height(x, z)
 
 func _physics_process(delta):
-
 	if camera_input_dir != Vector2.ZERO:
 		if auto_walk_state == AutoWalkState.NONE or auto_walk_state == AutoWalkState.WALKING:
 			rotate_y(-camera_input_dir.x * MOUSE_SENSITIVITY)
@@ -333,8 +332,10 @@ func _physics_process(delta):
 
 	# Speed reduction near zeros
 	if current_mag <= Config.zero_proximity_nav and Config.zero_proximity_nav > 0.0:
-		# The multiplicative factor goes from 1.0 to speed_near_zeros back to 1.0 if walking in line
-		current_speed = scaled_movement_speed * max(current_mag / Config.zero_proximity_nav, Config.speed_near_zeros / 100.0)
+		var t = clamp(current_mag / Config.zero_proximity_nav, 0.0, 1.0)
+		var min_speed = Config.speed_near_zeros / 100.0
+		var speed_factor = min_speed + (1.0 - min_speed) * smoothstep(0.0, 1.0, t)
+		current_speed = scaled_movement_speed * speed_factor
 
 	if auto_walk_state != AutoWalkState.NONE:
 		current_speed = min(current_speed, 50.0)
