@@ -261,9 +261,8 @@ func _physics_process(delta):
 		global_position.x *= zoom_ratio
 		global_position.z *= zoom_ratio
 
-		# Scale camera height and movement speed using damping power formula
-		Config.camera_height = Config.camera_height * pow(zoom_ratio, Config.zoom_damping - 1.0)
-		Config.movement_speed = Config.movement_speed * pow(zoom_ratio, 1.0 - Config.zoom_damping)
+	var scaled_camera_height = Config.camera_height * pow(Config.effective_zoom, Config.zoom_damping - 1.0)
+	var scaled_movement_speed = Config.movement_speed * pow(Config.effective_zoom, 1.0 - Config.zoom_damping)
 
 	# Cache current field value and mathematical coordinates for reuse
 	# Converts player's world position back to the mathematical complex plane to calculate field values
@@ -276,12 +275,12 @@ func _physics_process(delta):
 		if manual_input != Vector2.ZERO or Input.is_key_pressed(KEY_SPACE):
 			auto_walk_state = AutoWalkState.NONE
 
-	var current_speed = Config.movement_speed
+	var current_speed = scaled_movement_speed
 
 	# Speed reduction near zeros
 	if current_mag <= Config.zero_proximity_nav and Config.zero_proximity_nav > 0.0:
 		# The multiplicative factor goes from 1.0 to speed_near_zeros back to 1.0 if walking in line
-		current_speed = Config.movement_speed * max(current_mag / Config.zero_proximity_nav, Config.speed_near_zeros / 100.0)
+		current_speed = scaled_movement_speed * max(current_mag / Config.zero_proximity_nav, Config.speed_near_zeros / 100.0)
 
 	if auto_walk_state != AutoWalkState.NONE:
 		current_speed = min(current_speed, 50.0)
@@ -383,7 +382,7 @@ func _physics_process(delta):
 		last_valid_terrain_height = terrain_h
 
 	# Snap player to terrain height + offset
-	global_position.y = terrain_h + Config.camera_height + height_offset
+	global_position.y = terrain_h + scaled_camera_height + height_offset
 
 
 	# Zeta zero detection during auto-walk
@@ -582,7 +581,8 @@ func _process(_delta):
 	else:
 		last_valid_terrain_height = terrain_h
 
-	global_position.y = terrain_h + Config.camera_height + height_offset
+	var scaled_camera_height = Config.camera_height * pow(Config.effective_zoom, Config.zoom_damping - 1.0)
+	global_position.y = terrain_h + scaled_camera_height + height_offset
 
 
 	if Config.show_curves and Config.show_curves_labels:
