@@ -34,25 +34,25 @@ const FUNCTIONS = {
 		"is_dirichlect": true,
 		"has_von_mangoldt": true,
 		# [min, max, step, initial]
-		"iters_range": [100.0, 5000.0, 100.0, 500.0],
+		"iters_range": [200.0, 10000.0, 200.0, 200.0],
 	},
 	ComplexFunc.ZETA_REFLECTION: {
 		"name": "Zeta (reflection formula)",
 		"is_dirichlect": true,
 		"has_von_mangoldt": true,
-		"iters_range": [100.0, 5000.0, 100.0, 500.0],
+		"iters_range": [200.0, 10000.0, 200.0, 200.0],
 	},
 	ComplexFunc.DIRICHLET_ETA: {
 		"name": "Dirichlet Eta (σ > 0)",
 		"is_dirichlect": true,
 		"has_von_mangoldt": true,
-		"iters_range": [100.0, 5000.0, 100.0, 500.0],
+		"iters_range": [200.0, 10000.0, 200.0, 200.0],
 	},
 	ComplexFunc.DIRICHLET_BETA: {
 		"name": "Dirichlet Beta (σ > 0)",
 		"is_dirichlect": true,
 		"has_von_mangoldt": true,
-		"iters_range": [100.0, 5000.0, 100.0, 500.0],
+		"iters_range": [200.0, 10000.0, 200.0, 200.0],
 	},
 	ComplexFunc.GAMMA: {
 		"name": "Gamma"
@@ -194,7 +194,7 @@ var input_rational_num_coeffs: PackedVector2Array = PackedVector2Array([Vector2(
 var input_rational_den_coeffs: PackedVector2Array = PackedVector2Array([Vector2(1, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)])
 var multivalued_n: int = 2
 var current_branch: int = 0 # Session state for Portals mode
-var zoom_factor: float = 1.0 : set = _set_zoom_factor
+var zoom_factor: float = 1.0: set = _set_zoom_factor
 var zoom_damping: float = 0.5
 
 # Rendering parameters
