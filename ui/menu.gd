@@ -458,7 +458,7 @@ func _init_slider_bindings():
 			"on_changed": func(_v): _update_branch_k_slider_range()
 		},
 		branch_k_slider: {
-			"config_key": "current_branch",
+			"config_target": GameState, "config_key": "current_branch",
 			"to_config": func(v): return int(round(v)),
 			"from_config": func(c): return c,
 			"format": func(v): return str(int(round(v))),
@@ -514,7 +514,7 @@ func _init_slider_bindings():
 			"immediate": true
 		},
 		morph_slider: {
-			"config_key": "morph_value",
+			"config_target": GameState, "config_key": "morph_value",
 			"to_config": func(v): return v,
 			"from_config": func(_c): return 1.0,
 			"format": func(v): return "%.2f" % v,
@@ -535,7 +535,7 @@ func _on_generic_slider_changed(slider: Control, value: float):
 
 	if binding.get("immediate", false) and binding.get("config_key", "") != "":
 		var cfg_val = binding["to_config"].call(value)
-		Config.set(binding["config_key"], cfg_val)
+		binding.get("config_target", Config).set(binding["config_key"], cfg_val)
 
 	if binding.has("on_changed"):
 		binding["on_changed"].call(value)
@@ -653,7 +653,7 @@ func _on_set_pos_pressed(_toggle_menu: bool = true):
 		var cfg_key = binding.get("config_key", "")
 		if cfg_key != "":
 			var cfg_val = binding["to_config"].call(slider.value)
-			Config.set(cfg_key, cfg_val)
+			binding.get("config_target", Config).set(cfg_key, cfg_val)
 
 	# Ensure effective zoom is updated from applied zoom_factor
 	Config.apply_zoom_immediate()
@@ -755,8 +755,12 @@ func _sync_ui_to_config():
 		var binding = SLIDER_BINDINGS[slider]
 		var cfg_key = binding.get("config_key", "")
 		if cfg_key != "":
-			var cfg_val = Config.get(cfg_key)
+			var cfg_val = binding.get("config_target", Config).get(cfg_key)
+			if cfg_val == null:
+				cfg_val = 0.0
 			var ui_val = binding["from_config"].call(cfg_val)
+			if ui_val == null:
+				ui_val = 0.0
 			slider.set_value_no_signal(ui_val)
 			slider.value_text = binding["format"].call(ui_val)
 			if binding.has("on_changed"):
