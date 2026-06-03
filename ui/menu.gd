@@ -27,11 +27,11 @@ signal update_hud_layout_signal()
 @onready var branch_k_slider = %BranchKSlider
 @onready var re_input = %ReContainer.get_line_edit()
 @onready var im_input = %ImContainer.get_line_edit()
-@onready var speed_input = %SpeedContainer.get_line_edit()
+@onready var speed_slider = %SpeedContainer
 @onready var zoom_slider = %ZoomContainer
 @onready var zero_speed_slider = %ZeroSpeedContainer
 @onready var zero_proximity_nav_slider = %ZeroProximityNavContainer
-@onready var camera_height_input = %CameraHeightContainer.get_line_edit()
+@onready var camera_height_slider = %CameraHeightContainer
 @onready var auto_walk_checkbox = %AutoWalkCheckbox
 @onready var terrain_detail_button = %TerrainDetailContainer.get_option_button()
 @onready var aa_button = %AAContainer.get_option_button()
@@ -190,10 +190,6 @@ func _ready():
 	tab_container.tab_changed.connect(func(_idx): _update_tab_buttons_styling())
 	_update_tab_buttons_styling()
 
-	speed_input.text_changed.connect(func(_t): _speed_modified = true)
-	speed_input.text_submitted.connect(_on_speed_text_submitted)
-	camera_height_input.text_changed.connect(func(_t): _camera_height_modified = true)
-	camera_height_input.text_submitted.connect(_on_camera_height_text_submitted)
 	re_input.text_submitted.connect(_on_re_text_submitted)
 	im_input.text_submitted.connect(_on_im_text_submitted)
 	height_a_input.text_submitted.connect(_on_height_a_text_submitted)
@@ -306,6 +302,18 @@ func _ready():
 
 func _init_slider_bindings():
 	var bindings = {
+		camera_height_slider: {
+			"config_key": "camera_height",
+			"to_config": func(v): return v,
+			"from_config": func(c): return c,
+			"format": func(v): return "%.1f" % v
+		},
+		speed_slider: {
+			"config_key": "movement_speed",
+			"to_config": func(v): return v * 10.0,
+			"from_config": func(c): return c * 0.1,
+			"format": func(v): return "%.1f" % v
+		},
 		master_volume_slider: {
 			"config_key": "master_volume",
 			"to_config": func(v): return v,
@@ -527,8 +535,6 @@ func _on_generic_slider_changed(slider: Control, value: float):
 		binding["on_changed"].call(value)
 
 var _menu_scale_dragging: bool = false
-var _camera_height_modified: bool = false
-var _speed_modified: bool = false
 var _syncing_ui: bool = false
 
 func _disable_sliders_focus(node: Node):
@@ -627,17 +633,11 @@ func _on_set_pos_pressed(_toggle_menu: bool = true):
 	if not is_finite(h_a): h_a = 3.0
 	var h_eps = float(height_eps_input.text)
 	if not is_finite(h_eps): h_eps = 1.0
-	var m_speed = float(speed_input.text) * 10.0
-	if not is_finite(m_speed): m_speed = 100.0
-	var c_height = float(camera_height_input.text)
-	if not is_finite(c_height): c_height = 1.8
 
 	if !hud_zeros_checkbox.button_pressed:
 		Config.visited_zeros.clear()
 
 	# Apply non-slider values to Config
-	Config.movement_speed = m_speed
-	Config.camera_height = c_height
 	Config.height_a = h_a
 	Config.height_epsilon = h_eps
 
@@ -651,9 +651,6 @@ func _on_set_pos_pressed(_toggle_menu: bool = true):
 
 	# Ensure effective zoom is updated from applied zoom_factor
 	Config.apply_zoom_immediate()
-
-	_speed_modified = false
-	_camera_height_modified = false
 
 	Config.terrain_detail = terrain_detail_button.selected
 	Config.antialiasing_mode = aa_button.selected
@@ -759,10 +756,6 @@ func _sync_ui_to_config():
 			if binding.has("on_changed"):
 				binding["on_changed"].call(ui_val)
 
-	_speed_modified = false
-	_camera_height_modified = false
-	speed_input.text = "%.1f" % (Config.movement_speed * 0.1)
-	camera_height_input.text = str(Config.camera_height)
 	height_a_input.text = str(Config.height_a)
 	height_eps_input.text = str(Config.height_epsilon)
 
@@ -871,18 +864,6 @@ func _on_hud_monitor_chunks_toggled(pressed: bool):
 
 func _on_color_scheme_selected(index: int):
 	Config.color_scheme = index
-
-func _on_speed_text_submitted(new_text: String):
-	var m_speed = float(new_text) * 10.0
-	if is_finite(m_speed):
-		Config.movement_speed = m_speed
-		_speed_modified = false
-
-func _on_camera_height_text_submitted(new_text: String):
-	var c_height = float(new_text)
-	if is_finite(c_height):
-		Config.camera_height = c_height
-		_camera_height_modified = false
 
 func _on_re_text_submitted(new_text: String):
 	var re = float(new_text)
