@@ -217,6 +217,8 @@ func _unhandled_input(event):
 				var max_y = current_z.y
 
 				for i in range(50):
+					if path.size() >= 50:
+						break
 					var next_z = ComplexField.newton_step_zeta_reflection(current_z)
 					path.append(next_z)
 					min_x = min(min_x, next_z.x)
@@ -386,7 +388,7 @@ func _physics_process(delta):
 			direction = Vector3.ZERO
 		else:
 			if newton_converged:
-				if current_pos2d.distance_to(target_pos2d) < 0.01:
+				if current_pos2d.distance_to(target_pos2d) <= current_speed * delta:
 					global_position.x = target_x
 					global_position.z = target_z
 					auto_walk_state = AutoWalkState.NONE

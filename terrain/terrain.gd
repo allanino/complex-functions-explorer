@@ -235,16 +235,19 @@ func _update_terrain_material_uniforms():
 	terrain_material.set_shader_parameter("real_level_curves_highlighted", real_shaded)
 	terrain_material.set_shader_parameter("imag_level_curves_highlighted", imag_shaded)
 
-	var newton_path = PackedVector2Array()
-	for val in Config.newton_path:
-		newton_path.append(val)
-	var newton_path_size = newton_path.size()
-	while newton_path.size() < 50:
-		newton_path.append(Vector2.ZERO)
+	if Config.newton_path.size() > 0:
+		var newton_path = PackedVector2Array()
+		for val in Config.newton_path:
+			newton_path.append(val)
+		var newton_path_size = newton_path.size()
+		while newton_path.size() < 50:
+			newton_path.append(Vector2.ZERO)
 
-	terrain_material.set_shader_parameter("newton_path", newton_path)
-	terrain_material.set_shader_parameter("newton_path_size", newton_path_size)
-	terrain_material.set_shader_parameter("newton_path_bbox", Config.newton_path_bbox)
+		terrain_material.set_shader_parameter("newton_path", newton_path)
+		terrain_material.set_shader_parameter("newton_path_size", newton_path_size)
+		terrain_material.set_shader_parameter("newton_path_bbox", Config.newton_path_bbox)
+	else:
+		terrain_material.set_shader_parameter("newton_path_size", 0)
 
 	terrain_material.set_shader_parameter("chunk_size", chunk_size)
 	var segments = []
