@@ -306,13 +306,15 @@ func _init_slider_bindings():
 			"config_key": "camera_height",
 			"to_config": func(v): return v,
 			"from_config": func(c): return c,
-			"format": func(v): return "%.1f" % v
+			"format": func(v): return "%.1f" % v,
+			"immediate": true
 		},
 		speed_slider: {
 			"config_key": "movement_speed",
 			"to_config": func(v): return v * 10.0,
 			"from_config": func(c): return c * 0.1,
-			"format": func(v): return "%.1f" % v
+			"format": func(v): return "%.1f" % v,
+			"immediate": true
 		},
 		master_volume_slider: {
 			"config_key": "master_volume",
