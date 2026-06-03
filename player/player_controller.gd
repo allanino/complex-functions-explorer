@@ -30,6 +30,7 @@ var last_z: Vector2 = Vector2(0.0, 0.0)
 var last_valid_terrain_height: float = 0.0
 var is_detached_interactive: bool = false
 var is_menu_open: bool = false
+var last_newton_idx: int = 0
 
 # Zero detection history
 var mag_history: Array[float] = [1.0, 1.0, 1.0]
@@ -202,19 +203,21 @@ func _unhandled_input(event):
 				auto_walk_state = AutoWalkState.NEWTON_WALK
 				var complex_pos = Config.world_to_complex(global_position.x, global_position.z)
 				newton_target_z = ComplexField.newton_step_zeta_reflection(complex_pos)
+				last_newton_idx = 0
+
 				newton_wait_timer = 0.1
 				newton_converged = false
 				Config.show_hud_zeros = true
 
 				# Pre-calculate Newton path
 				var path = PackedVector2Array()
-				var current_z = complex_pos
-				path.append(current_z)
+				var _current_z = complex_pos
+				path.append(_current_z)
 
-				var min_x = current_z.x
-				var max_x = current_z.x
-				var min_y = current_z.y
-				var max_y = current_z.y
+				var min_x = _current_z.x
+				var max_x = _current_z.x
+				var min_y = _current_z.y
+				var max_y = _current_z.y
 
 				var step_mult = 1.0
 				var loop_detected = false
@@ -222,7 +225,7 @@ func _unhandled_input(event):
 				for i in range(50):
 					if path.size() >= 50:
 						break
-					var next_z = ComplexField.newton_step_zeta_reflection(current_z, step_mult)
+					var next_z = ComplexField.newton_step_zeta_reflection(_current_z)
 
 					# Cycle detection: check if we are jumping back and forth
 					loop_detected = false
@@ -234,7 +237,7 @@ func _unhandled_input(event):
 					if loop_detected:
 						step_mult *= 0.5
 						# Recalculate with smaller step
-						next_z = ComplexField.newton_step_zeta_reflection(current_z, step_mult)
+						next_z = ComplexField.newton_step_zeta_reflection(_current_z, step_mult)
 
 					path.append(next_z)
 					min_x = min(min_x, next_z.x)
@@ -242,9 +245,9 @@ func _unhandled_input(event):
 					min_y = min(min_y, next_z.y)
 					max_y = max(max_y, next_z.y)
 
-					if next_z.distance_to(current_z) < 1e-4:
+					if next_z.distance_to(_current_z) < 1e-4:
 						break
-					current_z = next_z
+					_current_z = next_z
 
 				# Set final target
 				newton_target_z = path[1] if path.size() > 1 else path[0]
@@ -421,21 +424,17 @@ func _physics_process(delta):
 				else:
 					# Use the pre-calculated path to progress
 					var path = Config.newton_path
-					var current_idx = -1
-					for i in range(path.size()):
-						if path[i].distance_to(newton_target_z) < 1e-4:
-							current_idx = i
-							break
 
-					if current_idx != -1 and current_idx + 1 < path.size():
-						var next_target = path[current_idx + 1]
-						if next_target.distance_to(newton_target_z) < 1e-4:
-							newton_converged = true
-						else:
-							newton_target_z = next_target
-							newton_wait_timer = 0.1
+					# Skip first, since it was already computed in newton_target_z
+					last_newton_idx += 1
+
+					if last_newton_idx < path.size():
+						newton_target_z = path[last_newton_idx]
 					else:
 						newton_converged = true
+
+					newton_wait_timer = 0.01
+						
 	if direction != Vector3.ZERO:
 		velocity.x = direction.x * current_speed
 		velocity.z = direction.z * current_speed
