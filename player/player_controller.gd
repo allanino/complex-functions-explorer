@@ -451,7 +451,7 @@ func _physics_process(delta):
 
 
 	var target_y = terrain_h + scaled_camera_height + height_offset
-	velocity.y = (target_y - global_position.y) / delta
+	velocity.y = 0.5 * (target_y - global_position.y) / delta
 
 	if Config.show_curves and Config.show_curves_labels:
 		_curve_label_update_timer += delta
