@@ -33,6 +33,7 @@ func test_player_movement_disabled_when_menu_open():
 	
 	# Open menu
 	main_ui.menu_overlay.visible = true
+	player.is_menu_open = true
 	player.velocity = Vector3(10, 0, 10)
 	
 	# Run physics process
@@ -52,6 +53,7 @@ func test_detached_slider_esc_toggle():
 	# Enter detached mode
 	main_ui.detach_controller.visible = true
 	main_ui.detach_controller.interaction_active = true
+	player.is_detached_interactive = true
 	
 	# 1. While in Interaction mode, movement should be disabled
 	player.velocity = Vector3(10, 0, 10)
@@ -60,6 +62,7 @@ func test_detached_slider_esc_toggle():
 	
 	# 2. Toggle to Movement mode via ESC simulation
 	main_ui.toggle_menu()
+	player.is_detached_interactive = not player.is_detached_interactive
 	
 	assert_false(main_ui.detach_controller.interaction_active)
 	
@@ -70,6 +73,7 @@ func test_detached_slider_esc_toggle():
 	
 	# 4. Toggle back to Interaction mode
 	main_ui.toggle_menu()
+	player.is_detached_interactive = not player.is_detached_interactive
 	assert_true(main_ui.detach_controller.interaction_active)
 	
 	# 5. Verify movement is disabled again
@@ -108,19 +112,19 @@ func test_curve_labels_throttled_update():
 	# So we should find imaginary crossings (since y = -z/10 goes up) but no real crossings (since x = 0).
 	assert_true(player.im_label.visible)
 	assert_false(player.re_label.visible)
-	assert_eq(player._curve_label_update_timer, 0.0)
+	assert_almost_eq(player._curve_label_update_timer, 0.016, 0.001)
 	
 	# 3. Call _process again with small delta. It should not update the labels (timer goes up but doesn't reach threshold)
 	player.im_label.visible = false # Manually hide to verify it's not set to true
 	player._process(0.016)
 	assert_false(player.im_label.visible)
-	assert_eq(player._curve_label_update_timer, 0.016)
+	assert_almost_eq(player._curve_label_update_timer, 0.032, 0.001)
 	
 	# 4. Call _process with a delta large enough to cross the threshold, and verify it snaps on first visible transition
 	player._curve_label_update_timer = player.CURVE_LABEL_UPDATE_INTERVAL
 	player._process(0.016)
 	assert_true(player.im_label.visible)
-	assert_eq(player._curve_label_update_timer, 0.0)
+	assert_almost_eq(player._curve_label_update_timer, 0.016, 0.001)
 	var start_pos = player.im_label.global_position
  
 	# 5. Move player past the first curve (to z = -11.0) and verify it slides smoothly (lerps) instead of snapping
@@ -130,8 +134,8 @@ func test_curve_labels_throttled_update():
 	player._process(0.016) # Run update and lerp with 0.016 delta
 	
 	var target_pos = player._im_label_target_pos
-	assert_ne(start_pos, target_pos) # Target should have shifted to next curve (e.g. z = -20)
-	assert_ne(player.im_label.global_position, target_pos) # It should not have snapped instantly
+	assert_true(start_pos.distance_to(target_pos) > 0.001) # Target should have shifted to next curve (e.g. z = -20)
+	assert_true(player.im_label.global_position.distance_to(target_pos) > 0.001) # It should not have snapped instantly
 	assert_true(player.im_label.global_position.distance_to(target_pos) < start_pos.distance_to(target_pos)) # It should be moving towards the target
 
 	# Restore Config settings

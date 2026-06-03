@@ -458,7 +458,7 @@ func _init_slider_bindings():
 			"on_changed": func(_v): _update_branch_k_slider_range()
 		},
 		branch_k_slider: {
-			"config_key": "current_branch",
+			"config_target": GameState, "config_key": "current_branch",
 			"to_config": func(v): return int(round(v)),
 			"from_config": func(c): return c,
 			"format": func(v): return str(int(round(v))),
@@ -514,7 +514,7 @@ func _init_slider_bindings():
 			"immediate": true
 		},
 		morph_slider: {
-			"config_key": "morph_value",
+			"config_target": GameState, "config_key": "morph_value",
 			"to_config": func(v): return v,
 			"from_config": func(_c): return 1.0,
 			"format": func(v): return "%.2f" % v,
@@ -535,7 +535,7 @@ func _on_generic_slider_changed(slider: Control, value: float):
 
 	if binding.get("immediate", false) and binding.get("config_key", "") != "":
 		var cfg_val = binding["to_config"].call(value)
-		Config.set(binding["config_key"], cfg_val)
+		binding.get("config_target", Config).set(binding["config_key"], cfg_val)
 
 	if binding.has("on_changed"):
 		binding["on_changed"].call(value)
@@ -629,7 +629,7 @@ func _on_freeze_time_toggled(pressed: bool):
 
 
 func _on_set_pos_pressed(_toggle_menu: bool = true):
-	Config.performance_protection_active = false
+	GameState.performance_protection_active = false
 	var re = float(re_input.text)
 	var im = float(im_input.text)
 	if not is_finite(re): re = 0.5
@@ -641,7 +641,7 @@ func _on_set_pos_pressed(_toggle_menu: bool = true):
 	if not is_finite(h_eps): h_eps = 1.0
 
 	if !hud_zeros_checkbox.button_pressed:
-		Config.visited_zeros.clear()
+		GameState.visited_zeros.clear()
 
 	# Apply non-slider values to Config
 	Config.height_a = h_a
@@ -653,7 +653,7 @@ func _on_set_pos_pressed(_toggle_menu: bool = true):
 		var cfg_key = binding.get("config_key", "")
 		if cfg_key != "":
 			var cfg_val = binding["to_config"].call(slider.value)
-			Config.set(cfg_key, cfg_val)
+			binding.get("config_target", Config).set(cfg_key, cfg_val)
 
 	# Ensure effective zoom is updated from applied zoom_factor
 	Config.apply_zoom_immediate()
@@ -731,8 +731,8 @@ func _on_set_pos_pressed(_toggle_menu: bool = true):
 		if auto_walk_checkbox.button_pressed:
 			if player.auto_walk_state == 0: # NONE
 				player.auto_walk_state = 1 # MOVING_TO_LINE
-				Config.rvm_start_t = abs(Config.world_to_complex(0.0, player.global_position.z).y)
-				Config.visited_zeros.clear()
+				GameState.rvm_start_t = abs(Config.world_to_complex(0.0, player.global_position.z).y)
+				GameState.visited_zeros.clear()
 				if "last_detected_t" in player:
 					player.last_detected_t = -1.0
 		else:
@@ -755,8 +755,12 @@ func _sync_ui_to_config():
 		var binding = SLIDER_BINDINGS[slider]
 		var cfg_key = binding.get("config_key", "")
 		if cfg_key != "":
-			var cfg_val = Config.get(cfg_key)
+			var cfg_val = binding.get("config_target", Config).get(cfg_key)
+			if cfg_val == null:
+				cfg_val = 0.0
 			var ui_val = binding["from_config"].call(cfg_val)
+			if ui_val == null:
+				ui_val = 0.0
 			slider.set_value_no_signal(ui_val)
 			slider.value_text = binding["format"].call(ui_val)
 			if binding.has("on_changed"):
@@ -857,7 +861,7 @@ func _on_hud_navigation_toggled(pressed: bool):
 func _on_hud_zeros_toggled(pressed: bool):
 	Config.show_hud_zeros = pressed
 	if not pressed:
-		Config.visited_zeros.clear()
+		GameState.visited_zeros.clear()
 
 func _on_rvm_toggled(pressed: bool):
 	Config.show_rvm = pressed
@@ -1126,7 +1130,7 @@ func toggle_menu(applied: bool = false):
 			Config.day_duration = _initial_day_duration
 			Config.day_time = _initial_day_time
 			Config.fog_density = _initial_fog_density
-			Config.morph_value = _initial_morph_value
+			GameState.morph_value = _initial_morph_value
 			Config.terrain_detail = _initial_terrain_detail
 			Config.antialiasing_mode = _initial_antialiasing_mode
 			Config.view_distance = _initial_view_distance

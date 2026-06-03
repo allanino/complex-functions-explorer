@@ -100,7 +100,7 @@ func test_ready_initializes_properly():
 	new_config.save_path = "user://test_settings.cfg"
 	new_config._ready()
 
-	assert_almost_eq(new_config.effective_zoom, 3.5, 0.001)
+	assert_almost_eq(GameState.effective_zoom, 3.5, 0.001)
 	assert_eq(new_config.function.name, "Sin")
 
 	new_config.free()

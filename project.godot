@@ -18,6 +18,7 @@ run/max_fps=60
 [autoload]
 
 Config="*res://core/config_manager.gd"
+GameState="*res://core/game_state.gd"
 
 [display]
 

@@ -33,11 +33,11 @@ func _process(delta):
 	if frame_time_ms > 100.0:
 		slow_frame_counter += 1
 		if slow_frame_counter >= 5:
-			Config.performance_protection_active = true
+			GameState.performance_protection_active = true
 	else:
 		slow_frame_counter = 0
 
-	if Config.performance_protection_active:
+	if GameState.performance_protection_active:
 		if not _shaders_stopped:
 			_apply_performance_protection(true)
 		return
@@ -50,7 +50,7 @@ func _process(delta):
 	var player_chunk_z = floor(player_pos.z / chunk_size)
 
 	if terrain_material:
-		terrain_material.set_shader_parameter("zoom_factor", Config.effective_zoom)
+		terrain_material.set_shader_parameter("zoom_factor", GameState.effective_zoom)
 		terrain_material.set_shader_parameter("player_position_world", player_pos)
 
 	# Check if any field properties have changed
@@ -74,7 +74,7 @@ func _process(delta):
 		"input_rational_den_coeffs": Config.input_rational_den_coeffs,
 		"multivalued_n": Config.multivalued_n,
 		"self_illumination": Config.self_illumination,
-		"current_branch": Config.current_branch,
+		"current_branch": GameState.current_branch,
 		"terrain_brightness": Config.terrain_brightness,
 		"terrain_saturation": Config.terrain_saturation,
 		"terrain_albedo": Config.terrain_albedo,
@@ -82,7 +82,7 @@ func _process(delta):
 		"terrain_metallic": Config.terrain_metallic,
 		"terrain_roughness": Config.terrain_roughness,
 		"terrain_surface_texture": Config.terrain_surface_texture,
-		"morph_value": Config.morph_value,
+		"morph_value": GameState.morph_value,
 		"fog_density": Config.fog_density,
 	}
 
@@ -186,7 +186,7 @@ func _update_terrain_material_uniforms():
 		return
 
 	var f_data = Config.function
-	terrain_material.set_shader_parameter("performance_protection_active", Config.performance_protection_active)
+	terrain_material.set_shader_parameter("performance_protection_active", GameState.performance_protection_active)
 	terrain_material.set_shader_parameter("is_dirichlect", f_data.get("is_dirichlect", false))
 	terrain_material.set_shader_parameter("is_multivalued", f_data.get("is_multivalued", false))
 	terrain_material.set_shader_parameter("color_scheme", Config.color_scheme)
@@ -201,7 +201,7 @@ func _update_terrain_material_uniforms():
 	terrain_material.set_shader_parameter("height_a", Config.height_a)
 	terrain_material.set_shader_parameter("height_epsilon", Config.height_epsilon)
 	terrain_material.set_shader_parameter("height_theta", Config.height_theta)
-	terrain_material.set_shader_parameter("zoom_factor", Config.effective_zoom)
+	terrain_material.set_shader_parameter("zoom_factor", GameState.effective_zoom)
 	terrain_material.set_shader_parameter("rational_num_coeffs", Config.rational_num_coeffs)
 	terrain_material.set_shader_parameter("rational_den_coeffs", Config.rational_den_coeffs)
 	terrain_material.set_shader_parameter("input_rational_num_coeffs", Config.input_rational_num_coeffs)
@@ -216,7 +216,7 @@ func _update_terrain_material_uniforms():
 	terrain_material.set_shader_parameter("metallic", Config.terrain_metallic)
 	terrain_material.set_shader_parameter("roughness", Config.terrain_roughness)
 	terrain_material.set_shader_parameter("surface_texture", Config.terrain_surface_texture)
-	terrain_material.set_shader_parameter("current_branch", Config.current_branch)
+	terrain_material.set_shader_parameter("current_branch", GameState.current_branch)
 
 	var real_shaded = PackedFloat32Array()
 	for val in Config.real_level_curves_highlighted:
@@ -233,9 +233,9 @@ func _update_terrain_material_uniforms():
 	terrain_material.set_shader_parameter("real_level_curves_highlighted", real_shaded)
 	terrain_material.set_shader_parameter("imag_level_curves_highlighted", imag_shaded)
 
-	if Config.newton_path.size() > 0:
+	if GameState.newton_path.size() > 0:
 		var newton_path = PackedVector2Array()
-		for val in Config.newton_path:
+		for val in GameState.newton_path:
 			newton_path.append(val)
 		var newton_path_size = newton_path.size()
 		while newton_path.size() < 50:
@@ -243,7 +243,7 @@ func _update_terrain_material_uniforms():
 
 		terrain_material.set_shader_parameter("newton_path", newton_path)
 		terrain_material.set_shader_parameter("newton_path_size", newton_path_size)
-		terrain_material.set_shader_parameter("newton_path_bbox", Config.newton_path_bbox)
+		terrain_material.set_shader_parameter("newton_path_bbox", GameState.newton_path_bbox)
 	else:
 		terrain_material.set_shader_parameter("newton_path_size", 0)
 
@@ -253,7 +253,7 @@ func _update_terrain_material_uniforms():
 		segments.append(float(sub + 1))
 	terrain_material.set_shader_parameter("lod_segments", segments)
 
-	var morph_param = Config.morph_value
+	var morph_param = GameState.morph_value
 	terrain_material.set_shader_parameter("morph", morph_param)
 
 func _update_chunk_uniforms(chunk: MeshInstance3D):
@@ -286,7 +286,7 @@ func _update_neighbor_lod_uniforms(coord: Vector2i):
 func _load_chunk(coord: Vector2i):
 	var chunk = terrain_chunk_scene.instantiate()
 	add_child(chunk)
-	chunk.visible = !Config.performance_protection_active
+	chunk.visible = !GameState.performance_protection_active
 
 	chunk.material_override = terrain_material
 

@@ -53,7 +53,7 @@ static func multivalued_asin(x: float, y: float) -> Vector2:
 	var z2 = complex_mul(z, z)
 	var one_minus_z2 = Vector2(1.0 - z2.x, -z2.y)
 	
-	var B = Config.current_branch
+	var B = GameState.current_branch
 	var sqrt_branch = abs(B) % 2
 	var log_branch = int(floor(float(B + 1) / 2.0)) if x < 0.0 else int(floor(float(B) / 2.0))
 	
@@ -405,7 +405,7 @@ static func multivalued_z_pow_inv_n(x: float, y: float, n: int, branch: int = -9
 	if not use_negative_cut and theta < 0.0: theta += 2.0 * PI
 	var float_n = float(n)
 
-	var k_current = float(branch if branch != -99999 else Config.current_branch)
+	var k_current = float(branch if branch != -99999 else GameState.current_branch)
 
 	var morphed_phase = (theta + 2.0 * PI * k_current) / float_n
 	var morphed_r = pow(r, 1.0 / float_n)
@@ -418,7 +418,7 @@ static func multivalued_log(x: float, y: float, branch: int = -99999, use_negati
 	var theta = atan2(y, x)
 	if not use_negative_cut and theta < 0.0: theta += 2.0 * PI
 
-	var k_current = float(branch if branch != -99999 else Config.current_branch)
+	var k_current = float(branch if branch != -99999 else GameState.current_branch)
 
 	var morphed_phase = theta + 2.0 * PI * k_current
 	return Vector2(log(r), morphed_phase)
@@ -456,7 +456,7 @@ static func get_field_at(x: float, y: float, function_type: int, is_input: bool)
 	return Vector2.ZERO
 
 static func get_field(world_x: float, world_z: float) -> Vector2:
-	if Config.performance_protection_active:
+	if GameState.performance_protection_active:
 		return Vector2.ZERO
 
 	var complex_pos = Config.world_to_complex(world_x, world_z)
@@ -480,14 +480,14 @@ static func get_height_from_field(f: Vector2) -> float:
 	h = clamp(h, -1e5, 1e5)
 
 	# Match shader morphing blend factor (usually 1.0)
-	var s = 0.5 - 0.5 * cos(PI * Config.morph_value)
+	var s = 0.5 - 0.5 * cos(PI * GameState.morph_value)
 	var blend = log(1.0 + 8.0 * s) / log(9.0)
-	h *= blend * Config.effective_zoom
+	h *= blend * GameState.effective_zoom
 
 	return h if is_finite(h) else 0.0
 
 static func get_height(x: float, z: float) -> float:
-	if Config.performance_protection_active:
+	if GameState.performance_protection_active:
 		return 0.0
 
 	var f = get_field(x, z)
