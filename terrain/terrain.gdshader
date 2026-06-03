@@ -714,16 +714,8 @@ void vertex() {
             // Blended map:
             field_val = mix(z_id, fz, blend);
 
-            float h = get_complex_height(fz, field_val);
-
             bool h_clamped = false;
-            if (h < -1e5) {
-                h = -1e5;
-                h_clamped = true;
-            } else if (h > 1e5) {
-                h = 1e5;
-                h_clamped = true;
-            }
+            float h = get_complex_height(fz, field_val, h_clamped);
 
             h *= blend * zoom_factor;
 
