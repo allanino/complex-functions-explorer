@@ -580,6 +580,7 @@ func _physics_process(delta):
 
 
 func demo_actions():
+	Config.function_type = Config.ComplexFunc.ZETA_REFLECTION
 	Config.day_time = 18420
 	Config.day_duration = 600.0
 	Config.freeze_time = false
