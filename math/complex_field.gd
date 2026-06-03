@@ -311,14 +311,14 @@ static func zeta_continuation_with_derivatives(x: float, y: float) -> Array:
 	var dx = complex_mul(value, log_z[1])
 	return [value, dx]
 
-static func newton_step_zeta_reflection(z: Vector2) -> Vector2:
+static func newton_step_zeta_reflection(z: Vector2, multiplier: float = 1.0) -> Vector2:
 	var res = zeta_continuation_with_derivatives(z.x, z.y)
 	var f_val = res[0]
 	var f_prime = res[1]
 	var step = complex_div(f_val, f_prime)
 	if step.length() > 1.0:
 		step = step.normalized()
-	return z - step
+	return z - step * multiplier
 
 static func zeta_continuation(x: float, y: float) -> Vector2:
 	var log_val = log_zeta_continuation(x, y)
