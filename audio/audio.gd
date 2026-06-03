@@ -49,6 +49,7 @@ var lpf_effect: AudioEffectLowPassFilter
 
 var portal_sfx_player: AudioStreamPlayer
 var player: Node3D
+var math_bus_index: int = -1
 
 func _ready():
 	# Finding the player to sample position
@@ -148,6 +149,7 @@ func setup_audio_bus_and_effects():
 	AudioServer.add_bus_effect(bus_index, reverb_effect)
 
 	_audio_stream_player.bus = bus_name
+	math_bus_index = bus_index
 
 func _process(delta):
 	startup_time += delta
@@ -220,7 +222,13 @@ func _process(delta):
 	# --- EFFECT MODULATION ---
 	if pitch_shift_effect:
 		var ps = clamp(1.0 + (target_harmonic_intensity * 0.02), 0.5, 2.0)
-		if is_finite(ps): pitch_shift_effect.pitch_scale = ps
+		if is_finite(ps):
+			pitch_shift_effect.pitch_scale = ps
+			if math_bus_index != -1:
+				if abs(ps - 1.0) < 0.001:
+					AudioServer.set_bus_effect_enabled(math_bus_index, 0, false)
+				else:
+					AudioServer.set_bus_effect_enabled(math_bus_index, 0, true)
 
 	if reverb_effect:
 		var rv = clamp(REVERB_AMOUNT + (proximity * 0.01), 0.0, 0.9)
