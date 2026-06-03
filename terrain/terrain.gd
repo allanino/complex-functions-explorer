@@ -304,6 +304,13 @@ func _update_chunk_lod(chunk: MeshInstance3D, lod: int, coord: Vector2i):
 
 	chunk.mesh = _lod_mesh_cache[subdivisions]
 	chunk.set_meta("lod_level", lod)
+
+	if Config.shadows_enabled:
+		if lod >= 3:
+			chunk.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		else:
+			chunk.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+
 	_update_chunk_uniforms(chunk)
 
 	_update_neighbor_lods(coord)
