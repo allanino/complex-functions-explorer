@@ -13,6 +13,7 @@ var camera_input_dir: Vector2 = Vector2.ZERO
 var auto_walk_state = AutoWalkState.NONE
 var newton_target_z: Vector2 = Vector2.ZERO
 var newton_wait_timer: float = 0.0
+var newton_converged: bool = false
 var re_label: Label3D
 var im_label: Label3D
 var _curve_label_update_timer = 0.1
@@ -202,6 +203,7 @@ func _unhandled_input(event):
 				var complex_pos = Config.world_to_complex(global_position.x, global_position.z)
 				newton_target_z = ComplexField.newton_step_zeta_reflection(complex_pos)
 				newton_wait_timer = 0.1
+				newton_converged = false
 				Config.show_hud_zeros = true
 
 				# Pre-calculate Newton path
@@ -383,18 +385,27 @@ func _physics_process(delta):
 			newton_wait_timer -= delta
 			direction = Vector3.ZERO
 		else:
-			if current_pos2d.distance_to(target_pos2d) > 0.1:
-				var target_dir2d = (target_pos2d - current_pos2d).normalized()
-				direction = Vector3(target_dir2d.x, 0, target_dir2d.y)
-			else:
-				# Compute next step
-				var new_target = ComplexField.newton_step_zeta_reflection(newton_target_z)
-				if new_target.distance_to(newton_target_z) < 1e-4:
-					# Converged!
+			if newton_converged:
+				if current_pos2d.distance_to(target_pos2d) < 0.01:
+					global_position.x = target_x
+					global_position.z = target_z
 					auto_walk_state = AutoWalkState.NONE
 				else:
-					newton_target_z = new_target
-					newton_wait_timer = 0.1
+					var target_dir2d = (target_pos2d - current_pos2d).normalized()
+					direction = Vector3(target_dir2d.x, 0, target_dir2d.y)
+			else:
+				if current_pos2d.distance_to(target_pos2d) > 0.1:
+					var target_dir2d = (target_pos2d - current_pos2d).normalized()
+					direction = Vector3(target_dir2d.x, 0, target_dir2d.y)
+				else:
+					# Compute next step
+					var new_target = ComplexField.newton_step_zeta_reflection(newton_target_z)
+					if new_target.distance_to(newton_target_z) < 1e-4:
+						# Converged! Allow it to walk up to the final target
+						newton_converged = true
+					else:
+						newton_target_z = new_target
+						newton_wait_timer = 0.1
 	if direction != Vector3.ZERO:
 		velocity.x = direction.x * current_speed
 		velocity.z = direction.z * current_speed
