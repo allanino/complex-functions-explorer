@@ -13,6 +13,7 @@ var camera_input_dir: Vector2 = Vector2.ZERO
 var auto_walk_state = AutoWalkState.NONE
 var newton_target_z: Vector2 = Vector2.ZERO
 var newton_wait_timer: float = 0.0
+var newton_converged: bool = false
 var re_label: Label3D
 var im_label: Label3D
 var _curve_label_update_timer = 0.1
@@ -29,6 +30,7 @@ var last_z: Vector2 = Vector2(0.0, 0.0)
 var last_valid_terrain_height: float = 0.0
 var is_detached_interactive: bool = false
 var is_menu_open: bool = false
+var last_newton_idx: int = 0
 
 # Zero detection history
 var mag_history: Array[float] = [1.0, 1.0, 1.0]
@@ -163,11 +165,13 @@ func _unhandled_input(event):
 					if world_manager and world_manager.has_method("_update_terrain_material_uniforms"):
 						world_manager._update_terrain_material_uniforms()
 		elif event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
+			Config.newton_path.clear()
+			Config.newton_path_bbox = Vector4(0, 0, 0, 0)
 			if Config.show_curves:
 				Config.real_level_curves_highlighted.clear()
 				Config.imag_level_curves_highlighted.clear()
-				if world_manager and world_manager.has_method("_update_terrain_material_uniforms"):
-					world_manager._update_terrain_material_uniforms()
+			if world_manager and world_manager.has_method("_update_terrain_material_uniforms"):
+				world_manager._update_terrain_material_uniforms()
 					
 
 	if event is InputEventKey and event.pressed and event.keycode == KEY_SPACE and not event.echo:
@@ -199,8 +203,60 @@ func _unhandled_input(event):
 				auto_walk_state = AutoWalkState.NEWTON_WALK
 				var complex_pos = Config.world_to_complex(global_position.x, global_position.z)
 				newton_target_z = ComplexField.newton_step_zeta_reflection(complex_pos)
+				last_newton_idx = 0
+
 				newton_wait_timer = 0.1
+				newton_converged = false
 				Config.show_hud_zeros = true
+
+				# Pre-calculate Newton path
+				var path = PackedVector2Array()
+				var _current_z = complex_pos
+				path.append(_current_z)
+
+				var min_x = _current_z.x
+				var max_x = _current_z.x
+				var min_y = _current_z.y
+				var max_y = _current_z.y
+
+				var step_mult = 1.0
+				var loop_detected = false
+
+				for i in range(50):
+					if path.size() >= 50:
+						break
+					var next_z = ComplexField.newton_step_zeta_reflection(_current_z)
+
+					# Cycle detection: check if we are jumping back and forth
+					loop_detected = false
+					for j in range(max(0, path.size() - 4), path.size()):
+						if path[j].distance_to(next_z) < 1e-3:
+							loop_detected = true
+							break
+
+					if loop_detected:
+						step_mult *= 0.5
+						# Recalculate with smaller step
+						next_z = ComplexField.newton_step_zeta_reflection(_current_z, step_mult)
+
+					path.append(next_z)
+					min_x = min(min_x, next_z.x)
+					max_x = max(max_x, next_z.x)
+					min_y = min(min_y, next_z.y)
+					max_y = max(max_y, next_z.y)
+
+					if next_z.distance_to(_current_z) < 1e-4:
+						break
+					_current_z = next_z
+
+				# Set final target
+				newton_target_z = path[1] if path.size() > 1 else path[0]
+
+				Config.newton_path = path
+				Config.newton_path_bbox = Vector4(min_x, max_x, min_y, max_y)
+
+				if world_manager and world_manager.has_method("_update_terrain_material_uniforms"):
+					world_manager._update_terrain_material_uniforms()
 			else:
 				auto_walk_state = AutoWalkState.NONE
 		elif event.keycode == KEY_R:
@@ -353,18 +409,32 @@ func _physics_process(delta):
 			newton_wait_timer -= delta
 			direction = Vector3.ZERO
 		else:
-			if current_pos2d.distance_to(target_pos2d) > 0.1:
-				var target_dir2d = (target_pos2d - current_pos2d).normalized()
-				direction = Vector3(target_dir2d.x, 0, target_dir2d.y)
-			else:
-				# Compute next step
-				var new_target = ComplexField.newton_step_zeta_reflection(newton_target_z)
-				if new_target.distance_to(newton_target_z) < 1e-4:
-					# Converged!
+			if newton_converged:
+				if current_pos2d.distance_to(target_pos2d) <= current_speed * delta:
+					global_position.x = target_x
+					global_position.z = target_z
 					auto_walk_state = AutoWalkState.NONE
 				else:
-					newton_target_z = new_target
-					newton_wait_timer = 0.1
+					var target_dir2d = (target_pos2d - current_pos2d).normalized()
+					direction = Vector3(target_dir2d.x, 0, target_dir2d.y)
+			else:
+				if current_pos2d.distance_to(target_pos2d) > 0.1:
+					var target_dir2d = (target_pos2d - current_pos2d).normalized()
+					direction = Vector3(target_dir2d.x, 0, target_dir2d.y)
+				else:
+					# Use the pre-calculated path to progress
+					var path = Config.newton_path
+
+					# Skip first, since it was already computed in newton_target_z
+					last_newton_idx += 1
+
+					if last_newton_idx < path.size():
+						newton_target_z = path[last_newton_idx]
+					else:
+						newton_converged = true
+
+					newton_wait_timer = 0.01
+						
 	if direction != Vector3.ZERO:
 		velocity.x = direction.x * current_speed
 		velocity.z = direction.z * current_speed
