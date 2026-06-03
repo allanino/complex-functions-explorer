@@ -127,7 +127,7 @@ func _connect_preset_dirtiers():
 		main_ui.menu_overlay.fog_density_slider, main_ui.menu_overlay.hud_scale_slider, main_ui.menu_overlay.master_volume_slider, main_ui.menu_overlay.bg_music_slider,
 		main_ui.menu_overlay.drone_slider, main_ui.menu_overlay.brightness_slider, main_ui.menu_overlay.saturation_slider, main_ui.menu_overlay.albedo_slider,
 		main_ui.menu_overlay.emission_slider, main_ui.menu_overlay.metallic_slider, main_ui.menu_overlay.roughness_slider, main_ui.menu_overlay.surface_texture_slider,
-		main_ui.menu_overlay.multivalued_slider
+		main_ui.menu_overlay.multivalued_slider, main_ui.menu_overlay.camera_height_slider, main_ui.menu_overlay.speed_slider
 	]:
 		if slider and slider.has_signal("value_changed"):
 			slider.value_changed.connect(on_changed)
@@ -148,7 +148,7 @@ func _connect_preset_dirtiers():
 			ob.item_selected.connect(on_changed)
 
 	# Connect line edits
-	for le in [main_ui.menu_overlay.speed_input, main_ui.menu_overlay.camera_height_input, main_ui.menu_overlay.height_a_input, main_ui.menu_overlay.height_eps_input]:
+	for le in [main_ui.menu_overlay.height_a_input, main_ui.menu_overlay.height_eps_input]:
 		if le and le.has_signal("text_submitted"):
 			le.text_submitted.connect(on_changed)
 
