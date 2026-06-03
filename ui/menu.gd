@@ -629,7 +629,7 @@ func _on_freeze_time_toggled(pressed: bool):
 
 
 func _on_set_pos_pressed(_toggle_menu: bool = true):
-	Config.performance_protection_active = false
+	GameState.performance_protection_active = false
 	var re = float(re_input.text)
 	var im = float(im_input.text)
 	if not is_finite(re): re = 0.5
@@ -641,7 +641,7 @@ func _on_set_pos_pressed(_toggle_menu: bool = true):
 	if not is_finite(h_eps): h_eps = 1.0
 
 	if !hud_zeros_checkbox.button_pressed:
-		Config.visited_zeros.clear()
+		GameState.visited_zeros.clear()
 
 	# Apply non-slider values to Config
 	Config.height_a = h_a
@@ -731,8 +731,8 @@ func _on_set_pos_pressed(_toggle_menu: bool = true):
 		if auto_walk_checkbox.button_pressed:
 			if player.auto_walk_state == 0: # NONE
 				player.auto_walk_state = 1 # MOVING_TO_LINE
-				Config.rvm_start_t = abs(Config.world_to_complex(0.0, player.global_position.z).y)
-				Config.visited_zeros.clear()
+				GameState.rvm_start_t = abs(Config.world_to_complex(0.0, player.global_position.z).y)
+				GameState.visited_zeros.clear()
 				if "last_detected_t" in player:
 					player.last_detected_t = -1.0
 		else:
@@ -857,7 +857,7 @@ func _on_hud_navigation_toggled(pressed: bool):
 func _on_hud_zeros_toggled(pressed: bool):
 	Config.show_hud_zeros = pressed
 	if not pressed:
-		Config.visited_zeros.clear()
+		GameState.visited_zeros.clear()
 
 func _on_rvm_toggled(pressed: bool):
 	Config.show_rvm = pressed
@@ -1126,7 +1126,7 @@ func toggle_menu(applied: bool = false):
 			Config.day_duration = _initial_day_duration
 			Config.day_time = _initial_day_time
 			Config.fog_density = _initial_fog_density
-			Config.morph_value = _initial_morph_value
+			GameState.morph_value = _initial_morph_value
 			Config.terrain_detail = _initial_terrain_detail
 			Config.antialiasing_mode = _initial_antialiasing_mode
 			Config.view_distance = _initial_view_distance

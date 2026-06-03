@@ -105,7 +105,7 @@ func _process(_delta):
 	if _skip_render_hud(): return
 
 	if Config.show_hud_zeros and not _last_zeros_visible:
-		Config.rvm_start_t = abs(Config.world_to_complex(0.0, player.global_position.z).y)
+		GameState.rvm_start_t = abs(Config.world_to_complex(0.0, player.global_position.z).y)
 	_last_zeros_visible = Config.show_hud_zeros
 
 	if menu_overlay.visible:
@@ -117,7 +117,7 @@ func _process(_delta):
 			menu_overlay.day_time_slider.value = Config.day_time
 			menu_overlay.day_time_slider.value_text = menu_overlay._format_time(Config.day_time)
 
-	menu_overlay.perf_label.visible = Config.performance_protection_active
+	menu_overlay.perf_label.visible = GameState.performance_protection_active
 
 	if not player:
 		return
@@ -133,13 +133,13 @@ func _process(_delta):
 	zeros_panel.visible = Config.show_hud_zeros
 
 	if Config.show_hud_zeros:
-		var total_count = Config.total_zeros_found
+		var total_count = GameState.total_zeros_found
 		if total_count != _last_zeros_count:
 			_last_zeros_count = total_count
 			var last_zeros_text = ""
-			var current_size = Config.visited_zeros.size()
+			var current_size = GameState.visited_zeros.size()
 			for i in range(current_size - 1, -1, -1):
-				var zero = Config.visited_zeros[i]
+				var zero = GameState.visited_zeros[i]
 				last_zeros_text += "(%s, %s)\n" % [_format_float_3(zero[0]), _format_float_3(zero[1])]
 
 			if total_count > 10:
@@ -151,7 +151,7 @@ func _process(_delta):
 		# Riemann-von Mangoldt formula: N(T) ≈ (T/2π) log(T/2πe) + 7/8
 		if Config.show_rvm and f_data.get("has_von_mangoldt", false):
 			var T = abs(Config.world_to_complex(0.0, z).y)
-			var val = _get_rvm_n(T) - _get_rvm_n(Config.rvm_start_t)
+			var val = _get_rvm_n(T) - _get_rvm_n(GameState.rvm_start_t)
 			val = max(0.0, val)
 			rvm_label.text = "N(t) ≈ %.2f" % val
 			rvm_label.visible = true
@@ -165,7 +165,7 @@ func _process(_delta):
 	material.set_shader_parameter("function_type", Config.function_type)
 	material.set_shader_parameter("color_scheme", Config.color_scheme)
 	material.set_shader_parameter("scale", current_scale)
-	material.set_shader_parameter("performance_protection_active", Config.performance_protection_active)
+	material.set_shader_parameter("performance_protection_active", GameState.performance_protection_active)
 	material.set_shader_parameter("brightness", Config.terrain_brightness)
 	material.set_shader_parameter("saturation", Config.terrain_saturation)
 	material.set_shader_parameter("albedo", Config.terrain_albedo)
@@ -180,7 +180,7 @@ func _process(_delta):
 	domain_label.text = "Re = %s\nIm = %s" % [_format_float_3(val_re), _format_float_3(val_im)]
 	var target_text = "Re = %s\nIm = %s\n|f| = %s" % [_format_float_3(val_fx), _format_float_3(val_fy), _format_float_3(f.length())]
 	if f_data.get("is_multivalued", false):
-		target_text += "\nBranch k = %d" % Config.current_branch
+		target_text += "\nBranch k = %d" % GameState.current_branch
 	target_label.text = target_text
 
 	complex_panel.visible = Config.show_hud_complex

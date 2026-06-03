@@ -193,7 +193,6 @@ var rational_den_coeffs: PackedVector2Array = PackedVector2Array([Vector2(1, 0),
 var input_rational_num_coeffs: PackedVector2Array = PackedVector2Array([Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)])
 var input_rational_den_coeffs: PackedVector2Array = PackedVector2Array([Vector2(1, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)])
 var multivalued_n: int = 2
-var current_branch: int = 0 # Session state for Portals mode
 var zoom_factor: float = 1.0: set = _set_zoom_factor
 var zoom_damping: float = 0.5
 
@@ -247,24 +246,15 @@ var master_volume: float = 100.0
 var bg_music_volume: float = 100.0
 var drone_volume: float = 100.0
 
-# Session state (not saved)
-var visited_zeros: Array[Vector2] = []
-var total_zeros_found: int = 0
-var rvm_start_t: float = 0.0
-var performance_protection_active: bool = false
-var effective_zoom: float = 1.0
-var morph_value: float = 1.0
-var newton_path: PackedVector2Array = PackedVector2Array()
-var newton_path_bbox: Vector4 = Vector4(0, 0, 0, 0)
 
 func _set_zoom_factor(value: float):
 	zoom_factor = clampf(value, 0.01, 200.0)
 
 func apply_zoom_immediate():
-	effective_zoom = float(zoom_factor)
+	GameState.effective_zoom = float(zoom_factor)
 
 func get_zoom_scale() -> float:
-	return 1.0 / effective_zoom
+	return 1.0 / GameState.effective_zoom
 
 # Converts 3D world coordinates (x, z) to 2D complex plane coordinates (Re, Im), accounting for zoom.
 func world_to_complex(world_x: float, world_z: float) -> Vector2:
@@ -273,7 +263,7 @@ func world_to_complex(world_x: float, world_z: float) -> Vector2:
 
 # Converts 2D complex plane coordinates (Re, Im) to 3D world coordinates (x, z), accounting for zoom.
 func complex_to_world(complex_x: float, complex_y: float) -> Vector2:
-	return Vector2(complex_x * 10.0 * effective_zoom, -complex_y * 10.0 * effective_zoom)
+	return Vector2(complex_x * 10.0 * GameState.effective_zoom, -complex_y * 10.0 * GameState.effective_zoom)
 
 
 func _snapshot_current() -> Dictionary:

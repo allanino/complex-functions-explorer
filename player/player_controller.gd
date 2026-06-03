@@ -24,8 +24,8 @@ var _re_label_target_pos: Vector3 = Vector3.ZERO
 var _im_label_target_pos: Vector3 = Vector3.ZERO
 
 var height_offset = 0.0
-var zoom_height_scale = pow(Config.effective_zoom, Config.zoom_damping - 1.0)
-var zoom_speed_scale = pow(Config.effective_zoom, 1.0 - Config.zoom_damping)
+var zoom_height_scale = pow(GameState.effective_zoom, Config.zoom_damping - 1.0)
+var zoom_speed_scale = pow(GameState.effective_zoom, 1.0 - Config.zoom_damping)
 var last_space_time = 0.0
 var space_held_time = 0.0
 var is_resetting_height = false
@@ -165,8 +165,8 @@ func _unhandled_input(event):
 					if world_manager and world_manager.has_method("_update_terrain_material_uniforms"):
 						world_manager._update_terrain_material_uniforms()
 		elif event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
-			Config.newton_path.clear()
-			Config.newton_path_bbox = Vector4(0, 0, 0, 0)
+			GameState.newton_path.clear()
+			GameState.newton_path_bbox = Vector4(0, 0, 0, 0)
 			if Config.show_curves:
 				Config.real_level_curves_highlighted.clear()
 				Config.imag_level_curves_highlighted.clear()
@@ -192,10 +192,10 @@ func _unhandled_input(event):
 			if auto_walk_state == AutoWalkState.NONE:
 				auto_walk_state = AutoWalkState.MOVING_TO_LINE
 				# Reset zero counter when starting auto-walk
-				Config.visited_zeros.clear()
+				GameState.visited_zeros.clear()
 				last_detected_z = Vector2(0.0, 0.0)
 				Config.show_hud_zeros = true
-				Config.rvm_start_t = abs(Config.world_to_complex(0.0, global_position.z).y)
+				GameState.rvm_start_t = abs(Config.world_to_complex(0.0, global_position.z).y)
 			else:
 				auto_walk_state = AutoWalkState.NONE
 		elif event.keycode == KEY_Z:
@@ -252,8 +252,8 @@ func _unhandled_input(event):
 				# Set final target
 				newton_target_z = path[1] if path.size() > 1 else path[0]
 
-				Config.newton_path = path
-				Config.newton_path_bbox = Vector4(min_x, max_x, min_y, max_y)
+				GameState.newton_path = path
+				GameState.newton_path_bbox = Vector4(min_x, max_x, min_y, max_y)
 
 				if world_manager and world_manager.has_method("_update_terrain_material_uniforms"):
 					world_manager._update_terrain_material_uniforms()
@@ -266,7 +266,7 @@ func _unhandled_input(event):
 			auto_walk_state = AutoWalkState.NONE
 			height_offset = 0.0
 			is_resetting_height = false
-			Config.current_branch = 0
+			GameState.current_branch = 0
 			current_f = ComplexField.get_field(global_position.x, global_position.z)
 			current_mag = current_f.length()
 			
@@ -303,17 +303,17 @@ func _physics_process(delta):
 		return
 
 	# Smooth zoom interpolation
-	var old_ez = Config.effective_zoom
-	Config.effective_zoom = lerp(Config.effective_zoom, float(Config.zoom_factor), delta * 8.0)
-	if abs(Config.effective_zoom - Config.zoom_factor) < 0.001:
-		Config.effective_zoom = float(Config.zoom_factor)
+	var old_ez = GameState.effective_zoom
+	GameState.effective_zoom = lerp(GameState.effective_zoom, float(Config.zoom_factor), delta * 8.0)
+	if abs(GameState.effective_zoom - Config.zoom_factor) < 0.001:
+		GameState.effective_zoom = float(Config.zoom_factor)
 
-	if Config.effective_zoom != old_ez:
-		var zoom_ratio = Config.effective_zoom / old_ez
+	if GameState.effective_zoom != old_ez:
+		var zoom_ratio = GameState.effective_zoom / old_ez
 		global_position.x *= zoom_ratio
 		global_position.z *= zoom_ratio
-		zoom_height_scale = pow(Config.effective_zoom, Config.zoom_damping - 1.0)
-		zoom_speed_scale = pow(Config.effective_zoom, 1.0 - Config.zoom_damping)
+		zoom_height_scale = pow(GameState.effective_zoom, Config.zoom_damping - 1.0)
+		zoom_speed_scale = pow(GameState.effective_zoom, 1.0 - Config.zoom_damping)
 
 	var scaled_camera_height = Config.camera_height * zoom_height_scale
 	var scaled_movement_speed = Config.movement_speed * zoom_speed_scale
@@ -424,7 +424,7 @@ func _physics_process(delta):
 					var target_dir2d = (target_pos2d - current_pos2d).normalized()
 					direction = Vector3(target_dir2d.x, 0, target_dir2d.y)
 				else:
-					var path = Config.newton_path
+					var path = GameState.newton_path
 					last_newton_idx += 1
 					if last_newton_idx < path.size():
 						newton_target_z = path[last_newton_idx]
@@ -570,10 +570,10 @@ func _physics_process(delta):
 						true_z = z_mid.lerp(z_right, offset_fraction)
 
 					if true_z.distance_to(last_detected_z) > 0.01:
-						Config.total_zeros_found += 1
-						Config.visited_zeros.push_back(true_z)
-						if Config.visited_zeros.size() > 10:
-							Config.visited_zeros.pop_front()
+						GameState.total_zeros_found += 1
+						GameState.visited_zeros.push_back(true_z)
+						if GameState.visited_zeros.size() > 10:
+							GameState.visited_zeros.pop_front()
 						last_detected_z = true_z
 
 	move_and_slide()
@@ -613,7 +613,7 @@ func demo_actions():
 	var tween_duration = 5.0
 
 	# Phase 1: go up to 50.0 while camera slowly turns downwards
-	tween.tween_property(self , "height_offset", 50.0 * Config.effective_zoom, tween_duration)
+	tween.tween_property(self , "height_offset", 50.0 * GameState.effective_zoom, tween_duration)
 	tween.parallel().tween_property(camera, "rotation:x", -PI / 2.0, tween_duration)
 
 	# Phase 2: rotate CCW while tilting upwards to face zeta wall towards -x
@@ -621,7 +621,7 @@ func demo_actions():
 	tween.parallel().tween_property(camera, "rotation:x", 0.0, tween_duration)
 
 	# Phase 3: height decrease to 3.5 while rotating towards +x
-	tween.tween_property(self , "height_offset", 3.5 * Config.effective_zoom, tween_duration)
+	tween.tween_property(self , "height_offset", 3.5 * GameState.effective_zoom, tween_duration)
 
 	# Phase 4: walk backwards to see the trivial zero at (-2, 0)
 	tween.tween_property(camera, "rotation:x", -PI / 2.0, tween_duration * 0.6)
@@ -651,11 +651,11 @@ func demo_actions():
 
 func _start_auto_walk_from_demo():
 	auto_walk_state = AutoWalkState.MOVING_TO_LINE
-	Config.visited_zeros.clear()
+	GameState.visited_zeros.clear()
 	last_detected_z = Vector2(0.0, 0.0)
 	Config.show_hud_zeros = true
 	Config.show_critical_stripe = true
-	Config.rvm_start_t = abs(Config.world_to_complex(0.0, global_position.z).y)
+	GameState.rvm_start_t = abs(Config.world_to_complex(0.0, global_position.z).y)
 
 func _process(_delta):
 	var frame_z = Config.world_to_complex(global_position.x, global_position.z)
@@ -671,12 +671,12 @@ func _process(_delta):
 			# Portals at x >= 1.0 and x <= -1.0
 			if (last_z.y < 0.0 and frame_z.y >= 0.0) or (last_z.y > 0.0 and frame_z.y <= 0.0): # crossing the real axis
 				if frame_z.x >= 1.0:
-					var is_even = (Config.current_branch % 2 == 0)
-					Config.current_branch += 1 if is_even else -1
+					var is_even = (GameState.current_branch % 2 == 0)
+					GameState.current_branch += 1 if is_even else -1
 					branch_changed = true
 				elif frame_z.x <= -1.0:
-					var is_even = (Config.current_branch % 2 == 0)
-					Config.current_branch += -1 if is_even else 1
+					var is_even = (GameState.current_branch % 2 == 0)
+					GameState.current_branch += -1 if is_even else 1
 					branch_changed = true
 		else:
 			# Detect crossing of the negative real axis (x < 0, t=0)
@@ -685,17 +685,17 @@ func _process(_delta):
 					# Crossed from -t to +t (counter-clockwise around origin)
 					# Under negative cut, this DECREASES the branch index.
 					if Config.function_type == Config.ComplexFunc.MULTIVALUED_LOG:
-						Config.current_branch -= 1
+						GameState.current_branch -= 1
 					else:
-						Config.current_branch = (Config.current_branch + Config.multivalued_n - 1) % Config.multivalued_n
+						GameState.current_branch = (GameState.current_branch + Config.multivalued_n - 1) % Config.multivalued_n
 					branch_changed = true
 				elif last_z.y > 0.0 and frame_z.y <= 0.0:
 					# Crossed from +t to -t (clockwise around origin)
 					# Under negative cut, this INCREASES the branch index.
 					if Config.function_type == Config.ComplexFunc.MULTIVALUED_LOG:
-						Config.current_branch += 1
+						GameState.current_branch += 1
 					else:
-						Config.current_branch = (Config.current_branch + 1) % Config.multivalued_n
+						GameState.current_branch = (GameState.current_branch + 1) % Config.multivalued_n
 					branch_changed = true
 
 		if branch_changed:

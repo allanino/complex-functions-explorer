@@ -116,7 +116,7 @@ func _process(_delta):
 		portal_frame_left.visible = false
 
 	if is_portal_mode:
-		var zoom = Config.effective_zoom
+		var zoom = GameState.effective_zoom
 		var cam_h = player.global_position.y
 		var p_height = max(50.0 * zoom, cam_h + 50.0 * zoom)
 		var p_min_height = min(-50.0 * zoom, cam_h - 50.0 * zoom)

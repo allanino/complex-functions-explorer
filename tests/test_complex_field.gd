@@ -228,56 +228,56 @@ func test_get_rational():
 
 func test_multivalued_z_pow_inv_n():
 	# Save original config values to restore them later
-	var orig_current_branch = Config.current_branch
+	var orig_current_branch = GameState.current_branch
 
 	# Test 1: branch 0
-	Config.current_branch = 0
+	GameState.current_branch = 0
 	var res1 = ComplexFieldScript.multivalued_z_pow_inv_n(1.0, 0.0, 2)
 	assert_almost_eq(res1.x, 1.0, 0.0001)
 	assert_almost_eq(res1.y, 0.0, 0.0001)
 
 	# Test 2: branch 1
-	Config.current_branch = 1
+	GameState.current_branch = 1
 	var res2 = ComplexFieldScript.multivalued_z_pow_inv_n(1.0, 0.0, 2)
 	assert_almost_eq(res2.x, -1.0, 0.0001)
 	assert_almost_eq(res2.y, 0.0, 0.0001)
 
 	# Test 3: z = -1, branch 0, n = 2 -> sqrt(-1) = i
-	Config.current_branch = 0
+	GameState.current_branch = 0
 	var res3 = ComplexFieldScript.multivalued_z_pow_inv_n(-1.0, 0.0, 2)
 	assert_almost_eq(res3.x, 0.0, 0.0001)
 	assert_almost_eq(res3.y, 1.0, 0.0001)
 
 	# Restore config values
-	Config.current_branch = orig_current_branch
+	GameState.current_branch = orig_current_branch
 
 func test_multivalued_log():
 	# Save original config values to restore them later
-	var orig_current_branch = Config.current_branch
+	var orig_current_branch = GameState.current_branch
 
 	# Test 1: branch 0, z = e
-	Config.current_branch = 0
+	GameState.current_branch = 0
 	var res1 = ComplexFieldScript.multivalued_log(2.718281828459, 0.0)
 	assert_almost_eq(res1.x, 1.0, 0.0001)
 	assert_almost_eq(res1.y, 0.0, 0.0001)
 
 	# Test 2: branch 1, z = e
-	Config.current_branch = 1
+	GameState.current_branch = 1
 	var res2 = ComplexFieldScript.multivalued_log(2.718281828459, 0.0)
 	assert_almost_eq(res2.x, 1.0, 0.0001)
 	assert_almost_eq(res2.y, 2.0 * PI, 0.0001)
 
 	# Test 3: branch 2, z = e
-	Config.current_branch = 2
+	GameState.current_branch = 2
 	var res3 = ComplexFieldScript.multivalued_log(2.718281828459, 0.0)
 	assert_almost_eq(res3.x, 1.0, 0.0001)
 	assert_almost_eq(res3.y, 4.0 * PI, 0.0001)
 
 	# Restore config values
-	Config.current_branch = orig_current_branch
+	GameState.current_branch = orig_current_branch
 
 func test_multivalued_asin_exact_values():
-	var orig_branch = Config.current_branch
+	var orig_branch = GameState.current_branch
 
 	var expected_values = {
 		-2: Vector2(-4.7213, 0.9625),
@@ -288,74 +288,74 @@ func test_multivalued_asin_exact_values():
 	}
 
 	for B in expected_values.keys():
-		Config.current_branch = B
+		GameState.current_branch = B
 		var res = ComplexFieldScript.multivalued_asin(1.5, 0.01)
 		var expected = expected_values[B]
 		assert_almost_eq(res.x, expected.x, 0.005)
 		assert_almost_eq(res.y, expected.y, 0.005)
 
-	Config.current_branch = orig_branch
+	GameState.current_branch = orig_branch
 
 func test_multivalued_asin_continuity():
-	var orig_branch = Config.current_branch
+	var orig_branch = GameState.current_branch
 
 	for B in [-2, -1, 0, 1, 2]:
-		Config.current_branch = B
+		GameState.current_branch = B
 		var val_above = ComplexFieldScript.multivalued_asin(1.5, 0.01)
 
 		var B_next_pos = B + 1 if B % 2 == 0 else B - 1
-		Config.current_branch = B_next_pos
+		GameState.current_branch = B_next_pos
 		var val_below = ComplexFieldScript.multivalued_asin(1.5, -0.01)
 
 		assert_almost_eq(val_above.x, val_below.x, 0.05)
 		assert_almost_eq(val_above.y, val_below.y, 0.05)
 
 	for B in [-2, -1, 0, 1, 2]:
-		Config.current_branch = B
+		GameState.current_branch = B
 		var val_above = ComplexFieldScript.multivalued_asin(-1.5, 0.01)
 
 		var B_next_neg = B - 1 if B % 2 == 0 else B + 1
-		Config.current_branch = B_next_neg
+		GameState.current_branch = B_next_neg
 		var val_below = ComplexFieldScript.multivalued_asin(-1.5, -0.01)
 
 		assert_almost_eq(val_above.x, val_below.x, 0.05)
 		assert_almost_eq(val_above.y, val_below.y, 0.05)
 
-	Config.current_branch = orig_branch
+	GameState.current_branch = orig_branch
 
 func test_multivalued_acos_continuity():
-	var orig_branch = Config.current_branch
+	var orig_branch = GameState.current_branch
 
 	for B in [-2, -1, 0, 1, 2]:
-		Config.current_branch = B
+		GameState.current_branch = B
 		var val_above = ComplexFieldScript.multivalued_acos(1.5, 0.01)
 
 		var B_next_pos = B + 1 if B % 2 == 0 else B - 1
-		Config.current_branch = B_next_pos
+		GameState.current_branch = B_next_pos
 		var val_below = ComplexFieldScript.multivalued_acos(1.5, -0.01)
 
 		assert_almost_eq(val_above.x, val_below.x, 0.05)
 		assert_almost_eq(val_above.y, val_below.y, 0.05)
 
 	for B in [-2, -1, 0, 1, 2]:
-		Config.current_branch = B
+		GameState.current_branch = B
 		var val_above = ComplexFieldScript.multivalued_acos(-1.5, 0.01)
 
 		var B_next_neg = B - 1 if B % 2 == 0 else B + 1
-		Config.current_branch = B_next_neg
+		GameState.current_branch = B_next_neg
 		var val_below = ComplexFieldScript.multivalued_acos(-1.5, -0.01)
 
 		assert_almost_eq(val_above.x, val_below.x, 0.05)
 		assert_almost_eq(val_above.y, val_below.y, 0.05)
 
-	Config.current_branch = orig_branch
+	GameState.current_branch = orig_branch
 
 func test_get_height_from_field():
 	var orig_height_type = Config.height_type
 	var orig_height_a = Config.height_a
 	var orig_height_epsilon = Config.height_epsilon
-	var orig_morph_value = Config.morph_value
-	var orig_effective_zoom = Config.effective_zoom
+	var orig_morph_value = GameState.morph_value
+	var orig_effective_zoom = GameState.effective_zoom
 
 	# Test 1: Non-finite inputs
 	var res1 = ComplexFieldScript.get_height_from_field(Vector2(INF, 0))
@@ -368,8 +368,8 @@ func test_get_height_from_field():
 	Config.height_type = 1
 	Config.height_a = 3.0
 	Config.height_epsilon = 1.0
-	Config.morph_value = 1.0
-	Config.effective_zoom = 1.0
+	GameState.morph_value = 1.0
+	GameState.effective_zoom = 1.0
 	var f3 = Vector2(3, 4) # mag = 5
 	# log(1.0 + 5) = log(6) ~ 1.791759 * 3.0 = 5.375278
 	var expected_log = 3.0 * log(6.0)
@@ -403,8 +403,8 @@ func test_get_height_from_field():
 
 	# Test 6: Morph and zoom scaling
 	Config.height_type = 0
-	Config.morph_value = 0.5
-	Config.effective_zoom = 2.0
+	GameState.morph_value = 0.5
+	GameState.effective_zoom = 2.0
 	# s = 0.5 - 0.5 * cos(PI * 0.5) = 0.5 - 0.5 * 0 = 0.5
 	# blend = log(1.0 + 8.0 * 0.5) / log(9.0) = log(5.0) / log(9.0) ~ 0.732486
 	# height = expected_linear * blend * effective_zoom
@@ -415,8 +415,8 @@ func test_get_height_from_field():
 
 	# Test 7: Clamping height to [-1e5, 1e5]
 	Config.height_type = 2
-	Config.morph_value = 1.0
-	Config.effective_zoom = 1.0
+	GameState.morph_value = 1.0
+	GameState.effective_zoom = 1.0
 	var f_huge_neg = Vector2(0.0, -200000.0)
 	var res_clamped_neg = ComplexFieldScript.get_height_from_field(f_huge_neg)
 	assert_almost_eq(res_clamped_neg, -100000.0, 0.0001)
@@ -428,8 +428,8 @@ func test_get_height_from_field():
 	# Test 8: Projected Complex Component (height_type = 4)
 	var orig_theta = Config.height_theta
 	Config.height_type = 4
-	Config.morph_value = 1.0
-	Config.effective_zoom = 1.0
+	GameState.morph_value = 1.0
+	GameState.effective_zoom = 1.0
 	Config.height_theta = PI / 4.0
 	# f = (3, 4) -> 3 * cos(PI/4) + 4 * sin(PI/4) = 7 * sqrt(2)/2 = 4.949747
 	var res_projected = ComplexFieldScript.get_height_from_field(f3)
@@ -438,36 +438,36 @@ func test_get_height_from_field():
 
 	# Test 9: Flat (height_type = 5)
 	Config.height_type = 5
-	Config.morph_value = 1.0
-	Config.effective_zoom = 1.0
+	GameState.morph_value = 1.0
+	GameState.effective_zoom = 1.0
 	var res_flat = ComplexFieldScript.get_height_from_field(f3)
 	assert_almost_eq(res_flat, 0.0, 0.0001)
 
 	Config.height_type = orig_height_type
 	Config.height_a = orig_height_a
 	Config.height_epsilon = orig_height_epsilon
-	Config.morph_value = orig_morph_value
-	Config.effective_zoom = orig_effective_zoom
+	GameState.morph_value = orig_morph_value
+	GameState.effective_zoom = orig_effective_zoom
 
 func test_get_height():
-	var orig_perf = Config.performance_protection_active
+	var orig_perf = GameState.performance_protection_active
 	var orig_func = Config.function_type
-	var orig_zoom = Config.effective_zoom
+	var orig_zoom = GameState.effective_zoom
 	var orig_type = Config.height_type
-	var orig_morph = Config.morph_value
+	var orig_morph = GameState.morph_value
 
 	Config.set("function_type", Config.ComplexFunc.ZETA_REFLECTION)
 	Config.iterations = 2000
-	Config.effective_zoom = 1.0
+	GameState.effective_zoom = 1.0
 	Config.height_type = 0 # linear height
-	Config.morph_value = 1.0 # blend = 1.0
+	GameState.morph_value = 1.0 # blend = 1.0
 
 	# Test performance protection early exit
-	Config.performance_protection_active = true
+	GameState.performance_protection_active = true
 	var h1 = ComplexFieldScript.get_height(0.0, 0.0)
 	assert_eq(h1, 0.0)
 
-	Config.performance_protection_active = false
+	GameState.performance_protection_active = false
 
 	# world_x=1.0, world_z=0 -> x=0.1, t=0 -> zeta(0.1, 0) = -0.603038
 	# mag = 0.603038
@@ -476,8 +476,8 @@ func test_get_height():
 	var h2 = ComplexFieldScript.get_height(world_pos.x, world_pos.y)
 	assert_almost_eq(h2, 0.603038, 0.001)
 
-	Config.performance_protection_active = orig_perf
+	GameState.performance_protection_active = orig_perf
 	Config.set("function_type", orig_func)
-	Config.effective_zoom = orig_zoom
+	GameState.effective_zoom = orig_zoom
 	Config.height_type = orig_type
-	Config.morph_value = orig_morph
+	GameState.morph_value = orig_morph
