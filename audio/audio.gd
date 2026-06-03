@@ -5,6 +5,8 @@ const ZERO_PITCH_BOOST = 1.5
 const BASE_FREQUENCY = 130.8 # C3 (Standard drone)
 const REVERB_AMOUNT = 0.5
 const PHASE_PAN_STRENGTH = 1.0
+const PITCH_DEADZONE := 0.01
+const TARGET_FILL := 2048
 
 # --- SYNTHESIS STATE ---
 var playback: AudioStreamGeneratorPlayback
@@ -19,6 +21,7 @@ var target_pulse_rate: float = 0.0
 var current_pulse_rate: float = 0.0
 var audio_fm_index: float = 0.0
 var audio_pulse_presence: float = 0.0
+var last_pitch: float = 10.0
 
 # --- INTERPOLATED PARAMETERS ---
 var target_volume: float = 0.3
@@ -49,6 +52,11 @@ var lpf_effect: AudioEffectLowPassFilter
 
 var portal_sfx_player: AudioStreamPlayer
 var player: Node3D
+var math_bus_index: int = -1
+
+# --- BUFFER DEBUG ---
+var buffer_min_available := 999999
+var buffer_max_available := 0
 
 func _ready():
 	# Finding the player to sample position
@@ -148,8 +156,9 @@ func setup_audio_bus_and_effects():
 	AudioServer.add_bus_effect(bus_index, reverb_effect)
 
 	_audio_stream_player.bus = bus_name
+	math_bus_index = bus_index
 
-func _process(delta):
+func _physics_process(delta):
 	startup_time += delta
 
 	_process_audio_toggles()
@@ -219,8 +228,16 @@ func _process(delta):
 
 	# --- EFFECT MODULATION ---
 	if pitch_shift_effect:
-		var ps = clamp(1.0 + (target_harmonic_intensity * 0.02), 0.5, 2.0)
-		if is_finite(ps): pitch_shift_effect.pitch_scale = ps
+		var ps = 1.0 + current_harmonic_intensity * 0.02
+
+		if abs(ps - 1.0) < PITCH_DEADZONE:
+			ps = 1.0
+
+		ps = clamp(ps, 0.5, 2.0)
+
+		if abs(ps - last_pitch) > 0.002:
+			pitch_shift_effect.pitch_scale = ps
+			last_pitch = ps
 
 	if reverb_effect:
 		var rv = clamp(REVERB_AMOUNT + (proximity * 0.01), 0.0, 0.9)
@@ -235,9 +252,30 @@ func _process(delta):
 func fill_buffer():
 	if playback == null: return
 
-	var to_fill = playback.get_frames_available()
-	# Safety cap to prevent execution spikes
-	to_fill = min(to_fill, 4410)
+	var available = playback.get_frames_available()
+
+	buffer_min_available = min(buffer_min_available, available)
+	buffer_max_available = max(buffer_max_available, available)
+
+	# Fill only enough to keep stable occupancy
+	var to_fill = TARGET_FILL - (4096 - available)
+
+	if Engine.get_process_frames() % 600 == 0:
+		print(
+			"audio available=",
+			available,
+			" min=",
+			buffer_min_available,
+			" max=",
+			buffer_max_available,
+			" to_fill=",
+			to_fill
+		)
+
+	if to_fill <= 0:
+		return
+
+	to_fill = min(to_fill, 1024)
 
 	var startup_gain = clamp(startup_time / startup_duration, 0.0, 1.0)
 	startup_gain = startup_gain * startup_gain # smoother fade-in
@@ -254,6 +292,7 @@ func fill_buffer():
 		phase = fmod(phase + increment, 1.0)
 
 		# Modulator phase (harmonic ratio 1.0 or 2.0)
+		freq = clamp(freq, 20.0, 4000.0)
 		var mod_increment = freq * 1.0 / sample_rate
 		mod_phase = fmod(mod_phase + mod_increment, 1.0)
 
