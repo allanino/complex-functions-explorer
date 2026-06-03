@@ -19,6 +19,10 @@ uniform float chunk_size;
 uniform float real_level_curves_highlighted[10];
 uniform float imag_level_curves_highlighted[10];
 
+uniform vec2 newton_path[50];
+uniform int newton_path_size;
+uniform vec4 newton_path_bbox; // x_min, x_max, y_min, y_max
+
 uniform int color_scheme = 0;
 uniform bool show_curves = true;
 uniform bool show_critical_stripe = true;
@@ -606,6 +610,44 @@ void compute_position_marker(vec3 w_pos, inout vec3 out_albedo, inout vec3 final
 
     float d_arrows = min(d_arr_right , d_arr_upward);
     float d_marker = min(min(d_cross, d_dot), d_arrows);
+
+    // Newton path rendering
+    float d_newton = 99999.0;
+    if (newton_path_size > 0) {
+        // Expand bounding box a bit to account for line width and interpolation
+        float expand = 2.0;
+        float x_min = newton_path_bbox.x * 10.0 * zoom_factor - expand;
+        float x_max = newton_path_bbox.y * 10.0 * zoom_factor + expand;
+        float z_min = -newton_path_bbox.w * 10.0 * zoom_factor - expand;
+        float z_max = -newton_path_bbox.z * 10.0 * zoom_factor + expand;
+
+        if (pos_xz.x >= x_min && pos_xz.x <= x_max && pos_xz.y >= z_min && pos_xz.y <= z_max) {
+            for (int i = 0; i < newton_path_size - 1; i++) {
+                vec2 p1 = vec2(newton_path[i].x * 10.0 * zoom_factor, -newton_path[i].y * 10.0 * zoom_factor);
+                vec2 p2 = vec2(newton_path[i+1].x * 10.0 * zoom_factor, -newton_path[i+1].y * 10.0 * zoom_factor);
+
+                float d_seg = sdLine(pos_xz, p1, p2);
+                d_newton = min(d_newton, d_seg);
+
+                // Add an arrow pointing from p1 to p2
+                vec2 dir = normalize(p2 - p1);
+                vec2 perp = vec2(-dir.y, dir.x);
+                vec2 mid = (p1 + p2) * 0.5;
+
+                // Scale arrow size with zoom, but keep it readable
+                float path_arrow_len = 0.08 * scale;
+                float path_arrow_width = 0.04 * scale;
+
+                float d_arr = min(
+                    sdLine(pos_xz, mid + dir * path_arrow_len * 0.5, mid - dir * path_arrow_len * 0.5 + perp * path_arrow_width),
+                    sdLine(pos_xz, mid + dir * path_arrow_len * 0.5, mid - dir * path_arrow_len * 0.5 - perp * path_arrow_width)
+                );
+                d_newton = min(d_newton, d_arr);
+            }
+        }
+    }
+
+    d_marker = min(d_marker, d_newton);
 
     if (d_marker < glow_thickness) {
         // Crisp core

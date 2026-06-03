@@ -163,11 +163,13 @@ func _unhandled_input(event):
 					if world_manager and world_manager.has_method("_update_terrain_material_uniforms"):
 						world_manager._update_terrain_material_uniforms()
 		elif event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
+			Config.newton_path.clear()
+			Config.newton_path_bbox = Vector4(0, 0, 0, 0)
 			if Config.show_curves:
 				Config.real_level_curves_highlighted.clear()
 				Config.imag_level_curves_highlighted.clear()
-				if world_manager and world_manager.has_method("_update_terrain_material_uniforms"):
-					world_manager._update_terrain_material_uniforms()
+			if world_manager and world_manager.has_method("_update_terrain_material_uniforms"):
+				world_manager._update_terrain_material_uniforms()
 					
 
 	if event is InputEventKey and event.pressed and event.keycode == KEY_SPACE and not event.echo:
@@ -201,6 +203,34 @@ func _unhandled_input(event):
 				newton_target_z = ComplexField.newton_step_zeta_reflection(complex_pos)
 				newton_wait_timer = 0.1
 				Config.show_hud_zeros = true
+
+				# Pre-calculate Newton path
+				var path = PackedVector2Array()
+				var current_z = complex_pos
+				path.append(current_z)
+
+				var min_x = current_z.x
+				var max_x = current_z.x
+				var min_y = current_z.y
+				var max_y = current_z.y
+
+				for i in range(50):
+					var next_z = ComplexField.newton_step_zeta_reflection(current_z)
+					path.append(next_z)
+					min_x = min(min_x, next_z.x)
+					max_x = max(max_x, next_z.x)
+					min_y = min(min_y, next_z.y)
+					max_y = max(max_y, next_z.y)
+
+					if next_z.distance_to(current_z) < 1e-4:
+						break
+					current_z = next_z
+
+				Config.newton_path = path
+				Config.newton_path_bbox = Vector4(min_x, max_x, min_y, max_y)
+
+				if world_manager and world_manager.has_method("_update_terrain_material_uniforms"):
+					world_manager._update_terrain_material_uniforms()
 			else:
 				auto_walk_state = AutoWalkState.NONE
 		elif event.keycode == KEY_R:

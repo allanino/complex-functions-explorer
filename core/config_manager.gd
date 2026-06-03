@@ -254,6 +254,8 @@ var rvm_start_t: float = 0.0
 var performance_protection_active: bool = false
 var effective_zoom: float = 1.0
 var morph_value: float = 1.0
+var newton_path: PackedVector2Array = PackedVector2Array()
+var newton_path_bbox: Vector4 = Vector4(0, 0, 0, 0)
 
 func _set_zoom_factor(value: float):
 	zoom_factor = clampf(value, 0.01, 200.0)
