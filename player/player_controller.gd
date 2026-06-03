@@ -442,19 +442,6 @@ func _physics_process(delta):
 		velocity.x = move_toward(velocity.x, 0, current_speed)
 		velocity.z = move_toward(velocity.z, 0, current_speed)
 
-	# Calculate current terrain height using cached field
-	var terrain_h = get_terrain_height(global_position.x, global_position.z, current_f)
-
-	var is_field_valid = is_finite(current_f.x) and is_finite(current_f.y) and is_finite(current_mag)
-	if not is_field_valid or not is_finite(terrain_h):
-		terrain_h = last_valid_terrain_height
-	else:
-		last_valid_terrain_height = terrain_h
-
-	# Snap player to terrain height + offset
-	global_position.y = terrain_h + scaled_camera_height + height_offset
-
-
 	# Zeta zero detection during auto-walk
 	if Config.show_hud_zeros:
 		z_history.push_back(current_z)
