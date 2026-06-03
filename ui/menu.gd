@@ -235,12 +235,12 @@ func _ready():
 	_populate_function_dropdown(input_button, true)
 
 	height_button.clear()
-	height_button.add_item("Absolute: Abs(f)")
-	height_button.add_item("Logarithmic: a * Log(Abs(f) + ε)")
-	height_button.add_item("Imaginary component: Im(f)")
-	height_button.add_item("Real component: Re(f)")
-	height_button.add_item("Projected component: Re( e^(-iθ) * f )")
-	height_button.add_item("Flat: 0")
+	height_button.add_item("Abs(f)")
+	height_button.add_item("a * Log(Abs(f) + ε)")
+	height_button.add_item("Im(f)")
+	height_button.add_item("Re(f)")
+	height_button.add_item("Re( e^(-iθ) * f )")
+	height_button.add_item("0")
 
 	terrain_detail_button.clear()
 	terrain_detail_button.add_item("High")
