@@ -189,7 +189,7 @@ void compute_sun_moon(vec3 eye_dir, bool light0_enabled, vec3 light0_dir, vec3 l
     if (light0_enabled && light0_en > 0.0) {
         float sun_dist = distance(eye_dir, light0_dir);
         float sun_size = 0.05;
-        float sun_disk = smoothstep(sun_size * 0.5, sun_size * 0.45, sun_dist);
+        float sun_disk = 1.0 - smoothstep(sun_size * 0.45, sun_size * 0.5, sun_dist);
         // disk_intensity stays 1.0 while sun is visible to keep its size
         // Using a small threshold to avoid flickering
         float disk_intensity = smoothstep(0.0, 0.1, light0_en);
@@ -213,7 +213,7 @@ void compute_sun_moon(vec3 eye_dir, bool light0_enabled, vec3 light0_dir, vec3 l
         float moon_dist = distance(eye_dir, light1_dir);
         // Moon disk: Match sun size
         float moon_size = 0.05;
-        float moon_disk = smoothstep(moon_size * 0.5, moon_size * 0.45, moon_dist);
+        float moon_disk = 1.0 - smoothstep(moon_size * 0.45, moon_size * 0.5, moon_dist);
         float moon_disk_intensity = smoothstep(0.0, 0.1, light1_en);
         cloud_final_color += light1_col * moon_disk * moon_disk_intensity;
 
@@ -276,6 +276,7 @@ void sky() {
 
         vec3 cloud_final_color;
         bool sun_enabled = custom_sun_energy > 0.0;
+
         // Clouds
         compute_clouds(EYEDIR, eye_alt, TIME, current_cloud, final_color, sun_enabled, custom_sun_dir, custom_sun_color, cloud_final_color);
 
