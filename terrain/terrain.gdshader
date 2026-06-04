@@ -577,6 +577,62 @@ void compute_self_illumination_effect(vec3 w_pos, vec3 camera_position_world, ve
 }
 
 
+void compute_newton_path(vec3 w_pos, inout vec3 out_albedo, inout vec3 final_emission) {
+    if (newton_path_size <= 0) return;
+
+    vec2 pos_xz = w_pos.xz;
+    float scale = clamp(0.5 / zoom_factor, 0.2, 0.5) * 2.0;
+    float thickness = 0.02 * scale;
+    float glow_thickness = 0.04 * scale;
+
+    float d_newton = 99999.0;
+
+    // Expand bounding box a bit to account for line width and interpolation
+    float expand = 2.0;
+    float x_min = newton_path_bbox.x * 10.0 * zoom_factor - expand;
+    float x_max = newton_path_bbox.y * 10.0 * zoom_factor + expand;
+    float z_min = -newton_path_bbox.w * 10.0 * zoom_factor - expand;
+    float z_max = -newton_path_bbox.z * 10.0 * zoom_factor + expand;
+
+    if (pos_xz.x >= x_min && pos_xz.x <= x_max && pos_xz.y >= z_min && pos_xz.y <= z_max) {
+        for (int i = 0; i < newton_path_size - 1; i++) {
+            vec2 p1 = vec2(newton_path[i].x * 10.0 * zoom_factor, -newton_path[i].y * 10.0 * zoom_factor);
+            vec2 p2 = vec2(newton_path[i+1].x * 10.0 * zoom_factor, -newton_path[i+1].y * 10.0 * zoom_factor);
+
+            float d_seg = sdLine(pos_xz, p1, p2);
+            d_newton = min(d_newton, d_seg);
+
+            // Add an arrow pointing from p1 to p2
+            vec2 dir = normalize(p2 - p1);
+            vec2 perp = vec2(-dir.y, dir.x);
+            vec2 mid = (p1 + p2) * 0.5;
+
+            // Scale arrow size with zoom, but keep it readable
+            float path_arrow_len = 0.16 * scale;
+            float path_arrow_width = 0.08 * scale;
+
+            float d_arr = min(
+                sdLine(pos_xz, mid + dir * path_arrow_len * 0.5, mid - dir * path_arrow_len * 0.5 + perp * path_arrow_width),
+                sdLine(pos_xz, mid + dir * path_arrow_len * 0.5, mid - dir * path_arrow_len * 0.5 - perp * path_arrow_width)
+            );
+            d_newton = min(d_newton, d_arr);
+        }
+    }
+
+    if (d_newton < glow_thickness) {
+        // Crisp core
+        float core = 1.0 - step(thickness, d_newton);
+        // Slight glow
+        float glow = (1.0 - smoothstep(thickness, glow_thickness, d_newton)) * 0.5;
+
+        vec3 marker_color = vec3(0.4);
+        float intensity = core + glow;
+
+        out_albedo = mix(out_albedo, marker_color, clamp(intensity, 0.0, 1.0));
+        final_emission += marker_color * intensity * 2.0; // Glow emission
+    }
+}
+
 void compute_position_marker(vec3 w_pos, inout vec3 out_albedo, inout vec3 final_emission) {
     vec2 player_xz = player_position_world.xz;
     vec2 pos_xz = w_pos.xz;
@@ -611,44 +667,6 @@ void compute_position_marker(vec3 w_pos, inout vec3 out_albedo, inout vec3 final
 
     float d_arrows = min(d_arr_right , d_arr_upward);
     float d_marker = min(min(d_cross, d_dot), d_arrows);
-
-    // Newton path rendering
-    float d_newton = 99999.0;
-    if (newton_path_size > 0) {
-        // Expand bounding box a bit to account for line width and interpolation
-        float expand = 2.0;
-        float x_min = newton_path_bbox.x * 10.0 * zoom_factor - expand;
-        float x_max = newton_path_bbox.y * 10.0 * zoom_factor + expand;
-        float z_min = -newton_path_bbox.w * 10.0 * zoom_factor - expand;
-        float z_max = -newton_path_bbox.z * 10.0 * zoom_factor + expand;
-
-        if (pos_xz.x >= x_min && pos_xz.x <= x_max && pos_xz.y >= z_min && pos_xz.y <= z_max) {
-            for (int i = 0; i < newton_path_size - 1; i++) {
-                vec2 p1 = vec2(newton_path[i].x * 10.0 * zoom_factor, -newton_path[i].y * 10.0 * zoom_factor);
-                vec2 p2 = vec2(newton_path[i+1].x * 10.0 * zoom_factor, -newton_path[i+1].y * 10.0 * zoom_factor);
-
-                float d_seg = sdLine(pos_xz, p1, p2);
-                d_newton = min(d_newton, d_seg);
-
-                // Add an arrow pointing from p1 to p2
-                vec2 dir = normalize(p2 - p1);
-                vec2 perp = vec2(-dir.y, dir.x);
-                vec2 mid = (p1 + p2) * 0.5;
-
-                // Scale arrow size with zoom, but keep it readable
-                float path_arrow_len = 0.16 * scale;
-                float path_arrow_width = 0.08 * scale;
-
-                float d_arr = min(
-                    sdLine(pos_xz, mid + dir * path_arrow_len * 0.5, mid - dir * path_arrow_len * 0.5 + perp * path_arrow_width),
-                    sdLine(pos_xz, mid + dir * path_arrow_len * 0.5, mid - dir * path_arrow_len * 0.5 - perp * path_arrow_width)
-                );
-                d_newton = min(d_newton, d_arr);
-            }
-        }
-    }
-
-    d_marker = min(d_marker, d_newton);
 
     if (d_marker < glow_thickness) {
         // Crisp core
@@ -818,6 +836,8 @@ void fragment() {
         if (show_position_marker) {
             compute_position_marker(world_pos, ALBEDO, final_emission);
         }
+
+        compute_newton_path(world_pos, ALBEDO, final_emission);
 
         // Reinhard Tone Mapping to keep high emissions from blowing out to absolute white
         final_emission = final_emission / (final_emission + vec3(1.0));
