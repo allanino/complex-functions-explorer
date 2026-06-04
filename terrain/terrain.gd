@@ -21,7 +21,7 @@ func _ready():
 	Config.config_changed.connect(_on_config_changed)
 	GameState.state_changed.connect(_on_state_changed)
 	_update_lod_subs()
-	_initialize_all_terrain_material_uniforms()
+	_update_all_terrain_material_uniforms()
 	# Uncomment this to debug the mesh wireframe
 	# get_viewport().debug_draw = Viewport.DEBUG_DRAW_WIREFRAME
 
@@ -57,7 +57,7 @@ func _process(delta):
 
 
 	# Chunk and LOD Dynamic Update
-	if player_chunk_x != _last_player_chunk.x or player_chunk_z != _last_player_chunk.y :
+	if player_chunk_x != _last_player_chunk.x or player_chunk_z != _last_player_chunk.y:
 		_update_chunks(player_chunk_x, player_chunk_z)
 
 
@@ -136,7 +136,7 @@ func _apply_performance_protection(active: bool):
 	if audio and audio.has_method("set_performance_protection"):
 		audio.set_performance_protection(active)
 
-func _initialize_all_terrain_material_uniforms():
+func _update_all_terrain_material_uniforms():
 	var init_keys = [
 		"function_type",
 		"iterations", "show_curves", "show_critical_stripe", "show_flow",

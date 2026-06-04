@@ -150,8 +150,8 @@ func _unhandled_input(event):
 						if Config.real_level_curves_highlighted.size() > 10:
 							Config.real_level_curves_highlighted.pop_front()
 					# Set shader parameter to highlight this curve
-					if world_manager and world_manager.has_method("_update_terrain_material_uniforms"):
-						world_manager._update_terrain_material_uniforms()
+					if world_manager and world_manager.has_method("_update_all_terrain_material_uniforms"):
+						world_manager._update_all_terrain_material_uniforms()
 
 				var closest_curve_imag = round(current_f.y)
 				if abs(current_f.y - closest_curve_imag) < 0.1:
@@ -162,16 +162,16 @@ func _unhandled_input(event):
 						if Config.imag_level_curves_highlighted.size() > 10:
 							Config.imag_level_curves_highlighted.pop_front()
 					# Set shader parameter to highlight this curve
-					if world_manager and world_manager.has_method("_update_terrain_material_uniforms"):
-						world_manager._update_terrain_material_uniforms()
+					if world_manager and world_manager.has_method("_update_all_terrain_material_uniforms"):
+						world_manager._update_all_terrain_material_uniforms()
 		elif event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
 			GameState.newton_path.clear()
 			GameState.newton_path_bbox = Vector4(0, 0, 0, 0)
 			if Config.show_curves:
 				Config.real_level_curves_highlighted.clear()
 				Config.imag_level_curves_highlighted.clear()
-			if world_manager and world_manager.has_method("_update_terrain_material_uniforms"):
-				world_manager._update_terrain_material_uniforms()
+			if world_manager and world_manager.has_method("_update_all_terrain_material_uniforms"):
+				world_manager._update_all_terrain_material_uniforms()
 					
 
 	if event is InputEventKey and event.pressed and event.keycode == KEY_SPACE and not event.echo:
@@ -255,8 +255,8 @@ func _unhandled_input(event):
 				GameState.newton_path = path
 				GameState.newton_path_bbox = Vector4(min_x, max_x, min_y, max_y)
 
-				if world_manager and world_manager.has_method("_update_terrain_material_uniforms"):
-					world_manager._update_terrain_material_uniforms()
+				if world_manager and world_manager.has_method("_update_all_terrain_material_uniforms"):
+					world_manager._update_all_terrain_material_uniforms()
 			else:
 				auto_walk_state = AutoWalkState.NONE
 		elif event.keycode == KEY_R:
@@ -271,8 +271,8 @@ func _unhandled_input(event):
 			current_mag = current_f.length()
 			
 			# Immediately update the shader's branch uniform
-			if world_manager and world_manager.has_method("_update_terrain_material_uniforms"):
-				world_manager._update_terrain_material_uniforms()
+			if world_manager and world_manager.has_method("_update_all_terrain_material_uniforms"):
+				world_manager._update_all_terrain_material_uniforms()
 
 func get_terrain_height(x: float, z: float, field_val: Vector2 = Vector2.INF) -> float:
 	if field_val != Vector2.INF:
@@ -710,8 +710,8 @@ func _process(_delta):
 				main_ui.play_portal_flash()
 
 			# Immediately update the shader's branch uniform to prevent 1-frame rendering lag
-			if world_manager and world_manager.has_method("_update_terrain_material_uniforms"):
-				world_manager._update_terrain_material_uniforms()
+			if world_manager and world_manager.has_method("_update_all_terrain_material_uniforms"):
+				world_manager._update_all_terrain_material_uniforms()
 
 	last_z = frame_z
 
