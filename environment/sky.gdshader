@@ -8,6 +8,14 @@ uniform float night_factor = 0.0;
 uniform float sky_luminosity = 1.0;
 uniform bool performance_protection_active = false;
 
+uniform vec3 custom_sun_dir = vec3(0.0, -1.0, 0.0);
+uniform vec3 custom_sun_color = vec3(1.0, 1.0, 1.0);
+uniform float custom_sun_energy = 1.0;
+
+uniform vec3 custom_moon_dir = vec3(0.0, 1.0, 0.0);
+uniform vec3 custom_moon_color = vec3(1.0, 1.0, 1.0);
+uniform float custom_moon_energy = 1.0;
+
 // Dave Hoskins' hash (2D to 1D)
 float hash(vec2 p) {
     vec3 p3 = fract(vec3(p.xyx) * 0.1031);
@@ -267,14 +275,15 @@ void sky() {
         compute_stars(EYEDIR, eye_alt, night_factor, TIME, final_color);
 
         vec3 cloud_final_color;
+        bool sun_enabled = custom_sun_energy > 0.0;
         // Clouds
-        compute_clouds(EYEDIR, eye_alt, TIME, current_cloud, final_color, LIGHT0_ENABLED, LIGHT0_DIRECTION, LIGHT0_COLOR, cloud_final_color);
+        compute_clouds(EYEDIR, eye_alt, TIME, current_cloud, final_color, sun_enabled, custom_sun_dir, custom_sun_color, cloud_final_color);
 
         // Sun & Moon
-        compute_sun_moon(EYEDIR, LIGHT0_ENABLED, LIGHT0_DIRECTION, LIGHT0_COLOR, LIGHT0_ENERGY, LIGHT1_DIRECTION, LIGHT1_COLOR, LIGHT1_ENERGY, cloud_final_color);
+        compute_sun_moon(EYEDIR, sun_enabled, custom_sun_dir, custom_sun_color, custom_sun_energy, custom_moon_dir, custom_moon_color, custom_moon_energy, cloud_final_color);
 
         // Haze
-        compute_haze(EYEDIR, night_factor, golden_hour_factor, LIGHT0_ENABLED, LIGHT0_DIRECTION, LIGHT0_COLOR, cloud_final_color);
+        compute_haze(EYEDIR, night_factor, golden_hour_factor, sun_enabled, custom_sun_dir, custom_sun_color, cloud_final_color);
 
         COLOR = cloud_final_color * sky_luminosity;
     }
