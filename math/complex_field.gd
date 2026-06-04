@@ -119,7 +119,7 @@ static func dirichlet_eta(x: float, y: float, iterations: int) -> Vector2:
 		var next_n = float(actual_iters + 1)
 		var rem_amp = 0.5 * pow(next_n, -x)
 		var rem_theta = -y * log(next_n)
-		var rem_sign = 1.0 if (actual_iters % 2 == 0) else -1.0
+		var rem_sign = 1.0
 		eta += rem_sign * rem_amp * Vector2(cos(rem_theta), sin(rem_theta))
 
 	return eta
@@ -235,7 +235,7 @@ static func dirichlet_eta_with_derivatives(x: float, y: float, iterations: int) 
 		var rem_amp = 0.5 * pow(next_n, -x)
 		var rem_log_n = log(next_n)
 		var rem_theta = -y * rem_log_n
-		var rem_sign = 1.0 if (actual_iters % 2 == 0) else -1.0
+		var rem_sign = 1.0
 		var rem_term = rem_sign * rem_amp * Vector2(cos(rem_theta), sin(rem_theta))
 
 		eta += rem_term

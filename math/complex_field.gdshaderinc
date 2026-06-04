@@ -370,7 +370,7 @@ ComplexFieldData dirichlet_eta_with_derivatives(float x, float y, int iters) {
         float rem_log_n = log(next_n);
         float rem_theta = -y * rem_log_n;
 
-        float rem_sign = (mod(float(actual_iters), 2.0) < 0.5) ? 1.0 : -1.0;
+        float rem_sign = 1.0;
 
         vec2 rem_term = rem_sign * rem_amp * vec2(cos(rem_theta), sin(rem_theta));
 
