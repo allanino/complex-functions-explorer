@@ -139,7 +139,21 @@ func _apply_performance_protection(active: bool):
 	if audio and audio.has_method("set_performance_protection"):
 		audio.set_performance_protection(active)
 
-func _update_terrain_material_uniforms():
+func _update_terrain_material_uniforms(key: String = ""):
+	if not terrain_material:
+		return
+
+	if key != "" and key != "function_type":
+		var mapped_key = key
+		if key.begins_with("terrain_"):
+			mapped_key = key.replace("terrain_", "")
+		if mapped_key in ["iterations", "show_curves", "show_critical_stripe", "show_flow", "show_position_marker", "color_scheme", "input_function_type", "height_type", "height_a", "height_epsilon", "height_theta", "zoom_factor", "rational_num_coeffs", "rational_den_coeffs", "input_rational_num_coeffs", "input_rational_den_coeffs", "multivalued_n", "self_illumination", "fog_density", "brightness", "saturation", "albedo", "emission", "metallic", "roughness", "surface_texture"]:
+			terrain_material.set_shader_parameter(mapped_key, Config.get(key))
+			return
+		if key in ["performance_protection_active", "current_branch", "morph_value"]:
+			terrain_material.set_shader_parameter(key, GameState.get(key))
+			return
+
 	if not terrain_material:
 		return
 
@@ -294,7 +308,7 @@ func _unload_chunk(coord: Vector2i):
 
 func _on_config_changed(key: String):
 	if key in ["iterations", "terrain_detail", "view_distance", "show_curves", "show_critical_stripe", "show_flow", "show_position_marker", "color_scheme", "function_type", "height_type", "height_a", "height_epsilon", "rational_num_coeffs", "rational_den_coeffs", "input_rational_num_coeffs", "input_rational_den_coeffs", "multivalued_n", "self_illumination", "terrain_brightness", "terrain_saturation", "terrain_albedo", "terrain_emission", "terrain_metallic", "terrain_roughness", "terrain_surface_texture", "morph_value"]:
-		_update_terrain_material_uniforms()
+		_update_terrain_material_uniforms(key)
 		if key == "terrain_detail":
 			_update_lod_subs()
 			_lod_mesh_cache.clear()
@@ -304,4 +318,4 @@ func _on_config_changed(key: String):
 
 func _on_state_changed(key: String):
 	if key in ["current_branch", "morph_value", "newton_path", "newton_path_bbox"]:
-		_update_terrain_material_uniforms()
+		_update_terrain_material_uniforms(key)
