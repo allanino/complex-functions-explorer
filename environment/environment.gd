@@ -8,6 +8,25 @@ extends Node3D
 var _golden_hour_transition: float = 0.0
 var _sun_color = Color("#fc9500")
 
+func _ready():
+	Config.config_changed.connect(_on_config_changed)
+	if world_environment and world_environment.environment:
+		world_environment.environment.fog_mode = Environment.FOG_MODE_EXPONENTIAL
+	_update_fog_settings()
+
+func _on_config_changed(key: String):
+	if key == "fog_density":
+		_update_fog_settings()
+
+func _update_fog_settings():
+	if world_environment and world_environment.environment:
+		var env = world_environment.environment
+		var enabled = Config.fog_density > 0.0
+		env.fog_enabled = enabled
+		if enabled:
+			env.fog_density = Config.fog_density * 0.05
+			env.fog_aerial_perspective = (1.0 - Config.fog_density)
+
 func _process(delta):
 	# Environment logic
 	var night_factor = 0.0
@@ -59,17 +78,12 @@ func _process(delta):
 			sky_mat.set_shader_parameter("night_factor", night_factor)
 			sky_mat.set_shader_parameter("sky_luminosity", Config.sky_luminosity)
 
-		# Setup fog	
-		var env = world_environment.environment
-	
-		var fog_color = lerp(Color(0.3, 0.4, 0.5), Color(1.0, 0.4, 0.1), _golden_hour_transition)
-		fog_color = lerp(fog_color, Color(0.01, 0.02, 0.05), night_factor)
-
-		env.fog_enabled = Config.fog_density > 0.0
-		env.fog_mode = Environment.FOG_MODE_EXPONENTIAL
-		env.fog_light_color = fog_color
-		env.fog_density = Config.fog_density * 0.05
-		env.fog_aerial_perspective = (1.0 - Config.fog_density)
+		# Setup fog color
+		if Config.fog_density > 0.0:
+			var env = world_environment.environment
+			var fog_color = lerp(Color(0.3, 0.4, 0.5), Color(1.0, 0.4, 0.1), _golden_hour_transition)
+			fog_color = lerp(fog_color, Color(0.01, 0.02, 0.05), night_factor)
+			env.fog_light_color = fog_color
 
 func set_performance_protection(active: bool):
 	if world_environment and world_environment.environment and world_environment.environment.sky:
