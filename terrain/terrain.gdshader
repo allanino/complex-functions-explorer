@@ -581,7 +581,7 @@ void compute_newton_path(vec3 w_pos, inout vec3 out_albedo, inout vec3 final_emi
     if (newton_path_size <= 0) return;
 
     vec2 pos_xz = w_pos.xz;
-    float scale = clamp(0.4 / zoom_factor, 0.2, 0.7) * 1.5;
+    float scale = clamp(0.5 / zoom_factor, 0.2, 0.5) * 2.0;
     float thickness = 0.02 * scale;
     float glow_thickness = 0.04 * scale;
 
