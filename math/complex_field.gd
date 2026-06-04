@@ -98,6 +98,7 @@ const LOG_PI = 1.1447298858494002
 static func dirichlet_eta(x: float, y: float, iterations: int) -> Vector2:
 	if iterations <= 0: return Vector2.ZERO
 	var eta = Vector2.ZERO
+	var actual_iters = 0
 	for n in range(1, iterations + 1, 2):
 		var nf = float(n)
 		var amp = pow(nf, -x)
@@ -110,7 +111,17 @@ static func dirichlet_eta(x: float, y: float, iterations: int) -> Vector2:
 		var theta2 = -y * log(nf2)
 		eta -= amp2 * Vector2(cos(theta2), sin(theta2))
 
+		actual_iters = n + 1
+
 		if (amp < 1e-4 || amp2 < 1e-4 || amp > 1e4 || amp2 > 1e4): break
+
+	if actual_iters > 0:
+		var next_n = float(actual_iters + 1)
+		var rem_amp = 0.5 * pow(next_n, -x)
+		var rem_theta = -y * log(next_n)
+		var rem_sign = 1.0 if (actual_iters % 2 == 0) else -1.0
+		eta += rem_sign * rem_amp * Vector2(cos(rem_theta), sin(rem_theta))
+
 	return eta
 
 static func dirichlet_beta(x: float, y: float, iterations: int) -> Vector2:
@@ -197,6 +208,7 @@ static func dirichlet_eta_with_derivatives(x: float, y: float, iterations: int) 
 	if iterations <= 0: return [Vector2.ZERO, Vector2.ZERO]
 	var eta = Vector2.ZERO
 	var deta_dx = Vector2.ZERO
+	var actual_iters = 0
 	for n in range(1, iterations + 1, 2):
 		var nf = float(n)
 		var amp = pow(nf, -x)
@@ -214,7 +226,21 @@ static func dirichlet_eta_with_derivatives(x: float, y: float, iterations: int) 
 		eta -= term2
 		deta_dx += log_n2 * term2
 
+		actual_iters = n + 1
+
 		if (amp < 1e-4 || amp2 < 1e-4 || amp > 1e4 || amp2 > 1e4): break
+
+	if actual_iters > 0:
+		var next_n = float(actual_iters + 1)
+		var rem_amp = 0.5 * pow(next_n, -x)
+		var rem_log_n = log(next_n)
+		var rem_theta = -y * rem_log_n
+		var rem_sign = 1.0 if (actual_iters % 2 == 0) else -1.0
+		var rem_term = rem_sign * rem_amp * Vector2(cos(rem_theta), sin(rem_theta))
+
+		eta += rem_term
+		deta_dx -= rem_log_n * rem_term
+
 	return [eta, deta_dx]
 
 static func zeta_with_derivatives(x: float, y: float) -> Array:

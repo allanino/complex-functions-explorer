@@ -337,6 +337,7 @@ vec2 complex_log_sin(float x, float y) {
 ComplexFieldData dirichlet_eta_with_derivatives(float x, float y, int iters) {
     vec2 eta = vec2(0.0);
     vec2 deta_dx = vec2(0.0);
+    int actual_iters = 0;
     for (int n = 1; n <= iters; n += 2) {
         float nf = float(n);
         float amp = pow(nf, -x);
@@ -354,11 +355,29 @@ ComplexFieldData dirichlet_eta_with_derivatives(float x, float y, int iters) {
         eta -= term2;
         deta_dx += log_n2 * term2;
         
+        actual_iters = n + 1;
+
         // We are basically clamping the flat planice x > 1 restricting amp < 1e-4
         // and also preventing overflow when x is very negative by clamping amp > 1e4
         // This improves performance greatly on the acutally interesting region around the critical strip
         if (amp < 1e-4 || amp2 < 1e-4 || amp > 1e4 || amp2 > 1e4) break;
     }
+
+    if (actual_iters > 0) {
+        float next_n = float(actual_iters + 1);
+
+        float rem_amp = 0.5 * pow(next_n, -x);
+        float rem_log_n = log(next_n);
+        float rem_theta = -y * rem_log_n;
+
+        float rem_sign = (mod(float(actual_iters), 2.0) < 0.5) ? 1.0 : -1.0;
+
+        vec2 rem_term = rem_sign * rem_amp * vec2(cos(rem_theta), sin(rem_theta));
+
+        eta += rem_term;
+        deta_dx -= rem_log_n * rem_term;
+    }
+
     ComplexFieldData result;
     result.value = eta;
     result.dx = deta_dx;
