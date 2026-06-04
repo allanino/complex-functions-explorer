@@ -278,7 +278,7 @@ static func zeta_with_derivatives(x: float, y: float) -> Array:
 
 	var num_x = complex_mul(deta_dx, safe_denom) - complex_mul(eta, ddenom_dx)
 	var dx_normal = complex_div(complex_div(num_x, safe_denom), safe_denom)
-	var dx_lhopital = Vector2.ZERO
+	var dx_lhopital = zeta_lhopital * (LOG_2 * 0.5)
 	var dx = dx_lhopital.lerp(dx_normal, alpha)
 
 	return [value, dx]

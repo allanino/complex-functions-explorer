@@ -439,7 +439,7 @@ ComplexFieldData zeta_with_derivatives(float x, float y, int iters) {
 
     vec2 num_x = complex_mul(deta_dx, safe_denom) - complex_mul(eta, ddenom_dx);
     vec2 dx_normal = complex_div(complex_div(num_x, safe_denom), safe_denom);
-    vec2 dx_lhopital = vec2(0.0);
+    vec2 dx_lhopital = complex_mul(zeta_lhopital, vec2(LOG_2 * 0.5, 0.0));
     result.dx = mix(dx_lhopital, dx_normal, alpha);
     result.dy = vec2(-result.dx.y, result.dx.x);
     return result;
