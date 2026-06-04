@@ -3,7 +3,14 @@ extends Node
 signal config_changed(key: String)
 
 func _set_config(field_name: String, value: Variant):
-	if get(field_name) == value:
+	var current = get(field_name)
+	if typeof(current) == TYPE_ARRAY or typeof(current) >= TYPE_PACKED_BYTE_ARRAY and typeof(current) <= TYPE_PACKED_COLOR_ARRAY:
+		# Just set it to be safe since deep array equality checks can be tricky if they are the same reference
+		set(field_name, value)
+		config_changed.emit(field_name)
+		return
+
+	if current == value:
 		return
 	set(field_name, value)
 	config_changed.emit(field_name)
@@ -217,7 +224,7 @@ var show_position_marker: bool = true: set(v): _set_config("show_position_marker
 var color_scheme: int = 0: set(v): _set_config("color_scheme", v)
 var freeze_time: bool = false
 var day_duration: float = 60.0 # Seconds for a full cycle
-var day_time: float = 43200.0 # Current time in seconds (Noon = 12h = 43200s): set(v): _set_config("day_time", v)
+var day_time: float = 43200.0: set(v): _set_config("day_time", v) # Current time in seconds (Noon = 12h = 43200s)
 var sunrise_direction: float = 0.0
 var sky_luminosity: float = 1.0
 var sun_luminosity: float = 1.0

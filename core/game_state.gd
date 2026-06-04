@@ -3,7 +3,13 @@ extends Node
 signal state_changed(key: String)
 
 func _set_state(field_name: String, value: Variant):
-	if get(field_name) == value:
+	var current = get(field_name)
+	if typeof(current) == TYPE_ARRAY or typeof(current) >= TYPE_PACKED_BYTE_ARRAY and typeof(current) <= TYPE_PACKED_COLOR_ARRAY:
+		set(field_name, value)
+		state_changed.emit(field_name)
+		return
+
+	if current == value:
 		return
 	set(field_name, value)
 	state_changed.emit(field_name)

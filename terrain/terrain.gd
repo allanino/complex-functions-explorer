@@ -310,7 +310,8 @@ func _on_config_changed(key: String):
 			_lod_mesh_cache.clear()
 			_update_all_chunks_lod(true)
 		if key == "view_distance" or key == "terrain_detail" or key == "function_type":
-			_update_chunks(floor(player.global_position.x / chunk_size), floor(player.global_position.z / chunk_size))
+			if player:
+				_update_chunks(floor(player.global_position.x / chunk_size), floor(player.global_position.z / chunk_size))
 
 func _on_state_changed(key: String):
 	if key in ["current_branch", "morph_value", "newton_path", "newton_path_bbox"]:
