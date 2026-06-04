@@ -3,7 +3,7 @@ extends Node3D
 @export var terrain_chunk_scene: PackedScene = preload("res://terrain/terrain_chunk.tscn")
 @export var terrain_material: ShaderMaterial
 @export var player: Node3D
-@export var chunk_size: float = 32.0
+@export var chunk_size: float = 16.0
 
 var chunks = {}
 var chunk_leeway = 0.01
@@ -91,11 +91,11 @@ func _update_all_chunks_lod(force: bool = false):
 func _update_lod_subs():
 	match Config.terrain_detail:
 		0: # High
-			LOD_SUBS = [255, 255, 127, 127, 127]
+			LOD_SUBS = [255, 255, 127, 127, 127, 63, 31]
 		1: # Medium
-			LOD_SUBS = [127, 63, 31, 15, 7]
+			LOD_SUBS = [127, 63, 31, 15, 7, 3, 1]
 		2: # Low
-			LOD_SUBS = [63, 31, 15, 7, 3]
+			LOD_SUBS = [63, 31, 15, 7, 3, 1, 1]
 
 func _get_lod_level(coord: Vector2i, player_coord: Vector2i) -> int:
 	var dx = abs(coord.x - player_coord.x)
@@ -106,12 +106,16 @@ func _get_lod_level(coord: Vector2i, player_coord: Vector2i) -> int:
 		return 0
 	elif dist <= 4:
 		return 1
-	elif dist <= 6:
-		return 2
 	elif dist <= 8:
+		return 2
+	elif dist <= 16:
 		return 3
-	else:
+	elif dist <= 24:
 		return 4
+	elif dist <= 48:
+		return 5
+	else:
+		return 6
 
 func _create_lod_mesh(size: float, subdivisions: int) -> Mesh:
 	var plane = PlaneMesh.new()
@@ -274,7 +278,7 @@ func _load_chunk(coord: Vector2i):
 	)
 
 	chunk.custom_aabb = AABB(
-		Vector3(-(chunk_size + chunk_leeway) * 0.5, -50, -(chunk_size + chunk_leeway) * 0.5),
+		Vector3(- (chunk_size + chunk_leeway) * 0.5, -50, - (chunk_size + chunk_leeway) * 0.5),
 		Vector3(chunk_size + chunk_leeway, 1000, chunk_size + chunk_leeway)
 	)
 
