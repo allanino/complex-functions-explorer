@@ -334,7 +334,7 @@ vec2 complex_log_sin(float x, float y) {
 // Component Functions: Zeta, Gamma, Dedekind Eta
 //-------------------------------------------------------------------------
 
-ComplexFieldData dirichlet_eta_with_derivatives(float x, float y, int iters, float min_amp, float max_amp) {
+ComplexFieldData dirichlet_eta_with_derivatives(float x, float y, int iters) {
     vec2 eta = vec2(0.0);
     vec2 deta_dx = vec2(0.0);
     int actual_iters = 0;
@@ -357,13 +357,13 @@ ComplexFieldData dirichlet_eta_with_derivatives(float x, float y, int iters, flo
         
         actual_iters = n + 1;
 
-        // We are basically clamping the flat planice x > 1 restricting amp < min_amp
-        // and also preventing overflow when x is very negative by clamping amp > max_amp
+        // We are basically clamping the flat planice x > 1 restricting amp < 1e-4
+        // and also preventing overflow when x is very negative by clamping amp > 1e4
         // This improves performance greatly on the acutally interesting region around the critical strip
-        if (amp < min_amp || amp2 < min_amp || amp > max_amp || amp2 > max_amp) break;
+        if (amp < 1e-4 || amp2 < 1e-4 || amp > 1e4 || amp2 > 1e4) break;
     }
 
-    if (actual_iters > 0) {
+    if (actual_iters > 0 && x >= 0.5) {
         float next_n = float(actual_iters + 1);
 
         float rem_amp = 0.5 * pow(next_n, -x);
@@ -405,7 +405,7 @@ ComplexFieldData dirichlet_beta_with_derivatives(float x, float y, int iters) {
         beta -= term2;
         dbeta_dx += log_k2 * term2;
 
-       if (amp < 1e-8 || amp2 < 1e-8 || amp > 1e8 || amp2 > 1e8) break;
+       if (amp < 1e-4 || amp2 < 1e-4 || amp > 1e4 || amp2 > 1e4) break;
     }
     ComplexFieldData result;
     result.value = beta;
@@ -414,8 +414,8 @@ ComplexFieldData dirichlet_beta_with_derivatives(float x, float y, int iters) {
     return result;
 }
 
-ComplexFieldData zeta_with_derivatives(float x, float y, int iters, float min_amp, float max_amp) {
-    ComplexFieldData eta_data = dirichlet_eta_with_derivatives(x, y, iters, min_amp, max_amp);
+ComplexFieldData zeta_with_derivatives(float x, float y, int iters) {
+    ComplexFieldData eta_data = dirichlet_eta_with_derivatives(x, y, iters);
     vec2 eta = eta_data.value;
     vec2 deta_dx = eta_data.dx;
 
@@ -592,7 +592,7 @@ ComplexFieldData mandelbrot_with_derivatives(float x, float y, int iters) {
 
 ComplexFieldData log_zeta_continuation_with_derivatives(float x, float y, int iters) {
     if (x >= 0.5) {
-        ComplexFieldData z = zeta_with_derivatives(x, y, iters, 1e-4, 1e4);
+        ComplexFieldData z = zeta_with_derivatives(x, y, iters);
         ComplexFieldData res;
         res.value = complex_log(z.value.x, z.value.y);
         res.dx = complex_div(z.dx, z.value);
@@ -624,7 +624,7 @@ ComplexFieldData log_zeta_continuation_with_derivatives(float x, float y, int it
     ratio -= lg_data.dx; // d/ds log Gamma(1-s) = -psi(1-s)
 
     // 4. Bring in the reflected Zeta
-    ComplexFieldData z_data = zeta_with_derivatives(s1.x, s1.y, iters, 1e-4, 1e4);
+    ComplexFieldData z_data = zeta_with_derivatives(s1.x, s1.y, iters);
     log_sum += complex_log(z_data.value.x, z_data.value.y);
     ratio -= complex_div(z_data.dx, z_data.value); // d/ds log zeta(1-s) = -zeta'(1-s)/zeta(1-s)
 
@@ -974,9 +974,9 @@ ComplexFieldData multivalued_acos_with_derivatives(float x, float y, int branch_
 //-------------------------------------------------------------------------
 
 ComplexFieldData evaluate_function_with_derivatives(float x, float y, int func_type, int iters, int b_offset, bool is_input) {
-    if (func_type == 0) return zeta_with_derivatives(x, y, iters, 1e-8, 1e8);
+    if (func_type == 0) return zeta_with_derivatives(x, y, iters);
     if (func_type == 1) return zeta_continuation_with_derivatives(x, y, iters);
-    if (func_type == 2) return dirichlet_eta_with_derivatives(x, y, iters, 1e-8, 1e8);
+    if (func_type == 2) return dirichlet_eta_with_derivatives(x, y, iters);
     if (func_type == 3) return dirichlet_beta_with_derivatives(x, y, iters);
     if (func_type == 4) return complex_gamma_with_derivatives(x, y);
     if (func_type == 5) return complex_log_gamma_with_derivatives(x, y);
