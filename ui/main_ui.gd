@@ -359,12 +359,12 @@ func _zoom_to_slider(zoom: float) -> float:
 	var b = (log(max_zoom) - log(min_zoom)) / 100.0
 	return (log(zoom) - log(min_zoom)) / b
 
-func _on_config_changed(key: String, value: Variant):
+func _on_config_changed(key: String):
 	if key == "zoom_factor":
 		if menu_overlay and menu_overlay.visible:
-			if abs(menu_overlay._slider_to_zoom(menu_overlay.zoom_slider.value) - value) > 0.001:
-				menu_overlay.zoom_slider.value = menu_overlay._zoom_to_slider(value)
+			if abs(menu_overlay._slider_to_zoom(menu_overlay.zoom_slider.value) - Config.zoom_factor) > 0.001:
+				menu_overlay.zoom_slider.value = menu_overlay._zoom_to_slider(Config.zoom_factor)
 	if key == "day_time" and not Config.freeze_time:
 		if menu_overlay and menu_overlay.visible:
-			menu_overlay.day_time_slider.value = value
-			menu_overlay.day_time_slider.value_text = menu_overlay._format_time(value)
+			menu_overlay.day_time_slider.value = Config.day_time
+			menu_overlay.day_time_slider.value_text = menu_overlay._format_time(Config.day_time)

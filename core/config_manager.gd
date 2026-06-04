@@ -1,6 +1,12 @@
 extends Node
 
-signal config_changed(key: String, value: Variant)
+signal config_changed(key: String)
+
+func _set_config(field_name: String, value: Variant):
+	if get(field_name) == value:
+		return
+	set(field_name, value)
+	config_changed.emit(field_name)
 
 var save_path = "user://settings.cfg"
 
@@ -172,252 +178,90 @@ var _edited_presets: Dictionary = {}
 signal preset_applied
 
 # Field parameters
-var iterations: int = 500:
-	set(v):
-		iterations = v
-		config_changed.emit("iterations", v)
+var iterations: int = 500: set(v): _set_config("iterations", v)
 var function_iterations: Dictionary = {}
 var function_type: int = ComplexFunc.ZETA:
 	set(value):
 		function_iterations[function_type] = iterations
 		function_type = value
 		function = FUNCTIONS.get(function_type, {})
-		config_changed.emit("function_type", value)
+		config_changed.emit("function_type")
 		if function_iterations.has(function_type):
 			iterations = function_iterations[function_type]
 		elif function.has("iters_range"):
 			iterations = int(function["iters_range"][3])
-var function: Dictionary = FUNCTIONS[ComplexFunc.ZETA]:
-	set(v):
-		function = v
-		config_changed.emit("function", v)
-var input_function_type: int = ComplexFunc.IDENTITY:
-	set(v):
-		input_function_type = v
-		config_changed.emit("input_function_type", v)
+var function: Dictionary = FUNCTIONS[ComplexFunc.ZETA]
+var input_function_type: int = ComplexFunc.IDENTITY
 
-var height_type: int = 0:
-	set(v):
-		height_type = v
-		config_changed.emit("height_type", v)
-var height_a: float = 3.0:
-	set(v):
-		height_a = v
-		config_changed.emit("height_a", v)
-var height_epsilon: float = 1.0:
-	set(v):
-		height_epsilon = v
-		config_changed.emit("height_epsilon", v)
-var height_theta: float = 0.0:
-	set(v):
-		height_theta = v
-		config_changed.emit("height_theta", v)
-var rational_num_coeffs: PackedVector2Array = PackedVector2Array([Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)]):
-	set(v):
-		rational_num_coeffs = v
-		config_changed.emit("rational_num_coeffs", v)
-var rational_den_coeffs: PackedVector2Array = PackedVector2Array([Vector2(1, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)]):
-	set(v):
-		rational_den_coeffs = v
-		config_changed.emit("rational_den_coeffs", v)
-var input_rational_num_coeffs: PackedVector2Array = PackedVector2Array([Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)]):
-	set(v):
-		input_rational_num_coeffs = v
-		config_changed.emit("input_rational_num_coeffs", v)
-var input_rational_den_coeffs: PackedVector2Array = PackedVector2Array([Vector2(1, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)]):
-	set(v):
-		input_rational_den_coeffs = v
-		config_changed.emit("input_rational_den_coeffs", v)
-var multivalued_n: int = 2:
-	set(v):
-		multivalued_n = v
-		config_changed.emit("multivalued_n", v)
+var height_type: int = 0: set(v): _set_config("height_type", v)
+var height_a: float = 3.0: set(v): _set_config("height_a", v)
+var height_epsilon: float = 1.0: set(v): _set_config("height_epsilon", v)
+var height_theta: float = 0.0
+var rational_num_coeffs: PackedVector2Array = PackedVector2Array([Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)]): set(v): _set_config("rational_num_coeffs", v)
+var rational_den_coeffs: PackedVector2Array = PackedVector2Array([Vector2(1, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)]): set(v): _set_config("rational_den_coeffs", v)
+var input_rational_num_coeffs: PackedVector2Array = PackedVector2Array([Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)]): set(v): _set_config("input_rational_num_coeffs", v)
+var input_rational_den_coeffs: PackedVector2Array = PackedVector2Array([Vector2(1, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)]): set(v): _set_config("input_rational_den_coeffs", v)
+var multivalued_n: int = 2: set(v): _set_config("multivalued_n", v)
 var zoom_factor: float = 1.0: set = _set_zoom_factor
-var zoom_damping: float = 0.5:
-	set(v):
-		zoom_damping = v
-		config_changed.emit("zoom_damping", v)
+var zoom_damping: float = 0.5
 
 # Rendering parameters
-var terrain_detail: int = 1:
-	set(v):
-		terrain_detail = v
-		config_changed.emit("terrain_detail", v)
-var antialiasing_mode: int = 1:
-	set(v):
-		antialiasing_mode = v
-		config_changed.emit("antialiasing_mode", v)
-var show_curves: bool = true:
-	set(v):
-		show_curves = v
-		config_changed.emit("show_curves", v)
-var show_curves_labels: bool = false:
-	set(v):
-		show_curves_labels = v
-		config_changed.emit("show_curves_labels", v)
-var show_critical_stripe: bool = true:
-	set(v):
-		show_critical_stripe = v
-		config_changed.emit("show_critical_stripe", v)
-var view_distance: int = 7:
-	set(v):
-		view_distance = v
-		config_changed.emit("view_distance", v)
-var show_flow: bool = false:
-	set(v):
-		show_flow = v
-		config_changed.emit("show_flow", v)
-var show_position_marker: bool = true:
-	set(v):
-		show_position_marker = v
-		config_changed.emit("show_position_marker", v)
-var color_scheme: int = 0:
-	set(v):
-		color_scheme = v
-		config_changed.emit("color_scheme", v)
-var freeze_time: bool = false:
-	set(v):
-		freeze_time = v
-		config_changed.emit("freeze_time", v)
-var day_duration: float = 60.0 # Seconds for a full cycle:
-	set(v):
-		day_duration = v
-		config_changed.emit("day_duration", v)
-var day_time: float = 43200.0 # Current time in seconds (Noon = 12h = 43200s):
-	set(v):
-		day_time = v
-		config_changed.emit("day_time", v)
-var sunrise_direction: float = 0.0:
-	set(v):
-		sunrise_direction = v
-		config_changed.emit("sunrise_direction", v)
-var sky_luminosity: float = 1.0:
-	set(v):
-		sky_luminosity = v
-		config_changed.emit("sky_luminosity", v)
-var sun_luminosity: float = 1.0:
-	set(v):
-		sun_luminosity = v
-		config_changed.emit("sun_luminosity", v)
-var self_illumination: float = 0.0:
-	set(v):
-		self_illumination = v
-		config_changed.emit("self_illumination", v)
-var shadows_enabled: bool = false:
-	set(v):
-		shadows_enabled = v
-		config_changed.emit("shadows_enabled", v)
-var terrain_brightness: float = 1.0:
-	set(v):
-		terrain_brightness = v
-		config_changed.emit("terrain_brightness", v)
-var terrain_saturation: float = 0.85:
-	set(v):
-		terrain_saturation = v
-		config_changed.emit("terrain_saturation", v)
-var terrain_albedo: float = 0.15:
-	set(v):
-		terrain_albedo = v
-		config_changed.emit("terrain_albedo", v)
-var terrain_emission: float = 0.1:
-	set(v):
-		terrain_emission = v
-		config_changed.emit("terrain_emission", v)
-var terrain_metallic: float = 0.7:
-	set(v):
-		terrain_metallic = v
-		config_changed.emit("terrain_metallic", v)
-var terrain_roughness: float = 0.1:
-	set(v):
-		terrain_roughness = v
-		config_changed.emit("terrain_roughness", v)
-var terrain_surface_texture: float = 0.0:
-	set(v):
-		terrain_surface_texture = v
-		config_changed.emit("terrain_surface_texture", v)
-var fog_density: float = 0.4:
-	set(v):
-		fog_density = v
-		config_changed.emit("fog_density", v)
+var terrain_detail: int = 1: set(v): _set_config("terrain_detail", v)
+var antialiasing_mode: int = 1
+var show_curves: bool = true: set(v): _set_config("show_curves", v)
+var show_curves_labels: bool = false
+var show_critical_stripe: bool = true: set(v): _set_config("show_critical_stripe", v)
+var view_distance: int = 7: set(v): _set_config("view_distance", v)
+var show_flow: bool = false: set(v): _set_config("show_flow", v)
+var show_position_marker: bool = true: set(v): _set_config("show_position_marker", v)
+var color_scheme: int = 0: set(v): _set_config("color_scheme", v)
+var freeze_time: bool = false
+var day_duration: float = 60.0 # Seconds for a full cycle
+var day_time: float = 43200.0 # Current time in seconds (Noon = 12h = 43200s): set(v): _set_config("day_time", v)
+var sunrise_direction: float = 0.0
+var sky_luminosity: float = 1.0
+var sun_luminosity: float = 1.0
+var self_illumination: float = 0.0: set(v): _set_config("self_illumination", v)
+var shadows_enabled: bool = false
+var terrain_brightness: float = 1.0: set(v): _set_config("terrain_brightness", v)
+var terrain_saturation: float = 0.85: set(v): _set_config("terrain_saturation", v)
+var terrain_albedo: float = 0.15: set(v): _set_config("terrain_albedo", v)
+var terrain_emission: float = 0.1: set(v): _set_config("terrain_emission", v)
+var terrain_metallic: float = 0.7: set(v): _set_config("terrain_metallic", v)
+var terrain_roughness: float = 0.1: set(v): _set_config("terrain_roughness", v)
+var terrain_surface_texture: float = 0.0: set(v): _set_config("terrain_surface_texture", v)
+var fog_density: float = 0.4
 
 # Player parameters
-var movement_speed: float = 10.0:
-	set(v):
-		movement_speed = v
-		config_changed.emit("movement_speed", v)
-var speed_near_zeros: float = 100.0:
-	set(v):
-		speed_near_zeros = v
-		config_changed.emit("speed_near_zeros", v)
-var camera_height: float = 1.8:
-	set(v):
-		camera_height = v
-		config_changed.emit("camera_height", v)
-var zero_proximity_nav: float = 0.5:
-	set(v):
-		zero_proximity_nav = v
-		config_changed.emit("zero_proximity_nav", v)
-var real_level_curves_highlighted: Array[float] = []:
-	set(v):
-		real_level_curves_highlighted = v
-		config_changed.emit("real_level_curves_highlighted", v)
-var imag_level_curves_highlighted: Array[float] = []:
-	set(v):
-		imag_level_curves_highlighted = v
-		config_changed.emit("imag_level_curves_highlighted", v)
+var movement_speed: float = 10.0
+var speed_near_zeros: float = 100.0
+var camera_height: float = 1.8
+var zero_proximity_nav: float = 0.5
+var real_level_curves_highlighted: Array[float] = []
+var imag_level_curves_highlighted: Array[float] = []
 
 # UI parameters
-var show_hud_complex: bool = true:
-	set(v):
-		show_hud_complex = v
-		config_changed.emit("show_hud_complex", v)
-var show_hud_navigation: bool = true:
-	set(v):
-		show_hud_navigation = v
-		config_changed.emit("show_hud_navigation", v)
-var show_hud_zeros: bool = true:
-	set(v):
-		show_hud_zeros = v
-		config_changed.emit("show_hud_zeros", v)
-var show_rvm: bool = true:
-	set(v):
-		show_rvm = v
-		config_changed.emit("show_rvm", v)
-var show_hud_monitor_fps: bool = false:
-	set(v):
-		show_hud_monitor_fps = v
-		config_changed.emit("show_hud_monitor_fps", v)
-var show_hud_monitor_chunks: bool = false:
-	set(v):
-		show_hud_monitor_chunks = v
-		config_changed.emit("show_hud_monitor_chunks", v)
-var hud_scale: float = 1.0:
-	set(v):
-		hud_scale = v
-		config_changed.emit("hud_scale", v)
-var menu_scale: float = 1.0:
-	set(v):
-		menu_scale = v
-		config_changed.emit("menu_scale", v)
+var show_hud_complex: bool = true
+var show_hud_navigation: bool = true
+var show_hud_zeros: bool = true
+var show_rvm: bool = true
+var show_hud_monitor_fps: bool = false
+var show_hud_monitor_chunks: bool = false
+var hud_scale: float = 1.0
+var menu_scale: float = 1.0
 
 # Audio parameters
-var master_volume: float = 100.0:
-	set(v):
-		master_volume = v
-		config_changed.emit("master_volume", v)
-var bg_music_volume: float = 100.0:
-	set(v):
-		bg_music_volume = v
-		config_changed.emit("bg_music_volume", v)
-var drone_volume: float = 100.0:
-	set(v):
-		drone_volume = v
-		config_changed.emit("drone_volume", v)
+var master_volume: float = 100.0
+var bg_music_volume: float = 100.0
+var drone_volume: float = 100.0
 
 
 func _set_zoom_factor(value: float):
-	zoom_factor = clampf(value, 0.01, 200.0)
-	config_changed.emit("zoom_factor", zoom_factor)
+	var nv = clampf(value, 0.01, 200.0)
+	if zoom_factor == nv:
+		return
+	zoom_factor = nv
+	config_changed.emit("zoom_factor")
 
 func apply_zoom_immediate():
 	GameState.effective_zoom = float(zoom_factor)

@@ -292,7 +292,7 @@ func _unload_chunk(coord: Vector2i):
 	_update_neighbor_lods(coord)
 
 
-func _on_config_changed(key: String, value: Variant):
+func _on_config_changed(key: String):
 	if key in ["iterations", "terrain_detail", "view_distance", "show_curves", "show_critical_stripe", "show_flow", "show_position_marker", "color_scheme", "function_type", "height_type", "height_a", "height_epsilon", "rational_num_coeffs", "rational_den_coeffs", "input_rational_num_coeffs", "input_rational_den_coeffs", "multivalued_n", "self_illumination", "terrain_brightness", "terrain_saturation", "terrain_albedo", "terrain_emission", "terrain_metallic", "terrain_roughness", "terrain_surface_texture", "morph_value"]:
 		_update_terrain_material_uniforms()
 		if key == "terrain_detail":
@@ -302,6 +302,6 @@ func _on_config_changed(key: String, value: Variant):
 		if key == "view_distance" or key == "terrain_detail" or key == "function_type":
 			_update_chunks(floor(player.global_position.x / chunk_size), floor(player.global_position.z / chunk_size))
 
-func _on_state_changed(key: String, value: Variant):
+func _on_state_changed(key: String):
 	if key in ["current_branch", "morph_value", "newton_path", "newton_path_bbox"]:
 		_update_terrain_material_uniforms()
