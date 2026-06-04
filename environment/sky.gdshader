@@ -164,19 +164,11 @@ void compute_clouds(vec3 eye_dir, float eye_alt, float time, vec3 current_cloud,
         cloud_density *= horizon_fade;
         cloud_density = clamp(cloud_density, 0.0, 1.0);
 
-        // Volumetric thickness approximation
-        float thickness = smoothstep(0.5, 0.7, cloud_fbm);
-
-        // Base cloud color with interior shading
-        vec3 interior_color = mix(current_cloud * 0.5, final_color, 0.3);
-        vec3 base_cloud_color = mix(current_cloud, interior_color, thickness);
-
         // Cloud lighting: slightly brighten clouds near the sun
-        vec3 final_cloud_color = base_cloud_color;
+        vec3 final_cloud_color = current_cloud;
         if (light0_enabled) {
             float sun_dot = max(0.0, dot(eye_dir, light0_dir));
-            // Sun highlights mostly affect the thinner edges
-            final_cloud_color = mix(base_cloud_color, light0_col * 1.5, pow(sun_dot, 8.0) * cloud_density * (1.0 - thickness * 0.8));
+            final_cloud_color = mix(current_cloud, light0_col * 1.5, pow(sun_dot, 8.0) * cloud_density);
         }
 
         cloud_final_color = mix(final_color, final_cloud_color, cloud_density);

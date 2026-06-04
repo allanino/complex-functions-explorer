@@ -33,7 +33,7 @@ func _process(delta):
 	var moon_dir = - sun_dir
 
 	var sun_elevation = - sun_dir.y
-	_golden_hour_transition = clamp((0.5 - sun_elevation) / 0.5, 0.0, 1.0)
+	_golden_hour_transition = clamp((0.7 - sun_elevation) / 0.7, 0.0, 1.0)
 
 	if sun_elevation < 0.0:
 		night_factor = clamp(-sun_elevation / 0.3, 0.0, 1.0)
@@ -43,7 +43,7 @@ func _process(delta):
 	if sun:
 		sun.basis = Basis.looking_at(sun_dir, Vector3.UP if abs(sun_dir.y) < 0.99 else Vector3.FORWARD)
 		sun.light_energy = smoothstep(-0.02, 0.02, sun_elevation) * Config.sun_luminosity
-		sun.light_color = lerp(_sun_color, Color(1.0, 0.3, 0.05), _golden_hour_transition)
+		sun.light_color = lerp(_sun_color, Color(1.0, 0.5, 0.2), _golden_hour_transition)
 		sun.shadow_enabled = Config.shadows_enabled and sun_elevation > -0.01
 
 	if moon:
