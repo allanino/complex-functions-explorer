@@ -29,6 +29,7 @@ var _skip_frame_counter: int = 0
 var _last_zeros_count: int = -1
 
 func _ready():
+	Config.config_changed.connect(_on_config_changed)
 	var mobile_controls = get_node_or_null("Control/MobileControls")
 	if mobile_controls and mobile_controls.has_node("SettingsButton"):
 		var settings_btn = mobile_controls.get_node("SettingsButton")
@@ -107,16 +108,6 @@ func _process(_delta):
 	if Config.show_hud_zeros and not _last_zeros_visible:
 		GameState.rvm_start_t = abs(Config.world_to_complex(0.0, player.global_position.z).y)
 	_last_zeros_visible = Config.show_hud_zeros
-
-	if menu_overlay.visible:
-		if abs(menu_overlay._slider_to_zoom(menu_overlay.zoom_slider.value) - Config.zoom_factor) > 0.001:
-			menu_overlay.zoom_slider.value = menu_overlay._zoom_to_slider(Config.zoom_factor)
-
-		# Live update time slider if time is flowing
-		if not Config.freeze_time:
-			menu_overlay.day_time_slider.value = Config.day_time
-			menu_overlay.day_time_slider.value_text = menu_overlay._format_time(Config.day_time)
-
 	menu_overlay.perf_label.visible = GameState.performance_protection_active
 
 	if not player:
@@ -367,3 +358,13 @@ func _zoom_to_slider(zoom: float) -> float:
 	var max_zoom = 200.0
 	var b = (log(max_zoom) - log(min_zoom)) / 100.0
 	return (log(zoom) - log(min_zoom)) / b
+
+func _on_config_changed(key: String):
+	if key == "zoom_factor":
+		if menu_overlay:
+			if abs(menu_overlay._slider_to_zoom(menu_overlay.zoom_slider.value) - Config.zoom_factor) > 0.001:
+				menu_overlay.zoom_slider.value = menu_overlay._zoom_to_slider(Config.zoom_factor)
+	if key == "day_time" and not Config.freeze_time:
+		if menu_overlay:
+			menu_overlay.day_time_slider.value = Config.day_time
+			menu_overlay.day_time_slider.value_text = menu_overlay._format_time(Config.day_time)
