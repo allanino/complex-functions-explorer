@@ -159,7 +159,7 @@ static func zeta(x: float, y: float) -> Vector2:
 
 	var zeta_normal = complex_div(eta, safe_denom)
 	var zeta_lhopital = complex_div(deta_dx, ddenom_dx)
-	var alpha = smoothstep(0.0, Config.zeta_epsilon, denom_mag)
+	var alpha = smoothstep(0.0, ZETA_EPSILON, denom_mag)
 	return zeta_lhopital.lerp(zeta_normal, alpha)
 
 const LANCZOS_P = [
@@ -174,6 +174,7 @@ const LANCZOS_P = [
 	1.5056327351493116e-7
 ]
 const SQRT_2PI = 2.5066282746310005
+const ZETA_EPSILON = 0.01
 
 static func lanczos_gamma(z_orig: Vector2) -> Vector2:
 	var z = z_orig - Vector2(1.0, 0.0)
@@ -272,7 +273,7 @@ static func zeta_with_derivatives(x: float, y: float) -> Array:
 
 	var zeta_normal = complex_div(eta, safe_denom)
 	var zeta_lhopital = complex_div(deta_dx, ddenom_dx)
-	var alpha = smoothstep(0.0, Config.zeta_epsilon, denom_mag)
+	var alpha = smoothstep(0.0, ZETA_EPSILON, denom_mag)
 	var value = zeta_lhopital.lerp(zeta_normal, alpha)
 
 	var num_x = complex_mul(deta_dx, safe_denom) - complex_mul(eta, ddenom_dx)

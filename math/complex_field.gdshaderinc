@@ -7,7 +7,6 @@ uniform int input_function_type = 14;
 uniform int height_type = 0;   // 0: Abs, 1: Log, 2: Im, 3: Re, 4: Projected
 uniform float height_a = 3.0;
 uniform float height_epsilon = 1.0;
-uniform float zeta_epsilon = 0.01;
 uniform bool performance_protection_active = false;
 uniform bool is_dirichlect = false;
 uniform bool is_multivalued = false;
@@ -432,7 +431,8 @@ ComplexFieldData zeta_with_derivatives(float x, float y, int iters) {
     vec2 zeta_normal = complex_div(eta, safe_denom);
     vec2 zeta_lhopital = complex_div(deta_dx, ddenom_dx);
 
-    float alpha = smoothstep(0.0, zeta_epsilon, denom_mag);
+    const float ZETA_EPSILON = 0.01;
+    float alpha = smoothstep(0.0, ZETA_EPSILON, denom_mag);
 
     ComplexFieldData result;
     result.value = mix(zeta_lhopital, zeta_normal, alpha);

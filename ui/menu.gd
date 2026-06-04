@@ -21,8 +21,6 @@ signal update_hud_layout_signal()
 @onready var height_a_input = %HeightAContainer.get_line_edit()
 @onready var height_eps_container = %HeightEpsContainer
 @onready var height_eps_input = %HeightEpsContainer.get_line_edit()
-@onready var zeta_eps_container = %ZetaEpsContainer
-@onready var zeta_eps_input = %ZetaEpsContainer.get_line_edit()
 @onready var height_theta_slider = %HeightThetaSlider
 @onready var iter_slider = %IterSlider
 @onready var func_rational_container = %FuncRationalContainer
@@ -200,7 +198,6 @@ func _ready():
 	im_input.text_submitted.connect(_on_im_text_submitted)
 	height_a_input.text_submitted.connect(_on_height_a_text_submitted)
 	height_eps_input.text_submitted.connect(_on_height_eps_text_submitted)
-	zeta_eps_input.text_submitted.connect(_on_zeta_eps_text_submitted)
 	func_rational_input.text_submitted.connect(_on_func_rational_text_submitted)
 	input_rational_input.text_submitted.connect(_on_input_rational_text_submitted)
 
@@ -642,8 +639,6 @@ func _on_set_pos_pressed(_toggle_menu: bool = true):
 	if not is_finite(h_a): h_a = 3.0
 	var h_eps = float(height_eps_input.text)
 	if not is_finite(h_eps): h_eps = 1.0
-	var z_eps = float(zeta_eps_input.text)
-	if not is_finite(z_eps): z_eps = 0.01
 
 	if !hud_zeros_checkbox.button_pressed:
 		GameState.visited_zeros.clear()
@@ -651,7 +646,6 @@ func _on_set_pos_pressed(_toggle_menu: bool = true):
 	# Apply non-slider values to Config
 	Config.height_a = h_a
 	Config.height_epsilon = h_eps
-	Config.zeta_epsilon = z_eps
 
 	# Apply all sliders to Config via bindings
 	for slider in SLIDER_BINDINGS:
@@ -774,7 +768,6 @@ func _sync_ui_to_config():
 
 	height_a_input.text = str(Config.height_a)
 	height_eps_input.text = str(Config.height_epsilon)
-	zeta_eps_input.text = str(Config.zeta_epsilon)
 
 	terrain_detail_button.selected = Config.terrain_detail
 	aa_button.selected = Config.antialiasing_mode
@@ -903,14 +896,6 @@ func _on_height_eps_text_submitted(new_text: String):
 	var h_eps = float(new_text)
 	if is_finite(h_eps):
 		Config.height_epsilon = h_eps
-
-func _on_zeta_eps_text_submitted(new_text: String):
-	if !new_text.is_valid_float():
-		zeta_eps_input.text = str(Config.zeta_epsilon)
-		return
-	var z_eps = float(new_text)
-	if is_finite(z_eps):
-		Config.zeta_epsilon = z_eps
 
 func _on_func_rational_text_submitted(new_text: String):
 	if Config.function_type == Config.ComplexFunc.RATIONAL:
