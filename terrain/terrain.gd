@@ -7,7 +7,7 @@ extends Node3D
 
 var chunks = {}
 var chunk_leeway = 0.01
-
+var _last_field_state = {}
 var LOD_SUBS = [] # This will be set in code
 var _lod_mesh_cache = {}
 var _last_player_chunk = Vector2i(9999, 9999)
@@ -21,7 +21,7 @@ func _ready():
 	Config.config_changed.connect(_on_config_changed)
 	GameState.state_changed.connect(_on_state_changed)
 	_update_lod_subs()
-	_update_terrain_material_uniforms()
+	_initialize_all_terrain_material_uniforms()
 	# Uncomment this to debug the mesh wireframe
 	# get_viewport().debug_draw = Viewport.DEBUG_DRAW_WIREFRAME
 
@@ -54,9 +54,6 @@ func _process(delta):
 	if terrain_material:
 		terrain_material.set_shader_parameter("zoom_factor", GameState.effective_zoom)
 		terrain_material.set_shader_parameter("player_position_world", player_pos)
-
-
-
 
 
 	# Chunk and LOD Dynamic Update
@@ -139,88 +136,24 @@ func _apply_performance_protection(active: bool):
 	if audio and audio.has_method("set_performance_protection"):
 		audio.set_performance_protection(active)
 
-func _update_terrain_material_uniforms(key: String = ""):
-	if not terrain_material:
-		return
-
-	if key != "":
-		if key == "function_type":
-			var f_data = Config.function
-			terrain_material.set_shader_parameter("function_type", Config.function_type)
-			terrain_material.set_shader_parameter("is_dirichlect", f_data.get("is_dirichlect", false))
-			terrain_material.set_shader_parameter("is_multivalued", f_data.get("is_multivalued", false))
-			return
-
-		var mapped_key = key
-		if key.begins_with("terrain_"):
-			mapped_key = key.replace("terrain_", "")
-		if mapped_key in ["iterations", "show_curves", "show_critical_stripe", "show_flow", "show_position_marker", "color_scheme", "input_function_type", "height_type", "height_a", "height_epsilon", "height_theta", "zoom_factor", "rational_num_coeffs", "rational_den_coeffs", "input_rational_num_coeffs", "input_rational_den_coeffs", "multivalued_n", "self_illumination", "fog_density", "brightness", "saturation", "albedo", "emission", "metallic", "roughness", "surface_texture"]:
-			terrain_material.set_shader_parameter(mapped_key, Config.get(key))
-			return
-		if key in ["performance_protection_active", "current_branch", "morph_value"]:
-			terrain_material.set_shader_parameter(key, GameState.get(key))
-			return
-	var f_data = Config.function
-	terrain_material.set_shader_parameter("performance_protection_active", GameState.performance_protection_active)
-	terrain_material.set_shader_parameter("is_dirichlect", f_data.get("is_dirichlect", false))
-	terrain_material.set_shader_parameter("is_multivalued", f_data.get("is_multivalued", false))
-	terrain_material.set_shader_parameter("color_scheme", Config.color_scheme)
-	terrain_material.set_shader_parameter("iterations", Config.iterations)
-	terrain_material.set_shader_parameter("show_curves", Config.show_curves)
-	terrain_material.set_shader_parameter("show_critical_stripe", Config.show_critical_stripe)
-	terrain_material.set_shader_parameter("show_flow", Config.show_flow)
-	terrain_material.set_shader_parameter("show_position_marker", Config.show_position_marker)
-	terrain_material.set_shader_parameter("function_type", Config.function_type)
-	terrain_material.set_shader_parameter("input_function_type", Config.input_function_type)
-	terrain_material.set_shader_parameter("height_type", Config.height_type)
-	terrain_material.set_shader_parameter("height_a", Config.height_a)
-	terrain_material.set_shader_parameter("height_epsilon", Config.height_epsilon)
-	terrain_material.set_shader_parameter("height_theta", Config.height_theta)
-	terrain_material.set_shader_parameter("zoom_factor", GameState.effective_zoom)
-	terrain_material.set_shader_parameter("rational_num_coeffs", Config.rational_num_coeffs)
-	terrain_material.set_shader_parameter("rational_den_coeffs", Config.rational_den_coeffs)
-	terrain_material.set_shader_parameter("input_rational_num_coeffs", Config.input_rational_num_coeffs)
-	terrain_material.set_shader_parameter("input_rational_den_coeffs", Config.input_rational_den_coeffs)
-	terrain_material.set_shader_parameter("multivalued_n", Config.multivalued_n)
-	terrain_material.set_shader_parameter("self_illumination", Config.self_illumination)
-	terrain_material.set_shader_parameter("fog_density", Config.fog_density)
-	terrain_material.set_shader_parameter("brightness", Config.terrain_brightness)
-	terrain_material.set_shader_parameter("saturation", Config.terrain_saturation)
-	terrain_material.set_shader_parameter("albedo", Config.terrain_albedo)
-	terrain_material.set_shader_parameter("emission", Config.terrain_emission)
-	terrain_material.set_shader_parameter("metallic", Config.terrain_metallic)
-	terrain_material.set_shader_parameter("roughness", Config.terrain_roughness)
-	terrain_material.set_shader_parameter("surface_texture", Config.terrain_surface_texture)
-	terrain_material.set_shader_parameter("current_branch", GameState.current_branch)
-
-	var real_shaded = PackedFloat32Array()
-	for val in Config.real_level_curves_highlighted:
-		real_shaded.append(val)
-	while real_shaded.size() < 10:
-		real_shaded.append(99999.0)
-
-	var imag_shaded = PackedFloat32Array()
-	for val in Config.imag_level_curves_highlighted:
-		imag_shaded.append(val)
-	while imag_shaded.size() < 10:
-		imag_shaded.append(99999.0)
-
-	terrain_material.set_shader_parameter("real_level_curves_highlighted", real_shaded)
-	terrain_material.set_shader_parameter("imag_level_curves_highlighted", imag_shaded)
-
-	if GameState.newton_path.size() > 0:
-		var newton_path = PackedVector2Array()
-		for val in GameState.newton_path:
-			newton_path.append(val)
-		var newton_path_size = newton_path.size()
-		while newton_path.size() < 50:
-			newton_path.append(Vector2.ZERO)
-
-		terrain_material.set_shader_parameter("newton_path", newton_path)
-		terrain_material.set_shader_parameter("newton_path_size", newton_path_size)
-		terrain_material.set_shader_parameter("newton_path_bbox", GameState.newton_path_bbox)
-	else:
-		terrain_material.set_shader_parameter("newton_path_size", 0)
+func _initialize_all_terrain_material_uniforms():
+	var init_keys = [
+		"function_type",
+		"iterations", "show_curves", "show_critical_stripe", "show_flow",
+		"show_position_marker", "color_scheme", "input_function_type",
+		"height_type", "height_a", "height_epsilon", "height_theta",
+		"zoom_factor", "rational_num_coeffs", "rational_den_coeffs",
+		"input_rational_num_coeffs", "input_rational_den_coeffs",
+		"multivalued_n", "self_illumination", "fog_density",
+		"terrain_brightness", "terrain_saturation", "terrain_albedo",
+		"terrain_emission", "terrain_metallic", "terrain_roughness",
+		"terrain_surface_texture",
+		"performance_protection_active", "current_branch", "morph_value",
+		"real_level_curves_highlighted", "imag_level_curves_highlighted",
+		"newton_path"
+	]
+	for k in init_keys:
+		_update_terrain_material_uniforms(k)
 
 	terrain_material.set_shader_parameter("chunk_size", chunk_size)
 	var segments = []
@@ -228,8 +161,69 @@ func _update_terrain_material_uniforms(key: String = ""):
 		segments.append(float(sub + 1))
 	terrain_material.set_shader_parameter("lod_segments", segments)
 
-	var morph_param = GameState.morph_value
-	terrain_material.set_shader_parameter("morph", morph_param)
+
+func _update_terrain_material_uniforms(key: String):
+	if not terrain_material:
+		return
+
+	if key == "function_type":
+		var f_data = Config.function
+		terrain_material.set_shader_parameter("function_type", Config.function_type)
+		terrain_material.set_shader_parameter("is_dirichlect", f_data.get("is_dirichlect", false))
+		terrain_material.set_shader_parameter("is_multivalued", f_data.get("is_multivalued", false))
+		return
+
+	if key == "real_level_curves_highlighted":
+		var real_shaded = PackedFloat32Array()
+		for val in Config.real_level_curves_highlighted:
+			real_shaded.append(val)
+		while real_shaded.size() < 10:
+			real_shaded.append(99999.0)
+		terrain_material.set_shader_parameter("real_level_curves_highlighted", real_shaded)
+		return
+
+	if key == "imag_level_curves_highlighted":
+		var imag_shaded = PackedFloat32Array()
+		for val in Config.imag_level_curves_highlighted:
+			imag_shaded.append(val)
+		while imag_shaded.size() < 10:
+			imag_shaded.append(99999.0)
+		terrain_material.set_shader_parameter("imag_level_curves_highlighted", imag_shaded)
+		return
+
+
+	if key == "newton_path_bbox":
+		terrain_material.set_shader_parameter("newton_path_bbox", GameState.newton_path_bbox)
+		return
+
+	if key == "newton_path":
+		if GameState.newton_path.size() > 0:
+			var newton_path = PackedVector2Array()
+			for val in GameState.newton_path:
+				newton_path.append(val)
+			var newton_path_size = newton_path.size()
+			while newton_path.size() < 50:
+				newton_path.append(Vector2.ZERO)
+
+			terrain_material.set_shader_parameter("newton_path_size", newton_path_size)
+			terrain_material.set_shader_parameter("newton_path", newton_path)
+			terrain_material.set_shader_parameter("newton_path_bbox", GameState.newton_path_bbox)
+		else:
+			terrain_material.set_shader_parameter("newton_path_size", 0)
+		return
+
+	var mapped_key = key
+	if key.begins_with("terrain_"):
+		mapped_key = key.replace("terrain_", "")
+	if mapped_key in ["iterations", "show_curves", "show_critical_stripe", "show_flow", "show_position_marker", "color_scheme", "input_function_type", "height_type", "height_a", "height_epsilon", "height_theta", "zoom_factor", "rational_num_coeffs", "rational_den_coeffs", "input_rational_num_coeffs", "input_rational_den_coeffs", "multivalued_n", "self_illumination", "fog_density", "brightness", "saturation", "albedo", "emission", "metallic", "roughness", "surface_texture"]:
+		terrain_material.set_shader_parameter(mapped_key, Config.get(key))
+		return
+	if key in ["performance_protection_active", "current_branch", "morph_value"]:
+		terrain_material.set_shader_parameter(key, GameState.get(key))
+		if key == "morph_value":
+			terrain_material.set_shader_parameter("morph", GameState.get(key))
+		return
+
 
 func _update_chunk_uniforms(chunk: MeshInstance3D):
 	var lod = chunk.get_meta("lod_level", 0)
@@ -307,7 +301,6 @@ func _unload_chunk(coord: Vector2i):
 	chunk.queue_free()
 	chunks.erase(coord)
 	_update_neighbor_lods(coord)
-
 
 func _on_config_changed(key: String):
 	if key in ["iterations", "terrain_detail", "view_distance", "show_curves", "show_critical_stripe", "show_flow", "show_position_marker", "color_scheme", "function_type", "height_type", "height_a", "height_epsilon", "rational_num_coeffs", "rational_den_coeffs", "input_rational_num_coeffs", "input_rational_den_coeffs", "multivalued_n", "self_illumination", "terrain_brightness", "terrain_saturation", "terrain_albedo", "terrain_emission", "terrain_metallic", "terrain_roughness", "terrain_surface_texture", "morph_value", "fog_density"]:
