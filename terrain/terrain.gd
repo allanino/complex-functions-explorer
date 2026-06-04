@@ -143,7 +143,14 @@ func _update_terrain_material_uniforms(key: String = ""):
 	if not terrain_material:
 		return
 
-	if key != "" and key != "function_type":
+	if key != "":
+		if key == "function_type":
+			var f_data = Config.function
+			terrain_material.set_shader_parameter("function_type", Config.function_type)
+			terrain_material.set_shader_parameter("is_dirichlect", f_data.get("is_dirichlect", false))
+			terrain_material.set_shader_parameter("is_multivalued", f_data.get("is_multivalued", false))
+			return
+
 		var mapped_key = key
 		if key.begins_with("terrain_"):
 			mapped_key = key.replace("terrain_", "")
@@ -307,7 +314,7 @@ func _unload_chunk(coord: Vector2i):
 
 
 func _on_config_changed(key: String):
-	if key in ["iterations", "terrain_detail", "view_distance", "show_curves", "show_critical_stripe", "show_flow", "show_position_marker", "color_scheme", "function_type", "height_type", "height_a", "height_epsilon", "rational_num_coeffs", "rational_den_coeffs", "input_rational_num_coeffs", "input_rational_den_coeffs", "multivalued_n", "self_illumination", "terrain_brightness", "terrain_saturation", "terrain_albedo", "terrain_emission", "terrain_metallic", "terrain_roughness", "terrain_surface_texture", "morph_value"]:
+	if key in ["iterations", "terrain_detail", "view_distance", "show_curves", "show_critical_stripe", "show_flow", "show_position_marker", "color_scheme", "function_type", "height_type", "height_a", "height_epsilon", "rational_num_coeffs", "rational_den_coeffs", "input_rational_num_coeffs", "input_rational_den_coeffs", "multivalued_n", "self_illumination", "terrain_brightness", "terrain_saturation", "terrain_albedo", "terrain_emission", "terrain_metallic", "terrain_roughness", "terrain_surface_texture", "morph_value", "fog_density"]:
 		_update_terrain_material_uniforms(key)
 		if key == "terrain_detail":
 			_update_lod_subs()

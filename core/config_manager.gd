@@ -230,7 +230,7 @@ var terrain_emission: float = 0.1: set(v): _set_config("terrain_emission", v)
 var terrain_metallic: float = 0.7: set(v): _set_config("terrain_metallic", v)
 var terrain_roughness: float = 0.1: set(v): _set_config("terrain_roughness", v)
 var terrain_surface_texture: float = 0.0: set(v): _set_config("terrain_surface_texture", v)
-var fog_density: float = 0.4
+var fog_density: float = 0.4: set(v): _set_config("fog_density", v)
 
 # Player parameters
 var movement_speed: float = 10.0
