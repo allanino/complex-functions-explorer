@@ -7,7 +7,7 @@ extends Node3D
 
 var chunks = {}
 var chunk_leeway = 0.01
-var _last_field_state = {}
+
 var LOD_SUBS = [] # This will be set in code
 var _lod_mesh_cache = {}
 var _last_player_chunk = Vector2i(9999, 9999)
@@ -18,6 +18,8 @@ var _shaders_stopped: bool = false
 @onready var audio = get_node_or_null("../Audio")
 
 func _ready():
+	Config.config_changed.connect(_on_config_changed)
+	GameState.state_changed.connect(_on_state_changed)
 	_update_lod_subs()
 	_update_terrain_material_uniforms()
 	# Uncomment this to debug the mesh wireframe
@@ -53,56 +55,12 @@ func _process(delta):
 		terrain_material.set_shader_parameter("zoom_factor", GameState.effective_zoom)
 		terrain_material.set_shader_parameter("player_position_world", player_pos)
 
-	# Check if any field properties have changed
-	var current_field_state = {
-		"iterations": Config.iterations,
-		"terrain_detail": Config.terrain_detail,
-		"view_distance": Config.view_distance,
-		"show_curves": Config.show_curves,
-		"show_critical_stripe": Config.show_critical_stripe,
-		"show_flow": Config.show_flow,
-		"show_position_marker": Config.show_position_marker,
-		"color_scheme": Config.color_scheme,
-		"function_type": Config.function_type,
-		"height_type": Config.height_type,
-		"height_a": Config.height_a,
-		"height_epsilon": Config.height_epsilon,
-		"zoom_factor": Config.zoom_factor,
-		"rational_num_coeffs": Config.rational_num_coeffs,
-		"rational_den_coeffs": Config.rational_den_coeffs,
-		"input_rational_num_coeffs": Config.input_rational_num_coeffs,
-		"input_rational_den_coeffs": Config.input_rational_den_coeffs,
-		"multivalued_n": Config.multivalued_n,
-		"self_illumination": Config.self_illumination,
-		"current_branch": GameState.current_branch,
-		"terrain_brightness": Config.terrain_brightness,
-		"terrain_saturation": Config.terrain_saturation,
-		"terrain_albedo": Config.terrain_albedo,
-		"terrain_emission": Config.terrain_emission,
-		"terrain_metallic": Config.terrain_metallic,
-		"terrain_roughness": Config.terrain_roughness,
-		"terrain_surface_texture": Config.terrain_surface_texture,
-		"morph_value": GameState.morph_value,
-		"fog_density": Config.fog_density,
-	}
 
-	var state_changed = current_field_state != _last_field_state
-	var view_dist_changed = false
 
-	if state_changed:
-		var lod_changed = _last_field_state.get("terrain_detail", -1) != Config.terrain_detail
-		view_dist_changed = _last_field_state.get("view_distance", -1) != Config.view_distance
-		_last_field_state = current_field_state
 
-		if lod_changed:
-			_update_lod_subs()
-			_lod_mesh_cache.clear()
-			_update_all_chunks_lod(true)
-
-		_update_terrain_material_uniforms()
 
 	# Chunk and LOD Dynamic Update
-	if player_chunk_x != _last_player_chunk.x or player_chunk_z != _last_player_chunk.y or view_dist_changed:
+	if player_chunk_x != _last_player_chunk.x or player_chunk_z != _last_player_chunk.y :
 		_update_chunks(player_chunk_x, player_chunk_z)
 
 
@@ -332,3 +290,18 @@ func _unload_chunk(coord: Vector2i):
 	chunk.queue_free()
 	chunks.erase(coord)
 	_update_neighbor_lods(coord)
+
+
+func _on_config_changed(key: String, value: Variant):
+	if key in ["iterations", "terrain_detail", "view_distance", "show_curves", "show_critical_stripe", "show_flow", "show_position_marker", "color_scheme", "function_type", "height_type", "height_a", "height_epsilon", "rational_num_coeffs", "rational_den_coeffs", "input_rational_num_coeffs", "input_rational_den_coeffs", "multivalued_n", "self_illumination", "terrain_brightness", "terrain_saturation", "terrain_albedo", "terrain_emission", "terrain_metallic", "terrain_roughness", "terrain_surface_texture", "morph_value"]:
+		_update_terrain_material_uniforms()
+		if key == "terrain_detail":
+			_update_lod_subs()
+			_lod_mesh_cache.clear()
+			_update_all_chunks_lod(true)
+		if key == "view_distance" or key == "terrain_detail" or key == "function_type":
+			_update_chunks(floor(player.global_position.x / chunk_size), floor(player.global_position.z / chunk_size))
+
+func _on_state_changed(key: String, value: Variant):
+	if key in ["current_branch", "morph_value", "newton_path", "newton_path_bbox"]:
+		_update_terrain_material_uniforms()
