@@ -187,6 +187,7 @@ var input_function_type: int = ComplexFunc.IDENTITY
 var height_type: int = 0
 var height_a: float = 3.0
 var height_epsilon: float = 1.0
+var zeta_epsilon: float = 0.01
 var height_theta: float = 0.0
 var rational_num_coeffs: PackedVector2Array = PackedVector2Array([Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)])
 var rational_den_coeffs: PackedVector2Array = PackedVector2Array([Vector2(1, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)])
@@ -368,6 +369,7 @@ func save_settings():
 	config.set_value("field", "height_type", height_type)
 	config.set_value("field", "height_a", height_a)
 	config.set_value("field", "height_epsilon", height_epsilon)
+	config.set_value("field", "zeta_epsilon", zeta_epsilon)
 	config.set_value("field", "height_theta", height_theta)
 	config.set_value("field", "rational_num_coeffs", rational_num_coeffs)
 	config.set_value("field", "rational_den_coeffs", rational_den_coeffs)
@@ -446,6 +448,7 @@ func load_settings():
 	height_type = config.get_value("field", "height_type", height_type)
 	height_a = config.get_value("field", "height_a", height_a)
 	height_epsilon = config.get_value("field", "height_epsilon", height_epsilon)
+	zeta_epsilon = config.get_value("field", "zeta_epsilon", zeta_epsilon)
 	height_theta = config.get_value("field", "height_theta", height_theta)
 	rational_num_coeffs = config.get_value("field", "rational_num_coeffs", rational_num_coeffs)
 	rational_den_coeffs = config.get_value("field", "rational_den_coeffs", rational_den_coeffs)

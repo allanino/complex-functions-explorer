@@ -7,6 +7,7 @@ uniform int input_function_type = 14;
 uniform int height_type = 0;   // 0: Abs, 1: Log, 2: Im, 3: Re, 4: Projected
 uniform float height_a = 3.0;
 uniform float height_epsilon = 1.0;
+uniform float zeta_epsilon = 0.01;
 uniform bool performance_protection_active = false;
 uniform bool is_dirichlect = false;
 uniform bool is_multivalued = false;
@@ -424,11 +425,22 @@ ComplexFieldData zeta_with_derivatives(float x, float y, int iters) {
     vec2 two_term = amp2 * vec2(cos(theta2), sin(theta2));
     vec2 denom = vec2(1.0, 0.0) - two_term;
     vec2 ddenom_dx = LOG_2 * two_term;
+    float denom_mag = length(denom);
+
+    vec2 safe_denom = denom_mag < 1e-5 ? vec2(1e-5, 0.0) : denom;
+
+    vec2 zeta_normal = complex_div(eta, safe_denom);
+    vec2 zeta_lhopital = complex_div(deta_dx, ddenom_dx);
+
+    float alpha = smoothstep(0.0, zeta_epsilon, denom_mag);
+
     ComplexFieldData result;
-    result.value = complex_div(eta, denom);
-    vec2 denom_sqr = complex_mul(denom, denom);
-    vec2 num_x = complex_mul(deta_dx, denom) - complex_mul(eta, ddenom_dx);
-    result.dx = complex_div(num_x, denom_sqr);
+    result.value = mix(zeta_lhopital, zeta_normal, alpha);
+
+    vec2 num_x = complex_mul(deta_dx, safe_denom) - complex_mul(eta, ddenom_dx);
+    vec2 dx_normal = complex_div(complex_div(num_x, safe_denom), safe_denom);
+    vec2 dx_lhopital = vec2(0.0);
+    result.dx = mix(dx_lhopital, dx_normal, alpha);
     result.dy = vec2(-result.dx.y, result.dx.x);
     return result;
 }

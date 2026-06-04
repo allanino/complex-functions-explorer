@@ -143,13 +143,24 @@ static func dirichlet_beta(x: float, y: float, iterations: int) -> Vector2:
 
 static func zeta(x: float, y: float) -> Vector2:
 	var iterations = Config.iterations
-	var eta = dirichlet_eta(x, y, iterations)
+	var eta_data = dirichlet_eta_with_derivatives(x, y, iterations)
+	var eta = eta_data[0]
+	var deta_dx = eta_data[1]
 
 	var amp2 = pow(2.0, 1.0 - x)
 	var theta2 = -y * LOG_2
 	var two_term = amp2 * Vector2(cos(theta2), sin(theta2))
 	var denom = Vector2(1.0, 0.0) - two_term
-	return complex_div(eta, denom)
+	var ddenom_dx = LOG_2 * two_term
+	var denom_mag = denom.length()
+
+	var safe_denom = denom
+	if denom_mag < 1e-5: safe_denom = Vector2(1e-5, 0.0)
+
+	var zeta_normal = complex_div(eta, safe_denom)
+	var zeta_lhopital = complex_div(deta_dx, ddenom_dx)
+	var alpha = smoothstep(0.0, Config.zeta_epsilon, denom_mag)
+	return zeta_lhopital.lerp(zeta_normal, alpha)
 
 const LANCZOS_P = [
 	0.99999999999980993,
@@ -254,11 +265,20 @@ static func zeta_with_derivatives(x: float, y: float) -> Array:
 	var two_term = amp2 * Vector2(cos(theta2), sin(theta2))
 	var denom = Vector2(1.0, 0.0) - two_term
 	var ddenom_dx = LOG_2 * two_term
+	var denom_mag = denom.length()
 
-	var value = complex_div(eta, denom)
-	var denom_sqr = complex_mul(denom, denom)
-	var num_x = complex_mul(deta_dx, denom) - complex_mul(eta, ddenom_dx)
-	var dx = complex_div(num_x, denom_sqr)
+	var safe_denom = denom
+	if denom_mag < 1e-5: safe_denom = Vector2(1e-5, 0.0)
+
+	var zeta_normal = complex_div(eta, safe_denom)
+	var zeta_lhopital = complex_div(deta_dx, ddenom_dx)
+	var alpha = smoothstep(0.0, Config.zeta_epsilon, denom_mag)
+	var value = zeta_lhopital.lerp(zeta_normal, alpha)
+
+	var num_x = complex_mul(deta_dx, safe_denom) - complex_mul(eta, ddenom_dx)
+	var dx_normal = complex_div(complex_div(num_x, safe_denom), safe_denom)
+	var dx_lhopital = Vector2.ZERO
+	var dx = dx_lhopital.lerp(dx_normal, alpha)
 
 	return [value, dx]
 
