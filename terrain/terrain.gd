@@ -304,8 +304,8 @@ func _load_chunk(coord: Vector2i):
 	)
 
 	chunk.custom_aabb = AABB(
-		Vector3(-chunk_size * 0.5, -50, -chunk_size * 0.5),
-		Vector3(chunk_size, 1000, chunk_size)
+		Vector3(-(chunk_size + chunk_leeway) * 0.5, -50, -(chunk_size + chunk_leeway) * 0.5),
+		Vector3(chunk_size + chunk_leeway, 1000, chunk_size + chunk_leeway)
 	)
 
 func _update_chunk_lod(chunk: MeshInstance3D, lod: int, coord: Vector2i):
