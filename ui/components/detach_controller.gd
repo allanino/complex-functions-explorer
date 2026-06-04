@@ -52,6 +52,7 @@ func detach_slider_control(source_slider: HSlider, source_value_label: Label, ti
 	main_ui.toggle_menu(true)
 	visible = true
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	main_ui.menu_overlay.emit_signal("detach_started")
 
 func _process(delta):
 	if is_playing and detach_slider:
@@ -92,7 +93,7 @@ func _on_exit_detach_pressed():
 	if "morph_slider" in main_ui:
 		main_ui.morph_slider.value = 1.0
 
+	interaction_active = false
 	visible = false
-	interaction_active = true
-	main_ui.menu_overlay.visible = true
-	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	main_ui.menu_overlay.emit_signal("detach_finished")
+	main_ui.toggle_menu()
