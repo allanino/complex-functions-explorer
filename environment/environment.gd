@@ -43,7 +43,7 @@ func _process(delta):
 	if sun:
 		sun.basis = Basis.looking_at(sun_dir, Vector3.UP if abs(sun_dir.y) < 0.99 else Vector3.FORWARD)
 		sun.light_energy = smoothstep(-0.02, 0.02, sun_elevation) * Config.sun_luminosity
-		sun.light_color = lerp(_sun_color, Color(1.0, 0.5, 0.2), _golden_hour_transition)
+		sun.light_color = lerp(_sun_color, Color(1.0, 0.3, 0.05), _golden_hour_transition)
 		sun.shadow_enabled = Config.shadows_enabled and sun_elevation > -0.01
 
 	if moon:
@@ -62,7 +62,7 @@ func _process(delta):
 		# Setup fog	
 		var env = world_environment.environment
 	
-		var fog_color = lerp(Color(0.3, 0.4, 0.5), Color(1.0, 0.4, 0.1), _golden_hour_transition)
+		var fog_color = lerp(Color(0.3, 0.4, 0.5), Color(1.0, 0.3, 0.05), _golden_hour_transition)
 		fog_color = lerp(fog_color, Color(0.01, 0.02, 0.05), night_factor)
 
 		env.fog_enabled = Config.fog_density > 0.0
