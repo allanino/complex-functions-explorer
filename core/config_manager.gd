@@ -2,20 +2,6 @@ extends Node
 
 signal config_changed(key: String)
 
-var _is_setting = false
-
-func _set_config(field_name: String, value: Variant):
-	if _is_setting:
-		return
-	var current = get(field_name)
-
-	if current == value:
-		return
-
-	_is_setting = true
-	set(field_name, value)
-	_is_setting = false
-	config_changed.emit(field_name)
 
 var save_path = "user://settings.cfg"
 
@@ -189,8 +175,9 @@ signal preset_applied
 # Field parameters
 var iterations: int = 500:
 	set(v):
-		if _is_setting: iterations = v
-		else: _set_config("iterations", v)
+		if iterations == v: return
+		iterations = v
+		config_changed.emit("iterations")
 var function_iterations: Dictionary = {}
 var function_type: int = ComplexFunc.ZETA:
 	set(value):
@@ -207,40 +194,49 @@ var input_function_type: int = ComplexFunc.IDENTITY
 
 var height_type: int = 0:
 	set(v):
-		if _is_setting: height_type = v
-		else: _set_config("height_type", v)
+		if height_type == v: return
+		height_type = v
+		config_changed.emit("height_type")
 var height_a: float = 3.0:
 	set(v):
-		if _is_setting: height_a = v
-		else: _set_config("height_a", v)
+		if height_a == v: return
+		height_a = v
+		config_changed.emit("height_a")
 var height_epsilon: float = 1.0:
 	set(v):
-		if _is_setting: height_epsilon = v
-		else: _set_config("height_epsilon", v)
+		if height_epsilon == v: return
+		height_epsilon = v
+		config_changed.emit("height_epsilon")
 var height_theta: float = 0.0:
 	set(v):
-		if _is_setting: height_theta = v
-		else: _set_config("height_theta", v)
+		if height_theta == v: return
+		height_theta = v
+		config_changed.emit("height_theta")
 var rational_num_coeffs: PackedVector2Array = PackedVector2Array([Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)]):
 	set(v):
-		if _is_setting: rational_num_coeffs = v
-		else: _set_config("rational_num_coeffs", v)
+		if rational_num_coeffs == v: return
+		rational_num_coeffs = v
+		config_changed.emit("rational_num_coeffs")
 var rational_den_coeffs: PackedVector2Array = PackedVector2Array([Vector2(1, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)]):
 	set(v):
-		if _is_setting: rational_den_coeffs = v
-		else: _set_config("rational_den_coeffs", v)
+		if rational_den_coeffs == v: return
+		rational_den_coeffs = v
+		config_changed.emit("rational_den_coeffs")
 var input_rational_num_coeffs: PackedVector2Array = PackedVector2Array([Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)]):
 	set(v):
-		if _is_setting: input_rational_num_coeffs = v
-		else: _set_config("input_rational_num_coeffs", v)
+		if input_rational_num_coeffs == v: return
+		input_rational_num_coeffs = v
+		config_changed.emit("input_rational_num_coeffs")
 var input_rational_den_coeffs: PackedVector2Array = PackedVector2Array([Vector2(1, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)]):
 	set(v):
-		if _is_setting: input_rational_den_coeffs = v
-		else: _set_config("input_rational_den_coeffs", v)
+		if input_rational_den_coeffs == v: return
+		input_rational_den_coeffs = v
+		config_changed.emit("input_rational_den_coeffs")
 var multivalued_n: int = 2:
 	set(v):
-		if _is_setting: multivalued_n = v
-		else: _set_config("multivalued_n", v)
+		if multivalued_n == v: return
+		multivalued_n = v
+		config_changed.emit("multivalued_n")
 var zoom_factor: float = 1.0:
 	set = _set_zoom_factor
 var zoom_damping: float = 0.5
@@ -248,80 +244,97 @@ var zoom_damping: float = 0.5
 # Rendering parameters
 var terrain_detail: int = 1:
 	set(v):
-		if _is_setting: terrain_detail = v
-		else: _set_config("terrain_detail", v)
+		if terrain_detail == v: return
+		terrain_detail = v
+		config_changed.emit("terrain_detail")
 var antialiasing_mode: int = 1
 var show_curves: bool = true:
 	set(v):
-		if _is_setting: show_curves = v
-		else: _set_config("show_curves", v)
+		if show_curves == v: return
+		show_curves = v
+		config_changed.emit("show_curves")
 var show_curves_labels: bool = false
 var show_critical_stripe: bool = true:
 	set(v):
-		if _is_setting: show_critical_stripe = v
-		else: _set_config("show_critical_stripe", v)
+		if show_critical_stripe == v: return
+		show_critical_stripe = v
+		config_changed.emit("show_critical_stripe")
 var view_distance: int = 7:
 	set(v):
-		if _is_setting: view_distance = v
-		else: _set_config("view_distance", v)
+		if view_distance == v: return
+		view_distance = v
+		config_changed.emit("view_distance")
 var show_flow: bool = false:
 	set(v):
-		if _is_setting: show_flow = v
-		else: _set_config("show_flow", v)
+		if show_flow == v: return
+		show_flow = v
+		config_changed.emit("show_flow")
 var show_position_marker: bool = true:
 	set(v):
-		if _is_setting: show_position_marker = v
-		else: _set_config("show_position_marker", v)
+		if show_position_marker == v: return
+		show_position_marker = v
+		config_changed.emit("show_position_marker")
 var color_scheme: int = 0:
 	set(v):
-		if _is_setting: color_scheme = v
-		else: _set_config("color_scheme", v)
+		if color_scheme == v: return
+		color_scheme = v
+		config_changed.emit("color_scheme")
 var freeze_time: bool = false
 var day_duration: float = 60.0 # Seconds for a full cycle
 var day_time: float = 43200.0: # Current time in seconds (Noon = 12h = 43200s)
 	set(v):
-		if _is_setting: day_time = v
-		else: _set_config("day_time", v)
+		if day_time == v: return
+		day_time = v
+		config_changed.emit("day_time")
 var sunrise_direction: float = 0.0
 var sky_luminosity: float = 1.0
 var sun_luminosity: float = 1.0
 var self_illumination: float = 0.0:
 	set(v):
-		if _is_setting: self_illumination = v
-		else: _set_config("self_illumination", v)
+		if self_illumination == v: return
+		self_illumination = v
+		config_changed.emit("self_illumination")
 var shadows_enabled: bool = false
 var terrain_brightness: float = 1.0:
 	set(v):
-		if _is_setting: terrain_brightness = v
-		else: _set_config("terrain_brightness", v)
+		if terrain_brightness == v: return
+		terrain_brightness = v
+		config_changed.emit("terrain_brightness")
 var terrain_saturation: float = 0.85:
 	set(v):
-		if _is_setting: terrain_saturation = v
-		else: _set_config("terrain_saturation", v)
+		if terrain_saturation == v: return
+		terrain_saturation = v
+		config_changed.emit("terrain_saturation")
 var terrain_albedo: float = 0.15:
 	set(v):
-		if _is_setting: terrain_albedo = v
-		else: _set_config("terrain_albedo", v)
+		if terrain_albedo == v: return
+		terrain_albedo = v
+		config_changed.emit("terrain_albedo")
 var terrain_emission: float = 0.1:
 	set(v):
-		if _is_setting: terrain_emission = v
-		else: _set_config("terrain_emission", v)
+		if terrain_emission == v: return
+		terrain_emission = v
+		config_changed.emit("terrain_emission")
 var terrain_metallic: float = 0.7:
 	set(v):
-		if _is_setting: terrain_metallic = v
-		else: _set_config("terrain_metallic", v)
+		if terrain_metallic == v: return
+		terrain_metallic = v
+		config_changed.emit("terrain_metallic")
 var terrain_roughness: float = 0.1:
 	set(v):
-		if _is_setting: terrain_roughness = v
-		else: _set_config("terrain_roughness", v)
+		if terrain_roughness == v: return
+		terrain_roughness = v
+		config_changed.emit("terrain_roughness")
 var terrain_surface_texture: float = 0.0:
 	set(v):
-		if _is_setting: terrain_surface_texture = v
-		else: _set_config("terrain_surface_texture", v)
+		if terrain_surface_texture == v: return
+		terrain_surface_texture = v
+		config_changed.emit("terrain_surface_texture")
 var fog_density: float = 0.4:
 	set(v):
-		if _is_setting: fog_density = v
-		else: _set_config("fog_density", v)
+		if fog_density == v: return
+		fog_density = v
+		config_changed.emit("fog_density")
 
 # Player parameters
 var movement_speed: float = 10.0
