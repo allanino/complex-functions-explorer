@@ -876,27 +876,39 @@ func _on_color_scheme_selected(index: int):
 	Config.color_scheme = index
 
 func _on_re_text_submitted(new_text: String):
-	if not new_text.is_valid_float(): return
+	if not new_text.is_valid_float():
+		new_text = "0.0"
+		re_input.text = new_text
+
 	var re = float(new_text)
 	if is_finite(re) and player:
 		var current_complex = Config.world_to_complex(player.global_position.x, player.global_position.z)
 		player.global_position.x = Config.complex_to_world(re, current_complex.y).x
 
 func _on_im_text_submitted(new_text: String):
-	if not new_text.is_valid_float(): return
+	if not new_text.is_valid_float():
+		new_text = "0.0"
+		im_input.text = new_text
+
 	var im = float(new_text)
 	if is_finite(im) and player:
 		var current_complex = Config.world_to_complex(player.global_position.x, player.global_position.z)
 		player.global_position.z = Config.complex_to_world(current_complex.x, im).y
 
 func _on_height_a_text_submitted(new_text: String):
-	if not new_text.is_valid_float(): return
+	if not new_text.is_valid_float():
+		new_text = "3.0"
+		height_a_input.text = new_text
+
 	var h_a = float(new_text)
 	if is_finite(h_a):
 		Config.height_a = h_a
 
 func _on_height_eps_text_submitted(new_text: String):
-	if not new_text.is_valid_float(): return
+	if not new_text.is_valid_float():
+		new_text = "1.0"
+		height_eps_input.text = new_text
+
 	var h_eps = float(new_text)
 	if is_finite(h_eps):
 		Config.height_epsilon = h_eps
