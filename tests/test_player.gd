@@ -92,16 +92,16 @@ func test_curve_labels_throttled_update():
 
 	var player = player_scene.instantiate()
 	add_child_autoqfree(player)
+		
+	# Verify labels start visible is false (until updated)
+	assert_false(player.re_label.visible)
+	assert_false(player.im_label.visible)
 	
 	# Set player position and orientation (facing -Z)
 	player.global_position = Vector3(0.0, 0.0, 0.0)
 	player.rotation = Vector3.ZERO
 	player._physics_process(0.016)
-	
-	# Verify labels start visible is false (until updated)
-	assert_false(player.re_label.visible)
-	assert_false(player.im_label.visible)
-	
+
 	# 2. Call _physics_process once. Force update by setting timer to interval.
 	player._curve_label_update_timer = player.CURVE_LABEL_UPDATE_INTERVAL
 	player._physics_process(0.016)
