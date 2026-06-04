@@ -41,28 +41,16 @@ func _process(delta):
 		night_factor = 0.0
 
 	if sun:
-		var visual_sun_dir = sun_dir
-		if visual_sun_dir.y > -0.01:
-			visual_sun_dir.y = -0.01
-			visual_sun_dir = visual_sun_dir.normalized()
-
-		sun.basis = Basis.looking_at(visual_sun_dir, Vector3.UP if abs(visual_sun_dir.y) < 0.99 else Vector3.FORWARD)
+		sun.basis = Basis.looking_at(sun_dir, Vector3.UP if abs(sun_dir.y) < 0.99 else Vector3.FORWARD)
 		sun.light_energy = smoothstep(-0.02, 0.02, sun_elevation) * Config.sun_luminosity
 		sun.light_color = lerp(_sun_color, Color(1.0, 0.5, 0.2), _golden_hour_transition)
-		sun.shadow_enabled = Config.shadows_enabled and sun_elevation > -0.02
-		sun.visible = true
+		sun.shadow_enabled = Config.shadows_enabled and sun_elevation > -0.01
 
-	var moon_elevation = - moon_dir.y
 	if moon:
-		var visual_moon_dir = moon_dir
-		if visual_moon_dir.y > -0.01:
-			visual_moon_dir.y = -0.01
-			visual_moon_dir = visual_moon_dir.normalized()
-
-		moon.basis = Basis.looking_at(visual_moon_dir, Vector3.UP if abs(visual_moon_dir.y) < 0.99 else Vector3.FORWARD)
+		moon.basis = Basis.looking_at(moon_dir, Vector3.UP if abs(moon_dir.y) < 0.99 else Vector3.FORWARD)
+		var moon_elevation = - moon_dir.y
 		moon.light_energy = smoothstep(-0.02, 0.02, moon_elevation) * 0.4 * Config.sun_luminosity
-		moon.shadow_enabled = Config.shadows_enabled and moon_elevation > -0.02
-		moon.visible = true
+		moon.shadow_enabled = Config.shadows_enabled and moon_elevation > -0.01
 
 	if world_environment and world_environment.environment and world_environment.environment.sky:
 		var sky_mat = world_environment.environment.sky.sky_material as ShaderMaterial
@@ -72,12 +60,13 @@ func _process(delta):
 			sky_mat.set_shader_parameter("sky_luminosity", Config.sky_luminosity)
 
 			if sun:
-				sky_mat.set_shader_parameter("custom_sun_dir", sun_dir)
+				# LIGHT0_DIRECTION in Godot points FROM origin TO light
+				sky_mat.set_shader_parameter("custom_sun_dir", -sun_dir)
 				sky_mat.set_shader_parameter("custom_sun_color", sun.light_color)
 				sky_mat.set_shader_parameter("custom_sun_energy", sun.light_energy)
 
 			if moon:
-				sky_mat.set_shader_parameter("custom_moon_dir", moon_dir)
+				sky_mat.set_shader_parameter("custom_moon_dir", -moon_dir)
 				sky_mat.set_shader_parameter("custom_moon_color", moon.light_color)
 				sky_mat.set_shader_parameter("custom_moon_energy", moon.light_energy)
 

@@ -8,7 +8,7 @@ uniform float night_factor = 0.0;
 uniform float sky_luminosity = 1.0;
 uniform bool performance_protection_active = false;
 
-uniform vec3 custom_sun_dir = vec3(0.0, -1.0, 0.0);
+uniform vec3 custom_sun_dir = vec3(0.0, 1.0, 0.0);
 uniform vec3 custom_sun_color = vec3(1.0, 1.0, 1.0);
 uniform float custom_sun_energy = 1.0;
 
