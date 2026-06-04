@@ -35,7 +35,7 @@ float fbm(vec2 p) {
     float v = 0.0;
     float a = 0.5;
     mat2 rot = mat2(vec2(0.87758, 0.47942), vec2(-0.47942, 0.87758)); // approx cos(0.5), sin(0.5)
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < 5; i++) {
         v += a * noise(p);
         p = rot * p * 2.0 + vec2(10.0);
         a *= 0.5;
@@ -47,8 +47,8 @@ float fbm(vec2 p) {
 
 void compute_sky_colors(float n_factor, float g_factor, vec3 sky_c, vec3 horizon_c, vec3 cloud_c, out vec3 current_sky, out vec3 current_horizon, out vec3 current_cloud) {
     vec3 golden_hour_sky = vec3(0.1, 0.15, 0.3); // Deep blue/purple
-    vec3 golden_hour_horizon = vec3(1.0, 0.4, 0.1); // Deep orange
-    vec3 golden_hour_cloud = vec3(1.0, 0.7, 0.5); // Golden/Pinkish
+    vec3 golden_hour_horizon = vec3(1.0, 0.3, 0.05); // Deep orange
+    vec3 golden_hour_cloud = vec3(1.0, 0.4, 0.2); // Golden/Pinkish
 
     vec3 night_sky = vec3(0.005, 0.01, 0.02);
     vec3 night_horizon = vec3(0.01, 0.02, 0.05);
@@ -153,7 +153,7 @@ void compute_clouds(vec3 eye_dir, float eye_alt, float time, vec3 current_cloud,
             fbm(uv2 * 0.6) * 0.3;
 
         // Lower threshold for more cloud coverage across the sky
-        float cloud_density = smoothstep(0.4, 0.8, cloud_fbm);
+        float cloud_density = smoothstep(0.5, 0.8, cloud_fbm);
 
         // Add detail noise without over-thinning
         float detail_noise = fbm(cloud_uv * 1.5 + vec2(time * 0.005));
@@ -261,8 +261,18 @@ void sky() {
         compute_sky_colors(night_factor, golden_hour_factor, sky_color, horizon_color, cloud_color, current_sky, current_horizon, current_cloud);
 
         // Sky gradient
-        vec3 final_color = mix(current_horizon, current_sky, clamp(eye_alt, 0.0, 1.0));
+        float horizon_span = mix(1.0, 0.4, golden_hour_factor);
+        float grad_factor = clamp(eye_alt / horizon_span, 0.0, 1.0);
+        grad_factor = 1.0 - exp(-grad_factor * mix(2.0, 4.0, golden_hour_factor));
+        vec3 final_color = mix(current_horizon, current_sky, grad_factor);
+        float sun_factor = pow(max(dot(EYEDIR, LIGHT0_DIRECTION), 0.0), 3.0);
+        final_color += current_horizon * sun_factor * 0.08;
 
+        float horizon_alt = max(eye_alt, 0.0);
+        float haze = exp(-pow(horizon_alt * 6.0, 2.0));
+        final_color = mix(final_color, current_horizon, haze * 0.12 * golden_hour_factor);
+        
+    
         // Stars
         compute_stars(EYEDIR, eye_alt, night_factor, TIME, final_color);
 

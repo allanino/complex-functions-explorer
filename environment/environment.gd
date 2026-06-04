@@ -33,7 +33,7 @@ func _process(delta):
 	var moon_dir = - sun_dir
 
 	var sun_elevation = - sun_dir.y
-	_golden_hour_transition = clamp((0.5 - sun_elevation) / 0.5, 0.0, 1.0)
+	_golden_hour_transition = clamp((0.8 - sun_elevation) / 0.8, 0.0, 1.0)
 
 	if sun_elevation < 0.0:
 		night_factor = clamp(-sun_elevation / 0.3, 0.0, 1.0)
@@ -62,7 +62,7 @@ func _process(delta):
 		# Setup fog	
 		var env = world_environment.environment
 	
-		var fog_color = lerp(Color(0.3, 0.4, 0.5), Color(1.0, 0.4, 0.1), _golden_hour_transition)
+		var fog_color = lerp(Color(0.3, 0.4, 0.5), Color(1.0, 0.3, 0.05), _golden_hour_transition)
 		fog_color = lerp(fog_color, Color(0.01, 0.02, 0.05), night_factor)
 
 		env.fog_enabled = Config.fog_density > 0.0
