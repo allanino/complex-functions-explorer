@@ -92,19 +92,19 @@ func test_curve_labels_throttled_update():
 
 	var player = player_scene.instantiate()
 	add_child_autoqfree(player)
+		
+	# Verify labels start visible is false (until updated)
+	assert_false(player.re_label.visible)
+	assert_false(player.im_label.visible)
 	
 	# Set player position and orientation (facing -Z)
 	player.global_position = Vector3(0.0, 0.0, 0.0)
 	player.rotation = Vector3.ZERO
 	player._physics_process(0.016)
-	
-	# Verify labels start visible is false (until updated)
-	assert_false(player.re_label.visible)
-	assert_false(player.im_label.visible)
-	
-	# 2. Call _process once. Force update by setting timer to interval.
+
+	# 2. Call _physics_process once. Force update by setting timer to interval.
 	player._curve_label_update_timer = player.CURVE_LABEL_UPDATE_INTERVAL
-	player._process(0.016)
+	player._physics_process(0.016)
 	
 	# Since we are at origin and facing -Z under identity:
 	# Real part is x, Imaginary part is y.
@@ -112,26 +112,27 @@ func test_curve_labels_throttled_update():
 	# So we should find imaginary crossings (since y = -z/10 goes up) but no real crossings (since x = 0).
 	assert_true(player.im_label.visible)
 	assert_false(player.re_label.visible)
-	assert_almost_eq(player._curve_label_update_timer, 0.016, 0.001)
+	assert_almost_eq(player._curve_label_update_timer, 0.0, 0.001)
 	
-	# 3. Call _process again with small delta. It should not update the labels (timer goes up but doesn't reach threshold)
+	# 3. Call _physics_process again with small delta. It should not update the labels (timer goes up but doesn't reach threshold)
 	player.im_label.visible = false # Manually hide to verify it's not set to true
-	player._process(0.016)
+	player._physics_process(0.016)
 	assert_false(player.im_label.visible)
-	assert_almost_eq(player._curve_label_update_timer, 0.032, 0.001)
-	
-	# 4. Call _process with a delta large enough to cross the threshold, and verify it snaps on first visible transition
-	player._curve_label_update_timer = player.CURVE_LABEL_UPDATE_INTERVAL
-	player._process(0.016)
-	assert_true(player.im_label.visible)
 	assert_almost_eq(player._curve_label_update_timer, 0.016, 0.001)
+	
+	# 4. Call _physics_process with a delta large enough to cross the threshold, and verify it snaps on first visible transition
+	player._curve_label_update_timer = player.CURVE_LABEL_UPDATE_INTERVAL
+	player._physics_process(0.016)
+	assert_true(player.im_label.visible)
+	assert_almost_eq(player._curve_label_update_timer, 0.0, 0.001)
 	var start_pos = player.im_label.global_position
  
 	# 5. Move player past the first curve (to z = -11.0) and verify it slides smoothly (lerps) instead of snapping
 	player.global_position = Vector3(0.0, 0.0, -11.0)
 	player._physics_process(0.016)
 	player._curve_label_update_timer = player.CURVE_LABEL_UPDATE_INTERVAL # Force throttled update to run on next frame
-	player._process(0.016) # Run update and lerp with 0.016 delta
+	player._physics_process(0.016) # Run update to find new target
+	player._process(0.016) # Run lerp with 0.016 delta
 	
 	var target_pos = player._im_label_target_pos
 	assert_true(start_pos.distance_to(target_pos) > 0.001) # Target should have shifted to next curve (e.g. z = -20)
