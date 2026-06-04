@@ -328,14 +328,7 @@ var movement_speed: float = 10.0
 var speed_near_zeros: float = 100.0
 var camera_height: float = 1.8
 var zero_proximity_nav: float = 0.5
-var real_level_curves_highlighted: Array[float] = []:
-	set(v):
-		real_level_curves_highlighted = v
-		config_changed.emit("real_level_curves_highlighted")
-var imag_level_curves_highlighted: Array[float] = []:
-	set(v):
-		imag_level_curves_highlighted = v
-		config_changed.emit("imag_level_curves_highlighted")
+
 
 # UI parameters
 var show_hud_complex: bool = true

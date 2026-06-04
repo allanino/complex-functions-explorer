@@ -175,7 +175,7 @@ func _update_terrain_material_uniforms(key: String):
 
 	if key == "real_level_curves_highlighted":
 		var real_shaded = PackedFloat32Array()
-		for val in Config.real_level_curves_highlighted:
+		for val in GameState.real_level_curves_highlighted:
 			real_shaded.append(val)
 		while real_shaded.size() < 10:
 			real_shaded.append(99999.0)
@@ -184,7 +184,7 @@ func _update_terrain_material_uniforms(key: String):
 
 	if key == "imag_level_curves_highlighted":
 		var imag_shaded = PackedFloat32Array()
-		for val in Config.imag_level_curves_highlighted:
+		for val in GameState.imag_level_curves_highlighted:
 			imag_shaded.append(val)
 		while imag_shaded.size() < 10:
 			imag_shaded.append(99999.0)
@@ -303,7 +303,7 @@ func _unload_chunk(coord: Vector2i):
 	_update_neighbor_lods(coord)
 
 func _on_config_changed(key: String):
-	if key in ["iterations", "terrain_detail", "view_distance", "show_curves", "show_critical_stripe", "show_flow", "show_position_marker", "color_scheme", "function_type", "height_type", "height_a", "height_epsilon", "height_theta", "rational_num_coeffs", "rational_den_coeffs", "input_rational_num_coeffs", "input_rational_den_coeffs", "multivalued_n", "self_illumination", "terrain_brightness", "terrain_saturation", "terrain_albedo", "terrain_emission", "terrain_metallic", "terrain_roughness", "terrain_surface_texture", "morph_value", "fog_density", "real_level_curves_highlighted", "imag_level_curves_highlighted"]:
+	if key in ["iterations", "terrain_detail", "view_distance", "show_curves", "show_critical_stripe", "show_flow", "show_position_marker", "color_scheme", "function_type", "height_type", "height_a", "height_epsilon", "height_theta", "rational_num_coeffs", "rational_den_coeffs", "input_rational_num_coeffs", "input_rational_den_coeffs", "multivalued_n", "self_illumination", "terrain_brightness", "terrain_saturation", "terrain_albedo", "terrain_emission", "terrain_metallic", "terrain_roughness", "terrain_surface_texture", "morph_value", "fog_density"]:
 		_update_terrain_material_uniforms(key)
 		if key == "terrain_detail":
 			_update_lod_subs()
@@ -314,5 +314,5 @@ func _on_config_changed(key: String):
 				_update_chunks(floor(player.global_position.x / chunk_size), floor(player.global_position.z / chunk_size))
 
 func _on_state_changed(key: String):
-	if key in ["current_branch", "morph_value", "newton_path", "newton_path_bbox"]:
+	if key in ["current_branch", "morph_value", "newton_path", "newton_path_bbox", "real_level_curves_highlighted", "imag_level_curves_highlighted"]:
 		_update_terrain_material_uniforms(key)

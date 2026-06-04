@@ -143,31 +143,31 @@ func _unhandled_input(event):
 				# If close to a real curve level, push or toggle it in the list capped at 10
 				var closest_curve_real = round(current_f.x)
 				if abs(current_f.x - closest_curve_real) < 0.1:
-					var curves = Config.real_level_curves_highlighted.duplicate()
+					var curves = GameState.real_level_curves_highlighted.duplicate()
 					if closest_curve_real in curves:
 						curves.erase(closest_curve_real)
 					else:
 						curves.append(closest_curve_real)
 						if curves.size() > 10:
 							curves.pop_front()
-					Config.real_level_curves_highlighted = curves
+					GameState.real_level_curves_highlighted = curves
 
 				var closest_curve_imag = round(current_f.y)
 				if abs(current_f.y - closest_curve_imag) < 0.1:
-					var curves = Config.imag_level_curves_highlighted.duplicate()
+					var curves = GameState.imag_level_curves_highlighted.duplicate()
 					if closest_curve_imag in curves:
 						curves.erase(closest_curve_imag)
 					else:
 						curves.append(closest_curve_imag)
 						if curves.size() > 10:
 							curves.pop_front()
-					Config.imag_level_curves_highlighted = curves
+					GameState.imag_level_curves_highlighted = curves
 		elif event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
 			GameState.newton_path = PackedVector2Array()
 			GameState.newton_path_bbox = Vector4(0, 0, 0, 0)
 			if Config.show_curves:
-				Config.real_level_curves_highlighted = []
-				Config.imag_level_curves_highlighted = []
+				GameState.real_level_curves_highlighted = []
+				GameState.imag_level_curves_highlighted = []
 					
 
 	if event is InputEventKey and event.pressed and event.keycode == KEY_SPACE and not event.echo:

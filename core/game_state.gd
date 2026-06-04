@@ -27,3 +27,12 @@ var current_branch: int = 0:
 		if current_branch == v: return
 		current_branch = v
 		state_changed.emit("current_branch") # Session state for Portals mode
+
+var real_level_curves_highlighted: Array[float] = []:
+	set(v):
+		real_level_curves_highlighted = v
+		state_changed.emit("real_level_curves_highlighted")
+var imag_level_curves_highlighted: Array[float] = []:
+	set(v):
+		imag_level_curves_highlighted = v
+		state_changed.emit("imag_level_curves_highlighted")
