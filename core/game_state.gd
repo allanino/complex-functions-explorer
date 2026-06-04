@@ -7,7 +7,11 @@ var visited_zeros: Array[Vector2] = []
 var total_zeros_found: int = 0
 var rvm_start_t: float = 0.0
 var performance_protection_active: bool = false
-var effective_zoom: float = 1.0
+var effective_zoom: float = 1.0:
+	set(v):
+		if effective_zoom == v: return
+		effective_zoom = v
+		state_changed.emit("effective_zoom")
 var morph_value: float = 1.0:
 	set(v):
 		if morph_value == v: return

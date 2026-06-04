@@ -51,7 +51,6 @@ func _process(delta):
 	var player_chunk_z = floor(player_pos.z / chunk_size)
 
 	if terrain_material:
-		terrain_material.set_shader_parameter("zoom_factor", GameState.effective_zoom)
 		terrain_material.set_shader_parameter("player_position_world", player_pos)
 
 
@@ -217,8 +216,11 @@ func _update_terrain_material_uniforms(key: String):
 	if mapped_key in ["iterations", "show_curves", "show_critical_stripe", "show_flow", "show_position_marker", "color_scheme", "input_function_type", "height_type", "height_a", "height_epsilon", "height_theta", "zoom_factor", "rational_num_coeffs", "rational_den_coeffs", "input_rational_num_coeffs", "input_rational_den_coeffs", "multivalued_n", "self_illumination", "fog_density", "brightness", "saturation", "albedo", "emission", "metallic", "roughness", "surface_texture"]:
 		terrain_material.set_shader_parameter(mapped_key, Config.get(key))
 		return
-	if key in ["performance_protection_active", "current_branch", "morph_value"]:
-		terrain_material.set_shader_parameter(key, GameState.get(key))
+	if key in ["performance_protection_active", "current_branch", "morph_value", "effective_zoom"]:
+		var param_name = key
+		if key == "effective_zoom":
+			param_name = "zoom_factor"
+		terrain_material.set_shader_parameter(param_name, GameState.get(key))
 		if key == "morph_value":
 			terrain_material.set_shader_parameter("morph", GameState.get(key))
 		return
@@ -313,5 +315,5 @@ func _on_config_changed(key: String):
 				_update_chunks(floor(player.global_position.x / chunk_size), floor(player.global_position.z / chunk_size))
 
 func _on_state_changed(key: String):
-	if key in ["current_branch", "morph_value", "newton_path", "newton_path_bbox", "real_level_curves_highlighted", "imag_level_curves_highlighted"]:
+	if key in ["current_branch", "morph_value", "newton_path", "newton_path_bbox", "real_level_curves_highlighted", "imag_level_curves_highlighted", "effective_zoom"]:
 		_update_terrain_material_uniforms(key)
