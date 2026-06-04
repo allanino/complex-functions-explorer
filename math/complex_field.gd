@@ -230,7 +230,7 @@ static func dirichlet_eta_with_derivatives(x: float, y: float, iterations: int) 
 
 		if (amp < 1e-4 || amp2 < 1e-4 || amp > 1e4 || amp2 > 1e4): break
 
-	if actual_iters > 0:
+	if actual_iters > 0 && x >= 0.5:
 		var next_n = float(actual_iters + 1)
 		var rem_amp = 0.5 * pow(next_n, -x)
 		var rem_log_n = log(next_n)
@@ -294,7 +294,7 @@ static func complex_log_gamma_with_derivatives(x: float, y: float) -> Array:
 		value = Vector2(LOG_PI, 0.0) - log_sin_pi_z - lg1z[0]
 
 		var cot_pi_z = complex_cot(pi_z.x, pi_z.y)
-		dx = -PI * cot_pi_z + lg1z[1]
+		dx = - PI * cot_pi_z + lg1z[1]
 	else:
 		var res = lanczos_log_gamma_with_derivatives(Vector2(x, y))
 		value = res[0]

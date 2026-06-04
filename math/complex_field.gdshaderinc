@@ -363,7 +363,7 @@ ComplexFieldData dirichlet_eta_with_derivatives(float x, float y, int iters) {
         if (amp < 1e-4 || amp2 < 1e-4 || amp > 1e4 || amp2 > 1e4) break;
     }
 
-    if (actual_iters > 0) {
+    if (actual_iters > 0 && x >= 0.5) {
         float next_n = float(actual_iters + 1);
 
         float rem_amp = 0.5 * pow(next_n, -x);
