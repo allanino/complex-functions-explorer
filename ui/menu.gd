@@ -629,14 +629,14 @@ func _on_freeze_time_toggled(pressed: bool):
 
 func _on_set_pos_pressed(_toggle_menu: bool = true):
 	GameState.performance_protection_active = false
-	var re = float(re_input.text)
-	var im = float(im_input.text)
+	var re = float(re_input.text) if re_input.text.is_valid_float() else 0.5
+	var im = float(im_input.text) if im_input.text.is_valid_float() else 0.0
 	if not is_finite(re): re = 0.5
 	if not is_finite(im): im = 0.0
 
-	var h_a = float(height_a_input.text)
+	var h_a = float(height_a_input.text) if height_a_input.text.is_valid_float() else 3.0
 	if not is_finite(h_a): h_a = 3.0
-	var h_eps = float(height_eps_input.text)
+	var h_eps = float(height_eps_input.text) if height_eps_input.text.is_valid_float() else 1.0
 	if not is_finite(h_eps): h_eps = 1.0
 
 	if !hud_zeros_checkbox.button_pressed:
@@ -875,23 +875,39 @@ func _on_color_scheme_selected(index: int):
 	Config.color_scheme = index
 
 func _on_re_text_submitted(new_text: String):
+	if not new_text.is_valid_float():
+		new_text = "0.0"
+		re_input.text = new_text
+
 	var re = float(new_text)
 	if is_finite(re) and player:
 		var current_complex = Config.world_to_complex(player.global_position.x, player.global_position.z)
 		player.global_position.x = Config.complex_to_world(re, current_complex.y).x
 
 func _on_im_text_submitted(new_text: String):
+	if not new_text.is_valid_float():
+		new_text = "0.0"
+		im_input.text = new_text
+
 	var im = float(new_text)
 	if is_finite(im) and player:
 		var current_complex = Config.world_to_complex(player.global_position.x, player.global_position.z)
 		player.global_position.z = Config.complex_to_world(current_complex.x, im).y
 
 func _on_height_a_text_submitted(new_text: String):
+	if not new_text.is_valid_float():
+		new_text = "3.0"
+		height_a_input.text = new_text
+
 	var h_a = float(new_text)
 	if is_finite(h_a):
 		Config.height_a = h_a
 
 func _on_height_eps_text_submitted(new_text: String):
+	if not new_text.is_valid_float():
+		new_text = "1.0"
+		height_eps_input.text = new_text
+
 	var h_eps = float(new_text)
 	if is_finite(h_eps):
 		Config.height_epsilon = h_eps
