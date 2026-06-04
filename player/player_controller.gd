@@ -143,35 +143,31 @@ func _unhandled_input(event):
 				# If close to a real curve level, push or toggle it in the list capped at 10
 				var closest_curve_real = round(current_f.x)
 				if abs(current_f.x - closest_curve_real) < 0.1:
-					if closest_curve_real in Config.real_level_curves_highlighted:
-						Config.real_level_curves_highlighted.erase(closest_curve_real)
+					var curves = Config.real_level_curves_highlighted.duplicate()
+					if closest_curve_real in curves:
+						curves.erase(closest_curve_real)
 					else:
-						Config.real_level_curves_highlighted.append(closest_curve_real)
-						if Config.real_level_curves_highlighted.size() > 10:
-							Config.real_level_curves_highlighted.pop_front()
-					# Set shader parameter to highlight this curve
-					if world_manager and world_manager.has_method("_update_all_terrain_material_uniforms"):
-						world_manager._update_all_terrain_material_uniforms()
+						curves.append(closest_curve_real)
+						if curves.size() > 10:
+							curves.pop_front()
+					Config.real_level_curves_highlighted = curves
 
 				var closest_curve_imag = round(current_f.y)
 				if abs(current_f.y - closest_curve_imag) < 0.1:
-					if closest_curve_imag in Config.imag_level_curves_highlighted:
-						Config.imag_level_curves_highlighted.erase(closest_curve_imag)
+					var curves = Config.imag_level_curves_highlighted.duplicate()
+					if closest_curve_imag in curves:
+						curves.erase(closest_curve_imag)
 					else:
-						Config.imag_level_curves_highlighted.append(closest_curve_imag)
-						if Config.imag_level_curves_highlighted.size() > 10:
-							Config.imag_level_curves_highlighted.pop_front()
-					# Set shader parameter to highlight this curve
-					if world_manager and world_manager.has_method("_update_all_terrain_material_uniforms"):
-						world_manager._update_all_terrain_material_uniforms()
+						curves.append(closest_curve_imag)
+						if curves.size() > 10:
+							curves.pop_front()
+					Config.imag_level_curves_highlighted = curves
 		elif event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
-			GameState.newton_path.clear()
+			GameState.newton_path = PackedVector2Array()
 			GameState.newton_path_bbox = Vector4(0, 0, 0, 0)
 			if Config.show_curves:
-				Config.real_level_curves_highlighted.clear()
-				Config.imag_level_curves_highlighted.clear()
-			if world_manager and world_manager.has_method("_update_all_terrain_material_uniforms"):
-				world_manager._update_all_terrain_material_uniforms()
+				Config.real_level_curves_highlighted = []
+				Config.imag_level_curves_highlighted = []
 					
 
 	if event is InputEventKey and event.pressed and event.keycode == KEY_SPACE and not event.echo:
@@ -254,9 +250,6 @@ func _unhandled_input(event):
 
 				GameState.newton_path = path
 				GameState.newton_path_bbox = Vector4(min_x, max_x, min_y, max_y)
-
-				if world_manager and world_manager.has_method("_update_all_terrain_material_uniforms"):
-					world_manager._update_all_terrain_material_uniforms()
 			else:
 				auto_walk_state = AutoWalkState.NONE
 		elif event.keycode == KEY_R:
@@ -270,9 +263,7 @@ func _unhandled_input(event):
 			current_f = ComplexField.get_field(global_position.x, global_position.z)
 			current_mag = current_f.length()
 			
-			# Immediately update the shader's branch uniform
-			if world_manager and world_manager.has_method("_update_all_terrain_material_uniforms"):
-				world_manager._update_all_terrain_material_uniforms()
+			pass
 
 func get_terrain_height(x: float, z: float, field_val: Vector2 = Vector2.INF) -> float:
 	if field_val != Vector2.INF:
@@ -709,9 +700,7 @@ func _process(_delta):
 			if main_ui and main_ui.has_method("play_portal_flash"):
 				main_ui.play_portal_flash()
 
-			# Immediately update the shader's branch uniform to prevent 1-frame rendering lag
-			if world_manager and world_manager.has_method("_update_all_terrain_material_uniforms"):
-				world_manager._update_all_terrain_material_uniforms()
+			pass
 
 	last_z = frame_z
 

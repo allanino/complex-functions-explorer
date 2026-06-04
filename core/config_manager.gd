@@ -217,7 +217,10 @@ var height_epsilon: float = 1.0:
 	set(v):
 		if _is_setting: height_epsilon = v
 		else: _set_config("height_epsilon", v)
-var height_theta: float = 0.0
+var height_theta: float = 0.0:
+	set(v):
+		if _is_setting: height_theta = v
+		else: _set_config("height_theta", v)
 var rational_num_coeffs: PackedVector2Array = PackedVector2Array([Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)]):
 	set(v):
 		if _is_setting: rational_num_coeffs = v
@@ -325,8 +328,14 @@ var movement_speed: float = 10.0
 var speed_near_zeros: float = 100.0
 var camera_height: float = 1.8
 var zero_proximity_nav: float = 0.5
-var real_level_curves_highlighted: Array[float] = []
-var imag_level_curves_highlighted: Array[float] = []
+var real_level_curves_highlighted: Array[float] = []:
+	set(v):
+		real_level_curves_highlighted = v
+		config_changed.emit("real_level_curves_highlighted")
+var imag_level_curves_highlighted: Array[float] = []:
+	set(v):
+		imag_level_curves_highlighted = v
+		config_changed.emit("imag_level_curves_highlighted")
 
 # UI parameters
 var show_hud_complex: bool = true

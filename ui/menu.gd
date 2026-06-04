@@ -446,8 +446,7 @@ func _init_slider_bindings():
 			"to_config": func(v): return v,
 			"from_config": func(c): return c,
 			"format": func(v): return "%.2f rad" % v,
-			"immediate": true,
-			"on_changed": func(_v): if world_manager and world_manager.has_method("_update_all_terrain_material_uniforms"): world_manager._update_all_terrain_material_uniforms()
+			"immediate": true
 		},
 		multivalued_slider: {
 			"config_key": "multivalued_n",
