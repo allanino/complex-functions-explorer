@@ -337,7 +337,6 @@ vec2 complex_log_sin(float x, float y) {
 ComplexFieldData dirichlet_eta_with_derivatives(float x, float y, int iters, float min_amp, float max_amp) {
     vec2 eta = vec2(0.0);
     vec2 deta_dx = vec2(0.0);
-    int actual_iters = 0;
     for (int n = 1; n <= iters; n += 2) {
         float nf = float(n);
         float amp = pow(nf, -x);
@@ -354,28 +353,11 @@ ComplexFieldData dirichlet_eta_with_derivatives(float x, float y, int iters, flo
         vec2 term2 = amp2 * vec2(cos(theta2), sin(theta2));
         eta -= term2;
         deta_dx += log_n2 * term2;
-        
-        actual_iters = n + 1;
 
         // We are basically clamping the flat planice x > 1 restricting amp < min_amp
         // and also preventing overflow when x is very negative by clamping amp > max_amp
         // This improves performance greatly on the acutally interesting region around the critical strip
         if (amp < min_amp || amp2 < min_amp || amp > max_amp || amp2 > max_amp) break;
-    }
-
-    if (actual_iters > 0) {
-        float next_n = float(actual_iters + 1);
-
-        float rem_amp = 0.5 * pow(next_n, -x);
-        float rem_log_n = log(next_n);
-        float rem_theta = -y * rem_log_n;
-
-        float rem_sign = 1.0;
-
-        vec2 rem_term = rem_sign * rem_amp * vec2(cos(rem_theta), sin(rem_theta));
-
-        eta += rem_term;
-        deta_dx -= rem_log_n * rem_term;
     }
 
     ComplexFieldData result;
@@ -974,9 +956,9 @@ ComplexFieldData multivalued_acos_with_derivatives(float x, float y, int branch_
 //-------------------------------------------------------------------------
 
 ComplexFieldData evaluate_function_with_derivatives(float x, float y, int func_type, int iters, int b_offset, bool is_input) {
-    if (func_type == 0) return zeta_with_derivatives(x, y, iters, 1e-8, 1e8);
+    if (func_type == 0) return zeta_with_derivatives(x, y, iters, 1e-20, 1e20);
     if (func_type == 1) return zeta_continuation_with_derivatives(x, y, iters);
-    if (func_type == 2) return dirichlet_eta_with_derivatives(x, y, iters, 1e-8, 1e8);
+    if (func_type == 2) return dirichlet_eta_with_derivatives(x, y, iters, 1e-20, 1e20);
     if (func_type == 3) return dirichlet_beta_with_derivatives(x, y, iters);
     if (func_type == 4) return complex_gamma_with_derivatives(x, y);
     if (func_type == 5) return complex_log_gamma_with_derivatives(x, y);
