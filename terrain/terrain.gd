@@ -7,7 +7,6 @@ extends Node3D
 
 var chunks = {}
 var chunk_leeway = 0.01
-var _last_field_state = {}
 var LOD_SUBS = [] # This will be set in code
 var _lod_mesh_cache = {}
 var _last_player_chunk = Vector2i(9999, 9999)
