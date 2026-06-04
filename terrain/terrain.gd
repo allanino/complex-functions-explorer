@@ -160,10 +160,6 @@ func _update_terrain_material_uniforms(key: String = ""):
 		if key in ["performance_protection_active", "current_branch", "morph_value"]:
 			terrain_material.set_shader_parameter(key, GameState.get(key))
 			return
-
-	if not terrain_material:
-		return
-
 	var f_data = Config.function
 	terrain_material.set_shader_parameter("performance_protection_active", GameState.performance_protection_active)
 	terrain_material.set_shader_parameter("is_dirichlect", f_data.get("is_dirichlect", false))
