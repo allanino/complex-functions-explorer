@@ -261,8 +261,18 @@ void sky() {
         compute_sky_colors(night_factor, golden_hour_factor, sky_color, horizon_color, cloud_color, current_sky, current_horizon, current_cloud);
 
         // Sky gradient
-        vec3 final_color = mix(current_horizon, current_sky, clamp(eye_alt, 0.0, 1.0));
+        float horizon_span = mix(1.0, 0.4, golden_hour_factor);
+        float grad_factor = clamp(eye_alt / horizon_span, 0.0, 1.0);
+        grad_factor = 1.0 - exp(-grad_factor * mix(2.0, 4.0, golden_hour_factor));
+        vec3 final_color = mix(current_horizon, current_sky, grad_factor);
+        float sun_factor = pow(max(dot(EYEDIR, LIGHT0_DIRECTION), 0.0), 3.0);
+        final_color += current_horizon * sun_factor * 0.08;
 
+        float horizon_alt = max(eye_alt, 0.0);
+        float haze = exp(-pow(horizon_alt * 6.0, 2.0));
+        final_color = mix(final_color, current_horizon, haze * 0.12 * golden_hour_factor);
+        
+    
         // Stars
         compute_stars(EYEDIR, eye_alt, night_factor, TIME, final_color);
 

@@ -33,7 +33,7 @@ func _process(delta):
 	var moon_dir = - sun_dir
 
 	var sun_elevation = - sun_dir.y
-	_golden_hour_transition = clamp((0.7 - sun_elevation) / 0.7, 0.0, 1.0)
+	_golden_hour_transition = clamp((0.8 - sun_elevation) / 0.8, 0.0, 1.0)
 
 	if sun_elevation < 0.0:
 		night_factor = clamp(-sun_elevation / 0.3, 0.0, 1.0)
