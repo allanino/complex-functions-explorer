@@ -1,13 +1,7 @@
 [gd_scene load_steps=5 format=3]
 
-[ext_resource type="FontFile" path="res://fonts/SpaceMono-Regular.ttf" id="1_font"]
+[ext_resource type="FontVariation" path="res://ui/theme/font_spacemono.tres" id="1_font"]
 [ext_resource type="Script" path="res://ui/components/zero_list_item.gd" id="1_script"]
-
-[sub_resource type="FontVariation" id="FontVariation_spacemono_400"]
-base_font = ExtResource("1_font")
-variation_opentype = {
-"wght": 400
-}
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_item"]
 bg_color = Color(0.909804, 0.894118, 0.862745, 0.08)
@@ -32,7 +26,7 @@ alignment = 1
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.784314, 0.662745, 0.431373, 1)
-theme_override_fonts/font = SubResource("FontVariation_spacemono_400")
+theme_override_fonts/font = ExtResource("1_font")
 theme_override_font_sizes/font_size = 14
 text = "1/2"
 
@@ -40,6 +34,6 @@ text = "1/2"
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.909804, 0.894118, 0.862745, 1)
-theme_override_fonts/font = SubResource("FontVariation_spacemono_400")
+theme_override_fonts/font = ExtResource("1_font")
 theme_override_font_sizes/font_size = 14
 text = " + 0.000 i"

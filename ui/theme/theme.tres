@@ -1,6 +1,6 @@
 [gd_resource type="Theme" load_steps=7 format=3]
 
-[ext_resource type="FontFile" path="res://fonts/SpaceMono-Regular.ttf" id="1_spacemono"]
+[ext_resource type="FontVariation" path="res://ui/theme/font_spacemono.tres" id="1_spacemono"]
 [ext_resource type="FontFile" path="res://fonts/SpaceMono-Bold.ttf" id="2_spacemono_bold"]
 [ext_resource type="FontFile" path="res://fonts/EBGaramond-Light.ttf" id="3_ebgaramond"]
 
@@ -20,12 +20,6 @@ shadow_size = 8
 shadow_offset = Vector2(0, 2)
 
 
-[sub_resource type="FontVariation" id="FontVariation_spacemono_400"]
-base_font = ExtResource("1_spacemono")
-variation_opentype = {
-"wght": 400
-}
-
 [resource]
-default_font = SubResource("FontVariation_spacemono_400")
+default_font = ExtResource("1_spacemono")
 PanelContainer/styles/panel = SubResource("StyleBoxFlat_hud_panel")

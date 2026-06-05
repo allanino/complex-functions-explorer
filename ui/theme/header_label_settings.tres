@@ -1,15 +1,8 @@
 [gd_resource type="LabelSettings" load_steps=2 format=3]
 
-[ext_resource type="FontFile" path="res://fonts/SpaceMono-Regular.ttf" id="1_font"]
-
-
-[sub_resource type="FontVariation" id="FontVariation_spacemono_400"]
-base_font = ExtResource("1_font")
-variation_opentype = {
-"wght": 400
-}
+[ext_resource type="FontVariation" path="res://ui/theme/font_spacemono.tres" id="1_font"]
 
 [resource]
-font = SubResource("FontVariation_spacemono_400")
+font = ExtResource("1_font")
 font_size = 13
 font_color = Color(0.784314, 0.662745, 0.431373, 1)
