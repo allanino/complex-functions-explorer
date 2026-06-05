@@ -8,7 +8,9 @@ const ZERO_LIST_ITEM_SCENE = preload("res://ui/components/zero_list_item.tscn")
 @onready var domain_panel = %DomainPanel
 @onready var target_panel = %TargetPanel
 @onready var monitor_panel = %MonitorPanel
-@onready var fps_label = %FpsLabel
+@onready var fps_hbox = %FpsHBox
+@onready var fps_val_label = %FpsValLabel
+@onready var chunks_label = %ChunksLabel
 @onready var complex_rect = %ComplexPlane
 @onready var world_manager = get_node_or_null("../WorldManager")
 @onready var domain_re_val = %DomainReVal
@@ -216,10 +218,14 @@ func _process(_delta):
 	target_panel.visible = Config.show_hud_navigation
 	monitor_panel.visible = Config.show_hud_monitor_fps or Config.show_hud_monitor_chunks
 	if monitor_panel.visible:
-		var parts = []
 		if Config.show_hud_monitor_fps:
-			parts.append("FPS: %d" % Engine.get_frames_per_second())
+			fps_hbox.visible = true
+			fps_val_label.text = "%d" % Engine.get_frames_per_second()
+		else:
+			fps_hbox.visible = false
+
 		if Config.show_hud_monitor_chunks and world_manager:
+			chunks_label.visible = true
 			var chunks_text = "Chunks"
 			var num_lods = world_manager.LOD_SUBS.size()
 			var lod_counts = []
@@ -234,9 +240,9 @@ func _process(_delta):
 			for i in range(num_lods):
 				if lod_counts[i] > 0:
 					chunks_text += "\n%d: %d" % [world_manager.LOD_SUBS[i], lod_counts[i]]
-			parts.append(chunks_text)
-
-		fps_label.text = "\n\n".join(parts)
+			chunks_label.text = chunks_text
+		else:
+			chunks_label.visible = false
 
 	_update_hud_layout()
 

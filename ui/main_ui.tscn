@@ -476,16 +476,26 @@ size_flags_horizontal = 3
 theme_override_styles/separator = SubResource("StyleBoxLine_header_sep")
 
 
-[node name="FpsLabel" type="RichTextLabel" parent="Control/MainUIColumns/MainUIStackRight/MonitorPanel/MarginContainer/VBox"]
+[node name="FpsHBox" type="HBoxContainer" parent="Control/MainUIColumns/MainUIStackRight/MonitorPanel/MarginContainer/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/default_color = Color(0.909804, 0.894118, 0.862745, 1)
-theme_override_fonts/normal_font = ExtResource("font_spacemono")
-theme_override_font_sizes/normal_font_size = 15
-bbcode_enabled = true
-text = "FPS: 60"
-fit_content = true
-scroll_active = false
+
+[node name="FpsValLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/MonitorPanel/MarginContainer/VBox/FpsHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"ValueWhiteLabel"
+text = "60"
+
+[node name="FpsTextLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/MonitorPanel/MarginContainer/VBox/FpsHBox"]
+layout_mode = 2
+theme_type_variation = &"SecondaryLabel"
+text = "FPS"
+
+[node name="ChunksLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/MonitorPanel/MarginContainer/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"SecondaryLabel"
+text = "Chunks"
 
 [node name="DomainPanel" type="PanelContainer" parent="Control/MainUIColumns/MainUIStackRight"]
 unique_name_in_owner = true

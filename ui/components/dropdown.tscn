@@ -95,8 +95,3 @@ layout_mode = 2
 [node name="OptionButton" type="OptionButton" parent="."]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_disabled")
-theme_override_styles/focus = SubResource("StyleBoxFlat_btn_focus")
-theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
-theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
