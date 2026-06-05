@@ -779,21 +779,17 @@ horizontal_alignment = 2
 
 [node name="PlayButton" type="Button" parent="Control/DetachOverlay/MarginContainer/HBox"]
 unique_name_in_owner = true
+theme_type_variation = &"PresetBarButton"
 custom_minimum_size = Vector2(60, 0)
 layout_mode = 2
 size_flags_vertical = 4
-theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
-theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
 text = "▶"
 
 [node name="ExitDetachButton" type="Button" parent="Control/DetachOverlay/MarginContainer/HBox"]
 unique_name_in_owner = true
+theme_type_variation = &"PresetBarButton"
 layout_mode = 2
 size_flags_vertical = 4
-theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
-theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
 text = "Exit"
 
 [node name="MenuOverlay" parent="Control" instance=ExtResource("4_menu")]

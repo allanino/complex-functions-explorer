@@ -994,10 +994,10 @@ func _update_tab_buttons_styling():
 		else:
 			btn.add_theme_stylebox_override("normal", inactive_tab_style)
 			btn.add_theme_stylebox_override("hover", hover_tab_style)
-			btn.add_theme_color_override("font_color", Color(0.65, 0.65, 0.65))
-			btn.add_theme_color_override("font_hover_color", Color(0.85, 0.85, 0.85))
-			btn.add_theme_color_override("font_pressed_color", Color(0.65, 0.65, 0.65))
-			btn.add_theme_color_override("font_focus_color", Color(0.65, 0.65, 0.65))
+			btn.add_theme_color_override("font_color", Color(0.909804, 0.894118, 0.862745, 0.5))
+			btn.add_theme_color_override("font_hover_color", Color(0.909804, 0.894118, 0.862745, 0.8))
+			btn.add_theme_color_override("font_pressed_color", Color(0.909804, 0.894118, 0.862745, 0.3))
+			btn.add_theme_color_override("font_focus_color", Color(0.909804, 0.894118, 0.862745, 0.5))
 
 
 func _format_time(total_seconds: float) -> String:

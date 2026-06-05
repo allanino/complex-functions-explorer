@@ -8,9 +8,9 @@ offset_bottom = 40.0
 script = ExtResource("1_script")
 
 [node name="Label" type="Label" parent="."]
+theme_type_variation = &"InkDimLabel"
 custom_minimum_size = Vector2(180, 0)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
 autowrap_mode = 3
 
 [node name="Slider" type="HSlider" parent="."]
@@ -20,12 +20,13 @@ size_flags_horizontal = 3
 size_flags_vertical = 4
 
 [node name="ValueLabel" type="Label" parent="."]
+theme_type_variation = &"InkLabel"
 custom_minimum_size = Vector2(80, 0)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
 horizontal_alignment = 2
 
 [node name="DetachButton" type="Button" parent="."]
+theme_type_variation = &"DetachButton"
 custom_minimum_size = Vector2(24, 0)
 layout_mode = 2
 text = "⇱"
