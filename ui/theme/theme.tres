@@ -1,6 +1,6 @@
 [gd_resource type="Theme" load_steps=7 format=3]
 
-[ext_resource type="FontVariation" path="res://ui/theme/font_spacemono.tres" id="1_spacemono"]
+[ext_resource type="FontVariation" path="res://ui/theme/font_neon.tres" id="1_spacemono"]
 [ext_resource type="FontFile" path="res://fonts/SpaceMono-Bold.ttf" id="2_spacemono_bold"]
 [ext_resource type="FontFile" path="res://fonts/EBGaramond-Light.ttf" id="3_ebgaramond"]
 [ext_resource type="FontVariation" path="res://ui/theme/font_garamond.tres" id="4_ebgaramond_italic"]

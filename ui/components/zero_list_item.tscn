@@ -1,6 +1,6 @@
 [gd_scene load_steps=5 format=3]
 
-[ext_resource type="FontVariation" path="res://ui/theme/font_spacemono.tres" id="1_font"]
+[ext_resource type="FontVariation" path="res://ui/theme/font_neon.tres" id="1_font"]
 [ext_resource type="Script" path="res://ui/components/zero_list_item.gd" id="1_script"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_item"]

@@ -1,6 +1,6 @@
 [gd_resource type="LabelSettings" load_steps=2 format=3]
 
-[ext_resource type="FontVariation" path="res://ui/theme/font_spacemono.tres" id="1_font"]
+[ext_resource type="FontVariation" path="res://ui/theme/font_neon.tres" id="1_font"]
 
 [resource]
 font = ExtResource("1_font")

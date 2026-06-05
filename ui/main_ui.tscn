@@ -9,7 +9,7 @@
 [ext_resource type="Script" path="res://ui/components/detach_controller.gd" id="7_detach_controller"]
 [ext_resource type="PackedScene" path="res://ui/components/virtual_joystick.tscn" id="8_joy"]
 [ext_resource type="PackedScene" path="res://ui/components/virtual_button.tscn" id="9_btn"]
-[ext_resource type="FontVariation" path="res://ui/theme/font_spacemono.tres" id="font_spacemono"]
+[ext_resource type="FontVariation" path="res://ui/theme/font_neon.tres" id="font_spacemono"]
 [ext_resource type="FontFile" path="res://fonts/EBGaramond-Light.ttf" id="font_garamond"]
 [ext_resource type="Theme" path="res://ui/theme/theme.tres" id="theme_tres"]
 
