@@ -3,8 +3,10 @@ extends CanvasLayer
 @onready var hud_columns = %MainUIColumns
 @onready var hud_stack_left = %MainUIStackLeft
 @onready var hud_stack_right = %MainUIStackRight
-@onready var complex_panel = %ComplexAspect
-@onready var info_panel = %InfoPanel
+@onready var phase_panel = %PhasePanel
+@onready var phase_label = %PhaseLabel
+@onready var domain_panel = %DomainPanel
+@onready var target_panel = %TargetPanel
 @onready var monitor_panel = %MonitorPanel
 @onready var fps_label = %FpsLabel
 @onready var complex_rect = %ComplexPlane
@@ -13,8 +15,10 @@ extends CanvasLayer
 @onready var target_label = %TargetLabel
 @onready var zeros_panel = %ZerosPanel
 @onready var zeros_count_label = %CountLabel
-@onready var rvm_label = %RvmLabel
-@onready var zeros_list_label = %ListLabel
+@onready var rvm_hbox = %RvmHBox
+@onready var rvm_n_label = %RvmNLabel
+@onready var rvm_delta_label = %RvmDeltaLabel
+@onready var zeros_list_label = %ListLabelContainer
 @onready var menu_overlay = %MenuOverlay
 var portal_flash: ColorRect
 @onready var tooltip_manager = %TooltipManager
@@ -142,12 +146,21 @@ func _process(_delta):
 		# Riemann-von Mangoldt formula: N(T) ≈ (T/2π) log(T/2πe) + 7/8
 		if Config.show_rvm and f_data.get("has_von_mangoldt", false):
 			var T = abs(Config.world_to_complex(0.0, z).y)
-			var val = _get_rvm_n(T) - _get_rvm_n(GameState.rvm_start_t)
-			val = max(0.0, val)
-			rvm_label.text = "N(t) ≈ %.2f" % val
-			rvm_label.visible = true
+			var rvm_val = _get_rvm_n(T) - _get_rvm_n(GameState.rvm_start_t)
+			rvm_val = max(0.0, rvm_val)
+			var delta_val = total_count - rvm_val
+			var delta_sign = "+" if delta_val >= 0 else ""
+
+			if rvm_n_label:
+				rvm_n_label.text = "[color=gray]N(t) ≈[/color] [color=#c8a96e]%.2f[/color]" % rvm_val
+			if rvm_delta_label:
+				rvm_delta_label.text = "Δ = %s%.2f" % [delta_sign, delta_val]
+
+			if rvm_hbox:
+				rvm_hbox.visible = true
 		else:
-			rvm_label.visible = false
+			if rvm_hbox:
+				rvm_hbox.visible = false
 
 	# Update shader uniforms
 	var material = complex_rect.material as ShaderMaterial
@@ -207,7 +220,7 @@ var _last_hud_state = {}
 func _update_hud_layout():
 	if not hud_columns: return
 
-	var cards = [complex_panel, info_panel, monitor_panel, zeros_panel, menu_overlay.perf_label]
+	var cards = [phase_panel, domain_panel, target_panel, monitor_panel, zeros_panel, menu_overlay.perf_label]
 
 	var actual_hud_scale = Config.hud_scale
 
@@ -298,7 +311,7 @@ func _rescale_card(card: Control, _scale: float):
 				if not node.has_meta("base_min_size"):
 					node.set_meta("base_min_size", Vector2(BASE_HUD_PANEL_SIZE, BASE_HUD_PANEL_SIZE))
 				node.custom_minimum_size = node.get_meta("base_min_size") * _scale
-			elif node.name == "ZerosPanel" or node.name == "InfoPanel":
+			elif node.name == "ZerosPanel" or node.name == "DomainPanel" or node.name == "TargetPanel":
 				if not node.has_meta("base_min_size"):
 					node.set_meta("base_min_size", node.custom_minimum_size)
 				node.custom_minimum_size.y = node.get_meta("base_min_size").y * _scale
