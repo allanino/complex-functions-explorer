@@ -7,6 +7,7 @@ varying vec3 world_pos;
 varying vec3 v_normal;
 varying vec2 field_val;
 varying float v_nan;
+varying float v_h_clamped;
 
 instance uniform int lod_level = 0;
 instance uniform int neighbor_lod_left = -1;
@@ -717,6 +718,7 @@ void vertex() {
             field_val = vec2(0.0);
             v_normal = vec3(0.0, 1.0, 0.0);
             local_pos = vec3(snap_v.x, 0.0, snap_v.z);
+            v_h_clamped = 0.0;
         } else {
             v_nan = 0.0;
 
@@ -734,6 +736,7 @@ void vertex() {
 
             bool h_clamped = false;
             float h = get_complex_height(fz, field_val, h_clamped);
+            v_h_clamped = h_clamped ? 1.0 : 0.0;
 
             h *= blend * zoom_factor;
 
@@ -787,8 +790,13 @@ void fragment() {
         float phase_change = length(vec2(raw_w_re, raw_w_im)) / (f_mag + 1e-12);
         float moire_suppression = smoothstep(0.5, 3.0, phase_change);
 
-        float eff_sat = mix(saturation, 0.0, moire_suppression * 0.8);
-        float eff_bri = mix(brightness, brightness * 0.5, moire_suppression * 0.5);
+        float clamped_saturation = v_h_clamped > 0.5 ? min(0.2, saturation) : saturation;
+        float clamped_brightness = v_h_clamped > 0.5 ? min(0.05, brightness) : brightness;
+        float clamped_albedo = v_h_clamped > 0.5 ? min(0.05, albedo) : albedo;
+        float clamped_emission = v_h_clamped > 0.5 ? min(0.02, emission) : emission;
+
+        float eff_sat = mix(clamped_saturation, 0.0, moire_suppression * 0.8);
+        float eff_bri = mix(clamped_brightness, clamped_brightness * 0.5, moire_suppression * 0.5);
 
         vec3 base = hsv2rgb(vec3(hue, eff_sat, eff_bri));
         float highlight_re_glow = 0.0;
@@ -805,8 +813,8 @@ void fragment() {
             compute_curves_highlight(f, raw_w_re, raw_w_im, base, highlight_re_glow, highlight_im_glow);
         }
 
-        ALBEDO = base * albedo;
-        vec3 final_emission = base * emission;
+        ALBEDO = base * clamped_albedo;
+        vec3 final_emission = base * clamped_emission;
         if (show_curves) {
             final_emission += vec3(0.0, 0.6, 1.0) * highlight_re_glow * 0.8;
             final_emission += vec3(1.0, 0.3, 0.0) * highlight_im_glow * 0.8;
