@@ -1,6 +1,6 @@
 extends CharacterBody3D
 
-@export var enable_joystick: bool = false
+var enable_joystick: bool = false
 @export var run_demo: bool = true
 
 const MOUSE_SENSITIVITY = 0.002
@@ -94,6 +94,8 @@ func _ready():
 	im_label.top_level = true
 	im_label.visible = false
 	add_child(im_label)
+
+	enable_joystick = DisplayServer.has_feature(DisplayServer.FEATURE_TOUCHSCREEN) and not OS.has_feature("pc")
 
 	if mobile_controls:
 		mobile_controls.visible = enable_joystick
