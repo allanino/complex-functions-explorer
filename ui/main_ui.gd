@@ -101,9 +101,9 @@ func _ready():
 	var s = float(cb_size)
 
 	# Normalized coordinates (works for any size)
-	var p1 = Vector2(0.22 * s, 0.52 * s)
-	var p2 = Vector2(0.40 * s, 0.70 * s)
-	var p3 = Vector2(0.72 * s, 0.28 * s)
+	var p1 = Vector2(0.24 * s, 0.50 * s)
+	var p2 = Vector2(0.41 * s, 0.69 * s)
+	var p3 = Vector2(0.73 * s, 0.32 * s)
 
 	# Scale thickness with checkbox size
 	var inner = max(0.75, s * 0.045)
