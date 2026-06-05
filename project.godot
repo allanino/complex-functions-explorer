@@ -62,7 +62,8 @@ common/physics_jitter_fix=0.0
 common/physics_interpolation=true
 
 [rendering]
-
+renderer/rendering_method.mobile="forward_plus"
+limits/global_shader_variables/buffer_size=262144
 reflections/sky_reflections/roughness_layers=7
 driver/depth_prepass/enable=false
 limits/global_shader_variables/buffer_size=262144

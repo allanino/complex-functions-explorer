@@ -7,6 +7,7 @@ varying vec3 world_pos;
 varying vec3 v_normal;
 varying vec2 field_val;
 varying float v_nan;
+varying float v_h_clamped;
 
 instance uniform int lod_level = 0;
 instance uniform int neighbor_lod_left = -1;
@@ -225,7 +226,7 @@ vec3 apply_branch_cut_perturbation(vec3 world_v_pos, vec3 cam_pos, bool in_porta
 }
 
 
-void compute_matrix_effect(vec2 world_xz, out vec3 out_albedo, out vec3 out_emission, out float rgh, out float mtl, out float spec) {
+void compute_matrix_effect(vec2 world_xz, vec3 base_color, vec3 head_color, out vec3 out_albedo, out vec3 out_emission, out float rgh, out float mtl, out float spec) {
     out_albedo = vec3(0.0);
 
     // Matrix Effect
@@ -254,11 +255,11 @@ void compute_matrix_effect(vec2 world_xz, out vec3 out_albedo, out vec3 out_emis
     float char_shape = smoothstep(0.1, 0.2, fpos.x) * smoothstep(0.9, 0.8, fpos.x) *
                        smoothstep(0.1, 0.2, fpos.y) * smoothstep(0.9, 0.8, fpos.y);
 
-    vec3 matrix_color = vec3(0.0, 0.8, 0.2);
+    vec3 matrix_color = base_color;
 
     // Glowy head of the trail
     if (trail > 2.0) {
-        matrix_color = vec3(0.7, 1.0, 0.7);
+        matrix_color = head_color;
     }
 
     out_emission = matrix_color * trail * char_shape * char_vis;
@@ -717,6 +718,7 @@ void vertex() {
             field_val = vec2(0.0);
             v_normal = vec3(0.0, 1.0, 0.0);
             local_pos = vec3(snap_v.x, 0.0, snap_v.z);
+            v_h_clamped = 0.0;
         } else {
             v_nan = 0.0;
 
@@ -734,6 +736,7 @@ void vertex() {
 
             bool h_clamped = false;
             float h = get_complex_height(fz, field_val, h_clamped);
+            v_h_clamped = h_clamped ? 1.0 : 0.0;
 
             h *= blend * zoom_factor;
 
@@ -765,7 +768,16 @@ void fragment() {
     } else if (v_nan > 0.5) {
         vec3 local_albedo, local_emission;
         float rgh, mtl, spec;
-        compute_matrix_effect(world_pos.xz, local_albedo, local_emission, rgh, mtl, spec);
+        compute_matrix_effect(world_pos.xz, vec3(0.0, 0.8, 0.2), vec3(0.7, 1.0, 0.7), local_albedo, local_emission, rgh, mtl, spec);
+        ALBEDO = local_albedo;
+        EMISSION = local_emission;
+        ROUGHNESS = rgh;
+        METALLIC = mtl;
+        SPECULAR = spec;
+    } else if (v_h_clamped > 0.5) {
+        vec3 local_albedo, local_emission;
+        float rgh, mtl, spec;
+        compute_matrix_effect(world_pos.xz, vec3(0.0, 0.2, 0.8), vec3(0.7, 0.7, 1.0), local_albedo, local_emission, rgh, mtl, spec);
         ALBEDO = local_albedo;
         EMISSION = local_emission;
         ROUGHNESS = rgh;

@@ -357,6 +357,7 @@ func _process_audio_toggles():
 	# 1. Background Music
 	if _background_music_player:
 		if Config.bg_music_volume > 0 and not is_suppressed:
+			_background_music_player.process_mode = Node.PROCESS_MODE_INHERIT
 			if not _background_music_player.playing:
 				_background_music_player.play()
 			# Map 0-100 to dB. 100 -> -12dB (original), 1 -> -52dB, 0 -> stop
@@ -365,10 +366,14 @@ func _process_audio_toggles():
 		else:
 			if _background_music_player.playing:
 				_background_music_player.stop()
+			_background_music_player.process_mode = Node.PROCESS_MODE_DISABLED
 
 	# 2. Topographic Drone
 	var drone = _audio_stream_player
 	if Config.drone_volume > 0 and not is_suppressed:
+		drone.process_mode = Node.PROCESS_MODE_INHERIT
+		if math_bus_index != -1:
+			AudioServer.set_bus_bypass_effects(math_bus_index, false)
 		if not drone.playing:
 			drone.play()
 			# When resuming, we might need to re-fetch playback
@@ -377,6 +382,15 @@ func _process_audio_toggles():
 		if drone.playing:
 			drone.stop()
 			playback = null
+		drone.process_mode = Node.PROCESS_MODE_DISABLED
+		if math_bus_index != -1:
+			AudioServer.set_bus_bypass_effects(math_bus_index, true)
 
 func set_performance_protection(active: bool):
 	is_suppressed = active
+
+func _exit_tree():
+	if _audio_stream_player and _audio_stream_player.playing:
+		_audio_stream_player.stop()
+	if _background_music_player and _background_music_player.playing:
+		_background_music_player.stop()
