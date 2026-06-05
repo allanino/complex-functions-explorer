@@ -691,9 +691,8 @@ size_flags_horizontal = 3
 ratio = 1.0
 stretch_mode = 0
 
-[node name="ComplexPanel" type="PanelContainer" parent="Control/MainUIColumns/MainUIStackRight/PhasePanel/MarginContainer/VBox/ComplexAspect"]
+[node name="ComplexPanel" type="MarginContainer" parent="Control/MainUIColumns/MainUIStackRight/PhasePanel/MarginContainer/VBox/ComplexAspect"]
 layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_hud_panel")
 
 [node name="MarginContainer" type="MarginContainer" parent="Control/MainUIColumns/MainUIStackRight/PhasePanel/MarginContainer/VBox/ComplexAspect/ComplexPanel"]
 layout_mode = 2
