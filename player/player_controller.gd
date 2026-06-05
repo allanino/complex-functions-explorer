@@ -342,6 +342,8 @@ func _physics_process(delta):
 
 	if auto_walk_state != AutoWalkState.NONE:
 		current_speed = min(current_speed, 50.0)
+		if auto_walk_state == AutoWalkState.NEWTON_WALK:
+			current_speed = min(current_speed, 2.0 * zoom_speed_scale)
 
 	if auto_walk_state == AutoWalkState.NONE:
 		if Input.is_key_pressed(KEY_SHIFT):
@@ -408,7 +410,7 @@ func _physics_process(delta):
 		if current_pos2d.distance_to(target_pos2d) > 0.01:
 			var target_dir2d = (target_pos2d - current_pos2d).normalized()
 			var target_yaw = atan2(target_dir2d.x, target_dir2d.y) + PI
-			rotation.y = lerp_angle(rotation.y, target_yaw, 5.0 * delta)
+			rotation.y = lerp_angle(rotation.y, target_yaw, 2.0 * delta)
 
 		if newton_wait_timer > 0.0:
 			newton_wait_timer -= delta
@@ -436,7 +438,7 @@ func _physics_process(delta):
 						newton_target_z = path[last_newton_idx]
 					else:
 						newton_converged = true
-					newton_wait_timer = 0.01
+					newton_wait_timer = 0.2
 
 	if direction != Vector3.ZERO:
 		if auto_walk_state != AutoWalkState.MOVING_TO_LINE and auto_walk_state != AutoWalkState.WALKING:
