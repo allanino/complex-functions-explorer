@@ -34,13 +34,14 @@ enum ComplexFunc {
 const FUNCTIONS = {
 	ComplexFunc.ZETA: {
 		"name": "Zeta (σ > 0)",
+		"hidden": true,
 		"is_dirichlect": true,
 		"has_von_mangoldt": true,
 		# [min, max, step, initial]
 		"iters_range": [200.0, 10000.0, 200.0, 200.0],
 	},
 	ComplexFunc.ZETA_REFLECTION: {
-		"name": "Zeta (reflection formula)",
+		"name": "Zeta",
 		"is_dirichlect": true,
 		"has_von_mangoldt": true,
 		"iters_range": [200.0, 10000.0, 200.0, 200.0],
@@ -112,11 +113,6 @@ const FUNCTIONS = {
 		"name": "Multivalued ArcCos",
 		"is_multivalued": true,
 	},
-	ComplexFunc.MULTIVALUED_RSVD3: {
-		"name": "Multivalued Reserved 3",
-		"is_multivalued": true,
-		"hidden": true,
-	},
 }
 
 # Field parameters
@@ -179,7 +175,7 @@ var iterations: int = 500:
 		iterations = v
 		config_changed.emit("iterations")
 var function_iterations: Dictionary = {}
-var function_type: int = ComplexFunc.ZETA:
+var function_type: int = ComplexFunc.ZETA_REFLECTION:
 	set(value):
 		function_iterations[function_type] = iterations
 		function_type = value
@@ -189,7 +185,7 @@ var function_type: int = ComplexFunc.ZETA:
 			iterations = function_iterations[function_type]
 		elif function.has("iters_range"):
 			iterations = int(function["iters_range"][3])
-var function: Dictionary = FUNCTIONS[ComplexFunc.ZETA]
+var function: Dictionary = FUNCTIONS[ComplexFunc.ZETA_REFLECTION]
 var input_function_type: int = ComplexFunc.IDENTITY
 
 var height_type: int = 0:
