@@ -7,7 +7,7 @@ signal pressed
 var is_pressed: bool = false
 var touch_index: int = -1
 
-var base_radius: float = 32.0
+var base_radius: float = 64.0
 
 var base_pos: Vector2 = Vector2.ZERO
 
@@ -38,14 +38,10 @@ func reset_button():
     queue_redraw()
 
 
-
 func _draw():
     if settings_icon:
         var icon_size = settings_icon.get_size()
         var center = size / 2.0
-        var target_size = base_radius * 1.5
-        var scale_factor = target_size / max(icon_size.x, icon_size.y)
-        var scaled_size = icon_size * scale_factor
-        var draw_rect = Rect2(center - scaled_size / 2.0, scaled_size)
-        var modulate_color = Color(0.8, 0.8, 0.8, 1.0) if is_pressed else Color(1.0, 1.0, 1.0, 0.8)
-        draw_texture_rect(settings_icon, draw_rect, false, modulate_color)
+        var _draw_rect = Rect2(center - icon_size / 2.0, icon_size)
+        var modulate_color = Color(0.2, 0.2, 0.2, 1.0) if is_pressed else Color(0.3, 0.3, 0.3, 0.4)
+        draw_texture_rect(settings_icon, _draw_rect, false, modulate_color)
