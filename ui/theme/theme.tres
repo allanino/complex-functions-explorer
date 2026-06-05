@@ -1,4 +1,4 @@
-[gd_resource type="Theme" load_steps=22 format=3]
+[gd_resource type="Theme" load_steps=23 format=3]
 
 [ext_resource type="FontVariation" path="res://ui/theme/font_neon.tres" id="1_spacemono"]
 [ext_resource type="FontFile" path="res://fonts/SpaceMono-Bold.ttf" id="2_spacemono_bold"]
@@ -19,6 +19,18 @@ corner_radius_bottom_left = 2
 shadow_color = Color(0, 0, 0, 0.4)
 shadow_size = 8
 shadow_offset = Vector2(0, 2)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dialog_panel"]
+bg_color = Color(0.015686, 0.031372, 0.070588, 0.95)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.909804, 0.894118, 0.862745, 0.16)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_menu_panel"]
 bg_color = Color(0.015686, 0.031372, 0.070588, 0.78)
@@ -261,6 +273,8 @@ default_font = ExtResource("1_spacemono")
 PanelContainer/styles/panel = SubResource("StyleBoxFlat_hud_panel")
 MainMenuPanel/base_type = &"PanelContainer"
 MainMenuPanel/styles/panel = SubResource("StyleBoxFlat_menu_panel")
+DialogPanel/base_type = &"PanelContainer"
+DialogPanel/styles/panel = SubResource("StyleBoxFlat_dialog_panel")
 HeaderLabel/base_type = &"Label"
 HeaderLabel/colors/font_color = Color(0.784314, 0.662745, 0.431373, 1)
 HeaderLabel/font_sizes/font_size = 15
@@ -306,6 +320,7 @@ PresetNewButton/styles/hover = SubResource("StyleBoxFlat_preset_btn_hover")
 PresetNewButton/styles/pressed = SubResource("StyleBoxFlat_preset_btn_pressed")
 PresetNewButton/styles/focus = SubResource("StyleBoxFlat_preset_btn_normal")
 DialogHeaderLabel/base_type = &"Label"
+DialogHeaderLabel/colors/font_color = Color(0.909804, 0.894118, 0.862745, 1)
 DialogHeaderLabel/font_sizes/font_size = 17
 CloseButton/base_type = &"Button"
 CloseButton/colors/font_color = Color(0.909804, 0.894118, 0.862745, 0.5)
