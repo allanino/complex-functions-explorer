@@ -6,7 +6,7 @@
 [ext_resource type="FontVariation" path="res://ui/theme/font_garamond.tres" id="4_ebgaramond_italic"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hud_panel"]
-bg_color = Color(0.015686, 0.031372, 0.070588, 0.78)
+bg_color = Color(0.015686, 0.031372, 0.070588, 0.8)
 border_width_left = 1
 border_width_top = 1
 border_width_right = 1
@@ -33,7 +33,7 @@ corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_menu_panel"]
-bg_color = Color(0.015686, 0.031372, 0.070588, 0.78)
+bg_color = Color(0.015686, 0.031372, 0.070588, 0.80)
 border_width_left = 1
 border_width_top = 1
 border_width_right = 1
