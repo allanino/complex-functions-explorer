@@ -220,10 +220,16 @@ func _unhandled_input(event):
 				var step_mult = 1.0
 				var loop_detected = false
 
-				for i in range(50):
-					if path.size() >= 50:
+				for i in range(200):
+					if path.size() >= 200:
 						break
-					var next_z = ComplexField.newton_step_zeta_reflection(_current_z)
+
+					var f_val = ComplexField.zeta_continuation(_current_z.x, _current_z.y)
+					var f_abs = f_val.length()
+					if f_abs < 1e-6:
+						break
+
+					var next_z = ComplexField.newton_step_zeta_reflection(_current_z, step_mult)
 
 					# Cycle detection: check if we are jumping back and forth
 					loop_detected = false
@@ -236,6 +242,10 @@ func _unhandled_input(event):
 						step_mult *= 0.5
 						# Recalculate with smaller step
 						next_z = ComplexField.newton_step_zeta_reflection(_current_z, step_mult)
+					else:
+						# Recover step size if no cycle detected
+						if step_mult < 1.0:
+							step_mult = min(1.0, step_mult * 1.5)
 
 					path.append(next_z)
 					min_x = min(min_x, next_z.x)
@@ -243,7 +253,7 @@ func _unhandled_input(event):
 					min_y = min(min_y, next_z.y)
 					max_y = max(max_y, next_z.y)
 
-					if next_z.distance_to(_current_z) < 1e-4:
+					if next_z.distance_to(_current_z) < 1e-6:
 						break
 					_current_z = next_z
 
