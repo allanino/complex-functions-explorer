@@ -152,7 +152,7 @@ func _ready():
 	active_tab_style.border_width_top = 0
 	active_tab_style.border_width_right = 0
 	active_tab_style.border_width_bottom = 0
-	active_tab_style.border_color = Color(0.65, 0.65, 0.68, 0.85)
+	active_tab_style.border_color = Color(0.3647, 0.847, 0.7843, 1.0)
 
 	inactive_tab_style = StyleBoxFlat.new()
 	inactive_tab_style.content_margin_left = 19.0
@@ -178,7 +178,7 @@ func _ready():
 	hover_active_tab_style.border_width_top = 0
 	hover_active_tab_style.border_width_right = 0
 	hover_active_tab_style.border_width_bottom = 0
-	hover_active_tab_style.border_color = Color(0.65, 0.65, 0.68, 0.85)
+	hover_active_tab_style.border_color = Color(0.3647, 0.847, 0.7843, 1.0)
 
 	for i in range(tab_buttons.size()):
 		var btn = tab_buttons[i]

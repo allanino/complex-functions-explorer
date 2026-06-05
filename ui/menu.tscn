@@ -5,6 +5,7 @@
 [ext_resource type="PackedScene" path="res://ui/components/dropdown.tscn" id="DropdownScene"]
 [ext_resource type="PackedScene" path="res://ui/components/text_input.tscn" id="TextInputScene"]
 [ext_resource type="Script" path="res://ui/menu.gd" id="1_menu_script"]
+[ext_resource type="Theme" path="res://ui/theme/theme.tres" id="theme_tres"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_glass"]
 bg_color = Color(0.03, 0.03, 0.03, 0.5)
@@ -214,6 +215,7 @@ shadow_size = 4
 shadow_offset = Vector2(0, 4)
 
 [node name="MenuOverlay" type="ColorRect" unique_id=324048888]
+theme = ExtResource("theme_tres")
 script = ExtResource("1_menu_script")
 visible = false
 anchors_preset = 15
@@ -236,7 +238,6 @@ mouse_filter = 2
 [node name="MainMenuPanel" type="PanelContainer" parent="CenterContainer" unique_id=185131265]
 custom_minimum_size = Vector2(1000, 780)
 layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_glass")
 pivot_offset = Vector2(500, 390)
 
 [node name="MarginContainer" type="MarginContainer" parent="CenterContainer/MainMenuPanel" unique_id=2017176305]
@@ -265,10 +266,10 @@ size_flags_horizontal = 3
 [node name="QuitButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TitleHBox" unique_id=781431675]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color         = Color(0.65, 0.65, 0.68, 0.85)
-theme_override_colors/font_hover_color   = Color(0.85, 0.85, 0.88, 1.0)
-theme_override_colors/font_pressed_color = Color(1.0, 1.0, 1.0, 1.0)
-theme_override_colors/font_focus_color   = Color(0.85, 0.85, 0.88, 1.0)
+theme_override_colors/font_color         = Color(0.8313, 0.3725, 0.6274, 0.8)
+theme_override_colors/font_hover_color   = Color(0.8313, 0.3725, 0.6274, 1.0)
+theme_override_colors/font_pressed_color = Color(0.8313, 0.3725, 0.6274, 0.6)
+theme_override_colors/font_focus_color   = Color(0.8313, 0.3725, 0.6274, 0.8)
 theme_override_font_sizes/font_size = 18
 text = "Quit"
 flat = true
@@ -1008,7 +1009,6 @@ visible = false
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
-theme_override_styles/panel = SubResource("StyleBoxFlat_dialog_opaque")
 
 [node name="MarginContainer" type="MarginContainer" parent="CenterContainer/NewPresetDialog" unique_id=99991001]
 layout_mode = 2
@@ -1073,7 +1073,6 @@ visible = false
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
-theme_override_styles/panel = SubResource("StyleBoxFlat_dialog_opaque")
 
 [node name="MarginContainer" type="MarginContainer" parent="CenterContainer/DeletePresetDialog" unique_id=99992001]
 layout_mode = 2
@@ -1137,7 +1136,6 @@ visible = false
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
-theme_override_styles/panel = SubResource("StyleBoxFlat_dialog_opaque")
 
 [node name="MarginContainer" type="MarginContainer" parent="CenterContainer/QuitDialog" unique_id=99993001]
 layout_mode = 2
