@@ -481,7 +481,7 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/default_color = Color(0.909804, 0.894118, 0.862745, 1)
 theme_override_fonts/normal_font = ExtResource("font_spacemono")
-theme_override_font_sizes/normal_font_size = 17
+theme_override_font_sizes/normal_font_size = 15
 bbcode_enabled = true
 text = "FPS: 60"
 fit_content = true
@@ -529,7 +529,7 @@ columns = 2
 [node name="ReLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/DomainPanel/MarginContainer/VBox/DomainGrid"]
 theme_type_variation = &"SecondaryLabel"
 layout_mode = 2
-text = "RE"
+text = "Re(s)"
 
 [node name="DomainReVal" type="Label" parent="Control/MainUIColumns/MainUIStackRight/DomainPanel/MarginContainer/VBox/DomainGrid"]
 unique_name_in_owner = true
@@ -542,7 +542,7 @@ horizontal_alignment = 2
 [node name="ImLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/DomainPanel/MarginContainer/VBox/DomainGrid"]
 theme_type_variation = &"SecondaryLabel"
 layout_mode = 2
-text = "IM"
+text = "Im(s)"
 
 [node name="DomainImVal" type="Label" parent="Control/MainUIColumns/MainUIStackRight/DomainPanel/MarginContainer/VBox/DomainGrid"]
 unique_name_in_owner = true
@@ -594,7 +594,7 @@ columns = 2
 [node name="ReLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox/TargetGrid"]
 theme_type_variation = &"SecondaryLabel"
 layout_mode = 2
-text = "RE"
+text = "Re(f)"
 
 [node name="TargetReVal" type="Label" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox/TargetGrid"]
 unique_name_in_owner = true
@@ -607,7 +607,7 @@ horizontal_alignment = 2
 [node name="ImLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox/TargetGrid"]
 theme_type_variation = &"SecondaryLabel"
 layout_mode = 2
-text = "IM"
+text = "Im(f)"
 
 [node name="TargetImVal" type="Label" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox/TargetGrid"]
 unique_name_in_owner = true
@@ -706,7 +706,7 @@ horizontal_alignment = 2
 [node name="ArgLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/PhasePanel/MarginContainer/VBox/PhaseGrid"]
 theme_type_variation = &"SecondaryLabel"
 layout_mode = 2
-text = "ARG(f)"
+text = "arg(f)"
 
 [node name="PhaseArgVal" type="Label" parent="Control/MainUIColumns/MainUIStackRight/PhasePanel/MarginContainer/VBox/PhaseGrid"]
 unique_name_in_owner = true
