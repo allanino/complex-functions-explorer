@@ -65,7 +65,7 @@ func _ready():
 	global_theme.set_icon("grabber_disabled", "HSlider", grabber_tex)
 
 	# Generate custom CheckBox checked and unchecked indicator square box textures
-	var cb_size = 14
+	var cb_size = 17
 	var bg_col = Color(0.028, 0.045, 0.090, 0.94) # Dark panel background
 	var border_col = Color(0.890, 0.875, 0.845, 0.22) # Dropdown border color
 	
@@ -98,20 +98,40 @@ func _ready():
 	
 	# Draw dark checkmark on the gold background with antialiasing and centered alignment
 	# (shifted 1px down: Start (3.5, 7.0), Bottom (5.5, 9.5), End (10.5, 3.5))
+	var s = float(cb_size)
+
+	# Normalized coordinates (works for any size)
+	var p1 = Vector2(0.22 * s, 0.52 * s)
+	var p2 = Vector2(0.40 * s, 0.70 * s)
+	var p3 = Vector2(0.72 * s, 0.28 * s)
+
+	# Scale thickness with checkbox size
+	var inner = max(0.75, s * 0.045)
+	var outer = max(1.75, s * 0.10)
+
 	for y in range(cb_size):
 		for x in range(cb_size):
-			# Skip borders when drawing the checkmark
 			if x == 0 or x == cb_size - 1 or y == 0 or y == cb_size - 1:
 				continue
+
 			var p_center = Vector2(x + 0.5, y + 0.5)
-			var d1 = _dist_to_segment(p_center, Vector2(3.5, 7.5), Vector2(5.5, 10.0))
-			var d2 = _dist_to_segment(p_center, Vector2(5.5, 10.0), Vector2(10.5, 4.0))
+
+			var d1 = _dist_to_segment(p_center, p1, p2)
+			var d2 = _dist_to_segment(p_center, p2, p3)
+
 			var d = min(d1, d2)
-			if d <= 0.75:
+
+			if d <= inner:
 				img_check.set_pixel(x, y, check_mark_col)
-			elif d < 1.75:
-				var alpha = 1.0 - (d - 0.75)
-				img_check.set_pixel(x, y, check_bg_col.lerp(check_mark_col, alpha))
+
+			elif d < outer:
+				var alpha = 1.0 - ((d - inner) / (outer - inner))
+				img_check.set_pixel(
+					x,
+					y,
+					check_bg_col.lerp(check_mark_col, alpha)
+				)
+
 	var check_tex = ImageTexture.create_from_image(img_check)
 	
 	# Disabled unchecked image
@@ -134,6 +154,7 @@ func _ready():
 	global_theme.set_icon("unchecked", "CheckBox", uncheck_tex)
 	global_theme.set_icon("checked_disabled", "CheckBox", check_disabled_tex)
 	global_theme.set_icon("unchecked_disabled", "CheckBox", uncheck_disabled_tex)
+
 	var mobile_controls = get_node_or_null("Control/MobileControls")
 	if mobile_controls and mobile_controls.has_node("SettingsButton"):
 		var settings_btn = mobile_controls.get_node("SettingsButton")
