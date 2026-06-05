@@ -42,15 +42,15 @@ func test_presets():
 
 func test_function_type_setter():
 	# Initial state
-	assert_eq(config_manager.function_type, ConfigManager.ComplexFunc.ZETA)
+	assert_eq(config_manager.function_type, ConfigManager.ComplexFunc.ZETA_REFLECTION)
 	config_manager.iterations = 123
 
 	# Change function_type
 	config_manager.function_type = ConfigManager.ComplexFunc.MANDELBROT
 
 	# Check if previous iterations were saved
-	assert_true(config_manager.function_iterations.has(ConfigManager.ComplexFunc.ZETA))
-	assert_eq(config_manager.function_iterations[ConfigManager.ComplexFunc.ZETA], 123)
+	assert_true(config_manager.function_iterations.has(ConfigManager.ComplexFunc.ZETA_REFLECTION))
+	assert_eq(config_manager.function_iterations[ConfigManager.ComplexFunc.ZETA_REFLECTION], 123)
 
 	# Check if new function metadata is loaded
 	assert_eq(config_manager.function.name, "Mandelbrot")
