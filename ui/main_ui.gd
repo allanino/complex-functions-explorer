@@ -16,6 +16,7 @@ const ZERO_LIST_ITEM_SCENE = preload("res://ui/components/zero_list_item.tscn")
 @onready var target_re_val = %TargetReVal
 @onready var target_im_val = %TargetImVal
 @onready var target_branch_val = %TargetBranchVal
+@onready var branch_label = %BranchLabel
 @onready var phase_abs_val = %PhaseAbsVal
 @onready var phase_arg_val = %PhaseArgVal
 @onready var zeros_panel = %ZerosPanel
@@ -198,9 +199,11 @@ func _process(_delta):
 	target_im_val.text = _format_float_3(val_fy)
 	if f_data.get("is_multivalued", false):
 		target_branch_val.text = str(GameState.current_branch)
-		target_branch_val.get_parent().visible = true
+		target_branch_val.visible = true
+		branch_label.visible = true
 	else:
-		target_branch_val.get_parent().visible = false
+		target_branch_val.visible = false
+		branch_label.visible = false
 
 	var angle_deg = rad_to_deg(f.angle())
 	if angle_deg < 0:
