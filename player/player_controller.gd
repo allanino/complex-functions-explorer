@@ -415,6 +415,8 @@ func _physics_process(delta):
 		if newton_wait_timer > 0.0:
 			newton_wait_timer -= delta
 			direction = Vector3.ZERO
+			velocity.x = 0.0
+			velocity.z = 0.0
 		else:
 			if newton_converged:
 				var dist = current_pos2d.distance_to(target_pos2d)
