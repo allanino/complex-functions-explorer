@@ -1,10 +1,10 @@
 extends CanvasLayer
+const ZERO_LIST_ITEM_SCENE = preload("res://ui/components/zero_list_item.tscn")
 @export var player: Node3D
 @onready var hud_columns = %MainUIColumns
 @onready var hud_stack_left = %MainUIStackLeft
 @onready var hud_stack_right = %MainUIStackRight
 @onready var phase_panel = %PhasePanel
-@onready var phase_label = %PhaseLabel
 @onready var domain_panel = %DomainPanel
 @onready var target_panel = %TargetPanel
 @onready var monitor_panel = %MonitorPanel

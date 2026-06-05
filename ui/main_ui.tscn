@@ -22,7 +22,7 @@ shader_parameter/current_f = Vector2(0, 0)
 shader_parameter/scale = 2.0
 
 [sub_resource type="FontVariation" id="FontVariation_spacemono_400"]
-base_font = SubResource("FontVariation_spacemono_400")
+base_font = ExtResource("font_spacemono")
 variation_opentype = {
 "wght": 400
 }
@@ -241,7 +241,6 @@ corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
 
 [node name="MainUI" type="CanvasLayer"]
-script = ExtResource("1_script")
 script = ExtResource("1_script")
 layer = 1
 

@@ -21,7 +21,7 @@ shadow_offset = Vector2(0, 2)
 
 
 [sub_resource type="FontVariation" id="FontVariation_spacemono_400"]
-base_font = SubResource("FontVariation_spacemono_400")
+base_font = ExtResource("1_spacemono")
 variation_opentype = {
 "wght": 400
 }
