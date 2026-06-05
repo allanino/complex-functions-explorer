@@ -539,7 +539,7 @@ columns = 2
 layout_mode = 2
 theme_override_colors/font_color = Color(0.5, 0.5, 0.5, 1)
 theme_override_fonts/font = ExtResource("font_spacemono")
-theme_override_font_sizes/font_size = 17
+theme_override_font_sizes/font_size = 14
 text = "RE"
 
 [node name="DomainReVal" type="Label" parent="Control/MainUIColumns/MainUIStackRight/DomainPanel/MarginContainer/VBox/DomainGrid"]
@@ -556,7 +556,7 @@ horizontal_alignment = 2
 layout_mode = 2
 theme_override_colors/font_color = Color(0.5, 0.5, 0.5, 1)
 theme_override_fonts/font = ExtResource("font_spacemono")
-theme_override_font_sizes/font_size = 17
+theme_override_font_sizes/font_size = 14
 text = "IM"
 
 [node name="DomainImVal" type="Label" parent="Control/MainUIColumns/MainUIStackRight/DomainPanel/MarginContainer/VBox/DomainGrid"]
@@ -615,7 +615,7 @@ columns = 2
 layout_mode = 2
 theme_override_colors/font_color = Color(0.5, 0.5, 0.5, 1)
 theme_override_fonts/font = ExtResource("font_spacemono")
-theme_override_font_sizes/font_size = 17
+theme_override_font_sizes/font_size = 14
 text = "RE"
 
 [node name="TargetReVal" type="Label" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox/TargetGrid"]
@@ -632,7 +632,7 @@ horizontal_alignment = 2
 layout_mode = 2
 theme_override_colors/font_color = Color(0.5, 0.5, 0.5, 1)
 theme_override_fonts/font = ExtResource("font_spacemono")
-theme_override_font_sizes/font_size = 17
+theme_override_font_sizes/font_size = 14
 text = "IM"
 
 [node name="TargetImVal" type="Label" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox/TargetGrid"]
@@ -725,7 +725,7 @@ columns = 2
 layout_mode = 2
 theme_override_colors/font_color = Color(0.5, 0.5, 0.5, 1)
 theme_override_fonts/font = ExtResource("font_spacemono")
-theme_override_font_sizes/font_size = 17
+theme_override_font_sizes/font_size = 14
 text = "|f|"
 
 [node name="PhaseAbsVal" type="Label" parent="Control/MainUIColumns/MainUIStackRight/PhasePanel/MarginContainer/VBox/PhaseGrid"]
@@ -742,8 +742,8 @@ horizontal_alignment = 2
 layout_mode = 2
 theme_override_colors/font_color = Color(0.5, 0.5, 0.5, 1)
 theme_override_fonts/font = ExtResource("font_spacemono")
-theme_override_font_sizes/font_size = 17
-text = "arg(f)"
+theme_override_font_sizes/font_size = 14
+text = "ARG(f)"
 
 [node name="PhaseArgVal" type="Label" parent="Control/MainUIColumns/MainUIStackRight/PhasePanel/MarginContainer/VBox/PhaseGrid"]
 unique_name_in_owner = true
@@ -760,7 +760,7 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.5, 0.5, 0.5, 1)
 theme_override_fonts/font = ExtResource("font_spacemono")
-theme_override_font_sizes/font_size = 17
+theme_override_font_sizes/font_size = 14
 text = "BRANCH K"
 
 [node name="PhaseBranchVal" type="Label" parent="Control/MainUIColumns/MainUIStackRight/PhasePanel/MarginContainer/VBox/PhaseGrid"]
