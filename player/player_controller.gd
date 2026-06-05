@@ -537,29 +537,53 @@ func _physics_process(delta):
 		# 1. First, find a basic local minimum using the 3 center points
 		if mag_history[0] > mag_history[1] and mag_history[1] < mag_history[2]:
 			if mag_history[1] < Config.zero_proximity_nav:
-				# 2. Extract magnitudes for the parabola
-				var y0 = mag_history[0]
-				var y1 = mag_history[1]
-				var y2 = mag_history[2]
+				var z_mid = z_history[1]
 
-				# Avoid division by zero if the curve is perfectly flat
-				var denominator = y0 - (2.0 * y1) + y2
-				if abs(denominator) > 0.0001:
-					# 3. Calculate how far between points the true zero lies (-0.5 to 0.5)
-					var offset_fraction = 0.5 * (y0 - y2) / denominator
+				# 2. Sample nearby points to estimate the minima paraboloid
+				var h = 0.01
+				var p_center = Config.complex_to_world(z_mid.x, z_mid.y)
+				var m0 = ComplexField.get_field(p_center.x, p_center.y).length()
 
-					# 4. Interpolate the actual 'z' position along your path
-					var z_left = z_history[0]
-					var z_mid = z_history[1]
-					var z_right = z_history[2]
+				var p_x_plus = Config.complex_to_world(z_mid.x + h, z_mid.y)
+				var m_x_plus = ComplexField.get_field(p_x_plus.x, p_x_plus.y).length()
 
-					var true_z: Vector2
-					if offset_fraction < 0:
-						# True zero is between left and mid
-						true_z = z_mid.lerp(z_left, -offset_fraction)
-					else:
-						# True zero is between mid and right
-						true_z = z_mid.lerp(z_right, offset_fraction)
+				var p_x_minus = Config.complex_to_world(z_mid.x - h, z_mid.y)
+				var m_x_minus = ComplexField.get_field(p_x_minus.x, p_x_minus.y).length()
+
+				var p_y_plus = Config.complex_to_world(z_mid.x, z_mid.y + h)
+				var m_y_plus = ComplexField.get_field(p_y_plus.x, p_y_plus.y).length()
+
+				var p_y_minus = Config.complex_to_world(z_mid.x, z_mid.y - h)
+				var m_y_minus = ComplexField.get_field(p_y_minus.x, p_y_minus.y).length()
+
+				var p_xy_plus = Config.complex_to_world(z_mid.x + h, z_mid.y + h)
+				var m_xy_plus = ComplexField.get_field(p_xy_plus.x, p_xy_plus.y).length()
+
+				var p_x_minus_y = Config.complex_to_world(z_mid.x + h, z_mid.y - h)
+				var m_x_minus_y = ComplexField.get_field(p_x_minus_y.x, p_x_minus_y.y).length()
+
+				var p_mx_y_plus = Config.complex_to_world(z_mid.x - h, z_mid.y + h)
+				var m_mx_y_plus = ComplexField.get_field(p_mx_y_plus.x, p_mx_y_plus.y).length()
+
+				var p_mx_my = Config.complex_to_world(z_mid.x - h, z_mid.y - h)
+				var m_mx_my = ComplexField.get_field(p_mx_my.x, p_mx_my.y).length()
+
+				# 3. Compute gradients and Hessian matrix elements
+				var gx = (m_x_plus - m_x_minus) / (2.0 * h)
+				var gy = (m_y_plus - m_y_minus) / (2.0 * h)
+
+				var hxx = (m_x_plus - 2.0 * m0 + m_x_minus) / (h * h)
+				var hyy = (m_y_plus - 2.0 * m0 + m_y_minus) / (h * h)
+				var hxy = (m_xy_plus - m_x_minus_y - m_mx_y_plus + m_mx_my) / (4.0 * h * h)
+
+				var det = hxx * hyy - hxy * hxy
+
+				# 4. Check if it forms a paraboloid (local minimum)
+				if det > 0.0 and hxx > 0.0:
+					var dx = (hxy * gy - hyy * gx) / det
+					var dy = (hxy * gx - hxx * gy) / det
+
+					var true_z = z_mid + Vector2(dx, dy)
 
 					if true_z.distance_to(last_detected_z) > 0.01:
 						GameState.total_zeros_found += 1
