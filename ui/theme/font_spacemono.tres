@@ -5,5 +5,5 @@
 [resource]
 base_font = ExtResource("1_neon")
 variation_opentype = {
-2003265652: 500.0
+2003265652: 400.0
 }

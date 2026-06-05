@@ -697,7 +697,7 @@ text = "|f|"
 
 [node name="PhaseAbsVal" type="Label" parent="Control/MainUIColumns/MainUIStackRight/PhasePanel/MarginContainer/VBox/PhaseGrid"]
 unique_name_in_owner = true
-theme_type_variation = &"ValueGoldLabel"
+theme_type_variation = &"ValueCyanLabel"
 layout_mode = 2
 size_flags_horizontal = 3
 text = "0.000"
@@ -710,7 +710,7 @@ text = "ARG(f)"
 
 [node name="PhaseArgVal" type="Label" parent="Control/MainUIColumns/MainUIStackRight/PhasePanel/MarginContainer/VBox/PhaseGrid"]
 unique_name_in_owner = true
-theme_type_variation = &"ValueWhiteLabel"
+theme_type_variation = &"ValueMagentaLabel"
 layout_mode = 2
 size_flags_horizontal = 3
 text = "0°"
