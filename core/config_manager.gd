@@ -113,11 +113,6 @@ const FUNCTIONS = {
 		"name": "Multivalued ArcCos",
 		"is_multivalued": true,
 	},
-	ComplexFunc.MULTIVALUED_RSVD3: {
-		"name": "Multivalued Reserved 3",
-		"is_multivalued": true,
-		"hidden": true,
-	},
 }
 
 # Field parameters
