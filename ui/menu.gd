@@ -152,7 +152,7 @@ func _ready():
 	active_tab_style.border_width_top = 0
 	active_tab_style.border_width_right = 0
 	active_tab_style.border_width_bottom = 0
-	active_tab_style.border_color = Color(0.3647, 0.847, 0.7843, 1.0)
+	active_tab_style.border_color = Color(0.784314, 0.662745, 0.431373, 1.0)
 
 	inactive_tab_style = StyleBoxFlat.new()
 	inactive_tab_style.content_margin_left = 19.0
@@ -178,7 +178,7 @@ func _ready():
 	hover_active_tab_style.border_width_top = 0
 	hover_active_tab_style.border_width_right = 0
 	hover_active_tab_style.border_width_bottom = 0
-	hover_active_tab_style.border_color = Color(0.3647, 0.847, 0.7843, 1.0)
+	hover_active_tab_style.border_color = Color(0.784314, 0.662745, 0.431373, 1.0)
 
 	for i in range(tab_buttons.size()):
 		var btn = tab_buttons[i]
@@ -195,6 +195,8 @@ func _ready():
 
 	re_input.text_submitted.connect(_on_re_text_submitted)
 	im_input.text_submitted.connect(_on_im_text_submitted)
+	re_input.theme_type_variation = &"ValueCyanLineEdit"
+	im_input.theme_type_variation = &"ValueMagentaLineEdit"
 	height_a_input.text_submitted.connect(_on_height_a_text_submitted)
 	height_eps_input.text_submitted.connect(_on_height_eps_text_submitted)
 	func_rational_input.text_submitted.connect(_on_func_rational_text_submitted)
@@ -985,10 +987,10 @@ func _update_tab_buttons_styling():
 		if i == tab_container.current_tab:
 			btn.add_theme_stylebox_override("normal", active_tab_style)
 			btn.add_theme_stylebox_override("hover", hover_active_tab_style)
-			btn.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0))
-			btn.add_theme_color_override("font_hover_color", Color(1.0, 1.0, 1.0))
-			btn.add_theme_color_override("font_pressed_color", Color(1.0, 1.0, 1.0))
-			btn.add_theme_color_override("font_focus_color", Color(1.0, 1.0, 1.0))
+			btn.add_theme_color_override("font_color", Color(0.784314, 0.662745, 0.431373))
+			btn.add_theme_color_override("font_hover_color", Color(0.784314, 0.662745, 0.431373))
+			btn.add_theme_color_override("font_pressed_color", Color(0.784314, 0.662745, 0.431373))
+			btn.add_theme_color_override("font_focus_color", Color(0.784314, 0.662745, 0.431373))
 		else:
 			btn.add_theme_stylebox_override("normal", inactive_tab_style)
 			btn.add_theme_stylebox_override("hover", hover_tab_style)

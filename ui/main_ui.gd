@@ -163,7 +163,7 @@ func _process(_delta):
 			var delta_sign = "+" if delta_val >= 0 else ""
 
 			if rvm_n_label:
-				rvm_n_label.text = "[color=gray]N(t) ≈[/color] [color=#c8a96e]%.2f[/color]" % rvm_val
+				rvm_n_label.text = "[color=gray]N(t) ≈ %.2f[/color]" % rvm_val
 			if rvm_delta_label:
 				rvm_delta_label.text = "Δ = %s%.2f" % [delta_sign, delta_val]
 

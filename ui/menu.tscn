@@ -267,7 +267,6 @@ size_flags_horizontal = 3
 unique_name_in_owner = true
 theme_type_variation = &"QuitButton"
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
 text = "Quit"
 flat = true
 
