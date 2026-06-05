@@ -11,7 +11,6 @@ script = ExtResource("1_script")
 custom_minimum_size = Vector2(180, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 18
 autowrap_mode = 3
 
 [node name="Slider" type="HSlider" parent="."]
@@ -24,11 +23,9 @@ size_flags_vertical = 4
 custom_minimum_size = Vector2(80, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 18
 horizontal_alignment = 2
 
 [node name="DetachButton" type="Button" parent="."]
 custom_minimum_size = Vector2(24, 0)
 layout_mode = 2
-theme_override_font_sizes/font_size = 14
 text = "⇱"

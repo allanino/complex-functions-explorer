@@ -281,14 +281,12 @@ theme_override_constants/separation = 10
 [node name="Label" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TopPresetHBox" unique_id=99990002]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 18
 text = "Preset:"
 
 [node name="PresetButton" type="OptionButton" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TopPresetHBox" unique_id=123456789]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 18
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
@@ -298,7 +296,6 @@ theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_disabled")
 [node name="PresetUpdateButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TopPresetHBox" unique_id=99990003]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
@@ -309,7 +306,6 @@ text = "Save"
 [node name="PresetRestoreButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TopPresetHBox" unique_id=99990010]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
@@ -320,7 +316,6 @@ text = "Restore"
 [node name="PresetDeleteButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TopPresetHBox" unique_id=99990004]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
@@ -331,7 +326,6 @@ text = "Delete"
 [node name="PresetNewButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TopPresetHBox" unique_id=99990005]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
@@ -978,9 +972,9 @@ alignment = 1
 
 [node name="CloseButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/ButtonsHBox" unique_id=895379033]
 unique_name_in_owner = true
+theme_type_variation = &"CloseButton"
 layout_mode = 2
 size_flags_horizontal = 4
-theme_override_font_sizes/font_size = 20
 theme_override_styles/normal = SubResource("StyleBoxFlat_apply_normal")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_apply_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_apply_hover")
@@ -993,7 +987,6 @@ unique_name_in_owner = true
 theme_type_variation = &"UpdateViewButton"
 layout_mode = 2
 size_flags_horizontal = 4
-theme_override_font_sizes/font_size = 20
 theme_override_styles/normal = SubResource("StyleBoxFlat_apply_normal")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_apply_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_apply_hover")
@@ -1020,15 +1013,14 @@ layout_mode = 2
 theme_override_constants/separation = 15
 
 [node name="Label" type="Label" parent="CenterContainer/NewPresetDialog/MarginContainer/VBoxContainer" unique_id=99991003]
+theme_type_variation = &"DialogHeaderLabel"
 layout_mode = 2
-theme_override_font_sizes/font_size = 20
 text = "New Preset"
 horizontal_alignment = 1
 
 [node name="NewPresetInput" type="LineEdit" parent="CenterContainer/NewPresetDialog/MarginContainer/VBoxContainer" unique_id=99991004]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
 theme_override_styles/normal = SubResource("StyleBoxFlat_input")
 theme_override_styles/focus = SubResource("StyleBoxFlat_input")
 placeholder_text = "Preset Name"
@@ -1044,7 +1036,6 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 18
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
@@ -1057,7 +1048,6 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 18
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
@@ -1084,15 +1074,14 @@ layout_mode = 2
 theme_override_constants/separation = 15
 
 [node name="Label" type="Label" parent="CenterContainer/DeletePresetDialog/MarginContainer/VBoxContainer" unique_id=99992003]
+theme_type_variation = &"DialogHeaderLabel"
 layout_mode = 2
-theme_override_font_sizes/font_size = 20
 text = "Delete Preset?"
 horizontal_alignment = 1
 
 [node name="DeleteMessageLabel" type="Label" parent="CenterContainer/DeletePresetDialog/MarginContainer/VBoxContainer" unique_id=99992004]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
 text = "Are you sure you want to delete the
 preset 'Custom'?"
 horizontal_alignment = 1
@@ -1107,7 +1096,6 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 18
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
@@ -1120,7 +1108,6 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 18
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
@@ -1147,15 +1134,14 @@ layout_mode = 2
 theme_override_constants/separation = 15
 
 [node name="Label" type="Label" parent="CenterContainer/QuitDialog/MarginContainer/VBoxContainer" unique_id=99993003]
+theme_type_variation = &"DialogHeaderLabel"
 layout_mode = 2
-theme_override_font_sizes/font_size = 20
 text = "Exit Explorer?"
 horizontal_alignment = 1
 
 [node name="QuitMessageLabel" type="Label" parent="CenterContainer/QuitDialog/MarginContainer/VBoxContainer" unique_id=99993004]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
 text = "Any unapplied view changes will be lost."
 horizontal_alignment = 1
 
@@ -1169,7 +1155,6 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 18
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
@@ -1182,7 +1167,6 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 18
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
@@ -1195,7 +1179,6 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 18
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")

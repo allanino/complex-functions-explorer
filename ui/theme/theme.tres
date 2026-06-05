@@ -51,4 +51,14 @@ UpdateViewButton/colors/font_color = Color(0.784314, 0.662745, 0.431373, 1.0)
 UpdateViewButton/colors/font_hover_color = Color(0.784314, 0.662745, 0.431373, 1.0)
 UpdateViewButton/colors/font_pressed_color = Color(0.784314, 0.662745, 0.431373, 1.0)
 UpdateViewButton/colors/font_focus_color = Color(0.784314, 0.662745, 0.431373, 1.0)
+UpdateViewButton/font_sizes/font_size = 14
+DialogHeaderLabel/base_type = &"Label"
+DialogHeaderLabel/font_sizes/font_size = 14
+CloseButton/base_type = &"Button"
+CloseButton/font_sizes/font_size = 14
+Label/font_sizes/font_size = 14
+Button/font_sizes/font_size = 14
+LineEdit/font_sizes/font_size = 14
+OptionButton/font_sizes/font_size = 14
+
 

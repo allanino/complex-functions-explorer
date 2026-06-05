@@ -184,7 +184,6 @@ func _ready():
 		var btn = tab_buttons[i]
 		if btn:
 			btn.flat = false
-			btn.add_theme_font_size_override("font_size", 18)
 			btn.add_theme_stylebox_override("hover", hover_tab_style)
 			btn.add_theme_stylebox_override("pressed", active_tab_style)
 			btn.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
