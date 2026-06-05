@@ -1,7 +1,7 @@
 extends CharacterBody3D
 
 @export var enable_joystick: bool = false
-@export var run_demo: bool = false
+@export var run_demo: bool = true
 
 const MOUSE_SENSITIVITY = 0.002
 const DOUBLE_PRESS_TIME = 0.3
@@ -573,7 +573,7 @@ func _physics_process(delta):
 
 func demo_actions():
 	Config.function_type = Config.ComplexFunc.ZETA_REFLECTION
-	Config.day_time = 18420
+	Config.day_time = 15060
 	Config.day_duration = 600.0
 	Config.freeze_time = false
 	Config.show_critical_stripe = 0
@@ -634,7 +634,7 @@ func demo_actions():
 	tween.parallel().tween_property(camera, "rotation:x", -PI / 8.0, tween_duration)
 
 	# Wait a moment to contemplate the sunrise
-	tween.tween_interval(1.0)
+	tween.tween_interval(0.5)
 
 	# Phase 6: rotate back to horizontal and start auto-walk
 	tween.tween_property(self , "rotation:y", 0.0, tween_duration * 0.5)
