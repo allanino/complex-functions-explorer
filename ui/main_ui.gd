@@ -15,7 +15,7 @@ const ZERO_LIST_ITEM_SCENE = preload("res://ui/components/zero_list_item.tscn")
 @onready var domain_im_val = %DomainImVal
 @onready var target_re_val = %TargetReVal
 @onready var target_im_val = %TargetImVal
-@onready var target_branch_val = %TargetBranchVal
+@onready var phase_branch_val = %PhaseBranchVal
 @onready var branch_label = %BranchLabel
 @onready var phase_abs_val = %PhaseAbsVal
 @onready var phase_arg_val = %PhaseArgVal
@@ -198,11 +198,11 @@ func _process(_delta):
 	target_re_val.text = _format_float_3(val_fx)
 	target_im_val.text = _format_float_3(val_fy)
 	if f_data.get("is_multivalued", false):
-		target_branch_val.text = str(GameState.current_branch)
-		target_branch_val.visible = true
+		phase_branch_val.text = str(GameState.current_branch)
+		phase_branch_val.visible = true
 		branch_label.visible = true
 	else:
-		target_branch_val.visible = false
+		phase_branch_val.visible = false
 		branch_label.visible = false
 
 	var angle_deg = rad_to_deg(f.angle())
@@ -245,7 +245,7 @@ var _last_hud_state = {}
 func _update_hud_layout():
 	if not hud_columns: return
 
-	var cards = [phase_panel, domain_panel, target_panel, monitor_panel, zeros_panel, menu_overlay.perf_label]
+	var cards = [phase_panel, target_panel, domain_panel, monitor_panel, zeros_panel, menu_overlay.perf_label]
 
 	var actual_hud_scale = Config.hud_scale
 
@@ -295,11 +295,6 @@ func _apply_stack_layout(stack: VBoxContainer, desired_cards: Array):
 			stack.remove_child(child)
 			add_child(child)
 
-	# Optimization: The original code moved each card to index 0 in forward order,
-	# which inverted the final display order. By iterating backwards through the
-	# desired_cards array, we can safely target absolute indices (0 to N-1) as we build
-	# the stack from top to bottom. This ensures `move_child` operates within valid
-	# index bounds even when new cards are being added, and eliminates redundant moves.
 	for i in range(desired_cards.size()):
 		var target_index = i
 		var card = desired_cards[desired_cards.size() - 1 - i]
