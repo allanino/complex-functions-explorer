@@ -9,6 +9,9 @@
 [ext_resource type="Script" path="res://ui/components/detach_controller.gd" id="7_detach_controller"]
 [ext_resource type="PackedScene" path="res://ui/components/virtual_joystick.tscn" id="8_joy"]
 [ext_resource type="PackedScene" path="res://ui/components/virtual_button.tscn" id="9_btn"]
+[ext_resource type="FontFile" path="res://fonts/SpaceMono-Regular.ttf" id="font_spacemono"]
+[ext_resource type="FontFile" path="res://fonts/EBGaramond-Light.ttf" id="font_garamond"]
+
 
 
 
@@ -18,20 +21,26 @@ shader = ExtResource("2_shader")
 shader_parameter/current_f = Vector2(0, 0)
 shader_parameter/scale = 2.0
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_glass"]
-bg_color = Color(0.03, 0.03, 0.03, 0.5)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hud_panel"]
+bg_color = Color(0.015686, 0.031372, 0.070588, 0.78)
 border_width_left = 1
 border_width_top = 1
 border_width_right = 1
 border_width_bottom = 1
-border_color = Color(1, 1, 1, 0.1)
-corner_radius_top_left = 10
-corner_radius_top_right = 10
-corner_radius_bottom_right = 10
-corner_radius_bottom_left = 10
-shadow_color = Color(0, 0, 0, 0.5)
-shadow_size = 4
-shadow_offset = Vector2(0, 4)
+border_color = Color(0.909804, 0.894118, 0.862745, 0.16)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+shadow_color = Color(0, 0, 0, 0.4)
+shadow_size = 8
+shadow_offset = Vector2(0, 2)
+
+[sub_resource type="StyleBoxLine" id="StyleBoxLine_header_sep"]
+color = Color(0.784314, 0.662745, 0.431373, 0.3)
+grow_begin = 0.0
+grow_end = 0.0
+thickness = 1
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mask"]
 bg_color = Color(1, 1, 1, 1)
@@ -327,7 +336,7 @@ visible = false
 custom_minimum_size = Vector2(0, 200)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_styles/panel = SubResource("StyleBoxFlat_glass")
+theme_override_styles/panel = SubResource("StyleBoxFlat_hud_panel")
 
 [node name="MarginContainer" type="MarginContainer" parent="Control/MainUIColumns/MainUIStackRight/ZerosPanel"]
 layout_mode = 2
@@ -340,29 +349,56 @@ theme_override_constants/margin_bottom = 10
 [node name="VBox" type="VBoxContainer" parent="Control/MainUIColumns/MainUIStackRight/ZerosPanel/MarginContainer"]
 layout_mode = 2
 
-[node name="TitleLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/ZerosPanel/MarginContainer/VBox"]
+[node name="TitleLabelHBox" type="HBoxContainer" parent="Control/MainUIColumns/MainUIStackRight/ZerosPanel/MarginContainer/VBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
+
+[node name="TitleLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/ZerosPanel/MarginContainer/VBox/TitleLabelHBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.784314, 0.662745, 0.431373, 1)
+theme_override_fonts/font = ExtResource("font_spacemono")
+theme_override_font_sizes/font_size = 9
+theme_override_constants/character_spacing = 2
+theme_override_constants/outline_size = 0
+theme_override_constants/shadow_outline_size = 0
 text = "ZEROS DETECTED"
-horizontal_alignment = 1
+horizontal_alignment = 0
 
-[node name="HSeparator" type="HSeparator" parent="Control/MainUIColumns/MainUIStackRight/ZerosPanel/MarginContainer/VBox"]
+[node name="HSeparator" type="HSeparator" parent="Control/MainUIColumns/MainUIStackRight/ZerosPanel/MarginContainer/VBox/TitleLabelHBox"]
 layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/separator = SubResource("StyleBoxLine_header_sep")
 
-[node name="CountLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/ZerosPanel/MarginContainer/VBox"]
+
+[node name="CountLabelHBox" type="HBoxContainer" parent="Control/MainUIColumns/MainUIStackRight/ZerosPanel/MarginContainer/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="CountLabelTitle" type="Label" parent="Control/MainUIColumns/MainUIStackRight/ZerosPanel/MarginContainer/VBox/CountLabelHBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.909804, 0.894118, 0.862745, 0.45)
+theme_override_fonts/font = ExtResource("font_spacemono")
+theme_override_font_sizes/font_size = 10
+text = "Count:"
+
+[node name="CountLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/ZerosPanel/MarginContainer/VBox/CountLabelHBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
-text = "Count: 0"
-horizontal_alignment = 1
+theme_override_colors/font_color = Color(0.909804, 0.894118, 0.862745, 1)
+theme_override_fonts/font = ExtResource("font_garamond")
+theme_override_font_sizes/font_size = 36
+text = "0"
 
-[node name="RvmLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/ZerosPanel/MarginContainer/VBox"]
+[node name="RvmLabel" type="RichTextLabel" parent="Control/MainUIColumns/MainUIStackRight/ZerosPanel/MarginContainer/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
-theme_override_font_sizes/font_size = 18
+theme_override_colors/default_color = Color(0.909804, 0.894118, 0.862745, 0.45)
+theme_override_fonts/normal_font = ExtResource("font_spacemono")
+theme_override_font_sizes/normal_font_size = 10
+bbcode_enabled = true
 text = "N(t) ≈ 0.00"
-horizontal_alignment = 1
+fit_content = true
+scroll_active = false
 
 [node name="HSeparator2" type="HSeparator" parent="Control/MainUIColumns/MainUIStackRight/ZerosPanel/MarginContainer/VBox"]
 layout_mode = 2
@@ -372,21 +408,18 @@ layout_mode = 2
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
 
-[node name="ListLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/ZerosPanel/MarginContainer/VBox/Scroll"]
+[node name="ListLabelContainer" type="VBoxContainer" parent="Control/MainUIColumns/MainUIStackRight/ZerosPanel/MarginContainer/VBox/Scroll"]
 unique_name_in_owner = true
-mouse_filter = 2
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 18
-horizontal_alignment = 1
-autowrap_mode = 3
+theme_override_constants/separation = 2
 
 [node name="MonitorPanel" type="PanelContainer" parent="Control/MainUIColumns/MainUIStackRight"]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_styles/panel = SubResource("StyleBoxFlat_glass")
+theme_override_styles/panel = SubResource("StyleBoxFlat_hud_panel")
 
 [node name="MarginContainer" type="MarginContainer" parent="Control/MainUIColumns/MainUIStackRight/MonitorPanel"]
 layout_mode = 2
@@ -399,28 +432,43 @@ theme_override_constants/margin_bottom = 10
 layout_mode = 2
 theme_override_constants/separation = 5
 
-[node name="TitleLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/MonitorPanel/MarginContainer/VBox"]
+[node name="TitleLabelHBox" type="HBoxContainer" parent="Control/MainUIColumns/MainUIStackRight/MonitorPanel/MarginContainer/VBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
+
+[node name="TitleLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/MonitorPanel/MarginContainer/VBox/TitleLabelHBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.784314, 0.662745, 0.431373, 1)
+theme_override_fonts/font = ExtResource("font_spacemono")
+theme_override_font_sizes/font_size = 9
+theme_override_constants/character_spacing = 2
+theme_override_constants/outline_size = 0
+theme_override_constants/shadow_outline_size = 0
 text = "MONITOR"
-horizontal_alignment = 1
+horizontal_alignment = 0
 
-[node name="HSeparator" type="HSeparator" parent="Control/MainUIColumns/MainUIStackRight/MonitorPanel/MarginContainer/VBox"]
+[node name="HSeparator" type="HSeparator" parent="Control/MainUIColumns/MainUIStackRight/MonitorPanel/MarginContainer/VBox/TitleLabelHBox"]
 layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/separator = SubResource("StyleBoxLine_header_sep")
 
-[node name="FpsLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/MonitorPanel/MarginContainer/VBox"]
+
+[node name="FpsLabel" type="RichTextLabel" parent="Control/MainUIColumns/MainUIStackRight/MonitorPanel/MarginContainer/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
+theme_override_colors/default_color = Color(0.909804, 0.894118, 0.862745, 1)
+theme_override_fonts/normal_font = ExtResource("font_spacemono")
+theme_override_font_sizes/normal_font_size = 13
+bbcode_enabled = true
 text = "FPS: 60"
-horizontal_alignment = 1
+fit_content = true
+scroll_active = false
 
 [node name="InfoPanel" type="PanelContainer" parent="Control/MainUIColumns/MainUIStackRight"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 200)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_styles/panel = SubResource("StyleBoxFlat_glass")
+theme_override_styles/panel = SubResource("StyleBoxFlat_hud_panel")
 
 [node name="MarginContainer" type="MarginContainer" parent="Control/MainUIColumns/MainUIStackRight/InfoPanel"]
 layout_mode = 2
@@ -433,40 +481,68 @@ theme_override_constants/margin_bottom = 10
 layout_mode = 2
 theme_override_constants/separation = 5
 
-[node name="DomainTitle" type="Label" parent="Control/MainUIColumns/MainUIStackRight/InfoPanel/MarginContainer/VBox"]
+[node name="DomainTitleHBox" type="HBoxContainer" parent="Control/MainUIColumns/MainUIStackRight/InfoPanel/MarginContainer/VBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
+
+[node name="DomainTitle" type="Label" parent="Control/MainUIColumns/MainUIStackRight/InfoPanel/MarginContainer/VBox/DomainTitleHBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.784314, 0.662745, 0.431373, 1)
+theme_override_fonts/font = ExtResource("font_spacemono")
+theme_override_font_sizes/font_size = 9
+theme_override_constants/character_spacing = 2
+theme_override_constants/outline_size = 0
+theme_override_constants/shadow_outline_size = 0
 text = "DOMAIN"
-horizontal_alignment = 1
+horizontal_alignment = 0
 
-[node name="HSeparator3" type="HSeparator" parent="Control/MainUIColumns/MainUIStackRight/InfoPanel/MarginContainer/VBox"]
+[node name="HSeparator" type="HSeparator" parent="Control/MainUIColumns/MainUIStackRight/InfoPanel/MarginContainer/VBox/DomainTitleHBox"]
 layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/separator = SubResource("StyleBoxLine_header_sep")
 
-[node name="DomainLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/InfoPanel/MarginContainer/VBox"]
+
+[node name="DomainLabel" type="RichTextLabel" parent="Control/MainUIColumns/MainUIStackRight/InfoPanel/MarginContainer/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
-text = "Re = 0.000
-Im = 0.000"
-horizontal_alignment = 1
+theme_override_fonts/normal_font = ExtResource("font_spacemono")
+theme_override_font_sizes/normal_font_size = 13
+bbcode_enabled = true
+text = "[color=#5dd8c8]Re[/color] = 0.000
+[color=#d45fa0]Im[/color] = 0.000"
+fit_content = true
+scroll_active = false
 
-[node name="TargetTitle" type="Label" parent="Control/MainUIColumns/MainUIStackRight/InfoPanel/MarginContainer/VBox"]
+[node name="TargetTitleHBox" type="HBoxContainer" parent="Control/MainUIColumns/MainUIStackRight/InfoPanel/MarginContainer/VBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
+
+[node name="TargetTitle" type="Label" parent="Control/MainUIColumns/MainUIStackRight/InfoPanel/MarginContainer/VBox/TargetTitleHBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.784314, 0.662745, 0.431373, 1)
+theme_override_fonts/font = ExtResource("font_spacemono")
+theme_override_font_sizes/font_size = 9
+theme_override_constants/character_spacing = 2
+theme_override_constants/outline_size = 0
+theme_override_constants/shadow_outline_size = 0
 text = "\nTARGET"
-horizontal_alignment = 1
+horizontal_alignment = 0
 
-[node name="HSeparator5" type="HSeparator" parent="Control/MainUIColumns/MainUIStackRight/InfoPanel/MarginContainer/VBox"]
+[node name="HSeparator" type="HSeparator" parent="Control/MainUIColumns/MainUIStackRight/InfoPanel/MarginContainer/VBox/TargetTitleHBox"]
 layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/separator = SubResource("StyleBoxLine_header_sep")
 
-[node name="TargetLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/InfoPanel/MarginContainer/VBox"]
+
+[node name="TargetLabel" type="RichTextLabel" parent="Control/MainUIColumns/MainUIStackRight/InfoPanel/MarginContainer/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
-text = "Re = 0.000
-Im = 0.000
-|f| = 0.000"
-horizontal_alignment = 1
+theme_override_fonts/normal_font = ExtResource("font_spacemono")
+theme_override_font_sizes/normal_font_size = 13
+bbcode_enabled = true
+text = "[color=#5dd8c8]Re[/color] = 0.000
+[color=#d45fa0]Im[/color] = 0.000
+[color=#c8a96e]|f|[/color] = 0.000"
+fit_content = true
+scroll_active = false
 
 [node name="ComplexAspect" type="AspectRatioContainer" parent="Control/MainUIColumns/MainUIStackRight"]
 unique_name_in_owner = true
@@ -478,7 +554,7 @@ stretch_mode = 0
 
 [node name="ComplexPanel" type="PanelContainer" parent="Control/MainUIColumns/MainUIStackRight/ComplexAspect"]
 layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_glass")
+theme_override_styles/panel = SubResource("StyleBoxFlat_hud_panel")
 
 [node name="MarginContainer" type="MarginContainer" parent="Control/MainUIColumns/MainUIStackRight/ComplexAspect/ComplexPanel"]
 layout_mode = 2
@@ -513,7 +589,7 @@ offset_top = 20.0
 offset_right = 200.0
 offset_bottom = 80.0
 grow_horizontal = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_glass")
+theme_override_styles/panel = SubResource("StyleBoxFlat_hud_panel")
 
 [node name="MarginContainer" type="MarginContainer" parent="Control/DetachOverlay"]
 layout_mode = 2

@@ -14,7 +14,7 @@ extends CanvasLayer
 @onready var zeros_panel = %ZerosPanel
 @onready var zeros_count_label = %CountLabel
 @onready var rvm_label = %RvmLabel
-@onready var zeros_list_label = %ListLabel
+@onready var zeros_list_label = %ListLabelContainer
 @onready var menu_overlay = %MenuOverlay
 var portal_flash: ColorRect
 @onready var tooltip_manager = %TooltipManager
@@ -22,6 +22,7 @@ var portal_flash: ColorRect
 @onready var preset_controller = %PresetController
 # New UI Node Paths
 var current_scale = 2.0
+const ZERO_LIST_ITEM_SCENE = preload("res://ui/components/zero_list_item.tscn")
 var _last_zeros_visible: bool = false
 const BASE_HUD_PANEL_SIZE: float = 190.0
 const RENDER_EACH_N_FRAME: int = 3
@@ -127,17 +128,22 @@ func _process(_delta):
 		var total_count = GameState.total_zeros_found
 		if total_count != _last_zeros_count:
 			_last_zeros_count = total_count
-			var last_zeros_text = ""
+			zeros_count_label.text = str(total_count)
+
+			# Clear existing items
+			for child in zeros_list_label.get_children():
+				child.queue_free()
+
 			var current_size = GameState.visited_zeros.size()
-			for i in range(current_size - 1, -1, -1):
+			for i in range(current_size - 1, max(-1, current_size - 11), -1):
 				var zero = GameState.visited_zeros[i]
-				last_zeros_text += "(%s, %s)\n" % [_format_float_3(zero[0]), _format_float_3(zero[1])]
-
-			if total_count > 10:
-				last_zeros_text += "•••\n"
-
-			zeros_count_label.text = "Count: %d" % total_count
-			zeros_list_label.text = last_zeros_text
+				var re_str = _format_float_3(zero[0])
+				var im_str = _format_float_3(zero[1])
+				var item = ZERO_LIST_ITEM_SCENE.instantiate()
+				zeros_list_label.add_child(item)
+				item.set_values(re_str, im_str)
+				if i == current_size - 1:
+					item.is_active = true
 
 		# Riemann-von Mangoldt formula: N(T) ≈ (T/2π) log(T/2πe) + 7/8
 		if Config.show_rvm and f_data.get("has_von_mangoldt", false):
@@ -168,8 +174,8 @@ func _process(_delta):
 	var val_fx = f.x
 	var val_fy = f.y
 
-	domain_label.text = "Re = %s\nIm = %s" % [_format_float_3(val_re), _format_float_3(val_im)]
-	var target_text = "Re = %s\nIm = %s\n|f| = %s" % [_format_float_3(val_fx), _format_float_3(val_fy), _format_float_3(f.length())]
+	domain_label.text = "[color=#5dd8c8]Re[/color] = %s\n[color=#d45fa0]Im[/color] = %s" % [_format_float_3(val_re), _format_float_3(val_im)]
+	var target_text = "[color=#5dd8c8]Re[/color] = %s\n[color=#d45fa0]Im[/color] = %s\n[color=#c8a96e]|f|[/color] = %s" % [_format_float_3(val_fx), _format_float_3(val_fy), _format_float_3(f.length())]
 	if f_data.get("is_multivalued", false):
 		target_text += "\nBranch k = %d" % GameState.current_branch
 	target_label.text = target_text

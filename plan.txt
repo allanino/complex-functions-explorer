@@ -1,0 +1,17 @@
+1. **Fonts & Assets**: Download SpaceMono-Regular, SpaceMono-Bold, EBGaramond-Light to `res://fonts/`.
+2. **MainUI Scene Updates**:
+    - Update the main panel StyleBoxFlat instances (`StyleBoxFlat_glass`) to have the new colors, border, radius, and drop shadow.
+    - Change header Labels to use SpaceMono (size 9px, color `#c8a96e`, add `HSeparator`).
+    - Change data values Labels to `RichTextLabel` with Space Mono to support inline coloring (`#5dd8c8` for Re, `#d45fa0` for Im, `#c8a96e` for |f|, `#e8e4dc` for plain text).
+    - Increase counter size in Zeros Panel and use Garamond.
+3. **Zero List Item**:
+    - Build a new `zero_list_item.tscn` + script for individual zeros in the Zeros Panel (Re=`½` in gold, Im=`+ XXX i`).
+    - Update `ui/main_ui.gd` to clear and instantiate these items in `ListLabelContainer` instead of a plain text list.
+4. **Color Wheel Panel**:
+    - Ensure it uses the new common panel style.
+5. **GDScript Logic Updates (`main_ui.gd`)**:
+    - Adapt the text assignment to use BBCode for colored domain and target values (e.g. `[color=#5dd8c8]Re[/color] = ...`).
+    - Adapt the zeros loop to instantiate/update `ZeroListItem` nodes.
+6. **Testing & Pre-commit**:
+    - Run the project/tests to verify UI rendering and layout.
+    - Run pre-commit checks.

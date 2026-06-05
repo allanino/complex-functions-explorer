@@ -1,0 +1,8 @@
+[gd_resource type="LabelSettings" load_steps=2 format=3]
+
+[ext_resource type="FontFile" path="res://fonts/SpaceMono-Regular.ttf" id="1_font"]
+
+[resource]
+font = ExtResource("1_font")
+font_size = 9
+font_color = Color(0.784314, 0.662745, 0.431373, 1)
