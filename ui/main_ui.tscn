@@ -11,6 +11,7 @@
 [ext_resource type="PackedScene" path="res://ui/components/virtual_button.tscn" id="9_btn"]
 [ext_resource type="FontVariation" path="res://ui/theme/font_spacemono.tres" id="font_spacemono"]
 [ext_resource type="FontFile" path="res://fonts/EBGaramond-Light.ttf" id="font_garamond"]
+[ext_resource type="Theme" path="res://ui/theme/theme.tres" id="theme_tres"]
 
 
 
@@ -241,6 +242,7 @@ layer = 1
 
 
 [node name="Control" type="Control" parent="."]
+theme = ExtResource("theme_tres")
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -336,7 +338,6 @@ visible = false
 custom_minimum_size = Vector2(0, 260)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_styles/panel = SubResource("StyleBoxFlat_hud_panel")
 
 [node name="MarginContainer" type="MarginContainer" parent="Control/MainUIColumns/MainUIStackRight/ZerosPanel"]
 layout_mode = 2
@@ -353,10 +354,8 @@ layout_mode = 2
 layout_mode = 2
 
 [node name="TitleLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/ZerosPanel/MarginContainer/VBox/TitleLabelHBox"]
+theme_type_variation = &"HeaderLabel"
 layout_mode = 2
-theme_override_colors/font_color = Color(0.784314, 0.662745, 0.431373, 1)
-theme_override_fonts/font = ExtResource("font_spacemono")
-theme_override_font_sizes/font_size = 13
 theme_override_constants/character_spacing = 2
 theme_override_constants/outline_size = 0
 theme_override_constants/shadow_outline_size = 0
@@ -383,10 +382,8 @@ theme_override_font_sizes/font_size = 40
 text = "0"
 
 [node name="CountLabelTitle" type="Label" parent="Control/MainUIColumns/MainUIStackRight/ZerosPanel/MarginContainer/VBox/CountLabelHBox"]
+theme_type_variation = &"SecondaryLabel"
 layout_mode = 2
-theme_override_colors/font_color = Color(0.909804, 0.894118, 0.862745, 0.45)
-theme_override_fonts/font = ExtResource("font_spacemono")
-theme_override_font_sizes/font_size = 14
 text = "DETECTED"
 
 [node name="RvmHBox" type="HBoxContainer" parent="Control/MainUIColumns/MainUIStackRight/ZerosPanel/MarginContainer/VBox"]
@@ -449,7 +446,6 @@ unique_name_in_owner = true
 visible = false
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_styles/panel = SubResource("StyleBoxFlat_hud_panel")
 
 [node name="MarginContainer" type="MarginContainer" parent="Control/MainUIColumns/MainUIStackRight/MonitorPanel"]
 layout_mode = 2
@@ -466,10 +462,8 @@ theme_override_constants/separation = 5
 layout_mode = 2
 
 [node name="TitleLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/MonitorPanel/MarginContainer/VBox/TitleLabelHBox"]
+theme_type_variation = &"HeaderLabel"
 layout_mode = 2
-theme_override_colors/font_color = Color(0.784314, 0.662745, 0.431373, 1)
-theme_override_fonts/font = ExtResource("font_spacemono")
-theme_override_font_sizes/font_size = 13
 theme_override_constants/character_spacing = 2
 theme_override_constants/outline_size = 0
 theme_override_constants/shadow_outline_size = 0
@@ -498,7 +492,6 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 100)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_styles/panel = SubResource("StyleBoxFlat_hud_panel")
 
 [node name="MarginContainer" type="MarginContainer" parent="Control/MainUIColumns/MainUIStackRight/DomainPanel"]
 layout_mode = 2
@@ -515,10 +508,8 @@ theme_override_constants/separation = 5
 layout_mode = 2
 
 [node name="DomainTitle" type="Label" parent="Control/MainUIColumns/MainUIStackRight/DomainPanel/MarginContainer/VBox/DomainTitleHBox"]
+theme_type_variation = &"HeaderLabel"
 layout_mode = 2
-theme_override_colors/font_color = Color(0.784314, 0.662745, 0.431373, 1)
-theme_override_fonts/font = ExtResource("font_spacemono")
-theme_override_font_sizes/font_size = 13
 theme_override_constants/character_spacing = 2
 theme_override_constants/outline_size = 0
 theme_override_constants/shadow_outline_size = 0
@@ -536,36 +527,28 @@ theme_override_constants/h_separation = 10
 columns = 2
 
 [node name="ReLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/DomainPanel/MarginContainer/VBox/DomainGrid"]
+theme_type_variation = &"SecondaryLabel"
 layout_mode = 2
-theme_override_colors/font_color = Color(0.5, 0.5, 0.5, 1)
-theme_override_fonts/font = ExtResource("font_spacemono")
-theme_override_font_sizes/font_size = 14
 text = "RE"
 
 [node name="DomainReVal" type="Label" parent="Control/MainUIColumns/MainUIStackRight/DomainPanel/MarginContainer/VBox/DomainGrid"]
 unique_name_in_owner = true
+theme_type_variation = &"ValueCyanLabel"
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.3647, 0.847, 0.7843, 1)
-theme_override_fonts/font = ExtResource("font_spacemono")
-theme_override_font_sizes/font_size = 17
 text = "0.000"
 horizontal_alignment = 2
 
 [node name="ImLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/DomainPanel/MarginContainer/VBox/DomainGrid"]
+theme_type_variation = &"SecondaryLabel"
 layout_mode = 2
-theme_override_colors/font_color = Color(0.5, 0.5, 0.5, 1)
-theme_override_fonts/font = ExtResource("font_spacemono")
-theme_override_font_sizes/font_size = 14
 text = "IM"
 
 [node name="DomainImVal" type="Label" parent="Control/MainUIColumns/MainUIStackRight/DomainPanel/MarginContainer/VBox/DomainGrid"]
 unique_name_in_owner = true
+theme_type_variation = &"ValueMagentaLabel"
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.8313, 0.3725, 0.6274, 1)
-theme_override_fonts/font = ExtResource("font_spacemono")
-theme_override_font_sizes/font_size = 17
 text = "0.000"
 horizontal_alignment = 2
 
@@ -574,7 +557,6 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 100)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_styles/panel = SubResource("StyleBoxFlat_hud_panel")
 
 [node name="MarginContainer" type="MarginContainer" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel"]
 layout_mode = 2
@@ -591,10 +573,8 @@ theme_override_constants/separation = 5
 layout_mode = 2
 
 [node name="TargetTitle" type="Label" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox/TargetTitleHBox"]
+theme_type_variation = &"HeaderLabel"
 layout_mode = 2
-theme_override_colors/font_color = Color(0.784314, 0.662745, 0.431373, 1)
-theme_override_fonts/font = ExtResource("font_spacemono")
-theme_override_font_sizes/font_size = 13
 theme_override_constants/character_spacing = 2
 theme_override_constants/outline_size = 0
 theme_override_constants/shadow_outline_size = 0
@@ -612,36 +592,28 @@ theme_override_constants/h_separation = 10
 columns = 2
 
 [node name="ReLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox/TargetGrid"]
+theme_type_variation = &"SecondaryLabel"
 layout_mode = 2
-theme_override_colors/font_color = Color(0.5, 0.5, 0.5, 1)
-theme_override_fonts/font = ExtResource("font_spacemono")
-theme_override_font_sizes/font_size = 14
 text = "RE"
 
 [node name="TargetReVal" type="Label" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox/TargetGrid"]
 unique_name_in_owner = true
+theme_type_variation = &"ValueCyanLabel"
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.3647, 0.847, 0.7843, 1)
-theme_override_fonts/font = ExtResource("font_spacemono")
-theme_override_font_sizes/font_size = 17
 text = "0.000"
 horizontal_alignment = 2
 
 [node name="ImLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox/TargetGrid"]
+theme_type_variation = &"SecondaryLabel"
 layout_mode = 2
-theme_override_colors/font_color = Color(0.5, 0.5, 0.5, 1)
-theme_override_fonts/font = ExtResource("font_spacemono")
-theme_override_font_sizes/font_size = 14
 text = "IM"
 
 [node name="TargetImVal" type="Label" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox/TargetGrid"]
 unique_name_in_owner = true
+theme_type_variation = &"ValueMagentaLabel"
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.8313, 0.3725, 0.6274, 1)
-theme_override_fonts/font = ExtResource("font_spacemono")
-theme_override_font_sizes/font_size = 17
 text = "0.000"
 horizontal_alignment = 2
 
@@ -651,7 +623,6 @@ horizontal_alignment = 2
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_styles/panel = SubResource("StyleBoxFlat_hud_panel")
 
 [node name="MarginContainer" type="MarginContainer" parent="Control/MainUIColumns/MainUIStackRight/PhasePanel"]
 layout_mode = 2
@@ -668,10 +639,8 @@ theme_override_constants/separation = 5
 layout_mode = 2
 
 [node name="PhaseTitle" type="Label" parent="Control/MainUIColumns/MainUIStackRight/PhasePanel/MarginContainer/VBox/PhaseTitleHBox"]
+theme_type_variation = &"HeaderLabel"
 layout_mode = 2
-theme_override_colors/font_color = Color(0.784314, 0.662745, 0.431373, 1)
-theme_override_fonts/font = ExtResource("font_spacemono")
-theme_override_font_sizes/font_size = 13
 theme_override_constants/character_spacing = 2
 theme_override_constants/outline_size = 0
 theme_override_constants/shadow_outline_size = 0
@@ -722,54 +691,42 @@ theme_override_constants/h_separation = 10
 columns = 2
 
 [node name="AbsLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/PhasePanel/MarginContainer/VBox/PhaseGrid"]
+theme_type_variation = &"SecondaryLabel"
 layout_mode = 2
-theme_override_colors/font_color = Color(0.5, 0.5, 0.5, 1)
-theme_override_fonts/font = ExtResource("font_spacemono")
-theme_override_font_sizes/font_size = 14
 text = "|f|"
 
 [node name="PhaseAbsVal" type="Label" parent="Control/MainUIColumns/MainUIStackRight/PhasePanel/MarginContainer/VBox/PhaseGrid"]
 unique_name_in_owner = true
+theme_type_variation = &"ValueGoldLabel"
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.7843, 0.6627, 0.4313, 1)
-theme_override_fonts/font = ExtResource("font_spacemono")
-theme_override_font_sizes/font_size = 17
 text = "0.000"
 horizontal_alignment = 2
 
 [node name="ArgLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/PhasePanel/MarginContainer/VBox/PhaseGrid"]
+theme_type_variation = &"SecondaryLabel"
 layout_mode = 2
-theme_override_colors/font_color = Color(0.5, 0.5, 0.5, 1)
-theme_override_fonts/font = ExtResource("font_spacemono")
-theme_override_font_sizes/font_size = 14
 text = "ARG(f)"
 
 [node name="PhaseArgVal" type="Label" parent="Control/MainUIColumns/MainUIStackRight/PhasePanel/MarginContainer/VBox/PhaseGrid"]
 unique_name_in_owner = true
+theme_type_variation = &"ValueWhiteLabel"
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_fonts/font = ExtResource("font_spacemono")
-theme_override_font_sizes/font_size = 17
 text = "0°"
 horizontal_alignment = 2
 
 [node name="BranchLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/PhasePanel/MarginContainer/VBox/PhaseGrid"]
 unique_name_in_owner = true
+theme_type_variation = &"SecondaryLabel"
 layout_mode = 2
-theme_override_colors/font_color = Color(0.5, 0.5, 0.5, 1)
-theme_override_fonts/font = ExtResource("font_spacemono")
-theme_override_font_sizes/font_size = 14
 text = "BRANCH K"
 
 [node name="PhaseBranchVal" type="Label" parent="Control/MainUIColumns/MainUIStackRight/PhasePanel/MarginContainer/VBox/PhaseGrid"]
 unique_name_in_owner = true
+theme_type_variation = &"ValueWhiteLabel"
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.9098, 0.8941, 0.8627, 1)
-theme_override_fonts/font = ExtResource("font_spacemono")
-theme_override_font_sizes/font_size = 17
 text = "0"
 horizontal_alignment = 2
 
@@ -789,7 +746,6 @@ offset_top = 20.0
 offset_right = 200.0
 offset_bottom = 80.0
 grow_horizontal = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_hud_panel")
 
 [node name="MarginContainer" type="MarginContainer" parent="Control/DetachOverlay"]
 layout_mode = 2
