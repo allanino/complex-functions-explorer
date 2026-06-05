@@ -214,6 +214,10 @@ shadow_color = Color(0, 0, 0, 0.5)
 shadow_size = 4
 shadow_offset = Vector2(0, 4)
 
+[sub_resource type="StyleBoxLine" id="StyleBoxLine_hseparator_custom"]
+color = Color(0.91, 0.89, 0.86, 0.12)
+thickness = 1
+
 [node name="MenuOverlay" type="ColorRect" unique_id=324048888]
 theme = ExtResource("theme_tres")
 script = ExtResource("1_menu_script")
@@ -255,8 +259,8 @@ theme_override_constants/separation = 20
 layout_mode = 2
 
 [node name="TitleLabel" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TitleHBox"]
+theme_type_variation = &"TitleLabel"
 layout_mode = 2
-theme_override_font_sizes/font_size = 22
 text = "Complex Functions Explorer"
 
 [node name="Spacer" type="Control" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TitleHBox"]
@@ -272,6 +276,7 @@ flat = true
 
 [node name="TitleHSeparator" type="HSeparator" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox"]
 layout_mode = 2
+theme_override_styles/separator = SubResource("StyleBoxLine_hseparator_custom")
 
 [node name="TopPresetHBox" type="HBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox" unique_id=99990001]
 layout_mode = 2
@@ -334,6 +339,7 @@ text = "+ New"
 
 [node name="TopHSeparator" type="HSeparator" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox" unique_id=99990006]
 layout_mode = 2
+theme_override_styles/separator = SubResource("StyleBoxLine_hseparator_custom")
 
 [node name="MainLayoutHBox" type="HBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox" unique_id=101010100]
 layout_mode = 2
@@ -962,6 +968,7 @@ value_text = "100%"
 
 [node name="BottomHSeparator" type="HSeparator" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox" unique_id=99990007]
 layout_mode = 2
+theme_override_styles/separator = SubResource("StyleBoxLine_hseparator_custom")
 
 [node name="ButtonsHBox" type="HBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox" unique_id=1701249887]
 layout_mode = 2
