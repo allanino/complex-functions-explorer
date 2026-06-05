@@ -42,6 +42,27 @@ var _last_zeros_count: int = -1
 
 func _ready():
 	Config.config_changed.connect(_on_config_changed)
+	
+	# Generate custom slider grabber texture: clean 12px circle with gold fill (antialiased, no shadow)
+	var grabber_size = 13
+	var img = Image.create(grabber_size, grabber_size, false, Image.FORMAT_RGBA8)
+	var center = Vector2(5.5, 5.5)
+	var gold_color = Color(0.862745, 0.729020, 0.474510, 1.0)
+	for y in range(grabber_size):
+		for x in range(grabber_size):
+			var dist = center.distance_to(Vector2(x, y))
+			if dist <= 5.5:
+				img.set_pixel(x, y, gold_color)
+			elif dist < 6.0:
+				var alpha = (6.0 - dist) / 0.5
+				img.set_pixel(x, y, Color(gold_color.r, gold_color.g, gold_color.b, alpha))
+			else:
+				img.set_pixel(x, y, Color(0.0, 0.0, 0.0, 0.0))
+	var grabber_tex = ImageTexture.create_from_image(img)
+	var global_theme = preload("res://ui/theme/theme.tres")
+	global_theme.set_icon("grabber", "HSlider", grabber_tex)
+	global_theme.set_icon("grabber_highlight", "HSlider", grabber_tex)
+	global_theme.set_icon("grabber_disabled", "HSlider", grabber_tex)
 	var mobile_controls = get_node_or_null("Control/MobileControls")
 	if mobile_controls and mobile_controls.has_node("SettingsButton"):
 		var settings_btn = mobile_controls.get_node("SettingsButton")
