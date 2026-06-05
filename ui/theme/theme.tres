@@ -1,4 +1,4 @@
-[gd_resource type="Theme" load_steps=31 format=3]
+[gd_resource type="Theme" load_steps=32 format=3]
 
 [ext_resource type="FontVariation" path="res://ui/theme/font_neon.tres" id="1_spacemono"]
 [ext_resource type="FontFile" path="res://fonts/SpaceMono-Bold.ttf" id="2_spacemono_bold"]
@@ -152,6 +152,22 @@ corner_radius_top_left = 2
 corner_radius_top_right = 2
 corner_radius_bottom_right = 2
 corner_radius_bottom_left = 2
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_checkbox_pressed"]
+content_margin_left = 10.0
+content_margin_top = 5.0
+content_margin_right = 10.0
+content_margin_bottom = 5.0
+bg_color = Color(0.784314, 0.662745, 0.431373, 1.0)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.784314, 0.662745, 0.431373, 1.0)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_preset_btn_normal"]
 content_margin_left = 15.0
@@ -499,6 +515,12 @@ CheckBox/colors/font_hover_color = Color(0.909804, 0.894118, 0.862745, 1)
 CheckBox/colors/font_pressed_color = Color(0.909804, 0.894118, 0.862745, 1)
 CheckBox/colors/font_focus_color = Color(0.909804, 0.894118, 0.862745, 1)
 CheckBox/colors/font_hover_pressed_color = Color(0.909804, 0.894118, 0.862745, 1)
+CheckBox/styles/normal = SubResource("StyleBoxFlat_dropdown_normal")
+CheckBox/styles/hover = SubResource("StyleBoxFlat_dropdown_hover")
+CheckBox/styles/pressed = SubResource("StyleBoxFlat_dropdown_normal")
+CheckBox/styles/hover_pressed = SubResource("StyleBoxFlat_dropdown_hover")
+CheckBox/styles/focus = SubResource("StyleBoxFlat_dropdown_normal")
+CheckBox/styles/disabled = SubResource("StyleBoxFlat_dropdown_normal")
 HSlider/styles/slider = SubResource("StyleBoxFlat_slider_track")
 HSlider/styles/grabber_area = SubResource("StyleBoxFlat_slider_fill")
 HSlider/styles/grabber_area_highlight = SubResource("StyleBoxFlat_slider_fill")

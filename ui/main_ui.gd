@@ -63,6 +63,77 @@ func _ready():
 	global_theme.set_icon("grabber", "HSlider", grabber_tex)
 	global_theme.set_icon("grabber_highlight", "HSlider", grabber_tex)
 	global_theme.set_icon("grabber_disabled", "HSlider", grabber_tex)
+
+	# Generate custom CheckBox checked and unchecked indicator square box textures
+	var cb_size = 14
+	var bg_col = Color(0.028, 0.045, 0.090, 0.94) # Dark panel background
+	var border_col = Color(0.890, 0.875, 0.845, 0.22) # Dropdown border color
+	
+	# Unchecked indicator: dark panel bg and subtle border
+	var img_uncheck = Image.create(cb_size, cb_size, false, Image.FORMAT_RGBA8)
+	for y in range(cb_size):
+		for x in range(cb_size):
+			if x == 0 or x == cb_size - 1 or y == 0 or y == cb_size - 1:
+				if (x == 0 or x == cb_size - 1) and (y == 0 or y == cb_size - 1):
+					img_uncheck.set_pixel(x, y, Color(border_col.r, border_col.g, border_col.b, 0.1))
+				else:
+					img_uncheck.set_pixel(x, y, border_col)
+			else:
+				img_uncheck.set_pixel(x, y, bg_col)
+	var uncheck_tex = ImageTexture.create_from_image(img_uncheck)
+	
+	# Checked indicator: gold background fill with a dark checkmark inside
+	var img_check = Image.create(cb_size, cb_size, false, Image.FORMAT_RGBA8)
+	var check_bg_col = Color(0.784314, 0.662745, 0.431373, 1.0) # Gold background
+	var check_mark_col = Color(0.015686, 0.031372, 0.070588, 1.0) # Dark checkmark color
+	for y in range(cb_size):
+		for x in range(cb_size):
+			if x == 0 or x == cb_size - 1 or y == 0 or y == cb_size - 1:
+				if (x == 0 or x == cb_size - 1) and (y == 0 or y == cb_size - 1):
+					img_check.set_pixel(x, y, Color(check_bg_col.r, check_bg_col.g, check_bg_col.b, 0.1))
+				else:
+					img_check.set_pixel(x, y, check_bg_col)
+			else:
+				img_check.set_pixel(x, y, check_bg_col)
+	
+	# Draw dark checkmark on the gold background with antialiasing and centered alignment
+	# (shifted 1px down: Start (3.5, 7.0), Bottom (5.5, 9.5), End (10.5, 3.5))
+	for y in range(cb_size):
+		for x in range(cb_size):
+			# Skip borders when drawing the checkmark
+			if x == 0 or x == cb_size - 1 or y == 0 or y == cb_size - 1:
+				continue
+			var p_center = Vector2(x + 0.5, y + 0.5)
+			var d1 = _dist_to_segment(p_center, Vector2(3.5, 7.5), Vector2(5.5, 10.0))
+			var d2 = _dist_to_segment(p_center, Vector2(5.5, 10.0), Vector2(10.5, 4.0))
+			var d = min(d1, d2)
+			if d <= 0.75:
+				img_check.set_pixel(x, y, check_mark_col)
+			elif d < 1.75:
+				var alpha = 1.0 - (d - 0.75)
+				img_check.set_pixel(x, y, check_bg_col.lerp(check_mark_col, alpha))
+	var check_tex = ImageTexture.create_from_image(img_check)
+	
+	# Disabled unchecked image
+	var img_uncheck_disabled = Image.create(cb_size, cb_size, false, Image.FORMAT_RGBA8)
+	for y in range(cb_size):
+		for x in range(cb_size):
+			var c = img_uncheck.get_pixel(x, y)
+			img_uncheck_disabled.set_pixel(x, y, Color(c.r, c.g, c.b, c.a * 0.4))
+	var uncheck_disabled_tex = ImageTexture.create_from_image(img_uncheck_disabled)
+
+	# Disabled checked image
+	var img_check_disabled = Image.create(cb_size, cb_size, false, Image.FORMAT_RGBA8)
+	for y in range(cb_size):
+		for x in range(cb_size):
+			var c = img_check.get_pixel(x, y)
+			img_check_disabled.set_pixel(x, y, Color(c.r, c.g, c.b, c.a * 0.4))
+	var check_disabled_tex = ImageTexture.create_from_image(img_check_disabled)
+	
+	global_theme.set_icon("checked", "CheckBox", check_tex)
+	global_theme.set_icon("unchecked", "CheckBox", uncheck_tex)
+	global_theme.set_icon("checked_disabled", "CheckBox", check_disabled_tex)
+	global_theme.set_icon("unchecked_disabled", "CheckBox", uncheck_disabled_tex)
 	var mobile_controls = get_node_or_null("Control/MobileControls")
 	if mobile_controls and mobile_controls.has_node("SettingsButton"):
 		var settings_btn = mobile_controls.get_node("SettingsButton")
@@ -430,3 +501,14 @@ func _on_config_changed(key: String):
 		if menu_overlay:
 			menu_overlay.day_time_slider.value = Config.day_time
 			menu_overlay.day_time_slider.value_text = menu_overlay._format_time(Config.day_time)
+
+func _dist_to_segment(p: Vector2, a: Vector2, b: Vector2) -> float:
+	var ab = b - a
+	var ap = p - a
+	var l2 = ab.length_squared()
+	if l2 == 0.0:
+		return p.distance_to(a)
+	var t = ap.dot(ab) / l2
+	t = clamp(t, 0.0, 1.0)
+	var closest = a + t * ab
+	return p.distance_to(closest)
