@@ -226,7 +226,7 @@ vec3 apply_branch_cut_perturbation(vec3 world_v_pos, vec3 cam_pos, bool in_porta
 }
 
 
-void compute_matrix_effect(vec2 world_xz, out vec3 out_albedo, out vec3 out_emission, out float rgh, out float mtl, out float spec) {
+void compute_matrix_effect(vec2 world_xz, vec3 base_color, vec3 head_color, out vec3 out_albedo, out vec3 out_emission, out float rgh, out float mtl, out float spec) {
     out_albedo = vec3(0.0);
 
     // Matrix Effect
@@ -255,11 +255,11 @@ void compute_matrix_effect(vec2 world_xz, out vec3 out_albedo, out vec3 out_emis
     float char_shape = smoothstep(0.1, 0.2, fpos.x) * smoothstep(0.9, 0.8, fpos.x) *
                        smoothstep(0.1, 0.2, fpos.y) * smoothstep(0.9, 0.8, fpos.y);
 
-    vec3 matrix_color = vec3(0.0, 0.8, 0.2);
+    vec3 matrix_color = base_color;
 
     // Glowy head of the trail
     if (trail > 2.0) {
-        matrix_color = vec3(0.7, 1.0, 0.7);
+        matrix_color = head_color;
     }
 
     out_emission = matrix_color * trail * char_shape * char_vis;
@@ -768,7 +768,16 @@ void fragment() {
     } else if (v_nan > 0.5) {
         vec3 local_albedo, local_emission;
         float rgh, mtl, spec;
-        compute_matrix_effect(world_pos.xz, local_albedo, local_emission, rgh, mtl, spec);
+        compute_matrix_effect(world_pos.xz, vec3(0.0, 0.8, 0.2), vec3(0.7, 1.0, 0.7), local_albedo, local_emission, rgh, mtl, spec);
+        ALBEDO = local_albedo;
+        EMISSION = local_emission;
+        ROUGHNESS = rgh;
+        METALLIC = mtl;
+        SPECULAR = spec;
+    } else if (v_h_clamped > 0.5) {
+        vec3 local_albedo, local_emission;
+        float rgh, mtl, spec;
+        compute_matrix_effect(world_pos.xz, vec3(0.0, 0.2, 0.8), vec3(0.7, 0.7, 1.0), local_albedo, local_emission, rgh, mtl, spec);
         ALBEDO = local_albedo;
         EMISSION = local_emission;
         ROUGHNESS = rgh;
@@ -790,13 +799,8 @@ void fragment() {
         float phase_change = length(vec2(raw_w_re, raw_w_im)) / (f_mag + 1e-12);
         float moire_suppression = smoothstep(0.5, 3.0, phase_change);
 
-        float clamped_saturation = v_h_clamped > 0.5 ? min(0.2, saturation) : saturation;
-        float clamped_brightness = v_h_clamped > 0.5 ? min(0.05, brightness) : brightness;
-        float clamped_albedo = v_h_clamped > 0.5 ? min(0.05, albedo) : albedo;
-        float clamped_emission = v_h_clamped > 0.5 ? min(0.02, emission) : emission;
-
-        float eff_sat = mix(clamped_saturation, 0.0, moire_suppression * 0.8);
-        float eff_bri = mix(clamped_brightness, clamped_brightness * 0.5, moire_suppression * 0.5);
+        float eff_sat = mix(saturation, 0.0, moire_suppression * 0.8);
+        float eff_bri = mix(brightness, brightness * 0.5, moire_suppression * 0.5);
 
         vec3 base = hsv2rgb(vec3(hue, eff_sat, eff_bri));
         float highlight_re_glow = 0.0;
@@ -813,8 +817,8 @@ void fragment() {
             compute_curves_highlight(f, raw_w_re, raw_w_im, base, highlight_re_glow, highlight_im_glow);
         }
 
-        ALBEDO = base * clamped_albedo;
-        vec3 final_emission = base * clamped_emission;
+        ALBEDO = base * albedo;
+        vec3 final_emission = base * emission;
         if (show_curves) {
             final_emission += vec3(0.0, 0.6, 1.0) * highlight_re_glow * 0.8;
             final_emission += vec3(1.0, 0.3, 0.0) * highlight_im_glow * 0.8;
