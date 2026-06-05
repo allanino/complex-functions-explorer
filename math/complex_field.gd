@@ -495,6 +495,9 @@ static func get_height_from_field(f: Vector2) -> float:
 	if not is_finite(f.x) or not is_finite(f.y): return 0.0
 	var mag = f.length()
 	if not is_finite(mag): return 0.0
+	
+	mag = clamp(mag, -1e5, 1e5)
+
 	var h: float
 	if Config.height_type == 0: h = mag
 	elif Config.height_type == 1: h = Config.height_a * log(Config.height_epsilon + mag)
@@ -503,7 +506,6 @@ static func get_height_from_field(f: Vector2) -> float:
 	elif Config.height_type == 4: h = f.x * cos(Config.height_theta) + f.y * sin(Config.height_theta)
 	elif Config.height_type == 5: h = 0.0
 
-	h = clamp(h, -1e5, 1e5)
 
 	# Match shader morphing blend factor (usually 1.0)
 	var s = 0.5 - 0.5 * cos(PI * GameState.morph_value)
