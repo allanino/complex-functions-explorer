@@ -328,13 +328,15 @@ func _rescale_card(card: Control, _scale: float):
 		if node is Control:
 			# Only scale custom minimum size for specific panels to maintain layout proportions
 			if node.name == "ComplexAspect":
-				if not node.has_meta("base_min_size"):
-					node.set_meta("base_min_size", Vector2(BASE_HUD_PANEL_SIZE, BASE_HUD_PANEL_SIZE))
-				node.custom_minimum_size = node.get_meta("base_min_size") * _scale
+				node.custom_minimum_size = Vector2(0, (BASE_HUD_PANEL_SIZE * _scale) - 20.0)
 			elif node.name == "ZerosPanel" or node.name == "DomainPanel" or node.name == "TargetPanel":
 				if not node.has_meta("base_min_size"):
 					node.set_meta("base_min_size", node.custom_minimum_size)
 				node.custom_minimum_size.y = node.get_meta("base_min_size").y * _scale
+			elif node.name == "RvmNLabel" or node.name == "RvmDeltaLabel":
+				if not node.has_meta("base_min_size"):
+					node.set_meta("base_min_size", node.custom_minimum_size)
+				node.custom_minimum_size.x = node.get_meta("base_min_size").x * _scale
 
 			# Keep container separations and margins constant at their original design values
 			if node is BoxContainer:
