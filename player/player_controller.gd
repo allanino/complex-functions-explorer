@@ -542,31 +542,31 @@ func _physics_process(delta):
 				# 2. Sample nearby points to estimate the minima paraboloid
 				var h = 0.01
 				var p_center = Config.complex_to_world(z_mid.x, z_mid.y)
-				var m0 = ComplexField.get_field(p_center.x, p_center.y).length()
+				var m0 = ComplexField.get_field(p_center.x, p_center.y).length_squared()
 
 				var p_x_plus = Config.complex_to_world(z_mid.x + h, z_mid.y)
-				var m_x_plus = ComplexField.get_field(p_x_plus.x, p_x_plus.y).length()
+				var m_x_plus = ComplexField.get_field(p_x_plus.x, p_x_plus.y).length_squared()
 
 				var p_x_minus = Config.complex_to_world(z_mid.x - h, z_mid.y)
-				var m_x_minus = ComplexField.get_field(p_x_minus.x, p_x_minus.y).length()
+				var m_x_minus = ComplexField.get_field(p_x_minus.x, p_x_minus.y).length_squared()
 
 				var p_y_plus = Config.complex_to_world(z_mid.x, z_mid.y + h)
-				var m_y_plus = ComplexField.get_field(p_y_plus.x, p_y_plus.y).length()
+				var m_y_plus = ComplexField.get_field(p_y_plus.x, p_y_plus.y).length_squared()
 
 				var p_y_minus = Config.complex_to_world(z_mid.x, z_mid.y - h)
-				var m_y_minus = ComplexField.get_field(p_y_minus.x, p_y_minus.y).length()
+				var m_y_minus = ComplexField.get_field(p_y_minus.x, p_y_minus.y).length_squared()
 
 				var p_xy_plus = Config.complex_to_world(z_mid.x + h, z_mid.y + h)
-				var m_xy_plus = ComplexField.get_field(p_xy_plus.x, p_xy_plus.y).length()
+				var m_xy_plus = ComplexField.get_field(p_xy_plus.x, p_xy_plus.y).length_squared()
 
 				var p_x_minus_y = Config.complex_to_world(z_mid.x + h, z_mid.y - h)
-				var m_x_minus_y = ComplexField.get_field(p_x_minus_y.x, p_x_minus_y.y).length()
+				var m_x_minus_y = ComplexField.get_field(p_x_minus_y.x, p_x_minus_y.y).length_squared()
 
 				var p_mx_y_plus = Config.complex_to_world(z_mid.x - h, z_mid.y + h)
-				var m_mx_y_plus = ComplexField.get_field(p_mx_y_plus.x, p_mx_y_plus.y).length()
+				var m_mx_y_plus = ComplexField.get_field(p_mx_y_plus.x, p_mx_y_plus.y).length_squared()
 
 				var p_mx_my = Config.complex_to_world(z_mid.x - h, z_mid.y - h)
-				var m_mx_my = ComplexField.get_field(p_mx_my.x, p_mx_my.y).length()
+				var m_mx_my = ComplexField.get_field(p_mx_my.x, p_mx_my.y).length_squared()
 
 				# 3. Compute gradients and Hessian matrix elements
 				var gx = (m_x_plus - m_x_minus) / (2.0 * h)
