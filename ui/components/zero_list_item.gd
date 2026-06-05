@@ -19,5 +19,5 @@ func set_active(val: bool):
 	add_theme_stylebox_override("panel", style)
 
 func set_values(re: String, im: String):
-	real_label.text = "½" if re == "0.500" else re
+	real_label.text = "1/2" if re == "0.500" else re
 	imag_label.text = "+ " + im + " i"
