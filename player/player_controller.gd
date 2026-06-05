@@ -417,8 +417,10 @@ func _physics_process(delta):
 			if newton_converged:
 				var dist = current_pos2d.distance_to(target_pos2d)
 				if dist <= current_speed * delta:
-					velocity.x = (target_x - global_position.x) / delta
-					velocity.z = (target_z - global_position.z) / delta
+					global_position.x = target_x
+					global_position.z = target_z
+					velocity.x = 0.0
+					velocity.z = 0.0
 					auto_walk_state = AutoWalkState.NONE
 				else:
 					var target_dir2d = (target_pos2d - current_pos2d).normalized()
