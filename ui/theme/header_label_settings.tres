@@ -2,7 +2,14 @@
 
 [ext_resource type="FontFile" path="res://fonts/SpaceMono-Regular.ttf" id="1_font"]
 
+
+[sub_resource type="FontVariation" id="FontVariation_spacemono_400"]
+base_font = ExtResource("1_font")
+variation_opentype = {
+"wght": 400
+}
+
 [resource]
-font = ExtResource("1_font")
+font = SubResource("FontVariation_spacemono_400")
 font_size = 13
 font_color = Color(0.784314, 0.662745, 0.431373, 1)

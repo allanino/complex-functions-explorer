@@ -19,6 +19,13 @@ shadow_color = Color(0, 0, 0, 0.4)
 shadow_size = 8
 shadow_offset = Vector2(0, 2)
 
+
+[sub_resource type="FontVariation" id="FontVariation_spacemono_400"]
+base_font = SubResource("FontVariation_spacemono_400")
+variation_opentype = {
+"wght": 400
+}
+
 [resource]
-default_font = ExtResource("1_spacemono")
+default_font = SubResource("FontVariation_spacemono_400")
 PanelContainer/styles/panel = SubResource("StyleBoxFlat_hud_panel")

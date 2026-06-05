@@ -11,8 +11,13 @@ extends CanvasLayer
 @onready var fps_label = %FpsLabel
 @onready var complex_rect = %ComplexPlane
 @onready var world_manager = get_node_or_null("../WorldManager")
-@onready var domain_label = %DomainLabel
-@onready var target_label = %TargetLabel
+@onready var domain_re_val = %DomainReVal
+@onready var domain_im_val = %DomainImVal
+@onready var target_re_val = %TargetReVal
+@onready var target_im_val = %TargetImVal
+@onready var target_branch_val = %TargetBranchVal
+@onready var phase_abs_val = %PhaseAbsVal
+@onready var phase_arg_val = %PhaseArgVal
 @onready var zeros_panel = %ZerosPanel
 @onready var zeros_count_label = %CountLabel
 @onready var rvm_hbox = %RvmHBox
@@ -131,17 +136,22 @@ func _process(_delta):
 		var total_count = GameState.total_zeros_found
 		if total_count != _last_zeros_count:
 			_last_zeros_count = total_count
-			var last_zeros_text = ""
+			zeros_count_label.text = str(total_count)
+
+			# Clear existing items
+			for child in zeros_list_label.get_children():
+				child.queue_free()
+
 			var current_size = GameState.visited_zeros.size()
-			for i in range(current_size - 1, -1, -1):
+			for i in range(current_size - 1, max(-1, current_size - 11), -1):
 				var zero = GameState.visited_zeros[i]
-				last_zeros_text += "(%s, %s)\n" % [_format_float_3(zero[0]), _format_float_3(zero[1])]
-
-			if total_count > 10:
-				last_zeros_text += "•••\n"
-
-			zeros_count_label.text = "Count: %d" % total_count
-			zeros_list_label.text = last_zeros_text
+				var re_str = _format_float_3(zero[0])
+				var im_str = _format_float_3(zero[1])
+				var item = ZERO_LIST_ITEM_SCENE.instantiate()
+				zeros_list_label.add_child(item)
+				item.set_values(re_str, im_str)
+				if i == current_size - 1:
+					item.is_active = true
 
 		# Riemann-von Mangoldt formula: N(T) ≈ (T/2π) log(T/2πe) + 7/8
 		if Config.show_rvm and f_data.get("has_von_mangoldt", false):
@@ -181,14 +191,26 @@ func _process(_delta):
 	var val_fx = f.x
 	var val_fy = f.y
 
-	domain_label.text = "Re = %s\nIm = %s" % [_format_float_3(val_re), _format_float_3(val_im)]
-	var target_text = "Re = %s\nIm = %s\n|f| = %s" % [_format_float_3(val_fx), _format_float_3(val_fy), _format_float_3(f.length())]
-	if f_data.get("is_multivalued", false):
-		target_text += "\nBranch k = %d" % GameState.current_branch
-	target_label.text = target_text
+	domain_re_val.text = _format_float_3(val_re)
+	domain_im_val.text = _format_float_3(val_im)
 
-	complex_panel.visible = Config.show_hud_complex
-	info_panel.visible = Config.show_hud_navigation
+	target_re_val.text = _format_float_3(val_fx)
+	target_im_val.text = _format_float_3(val_fy)
+	if f_data.get("is_multivalued", false):
+		target_branch_val.text = str(GameState.current_branch)
+		target_branch_val.get_parent().visible = true
+	else:
+		target_branch_val.get_parent().visible = false
+
+	var angle_deg = rad_to_deg(f.angle())
+	if angle_deg < 0:
+		angle_deg += 360.0
+	phase_abs_val.text = _format_float_3(f.length())
+	phase_arg_val.text = "%d°" % round(angle_deg)
+
+	phase_panel.visible = Config.show_hud_complex
+	domain_panel.visible = Config.show_hud_navigation
+	target_panel.visible = Config.show_hud_navigation
 	monitor_panel.visible = Config.show_hud_monitor_fps or Config.show_hud_monitor_chunks
 	if monitor_panel.visible:
 		var parts = []
