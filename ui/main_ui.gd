@@ -3,10 +3,8 @@ extends CanvasLayer
 @onready var hud_columns = %MainUIColumns
 @onready var hud_stack_left = %MainUIStackLeft
 @onready var hud_stack_right = %MainUIStackRight
-@onready var phase_panel = %PhasePanel
-@onready var phase_label = %PhaseLabel
-@onready var domain_panel = %DomainPanel
-@onready var target_panel = %TargetPanel
+@onready var complex_panel = %ComplexAspect
+@onready var info_panel = %InfoPanel
 @onready var monitor_panel = %MonitorPanel
 @onready var fps_label = %FpsLabel
 @onready var complex_rect = %ComplexPlane
@@ -16,7 +14,7 @@ extends CanvasLayer
 @onready var zeros_panel = %ZerosPanel
 @onready var zeros_count_label = %CountLabel
 @onready var rvm_label = %RvmLabel
-@onready var zeros_list_label = %ListLabelContainer
+@onready var zeros_list_label = %ListLabel
 @onready var menu_overlay = %MenuOverlay
 var portal_flash: ColorRect
 @onready var tooltip_manager = %TooltipManager
@@ -24,7 +22,6 @@ var portal_flash: ColorRect
 @onready var preset_controller = %PresetController
 # New UI Node Paths
 var current_scale = 2.0
-const ZERO_LIST_ITEM_SCENE = preload("res://ui/components/zero_list_item.tscn")
 var _last_zeros_visible: bool = false
 const BASE_HUD_PANEL_SIZE: float = 190.0
 const RENDER_EACH_N_FRAME: int = 3
@@ -130,22 +127,17 @@ func _process(_delta):
 		var total_count = GameState.total_zeros_found
 		if total_count != _last_zeros_count:
 			_last_zeros_count = total_count
-			zeros_count_label.text = str(total_count)
-
-			# Clear existing items
-			for child in zeros_list_label.get_children():
-				child.queue_free()
-
+			var last_zeros_text = ""
 			var current_size = GameState.visited_zeros.size()
-			for i in range(current_size - 1, max(-1, current_size - 11), -1):
+			for i in range(current_size - 1, -1, -1):
 				var zero = GameState.visited_zeros[i]
-				var re_str = _format_float_3(zero[0])
-				var im_str = _format_float_3(zero[1])
-				var item = ZERO_LIST_ITEM_SCENE.instantiate()
-				zeros_list_label.add_child(item)
-				item.set_values(re_str, im_str)
-				if i == current_size - 1:
-					item.is_active = true
+				last_zeros_text += "(%s, %s)\n" % [_format_float_3(zero[0]), _format_float_3(zero[1])]
+
+			if total_count > 10:
+				last_zeros_text += "•••\n"
+
+			zeros_count_label.text = "Count: %d" % total_count
+			zeros_list_label.text = last_zeros_text
 
 		# Riemann-von Mangoldt formula: N(T) ≈ (T/2π) log(T/2πe) + 7/8
 		if Config.show_rvm and f_data.get("has_von_mangoldt", false):
@@ -176,20 +168,14 @@ func _process(_delta):
 	var val_fx = f.x
 	var val_fy = f.y
 
-	domain_label.text = "[color=gray]RE[/color] [color=#5dd8c8]%s[/color]\n[color=gray]IM[/color] [color=#d45fa0]%s[/color]" % [_format_float_3(val_re), _format_float_3(val_im)]
-	var target_text = "[color=gray]RE[/color] [color=#5dd8c8]%s[/color]\n[color=gray]IM[/color] [color=#d45fa0]%s[/color]" % [_format_float_3(val_fx), _format_float_3(val_fy)]
+	domain_label.text = "Re = %s\nIm = %s" % [_format_float_3(val_re), _format_float_3(val_im)]
+	var target_text = "Re = %s\nIm = %s\n|f| = %s" % [_format_float_3(val_fx), _format_float_3(val_fy), _format_float_3(f.length())]
 	if f_data.get("is_multivalued", false):
-		target_text += "\n[color=gray]BRANCH K[/color] %d" % GameState.current_branch
+		target_text += "\nBranch k = %d" % GameState.current_branch
 	target_label.text = target_text
 
-	var angle_deg = rad_to_deg(f.angle())
-	if angle_deg < 0:
-		angle_deg += 360.0
-	phase_label.text = "[color=gray]|f|[/color] [color=#c8a96e]%s[/color]\n[color=gray]arg(f)[/color] [color=white]%d°[/color]" % [_format_float_3(f.length()), round(angle_deg)]
-
-	phase_panel.visible = Config.show_hud_complex
-	domain_panel.visible = Config.show_hud_navigation
-	target_panel.visible = Config.show_hud_navigation
+	complex_panel.visible = Config.show_hud_complex
+	info_panel.visible = Config.show_hud_navigation
 	monitor_panel.visible = Config.show_hud_monitor_fps or Config.show_hud_monitor_chunks
 	if monitor_panel.visible:
 		var parts = []
@@ -221,7 +207,7 @@ var _last_hud_state = {}
 func _update_hud_layout():
 	if not hud_columns: return
 
-	var cards = [phase_panel, domain_panel, target_panel, monitor_panel, zeros_panel, menu_overlay.perf_label]
+	var cards = [complex_panel, info_panel, monitor_panel, zeros_panel, menu_overlay.perf_label]
 
 	var actual_hud_scale = Config.hud_scale
 
@@ -312,7 +298,7 @@ func _rescale_card(card: Control, _scale: float):
 				if not node.has_meta("base_min_size"):
 					node.set_meta("base_min_size", Vector2(BASE_HUD_PANEL_SIZE, BASE_HUD_PANEL_SIZE))
 				node.custom_minimum_size = node.get_meta("base_min_size") * _scale
-			elif node.name == "ZerosPanel" or node.name == "DomainPanel" or node.name == "TargetPanel":
+			elif node.name == "ZerosPanel" or node.name == "InfoPanel":
 				if not node.has_meta("base_min_size"):
 					node.set_meta("base_min_size", node.custom_minimum_size)
 				node.custom_minimum_size.y = node.get_meta("base_min_size").y * _scale
