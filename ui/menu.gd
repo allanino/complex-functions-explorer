@@ -143,12 +143,12 @@ func _ready():
 	]
 
 	active_tab_style = StyleBoxFlat.new()
-	active_tab_style.content_margin_left = 15.0
+	active_tab_style.content_margin_left = 17.0
 	active_tab_style.content_margin_top = 10.0
 	active_tab_style.content_margin_right = 10.0
 	active_tab_style.content_margin_bottom = 10.0
-	active_tab_style.bg_color = Color(1, 1, 1, 0.05)
-	active_tab_style.border_width_left = 4
+	active_tab_style.bg_color = Color(0.3647, 0.847, 0.7843, 0.06)
+	active_tab_style.border_width_left = 2
 	active_tab_style.border_width_top = 0
 	active_tab_style.border_width_right = 0
 	active_tab_style.border_width_bottom = 0
@@ -162,19 +162,24 @@ func _ready():
 	inactive_tab_style.bg_color = Color(0, 0, 0, 0)
 
 	hover_tab_style = StyleBoxFlat.new()
-	hover_tab_style.content_margin_left = 19.0
+	hover_tab_style.content_margin_left = 18.0
 	hover_tab_style.content_margin_top = 10.0
 	hover_tab_style.content_margin_right = 10.0
 	hover_tab_style.content_margin_bottom = 10.0
 	hover_tab_style.bg_color = Color(1, 1, 1, 0.03)
+	hover_tab_style.border_width_left = 1
+	hover_tab_style.border_width_top = 0
+	hover_tab_style.border_width_right = 0
+	hover_tab_style.border_width_bottom = 0
+	hover_tab_style.border_color = Color(0.909804, 0.894118, 0.862745, 0.2)
 
 	hover_active_tab_style = StyleBoxFlat.new()
-	hover_active_tab_style.content_margin_left = 15.0
+	hover_active_tab_style.content_margin_left = 17.0
 	hover_active_tab_style.content_margin_top = 10.0
 	hover_active_tab_style.content_margin_right = 10.0
 	hover_active_tab_style.content_margin_bottom = 10.0
-	hover_active_tab_style.bg_color = Color(1, 1, 1, 0.08)
-	hover_active_tab_style.border_width_left = 4
+	hover_active_tab_style.bg_color = Color(0.3647, 0.847, 0.7843, 0.1)
+	hover_active_tab_style.border_width_left = 2
 	hover_active_tab_style.border_width_top = 0
 	hover_active_tab_style.border_width_right = 0
 	hover_active_tab_style.border_width_bottom = 0
@@ -995,7 +1000,7 @@ func _update_tab_buttons_styling():
 			btn.add_theme_stylebox_override("normal", inactive_tab_style)
 			btn.add_theme_stylebox_override("hover", hover_tab_style)
 			btn.add_theme_color_override("font_color", Color(0.909804, 0.894118, 0.862745, 0.5))
-			btn.add_theme_color_override("font_hover_color", Color(0.909804, 0.894118, 0.862745, 0.8))
+			btn.add_theme_color_override("font_hover_color", Color(0.909804, 0.894118, 0.862745, 1.0))
 			btn.add_theme_color_override("font_pressed_color", Color(0.909804, 0.894118, 0.862745, 0.3))
 			btn.add_theme_color_override("font_focus_color", Color(0.909804, 0.894118, 0.862745, 0.5))
 
