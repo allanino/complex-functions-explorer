@@ -380,3 +380,9 @@ func _process_audio_toggles():
 
 func set_performance_protection(active: bool):
 	is_suppressed = active
+
+func _exit_tree():
+	if _audio_stream_player and _audio_stream_player.playing:
+		_audio_stream_player.stop()
+	if _background_music_player and _background_music_player.playing:
+		_background_music_player.stop()
