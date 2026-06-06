@@ -1,5 +1,0 @@
-float sdLine3D(vec3 p, vec3 a, vec3 b) {
-    vec3 pa = p - a, ba = b - a;
-    float h = clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0);
-    return length(pa - ba * h);
-}
