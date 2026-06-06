@@ -44,6 +44,11 @@ var current_f: Vector2 = Vector2.ZERO
 var current_mag: float = 0.0
 var current_z: Vector2 = Vector2(0.0, 0.0)
 
+# Wall-avoidance tracking
+var last_player_pos: Vector3 = Vector3.ZERO
+var last_terrain_h: float = 0.0
+var camera_push_offset: Vector3 = Vector3.ZERO
+
 @onready var mobile_controls = get_node_or_null("/root/Main/MainUI/Control/MobileControls")
 @onready var right_joy = get_node_or_null("/root/Main/MainUI/Control/MobileControls/RightJoystick")
 
@@ -64,6 +69,9 @@ func _ready():
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	current_f = ComplexField.get_field(global_position.x, global_position.z)
 	current_mag = current_f.length()
+	
+	last_player_pos = global_position
+	last_terrain_h = ComplexField.get_height_from_field(current_f)
 	
 	re_label = Label3D.new()
 	re_label.text = "Re"
@@ -443,12 +451,27 @@ func _physics_process(delta):
 	else:
 		last_valid_terrain_height = terrain_h
 
+	# Estimate slope and push camera away from rising walls
+	var target_offset = Vector3.ZERO
+	var d_pos = global_position - last_player_pos
+	d_pos.y = 0.0 # Only care about horizontal movement
+	
+	if d_pos.length_squared() > 1e-6:
+		var delta_h = terrain_h - last_terrain_h
+		if delta_h > 0.01: # Moving uphill
+			var push_dir = - d_pos.normalized()
+			target_offset = push_dir
+
+	# Smoothly interpolate the offset to prevent camera jitter
+	camera_push_offset = camera_push_offset.lerp(target_offset, delta * 6.0)
+	
+	last_player_pos = global_position
+	last_terrain_h = terrain_h
+
 	var target_y = terrain_h + scaled_camera_height + height_offset
 
 	# Compute surface normal to offset camera horizontally and avoid entering in vertical walls
-	var normal = ComplexField.get_surface_normal(global_position.x, global_position.z)
-	var horizontal_offset = Vector3(normal.x, 0.0, normal.z)
-	camera.position = Vector3(0.0, target_y, 0.0) + transform.basis.inverse() * horizontal_offset
+	camera.position = Vector3(0.0, target_y, 0.0) + transform.basis.inverse() * camera_push_offset
 
 	if Config.show_curves and Config.show_curves_labels:
 		_curve_label_update_timer += delta
