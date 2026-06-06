@@ -201,7 +201,7 @@ func _unhandled_input(event):
 				auto_walk_state = AutoWalkState.NEWTON_WALK
 				var complex_pos = Config.world_to_complex(global_position.x, global_position.z)
 				newton_target_z = ComplexField.newton_step_zeta_reflection(complex_pos)
-				last_newton_idx = 0
+				last_newton_idx = 1
 
 				newton_wait_timer = 0.1
 				newton_converged = false
@@ -220,10 +220,16 @@ func _unhandled_input(event):
 				var step_mult = 1.0
 				var loop_detected = false
 
-				for i in range(50):
-					if path.size() >= 50:
+				for i in range(200):
+					if path.size() >= 200:
 						break
-					var next_z = ComplexField.newton_step_zeta_reflection(_current_z)
+
+					var f_val = ComplexField.zeta_continuation(_current_z.x, _current_z.y)
+					var f_abs = f_val.length()
+					if f_abs < 1e-6:
+						break
+
+					var next_z = ComplexField.newton_step_zeta_reflection(_current_z, step_mult)
 
 					# Cycle detection: check if we are jumping back and forth
 					loop_detected = false
@@ -236,6 +242,10 @@ func _unhandled_input(event):
 						step_mult *= 0.5
 						# Recalculate with smaller step
 						next_z = ComplexField.newton_step_zeta_reflection(_current_z, step_mult)
+					else:
+						# Recover step size if no cycle detected
+						if step_mult < 1.0:
+							step_mult = min(1.0, step_mult * 1.5)
 
 					path.append(next_z)
 					min_x = min(min_x, next_z.x)
@@ -243,7 +253,7 @@ func _unhandled_input(event):
 					min_y = min(min_y, next_z.y)
 					max_y = max(max_y, next_z.y)
 
-					if next_z.distance_to(_current_z) < 1e-4:
+					if next_z.distance_to(_current_z) < 1e-6:
 						break
 					_current_z = next_z
 
@@ -332,6 +342,8 @@ func _physics_process(delta):
 
 	if auto_walk_state != AutoWalkState.NONE:
 		current_speed = min(current_speed, 50.0)
+		if auto_walk_state == AutoWalkState.NEWTON_WALK:
+			current_speed = min(current_speed, 20.0)
 
 	if auto_walk_state == AutoWalkState.NONE:
 		if Input.is_key_pressed(KEY_SHIFT):
@@ -397,24 +409,30 @@ func _physics_process(delta):
 
 		if current_pos2d.distance_to(target_pos2d) > 0.01:
 			var target_dir2d = (target_pos2d - current_pos2d).normalized()
-			var target_yaw = atan2(target_dir2d.x, target_dir2d.y) + PI
-			rotation.y = lerp_angle(rotation.y, target_yaw, 5.0 * delta)
+			var target_yaw = atan2(-target_dir2d.x, -target_dir2d.y)
+			rotation.y = lerp_angle(rotation.y, target_yaw, 10.0 * delta)
 
 		if newton_wait_timer > 0.0:
 			newton_wait_timer -= delta
 			direction = Vector3.ZERO
+			velocity.x = 0.0
+			velocity.z = 0.0
 		else:
 			if newton_converged:
 				var dist = current_pos2d.distance_to(target_pos2d)
 				if dist <= current_speed * delta:
-					velocity.x = (target_x - global_position.x) / delta
-					velocity.z = (target_z - global_position.z) / delta
+					global_position.x = target_x
+					global_position.z = target_z
+					velocity.x = 0.0
+					velocity.z = 0.0
 					auto_walk_state = AutoWalkState.NONE
 				else:
 					var target_dir2d = (target_pos2d - current_pos2d).normalized()
 					direction = Vector3(target_dir2d.x, 0, target_dir2d.y)
 			else:
-				if current_pos2d.distance_to(target_pos2d) > 0.1:
+				var dist = current_pos2d.distance_to(target_pos2d)
+				var arrival_margin = max(0.1, current_speed * delta * 1.5)
+				if dist > arrival_margin:
 					var target_dir2d = (target_pos2d - current_pos2d).normalized()
 					direction = Vector3(target_dir2d.x, 0, target_dir2d.y)
 				else:
@@ -422,9 +440,13 @@ func _physics_process(delta):
 					last_newton_idx += 1
 					if last_newton_idx < path.size():
 						newton_target_z = path[last_newton_idx]
+						var next_world = Config.complex_to_world(newton_target_z.x, newton_target_z.y)
+						target_pos2d = Vector2(next_world.x, next_world.y)
+						var target_dir2d = (target_pos2d - current_pos2d).normalized()
+						direction = Vector3(target_dir2d.x, 0, target_dir2d.y)
 					else:
 						newton_converged = true
-					newton_wait_timer = 0.01
+					newton_wait_timer = 0.0
 
 	if direction != Vector3.ZERO:
 		if auto_walk_state != AutoWalkState.MOVING_TO_LINE and auto_walk_state != AutoWalkState.WALKING:

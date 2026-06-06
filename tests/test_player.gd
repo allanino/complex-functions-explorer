@@ -5,6 +5,7 @@ var ui_scene = preload("res://ui/main_ui.tscn")
 
 func test_player_loads_and_physics_process_runs():
 	var player = player_scene.instantiate()
+	player.run_demo = false
 	var main_ui = ui_scene.instantiate()
 	add_child_autoqfree(player)
 	add_child_autoqfree(main_ui)
@@ -25,6 +26,7 @@ func test_player_loads_and_physics_process_runs():
 
 func test_player_movement_disabled_when_menu_open():
 	var player = player_scene.instantiate()
+	player.run_demo = false
 	var main_ui = ui_scene.instantiate()
 	add_child_autoqfree(player)
 	add_child_autoqfree(main_ui)
@@ -44,6 +46,7 @@ func test_player_movement_disabled_when_menu_open():
 
 func test_detached_slider_esc_toggle():
 	var player = player_scene.instantiate()
+	player.run_demo = false
 	var main_ui = ui_scene.instantiate()
 	add_child_autoqfree(player)
 	add_child_autoqfree(main_ui)
@@ -91,6 +94,7 @@ func test_curve_labels_throttled_update():
 	Config.function_type = Config.ComplexFunc.IDENTITY
 
 	var player = player_scene.instantiate()
+	player.run_demo = false
 	add_child_autoqfree(player)
 		
 	# Verify labels start visible is false (until updated)
