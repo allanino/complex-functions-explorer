@@ -3,43 +3,43 @@ extends HBoxContainer
 signal value_changed(value: float)
 signal detach_requested(slider: HSlider, value_label: Label)
 
-@export var text: String = "Label" :
+@export var text: String = "Label":
 	set(v):
 		text = v
 		if is_inside_tree():
 			$Label.text = v
 
-@export var min_value: float = 0.0 :
+@export var min_value: float = 0.0:
 	set(v):
 		min_value = v
 		if is_inside_tree():
 			$Slider.min_value = v
 
-@export var max_value: float = 100.0 :
+@export var max_value: float = 100.0:
 	set(v):
 		max_value = v
 		if is_inside_tree():
 			$Slider.max_value = v
 
-@export var step: float = 1.0 :
+@export var step: float = 1.0:
 	set(v):
 		step = v
 		if is_inside_tree():
 			$Slider.step = v
 
-@export var value: float = 0.0 :
+@export var value: float = 0.0:
 	set(v):
 		value = v
 		if is_inside_tree():
 			$Slider.value = v
 
-@export var value_text: String = "" :
+@export var value_text: String = "":
 	set(v):
 		value_text = v
 		if is_inside_tree():
 			$ValueLabel.text = v
 
-@export var show_detach_button: bool = false :
+@export var show_detach_button: bool = false:
 	set(v):
 		show_detach_button = v
 		if is_inside_tree():
@@ -58,7 +58,7 @@ func _ready():
 
 	if not _grabber_initialized:
 		_grabber_initialized = true
-		var grabber_size = 13
+		var grabber_size = 14
 		var img = Image.create(grabber_size, grabber_size, false, Image.FORMAT_RGBA8)
 		var center = Vector2(5.5, 5.5)
 		var gold_color = Color(0.862745, 0.729020, 0.474510, 1.0)
