@@ -443,15 +443,12 @@ func _physics_process(delta):
 	else:
 		last_valid_terrain_height = terrain_h
 
+	var target_y = terrain_h + scaled_camera_height + height_offset
 
+	# Compute surface normal to offset camera horizontally and avoid entering in vertical walls
 	var normal = ComplexField.get_surface_normal(global_position.x, global_position.z)
-	var offset_dist = scaled_camera_height + height_offset
-
-	var target_y = terrain_h + offset_dist / max(normal.y, 0.1)
-	velocity.y = 0.5 * (target_y - global_position.y) / delta
-
-	var horizontal_offset = Vector3(normal.x, 0.0, normal.z) * offset_dist
-	camera.position = Vector3(0.0, 1.7, 0.0) + transform.basis.inverse() * horizontal_offset
+	var horizontal_offset = Vector3(normal.x, 0.0, normal.z)
+	camera.position = Vector3(0.0, target_y, 0.0) + transform.basis.inverse() * horizontal_offset
 
 	if Config.show_curves and Config.show_curves_labels:
 		_curve_label_update_timer += delta
