@@ -454,10 +454,14 @@ func _physics_process(delta):
 
 	# Prevent player from probing heights higher/lower than MAX_WORLD_HEIGHT
 	if abs(terrain_h) >= MAX_WORLD_HEIGHT:
-		global_position.x = lerp(global_position.x, last_player_pos.x, delta * 25.0)
-		global_position.z = lerp(global_position.z, last_player_pos.z, delta * 25.0)
-		velocity = Vector3.ZERO
-		terrain_h = last_terrain_h
+		var to_safe = last_player_pos - global_position
+		to_safe.y = 0.0
+		# Only block and pull back if stationary or walking deeper into the wall
+		if velocity.dot(to_safe) <= 0.0:
+			global_position.x = lerp(global_position.x, last_player_pos.x, delta * 25.0)
+			global_position.z = lerp(global_position.z, last_player_pos.z, delta * 25.0)
+			velocity = Vector3.ZERO
+			terrain_h = last_terrain_h
 
 	# Estimate slope and push camera away from rising walls
 	var target_offset = camera_push_offset
