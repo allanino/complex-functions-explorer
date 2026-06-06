@@ -7,6 +7,7 @@ const MOUSE_SENSITIVITY = 0.002
 const DOUBLE_PRESS_TIME = 0.3
 # The critical line in the complex plane is at Re(s) = 0.5
 const CRITICAL_LINE_COMPLEX_X = 0.5
+const MAX_WORLD_HEIGHT = 5000.0 # In world coordinates. In math height(f(z)) <= 5000.0
 
 enum AutoWalkState {NONE, MOVING_TO_LINE, WALKING, NEWTON_WALK}
 
@@ -44,6 +45,11 @@ var current_f: Vector2 = Vector2.ZERO
 var current_mag: float = 0.0
 var current_z: Vector2 = Vector2(0.0, 0.0)
 
+# Wall-avoidance tracking
+var last_player_pos: Vector3 = Vector3.ZERO
+var last_terrain_h: float = 0.0
+var camera_push_offset: Vector3 = Vector3.ZERO
+
 @onready var mobile_controls = get_node_or_null("/root/Main/MainUI/Control/MobileControls")
 @onready var right_joy = get_node_or_null("/root/Main/MainUI/Control/MobileControls/RightJoystick")
 
@@ -64,6 +70,9 @@ func _ready():
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	current_f = ComplexField.get_field(global_position.x, global_position.z)
 	current_mag = current_f.length()
+	
+	last_player_pos = global_position
+	last_terrain_h = ComplexField.get_height_from_field(current_f)
 	
 	re_label = Label3D.new()
 	re_label.text = "Re"
@@ -457,7 +466,9 @@ func _physics_process(delta):
 			velocity.x = move_toward(velocity.x, 0, current_speed)
 			velocity.z = move_toward(velocity.z, 0, current_speed)
 
-	var terrain_h = get_terrain_height(global_position.x, global_position.z, current_f)
+	# Predict player's position based on velocity and check its height
+	var predicted_pos = global_position + velocity * delta
+	var terrain_h = get_terrain_height(predicted_pos.x, predicted_pos.z)
 
 	var is_field_valid = is_finite(current_f.x) and is_finite(current_f.y) and is_finite(current_mag)
 	if not is_field_valid or not is_finite(terrain_h):
@@ -465,9 +476,45 @@ func _physics_process(delta):
 	else:
 		last_valid_terrain_height = terrain_h
 
+	# Prevent player from probing heights higher/lower than MAX_WORLD_HEIGHT
+	if abs(terrain_h) >= MAX_WORLD_HEIGHT:
+		# If moving to a height that is greater in magnitude than our current/last height, block it
+		if abs(terrain_h) > abs(last_terrain_h):
+			velocity.x = 0.0
+			velocity.z = 0.0
+			terrain_h = last_terrain_h
+		terrain_h = clamp(terrain_h, -MAX_WORLD_HEIGHT, MAX_WORLD_HEIGHT)
+
+
+	# Estimate slope and push camera away from rising walls
+	var target_offset = camera_push_offset
+	var d_pos = global_position - last_player_pos
+	d_pos.y = 0.0 # Only care about horizontal movement
+	
+	if d_pos.length_squared() > 100.0: # Teleport detected
+		camera_push_offset = Vector3.ZERO
+		target_offset = Vector3.ZERO
+	elif d_pos.length_squared() > 1e-8:
+		var delta_h = terrain_h - last_terrain_h
+		var slope = delta_h / d_pos.length()
+		if abs(slope) > 0.15: # On a steep slope (uphill or downhill)
+			# Always push the camera downhill (opposite to the rising slope)
+			var push_dir = - d_pos.normalized() * sign(slope)
+			target_offset = push_dir
+		else:
+			# On flat ground, decay to zero
+			target_offset = Vector3.ZERO
+
+	# Smoothly interpolate the offset to prevent camera jitter
+	camera_push_offset = camera_push_offset.lerp(target_offset, delta * 6.0)
+	
+	last_player_pos = global_position
+	last_terrain_h = terrain_h
 
 	var target_y = terrain_h + scaled_camera_height + height_offset
-	velocity.y = 0.5 * (target_y - global_position.y) / delta
+
+	# Compute surface normal to offset camera horizontally and avoid entering in vertical walls
+	camera.position = Vector3(0.0, target_y, 0.0) + transform.basis.inverse() * camera_push_offset
 
 	if Config.show_curves and Config.show_curves_labels:
 		_curve_label_update_timer += delta
