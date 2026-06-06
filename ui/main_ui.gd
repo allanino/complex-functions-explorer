@@ -95,7 +95,7 @@ func toggle_menu(applied: bool = false):
 	menu_overlay.toggle_menu(applied)
 
 func _format_float_3(val: float) -> String:
-	return "%.6f" % snappedf(val, 0.000001)
+	return "%.3f" % snappedf(val, 0.001)
 
 func _get_rvm_n(T: float) -> float:
 	if T <= 0.1:
