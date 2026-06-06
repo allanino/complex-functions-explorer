@@ -657,8 +657,15 @@ func _physics_process(delta):
 		var grad = Vector3(hx, 0.0, hz)
 		if grad.length_squared() > 1e-8:
 			var push_dir = -grad.normalized() * sign(terrain_h)
+			
+			# Project input velocity to slide along the force field boundary
+			var dot_prod = velocity.dot(push_dir)
+			if dot_prod < 0.0:
+				velocity -= push_dir * dot_prod
+			
+			# Apply a smooth spring pushback proportional to penetration depth
 			var penetration = abs(terrain_h) - MAX_WORLD_HEIGHT
-			var pushback_speed = clamp(penetration * 20.0, 10.0, 150.0) * GameState.effective_zoom
+			var pushback_speed = penetration * 40.0 * GameState.effective_zoom
 			velocity += push_dir * pushback_speed
 
 	move_and_slide()
