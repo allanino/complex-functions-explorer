@@ -13,6 +13,7 @@ var base_pos: Vector2 = Vector2.ZERO
 
 func _ready():
     base_pos = size / 2.0
+    base_radius = max(size.x, size.y)
     settings_icon = preload("res://ui/assets/settings.svg")
 
 func _gui_input(event: InputEvent):
