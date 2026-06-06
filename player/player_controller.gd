@@ -7,6 +7,7 @@ const MOUSE_SENSITIVITY = 0.002
 const DOUBLE_PRESS_TIME = 0.3
 # The critical line in the complex plane is at Re(s) = 0.5
 const CRITICAL_LINE_COMPLEX_X = 0.5
+const MAX_WORLD_HEIGHT = 1000.0
 
 enum AutoWalkState {NONE, MOVING_TO_LINE, WALKING, NEWTON_WALK}
 
@@ -649,6 +650,13 @@ func _physics_process(delta):
 						last_detected_z = true_z
 
 	move_and_slide()
+	
+	# Prevent player from probing heights higher/lower than MAX_WORLD_HEIGHT
+	var post_h = get_terrain_height(global_position.x, global_position.z)
+	if abs(post_h) >= MAX_WORLD_HEIGHT:
+		global_position.x = last_player_pos.x
+		global_position.z = last_player_pos.z
+		velocity = Vector3.ZERO
 
 
 func demo_actions():
