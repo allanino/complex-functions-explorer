@@ -212,24 +212,7 @@ func _unhandled_input(event):
 				auto_walk_state = AutoWalkState.NEWTON_WALK
 				var complex_pos = Config.world_to_complex(global_position.x, global_position.z)
 
-				# Generalized Newton step
-				var get_newton_step = func(z: Vector2, step_size_mult: float) -> Vector2:
-					var p_ref = Config.complex_to_world(z.x, z.y)
-					var f_val = ComplexField.get_field(p_ref.x, p_ref.y)
-					var delta_z = 1e-5
-					var p_ref_dx = Config.complex_to_world(z.x + delta_z, z.y)
-					var f_val_dx = ComplexField.get_field(p_ref_dx.x, p_ref_dx.y)
-					var f_prime = (f_val_dx - f_val) / delta_z
-
-					if f_prime.length_squared() < 1e-12:
-						return z
-
-					var step = ComplexField.complex_div(f_val, f_prime)
-					if step.length() > 1.0:
-						step = step.normalized() * 1.0
-					return z - step * step_size_mult
-
-				newton_target_z = get_newton_step.call(complex_pos, 1.0)
+				newton_target_z = ComplexField.newton_step(complex_pos, 1.0)
 				last_newton_idx = 1
 
 				newton_wait_timer = 0.1
@@ -259,7 +242,7 @@ func _unhandled_input(event):
 					if f_abs < 1e-6:
 						break
 
-					var next_z = get_newton_step.call(_current_z, step_mult)
+					var next_z = ComplexField.newton_step(_current_z, step_mult)
 
 					# Cycle detection: check if we are jumping back and forth
 					loop_detected = false
@@ -271,7 +254,7 @@ func _unhandled_input(event):
 					if loop_detected:
 						step_mult *= 0.5
 						# Recalculate with smaller step
-						next_z = get_newton_step.call(_current_z, step_mult)
+						next_z = ComplexField.newton_step(_current_z, step_mult)
 					else:
 						# Recover step size if no cycle detected
 						if step_mult < 1.0:

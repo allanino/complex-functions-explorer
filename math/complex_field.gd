@@ -349,6 +349,22 @@ static func get_field(world_x: float, world_z: float) -> Vector2:
 
 	return get_field_at(w.x, w.y, Config.function_type, false)
 
+static func newton_step(z: Vector2, step_size_mult: float, max_step: float = 1.0) -> Vector2:
+	var p_ref = Config.complex_to_world(z.x, z.y)
+	var f_val = get_field(p_ref.x, p_ref.y)
+	var delta_z = 1e-5
+	var p_ref_dx = Config.complex_to_world(z.x + delta_z, z.y)
+	var f_val_dx = get_field(p_ref_dx.x, p_ref_dx.y)
+	var f_prime = (f_val_dx - f_val) / delta_z
+
+	if f_prime.length_squared() < 1e-12:
+		return z
+
+	var step = complex_div(f_val, f_prime)
+	if step.length() > max_step:
+		step = step.normalized() * max_step
+	return z - step * step_size_mult
+
 static func get_height_from_field(f: Vector2) -> float:
 	if not is_finite(f.x) or not is_finite(f.y): return 0.0
 	var mag = f.length()
