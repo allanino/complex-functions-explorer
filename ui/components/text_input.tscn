@@ -24,15 +24,13 @@ offset_bottom = 40.0
 script = ExtResource("1_script")
 
 [node name="Label" type="Label" parent="."]
+theme_type_variation = &"InkDimLabel"
 custom_minimum_size = Vector2(180, 0)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 18
 
 [node name="LineEdit" type="LineEdit" parent="."]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 18
 theme_override_styles/focus = SubResource("StyleBoxFlat_input")
 theme_override_styles/normal = SubResource("StyleBoxFlat_input")
 alignment = 1

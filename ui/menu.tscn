@@ -5,6 +5,7 @@
 [ext_resource type="PackedScene" path="res://ui/components/dropdown.tscn" id="DropdownScene"]
 [ext_resource type="PackedScene" path="res://ui/components/text_input.tscn" id="TextInputScene"]
 [ext_resource type="Script" path="res://ui/menu.gd" id="1_menu_script"]
+[ext_resource type="Theme" path="res://ui/theme/theme.tres" id="theme_tres"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_glass"]
 bg_color = Color(0.03, 0.03, 0.03, 0.5)
@@ -17,9 +18,6 @@ corner_radius_top_left = 10
 corner_radius_top_right = 10
 corner_radius_bottom_right = 10
 corner_radius_bottom_left = 10
-shadow_color = Color(0, 0, 0, 0.5)
-shadow_size = 4
-shadow_offset = Vector2(0, 4)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_disabled"]
 content_margin_left = 15.0
@@ -87,7 +85,7 @@ corner_radius_bottom_left = 4
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_tabpanel"]
 content_margin_left = 0.0
-content_margin_top = 20.0
+content_margin_top = 10.0
 content_margin_right = 0.0
 content_margin_bottom = 0.0
 
@@ -213,7 +211,12 @@ shadow_color = Color(0, 0, 0, 0.5)
 shadow_size = 4
 shadow_offset = Vector2(0, 4)
 
+[sub_resource type="StyleBoxLine" id="StyleBoxLine_hseparator_custom"]
+color = Color(0.91, 0.89, 0.86, 0.12)
+thickness = 1
+
 [node name="MenuOverlay" type="ColorRect" unique_id=324048888]
+theme = ExtResource("theme_tres")
 script = ExtResource("1_menu_script")
 visible = false
 anchors_preset = 15
@@ -234,10 +237,11 @@ grow_vertical = 2
 mouse_filter = 2
 
 [node name="MainMenuPanel" type="PanelContainer" parent="CenterContainer" unique_id=185131265]
-custom_minimum_size = Vector2(1000, 780)
+theme_type_variation = &"MainMenuPanel"
+custom_minimum_size = Vector2(1000, 500)
 layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_glass")
-pivot_offset = Vector2(500, 390)
+pivot_offset = Vector2(500, 250)
+
 
 [node name="MarginContainer" type="MarginContainer" parent="CenterContainer/MainMenuPanel" unique_id=2017176305]
 layout_mode = 2
@@ -254,8 +258,8 @@ theme_override_constants/separation = 20
 layout_mode = 2
 
 [node name="TitleLabel" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TitleHBox"]
+theme_type_variation = &"TitleLabel"
 layout_mode = 2
-theme_override_font_sizes/font_size = 22
 text = "Complex Functions Explorer"
 
 [node name="Spacer" type="Control" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TitleHBox"]
@@ -264,85 +268,56 @@ size_flags_horizontal = 3
 
 [node name="QuitButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TitleHBox" unique_id=781431675]
 unique_name_in_owner = true
+theme_type_variation = &"QuitButton"
 layout_mode = 2
-theme_override_colors/font_color         = Color(0.65, 0.65, 0.68, 0.85)
-theme_override_colors/font_hover_color   = Color(0.85, 0.85, 0.88, 1.0)
-theme_override_colors/font_pressed_color = Color(1.0, 1.0, 1.0, 1.0)
-theme_override_colors/font_focus_color   = Color(0.85, 0.85, 0.88, 1.0)
-theme_override_font_sizes/font_size = 18
 text = "Quit"
 flat = true
 
 [node name="TitleHSeparator" type="HSeparator" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox"]
 layout_mode = 2
+theme_override_styles/separator = SubResource("StyleBoxLine_hseparator_custom")
 
 [node name="TopPresetHBox" type="HBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox" unique_id=99990001]
 layout_mode = 2
 theme_override_constants/separation = 10
 
 [node name="Label" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TopPresetHBox" unique_id=99990002]
+theme_type_variation = &"InkDimLabel"
 layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 18
 text = "Preset:"
 
 [node name="PresetButton" type="OptionButton" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TopPresetHBox" unique_id=123456789]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 18
-theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
-theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
-theme_override_styles/focus = SubResource("StyleBoxFlat_btn_normal")
-theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_disabled")
 
 [node name="PresetUpdateButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TopPresetHBox" unique_id=99990003]
 unique_name_in_owner = true
+theme_type_variation = &"PresetBarButton"
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
-theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
-theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
-theme_override_styles/focus = SubResource("StyleBoxFlat_btn_normal")
-theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_disabled")
 text = "Save"
 
 [node name="PresetRestoreButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TopPresetHBox" unique_id=99990010]
 unique_name_in_owner = true
+theme_type_variation = &"PresetBarButton"
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
-theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
-theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
-theme_override_styles/focus = SubResource("StyleBoxFlat_btn_normal")
-theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_disabled")
 text = "Restore"
 
 [node name="PresetDeleteButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TopPresetHBox" unique_id=99990004]
 unique_name_in_owner = true
+theme_type_variation = &"PresetBarButton"
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
-theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
-theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
-theme_override_styles/focus = SubResource("StyleBoxFlat_btn_normal")
-theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_disabled")
 text = "Delete"
 
 [node name="PresetNewButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TopPresetHBox" unique_id=99990005]
 unique_name_in_owner = true
+theme_type_variation = &"PresetNewButton"
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
-theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
-theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
-theme_override_styles/focus = SubResource("StyleBoxFlat_btn_normal")
-theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_disabled")
 text = "+ New"
 
 [node name="TopHSeparator" type="HSeparator" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox" unique_id=99990006]
 layout_mode = 2
+theme_override_styles/separator = SubResource("StyleBoxLine_hseparator_custom")
 
 [node name="MainLayoutHBox" type="HBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox" unique_id=101010100]
 layout_mode = 2
@@ -971,6 +946,7 @@ value_text = "100%"
 
 [node name="BottomHSeparator" type="HSeparator" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox" unique_id=99990007]
 layout_mode = 2
+theme_override_styles/separator = SubResource("StyleBoxLine_hseparator_custom")
 
 [node name="ButtonsHBox" type="HBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox" unique_id=1701249887]
 layout_mode = 2
@@ -980,35 +956,25 @@ alignment = 1
 
 [node name="CloseButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/ButtonsHBox" unique_id=895379033]
 unique_name_in_owner = true
+theme_type_variation = &"CloseButton"
 layout_mode = 2
 size_flags_horizontal = 4
-theme_override_font_sizes/font_size = 20
-theme_override_styles/normal = SubResource("StyleBoxFlat_apply_normal")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_apply_pressed")
-theme_override_styles/hover = SubResource("StyleBoxFlat_apply_hover")
-theme_override_styles/focus = SubResource("StyleBoxFlat_apply_normal")
-theme_override_styles/disabled = SubResource("StyleBoxFlat_apply_disabled")
 text = "Close"
 
 [node name="ApplyButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/ButtonsHBox" unique_id=1101590507]
 unique_name_in_owner = true
+theme_type_variation = &"UpdateViewButton"
 layout_mode = 2
 size_flags_horizontal = 4
-theme_override_font_sizes/font_size = 20
-theme_override_styles/normal = SubResource("StyleBoxFlat_apply_normal")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_apply_pressed")
-theme_override_styles/hover = SubResource("StyleBoxFlat_apply_hover")
-theme_override_styles/focus = SubResource("StyleBoxFlat_apply_normal")
-theme_override_styles/disabled = SubResource("StyleBoxFlat_apply_disabled")
 text = "Update View"
 
 [node name="NewPresetDialog" type="PanelContainer" parent="CenterContainer" unique_id=99991000]
 unique_name_in_owner = true
+theme_type_variation = &"DialogPanel"
 visible = false
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
-theme_override_styles/panel = SubResource("StyleBoxFlat_dialog_opaque")
 
 [node name="MarginContainer" type="MarginContainer" parent="CenterContainer/NewPresetDialog" unique_id=99991001]
 layout_mode = 2
@@ -1022,15 +988,14 @@ layout_mode = 2
 theme_override_constants/separation = 15
 
 [node name="Label" type="Label" parent="CenterContainer/NewPresetDialog/MarginContainer/VBoxContainer" unique_id=99991003]
+theme_type_variation = &"DialogHeaderLabel"
 layout_mode = 2
-theme_override_font_sizes/font_size = 20
 text = "New Preset"
 horizontal_alignment = 1
 
 [node name="NewPresetInput" type="LineEdit" parent="CenterContainer/NewPresetDialog/MarginContainer/VBoxContainer" unique_id=99991004]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
 theme_override_styles/normal = SubResource("StyleBoxFlat_input")
 theme_override_styles/focus = SubResource("StyleBoxFlat_input")
 placeholder_text = "Preset Name"
@@ -1043,37 +1008,27 @@ alignment = 1
 
 [node name="NewPresetCancel" type="Button" parent="CenterContainer/NewPresetDialog/MarginContainer/VBoxContainer/HBoxContainer" unique_id=99991006]
 unique_name_in_owner = true
+theme_type_variation = &"PresetBarButton"
 custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 18
-theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
-theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
-theme_override_styles/focus = SubResource("StyleBoxFlat_btn_normal")
-theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_disabled")
 text = "Cancel"
 
 [node name="NewPresetSave" type="Button" parent="CenterContainer/NewPresetDialog/MarginContainer/VBoxContainer/HBoxContainer" unique_id=99991007]
 unique_name_in_owner = true
+theme_type_variation = &"PresetBarButton"
 custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 18
-theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
-theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
-theme_override_styles/focus = SubResource("StyleBoxFlat_btn_normal")
-theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_disabled")
 text = "Save"
 
 [node name="DeletePresetDialog" type="PanelContainer" parent="CenterContainer" unique_id=99992000]
 unique_name_in_owner = true
+theme_type_variation = &"DialogPanel"
 visible = false
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
-theme_override_styles/panel = SubResource("StyleBoxFlat_dialog_opaque")
 
 [node name="MarginContainer" type="MarginContainer" parent="CenterContainer/DeletePresetDialog" unique_id=99992001]
 layout_mode = 2
@@ -1087,15 +1042,15 @@ layout_mode = 2
 theme_override_constants/separation = 15
 
 [node name="Label" type="Label" parent="CenterContainer/DeletePresetDialog/MarginContainer/VBoxContainer" unique_id=99992003]
+theme_type_variation = &"DialogHeaderLabel"
 layout_mode = 2
-theme_override_font_sizes/font_size = 20
 text = "Delete Preset?"
 horizontal_alignment = 1
 
 [node name="DeleteMessageLabel" type="Label" parent="CenterContainer/DeletePresetDialog/MarginContainer/VBoxContainer" unique_id=99992004]
 unique_name_in_owner = true
+theme_type_variation = &"InkDimLabel"
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
 text = "Are you sure you want to delete the
 preset 'Custom'?"
 horizontal_alignment = 1
@@ -1107,37 +1062,27 @@ alignment = 1
 
 [node name="DeletePresetCancel" type="Button" parent="CenterContainer/DeletePresetDialog/MarginContainer/VBoxContainer/HBoxContainer" unique_id=99992006]
 unique_name_in_owner = true
+theme_type_variation = &"PresetBarButton"
 custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 18
-theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
-theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
-theme_override_styles/focus = SubResource("StyleBoxFlat_btn_normal")
-theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_disabled")
 text = "Cancel"
 
 [node name="DeletePresetConfirm" type="Button" parent="CenterContainer/DeletePresetDialog/MarginContainer/VBoxContainer/HBoxContainer" unique_id=99992007]
 unique_name_in_owner = true
+theme_type_variation = &"PresetBarButton"
 custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 18
-theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
-theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
-theme_override_styles/focus = SubResource("StyleBoxFlat_btn_normal")
-theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_disabled")
 text = "Delete"
 
 [node name="QuitDialog" type="PanelContainer" parent="CenterContainer" unique_id=99993000]
 unique_name_in_owner = true
+theme_type_variation = &"DialogPanel"
 visible = false
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
-theme_override_styles/panel = SubResource("StyleBoxFlat_dialog_opaque")
 
 [node name="MarginContainer" type="MarginContainer" parent="CenterContainer/QuitDialog" unique_id=99993001]
 layout_mode = 2
@@ -1151,15 +1096,15 @@ layout_mode = 2
 theme_override_constants/separation = 15
 
 [node name="Label" type="Label" parent="CenterContainer/QuitDialog/MarginContainer/VBoxContainer" unique_id=99993003]
+theme_type_variation = &"DialogHeaderLabel"
 layout_mode = 2
-theme_override_font_sizes/font_size = 20
 text = "Exit Explorer?"
 horizontal_alignment = 1
 
 [node name="QuitMessageLabel" type="Label" parent="CenterContainer/QuitDialog/MarginContainer/VBoxContainer" unique_id=99993004]
 unique_name_in_owner = true
+theme_type_variation = &"InkDimLabel"
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
 text = "Any unapplied view changes will be lost."
 horizontal_alignment = 1
 
@@ -1170,39 +1115,24 @@ alignment = 1
 
 [node name="QuitCancel" type="Button" parent="CenterContainer/QuitDialog/MarginContainer/VBoxContainer/HBoxContainer" unique_id=99993006]
 unique_name_in_owner = true
+theme_type_variation = &"PresetBarButton"
 custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 18
-theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
-theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
-theme_override_styles/focus = SubResource("StyleBoxFlat_btn_normal")
-theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_disabled")
 text = "Cancel"
 
 [node name="QuitSaveAndQuit" type="Button" parent="CenterContainer/QuitDialog/MarginContainer/VBoxContainer/HBoxContainer" unique_id=99993007]
 unique_name_in_owner = true
+theme_type_variation = &"PresetBarButton"
 custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 18
-theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
-theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
-theme_override_styles/focus = SubResource("StyleBoxFlat_btn_normal")
-theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_disabled")
 text = "Save & Quit"
 
 [node name="QuitConfirm" type="Button" parent="CenterContainer/QuitDialog/MarginContainer/VBoxContainer/HBoxContainer" unique_id=99993008]
 unique_name_in_owner = true
+theme_type_variation = &"PresetBarButton"
 custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 18
-theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
-theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
-theme_override_styles/focus = SubResource("StyleBoxFlat_btn_normal")
-theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_disabled")
 text = "Quit"

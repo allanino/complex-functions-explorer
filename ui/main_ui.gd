@@ -1,20 +1,32 @@
 extends CanvasLayer
+const ZERO_LIST_ITEM_SCENE = preload("res://ui/components/zero_list_item.tscn")
 @export var player: Node3D
 @onready var hud_columns = %MainUIColumns
 @onready var hud_stack_left = %MainUIStackLeft
 @onready var hud_stack_right = %MainUIStackRight
-@onready var complex_panel = %ComplexAspect
-@onready var info_panel = %InfoPanel
+@onready var complex_aspect = %ComplexAspect
+@onready var domain_panel = %DomainPanel
+@onready var target_panel = %TargetPanel
 @onready var monitor_panel = %MonitorPanel
-@onready var fps_label = %FpsLabel
+@onready var fps_hbox = %FpsHBox
+@onready var fps_val_label = %FpsValLabel
+@onready var chunks_label = %ChunksLabel
 @onready var complex_rect = %ComplexPlane
 @onready var world_manager = get_node_or_null("../WorldManager")
-@onready var domain_label = %DomainLabel
-@onready var target_label = %TargetLabel
+@onready var domain_re_val = %DomainReVal
+@onready var domain_im_val = %DomainImVal
+@onready var target_re_val = %TargetReVal
+@onready var target_im_val = %TargetImVal
+@onready var phase_branch_val = %PhaseBranchVal
+@onready var branch_label = %BranchLabel
+@onready var phase_abs_val = %PhaseAbsVal
+@onready var phase_arg_val = %PhaseArgVal
 @onready var zeros_panel = %ZerosPanel
 @onready var zeros_count_label = %CountLabel
-@onready var rvm_label = %RvmLabel
-@onready var zeros_list_label = %ListLabel
+@onready var rvm_hbox = %RvmHBox
+@onready var rvm_n_label = %RvmNLabel
+@onready var rvm_delta_label = %RvmDeltaLabel
+@onready var zeros_list_label = %ListLabelContainer
 @onready var menu_overlay = %MenuOverlay
 var portal_flash: ColorRect
 @onready var tooltip_manager = %TooltipManager
@@ -30,6 +42,9 @@ var _last_zeros_count: int = -1
 
 func _ready():
 	Config.config_changed.connect(_on_config_changed)
+	
+	pass
+
 	var mobile_controls = get_node_or_null("Control/MobileControls")
 	if mobile_controls and mobile_controls.has_node("SettingsButton"):
 		var settings_btn = mobile_controls.get_node("SettingsButton")
@@ -127,27 +142,41 @@ func _process(_delta):
 		var total_count = GameState.total_zeros_found
 		if total_count != _last_zeros_count:
 			_last_zeros_count = total_count
-			var last_zeros_text = ""
+			zeros_count_label.text = str(total_count)
+
+			# Clear existing items
+			for child in zeros_list_label.get_children():
+				child.queue_free()
+
 			var current_size = GameState.visited_zeros.size()
-			for i in range(current_size - 1, -1, -1):
+			for i in range(current_size - 1, max(-1, current_size - 11), -1):
 				var zero = GameState.visited_zeros[i]
-				last_zeros_text += "(%s, %s)\n" % [_format_float_3(zero[0]), _format_float_3(zero[1])]
-
-			if total_count > 10:
-				last_zeros_text += "•••\n"
-
-			zeros_count_label.text = "Count: %d" % total_count
-			zeros_list_label.text = last_zeros_text
+				var re_str = _format_float_3(zero[0])
+				var im_str = _format_float_3(zero[1])
+				var item = ZERO_LIST_ITEM_SCENE.instantiate()
+				zeros_list_label.add_child(item)
+				item.set_values(re_str, im_str)
+				if i == current_size - 1:
+					item.is_active = true
 
 		# Riemann-von Mangoldt formula: N(T) ≈ (T/2π) log(T/2πe) + 7/8
 		if Config.show_rvm and f_data.get("has_von_mangoldt", false):
 			var T = abs(Config.world_to_complex(0.0, z).y)
-			var val = _get_rvm_n(T) - _get_rvm_n(GameState.rvm_start_t)
-			val = max(0.0, val)
-			rvm_label.text = "N(t) ≈ %.2f" % val
-			rvm_label.visible = true
+			var rvm_val = _get_rvm_n(T) - _get_rvm_n(GameState.rvm_start_t)
+			rvm_val = max(0.0, rvm_val)
+			var delta_val = total_count - rvm_val
+			var delta_sign = "+" if delta_val >= 0 else ""
+
+			if rvm_n_label:
+				rvm_n_label.text = "[color=gray]N(t) ≈ %.2f[/color]" % rvm_val
+			if rvm_delta_label:
+				rvm_delta_label.text = "Δ = %s%.2f" % [delta_sign, delta_val]
+
+			if rvm_hbox:
+				rvm_hbox.visible = true
 		else:
-			rvm_label.visible = false
+			if rvm_hbox:
+				rvm_hbox.visible = false
 
 	# Update shader uniforms
 	var material = complex_rect.material as ShaderMaterial
@@ -168,20 +197,38 @@ func _process(_delta):
 	var val_fx = f.x
 	var val_fy = f.y
 
-	domain_label.text = "Re = %s\nIm = %s" % [_format_float_3(val_re), _format_float_3(val_im)]
-	var target_text = "Re = %s\nIm = %s\n|f| = %s" % [_format_float_3(val_fx), _format_float_3(val_fy), _format_float_3(f.length())]
-	if f_data.get("is_multivalued", false):
-		target_text += "\nBranch k = %d" % GameState.current_branch
-	target_label.text = target_text
+	domain_re_val.text = _format_float_3(val_re)
+	domain_im_val.text = _format_float_3(val_im)
 
-	complex_panel.visible = Config.show_hud_complex
-	info_panel.visible = Config.show_hud_navigation
+	target_re_val.text = _format_float_3(val_fx)
+	target_im_val.text = _format_float_3(val_fy)
+	if f_data.get("is_multivalued", false):
+		phase_branch_val.text = str(GameState.current_branch)
+		phase_branch_val.visible = true
+		branch_label.visible = true
+	else:
+		phase_branch_val.visible = false
+		branch_label.visible = false
+
+	var angle_deg = rad_to_deg(f.angle())
+	if angle_deg < 0:
+		angle_deg += 360.0
+	phase_abs_val.text = _format_float_3(f.length())
+	phase_arg_val.text = "%d°" % round(angle_deg)
+
+	complex_aspect.visible = Config.show_hud_complex
+	domain_panel.visible = Config.show_hud_navigation
+	target_panel.visible = Config.show_hud_navigation
 	monitor_panel.visible = Config.show_hud_monitor_fps or Config.show_hud_monitor_chunks
 	if monitor_panel.visible:
-		var parts = []
 		if Config.show_hud_monitor_fps:
-			parts.append("FPS: %d" % Engine.get_frames_per_second())
+			fps_hbox.visible = true
+			fps_val_label.text = "%d" % Engine.get_frames_per_second()
+		else:
+			fps_hbox.visible = false
+
 		if Config.show_hud_monitor_chunks and world_manager:
+			chunks_label.visible = true
 			var chunks_text = "Chunks"
 			var num_lods = world_manager.LOD_SUBS.size()
 			var lod_counts = []
@@ -196,9 +243,9 @@ func _process(_delta):
 			for i in range(num_lods):
 				if lod_counts[i] > 0:
 					chunks_text += "\n%d: %d" % [world_manager.LOD_SUBS[i], lod_counts[i]]
-			parts.append(chunks_text)
-
-		fps_label.text = "\n\n".join(parts)
+			chunks_label.text = chunks_text
+		else:
+			chunks_label.visible = false
 
 	_update_hud_layout()
 
@@ -207,7 +254,7 @@ var _last_hud_state = {}
 func _update_hud_layout():
 	if not hud_columns: return
 
-	var cards = [complex_panel, info_panel, monitor_panel, zeros_panel, menu_overlay.perf_label]
+	var cards = [target_panel, domain_panel, monitor_panel, zeros_panel, menu_overlay.perf_label]
 
 	var actual_hud_scale = Config.hud_scale
 
@@ -257,11 +304,6 @@ func _apply_stack_layout(stack: VBoxContainer, desired_cards: Array):
 			stack.remove_child(child)
 			add_child(child)
 
-	# Optimization: The original code moved each card to index 0 in forward order,
-	# which inverted the final display order. By iterating backwards through the
-	# desired_cards array, we can safely target absolute indices (0 to N-1) as we build
-	# the stack from top to bottom. This ensures `move_child` operates within valid
-	# index bounds even when new cards are being added, and eliminates redundant moves.
 	for i in range(desired_cards.size()):
 		var target_index = i
 		var card = desired_cards[desired_cards.size() - 1 - i]
@@ -295,13 +337,15 @@ func _rescale_card(card: Control, _scale: float):
 		if node is Control:
 			# Only scale custom minimum size for specific panels to maintain layout proportions
 			if node.name == "ComplexAspect":
-				if not node.has_meta("base_min_size"):
-					node.set_meta("base_min_size", Vector2(BASE_HUD_PANEL_SIZE, BASE_HUD_PANEL_SIZE))
-				node.custom_minimum_size = node.get_meta("base_min_size") * _scale
-			elif node.name == "ZerosPanel" or node.name == "InfoPanel":
+				node.custom_minimum_size = Vector2(0, BASE_HUD_PANEL_SIZE * _scale)
+			elif node.name == "ZerosPanel" or node.name == "DomainPanel" or node.name == "TargetPanel":
 				if not node.has_meta("base_min_size"):
 					node.set_meta("base_min_size", node.custom_minimum_size)
 				node.custom_minimum_size.y = node.get_meta("base_min_size").y * _scale
+			elif node.name == "RvmNLabel" or node.name == "RvmDeltaLabel":
+				if not node.has_meta("base_min_size"):
+					node.set_meta("base_min_size", node.custom_minimum_size)
+				node.custom_minimum_size.x = node.get_meta("base_min_size").x * _scale
 
 			# Keep container separations and margins constant at their original design values
 			if node is BoxContainer:
@@ -311,7 +355,10 @@ func _rescale_card(card: Control, _scale: float):
 			elif node is MarginContainer:
 				for margin in ["margin_left", "margin_top", "margin_right", "margin_bottom"]:
 					if not node.has_meta("base_" + margin):
-						node.set_meta("base_" + margin, node.get_theme_constant(margin))
+						var val = node.get("theme_override_constants/" + margin)
+						if val == null:
+							val = node.get_theme_constant(margin)
+						node.set_meta("base_" + margin, val)
 					node.add_theme_constant_override(margin, node.get_meta("base_" + margin))
 
 		for child in node.get_children():

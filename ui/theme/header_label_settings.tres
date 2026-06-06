@@ -1,0 +1,8 @@
+[gd_resource type="LabelSettings" load_steps=2 format=3]
+
+[ext_resource type="FontVariation" path="res://ui/theme/font_neon.tres" id="1_font"]
+
+[resource]
+font = ExtResource("1_font")
+font_size = 13
+font_color = Color(0.784314, 0.662745, 0.431373, 1)

@@ -1,7 +1,7 @@
 extends CharacterBody3D
 
 var enable_joystick: bool = false
-@export var run_demo: bool = true
+@export var run_demo: bool = false
 
 const MOUSE_SENSITIVITY = 0.002
 const DOUBLE_PRESS_TIME = 0.3

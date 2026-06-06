@@ -510,6 +510,7 @@ static func get_height_from_field(f: Vector2) -> float:
 	# Match shader morphing blend factor (usually 1.0)
 	var s = 0.5 - 0.5 * cos(PI * GameState.morph_value)
 	var blend = log(1.0 + 8.0 * s) / log(9.0)
+	h = clamp(h, -1e5, 1e5)
 	h *= blend * GameState.effective_zoom
 
 	return h if is_finite(h) else 0.0

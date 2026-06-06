@@ -249,7 +249,7 @@ func test_menu_scale():
 	
 	# 3. Verify initial scaled layout size matches config menu_scale * base scale factor (130/150)
 	var expected_scale = Config.menu_scale
-	var base_panel_min_size = Vector2(1000, 780)
+	var base_panel_min_size = Vector2(1000, 500)
 	assert_eq(main_ui_instance.menu_overlay.main_menu_panel.custom_minimum_size, base_panel_min_size * expected_scale)
 	
 	# 4. Simulate dragging:

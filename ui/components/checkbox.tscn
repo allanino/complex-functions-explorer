@@ -42,10 +42,9 @@ offset_bottom = 40.0
 script = ExtResource("1_script")
 
 [node name="Label" type="Label" parent="."]
+theme_type_variation = &"InkDimLabel"
 custom_minimum_size = Vector2(180, 0)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 18
 autowrap_mode = 3
 
 [node name="Control" type="HBoxContainer" parent="."]
@@ -57,11 +56,4 @@ layout_mode = 2
 size_flags_horizontal = 3
 focus_mode = 0
 toggle_mode = true
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
 theme_override_constants/h_separation = 15
-theme_override_font_sizes/font_size = 18
-theme_override_styles/focus = SubResource("StyleBoxFlat_checkbox")
-theme_override_styles/hover = SubResource("StyleBoxFlat_checkbox_hover")
-theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_checkbox_hover")
-theme_override_styles/normal = SubResource("StyleBoxFlat_checkbox")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_checkbox")

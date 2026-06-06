@@ -349,7 +349,7 @@ void compute_multivalued_highlight(vec3 w_pos, inout vec3 final_emission) {
 }
 
 
-void compute_critical_stripe_highlight(vec3 w_pos, inout vec3 final_emission) {
+void compute_critical_stripe_highlight(vec3 w_pos, inout vec3 final_emission, out float core_critical_out) {
     float zoom = zoom_factor;
 
     // Pulsing glow intensity
@@ -361,7 +361,7 @@ void compute_critical_stripe_highlight(vec3 w_pos, inout vec3 final_emission) {
     // Screen-space anti-aliasing
     float aa = fwidth(w_pos.x) * 1.5;
 
-    vec3 critical_color = vec3(0.9, 0.9, 0.0);
+    vec3 critical_color = vec3(1.0, 0.655, 0.0);
     vec3 boundary_color = vec3(1.0);
 
     // =========================================================
@@ -436,6 +436,8 @@ void compute_critical_stripe_highlight(vec3 w_pos, inout vec3 final_emission) {
             core_10 * 1.1 +
             glow_10 * glow * 0.5
         );
+
+    core_critical_out = core_critical;
 }
 
 
@@ -821,15 +823,17 @@ void fragment() {
         vec3 final_emission = base * emission;
         if (show_curves) {
             final_emission += vec3(0.0, 0.6, 1.0) * highlight_re_glow * 0.8;
-            final_emission += vec3(1.0, 0.3, 0.0) * highlight_im_glow * 0.8;
+            final_emission += vec3(1.0, 0.0, 0.549) * highlight_im_glow * 0.8;
         }
 
         if (is_multivalued) {
             compute_multivalued_highlight(world_pos, final_emission);
         }
 
+        float core_critical = 0.0;
         if (show_critical_stripe && is_dirichlect) {
-            compute_critical_stripe_highlight(world_pos, final_emission);
+            compute_critical_stripe_highlight(world_pos, final_emission, core_critical);
+            ALBEDO = mix(ALBEDO, vec3(1.0, 0.655, 0.0), core_critical);
         }
 
         if (show_flow) {
@@ -856,8 +860,8 @@ void fragment() {
 
         EMISSION = final_emission;
 
-        ROUGHNESS = clamp(roughness + roughness_variation, 0.0, 1.0);
-        METALLIC = metallic;
+        ROUGHNESS = mix(clamp(roughness + roughness_variation, 0.0, 1.0), 0.1, core_critical);
+        METALLIC = mix(metallic, 0.8, core_critical);
         SPECULAR = specular_intensity;
     }
 }
