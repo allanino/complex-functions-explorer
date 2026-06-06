@@ -649,26 +649,14 @@ func _physics_process(delta):
 							GameState.visited_zeros.pop_front()
 						last_detected_z = true_z
 
-	# Force field pushback at MAX_WORLD_HEIGHT boundaries
-	if abs(terrain_h) >= MAX_WORLD_HEIGHT:
-		var h = 0.1 * GameState.effective_zoom
-		var hx = get_terrain_height(global_position.x + h, global_position.z) - terrain_h
-		var hz = get_terrain_height(global_position.x, global_position.z + h) - terrain_h
-		var grad = Vector3(hx, 0.0, hz)
-		if grad.length_squared() > 1e-8:
-			var push_dir = -grad.normalized() * sign(terrain_h)
-			
-			# Project input velocity to slide along the force field boundary
-			var dot_prod = velocity.dot(push_dir)
-			if dot_prod < 0.0:
-				velocity -= push_dir * dot_prod
-			
-			# Apply a smooth spring pushback proportional to penetration depth
-			var penetration = abs(terrain_h) - MAX_WORLD_HEIGHT
-			var pushback_speed = penetration * 40.0 * GameState.effective_zoom
-			velocity += push_dir * pushback_speed
-
 	move_and_slide()
+	
+	# Prevent player from probing heights higher/lower than MAX_WORLD_HEIGHT
+	var post_h = get_terrain_height(global_position.x, global_position.z)
+	if abs(post_h) >= MAX_WORLD_HEIGHT:
+		global_position.x = last_player_pos.x
+		global_position.z = last_player_pos.z
+		velocity = Vector3.ZERO
 
 
 func demo_actions():
