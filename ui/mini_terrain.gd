@@ -35,11 +35,15 @@ func _sync_all_uniforms():
 		mat.set_shader_parameter("input_rational_den_coeffs", Config.input_rational_den_coeffs)
 		mat.set_shader_parameter("multivalued_n", Config.multivalued_n)
 		mat.set_shader_parameter("current_branch", GameState.current_branch)
+		mat.set_shader_parameter("draw_level_curves", Config.draw_level_curves)
+		mat.set_shader_parameter("draw_critical_stripe", Config.draw_critical_stripe)
+
 
 func _on_config_changed(key: String):
 	var mat = map_rect.material as ShaderMaterial
 	if not mat: return
-	if key in ["iterations", "zoom_factor", "function_type", "input_function_type", "color_scheme", "rational_num_coeffs", "rational_den_coeffs", "input_rational_num_coeffs", "input_rational_den_coeffs", "multivalued_n"]:
+	if key in ["iterations", "zoom_factor", "function_type", "input_function_type", "color_scheme", "rational_num_coeffs", "rational_den_coeffs", "input_rational_num_coeffs", "input_rational_den_coeffs", "multivalued_n", "draw_level_curves", "draw_critical_stripe"]:
+
 		_sync_all_uniforms()
 
 func _on_state_changed(key: String):
@@ -47,6 +51,9 @@ func _on_state_changed(key: String):
 	if not mat: return
 	if key == "current_branch" or key == "effective_zoom":
 		mat.set_shader_parameter("current_branch", GameState.current_branch)
+		mat.set_shader_parameter("draw_level_curves", Config.draw_level_curves)
+		mat.set_shader_parameter("draw_critical_stripe", Config.draw_critical_stripe)
+
 
 func _process(_delta):
 	if not player or not camera:
