@@ -282,7 +282,6 @@ func get_terrain_height(x: float, z: float, field_val: Vector2 = Vector2.INF) ->
 	return ComplexField.get_height(x, z)
 
 func _physics_process(delta):
-	var is_blocked = false
 	if camera_input_dir != Vector2.ZERO:
 		if auto_walk_state == AutoWalkState.NONE or auto_walk_state == AutoWalkState.WALKING:
 			rotate_y(-camera_input_dir.x * MOUSE_SENSITIVITY)
@@ -457,13 +456,16 @@ func _physics_process(delta):
 	if abs(terrain_h) >= MAX_WORLD_HEIGHT:
 		var to_safe = last_player_pos - global_position
 		to_safe.y = 0.0
-		# Only block and pull back if stationary or walking deeper into the wall
-		if velocity.dot(to_safe) <= 0.0:
-			global_position.x = lerp(global_position.x, last_player_pos.x, delta * 25.0)
-			global_position.z = lerp(global_position.z, last_player_pos.z, delta * 25.0)
-			velocity = Vector3.ZERO
+		if to_safe.length_squared() > 1e-6:
+			var normal = -to_safe.normalized()
+			var dot_prod = velocity.dot(normal)
+			if dot_prod > 0.0:
+				velocity -= normal * dot_prod
+			
+			# Add a gentle corrective force to keep the player exactly at the boundary limit
+			var penetration = abs(terrain_h) - MAX_WORLD_HEIGHT
+			velocity += to_safe.normalized() * penetration * 30.0 * GameState.effective_zoom
 			terrain_h = last_terrain_h
-			is_blocked = true
 
 	# Estimate slope and push camera away from rising walls
 	var target_offset = camera_push_offset
@@ -487,9 +489,8 @@ func _physics_process(delta):
 	# Smoothly interpolate the offset to prevent camera jitter
 	camera_push_offset = camera_push_offset.lerp(target_offset, delta * 6.0)
 	
-	if not is_blocked and abs(terrain_h) < MAX_WORLD_HEIGHT:
-		last_player_pos = global_position
-		last_terrain_h = terrain_h
+	last_player_pos = global_position
+	last_terrain_h = terrain_h
 
 	var target_y = terrain_h + scaled_camera_height + height_offset
 
