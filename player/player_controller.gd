@@ -8,6 +8,8 @@ const DOUBLE_PRESS_TIME = 0.3
 # The critical line in the complex plane is at Re(s) = 0.5
 const CRITICAL_LINE_COMPLEX_X = 0.5
 const MAX_WORLD_HEIGHT = 5000.0 # In world coordinates. In math height(f(z)) <= 5000.0
+const ZEROS_DETECTION_EPS = 0.01
+const ZEROS_DETECTION_START_RECORDING = 0.1
 
 enum AutoWalkState {NONE, MOVING_TO_LINE, WALKING, NEWTON_WALK}
 
@@ -498,7 +500,6 @@ func _physics_process(delta):
 		var delta_h = terrain_h - last_terrain_h
 		var slope = delta_h / d_pos.length()
 		if abs(slope) > 2.0: # On a steep slope (uphill or downhill)
-			print("Slope: ", slope)
 			# Always push the camera downhill (opposite to the rising slope)
 			var push_dir = - d_pos.normalized() * sign(slope)
 			target_offset = push_dir
@@ -597,8 +598,8 @@ func _physics_process(delta):
 				last_p_x = p_x
 				last_p_z = p_z
 
-	# Zeta zero detection during auto-walk
-	if Config.show_hud_zeros:
+	# Function zero detection
+	if Config.show_hud_zeros && ZEROS_DETECTION_START_RECORDING:
 		z_history.push_back(current_z)
 		z_history.pop_front()
 
@@ -608,7 +609,7 @@ func _physics_process(delta):
 
 		# 1. First, find a basic local minimum using the 3 center points
 		if mag_history[0] > mag_history[1] and mag_history[1] < mag_history[2]:
-			if mag_history[1] < Config.zero_proximity_nav:
+			if mag_history[1] < ZEROS_DETECTION_EPS:
 				var z_mid = z_history[1]
 
 				# 2. Sample nearby points to estimate the minima paraboloid
@@ -659,7 +660,8 @@ func _physics_process(delta):
 
 					# Refine zero location using numerical complex Newton-Raphson steps
 					var refined_z = true_z
-					for step_idx in range(5):
+					var diverged = false
+					for step_idx in range(10):
 						var p_ref = Config.complex_to_world(refined_z.x, refined_z.y)
 						var f_val = ComplexField.get_field(p_ref.x, p_ref.y)
 						if f_val.length() < 1e-6:
@@ -671,13 +673,14 @@ func _physics_process(delta):
 						var f_prime = (f_val_dx - f_val) / delta_z
 						
 						var newton_step = ComplexField.complex_div(f_val, f_prime)
-						if newton_step.length() > 0.2:
+						if newton_step.length() > 1.0:
+							diverged = true
 							break # Prevent divergence / wild jumps
 						refined_z -= newton_step
 					
 					true_z = refined_z
 
-					if true_z.distance_to(last_detected_z) > 0.01:
+					if not diverged and true_z.distance_to(last_detected_z) > 0.01:
 						GameState.total_zeros_found += 1
 						GameState.visited_zeros.push_back(true_z)
 						if GameState.visited_zeros.size() > 10:
