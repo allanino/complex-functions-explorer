@@ -207,7 +207,35 @@ void compute_sun_moon(vec3 eye_dir, bool light0_enabled, vec3 light0_dir, vec3 l
         float moon_size = 0.05;
         float moon_disk = smoothstep(moon_size * 0.5, moon_size * 0.45, moon_dist);
         float moon_disk_intensity = smoothstep(0.0, 0.1, light1_en);
-        cloud_final_color += light1_col * moon_disk * moon_disk_intensity;
+
+        vec3 moon_color = light1_col;
+        if (moon_disk > 0.0) {
+            float moon_radius = moon_size * 0.5;
+            vec3 up = abs(light1_dir.y) < 0.999 ? vec3(0.0, 1.0, 0.0) : vec3(0.0, 0.0, 1.0);
+            vec3 right = normalize(cross(up, light1_dir));
+            vec3 moon_up = normalize(cross(light1_dir, right));
+
+            float mx = dot(eye_dir, right) / moon_radius;
+            float my = dot(eye_dir, moon_up) / moon_radius;
+            float mz = sqrt(max(1.0 - mx * mx - my * my, 0.0));
+
+            vec2 moon_uv = vec2(mx, my) * 1.5;
+            vec2 offset = moon_uv + vec2(5.0, 10.0);
+
+            float val = fbm(offset);
+            float craters = smoothstep(0.4, 0.6, val);
+            float detail = fbm(offset * 3.0);
+
+            float texture = 0.6 + 0.4 * craters;
+            texture *= 0.8 + 0.2 * detail;
+
+            float edge_shade = clamp(mz, 0.0, 1.0);
+            texture *= 0.8 + 0.2 * edge_shade;
+
+            moon_color *= texture;
+        }
+
+        cloud_final_color += moon_color * moon_disk * moon_disk_intensity;
 
         float moon_glow_dist = max(0.0, moon_dist - moon_size * 0.45);
 

@@ -68,7 +68,7 @@ func _process(delta):
 	if moon:
 		moon.basis = Basis.looking_at(moon_dir, Vector3.UP if abs(moon_dir.y) < 0.99 else Vector3.FORWARD)
 		var moon_elevation = - moon_dir.y
-		moon.light_energy = smoothstep(-0.02, 0.02, moon_elevation) * 0.4 * Config.sun_luminosity
+		moon.light_energy = smoothstep(-0.02, 0.02, moon_elevation) * 0.08 * Config.sun_luminosity
 		moon.shadow_enabled = Config.shadows_enabled and moon_elevation > -0.01
 
 	if world_environment and world_environment.environment and world_environment.environment.sky:
