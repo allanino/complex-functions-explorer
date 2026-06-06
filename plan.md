@@ -1,4 +1,2 @@
-1. **Add `v_h_clamped` varying** to `terrain/terrain.gdshader`.
-2. **Compute `v_h_clamped` in `vertex()`** and pass it to fragment.
-3. **Use `v_h_clamped` in `fragment()`** to change albedo, brightness, saturation, and emission.
-4. **Complete pre-commit steps**.
+1. Remove test files `get_normal.gd` and `test_script.gd`
+2. Update `player/player_controller.gd` to fix the physics bug by calculating the true root coordinate, then using it. Actually, wait.

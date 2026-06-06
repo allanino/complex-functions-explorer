@@ -520,3 +520,9 @@ static func get_height(x: float, z: float) -> float:
 
 	var f = get_field(x, z)
 	return get_height_from_field(f)
+
+static func get_surface_normal(x: float, z: float) -> Vector3:
+	var h = 0.01 * GameState.effective_zoom
+	var hx = get_height(x + h, z) - get_height(x - h, z)
+	var hz = get_height(x, z + h) - get_height(x, z - h)
+	return Vector3(-hx, 2.0 * h, -hz).normalized()
