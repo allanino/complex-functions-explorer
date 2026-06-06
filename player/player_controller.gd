@@ -447,11 +447,11 @@ func _physics_process(delta):
 	var normal = ComplexField.get_surface_normal(global_position.x, global_position.z)
 	var offset_dist = scaled_camera_height + height_offset
 
-	var target_pos = Vector3(global_position.x, terrain_h, global_position.z) + normal * offset_dist
+	var target_y = terrain_h + offset_dist / max(normal.y, 0.1)
+	velocity.y = 0.5 * (target_y - global_position.y) / delta
 
-	velocity.y = 0.5 * (target_pos.y - global_position.y) / delta
-	velocity.x += 0.5 * (target_pos.x - global_position.x) / delta
-	velocity.z += 0.5 * (target_pos.z - global_position.z) / delta
+	var horizontal_offset = Vector3(normal.x, 0.0, normal.z) * offset_dist
+	camera.position = Vector3(0.0, 1.7, 0.0) + transform.basis.inverse() * horizontal_offset
 
 	if Config.show_curves and Config.show_curves_labels:
 		_curve_label_update_timer += delta
