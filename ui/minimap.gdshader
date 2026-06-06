@@ -6,8 +6,8 @@ uniform vec2 player_pos_world;
 uniform float view_radius = 20.0;
 uniform int color_scheme = 0;
 
-uniform bool draw_level_curves = false;
-uniform bool draw_critical_stripe = false;
+uniform bool show_curves = false;
+uniform bool show_critical_stripe = false;
 uniform float level_curve_thickness = 0.1;
 uniform float level_curve_frequency = 10.0;
 
@@ -53,7 +53,7 @@ void fragment() {
     base_color = mix(base_color, vec3(0.5), moire_suppression * 0.5);
 
     // Grid / Level Curves
-    if (draw_level_curves) {
+    if (show_curves) {
         float fmag = length(f);
         if (fmag > 1e-6) {
             float m = log(fmag);
@@ -80,7 +80,7 @@ void fragment() {
         }
     }
 
-    if (draw_critical_stripe && is_dirichlect) {
+    if (show_critical_stripe && is_dirichlect) {
         vec2 complex_pos = world_to_complex(world_pos.x, world_pos.y);
         if (complex_pos.x >= 0.0 && complex_pos.x <= 1.0) {
             base_color = mix(base_color, vec3(1.0), 0.15); // highlight
