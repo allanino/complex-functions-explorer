@@ -444,7 +444,9 @@ func _physics_process(delta):
 			velocity.x = move_toward(velocity.x, 0, current_speed)
 			velocity.z = move_toward(velocity.z, 0, current_speed)
 
-	var terrain_h = get_terrain_height(global_position.x, global_position.z, current_f)
+	# Predict player's position based on velocity and check its height
+	var predicted_pos = global_position + velocity * delta
+	var terrain_h = get_terrain_height(predicted_pos.x, predicted_pos.z)
 
 	var is_field_valid = is_finite(current_f.x) and is_finite(current_f.y) and is_finite(current_mag)
 	if not is_field_valid or not is_finite(terrain_h):
@@ -453,22 +455,14 @@ func _physics_process(delta):
 		last_valid_terrain_height = terrain_h
 
 	# Prevent player from probing heights higher/lower than MAX_WORLD_HEIGHT
-	var buffer = 15.0
-	if abs(terrain_h) > MAX_WORLD_HEIGHT - buffer:
-		var t = clamp((MAX_WORLD_HEIGHT - abs(terrain_h)) / buffer, 0.0, 1.0)
-		# Only slow down if moving towards the boundary (absolute height increasing)
+	if abs(terrain_h) >= MAX_WORLD_HEIGHT:
+		# If moving to a height that is greater in magnitude than our current/last height, block it
 		if abs(terrain_h) > abs(last_terrain_h):
-			velocity.x *= t
-			velocity.z *= t
-		
-		# If we have reached or exceeded the limit, apply a gentle corrective pull
-		if abs(terrain_h) >= MAX_WORLD_HEIGHT:
-			var to_safe = last_player_pos - global_position
-			to_safe.y = 0.0
-			if to_safe.length_squared() > 1e-6:
-				var penetration = abs(terrain_h) - MAX_WORLD_HEIGHT
-				velocity += to_safe.normalized() * penetration * 5.0 * GameState.effective_zoom
-				terrain_h = last_terrain_h
+			velocity.x = 0.0
+			velocity.z = 0.0
+			terrain_h = last_terrain_h
+		terrain_h = clamp(terrain_h, -MAX_WORLD_HEIGHT, MAX_WORLD_HEIGHT)
+
 
 	# Estimate slope and push camera away from rising walls
 	var target_offset = camera_push_offset
