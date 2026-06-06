@@ -337,7 +337,7 @@ func _rescale_card(card: Control, _scale: float):
 		if node is Control:
 			# Only scale custom minimum size for specific panels to maintain layout proportions
 			if node.name == "ComplexAspect":
-				node.custom_minimum_size = Vector2(0, (BASE_HUD_PANEL_SIZE * _scale) - 20.0)
+				node.custom_minimum_size = Vector2(0, BASE_HUD_PANEL_SIZE * _scale)
 			elif node.name == "ZerosPanel" or node.name == "DomainPanel" or node.name == "TargetPanel":
 				if not node.has_meta("base_min_size"):
 					node.set_meta("base_min_size", node.custom_minimum_size)
@@ -355,7 +355,10 @@ func _rescale_card(card: Control, _scale: float):
 			elif node is MarginContainer:
 				for margin in ["margin_left", "margin_top", "margin_right", "margin_bottom"]:
 					if not node.has_meta("base_" + margin):
-						node.set_meta("base_" + margin, node.get_theme_constant(margin))
+						var val = node.get("theme_override_constants/" + margin)
+						if val == null:
+							val = node.get_theme_constant(margin)
+						node.set_meta("base_" + margin, val)
 					node.add_theme_constant_override(margin, node.get_meta("base_" + margin))
 
 		for child in node.get_children():

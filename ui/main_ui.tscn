@@ -575,7 +575,7 @@ layout_mode = 2
 theme_override_constants/margin_left = 10
 theme_override_constants/margin_top = 10
 theme_override_constants/margin_right = 10
-theme_override_constants/margin_bottom = 10
+theme_override_constants/margin_bottom = 15
 
 [node name="VBox" type="VBoxContainer" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer"]
 layout_mode = 2
@@ -679,9 +679,13 @@ size_flags_horizontal = 3
 text = "0"
 horizontal_alignment = 2
 
+[node name="Spacer" type="Control" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox"]
+custom_minimum_size = Vector2(0, 3)
+layout_mode = 2
+
 [node name="ComplexAspect" type="AspectRatioContainer" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 170)
+custom_minimum_size = Vector2(0, 240)
 layout_mode = 2
 size_flags_horizontal = 3
 ratio = 1.0
@@ -692,10 +696,10 @@ layout_mode = 2
 
 [node name="MarginContainer" type="MarginContainer" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox/ComplexAspect/ComplexPanel"]
 layout_mode = 2
-theme_override_constants/margin_left = 5
-theme_override_constants/margin_top = 5
-theme_override_constants/margin_right = 5
-theme_override_constants/margin_bottom = 5
+theme_override_constants/margin_left = 0
+theme_override_constants/margin_top = 0
+theme_override_constants/margin_right = 0
+theme_override_constants/margin_bottom = 0
 
 [node name="ClipPanel" type="PanelContainer" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox/ComplexAspect/ComplexPanel/MarginContainer"]
 layout_mode = 2
