@@ -7,7 +7,7 @@ const MOUSE_SENSITIVITY = 0.002
 const DOUBLE_PRESS_TIME = 0.3
 # The critical line in the complex plane is at Re(s) = 0.5
 const CRITICAL_LINE_COMPLEX_X = 0.5
-const MAX_WORLD_HEIGHT = 5000.0
+const MAX_WORLD_HEIGHT = 1000.0
 const ZEROS_DETECTION_EPS = 0.01
 const ZEROS_DETECTION_START_RECORDING = 0.1
 
