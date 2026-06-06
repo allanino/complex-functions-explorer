@@ -22,8 +22,14 @@ func _process(_delta):
 	if not player or not main_camera:
 		return
 
-	minimap_camera.global_position = Vector3(player.global_position.x, 200.0 * GameState.effective_zoom, player.global_position.z)
-	minimap_camera.size = 80.0 * GameState.effective_zoom
+	var zoom = GameState.effective_zoom
+	var dist = 200.0 * zoom
+	minimap_camera.global_position = Vector3(
+		player.global_position.x,
+		dist,
+		player.global_position.z + dist
+	)
+	minimap_camera.size = 80.0 * zoom
 
 	fov_overlay.queue_redraw()
 
@@ -44,8 +50,9 @@ func _on_fov_overlay_draw():
 	var left_angle = atan2(forward.y, forward.x) - fov_rad / 2.0
 	var right_angle = atan2(forward.y, forward.x) + fov_rad / 2.0
 
-	var p1 = center + Vector2(cos(left_angle), sin(left_angle)) * r
-	var p2 = center + Vector2(cos(right_angle), sin(right_angle)) * r
+	# Apply 0.7071 scale to Y to account for 45-degree orthographic foreshortening
+	var p1 = center + Vector2(cos(left_angle), sin(left_angle) * 0.707106) * r
+	var p2 = center + Vector2(cos(right_angle), sin(right_angle) * 0.707106) * r
 
 	var points = PackedVector2Array([center, p1, p2])
 	var colors = PackedColorArray([Color(1, 1, 1, 0.4), Color(1, 1, 1, 0.0), Color(1, 1, 1, 0.0)])
