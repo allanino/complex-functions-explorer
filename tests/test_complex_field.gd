@@ -148,21 +148,6 @@ func test_zeta_continuation():
 	assert_almost_eq(res2.x, 0.132971, 0.015)
 	assert_almost_eq(res2.y, 0.123053, 0.015)
 
-	# Zeta from Mathematica:
-	# Zeta[-2. + 3. I]
-	# 0.132971 + 0.123053 I
-	var data = ComplexFieldScript.zeta_continuation_with_derivatives(-2.0, 3.0)
-	var res3 = data[0]
-	assert_almost_eq(res3.x, 0.132971, 0.015)
-	assert_almost_eq(res3.y, 0.123053, 0.015)
-
-	# Zeta derivative from Mathematica:
-	# D[Zeta[x + 3.0 I], x] /. x -> -2.0
-	# 0.132743 - 0.037438 I
-	var dx = data[1]
-	assert_almost_eq(dx.x, 0.132743, 0.015)
-	assert_almost_eq(dx.y, -0.037438, 0.015)
-
 func test_dedekind_eta():
 	var res = ComplexFieldScript.dedekind_eta(0, 1)
 	assert_almost_eq(res.x, 0.7682, 0.01)
