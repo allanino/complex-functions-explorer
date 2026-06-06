@@ -6,6 +6,15 @@ uniform vec3 cloud_color : source_color = vec3(1.0, 1.0, 1.0);
 uniform float golden_hour_factor = 0.0;
 uniform float night_factor = 0.0;
 uniform float sky_luminosity = 1.0;
+uniform vec3 light0_dir_custom = vec3(0.0, 1.0, 0.0);
+uniform bool light0_enabled_custom = true;
+uniform vec3 light0_col_custom = vec3(1.0);
+uniform float light0_en_custom = 1.0;
+
+uniform vec3 light1_dir_custom = vec3(0.0, -1.0, 0.0);
+uniform vec3 light1_col_custom = vec3(1.0);
+uniform float light1_en_custom = 1.0;
+
 uniform bool performance_protection_active = false;
 
 // Dave Hoskins' hash (2D to 1D)
@@ -181,7 +190,7 @@ void compute_sun_moon(vec3 eye_dir, bool light0_enabled, vec3 light0_dir, vec3 l
     if (light0_enabled && light0_en > 0.0) {
         float sun_dist = distance(eye_dir, light0_dir);
         float sun_size = 0.05;
-        float sun_disk = smoothstep(sun_size * 0.5, sun_size * 0.45, sun_dist);
+        float sun_disk = 1.0 - smoothstep(sun_size * 0.45, sun_size * 0.5, sun_dist);
         // disk_intensity stays 1.0 while sun is visible to keep its size
         // Using a small threshold to avoid flickering
         float disk_intensity = smoothstep(0.0, 0.1, light0_en);
@@ -205,7 +214,7 @@ void compute_sun_moon(vec3 eye_dir, bool light0_enabled, vec3 light0_dir, vec3 l
         float moon_dist = distance(eye_dir, light1_dir);
         // Moon disk: Match sun size
         float moon_size = 0.05;
-        float moon_disk = smoothstep(moon_size * 0.5, moon_size * 0.45, moon_dist);
+        float moon_disk = 1.0 - smoothstep(moon_size * 0.45, moon_size * 0.5, moon_dist);
         float moon_disk_intensity = smoothstep(0.0, 0.1, light1_en);
         cloud_final_color += light1_col * moon_disk * moon_disk_intensity;
 
@@ -265,7 +274,7 @@ void sky() {
         float grad_factor = clamp(eye_alt / horizon_span, 0.0, 1.0);
         grad_factor = 1.0 - exp(-grad_factor * mix(2.0, 4.0, golden_hour_factor));
         vec3 final_color = mix(current_horizon, current_sky, grad_factor);
-        float sun_factor = pow(max(dot(EYEDIR, LIGHT0_DIRECTION), 0.0), 3.0);
+        float sun_factor = pow(max(dot(EYEDIR, light0_dir_custom), 0.0), 3.0);
         final_color += current_horizon * sun_factor * 0.08;
 
         float horizon_alt = max(eye_alt, 0.0);
@@ -278,13 +287,13 @@ void sky() {
 
         vec3 cloud_final_color;
         // Clouds
-        compute_clouds(EYEDIR, eye_alt, TIME, current_cloud, final_color, LIGHT0_ENABLED, LIGHT0_DIRECTION, LIGHT0_COLOR, cloud_final_color);
+        compute_clouds(EYEDIR, eye_alt, TIME, current_cloud, final_color, light0_enabled_custom, light0_dir_custom, light0_col_custom, cloud_final_color);
 
         // Sun & Moon
-        compute_sun_moon(EYEDIR, LIGHT0_ENABLED, LIGHT0_DIRECTION, LIGHT0_COLOR, LIGHT0_ENERGY, LIGHT1_DIRECTION, LIGHT1_COLOR, LIGHT1_ENERGY, cloud_final_color);
+        compute_sun_moon(EYEDIR, light0_enabled_custom, light0_dir_custom, light0_col_custom, light0_en_custom, light1_dir_custom, light1_col_custom, light1_en_custom, cloud_final_color);
 
         // Haze
-        compute_haze(EYEDIR, night_factor, golden_hour_factor, LIGHT0_ENABLED, LIGHT0_DIRECTION, LIGHT0_COLOR, cloud_final_color);
+        compute_haze(EYEDIR, night_factor, golden_hour_factor, light0_enabled_custom, light0_dir_custom, light0_col_custom, cloud_final_color);
 
         COLOR = cloud_final_color * sky_luminosity;
     }

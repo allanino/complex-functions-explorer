@@ -78,6 +78,16 @@ func _process(delta):
 			sky_mat.set_shader_parameter("night_factor", night_factor)
 			sky_mat.set_shader_parameter("sky_luminosity", Config.sky_luminosity)
 
+			sky_mat.set_shader_parameter("light0_dir_custom", -sun_dir)
+			sky_mat.set_shader_parameter("light0_enabled_custom", sun_elevation > -0.01)
+			sky_mat.set_shader_parameter("light0_col_custom", sun.light_color)
+			sky_mat.set_shader_parameter("light0_en_custom", sun.light_energy)
+
+			sky_mat.set_shader_parameter("light1_dir_custom", -moon_dir)
+			sky_mat.set_shader_parameter("light1_col_custom", moon.light_color)
+			sky_mat.set_shader_parameter("light1_en_custom", moon.light_energy)
+
+
 		# Setup fog color
 		if Config.fog_density > 0.0:
 			var env = world_environment.environment
