@@ -644,8 +644,6 @@ void compute_newton_path(vec3 w_pos, inout vec3 out_albedo, inout vec3 final_emi
 }
 
 void compute_position_marker(vec3 w_pos, vec3 norm, inout vec3 out_albedo, inout vec3 final_emission) {
-    vec3 player_pos = player_position_world;
-
     float scale = clamp(0.4 / zoom_factor, 0.2, 0.7);
 
     float length_arms = 0.6 * scale;
@@ -655,30 +653,37 @@ void compute_position_marker(vec3 w_pos, vec3 norm, inout vec3 out_albedo, inout
     float arrow_len = 0.08 * scale;
     float arrow_width = 0.04 * scale;
 
+    // Construct a local 3D displacement vector purely from XZ to avoid floating player Y issues
+    vec2 dxz = w_pos.xz - player_position_world.xz;
+    float ny = max(norm.y, 0.001);
+    float dy = -(dxz.x * norm.x + dxz.y * norm.z) / ny;
+    vec3 local_p = vec3(dxz.x, dy, dxz.y);
+    vec3 origin = vec3(0.0);
+
     // Project X and -Z axes onto the surface tangent plane
-    vec3 t_right = normalize(vec3(1.0, 0.0, 0.0) - norm * norm.x);
-    vec3 t_upward = normalize(vec3(0.0, 0.0, -1.0) - norm * (-norm.z));
+    vec3 t_right = normalize(vec3(1.0, -norm.x / ny, 0.0));
+    vec3 t_upward = normalize(vec3(0.0, norm.z / ny, -1.0));
 
-    vec3 tip_right = player_pos + t_right * length_arms;
-    vec3 tip_upward = player_pos + t_upward * length_arms;
+    vec3 tip_right = t_right * length_arms;
+    vec3 tip_upward = t_upward * length_arms;
 
-    float d_line1 = sdLine3D(w_pos, player_pos, tip_right);
-    float d_line2 = sdLine3D(w_pos, player_pos, tip_upward);
+    float d_line1 = sdLine3D(local_p, origin, tip_right);
+    float d_line2 = sdLine3D(local_p, origin, tip_upward);
     float d_cross = min(d_line1, d_line2);
 
-    float d_dot = length(w_pos - player_pos) - dot_radius;
+    float d_dot = length(local_p) - dot_radius;
 
     // Arrowheads at the tips of the cross arms
     vec3 right_perp = normalize(cross(norm, t_right)); // Points forward/backward
     float d_arr_right = min(
-        sdLine3D(w_pos, tip_right, tip_right - t_right * arrow_len + right_perp * arrow_width),
-        sdLine3D(w_pos, tip_right, tip_right - t_right * arrow_len - right_perp * arrow_width)
+        sdLine3D(local_p, tip_right, tip_right - t_right * arrow_len + right_perp * arrow_width),
+        sdLine3D(local_p, tip_right, tip_right - t_right * arrow_len - right_perp * arrow_width)
     );
 
     vec3 upward_perp = normalize(cross(norm, t_upward)); // Points left/right
     float d_arr_upward = min(
-        sdLine3D(w_pos, tip_upward, tip_upward - t_upward * arrow_len + upward_perp * arrow_width),
-        sdLine3D(w_pos, tip_upward, tip_upward - t_upward * arrow_len - upward_perp * arrow_width)
+        sdLine3D(local_p, tip_upward, tip_upward - t_upward * arrow_len + upward_perp * arrow_width),
+        sdLine3D(local_p, tip_upward, tip_upward - t_upward * arrow_len - upward_perp * arrow_width)
     );
 
     float d_arrows = min(d_arr_right , d_arr_upward);
