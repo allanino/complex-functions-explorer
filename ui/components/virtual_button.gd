@@ -44,5 +44,5 @@ func _draw():
         var icon_size = settings_icon.get_size()
         var center = size / 2.0
         var _draw_rect = Rect2(center - icon_size / 2.0, icon_size)
-        var modulate_color = Color(0.2, 0.2, 0.2, 1.0) if is_pressed else Color(0.3, 0.3, 0.3, 0.4)
+        var modulate_color = Color(0.5, 0.5, 0.5, 1.0) if is_pressed else Color(0.8, 0.8, 0.8, 0.4)
         draw_texture_rect(settings_icon, _draw_rect, false, modulate_color)
