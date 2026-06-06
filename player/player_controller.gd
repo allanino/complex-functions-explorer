@@ -452,15 +452,23 @@ func _physics_process(delta):
 		last_valid_terrain_height = terrain_h
 
 	# Estimate slope and push camera away from rising walls
-	var target_offset = Vector3.ZERO
+	var target_offset = camera_push_offset
 	var d_pos = global_position - last_player_pos
 	d_pos.y = 0.0 # Only care about horizontal movement
 	
-	if d_pos.length_squared() > 1e-6:
+	if d_pos.length_squared() > 100.0: # Teleport detected
+		camera_push_offset = Vector3.ZERO
+		target_offset = Vector3.ZERO
+	elif d_pos.length_squared() > 1e-8:
 		var delta_h = terrain_h - last_terrain_h
-		if delta_h > 0.01: # Moving uphill
-			var push_dir = - d_pos.normalized()
+		var slope = delta_h / d_pos.length()
+		if abs(slope) > 0.15: # On a steep slope (uphill or downhill)
+			# Always push the camera downhill (opposite to the rising slope)
+			var push_dir = - d_pos.normalized() * sign(slope)
 			target_offset = push_dir
+		else:
+			# On flat ground, decay to zero
+			target_offset = Vector3.ZERO
 
 	# Smoothly interpolate the offset to prevent camera jitter
 	camera_push_offset = camera_push_offset.lerp(target_offset, delta * 6.0)
