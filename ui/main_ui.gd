@@ -1,5 +1,6 @@
 extends CanvasLayer
 const ZERO_LIST_ITEM_SCENE = preload("res://ui/components/zero_list_item.tscn")
+const NEON_FONT = preload("res://ui/theme/font_neon.tres")
 @export var player: Node3D
 @onready var hud_columns = %MainUIColumns
 @onready var hud_stack_left = %MainUIStackLeft
@@ -27,6 +28,7 @@ const ZERO_LIST_ITEM_SCENE = preload("res://ui/components/zero_list_item.tscn")
 @onready var rvm_n_label = %RvmNLabel
 @onready var rvm_delta_label = %RvmDeltaLabel
 @onready var zeros_list_label = %ListLabelContainer
+@onready var zeros_scroll = %ZerosScroll
 @onready var menu_overlay = %MenuOverlay
 var portal_flash: ColorRect
 @onready var tooltip_manager = %TooltipManager
@@ -93,7 +95,7 @@ func toggle_menu(applied: bool = false):
 	menu_overlay.toggle_menu(applied)
 
 func _format_float_3(val: float) -> String:
-	return "%.3f" % snappedf(val, 0.001)
+	return "%.6f" % snappedf(val, 0.000001)
 
 func _get_rvm_n(T: float) -> float:
 	if T <= 0.1:
@@ -146,9 +148,11 @@ func _process(_delta):
 
 			# Clear existing items
 			for child in zeros_list_label.get_children():
+				zeros_list_label.remove_child(child)
 				child.queue_free()
 
 			var current_size = GameState.visited_zeros.size()
+			var actual_hud_scale = Config.hud_scale
 			for i in range(current_size - 1, max(-1, current_size - 11), -1):
 				var zero = GameState.visited_zeros[i]
 				var re_str = _format_float_3(zero[0])
@@ -156,6 +160,7 @@ func _process(_delta):
 				var item = ZERO_LIST_ITEM_SCENE.instantiate()
 				zeros_list_label.add_child(item)
 				item.set_values(re_str, im_str)
+				_rescale_card(item, actual_hud_scale)
 				if i == current_size - 1:
 					item.is_active = true
 
@@ -258,10 +263,6 @@ func _update_hud_layout():
 
 	var actual_hud_scale = Config.hud_scale
 
-	# Always rescale all cards to ensure their combined_minimum_size is correct for height check
-	for card in cards:
-		_rescale_card(card, actual_hud_scale)
-
 	var current_state = {
 		"size": get_viewport().size,
 		"scale": Config.hud_scale,
@@ -271,6 +272,10 @@ func _update_hud_layout():
 	if current_state.hash() == _last_hud_state.hash():
 		return
 	_last_hud_state = current_state
+
+	# Only rescale cards when layout state changes
+	for card in cards:
+		_rescale_card(card, actual_hud_scale)
 
 	# Scale stack widths to accommodate wider fonts
 	hud_stack_right.custom_minimum_size.x = BASE_HUD_PANEL_SIZE * actual_hud_scale
@@ -303,6 +308,11 @@ func _update_hud_layout():
 	hud_stack_right.add_theme_constant_override("separation", 10)
 	hud_stack_left.add_theme_constant_override("separation", 10)
 
+	for card in cards:
+		card.reset_size()
+	hud_stack_right.reset_size()
+	hud_stack_left.reset_size()
+
 func _apply_stack_layout(stack: VBoxContainer, desired_cards: Array):
 	for child in stack.get_children():
 		if not child in desired_cards:
@@ -332,21 +342,36 @@ func _rescale_card(card: Control, _scale: float):
 		var node = stack.pop_back()
 		if node is Label:
 			if not node.has_meta("base_font_size"):
-				node.set_meta("base_font_size", node.get_theme_font_size("font_size"))
+				var fs = node.get("theme_override_font_sizes/font_size")
+				if fs == null or fs == 0:
+					fs = node.get_theme_font_size("font_size")
+				node.set_meta("base_font_size", fs)
 			node.add_theme_font_size_override("font_size", int(round(node.get_meta("base_font_size") * _scale)))
 		elif node is RichTextLabel:
 			if not node.has_meta("base_font_size"):
-				node.set_meta("base_font_size", node.get_theme_font_size("normal_font_size"))
+				var fs = node.get("theme_override_font_sizes/normal_font_size")
+				if fs == null or fs == 0:
+					fs = node.get_theme_font_size("normal_font_size")
+				node.set_meta("base_font_size", fs)
 			node.add_theme_font_size_override("normal_font_size", int(round(node.get_meta("base_font_size") * _scale)))
 
 		if node is Control:
 			# Only scale custom minimum size for specific panels to maintain layout proportions
 			if node.name == "ComplexAspect":
 				node.custom_minimum_size = Vector2(0, BASE_HUD_PANEL_SIZE * _scale)
-			elif node.name == "ZerosPanel" or node.name == "DomainPanel" or node.name == "TargetPanel":
+			elif node.name == "DomainPanel" or node.name == "TargetPanel":
 				if not node.has_meta("base_min_size"):
 					node.set_meta("base_min_size", node.custom_minimum_size)
 				node.custom_minimum_size.y = node.get_meta("base_min_size").y * _scale
+			elif node.name == "ZerosScroll":
+				var font_size = int(round(14.0 * _scale))
+				var font_height = NEON_FONT.get_height(font_size)
+				# StyleBoxFlat margins: content_margin_top (4.0) + content_margin_bottom (4.0) = 8.0
+				var item_height = font_height + 8.0
+				var separation = 2.0
+				node.custom_minimum_size.y = 5.0 * item_height + 4.0 * separation
+			elif node.name.begins_with("ZeroListItem"):
+				pass
 			elif node.name == "RvmNLabel" or node.name == "RvmDeltaLabel":
 				if not node.has_meta("base_min_size"):
 					node.set_meta("base_min_size", node.custom_minimum_size)

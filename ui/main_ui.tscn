@@ -341,13 +341,11 @@ autowrap_mode = 3
 [node name="ZerosPanel" type="PanelContainer" parent="Control/MainUIColumns/MainUIStackRight"]
 unique_name_in_owner = true
 visible = false
-custom_minimum_size = Vector2(0, 270)
 layout_mode = 2
 size_flags_horizontal = 3
 
 [node name="MarginContainer" type="MarginContainer" parent="Control/MainUIColumns/MainUIStackRight/ZerosPanel"]
 layout_mode = 2
-custom_minimum_size = Vector2(0, 240)
 theme_override_constants/margin_left = 10
 theme_override_constants/margin_top = 10
 theme_override_constants/margin_right = 10
@@ -432,12 +430,12 @@ fit_content = true
 scroll_active = false
 autowrap_mode = 0
 
-[node name="Scroll" type="ScrollContainer" parent="Control/MainUIColumns/MainUIStackRight/ZerosPanel/MarginContainer/VBox"]
+[node name="ZerosScroll" type="ScrollContainer" parent="Control/MainUIColumns/MainUIStackRight/ZerosPanel/MarginContainer/VBox"]
+unique_name_in_owner = true
 layout_mode = 2
-size_flags_vertical = 3
 horizontal_scroll_mode = 0
 
-[node name="ListLabelContainer" type="VBoxContainer" parent="Control/MainUIColumns/MainUIStackRight/ZerosPanel/MarginContainer/VBox/Scroll"]
+[node name="ListLabelContainer" type="VBoxContainer" parent="Control/MainUIColumns/MainUIStackRight/ZerosPanel/MarginContainer/VBox/ZerosScroll"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3

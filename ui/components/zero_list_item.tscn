@@ -14,7 +14,6 @@ content_margin_bottom = 4.0
 
 [node name="ZeroListItem" type="PanelContainer"]
 script = ExtResource("1_script")
-custom_minimum_size = Vector2(0, 24)
 theme_override_styles/panel = SubResource("StyleBoxFlat_item")
 
 [node name="HBox" type="HBoxContainer" parent="."]
