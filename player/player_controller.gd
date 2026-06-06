@@ -1,7 +1,7 @@
 extends CharacterBody3D
 
 var enable_joystick: bool = false
-@export var run_demo: bool = true
+@export var run_demo: bool = false
 
 const MOUSE_SENSITIVITY = 0.002
 const DOUBLE_PRESS_TIME = 0.3
@@ -201,7 +201,7 @@ func _unhandled_input(event):
 				auto_walk_state = AutoWalkState.NEWTON_WALK
 				var complex_pos = Config.world_to_complex(global_position.x, global_position.z)
 				newton_target_z = ComplexField.newton_step_zeta_reflection(complex_pos)
-				last_newton_idx = 0
+				last_newton_idx = 1
 
 				newton_wait_timer = 0.1
 				newton_converged = false
@@ -409,8 +409,8 @@ func _physics_process(delta):
 
 		if current_pos2d.distance_to(target_pos2d) > 0.01:
 			var target_dir2d = (target_pos2d - current_pos2d).normalized()
-			var target_yaw = atan2(target_dir2d.x, target_dir2d.y) + PI
-			rotation.y = lerp_angle(rotation.y, target_yaw, 2.0 * delta)
+			var target_yaw = atan2(-target_dir2d.x, -target_dir2d.y)
+			rotation.y = lerp_angle(rotation.y, target_yaw, 10.0 * delta)
 
 		if newton_wait_timer > 0.0:
 			newton_wait_timer -= delta
@@ -430,7 +430,9 @@ func _physics_process(delta):
 					var target_dir2d = (target_pos2d - current_pos2d).normalized()
 					direction = Vector3(target_dir2d.x, 0, target_dir2d.y)
 			else:
-				if current_pos2d.distance_to(target_pos2d) > 0.1:
+				var dist = current_pos2d.distance_to(target_pos2d)
+				var arrival_margin = max(0.1, current_speed * delta * 1.5)
+				if dist > arrival_margin:
 					var target_dir2d = (target_pos2d - current_pos2d).normalized()
 					direction = Vector3(target_dir2d.x, 0, target_dir2d.y)
 				else:
@@ -438,9 +440,13 @@ func _physics_process(delta):
 					last_newton_idx += 1
 					if last_newton_idx < path.size():
 						newton_target_z = path[last_newton_idx]
+						var next_world = Config.complex_to_world(newton_target_z.x, newton_target_z.y)
+						target_pos2d = Vector2(next_world.x, next_world.y)
+						var target_dir2d = (target_pos2d - current_pos2d).normalized()
+						direction = Vector3(target_dir2d.x, 0, target_dir2d.y)
 					else:
 						newton_converged = true
-					newton_wait_timer = 0.2
+					newton_wait_timer = 0.0
 
 	if direction != Vector3.ZERO:
 		if auto_walk_state != AutoWalkState.MOVING_TO_LINE and auto_walk_state != AutoWalkState.WALKING:
