@@ -23,7 +23,7 @@ func _process(_delta):
 		return
 
 	var zoom = GameState.effective_zoom
-	var dist = 200.0 * zoom
+	var dist = 100.0
 	minimap_camera.global_position = Vector3(
 		player.global_position.x,
 		dist,

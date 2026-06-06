@@ -59,10 +59,10 @@ render_target_update_mode = 4
 
 [node name="MinimapCamera" type="Camera3D" parent="Panel/MarginContainer/ClipPanel/SubViewportContainer/SubViewport"]
 unique_name_in_owner = true
-transform = Transform3D(1, 0, 0, 0, 0.707107, -0.707107, 0, 0.707107, 0.707107, 0, 200, 200)
+transform = Transform3D(1, 0, 0, 0, 0.707106, 0.707106, 0, -0.707106, 0.707106, 0, 100, 100)
 projection = 1
 size = 80.0
-far = 10000.0
+far = 4000.0
 
 [node name="FOVOverlay" type="Control" parent="Panel/MarginContainer/ClipPanel"]
 unique_name_in_owner = true
