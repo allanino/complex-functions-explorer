@@ -582,8 +582,6 @@ void compute_newton_path(vec3 w_pos, inout vec3 out_albedo, inout vec3 final_emi
 
     vec2 pos_xz = w_pos.xz;
     float scale = clamp(0.5 / zoom_factor, 0.2, 0.5) * 2.0;
-    float thickness = 0.02 * scale;
-    float glow_thickness = 0.04 * scale;
 
     float d_newton = 99999.0;
 
@@ -599,31 +597,37 @@ void compute_newton_path(vec3 w_pos, inout vec3 out_albedo, inout vec3 final_emi
             vec2 p1 = vec2(newton_path[i].x * 10.0 * zoom_factor, -newton_path[i].y * 10.0 * zoom_factor);
             vec2 p2 = vec2(newton_path[i+1].x * 10.0 * zoom_factor, -newton_path[i+1].y * 10.0 * zoom_factor);
 
-            float d_seg = sdLine(pos_xz, p1, p2);
+            float seg_len = length(p2 - p1);
+            if (seg_len < 0.0001) continue;
+
+            float local_thickness = max(0.005 * scale, min(0.02 * scale, seg_len * 0.05));
+            float d_seg = sdLine(pos_xz, p1, p2) / local_thickness;
             d_newton = min(d_newton, d_seg);
 
             // Add an arrow pointing from p1 to p2
-            vec2 dir = normalize(p2 - p1);
+            vec2 dir = (p2 - p1) / seg_len;
             vec2 perp = vec2(-dir.y, dir.x);
             vec2 mid = (p1 + p2) * 0.5;
 
-            // Scale arrow size with zoom, but keep it readable
-            float path_arrow_len = 0.16 * scale;
-            float path_arrow_width = 0.08 * scale;
+            // Scale arrow size with zoom and local segment length
+            float path_arrow_len = min(0.16 * scale, seg_len * 0.4);
+            float path_arrow_width = min(0.08 * scale, seg_len * 0.2);
+            float local_arr_thickness = max(0.005 * scale, min(0.02 * scale, path_arrow_len * 0.15));
 
             float d_arr = min(
                 sdLine(pos_xz, mid + dir * path_arrow_len * 0.5, mid - dir * path_arrow_len * 0.5 + perp * path_arrow_width),
                 sdLine(pos_xz, mid + dir * path_arrow_len * 0.5, mid - dir * path_arrow_len * 0.5 - perp * path_arrow_width)
-            );
+            ) / local_arr_thickness;
+
             d_newton = min(d_newton, d_arr);
         }
     }
 
-    if (d_newton < glow_thickness) {
-        // Crisp core
-        float core = 1.0 - step(thickness, d_newton);
-        // Slight glow
-        float glow = (1.0 - smoothstep(thickness, glow_thickness, d_newton)) * 0.5;
+    if (d_newton < 2.0) {
+        // Crisp core (normalized thickness = 1.0)
+        float core = 1.0 - step(1.0, d_newton);
+        // Slight glow (normalized glow thickness = 2.0)
+        float glow = (1.0 - smoothstep(1.0, 2.0, d_newton)) * 0.5;
 
         vec3 marker_color = vec3(0.4);
         float intensity = core + glow;
