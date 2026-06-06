@@ -343,7 +343,7 @@ func _physics_process(delta):
 	if auto_walk_state != AutoWalkState.NONE:
 		current_speed = min(current_speed, 50.0)
 		if auto_walk_state == AutoWalkState.NEWTON_WALK:
-			current_speed = min(current_speed, 2.0 * zoom_speed_scale)
+			current_speed = min(current_speed, 20.0)
 
 	if auto_walk_state == AutoWalkState.NONE:
 		if Input.is_key_pressed(KEY_SHIFT):
