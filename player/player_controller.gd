@@ -454,8 +454,8 @@ func _physics_process(delta):
 
 	# Prevent player from probing heights higher/lower than MAX_WORLD_HEIGHT
 	if abs(terrain_h) >= MAX_WORLD_HEIGHT:
-		global_position.x = last_player_pos.x
-		global_position.z = last_player_pos.z
+		global_position.x = lerp(global_position.x, last_player_pos.x, delta * 25.0)
+		global_position.z = lerp(global_position.z, last_player_pos.z, delta * 25.0)
 		velocity = Vector3.ZERO
 		terrain_h = last_terrain_h
 
