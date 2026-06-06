@@ -95,6 +95,12 @@ float sdLine(vec2 p, vec2 a, vec2 b) {
     return length(pa - ba * h);
 }
 
+float sdLine3D(vec3 p, vec3 a, vec3 b) {
+    vec3 pa = p - a, ba = b - a;
+    float h = clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0);
+    return length(pa - ba * h);
+}
+
 float sdTriangle(vec2 p, vec2 p0, vec2 p1, vec2 p2)
 {
     vec2 e0 = p1 - p0;
@@ -637,9 +643,8 @@ void compute_newton_path(vec3 w_pos, inout vec3 out_albedo, inout vec3 final_emi
     }
 }
 
-void compute_position_marker(vec3 w_pos, inout vec3 out_albedo, inout vec3 final_emission) {
-    vec2 player_xz = player_position_world.xz;
-    vec2 pos_xz = w_pos.xz;
+void compute_position_marker(vec3 w_pos, vec3 norm, inout vec3 out_albedo, inout vec3 final_emission) {
+    vec3 player_pos = player_position_world;
 
     float scale = clamp(0.4 / zoom_factor, 0.2, 0.7);
 
@@ -650,23 +655,30 @@ void compute_position_marker(vec3 w_pos, inout vec3 out_albedo, inout vec3 final
     float arrow_len = 0.08 * scale;
     float arrow_width = 0.04 * scale;
 
-    float d_line1 = sdLine(pos_xz, player_xz, player_xz + vec2(length_arms, 0.0));
-    float d_line2 = sdLine(pos_xz, player_xz, player_xz - vec2(0.0, length_arms));
+    // Project X and -Z axes onto the surface tangent plane
+    vec3 t_right = normalize(vec3(1.0, 0.0, 0.0) - norm * norm.x);
+    vec3 t_upward = normalize(vec3(0.0, 0.0, -1.0) - norm * (-norm.z));
 
+    vec3 tip_right = player_pos + t_right * length_arms;
+    vec3 tip_upward = player_pos + t_upward * length_arms;
+
+    float d_line1 = sdLine3D(w_pos, player_pos, tip_right);
+    float d_line2 = sdLine3D(w_pos, player_pos, tip_upward);
     float d_cross = min(d_line1, d_line2);
-    float d_dot = length(pos_xz - player_xz) - dot_radius;
+
+    float d_dot = length(w_pos - player_pos) - dot_radius;
 
     // Arrowheads at the tips of the cross arms
-    vec2 tip_right = player_xz + vec2(length_arms, 0.0);
+    vec3 right_perp = normalize(cross(norm, t_right)); // Points forward/backward
     float d_arr_right = min(
-        sdLine(pos_xz, tip_right, tip_right - vec2(arrow_len, arrow_width)),
-        sdLine(pos_xz, tip_right, tip_right - vec2(arrow_len, -arrow_width))
+        sdLine3D(w_pos, tip_right, tip_right - t_right * arrow_len + right_perp * arrow_width),
+        sdLine3D(w_pos, tip_right, tip_right - t_right * arrow_len - right_perp * arrow_width)
     );
 
-    vec2 tip_upward = player_xz - vec2(0.0, length_arms);
+    vec3 upward_perp = normalize(cross(norm, t_upward)); // Points left/right
     float d_arr_upward = min(
-        sdLine(pos_xz, tip_upward, tip_upward + vec2(-arrow_width, arrow_len)),
-        sdLine(pos_xz, tip_upward, tip_upward + vec2(arrow_width, arrow_len))
+        sdLine3D(w_pos, tip_upward, tip_upward - t_upward * arrow_len + upward_perp * arrow_width),
+        sdLine3D(w_pos, tip_upward, tip_upward - t_upward * arrow_len - upward_perp * arrow_width)
     );
 
     float d_arrows = min(d_arr_right , d_arr_upward);
@@ -851,7 +863,7 @@ void fragment() {
         }
 
         if (show_position_marker) {
-            compute_position_marker(world_pos, ALBEDO, final_emission);
+            compute_position_marker(world_pos, v_normal, ALBEDO, final_emission);
         }
 
         compute_newton_path(world_pos, ALBEDO, final_emission);
