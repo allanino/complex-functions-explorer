@@ -5,6 +5,7 @@ const NEON_FONT = preload("res://ui/theme/font_neon.tres")
 @onready var hud_columns = %MainUIColumns
 @onready var hud_stack_left = %MainUIStackLeft
 @onready var hud_stack_right = %MainUIStackRight
+@onready var minimap_panel = %MinimapPanel
 @onready var complex_aspect = %ComplexAspect
 @onready var domain_panel = %DomainPanel
 @onready var target_panel = %TargetPanel
@@ -229,6 +230,7 @@ func _process(_delta):
 	phase_abs_val.text = _format_float_3(f.length())
 	phase_arg_val.text = "%d°" % round(angle_deg)
 
+	minimap_panel.visible = Config.show_minimap
 	complex_aspect.visible = Config.show_hud_complex
 	domain_panel.visible = Config.show_hud_navigation
 	target_panel.visible = Config.show_hud_navigation
@@ -267,7 +269,7 @@ var _last_hud_state = {}
 func _update_hud_layout():
 	if not hud_columns: return
 
-	var cards = [target_panel, domain_panel, monitor_panel, zeros_panel, menu_overlay.perf_label]
+	var cards = [minimap_panel, target_panel, domain_panel, monitor_panel, zeros_panel, menu_overlay.perf_label]
 
 	var actual_hud_scale = Config.hud_scale
 

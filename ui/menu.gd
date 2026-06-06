@@ -55,6 +55,7 @@ signal update_hud_layout_signal()
 @onready var self_illumination_slider = %SelfIlluminationContainer
 @onready var fog_density_slider = %FogDensitySlider
 @onready var shadows_checkbox = %ShadowsCheckbox
+@onready var minimap_checkbox = %MinimapCheckbox
 @onready var hud_complex_checkbox = %HudComplexCheckbox
 @onready var hud_navigation_checkbox = %HudNavigationCheckbox
 @onready var hud_zeros_checkbox = %HudZerosDetectionCheckbox
@@ -212,6 +213,7 @@ func _ready():
 	critical_checkbox.toggled.connect(_on_critical_toggled)
 	flow_checkbox.toggled.connect(_on_flow_toggled)
 	position_marker_checkbox.toggled.connect(_on_position_marker_toggled)
+	minimap_checkbox.toggled.connect(_on_minimap_toggled)
 	hud_complex_checkbox.toggled.connect(_on_hud_complex_toggled)
 	hud_navigation_checkbox.toggled.connect(_on_hud_navigation_toggled)
 	hud_zeros_checkbox.toggled.connect(_on_hud_zeros_toggled)
@@ -640,6 +642,7 @@ func _on_set_pos_pressed(_toggle_menu: bool = true):
 	Config.show_curves_labels = curves_labels_checkbox.button_pressed
 	Config.show_critical_stripe = critical_checkbox.button_pressed
 	Config.shadows_enabled = shadows_checkbox.button_pressed
+	Config.show_minimap = minimap_checkbox.button_pressed
 	Config.show_hud_complex = hud_complex_checkbox.button_pressed
 	Config.show_hud_navigation = hud_navigation_checkbox.button_pressed
 	Config.show_hud_zeros = hud_zeros_checkbox.button_pressed
@@ -752,6 +755,7 @@ func _sync_ui_to_config():
 	curves_labels_checkbox.button_pressed = Config.show_curves_labels
 	critical_checkbox.button_pressed = Config.show_critical_stripe
 	shadows_checkbox.button_pressed = Config.shadows_enabled
+	minimap_checkbox.button_pressed = Config.show_minimap
 	hud_complex_checkbox.button_pressed = Config.show_hud_complex
 	hud_navigation_checkbox.button_pressed = Config.show_hud_navigation
 	hud_zeros_checkbox.button_pressed = Config.show_hud_zeros
@@ -826,6 +830,9 @@ func _on_flow_toggled(pressed: bool):
 
 func _on_position_marker_toggled(pressed: bool):
 	Config.show_position_marker = pressed
+
+func _on_minimap_toggled(pressed: bool):
+	Config.show_minimap = pressed
 
 func _on_hud_complex_toggled(pressed: bool):
 	Config.show_hud_complex = pressed

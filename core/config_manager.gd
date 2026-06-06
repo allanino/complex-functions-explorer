@@ -147,6 +147,7 @@ const PRESET_KEYS = [
 	"speed_near_zeros",
 	"camera_height",
 	"zero_proximity_nav",
+	"show_minimap",
 	"show_hud_complex",
 	"show_hud_navigation",
 	"show_hud_zeros",
@@ -340,6 +341,7 @@ var zero_proximity_nav: float = 0.5
 
 
 # UI parameters
+var show_minimap: bool = true
 var show_hud_complex: bool = true
 var show_hud_navigation: bool = true
 var show_hud_zeros: bool = true
@@ -522,6 +524,7 @@ func save_settings():
 	config.set_value("player", "camera_height", camera_height)
 	config.set_value("player", "zero_proximity_nav", zero_proximity_nav)
 
+	config.set_value("ui", "show_minimap", show_minimap)
 	config.set_value("ui", "show_hud_complex", show_hud_complex)
 	config.set_value("ui", "show_hud_navigation", show_hud_navigation)
 	config.set_value("ui", "show_hud_zeros", show_hud_zeros)
@@ -605,6 +608,7 @@ func load_settings():
 	camera_height = config.get_value("player", "camera_height", camera_height)
 	zero_proximity_nav = config.get_value("player", "zero_proximity_nav", zero_proximity_nav)
 
+	show_minimap = config.get_value("ui", "show_minimap", show_minimap)
 	show_hud_complex = config.get_value("ui", "show_hud_complex", show_hud_complex)
 	show_hud_navigation = config.get_value("ui", "show_hud_navigation", show_hud_navigation)
 	show_hud_zeros = config.get_value("ui", "show_hud_zeros", show_hud_zeros)
