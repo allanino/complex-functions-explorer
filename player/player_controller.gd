@@ -452,6 +452,13 @@ func _physics_process(delta):
 	else:
 		last_valid_terrain_height = terrain_h
 
+	# Prevent player from probing heights higher/lower than MAX_WORLD_HEIGHT
+	if abs(terrain_h) >= MAX_WORLD_HEIGHT:
+		global_position.x = last_player_pos.x
+		global_position.z = last_player_pos.z
+		velocity = Vector3.ZERO
+		terrain_h = last_terrain_h
+
 	# Estimate slope and push camera away from rising walls
 	var target_offset = camera_push_offset
 	var d_pos = global_position - last_player_pos
@@ -650,13 +657,6 @@ func _physics_process(delta):
 						last_detected_z = true_z
 
 	move_and_slide()
-	
-	# Prevent player from probing heights higher/lower than MAX_WORLD_HEIGHT
-	var post_h = get_terrain_height(global_position.x, global_position.z)
-	if abs(post_h) >= MAX_WORLD_HEIGHT:
-		global_position.x = last_player_pos.x
-		global_position.z = last_player_pos.z
-		velocity = Vector3.ZERO
 
 
 func demo_actions():
