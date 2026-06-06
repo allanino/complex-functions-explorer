@@ -1,0 +1,69 @@
+[gd_scene load_steps=3 format=3 uid="uid://miniterrain3d123"]
+
+[ext_resource type="Script" path="res://ui/mini_terrain_3d.gd" id="1_script"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_glass"]
+bg_color = Color(0.03, 0.03, 0.03, 0.5)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+shadow_color = Color(0, 0, 0, 0.5)
+shadow_size = 4
+shadow_offset = Vector2(0, 4)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mask"]
+bg_color = Color(1, 1, 1, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[node name="MiniTerrain3DAspect" type="AspectRatioContainer"]
+custom_minimum_size = Vector2(0, 150)
+size_flags_horizontal = 3
+ratio = 1.0
+stretch_mode = 0
+script = ExtResource("1_script")
+
+[node name="Panel" type="PanelContainer" parent="."]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_glass")
+
+[node name="MarginContainer" type="MarginContainer" parent="Panel"]
+layout_mode = 2
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_top = 5
+theme_override_constants/margin_right = 5
+theme_override_constants/margin_bottom = 5
+
+[node name="ClipPanel" type="PanelContainer" parent="Panel/MarginContainer"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_mask")
+clip_children = 2
+
+[node name="SubViewportContainer" type="SubViewportContainer" parent="Panel/MarginContainer/ClipPanel"]
+layout_mode = 2
+stretch = true
+
+[node name="SubViewport" type="SubViewport" parent="Panel/MarginContainer/ClipPanel/SubViewportContainer"]
+unique_name_in_owner = true
+handle_input_locally = false
+size = Vector2i(140, 140)
+render_target_update_mode = 4
+
+[node name="MinimapCamera" type="Camera3D" parent="Panel/MarginContainer/ClipPanel/SubViewportContainer/SubViewport"]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 200, 0)
+projection = 1
+size = 80.0
+far = 1000.0
+
+[node name="FOVOverlay" type="Control" parent="Panel/MarginContainer/ClipPanel"]
+unique_name_in_owner = true
+layout_mode = 2
