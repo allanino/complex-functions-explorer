@@ -15,9 +15,14 @@ func _ready():
 
 	fov_overlay.draw.connect(_on_fov_overlay_draw)
 
+	resized.connect(_on_resized)
 	Config.config_changed.connect(_on_config_changed)
 	GameState.state_changed.connect(_on_state_changed)
 	_sync_all_uniforms()
+
+func _on_resized():
+	if custom_minimum_size.y != size.x:
+		custom_minimum_size.y = size.x
 
 func _sync_all_uniforms():
 	if map_rect and map_rect.material:
