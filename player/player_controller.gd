@@ -212,7 +212,7 @@ func _unhandled_input(event):
 				auto_walk_state = AutoWalkState.NEWTON_WALK
 				var complex_pos = Config.world_to_complex(global_position.x, global_position.z)
 
-				newton_target_z = ComplexField.newton_step(complex_pos, 1.0)
+				newton_target_z = ComplexField.newton_step(complex_pos, 2.0)
 				last_newton_idx = 1
 
 				newton_wait_timer = 0.1
