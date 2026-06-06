@@ -12,9 +12,7 @@
 [ext_resource type="FontVariation" path="res://ui/theme/font_neon.tres" id="font_spacemono"]
 [ext_resource type="FontFile" path="res://fonts/EBGaramond-Light.ttf" id="font_garamond"]
 [ext_resource type="Theme" path="res://ui/theme/theme.tres" id="theme_tres"]
-
-
-
+[ext_resource type="PackedScene" path="res://ui/minimap.tscn" id="10_minimap"]
 
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_1"]
@@ -709,6 +707,9 @@ unique_name_in_owner = true
 material = SubResource("ShaderMaterial_1")
 mouse_filter = 2
 layout_mode = 2
+
+
+[node name="MiniTerrainAspect" parent="Control/MainUIColumns/MainUIStackRight" instance=ExtResource("10_minimap")]
 
 
 [node name="DetachOverlay" type="PanelContainer" parent="Control"]
