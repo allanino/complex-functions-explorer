@@ -709,7 +709,7 @@ mouse_filter = 2
 layout_mode = 2
 
 
-[node name="MiniTerrainAspect" parent="Control/MainUIColumns/MainUIStackRight" instance=ExtResource("10_minimap")]
+; [node name="MinimapAspect" parent="Control/MainUIColumns/MainUIStackRight" instance=ExtResource("10_minimap")]
 
 
 [node name="DetachOverlay" type="PanelContainer" parent="Control"]
