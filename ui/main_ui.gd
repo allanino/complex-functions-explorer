@@ -4,7 +4,7 @@ const ZERO_LIST_ITEM_SCENE = preload("res://ui/components/zero_list_item.tscn")
 @onready var hud_columns = %MainUIColumns
 @onready var hud_stack_left = %MainUIStackLeft
 @onready var hud_stack_right = %MainUIStackRight
-@onready var phase_panel = %PhasePanel
+@onready var complex_aspect = %ComplexAspect
 @onready var domain_panel = %DomainPanel
 @onready var target_panel = %TargetPanel
 @onready var monitor_panel = %MonitorPanel
@@ -216,7 +216,7 @@ func _process(_delta):
 	phase_abs_val.text = _format_float_3(f.length())
 	phase_arg_val.text = "%d°" % round(angle_deg)
 
-	phase_panel.visible = Config.show_hud_complex
+	complex_aspect.visible = Config.show_hud_complex
 	domain_panel.visible = Config.show_hud_navigation
 	target_panel.visible = Config.show_hud_navigation
 	monitor_panel.visible = Config.show_hud_monitor_fps or Config.show_hud_monitor_chunks
@@ -254,7 +254,7 @@ var _last_hud_state = {}
 func _update_hud_layout():
 	if not hud_columns: return
 
-	var cards = [phase_panel, target_panel, domain_panel, monitor_panel, zeros_panel, menu_overlay.perf_label]
+	var cards = [target_panel, domain_panel, monitor_panel, zeros_panel, menu_overlay.perf_label]
 
 	var actual_hud_scale = Config.hud_scale
 

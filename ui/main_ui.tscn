@@ -44,6 +44,12 @@ grow_begin = 0.0
 grow_end = 0.0
 thickness = 1
 
+[sub_resource type="StyleBoxLine" id="StyleBoxLine_hseparator_custom"]
+color = Color(0.91, 0.89, 0.86, 0.12)
+grow_begin = 0.0
+grow_end = 0.0
+thickness = 1
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mask"]
 bg_color = Color(1, 1, 1, 1)
 corner_radius_top_left = 5
@@ -623,85 +629,21 @@ size_flags_horizontal = 3
 text = "0.000"
 horizontal_alignment = 2
 
-
-
-[node name="PhasePanel" type="PanelContainer" parent="Control/MainUIColumns/MainUIStackRight"]
-unique_name_in_owner = true
+[node name="TargetPhaseHSeparator" type="HSeparator" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox"]
 layout_mode = 2
-size_flags_horizontal = 3
+theme_override_styles/separator = SubResource("StyleBoxLine_hseparator_custom")
 
-[node name="MarginContainer" type="MarginContainer" parent="Control/MainUIColumns/MainUIStackRight/PhasePanel"]
-layout_mode = 2
-theme_override_constants/margin_left = 10
-theme_override_constants/margin_top = 10
-theme_override_constants/margin_right = 10
-theme_override_constants/margin_bottom = 10
-
-[node name="VBox" type="VBoxContainer" parent="Control/MainUIColumns/MainUIStackRight/PhasePanel/MarginContainer"]
-layout_mode = 2
-theme_override_constants/separation = 5
-
-[node name="PhaseTitleHBox" type="HBoxContainer" parent="Control/MainUIColumns/MainUIStackRight/PhasePanel/MarginContainer/VBox"]
-layout_mode = 2
-
-[node name="PhaseTitle" type="Label" parent="Control/MainUIColumns/MainUIStackRight/PhasePanel/MarginContainer/VBox/PhaseTitleHBox"]
-theme_type_variation = &"HeaderLabel"
-layout_mode = 2
-theme_override_constants/character_spacing = 2
-theme_override_constants/outline_size = 0
-theme_override_constants/shadow_outline_size = 0
-text = "PHASE"
-horizontal_alignment = 0
-
-[node name="HSeparator" type="HSeparator" parent="Control/MainUIColumns/MainUIStackRight/PhasePanel/MarginContainer/VBox/PhaseTitleHBox"]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_styles/separator = SubResource("StyleBoxLine_header_sep")
-
-[node name="ComplexAspect" type="AspectRatioContainer" parent="Control/MainUIColumns/MainUIStackRight/PhasePanel/MarginContainer/VBox"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 170)
-layout_mode = 2
-size_flags_horizontal = 3
-ratio = 1.0
-stretch_mode = 2
-
-[node name="ComplexPanel" type="MarginContainer" parent="Control/MainUIColumns/MainUIStackRight/PhasePanel/MarginContainer/VBox/ComplexAspect"]
-layout_mode = 2
-
-[node name="MarginContainer" type="MarginContainer" parent="Control/MainUIColumns/MainUIStackRight/PhasePanel/MarginContainer/VBox/ComplexAspect/ComplexPanel"]
-layout_mode = 2
-theme_override_constants/margin_left = 5
-theme_override_constants/margin_top = 5
-theme_override_constants/margin_right = 5
-theme_override_constants/margin_bottom = 5
-
-[node name="ClipPanel" type="PanelContainer" parent="Control/MainUIColumns/MainUIStackRight/PhasePanel/MarginContainer/VBox/ComplexAspect/ComplexPanel/MarginContainer"]
-layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_mask")
-clip_children = 2
-
-[node name="ComplexPlane" type="ColorRect" parent="Control/MainUIColumns/MainUIStackRight/PhasePanel/MarginContainer/VBox/ComplexAspect/ComplexPanel/MarginContainer/ClipPanel"]
-unique_name_in_owner = true
-material = SubResource("ShaderMaterial_1")
-mouse_filter = 2
-layout_mode = 2
-
-[node name="Spacer" type="Control" parent="Control/MainUIColumns/MainUIStackRight/PhasePanel/MarginContainer/VBox"]
-custom_minimum_size = Vector2(0, 5)
-layout_mode = 2
-
-[node name="PhaseGrid" type="GridContainer" parent="Control/MainUIColumns/MainUIStackRight/PhasePanel/MarginContainer/VBox"]
+[node name="PhaseGrid" type="GridContainer" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox"]
 layout_mode = 2
 theme_override_constants/h_separation = 10
 columns = 2
 
-[node name="AbsLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/PhasePanel/MarginContainer/VBox/PhaseGrid"]
+[node name="AbsLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox/PhaseGrid"]
 theme_type_variation = &"SecondaryLabel"
 layout_mode = 2
 text = "|f|"
 
-[node name="PhaseAbsVal" type="Label" parent="Control/MainUIColumns/MainUIStackRight/PhasePanel/MarginContainer/VBox/PhaseGrid"]
+[node name="PhaseAbsVal" type="Label" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox/PhaseGrid"]
 unique_name_in_owner = true
 theme_type_variation = &"ValueCyanLabel"
 layout_mode = 2
@@ -709,12 +651,12 @@ size_flags_horizontal = 3
 text = "0.000"
 horizontal_alignment = 2
 
-[node name="ArgLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/PhasePanel/MarginContainer/VBox/PhaseGrid"]
+[node name="ArgLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox/PhaseGrid"]
 theme_type_variation = &"SecondaryLabel"
 layout_mode = 2
 text = "arg(f)"
 
-[node name="PhaseArgVal" type="Label" parent="Control/MainUIColumns/MainUIStackRight/PhasePanel/MarginContainer/VBox/PhaseGrid"]
+[node name="PhaseArgVal" type="Label" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox/PhaseGrid"]
 unique_name_in_owner = true
 theme_type_variation = &"ValueMagentaLabel"
 layout_mode = 2
@@ -722,19 +664,48 @@ size_flags_horizontal = 3
 text = "0°"
 horizontal_alignment = 2
 
-[node name="BranchLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/PhasePanel/MarginContainer/VBox/PhaseGrid"]
+[node name="BranchLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox/PhaseGrid"]
 unique_name_in_owner = true
 theme_type_variation = &"SecondaryLabel"
 layout_mode = 2
 text = "BRANCH K"
 
-[node name="PhaseBranchVal" type="Label" parent="Control/MainUIColumns/MainUIStackRight/PhasePanel/MarginContainer/VBox/PhaseGrid"]
+[node name="PhaseBranchVal" type="Label" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox/PhaseGrid"]
 unique_name_in_owner = true
 theme_type_variation = &"ValueWhiteLabel"
 layout_mode = 2
 size_flags_horizontal = 3
 text = "0"
 horizontal_alignment = 2
+
+[node name="ComplexAspect" type="AspectRatioContainer" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 170)
+layout_mode = 2
+size_flags_horizontal = 3
+ratio = 1.0
+stretch_mode = 2
+
+[node name="ComplexPanel" type="MarginContainer" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox/ComplexAspect"]
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox/ComplexAspect/ComplexPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_top = 5
+theme_override_constants/margin_right = 5
+theme_override_constants/margin_bottom = 5
+
+[node name="ClipPanel" type="PanelContainer" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox/ComplexAspect/ComplexPanel/MarginContainer"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_mask")
+clip_children = 2
+
+[node name="ComplexPlane" type="ColorRect" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox/ComplexAspect/ComplexPanel/MarginContainer/ClipPanel"]
+unique_name_in_owner = true
+material = SubResource("ShaderMaterial_1")
+mouse_filter = 2
+layout_mode = 2
 
 
 [node name="DetachOverlay" type="PanelContainer" parent="Control"]
