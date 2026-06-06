@@ -412,5 +412,3 @@ func _on_config_changed(key: String):
 		if menu_overlay:
 			menu_overlay.day_time_slider.value = Config.day_time
 			menu_overlay.day_time_slider.value_text = menu_overlay._format_time(Config.day_time)
-
-
