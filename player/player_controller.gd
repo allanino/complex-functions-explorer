@@ -485,8 +485,9 @@ func _physics_process(delta):
 	# Smoothly interpolate the offset to prevent camera jitter
 	camera_push_offset = camera_push_offset.lerp(target_offset, delta * 6.0)
 	
-	last_player_pos = global_position
-	last_terrain_h = terrain_h
+	if abs(terrain_h) < MAX_WORLD_HEIGHT:
+		last_player_pos = global_position
+		last_terrain_h = terrain_h
 
 	var target_y = terrain_h + scaled_camera_height + height_offset
 
