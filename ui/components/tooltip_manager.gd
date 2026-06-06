@@ -2,6 +2,7 @@ extends CanvasLayer
 
 const DESCRIPTIONS = {
 	"Function": "Select the complex function to visualize on the terrain.",
+	"Input": "Select the input expression or transformation passed to the function. Choose 'Identity' to evaluate directly at the complex coordinate z.",
 	"Height Map": "Choose how the function's magnitude is mapped to terrain height.",
 	"Parameter a": "Scaling factor for logarithmic height mapping.",
 	"Parameter ε": "Small offset in logarithmic mapping to prevent log(0) at zeros.",
@@ -116,7 +117,7 @@ func _on_tooltip_timer_timeout():
 		tooltip_label.custom_minimum_size.x = 250
 		tooltip_label.text = DESCRIPTIONS[_pending_tooltip_key]
 		if "Shortcut: " in tooltip_label.text:
-			tooltip_label.text = tooltip_label.text.replace("Shortcut: ", "\n\n[color=gray]Shortcut: ") + "[/color]"
+			tooltip_label.text = tooltip_label.text.replace("Shortcut: ", "\n\n[font_size=12][color=#e8e4dc80]Shortcut: ") + "[/color][/font_size]"
 		tooltip.modulate.a = 0.0
 		tooltip.visible = true
 		await get_tree().process_frame
