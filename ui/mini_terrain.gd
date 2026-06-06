@@ -1,0 +1,88 @@
+extends AspectRatioContainer
+
+@onready var map_rect = %MapRect
+@onready var fov_overlay = %FOVOverlay
+
+var player: Node3D = null
+var camera: Camera3D = null
+var view_radius: float = 40.0
+
+func _ready():
+	await get_tree().process_frame
+	player = get_tree().get_first_node_in_group("player")
+	if player:
+		camera = player.get_node_or_null("Camera3D")
+
+	fov_overlay.draw.connect(_on_fov_overlay_draw)
+
+	Config.config_changed.connect(_on_config_changed)
+	GameState.state_changed.connect(_on_state_changed)
+	_sync_all_uniforms()
+
+func _sync_all_uniforms():
+	if map_rect and map_rect.material:
+		var mat = map_rect.material as ShaderMaterial
+		mat.set_shader_parameter("iterations", Config.iterations)
+		mat.set_shader_parameter("zoom_factor", Config.zoom_factor)
+		mat.set_shader_parameter("function_type", Config.function_type)
+		mat.set_shader_parameter("input_function_type", Config.input_function_type)
+		mat.set_shader_parameter("color_scheme", Config.color_scheme)
+		mat.set_shader_parameter("is_dirichlect", Config.function.get("is_dirichlect", false))
+		mat.set_shader_parameter("is_multivalued", Config.function.get("is_multivalued", false))
+		mat.set_shader_parameter("rational_num_coeffs", Config.rational_num_coeffs)
+		mat.set_shader_parameter("rational_den_coeffs", Config.rational_den_coeffs)
+		mat.set_shader_parameter("input_rational_num_coeffs", Config.input_rational_num_coeffs)
+		mat.set_shader_parameter("input_rational_den_coeffs", Config.input_rational_den_coeffs)
+		mat.set_shader_parameter("multivalued_n", Config.multivalued_n)
+		mat.set_shader_parameter("current_branch", GameState.current_branch)
+
+func _on_config_changed(key: String):
+	var mat = map_rect.material as ShaderMaterial
+	if not mat: return
+	if key in ["iterations", "zoom_factor", "function_type", "input_function_type", "color_scheme", "rational_num_coeffs", "rational_den_coeffs", "input_rational_num_coeffs", "input_rational_den_coeffs", "multivalued_n"]:
+		_sync_all_uniforms()
+
+func _on_state_changed(key: String):
+	var mat = map_rect.material as ShaderMaterial
+	if not mat: return
+	if key == "current_branch" or key == "effective_zoom":
+		mat.set_shader_parameter("current_branch", GameState.current_branch)
+
+func _process(_delta):
+	if not player or not camera:
+		return
+
+	var mat = map_rect.material as ShaderMaterial
+	if mat:
+		mat.set_shader_parameter("player_pos_world", Vector2(player.global_position.x, player.global_position.z))
+		mat.set_shader_parameter("view_radius", view_radius * GameState.effective_zoom)
+
+	fov_overlay.queue_redraw()
+
+func _on_fov_overlay_draw():
+	if not player or not camera: return
+
+	var center = fov_overlay.size / 2.0
+	var r = min(center.x, center.y) * 0.8
+
+	# Draw player indicator
+	fov_overlay.draw_circle(center, 3.0, Color(1, 1, 1, 0.9))
+	fov_overlay.draw_circle(center, 4.0, Color(0, 0, 0, 0.5), false, 1.0)
+
+	var yaw = camera.global_rotation.y
+	var fov_rad = deg_to_rad(camera.fov)
+
+	var forward = Vector2(-sin(yaw), -cos(yaw))
+
+	var left_angle = atan2(forward.y, forward.x) - fov_rad / 2.0
+	var right_angle = atan2(forward.y, forward.x) + fov_rad / 2.0
+
+	var p1 = center + Vector2(cos(left_angle), sin(left_angle)) * r
+	var p2 = center + Vector2(cos(right_angle), sin(right_angle)) * r
+
+	var points = PackedVector2Array([center, p1, p2])
+	var colors = PackedColorArray([Color(1, 1, 1, 0.4), Color(1, 1, 1, 0.0), Color(1, 1, 1, 0.0)])
+
+	fov_overlay.draw_polygon(points, colors)
+	fov_overlay.draw_line(center, p1, Color(1, 1, 1, 0.5), 1.0)
+	fov_overlay.draw_line(center, p2, Color(1, 1, 1, 0.5), 1.0)
