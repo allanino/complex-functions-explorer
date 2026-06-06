@@ -497,7 +497,8 @@ func _physics_process(delta):
 	elif d_pos.length_squared() > 1e-4:
 		var delta_h = terrain_h - last_terrain_h
 		var slope = delta_h / d_pos.length()
-		if abs(slope) > 0.15: # On a steep slope (uphill or downhill)
+		if abs(slope) > 2.0: # On a steep slope (uphill or downhill)
+			print("Slope: ", slope)
 			# Always push the camera downhill (opposite to the rising slope)
 			var push_dir = - d_pos.normalized() * sign(slope)
 			target_offset = push_dir
