@@ -238,9 +238,9 @@ mouse_filter = 2
 
 [node name="MainMenuPanel" type="PanelContainer" parent="CenterContainer" unique_id=185131265]
 theme_type_variation = &"MainMenuPanel"
-custom_minimum_size = Vector2(1000, 400)
+custom_minimum_size = Vector2(1000, 500)
 layout_mode = 2
-pivot_offset = Vector2(500, 200)
+pivot_offset = Vector2(500, 250)
 
 
 [node name="MarginContainer" type="MarginContainer" parent="CenterContainer/MainMenuPanel" unique_id=2017176305]
