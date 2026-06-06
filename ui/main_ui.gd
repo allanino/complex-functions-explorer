@@ -277,6 +277,11 @@ func _update_hud_layout():
 	hud_stack_left.custom_minimum_size.x = BASE_HUD_PANEL_SIZE * actual_hud_scale
 
 	var available_height = get_viewport().size.y - 40
+	var mobile_controls = get_node_or_null("Control/MobileControls")
+	if mobile_controls and mobile_controls.visible and mobile_controls.has_node("SettingsButton"):
+		var settings_btn = mobile_controls.get_node("SettingsButton")
+		if settings_btn.visible:
+			available_height -= (settings_btn.position.y + settings_btn.size.y)
 	var current_height = 0.0
 	var separation = 10.0
 
