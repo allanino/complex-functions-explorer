@@ -583,14 +583,14 @@ void compute_newton_path(vec3 w_pos, inout vec3 out_albedo, inout vec3 final_emi
     vec2 pos_xz = w_pos.xz;
     float scale = clamp(0.5 / zoom_factor, 0.2, 0.5) * 2.0;
 
-    float d_newton = 99999.0;
-
     // Expand bounding box a bit to account for line width and interpolation
     float expand = 2.0;
     float x_min = newton_path_bbox.x * 10.0 * zoom_factor - expand;
     float x_max = newton_path_bbox.y * 10.0 * zoom_factor + expand;
     float z_min = -newton_path_bbox.w * 10.0 * zoom_factor - expand;
     float z_max = -newton_path_bbox.z * 10.0 * zoom_factor + expand;
+
+    float total_intensity = 0.0;
 
     if (pos_xz.x >= x_min && pos_xz.x <= x_max && pos_xz.y >= z_min && pos_xz.y <= z_max) {
         for (int i = 0; i < newton_path_size - 1; i++) {
@@ -601,8 +601,10 @@ void compute_newton_path(vec3 w_pos, inout vec3 out_albedo, inout vec3 final_emi
             if (seg_len < 0.0001) continue;
 
             float local_thickness = max(0.005 * scale, min(0.02 * scale, seg_len * 0.05));
-            float d_seg = sdLine(pos_xz, p1, p2) / local_thickness;
-            d_newton = min(d_newton, d_seg);
+            float d_seg = sdLine(pos_xz, p1, p2);
+            float core = 1.0 - step(local_thickness, d_seg);
+            float glow = (1.0 - smoothstep(local_thickness, local_thickness * 2.0, d_seg)) * 0.5;
+            total_intensity = max(total_intensity, core + glow);
 
             // Add an arrow pointing from p1 to p2
             vec2 dir = (p2 - p1) / seg_len;
@@ -617,23 +619,18 @@ void compute_newton_path(vec3 w_pos, inout vec3 out_albedo, inout vec3 final_emi
             float d_arr = min(
                 sdLine(pos_xz, mid + dir * path_arrow_len * 0.5, mid - dir * path_arrow_len * 0.5 + perp * path_arrow_width),
                 sdLine(pos_xz, mid + dir * path_arrow_len * 0.5, mid - dir * path_arrow_len * 0.5 - perp * path_arrow_width)
-            ) / local_arr_thickness;
+            );
 
-            d_newton = min(d_newton, d_arr);
+            float arr_core = 1.0 - step(local_arr_thickness, d_arr);
+            float arr_glow = (1.0 - smoothstep(local_arr_thickness, local_arr_thickness * 2.0, d_arr)) * 0.5;
+            total_intensity = max(total_intensity, arr_core + arr_glow);
         }
     }
 
-    if (d_newton < 2.0) {
-        // Crisp core (normalized thickness = 1.0)
-        float core = 1.0 - step(1.0, d_newton);
-        // Slight glow (normalized glow thickness = 2.0)
-        float glow = (1.0 - smoothstep(1.0, 2.0, d_newton)) * 0.5;
-
+    if (total_intensity > 0.0) {
         vec3 marker_color = vec3(0.4);
-        float intensity = core + glow;
-
-        out_albedo = mix(out_albedo, marker_color, clamp(intensity, 0.0, 1.0));
-        final_emission += marker_color * intensity * 2.0; // Glow emission
+        out_albedo = mix(out_albedo, marker_color, clamp(total_intensity, 0.0, 1.0));
+        final_emission += marker_color * total_intensity * 2.0; // Glow emission
     }
 }
 
