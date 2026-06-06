@@ -821,7 +821,7 @@ void fragment() {
         vec3 final_emission = base * emission;
         if (show_curves) {
             final_emission += vec3(0.0, 0.6, 1.0) * highlight_re_glow * 0.8;
-            final_emission += vec3(1.0, 0.3, 0.0) * highlight_im_glow * 0.8;
+            final_emission += vec3(1.0, 0.0, 0.549) * highlight_im_glow * 0.8;
         }
 
         if (is_multivalued) {
