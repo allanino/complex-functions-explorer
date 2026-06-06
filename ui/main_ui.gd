@@ -60,6 +60,9 @@ func _ready():
 	portal_flash.visible = false
 	$Control.add_child(portal_flash)
 
+	if complex_aspect:
+		complex_aspect.resized.connect(_on_complex_aspect_resized)
+
 	hud_columns.offset_top = -1000
 
 	menu_overlay.apply_aa_signal.connect(apply_aa)
@@ -74,6 +77,11 @@ func _ready():
 	menu_overlay.tooltip_manager = tooltip_manager
 
 	_last_zeros_visible = Config.show_hud_zeros
+
+
+func _on_complex_aspect_resized():
+	if complex_aspect.custom_minimum_size.y != complex_aspect.size.x:
+		complex_aspect.custom_minimum_size.y = complex_aspect.size.x
 
 
 func apply_aa():
@@ -358,7 +366,7 @@ func _rescale_card(card: Control, _scale: float):
 		if node is Control:
 			# Only scale custom minimum size for specific panels to maintain layout proportions
 			if node.name == "ComplexAspect":
-				node.custom_minimum_size = Vector2(0, BASE_HUD_PANEL_SIZE * _scale)
+				pass
 			elif node.name == "DomainPanel" or node.name == "TargetPanel":
 				if not node.has_meta("base_min_size"):
 					node.set_meta("base_min_size", node.custom_minimum_size)
