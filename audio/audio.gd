@@ -260,18 +260,6 @@ func fill_buffer():
 	# Fill only enough to keep stable occupancy
 	var to_fill = TARGET_FILL - (4096 - available)
 
-	if Engine.get_process_frames() % 600 == 0:
-		print(
-			"audio available=",
-			available,
-			" min=",
-			buffer_min_available,
-			" max=",
-			buffer_max_available,
-			" to_fill=",
-			to_fill
-		)
-
 	if to_fill <= 0:
 		return
 
