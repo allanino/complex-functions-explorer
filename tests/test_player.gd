@@ -143,3 +143,69 @@ func test_curve_labels_throttled_update():
 	Config.show_curves = original_show_curves
 	Config.show_curves_labels = original_show_curves_labels
 	Config.function_type = original_function_type
+
+func test_player_max_world_height_limit():
+	var player = player_scene.instantiate()
+	var main_ui = ui_scene.instantiate()
+	add_child_autoqfree(player)
+	add_child_autoqfree(main_ui)
+	
+	player.main_ui = main_ui
+
+	var original_show_curves = Config.show_curves
+	var original_show_curves_labels = Config.show_curves_labels
+	var original_function_type = Config.function_type
+	var original_height_type = Config.height_type
+	Config.show_curves = false
+	Config.show_curves_labels = false
+	Config.function_type = Config.ComplexFunc.IDENTITY
+	Config.height_type = 0 # absolute magnitude
+
+	# Set morph value and zoom to 1.0 so that height is exactly complex position magnitude
+	GameState.morph_value = 1.0
+	GameState.effective_zoom = 1.0
+
+	# 1. Below limit: height is 990 (< 1000)
+	player.global_position = Vector3(9900.0, 0.0, 0.0)
+	player.last_player_pos = Vector3(9800.0, 0.0, 0.0)
+	# Set a high velocity (higher than current_speed of 25.0) to prevent it from decaying to 0
+	player.velocity = Vector3(100.0, 0.0, 0.0)
+	
+	player._physics_process(0.016)
+
+	# Should decay but NOT be zeroed
+	assert_gt(player.velocity.x, 0.0)
+
+	# 2. Above limit: height is 1005 (>= 1000)
+	player.global_position = Vector3(10050.0, 0.0, 0.0)
+	player.last_terrain_h = 1005.0
+	player.last_player_pos = Vector3(9950.0, 0.0, 0.0) # uphill displacement
+
+	# Try to move uphill (velocity in positive X)
+	player.velocity = Vector3(100.0, 0.0, 0.0)
+	player._physics_process(0.016)
+
+	# Velocity should be zeroed
+	assert_eq(player.velocity.x, 0.0)
+	assert_eq(player.velocity.z, 0.0)
+
+	# Try to move downhill (velocity in negative X)
+	player.global_position = Vector3(10050.0, 0.0, 0.0)
+	player.last_terrain_h = 1005.0
+	player.last_player_pos = Vector3(9950.0, 0.0, 0.0) # uphill displacement
+	player.velocity = Vector3(-100.0, 0.0, 0.0)
+	player._physics_process(0.016)
+
+	# Velocity should decay but not be zeroed (negative velocity allowed)
+	assert_lt(player.velocity.x, 0.0)
+
+	# Restore Config settings
+	Config.show_curves = original_show_curves
+	Config.show_curves_labels = original_show_curves_labels
+	Config.function_type = original_function_type
+	Config.height_type = original_height_type
+
+
+
+
+
