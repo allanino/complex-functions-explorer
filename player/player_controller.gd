@@ -494,7 +494,7 @@ func _physics_process(delta):
 	if d_pos.length_squared() > 100.0: # Teleport detected
 		camera_push_offset = Vector3.ZERO
 		target_offset = Vector3.ZERO
-	elif d_pos.length_squared() > 1e-8:
+	elif d_pos.length_squared() > 1e-4:
 		var delta_h = terrain_h - last_terrain_h
 		var slope = delta_h / d_pos.length()
 		if abs(slope) > 0.15: # On a steep slope (uphill or downhill)
