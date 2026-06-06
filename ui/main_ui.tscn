@@ -52,10 +52,10 @@ thickness = 1
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mask"]
 bg_color = Color(1, 1, 1, 1)
-corner_radius_top_left = 5
-corner_radius_top_right = 5
-corner_radius_bottom_right = 5
-corner_radius_bottom_left = 5
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tab_selected"]
 content_margin_left = 20.0
@@ -631,6 +631,7 @@ horizontal_alignment = 2
 
 [node name="TargetPhaseHSeparator" type="HSeparator" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox"]
 layout_mode = 2
+theme_override_constants/separation = 7
 theme_override_styles/separator = SubResource("StyleBoxLine_hseparator_custom")
 
 [node name="PhaseGrid" type="GridContainer" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox"]
