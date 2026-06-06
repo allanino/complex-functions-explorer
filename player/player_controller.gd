@@ -211,7 +211,8 @@ func _unhandled_input(event):
 			if auto_walk_state == AutoWalkState.NONE:
 				auto_walk_state = AutoWalkState.NEWTON_WALK
 				var complex_pos = Config.world_to_complex(global_position.x, global_position.z)
-				newton_target_z = ComplexField.newton_step_zeta_reflection(complex_pos)
+
+				newton_target_z = ComplexField.newton_step(complex_pos, 2.0)
 				last_newton_idx = 1
 
 				newton_wait_timer = 0.1
@@ -235,12 +236,13 @@ func _unhandled_input(event):
 					if path.size() >= 200:
 						break
 
-					var f_val = ComplexField.zeta_continuation(_current_z.x, _current_z.y)
+					var p_current = Config.complex_to_world(_current_z.x, _current_z.y)
+					var f_val = ComplexField.get_field(p_current.x, p_current.y)
 					var f_abs = f_val.length()
 					if f_abs < 1e-6:
 						break
 
-					var next_z = ComplexField.newton_step_zeta_reflection(_current_z, step_mult)
+					var next_z = ComplexField.newton_step(_current_z, step_mult)
 
 					# Cycle detection: check if we are jumping back and forth
 					loop_detected = false
@@ -252,7 +254,7 @@ func _unhandled_input(event):
 					if loop_detected:
 						step_mult *= 0.5
 						# Recalculate with smaller step
-						next_z = ComplexField.newton_step_zeta_reflection(_current_z, step_mult)
+						next_z = ComplexField.newton_step(_current_z, step_mult)
 					else:
 						# Recover step size if no cycle detected
 						if step_mult < 1.0:
