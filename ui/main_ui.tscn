@@ -497,6 +497,17 @@ text = "Performance protection activated, adjust settings."
 horizontal_alignment = 1
 autowrap_mode = 3
 
+[node name="HeightProtectionLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/MonitorPanel/MarginContainer/VBox"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.8, 0, 1)
+theme_override_fonts/font = ExtResource("font_spacemono")
+theme_override_font_sizes/font_size = 18
+text = "Max world height reached, returned to safe heights."
+horizontal_alignment = 1
+autowrap_mode = 3
+
 
 [node name="DomainPanel" type="PanelContainer" parent="Control/MainUIColumns/MainUIStackRight"]
 unique_name_in_owner = true
