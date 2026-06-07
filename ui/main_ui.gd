@@ -280,12 +280,17 @@ func _update_hud_layout():
 		if settings_btn.visible:
 			available_height -= (settings_btn.position.y + settings_btn.size.y)
 
+	var f_data = Config.function
 	var current_state = {
 		"size": get_viewport().size,
 		"scale": Config.hud_scale,
 		"visibility": cards.map(func(c): return c.visible),
-		"heights": cards.map(func(c): return c.get_combined_minimum_size().y if c.visible else 0.0),
-		"available_height": available_height
+		"available_height": available_height,
+		"zeros_count": GameState.visited_zeros.size(),
+		"show_rvm": Config.show_rvm and f_data.get("has_von_mangoldt", false),
+		"show_fps": Config.show_hud_monitor_fps,
+		"show_chunks": Config.show_hud_monitor_chunks,
+		"is_multivalued": f_data.get("is_multivalued", false)
 	}
 
 	if current_state.hash() == _last_hud_state.hash():
