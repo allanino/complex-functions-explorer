@@ -243,6 +243,12 @@ func _ready():
 	shadows_checkbox.toggled.connect(_on_shadows_toggled)
 	get_viewport().size_changed.connect(func(): emit_signal("update_hud_layout_signal"))
 
+	var xenon_font = preload("res://ui/theme/font_xenon.tres")
+	func_button.add_theme_font_override("font", xenon_font)
+	input_button.add_theme_font_override("font", xenon_font)
+	func_button.get_popup().add_theme_font_override("font", xenon_font)
+	input_button.get_popup().add_theme_font_override("font", xenon_font)
+
 	_populate_function_dropdown(func_button, false)
 	_populate_function_dropdown(input_button, true)
 
