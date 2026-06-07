@@ -17,6 +17,7 @@ const DESCRIPTIONS = {
 	"Zeros proximity": "Terrain height threshold for detecting function zeros. Actually we look for minima along the path with magnitude below this value.",
 	"Speed near Zeros": "Slows down movement speed near function zeros to allow closer inspection.",
 	"Automatic Walking": "Automatically follow the critical line (Re = 0.5) to find Riemann Zeta zeros. Shortcut: CTRL + C",
+	"Zero Walking": "Automatically find a path towards a zero using the Newton-Raphson method. Shortcut: CTRL + Z",
 	"Terrain Details": "Quality and subdivision level of the procedurally generated terrain meshes.",
 	"Antialiasing": "Choose a technique to reduce jagged edges in the 3D view.",
 	"Branches (n)": "Number of branches for the multivalued function z^(1/n).",
