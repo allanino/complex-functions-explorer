@@ -630,6 +630,9 @@ func _physics_process(delta):
 					# print("Final: ", refined_z, " Converged: ", converged, " f_val: ", f_val.length())
 					true_z = refined_z
 
+					if f_val.length() < 1e-2 && Config.function.get("is_dirichlect"):
+						converged = true
+
 					if converged && true_z.distance_to(last_detected_z) > 0.001:
 						GameState.total_zeros_found += 1
 						GameState.visited_zeros.push_back(true_z)
