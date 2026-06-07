@@ -206,6 +206,7 @@ func _unhandled_input(event):
 				auto_walk_state = AutoWalkState.MOVING_TO_LINE
 				# Reset zero counter when starting auto-walk
 				GameState.visited_zeros.clear()
+				GameState.total_zeros_found = 0
 				last_detected_z = Vector2(0.0, 0.0)
 				Config.show_hud_zeros = true
 				GameState.rvm_start_t = abs(Config.world_to_complex(0.0, global_position.z).y)
@@ -717,6 +718,7 @@ func demo_actions():
 func _start_auto_walk_from_demo():
 	auto_walk_state = AutoWalkState.MOVING_TO_LINE
 	GameState.visited_zeros.clear()
+	GameState.total_zeros_found = 0
 	last_detected_z = Vector2(0.0, 0.0)
 	Config.show_hud_zeros = true
 	Config.show_critical_stripe = true

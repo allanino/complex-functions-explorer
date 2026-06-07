@@ -625,6 +625,7 @@ func _on_set_pos_pressed(_toggle_menu: bool = true):
 
 	if !hud_zeros_checkbox.button_pressed:
 		GameState.visited_zeros.clear()
+		GameState.total_zeros_found = 0
 
 	# Apply non-slider values to Config
 	Config.height_a = h_a
@@ -702,6 +703,7 @@ func _on_set_pos_pressed(_toggle_menu: bool = true):
 	preset_controller.update_preset_button_text()
 
 	GameState.visited_zeros.clear()
+	GameState.total_zeros_found = 0
 
 	if player:
 		var target_world = Config.complex_to_world(re, im)
@@ -860,6 +862,7 @@ func _on_hud_zeros_toggled(pressed: bool):
 	Config.show_hud_zeros = pressed
 	if not pressed:
 		GameState.visited_zeros.clear()
+		GameState.total_zeros_found = 0
 		emit_signal('update_hud_layout_signal')
 
 func _on_rvm_toggled(pressed: bool):
