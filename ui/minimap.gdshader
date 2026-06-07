@@ -154,7 +154,7 @@ void fragment() {
                 total_intensity = max(total_intensity, arr_core + arr_glow);
             }
             if (total_intensity > 0.0) {
-                vec3 final_emission = vec3(0.0, 0.8, 1.0) * total_intensity * 2.0;
+                vec3 final_emission = vec3(1.0, 1.0, 1.0) * total_intensity * 2.0;
                 base_color = mix(base_color, final_emission, clamp(total_intensity, 0.0, 1.0));
             }
         }
