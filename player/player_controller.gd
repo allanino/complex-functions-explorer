@@ -630,7 +630,7 @@ func _physics_process(delta):
 					# print("Final: ", refined_z, " Converged: ", converged, " f_val: ", f_val.length())
 					true_z = refined_z
 
-					if converged:
+					if converged && true_z.distance_to(last_detected_z) > 0.01:
 						GameState.total_zeros_found += 1
 						GameState.visited_zeros.push_back(true_z)
 						if GameState.visited_zeros.size() > 10:
