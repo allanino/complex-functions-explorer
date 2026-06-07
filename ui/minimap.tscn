@@ -20,10 +20,10 @@ shadow_offset = Vector2(0, 4)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mask"]
 bg_color = Color(1, 1, 1, 1)
-corner_radius_top_left = 5
-corner_radius_top_right = 5It 
-corner_radius_bottom_right = 5
-corner_radius_bottom_left = 5
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_map"]
 shader = ExtResource("2_shader")
@@ -35,28 +35,27 @@ ratio = 1.0
 stretch_mode = 0
 script = ExtResource("1_script")
 
-[node name="Panel" type="PanelContainer" parent="."]
+[node name="ComplexPanel" type="MarginContainer" parent="."]
 layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_glass")
 
-[node name="MarginContainer" type="MarginContainer" parent="Panel"]
+[node name="MarginContainer" type="MarginContainer" parent="ComplexPanel"]
 layout_mode = 2
-theme_override_constants/margin_left = 5
-theme_override_constants/margin_top = 5
-theme_override_constants/margin_right = 5
-theme_override_constants/margin_bottom = 5
+theme_override_constants/margin_left = 0
+theme_override_constants/margin_top = 0
+theme_override_constants/margin_right = 0
+theme_override_constants/margin_bottom = 0
 
-[node name="ClipPanel" type="PanelContainer" parent="Panel/MarginContainer"]
+[node name="ClipPanel" type="PanelContainer" parent="ComplexPanel/MarginContainer"]
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_mask")
 clip_children = 2
 
-[node name="MapRect" type="ColorRect" parent="Panel/MarginContainer/ClipPanel"]
+[node name="MapRect" type="ColorRect" parent="ComplexPanel/MarginContainer/ClipPanel"]
 unique_name_in_owner = true
 material = SubResource("ShaderMaterial_map")
 layout_mode = 2
 
-[node name="FOVOverlay" type="Control" parent="Panel/MarginContainer/ClipPanel/MapRect"]
+[node name="FOVOverlay" type="Control" parent="ComplexPanel/MarginContainer/ClipPanel/MapRect"]
 unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 15

@@ -15,9 +15,14 @@ func _ready():
 
 	fov_overlay.draw.connect(_on_fov_overlay_draw)
 
+	resized.connect(_on_resized)
 	Config.config_changed.connect(_on_config_changed)
 	GameState.state_changed.connect(_on_state_changed)
 	_sync_all_uniforms()
+
+func _on_resized():
+	if custom_minimum_size.y != size.x:
+		custom_minimum_size.y = size.x
 
 func _sync_all_uniforms():
 	if map_rect and map_rect.material:
@@ -38,6 +43,32 @@ func _sync_all_uniforms():
 		mat.set_shader_parameter("show_curves", Config.show_curves)
 		mat.set_shader_parameter("show_critical_stripe", Config.show_critical_stripe)
 
+		var real_shaded = PackedFloat32Array()
+		for val in GameState.real_level_curves_highlighted:
+			real_shaded.append(val)
+		while real_shaded.size() < 10:
+			real_shaded.append(99999.0)
+		mat.set_shader_parameter("real_level_curves_highlighted", real_shaded)
+
+		var imag_shaded = PackedFloat32Array()
+		for val in GameState.imag_level_curves_highlighted:
+			imag_shaded.append(val)
+		while imag_shaded.size() < 10:
+			imag_shaded.append(99999.0)
+		mat.set_shader_parameter("imag_level_curves_highlighted", imag_shaded)
+
+		var newton_path = PackedVector2Array()
+		if GameState.newton_path.size() > 0:
+			for val in GameState.newton_path:
+				newton_path.append(val)
+		var newton_path_size = newton_path.size()
+		while newton_path.size() < 50:
+			newton_path.append(Vector2.ZERO)
+
+		mat.set_shader_parameter("newton_path_size", newton_path_size)
+		mat.set_shader_parameter("newton_path", newton_path)
+		mat.set_shader_parameter("newton_path_bbox", GameState.newton_path_bbox)
+
 
 func _on_config_changed(key: String):
 	var mat = map_rect.material as ShaderMaterial
@@ -52,6 +83,40 @@ func _on_state_changed(key: String):
 		mat.set_shader_parameter("current_branch", GameState.current_branch)
 		mat.set_shader_parameter("show_curves", Config.show_curves)
 		mat.set_shader_parameter("show_critical_stripe", Config.show_critical_stripe)
+
+	if key == "real_level_curves_highlighted":
+		var real_shaded = PackedFloat32Array()
+		for val in GameState.real_level_curves_highlighted:
+			real_shaded.append(val)
+		while real_shaded.size() < 10:
+			real_shaded.append(99999.0)
+		mat.set_shader_parameter("real_level_curves_highlighted", real_shaded)
+
+	if key == "imag_level_curves_highlighted":
+		var imag_shaded = PackedFloat32Array()
+		for val in GameState.imag_level_curves_highlighted:
+			imag_shaded.append(val)
+		while imag_shaded.size() < 10:
+			imag_shaded.append(99999.0)
+		mat.set_shader_parameter("imag_level_curves_highlighted", imag_shaded)
+
+	if key == "newton_path_bbox":
+		mat.set_shader_parameter("newton_path_bbox", GameState.newton_path_bbox)
+
+	if key == "newton_path":
+		if GameState.newton_path.size() > 0:
+			var newton_path = PackedVector2Array()
+			for val in GameState.newton_path:
+				newton_path.append(val)
+			var newton_path_size = newton_path.size()
+			while newton_path.size() < 50:
+				newton_path.append(Vector2.ZERO)
+
+			mat.set_shader_parameter("newton_path_size", newton_path_size)
+			mat.set_shader_parameter("newton_path", newton_path)
+			mat.set_shader_parameter("newton_path_bbox", GameState.newton_path_bbox)
+		else:
+			mat.set_shader_parameter("newton_path_size", 0)
 
 
 func _process(_delta):

@@ -709,7 +709,51 @@ mouse_filter = 2
 layout_mode = 2
 
 
-; [node name="MinimapAspect" parent="Control/MainUIColumns/MainUIStackRight" instance=ExtResource("10_minimap")]
+[node name="MinimapPanel" type="PanelContainer" parent="Control/MainUIColumns/MainUIStackRight"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 100)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MarginContainer" type="MarginContainer" parent="Control/MainUIColumns/MainUIStackRight/MinimapPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="VBox" type="VBoxContainer" parent="Control/MainUIColumns/MainUIStackRight/MinimapPanel/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 5
+
+[node name="MinimapTitleHBox" type="HBoxContainer" parent="Control/MainUIColumns/MainUIStackRight/MinimapPanel/MarginContainer/VBox"]
+layout_mode = 2
+
+[node name="MinimapTitle" type="Label" parent="Control/MainUIColumns/MainUIStackRight/MinimapPanel/MarginContainer/VBox/MinimapTitleHBox"]
+theme_type_variation = &"HeaderLabel"
+layout_mode = 2
+theme_override_constants/character_spacing = 2
+theme_override_constants/outline_size = 0
+theme_override_constants/shadow_outline_size = 0
+text = "MINIMAP"
+horizontal_alignment = 0
+
+[node name="HSeparator" type="HSeparator" parent="Control/MainUIColumns/MainUIStackRight/MinimapPanel/MarginContainer/VBox/MinimapTitleHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/separator = SubResource("StyleBoxLine_header_sep")
+
+[node name="Spacer" type="Control" parent="Control/MainUIColumns/MainUIStackRight/MinimapPanel/MarginContainer/VBox"]
+custom_minimum_size = Vector2(0, 3)
+layout_mode = 2
+
+[node name="MinimapAspect" parent="Control/MainUIColumns/MainUIStackRight/MinimapPanel/MarginContainer/VBox" instance=ExtResource("10_minimap")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 240)
+layout_mode = 2
+size_flags_horizontal = 3
+ratio = 1.0
+stretch_mode = 2
 
 
 [node name="DetachOverlay" type="PanelContainer" parent="Control"]
