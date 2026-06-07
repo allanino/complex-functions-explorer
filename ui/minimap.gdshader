@@ -186,11 +186,15 @@ void fragment() {
     if (show_hud_zeros && visited_zeros_size > 0) {
         float core_intensity = 0.0;
         float border_intensity = 0.0;
+        float glow_intensity = 0.0;
         float scale = zoom_factor * 16.0;
         
-        float r_core = 0.15 * scale;
+        float r_core = 0.10 * scale;
         float border_width = 0.05 * scale;
         float r_total = r_core + border_width;
+        float r_glow = r_total + 0.20 * scale;
+
+        float pulse = 0.5 + 0.5 * sin(TIME * 5.0);
 
         for (int i = 0; i < visited_zeros_size; i++) {
             vec2 p = vec2(visited_zeros[i].x * 10.0 * zoom_factor, -visited_zeros[i].y * 10.0 * zoom_factor);
@@ -202,16 +206,27 @@ void fragment() {
             float total_val = 1.0 - smoothstep(r_total - aa, r_total + aa, d_center);
             float border_val = clamp(total_val - core_val, 0.0, 1.0);
 
+            // Pulsing glow outside the circle boundary
+            float glow_val = (1.0 - smoothstep(r_total - aa, r_glow + aa, d_center)) * (1.0 - total_val);
+
             core_intensity = max(core_intensity, core_val);
             border_intensity = max(border_intensity, border_val);
+            glow_intensity = max(glow_intensity, glow_val);
         }
 
-        if (core_intensity > 0.0 || border_intensity > 0.0) {
+        if (core_intensity > 0.0 || border_intensity > 0.0 || glow_intensity > 0.0) {
             vec3 bright_gold = vec3(1.0, 0.84, 0.3); // Bright gold
             vec3 dark_gold = vec3(0.5, 0.35, 0.05);   // Darker gold tone
             
+            // First mix the pulsing glow outside the circle
+            base_color = mix(base_color, bright_gold, glow_intensity * pulse * 0.7);
+            
+            // Then mix the dark gold outline
             base_color = mix(base_color, dark_gold, clamp(border_intensity, 0.0, 1.0));
-            base_color = mix(base_color, bright_gold, clamp(core_intensity, 0.0, 1.0));
+            
+            // Overlay the bright gold core with a subtle brightness pulse
+            vec3 pulsed_core_color = bright_gold * (1.0 + 0.25 * pulse);
+            base_color = mix(base_color, pulsed_core_color, clamp(core_intensity, 0.0, 1.0));
         }
     }
 
