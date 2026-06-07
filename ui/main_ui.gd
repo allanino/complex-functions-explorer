@@ -35,6 +35,9 @@ var portal_flash: ColorRect
 @onready var tooltip_manager = %TooltipManager
 @onready var detach_controller = %DetachOverlay
 @onready var preset_controller = %PresetController
+
+@export var show_hud_chunks: bool = false
+
 # New UI Node Paths
 var current_scale = 2.0
 var _last_zeros_visible: bool = false
@@ -244,7 +247,7 @@ func _process(_delta):
 	complex_aspect.visible = Config.show_hud_complex
 	domain_panel.visible = Config.show_hud_navigation
 	target_panel.visible = Config.show_hud_navigation
-	monitor_panel.visible = Config.show_hud_monitor_fps or Config.show_hud_monitor_chunks or GameState.performance_protection_active
+	monitor_panel.visible = Config.show_hud_monitor_fps or show_hud_chunks or GameState.performance_protection_active
 	if monitor_panel.visible:
 		if Config.show_hud_monitor_fps:
 			fps_hbox.visible = true
@@ -252,7 +255,7 @@ func _process(_delta):
 		else:
 			fps_hbox.visible = false
 
-		if Config.show_hud_monitor_chunks and world_manager:
+		if show_hud_chunks and world_manager:
 			chunks_label.visible = true
 			var chunks_text = "Chunks"
 			var num_lods = world_manager.LOD_SUBS.size()

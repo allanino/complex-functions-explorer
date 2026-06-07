@@ -692,7 +692,6 @@ func demo_actions():
 	Config.show_critical_stripe = 0
 	Config.show_hud_zeros = false
 	Config.show_hud_monitor_fps = true
-	Config.show_hud_monitor_chunks = false
 	Config.shadows_enabled = false
 	Config.show_curves = true
 	Config.show_curves_labels = false

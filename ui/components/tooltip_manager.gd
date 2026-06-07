@@ -41,7 +41,6 @@ const DESCRIPTIONS = {
 	"Zeros detection": "Show the list of discovered zeros during walking.",
 	"Riemann–von Mangoldt": "Show the estimated number of zeta zeros N(t) based on the Riemann–von Mangoldt formula.",
 	"Monitor FPS": "Show real-time performance metrics (FPS) on the HUD.",
-	"Monitor Chunks": "Show real-time chunks statistics on the HUD.",
 	"Menu Scale": "Adjust the size of this menu panel. Changes are applied after the slider is released.",
 	"HUD Scale": "Adjust the size of the HUD elements.",
 	"Master Volume": "Control the global volume level of all sound sources.",
