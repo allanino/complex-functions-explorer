@@ -157,7 +157,7 @@ func _on_fov_overlay_draw():
 	# Draw player indicator: white core with black outline of same scale as zero marker
 	var r_core_px = 0.018 * fov_overlay.size.x
 	var border_px = 0.009 * fov_overlay.size.x
-	fov_overlay.draw_circle(center, r_core_px + border_px, Color(0.2, 0.2, 0.2, 1.0), true, -1.0, true)
+	fov_overlay.draw_circle(center, r_core_px + border_px, Color(0.2, 0.2, 0.2, 0.8), true, -1.0, true)
 	fov_overlay.draw_circle(center, r_core_px, Color(1, 1, 1, 1.0), true, -1.0, true)
 
 	var yaw = camera.global_rotation.y

@@ -116,7 +116,7 @@ void fragment() {
     }
 
     if (newton_path_size > 0) {
-        float expand = 2.0;
+        float expand = 20.0;
         float x_min = newton_path_bbox.x * 10.0 * zoom_factor - expand;
         float x_max = newton_path_bbox.y * 10.0 * zoom_factor + expand;
         float z_min = -newton_path_bbox.w * 10.0 * zoom_factor - expand;
@@ -125,15 +125,17 @@ void fragment() {
         if (world_pos.x >= x_min && world_pos.x <= x_max && world_pos.y >= z_min && world_pos.y <= z_max) {
             float total_intensity = 0.0;
             float scale = clamp(0.5 / zoom_factor, 0.2, 0.5) * 2.0;
+            
+            float pixel_size_world = fwidth(UV.x) * 2.0 * view_radius;
+            float aa = pixel_size_world * 1.0;
+            float min_thickness = pixel_size_world * 1.5;
+
             for (int i = 0; i < newton_path_size - 1; i++) {
                 vec2 p1 = vec2(newton_path[i].x * 10.0 * zoom_factor, -newton_path[i].y * 10.0 * zoom_factor);
                 vec2 p2 = vec2(newton_path[i+1].x * 10.0 * zoom_factor, -newton_path[i+1].y * 10.0 * zoom_factor);
 
                 float seg_len = length(p2 - p1);
                 if (seg_len < 0.0001) continue;
-
-                float aa = fwidth(world_pos.x) * 1.0;
-                float min_thickness = fwidth(world_pos.x) * 1.5;
 
                 float local_thickness = max(min_thickness, min(0.02 * scale, seg_len * 0.05));
                 float d_seg = sdLine(world_pos, p1, p2);
@@ -158,7 +160,8 @@ void fragment() {
                 total_intensity = max(total_intensity, arr_core + arr_glow);
             }
             if (total_intensity > 0.0) {
-                vec3 final_emission = vec3(1.0, 1.0, 1.0) * total_intensity * 2.0;
+                vec3 path_color = vec3(1.0, 1.0, 1.0);
+                vec3 final_emission = path_color * total_intensity * 2.0;
                 base_color = mix(base_color, final_emission, clamp(total_intensity, 0.0, 1.0));
             }
         }
