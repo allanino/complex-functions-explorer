@@ -68,9 +68,8 @@ void fragment() {
     if (show_curves) {
         float fmag = length(f);
         if (fmag > 1e-6) {
-            float derivative_mag = length(vec2(fd.dx.x, fd.dx.y));
-            float raw_w_re = abs(derivative_mag / fmag) * view_radius * 0.005;
-            float raw_w_im = abs(derivative_mag / fmag) * view_radius * 0.005;
+            float raw_w_re = fwidth(f.x);
+            float raw_w_im = fwidth(f.y);
 
             float max_density_threshold = 0.2;
 
@@ -82,7 +81,7 @@ void fragment() {
                     break;
                 }
             }
-            float w_re = clamp(raw_w_re, 0.000005, 0.001) + (is_real_highlighted ? 0.06 : 0.02);
+            float w_re = raw_w_re * 0.2 + (is_real_highlighted ? 0.02 : 0.006);
             float line_re = smoothstep(w_re, 0.0, d_re);
             float density_re = smoothstep(max_density_threshold, max_density_threshold * 0.7, raw_w_re);
             line_re *= density_re;
@@ -95,19 +94,19 @@ void fragment() {
                     break;
                 }
             }
-            float w_im = clamp(raw_w_im, 0.000005, 0.001) + (is_imag_highlighted ? 0.06 : 0.02);
+            float w_im = raw_w_im * 0.2 + (is_imag_highlighted ? 0.02 : 0.006);
             float line_im = smoothstep(w_im, 0.0, d_im);
             float density_im = smoothstep(max_density_threshold, max_density_threshold * 0.7, raw_w_im);
             line_im *= density_im;
 
-            base_color *= 1.0 - line_re * (is_real_highlighted ? 0.8 : 0.3);
-            base_color *= 1.0 + line_im * (is_imag_highlighted ? 0.8 : 0.3);
+            base_color *= 1.0 - line_re * (is_real_highlighted ? 0.6 : 0.15);
+            base_color *= 1.0 + line_im * (is_imag_highlighted ? 0.6 : 0.15);
 
             if (is_real_highlighted) {
-                base_color += vec3(0.0, 0.6, 1.0) * line_re * 0.8;
+                base_color += vec3(0.0, 0.6, 1.0) * line_re * 0.6;
             }
             if (is_imag_highlighted) {
-                base_color += vec3(1.0, 0.0, 0.549) * line_im * 0.8;
+                base_color += vec3(1.0, 0.0, 0.549) * line_im * 0.6;
             }
         }
     }
