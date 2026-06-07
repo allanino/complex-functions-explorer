@@ -466,5 +466,5 @@ func _on_config_changed(key: String):
 				menu_overlay.zoom_slider.value = menu_overlay._zoom_to_slider(Config.zoom_factor)
 	if key == "day_time" and not Config.freeze_time:
 		if menu_overlay:
-			menu_overlay.day_time_slider.value = Config.day_time
+			menu_overlay.day_time_slider.set_value_no_signal(Config.day_time)
 			menu_overlay.day_time_slider.value_text = menu_overlay._format_time(Config.day_time)
