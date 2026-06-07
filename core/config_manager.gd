@@ -94,7 +94,7 @@ const FUNCTIONS = {
 		"name": "z",
 	},
 	ComplexFunc.RATIONAL: {
-		"name": "Rational",
+		"name": "rational",
 		"is_rational": true,
 	},
 	ComplexFunc.MULTIVALUED_Z_POW: {
