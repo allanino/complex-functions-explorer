@@ -346,7 +346,7 @@ var show_hud_navigation: bool = true
 var show_hud_zeros: bool = true
 var show_rvm: bool = true
 var show_hud_monitor_fps: bool = false
-@export var show_hud_monitor_chunks: bool = false
+
 var hud_scale: float = 1.0
 var menu_scale: float = 1.0
 
