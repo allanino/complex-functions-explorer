@@ -42,6 +42,7 @@ func _sync_all_uniforms():
 		mat.set_shader_parameter("current_branch", GameState.current_branch)
 		mat.set_shader_parameter("show_curves", Config.show_curves)
 		mat.set_shader_parameter("show_critical_stripe", Config.show_critical_stripe)
+		mat.set_shader_parameter("show_hud_zeros", Config.show_hud_zeros)
 
 		var real_shaded = PackedFloat32Array()
 		for val in GameState.real_level_curves_highlighted:
@@ -73,7 +74,7 @@ func _sync_all_uniforms():
 func _on_config_changed(key: String):
 	var mat = map_rect.material as ShaderMaterial
 	if not mat: return
-	if key in ["iterations", "zoom_factor", "function_type", "input_function_type", "color_scheme", "rational_num_coeffs", "rational_den_coeffs", "input_rational_num_coeffs", "input_rational_den_coeffs", "multivalued_n", "show_curves", "show_critical_stripe"]:
+	if key in ["iterations", "zoom_factor", "function_type", "input_function_type", "color_scheme", "rational_num_coeffs", "rational_den_coeffs", "input_rational_num_coeffs", "input_rational_den_coeffs", "multivalued_n", "show_curves", "show_critical_stripe", "show_hud_zeros"]:
 		_sync_all_uniforms()
 
 func _on_state_changed(key: String):
@@ -127,6 +128,23 @@ func _process(_delta):
 	if mat:
 		mat.set_shader_parameter("player_pos_world", Vector2(player.global_position.x, player.global_position.z))
 		mat.set_shader_parameter("view_radius", view_radius * GameState.effective_zoom)
+
+		if Config.show_hud_zeros:
+			var visited = PackedVector2Array()
+			for val in GameState.visited_zeros:
+				visited.append(val)
+			var v_size = min(visited.size(), 10)
+			while visited.size() < 10:
+				visited.append(Vector2.ZERO)
+
+			if visited.size() > 10:
+				var truncated = PackedVector2Array()
+				for i in range(10):
+					truncated.append(visited[i])
+				visited = truncated
+
+			mat.set_shader_parameter("visited_zeros_size", v_size)
+			mat.set_shader_parameter("visited_zeros", visited)
 
 	fov_overlay.queue_redraw()
 

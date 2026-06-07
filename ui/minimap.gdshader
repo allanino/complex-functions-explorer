@@ -18,6 +18,10 @@ uniform vec2 newton_path[50];
 uniform int newton_path_size;
 uniform vec4 newton_path_bbox; // x_min, x_max, y_min, y_max
 
+uniform bool show_hud_zeros = false;
+uniform vec2 visited_zeros[10];
+uniform int visited_zeros_size;
+
 float sdLine(vec2 p, vec2 a, vec2 b) {
     vec2 pa = p - a, ba = b - a;
     float h = clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0);
@@ -179,6 +183,30 @@ void fragment() {
         }
     }
 
+    if (show_hud_zeros && visited_zeros_size > 0) {
+        float cross_intensity = 0.0;
+        float scale = clamp(0.5 / zoom_factor, 0.2, 0.5) * 2.0;
+        float cross_len = 0.5 * scale;
+        float cross_width = 0.02 * scale;
+
+        for (int i = 0; i < visited_zeros_size; i++) {
+            vec2 p = vec2(visited_zeros[i].x * 10.0 * zoom_factor, -visited_zeros[i].y * 10.0 * zoom_factor);
+
+            float d1 = sdLine(world_pos, p + vec2(-cross_len, 0.0), p + vec2(cross_len, 0.0));
+            float d2 = sdLine(world_pos, p + vec2(0.0, -cross_len), p + vec2(0.0, cross_len));
+
+            float d = min(d1, d2);
+            float core = 1.0 - step(cross_width, d);
+            float glow = (1.0 - smoothstep(cross_width, cross_width * 3.0, d)) * 0.5;
+
+            cross_intensity = max(cross_intensity, core + glow);
+        }
+
+        if (cross_intensity > 0.0) {
+            vec3 gold = vec3(1.0, 0.84, 0.0);
+            base_color = mix(base_color, gold, clamp(cross_intensity, 0.0, 1.0));
+        }
+    }
 
     COLOR = vec4(base_color * 0.8, 1.0);
 }
