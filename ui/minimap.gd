@@ -28,7 +28,7 @@ func _sync_all_uniforms():
 	if map_rect and map_rect.material:
 		var mat = map_rect.material as ShaderMaterial
 		mat.set_shader_parameter("iterations", Config.iterations)
-		mat.set_shader_parameter("zoom_factor", Config.zoom_factor)
+		mat.set_shader_parameter("zoom_factor", GameState.effective_zoom)
 		mat.set_shader_parameter("function_type", Config.function_type)
 		mat.set_shader_parameter("input_function_type", Config.input_function_type)
 		mat.set_shader_parameter("color_scheme", Config.color_scheme)
@@ -83,6 +83,8 @@ func _on_state_changed(key: String):
 		mat.set_shader_parameter("current_branch", GameState.current_branch)
 		mat.set_shader_parameter("show_curves", Config.show_curves)
 		mat.set_shader_parameter("show_critical_stripe", Config.show_critical_stripe)
+		if key == "effective_zoom":
+			mat.set_shader_parameter("zoom_factor", GameState.effective_zoom)
 
 	if key == "real_level_curves_highlighted":
 		var real_shaded = PackedFloat32Array()
