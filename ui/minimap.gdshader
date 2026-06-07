@@ -128,10 +128,13 @@ void fragment() {
                 float seg_len = length(p2 - p1);
                 if (seg_len < 0.0001) continue;
 
-                float local_thickness = max(0.005 * scale, min(0.02 * scale, seg_len * 0.05));
+                float aa = fwidth(world_pos.x) * 1.0;
+                float min_thickness = fwidth(world_pos.x) * 1.5;
+
+                float local_thickness = max(min_thickness, min(0.02 * scale, seg_len * 0.05));
                 float d_seg = sdLine(world_pos, p1, p2);
-                float core = 1.0 - step(local_thickness, d_seg);
-                float glow = (1.0 - smoothstep(local_thickness, local_thickness * 2.0, d_seg)) * 0.5;
+                float core = 1.0 - smoothstep(local_thickness - aa, local_thickness + aa, d_seg);
+                float glow = (1.0 - smoothstep(local_thickness + aa, local_thickness * 3.0 + aa * 2.0, d_seg)) * 0.5;
                 total_intensity = max(total_intensity, core + glow);
 
                 vec2 dir = (p2 - p1) / seg_len;
@@ -140,14 +143,14 @@ void fragment() {
 
                 float path_arrow_len = min(0.16 * scale, seg_len * 0.4);
                 float path_arrow_width = min(0.08 * scale, seg_len * 0.2);
-                float local_arr_thickness = max(0.005 * scale, min(0.02 * scale, path_arrow_len * 0.15));
+                float local_arr_thickness = max(min_thickness, min(0.02 * scale, path_arrow_len * 0.15));
 
                 float d_arr = min(
                     sdLine(world_pos, mid + dir * path_arrow_len * 0.5, mid - dir * path_arrow_len * 0.5 + perp * path_arrow_width),
                     sdLine(world_pos, mid + dir * path_arrow_len * 0.5, mid - dir * path_arrow_len * 0.5 - perp * path_arrow_width)
                 );
-                float arr_core = 1.0 - step(local_arr_thickness, d_arr);
-                float arr_glow = (1.0 - smoothstep(local_arr_thickness, local_arr_thickness * 2.0, d_arr)) * 0.5;
+                float arr_core = 1.0 - smoothstep(local_arr_thickness - aa, local_arr_thickness + aa, d_arr);
+                float arr_glow = (1.0 - smoothstep(local_arr_thickness + aa, local_arr_thickness * 3.0 + aa * 2.0, d_arr)) * 0.5;
                 total_intensity = max(total_intensity, arr_core + arr_glow);
             }
             if (total_intensity > 0.0) {
