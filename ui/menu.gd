@@ -501,6 +501,8 @@ func _init_slider_bindings():
 			SLIDER_BINDINGS[slider] = bindings[slider]
 
 func _on_generic_slider_changed(slider: Control, value: float):
+	if _syncing_ui:
+		return
 	if not SLIDER_BINDINGS.has(slider):
 		return
 	var binding = SLIDER_BINDINGS[slider]
