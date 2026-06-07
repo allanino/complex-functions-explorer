@@ -577,7 +577,6 @@ func _on_func_selected(f_type: int):
 	iter_slider.visible = has_iters
 	critical_checkbox.visible = is_dirichlect
 	auto_walk_checkbox.visible = is_dirichlect
-	zero_walk_checkbox.visible = is_dirichlect
 	rvm_checkbox.visible = is_dirichlect
 
 	var is_multivalued = f_data.get("is_multivalued", false)
