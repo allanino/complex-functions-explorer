@@ -198,6 +198,10 @@ func _unhandled_input(event):
 			Config.freeze_time = false
 			Config.save_settings()
 		elif event.keycode == KEY_C:
+			var f_data = Config.function
+			if not f_data.get("is_dirichlect", false):
+				return
+
 			if auto_walk_state == AutoWalkState.NONE:
 				auto_walk_state = AutoWalkState.MOVING_TO_LINE
 				# Reset zero counter when starting auto-walk
