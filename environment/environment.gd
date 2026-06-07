@@ -38,34 +38,25 @@ func _process(delta):
 	# Orbit axis is perpendicular to sunrise vector (cos, 0, sin) and zenith (0, 1, 0)
 	var orbit_axis = Vector3(sin(sunrise_rad), 0, -cos(sunrise_rad))
 
-	var angular_velocity = 0.0
+	var progress = 0.0
 	if not Config.freeze_time: # Dynamic
 		# Increment day time based on day duration
 		# 86400 seconds in a day / day_duration = speed multiplier
-		var speed_multiplier = 86400.0 / Config.day_duration
-		Config.day_time += delta * speed_multiplier
+		Config.day_time += delta * (86400.0 / Config.day_duration)
 		if Config.day_time >= 86400.0:
 			Config.day_time -= 86400.0
-		angular_velocity = (TAU / 86400.0) * speed_multiplier
 
-	var progress = Config.day_time / 86400.0
+	progress = Config.day_time / 86400.0
 
 	# angle = PI is Midnight (progress 0.0), angle = 0.0 is Noon (progress 0.5)
 	var target_angle = (progress + 0.5) * TAU
 
-	# Get the shortest difference between the current angle and the target angle
-	# to check for manual jumps (e.g., from UI sliders or initial sync)
-	var diff = fmod(abs(target_angle - _current_angle), TAU)
-	var angle_diff = min(diff, TAU - diff)
-
-	if _is_first_frame or angle_diff > 0.05:
+	if _is_first_frame:
 		_current_angle = target_angle
 		_is_first_frame = false
 	else:
-		# Add continuous velocity to avoid floating point staggering on large day_duration
-		_current_angle += angular_velocity * delta
-		# Gently correct any drift towards the true target angle, fast enough to track normal speed
-		_current_angle = lerp_angle(_current_angle, target_angle, 20.0 * delta)
+		# Use Godot's built-in lerp_angle for completely smooth tracking
+		_current_angle = lerp_angle(_current_angle, target_angle, 10.0 * delta)
 
 	# Sun direction: rotate Noon (0, -1, 0) around orbit axis
 	var sun_dir = Quaternion(orbit_axis, _current_angle) * Vector3.DOWN
