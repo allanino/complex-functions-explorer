@@ -49,10 +49,10 @@ static var _grabber_initialized: bool = false
 static var _grabber_pressed_tex: ImageTexture
 static var _grabber_highlight_tex: ImageTexture
 
-static func _create_grabber_texture(color: Color, size: int, center: Vector2) -> ImageTexture:
-	var img = Image.create(size, size, false, Image.FORMAT_RGBA8)
-	for y in range(size):
-		for x in range(size):
+static func _create_grabber_texture(color: Color, _size: int, center: Vector2) -> ImageTexture:
+	var img = Image.create(_size, _size, false, Image.FORMAT_RGBA8)
+	for y in range(_size):
+		for x in range(_size):
 			var dist = center.distance_to(Vector2(x, y))
 			if dist <= 6.0:
 				img.set_pixel(x, y, color)
@@ -74,12 +74,12 @@ func _ready():
 
 	if not _grabber_initialized:
 		_grabber_initialized = true
-		var grabber_size = 15
-		var center = Vector2(7.0, 7.0)
+		var grabber_size = 18
+		var center = Vector2(9.0, 9.0)
 
-		var normal_color = Color(0.784314, 0.662745, 0.431373, 0.7)
-		var hover_color = Color(0.784314, 0.662745, 0.431373, 1.0)
-		var pressed_color = Color(0.784314, 0.662745, 0.431373, 0.6)
+		var normal_color = Color(0.784314, 0.662745, 0.431373, 1.0)
+		var hover_color = normal_color.lightened(0.2)
+		var pressed_color = normal_color.darkened(0.2)
 
 		var tex_normal = _create_grabber_texture(normal_color, grabber_size, center)
 		_grabber_highlight_tex = _create_grabber_texture(hover_color, grabber_size, center)
