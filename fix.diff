@@ -1,0 +1,21 @@
+--- ui/menu.gd
++++ ui/menu.gd
+@@ -562,6 +562,11 @@
+	var is_multivalued_n = f_type == Config.ComplexFunc.MULTIVALUED_Z_POW
+
+	if has_iters:
++		# Prevent slider from auto-updating value and emitting value_changed
++		# while we update its min and max bounds.
++		var _old_val = iter_slider.value
++		if _old_val < iters_range[0] or _old_val > iters_range[1]:
++			_syncing_ui = true
+		iter_slider.min_value = iters_range[0]
+		iter_slider.max_value = iters_range[1]
+		iter_slider.step = iters_range[2]
+@@ -569,7 +574,8 @@
+		Config.iterations = Config.function_iterations.get(f_type, iters_range[3])
+-		iter_slider.value = Config.iterations
++		iter_slider.set_value_no_signal(Config.iterations)
++		_syncing_ui = false
+
+	func_rational_container.visible = is_rational
