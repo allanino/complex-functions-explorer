@@ -53,14 +53,19 @@ func _process(delta):
 	# angle = PI is Midnight (progress 0.0), angle = 0.0 is Noon (progress 0.5)
 	var target_angle = (progress + 0.5) * TAU
 
-	if _is_first_frame:
+	# Get the shortest difference between the current angle and the target angle
+	# to check for manual jumps (e.g., from UI sliders or initial sync)
+	var diff = fmod(abs(target_angle - _current_angle), TAU)
+	var angle_diff = min(diff, TAU - diff)
+
+	if _is_first_frame or angle_diff > 0.05:
 		_current_angle = target_angle
 		_is_first_frame = false
 	else:
 		# Add continuous velocity to avoid floating point staggering on large day_duration
 		_current_angle += angular_velocity * delta
-		# Gently correct any drift towards the true target angle
-		_current_angle = lerp_angle(_current_angle, target_angle, 0.1 * delta)
+		# Gently correct any drift towards the true target angle, fast enough to track normal speed
+		_current_angle = lerp_angle(_current_angle, target_angle, 20.0 * delta)
 
 	# Sun direction: rotate Noon (0, -1, 0) around orbit axis
 	var sun_dir = Quaternion(orbit_axis, _current_angle) * Vector3.DOWN
