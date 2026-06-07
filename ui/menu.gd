@@ -248,16 +248,18 @@ func _ready():
 	input_button.add_theme_font_override("font", xenon_font)
 	func_button.get_popup().add_theme_font_override("font", xenon_font)
 	input_button.get_popup().add_theme_font_override("font", xenon_font)
+	height_button.add_theme_font_override("font", xenon_font)
+	height_button.get_popup().add_theme_font_override("font", xenon_font)
 
 	_populate_function_dropdown(func_button, false)
 	_populate_function_dropdown(input_button, true)
 
 	height_button.clear()
-	height_button.add_item("Abs(f)")
-	height_button.add_item("a * Log(Abs(f) + ε)")
+	height_button.add_item("|f|")
+	height_button.add_item("a·log(|f| + ε)")
 	height_button.add_item("Im(f)")
 	height_button.add_item("Re(f)")
-	height_button.add_item("Re( e^(-iθ) * f )")
+	height_button.add_item("Re(e^(-iθ)·f)")
 	height_button.add_item("0")
 
 	terrain_detail_button.clear()
