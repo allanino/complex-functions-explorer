@@ -344,10 +344,10 @@ func test_get_height_from_field():
 
 	# Test 1: Non-finite inputs
 	var res1 = ComplexFieldScript.get_height_from_field(Vector2(INF, 0))
-	assert_almost_eq(res1, 0.0, 0.0001)
+	assert(is_nan(res1))
 
 	var res2 = ComplexFieldScript.get_height_from_field(Vector2(NAN, 0))
-	assert_almost_eq(res2, 0.0, 0.0001)
+	assert(is_nan(res2))
 
 	# Test 2: height_type = 1 (Logarithmic), morph_value = 1.0
 	Config.height_type = 1
