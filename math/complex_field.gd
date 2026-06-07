@@ -349,7 +349,9 @@ static func get_field(world_x: float, world_z: float) -> Vector2:
 
 	return get_field_at(w.x, w.y, Config.function_type, false)
 
-static func newton_step(z: Vector2, step_size_mult: float, max_step: float = 1.0) -> Vector2:
+# Returns [next_z: Vector2, f_val: Vector2] so the caller can reuse f_val
+# without an extra get_field evaluation.
+static func newton_step(z: Vector2, step_size_mult: float, max_step: float = 1.0) -> Array:
 	var p_ref = Config.complex_to_world(z.x, z.y)
 	var f_val = get_field(p_ref.x, p_ref.y)
 	var delta_z = 1e-5
@@ -358,12 +360,12 @@ static func newton_step(z: Vector2, step_size_mult: float, max_step: float = 1.0
 	var f_prime = (f_val_dx - f_val) / delta_z
 
 	if f_prime.length_squared() < 1e-12:
-		return z
+		return [z, f_val]
 
 	var step = complex_div(f_val, f_prime)
 	if step.length() > max_step:
 		step = step.normalized() * max_step
-	return z - step * step_size_mult
+	return [z - step * step_size_mult, f_val]
 
 static func get_height_from_field(f: Vector2) -> float:
 	if not is_finite(f.x) or not is_finite(f.y): return NAN

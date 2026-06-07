@@ -212,7 +212,7 @@ func _unhandled_input(event):
 				auto_walk_state = AutoWalkState.NEWTON_WALK
 				var complex_pos = Config.world_to_complex(global_position.x, global_position.z)
 
-				newton_target_z = ComplexField.newton_step(complex_pos, 2.0)
+				newton_target_z = ComplexField.newton_step(complex_pos, 2.0)[0]
 				last_newton_idx = 1
 
 				newton_wait_timer = 0.1
@@ -236,13 +236,12 @@ func _unhandled_input(event):
 					if path.size() >= 200:
 						break
 
-					var p_current = Config.complex_to_world(_current_z.x, _current_z.y)
-					var f_val = ComplexField.get_field(p_current.x, p_current.y)
-					var f_abs = f_val.length()
-					if f_abs < 1e-6:
-						break
+					var result = ComplexField.newton_step(_current_z, step_mult)
+					var next_z: Vector2 = result[0]
+					var f_val: Vector2 = result[1]
 
-					var next_z = ComplexField.newton_step(_current_z, step_mult)
+					if f_val.length() < 1e-6:
+						break
 
 					# Cycle detection: check if we are jumping back and forth
 					loop_detected = false
@@ -253,8 +252,8 @@ func _unhandled_input(event):
 
 					if loop_detected:
 						step_mult *= 0.5
-						# Recalculate with smaller step
-						next_z = ComplexField.newton_step(_current_z, step_mult)
+						# Recalculate with smaller step (f_val unchanged — same _current_z)
+						next_z = ComplexField.newton_step(_current_z, step_mult)[0]
 					else:
 						# Recover step size if no cycle detected
 						if step_mult < 1.0:
@@ -668,20 +667,26 @@ func _physics_process(delta):
 					var true_z = z_mid + Vector2(dx, dy)
 
 					# Refine zero location using numerical complex Newton-Raphson steps
+					var converged = true
 					var refined_z = true_z
-					var diverged = false
+					var step_mult = 0.5
+					var step_max = 0.5
 					for step_idx in range(15):
-						var p_ref = Config.complex_to_world(refined_z.x, refined_z.y)
-						var f_val = ComplexField.get_field(p_ref.x, p_ref.y)
-						if f_val.length() < 1e-6:
-							break
-						
-						var next_z = ComplexField.newton_step(refined_z, 0.1, 0.1)
+						var result = ComplexField.newton_step(refined_z, step_mult, step_max)
+						var next_z: Vector2 = result[0]
+						var f_val: Vector2 = result[1]
+
+						step_mult *= 0.95
+						step_max *= 0.95
+
 						refined_z = next_z
+						if f_val.length() < 1e-6:
+							converged = true
+							break
 
 					true_z = refined_z
 
-					if not diverged and true_z.distance_to(last_detected_z) > 0.01:
+					if converged && true_z.distance_to(last_detected_z) > 0.01:
 						GameState.total_zeros_found += 1
 						GameState.visited_zeros.push_back(true_z)
 						if GameState.visited_zeros.size() > 10:
