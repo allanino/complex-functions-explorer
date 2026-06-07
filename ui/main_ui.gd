@@ -46,7 +46,8 @@ var _last_zeros_count: int = -1
 func _ready():
 	Config.config_changed.connect(_on_config_changed)
 	
-	pass
+	# Start invisible to avoid layout snapping/popping at startup
+	hud_columns.visible = false
 
 	var mobile_controls = get_node_or_null("Control/MobileControls")
 	if mobile_controls and mobile_controls.has_node("SettingsButton"):
@@ -129,7 +130,12 @@ func _skip_render_hud() -> bool:
 
 
 func _process(_delta):
-	if _skip_render_hud(): return
+	var is_first_run = not hud_columns.visible
+	if is_first_run:
+		# Force a full update on the very first frame to layout correctly
+		_skip_frame_counter = 0
+	elif _skip_render_hud():
+		return
 
 	if Config.show_hud_zeros and not _last_zeros_visible:
 		GameState.rvm_start_t = abs(Config.world_to_complex(0.0, player.global_position.z).y)
@@ -263,6 +269,9 @@ func _process(_delta):
 			chunks_label.visible = false
 
 	_update_hud_layout()
+
+	if is_first_run:
+		hud_columns.visible = true
 
 var _last_hud_state = {}
 
