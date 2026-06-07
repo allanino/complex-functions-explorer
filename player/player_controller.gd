@@ -813,14 +813,12 @@ func start_newton_walk():
 			if path.size() >= 200:
 				break
 
-			  var result = ComplexField.newton_step(_current_z, step_mult)
-				var next_z: Vector2 = result[0]
-				var f_val: Vector2 = result[1]
-    
+			var result = ComplexField.newton_step(_current_z, step_mult)
+			var next_z: Vector2 = result[0]
+			var f_val: Vector2 = result[1]
+	
 			if f_val.length() < 1e-6:
 				break
-
-			var next_z = ComplexField.newton_step(_current_z, step_mult)
 
 			# Cycle detection: check if we are jumping back and forth
 			loop_detected = false
@@ -832,7 +830,7 @@ func start_newton_walk():
 			if loop_detected:
 				step_mult *= 0.5
 				# Recalculate with smaller step
-				next_z = ComplexField.newton_step(_current_z, step_mult)
+				next_z = ComplexField.newton_step(_current_z, step_mult)[0]
 			else:
 				# Recover step size if no cycle detected
 				if step_mult < 1.0:
