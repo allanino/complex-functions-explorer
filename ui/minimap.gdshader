@@ -162,9 +162,21 @@ void fragment() {
         vec2 complex_pos = world_to_complex(world_pos.x, world_pos.y);
         if (complex_pos.x >= 0.0 && complex_pos.x <= 1.0) {
             base_color = mix(base_color, vec3(1.0), 0.15); // highlight
-            if (abs(complex_pos.x - 0.5) < 0.01 / zoom_factor) {
-                 base_color = mix(base_color, vec3(1.0, 0.655, 0.0), 0.5); // red center line
-            }
+            
+            float aa = fwidth(world_pos.x) * 1.0;
+            float line_width = fwidth(world_pos.x) * 0.75;
+            
+            // Screen-space anti-aliased gold center line at Re = 0.5 (world_x = 5.0 * zoom_factor)
+            float d_critical = abs(world_pos.x - 5.0 * zoom_factor);
+            float line_val = 1.0 - smoothstep(line_width - aa, line_width + aa, d_critical);
+            base_color = mix(base_color, vec3(1.0, 0.655, 0.0), line_val * 0.8);
+            
+            // Screen-space anti-aliased white boundary lines at Re = 0 (world_x = 0.0) and Re = 1 (world_x = 10.0 * zoom_factor)
+            float d0 = abs(world_pos.x);
+            float d10 = abs(world_pos.x - 10.0 * zoom_factor);
+            float line0_val = 1.0 - smoothstep(line_width - aa, line_width + aa, d0);
+            float line10_val = 1.0 - smoothstep(line_width - aa, line_width + aa, d10);
+            base_color = mix(base_color, vec3(1.0), max(line0_val, line10_val) * 0.8);
         }
     }
 
