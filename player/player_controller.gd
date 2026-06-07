@@ -667,26 +667,34 @@ func _physics_process(delta):
 					var true_z = z_mid + Vector2(dx, dy)
 
 					# Refine zero location using numerical complex Newton-Raphson steps
-					var converged = true
+					var converged = false
 					var refined_z = true_z
-					var step_mult = 0.5
-					var step_max = 0.5
+					var step_mult = 0.6
+					var step_max = 0.3
+					var f_val: Vector2 = Vector2.INF
+					# print("\nStarting at: ", refined_z)
 					for step_idx in range(15):
 						var result = ComplexField.newton_step(refined_z, step_mult, step_max)
 						var next_z: Vector2 = result[0]
-						var f_val: Vector2 = result[1]
+						f_val = result[1]
 
-						step_mult *= 0.95
-						step_max *= 0.95
+						if f_val.length() < 0.01:
+							step_mult *= 0.99
+
+						if f_val.length() < 0.001:
+							step_mult *= 0.9
 
 						refined_z = next_z
-						if f_val.length() < 1e-6:
+
+						# print("Step ", step_idx, ": ", refined_z, " - f_val ", f_val, " - length ", f_val.length(), " step_mult", step_mult)
+						if f_val.length() < 1e-5:
 							converged = true
 							break
 
+					# print("Final: ", refined_z, " Converged: ", converged, " f_val: ", f_val.length())
 					true_z = refined_z
 
-					if converged && true_z.distance_to(last_detected_z) > 0.01:
+					if converged:
 						GameState.total_zeros_found += 1
 						GameState.visited_zeros.push_back(true_z)
 						if GameState.visited_zeros.size() > 10:

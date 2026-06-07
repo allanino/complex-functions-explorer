@@ -354,10 +354,10 @@ static func get_field(world_x: float, world_z: float) -> Vector2:
 static func newton_step(z: Vector2, step_size_mult: float, max_step: float = 1.0) -> Array:
 	var p_ref = Config.complex_to_world(z.x, z.y)
 	var f_val = get_field(p_ref.x, p_ref.y)
-	var delta_z = 1e-5
-	var p_ref_dx = Config.complex_to_world(z.x + delta_z, z.y)
+	var delta_x = 1e-5
+	var p_ref_dx = Config.complex_to_world(z.x + delta_x, z.y)
 	var f_val_dx = get_field(p_ref_dx.x, p_ref_dx.y)
-	var f_prime = (f_val_dx - f_val) / delta_z
+	var f_prime = (f_val_dx - f_val) / delta_x
 
 	if f_prime.length_squared() < 1e-12:
 		return [z, f_val]
