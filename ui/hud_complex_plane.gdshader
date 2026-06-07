@@ -72,7 +72,7 @@ void fragment() {
 
     // Draw unit circle
     float unit_circle = abs(mag - 1.0);
-    float circle_mask = smoothstep(0.03 * scale, 0.0, unit_circle);
+    float circle_mask = smoothstep(0.02 * scale, 0.0, unit_circle);
     color = mix(color, vec3(0.9), circle_mask);
 
     // Draw arrow for phase
@@ -83,8 +83,7 @@ void fragment() {
 
         // Shaft
         float d = sdSegment(z, vec2(0.0), tip);
-        // The base arrow thickness is 0.03 * scale
-        float arrow_thickness = 0.03 * scale;
+        float arrow_thickness = 0.02 * scale;
 
         // Arrow head
         vec2 perp = vec2(-dir.y, dir.x);
