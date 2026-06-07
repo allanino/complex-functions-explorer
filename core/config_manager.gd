@@ -33,7 +33,7 @@ enum ComplexFunc {
 
 const FUNCTIONS = {
 	ComplexFunc.ZETA: {
-		"name": "Zeta (σ > 0)",
+		"name": "ζ (σ > 0)",
 		"hidden": true,
 		"is_dirichlect": true,
 		"has_von_mangoldt": true,
@@ -41,76 +41,76 @@ const FUNCTIONS = {
 		"iters_range": [200.0, 10000.0, 200.0, 200.0],
 	},
 	ComplexFunc.ZETA_REFLECTION: {
-		"name": "Zeta",
+		"name": "ζ",
 		"is_dirichlect": true,
 		"has_von_mangoldt": true,
 		"iters_range": [200.0, 10000.0, 200.0, 200.0],
 	},
 	ComplexFunc.DIRICHLET_ETA: {
-		"name": "Dirichlet Eta (σ > 0)",
+		"name": "η (σ > 0)",
 		"is_dirichlect": true,
 		"has_von_mangoldt": true,
 		"iters_range": [200.0, 10000.0, 200.0, 200.0],
 	},
 	ComplexFunc.DIRICHLET_BETA: {
-		"name": "Dirichlet Beta (σ > 0)",
+		"name": "β (σ > 0)",
 		"is_dirichlect": true,
 		"has_von_mangoldt": true,
 		"iters_range": [200.0, 10000.0, 200.0, 200.0],
 	},
 	ComplexFunc.GAMMA: {
-		"name": "Gamma"
+		"name": "Γ"
 	},
 	ComplexFunc.LOG_GAMMA: {
-		"name": "Log Gamma"
+		"name": "log Γ"
 	},
 	ComplexFunc.DEDEKIND_ETA: {
-		"name": "Dedekind Eta",
+		"name": "dedekind η",
 		"iters_range": [1.0, 20.0, 1.0, 10.0],
 	},
 	ComplexFunc.MANDELBROT: {
-		"name": "Mandelbrot",
+		"name": "mandelbrot",
 		"iters_range": [100.0, 5000.0, 100.0, 500.0],
 	},
 	ComplexFunc.SIN: {
-		"name": "Sin",
+		"name": "sin",
 	},
 	ComplexFunc.COS: {
-		"name": "Cos",
+		"name": "cos",
 	},
 	ComplexFunc.TAN: {
-		"name": "Tan",
+		"name": "tan",
 	},
 	ComplexFunc.COT: {
-		"name": "Cot",
+		"name": "cot",
 	},
 	ComplexFunc.EXP: {
-		"name": "Exp",
+		"name": "exp",
 	},
 	ComplexFunc.LOG: {
-		"name": "Log",
+		"name": "log",
 	},
 	ComplexFunc.IDENTITY: {
-		"name": "Identity",
+		"name": "z",
 	},
 	ComplexFunc.RATIONAL: {
 		"name": "Rational",
 		"is_rational": true,
 	},
 	ComplexFunc.MULTIVALUED_Z_POW: {
-		"name": "Multivalued z^(1/n)",
+		"name": "multivalued z^(1/n)",
 		"is_multivalued": true,
 	},
 	ComplexFunc.MULTIVALUED_LOG: {
-		"name": "Multivalued Log",
+		"name": "multivalued log",
 		"is_multivalued": true,
 	},
 	ComplexFunc.MULTIVALUED_ASIN: {
-		"name": "Multivalued ArcSin",
+		"name": "multivalued arcsin",
 		"is_multivalued": true,
 	},
 	ComplexFunc.MULTIVALUED_ACOS: {
-		"name": "Multivalued ArcCos",
+		"name": "multivalued arccos",
 		"is_multivalued": true,
 	},
 }
