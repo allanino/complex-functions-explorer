@@ -182,8 +182,8 @@ func test_player_max_world_height_limit():
 
 	# 2. Above limit: height is 1005 (>= 1000)
 	player.global_position = Vector3(10050.0, 0.0, 0.0)
-	player.last_terrain_h = 1005.0
-	player.last_player_pos = Vector3(9950.0, 0.0, 0.0) # uphill displacement
+	player.last_terrain_h = 999.0 # lower than terrain height to simulate moving uphill
+	player.last_player_pos = Vector3(9950.0, 0.0, 0.0)
 
 	# Try to move uphill (velocity in positive X)
 	player.velocity = Vector3(100.0, 0.0, 0.0)
@@ -195,8 +195,8 @@ func test_player_max_world_height_limit():
 
 	# Try to move downhill (velocity in negative X)
 	player.global_position = Vector3(10050.0, 0.0, 0.0)
-	player.last_terrain_h = 1005.0
-	player.last_player_pos = Vector3(9950.0, 0.0, 0.0) # uphill displacement
+	player.last_terrain_h = 1010.0 # higher than terrain height to simulate moving downhill
+	player.last_player_pos = Vector3(10150.0, 0.0, 0.0)
 	player.velocity = Vector3(-100.0, 0.0, 0.0)
 	player._physics_process(0.016)
 
