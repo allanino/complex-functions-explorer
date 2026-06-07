@@ -625,6 +625,7 @@ func _on_set_pos_pressed(_toggle_menu: bool = true):
 
 	if !hud_zeros_checkbox.button_pressed:
 		GameState.visited_zeros.clear()
+		GameState.total_zeros_found = 0
 
 	# Apply non-slider values to Config
 	Config.height_a = h_a
@@ -701,6 +702,9 @@ func _on_set_pos_pressed(_toggle_menu: bool = true):
 	emit_signal('update_hud_layout_signal')
 	preset_controller.update_preset_button_text()
 
+	GameState.visited_zeros.clear()
+	GameState.total_zeros_found = 0
+
 	if player:
 		var target_world = Config.complex_to_world(re, im)
 		if not is_finite(player.global_position.x) or not is_finite(player.global_position.y) or not is_finite(player.global_position.z):
@@ -710,12 +714,15 @@ func _on_set_pos_pressed(_toggle_menu: bool = true):
 			player.global_position.x = target_world.x
 			player.global_position.z = target_world.y
 
+		var f_data = Config.function
+		if f_data.get("is_dirichlect", false):
+			GameState.rvm_start_t = abs(Config.world_to_complex(0.0, player.global_position.z).y)
+
 		# Update auto-walk state
 		if auto_walk_checkbox.button_pressed:
 			if player.auto_walk_state == 0 or player.auto_walk_state == 3: # NONE or NEWTON_WALK
 				player.auto_walk_state = 1 # MOVING_TO_LINE
 				GameState.rvm_start_t = abs(Config.world_to_complex(0.0, player.global_position.z).y)
-				GameState.visited_zeros.clear()
 				if "last_detected_t" in player:
 					player.last_detected_t = -1.0
 		elif zero_walk_checkbox.button_pressed:
@@ -724,6 +731,8 @@ func _on_set_pos_pressed(_toggle_menu: bool = true):
 				player.start_newton_walk()
 		else:
 			player.auto_walk_state = 0 # NONE
+
+	emit_signal('update_hud_layout_signal')
 
 	preset_controller.update_preset_button_text()
 	if _toggle_menu:
@@ -853,6 +862,8 @@ func _on_hud_zeros_toggled(pressed: bool):
 	Config.show_hud_zeros = pressed
 	if not pressed:
 		GameState.visited_zeros.clear()
+		GameState.total_zeros_found = 0
+		emit_signal('update_hud_layout_signal')
 
 func _on_rvm_toggled(pressed: bool):
 	Config.show_rvm = pressed

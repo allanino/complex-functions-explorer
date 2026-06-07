@@ -45,6 +45,7 @@ const BASE_HUD_PANEL_SIZE: float = 190.0
 const RENDER_EACH_N_FRAME: int = 3
 var _skip_frame_counter: int = 0
 var _last_zeros_count: int = -1
+var _last_visited_zeros_size: int = -1
 
 func _ready():
 	Config.config_changed.connect(_on_config_changed)
@@ -164,11 +165,12 @@ func _process(_delta):
 
 	if Config.show_hud_zeros:
 		var total_count = GameState.total_zeros_found
-		if total_count != _last_zeros_count:
+		var current_size = GameState.visited_zeros.size()
+		if total_count != _last_zeros_count or current_size != _last_visited_zeros_size:
 			_last_zeros_count = total_count
+			_last_visited_zeros_size = current_size
 			zeros_count_label.text = str(total_count)
 
-			var current_size = GameState.visited_zeros.size()
 			GameState.accented_zero_index = current_size - 1
 
 			# Clear existing items
