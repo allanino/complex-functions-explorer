@@ -187,20 +187,13 @@ void fragment() {
         // Mix pulsed critical center line core
         vec3 pulsed_gold = vec3(1.0, 0.84, 0.3) * (1.0 + 0.15 * pulse);
         base_color = mix(base_color, pulsed_gold, line_val * 0.8);
-        
-        // Screen-space anti-aliased white boundary lines at Re = 0 (world_x = 0.0) and Re = 1 (world_x = 10.0 * zoom_factor)
-        float d0 = abs(world_pos.x);
-        float d10 = abs(world_pos.x - 10.0 * zoom_factor);
-        float line0_val = 1.0 - smoothstep(line_width - aa, line_width + aa, d0);
-        float line10_val = 1.0 - smoothstep(line_width - aa, line_width + aa, d10);
-        base_color = mix(base_color, vec3(1.0), max(line0_val, line10_val) * 0.8);
     }
 
     if (show_hud_zeros && visited_zeros_size > 0) {
         float core_intensity = 0.0;
         float border_intensity = 0.0;
         float glow_intensity = 0.0;
-        float scale = zoom_factor * 16.0;
+        float scale = zoom_factor * 32.0;
         
         float r_core = 0.10 * scale;
         float border_width = 0.05 * scale;

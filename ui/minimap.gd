@@ -5,7 +5,7 @@ extends AspectRatioContainer
 
 var player: Node3D = null
 var camera: Camera3D = null
-var view_radius: float = 40.0
+var view_radius: float = 80.0
 
 func _ready():
 	await get_tree().process_frame
@@ -155,8 +155,8 @@ func _on_fov_overlay_draw():
 	var r = min(center.x, center.y) * 0.8
 
 	# Draw player indicator: white core with black outline of same scale as zero marker
-	var r_core_px = 0.016 * fov_overlay.size.x
-	var border_px = 0.008 * fov_overlay.size.x
+	var r_core_px = 0.018 * fov_overlay.size.x
+	var border_px = 0.009 * fov_overlay.size.x
 	fov_overlay.draw_circle(center, r_core_px + border_px, Color(0.2, 0.2, 0.2, 1.0), true, -1.0, true)
 	fov_overlay.draw_circle(center, r_core_px, Color(1, 1, 1, 1.0), true, -1.0, true)
 
@@ -175,5 +175,5 @@ func _on_fov_overlay_draw():
 	var colors = PackedColorArray([Color(1, 1, 1, 0.4), Color(1, 1, 1, 0.0), Color(1, 1, 1, 0.0)])
 
 	fov_overlay.draw_polygon(points, colors)
-	fov_overlay.draw_line(center, p1, Color(1, 1, 1, 0.5), 1.0)
-	fov_overlay.draw_line(center, p2, Color(1, 1, 1, 0.5), 1.0)
+	fov_overlay.draw_line(center, p1, Color(1, 1, 1, 0.5), 1.0, true)
+	fov_overlay.draw_line(center, p2, Color(1, 1, 1, 0.5), 1.0, true)
