@@ -100,13 +100,15 @@ void fragment() {
             float density_im = smoothstep(max_density_threshold, max_density_threshold * 0.7, raw_w_im);
             line_im *= density_im;
 
-            float line_alpha = max(line_re * (is_real_highlighted ? 0.8 : 0.3), line_im * (is_imag_highlighted ? 0.8 : 0.3));
+            base_color *= 1.0 - line_re * (is_real_highlighted ? 0.8 : 0.3);
+            base_color *= 1.0 + line_im * (is_imag_highlighted ? 0.8 : 0.3);
 
-            vec3 grid_color = vec3(0.0);
-            if (color_scheme == 2) {
-                grid_color = vec3(1.0);
+            if (is_real_highlighted) {
+                base_color += vec3(0.0, 0.6, 1.0) * line_re * 0.8;
             }
-            base_color = mix(base_color, grid_color, line_alpha);
+            if (is_imag_highlighted) {
+                base_color += vec3(1.0, 0.0, 0.549) * line_im * 0.8;
+            }
         }
     }
 
