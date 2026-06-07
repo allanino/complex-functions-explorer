@@ -664,7 +664,6 @@ void compute_position_marker(vec3 w_pos, vec3 nrm, inout vec3 out_albedo, inout 
     float d_line1 = sdLine(rel, origin, vec2(length_arms, 0.0));
     float d_line2 = sdLine(rel, origin, -vec2(0.0, length_arms));
 
-    float d_cross = min(d_line1, d_line2);
     float d_dot = length(rel) - dot_radius;
 
     // Arrowheads at the tips of the cross arms
@@ -680,8 +679,9 @@ void compute_position_marker(vec3 w_pos, vec3 nrm, inout vec3 out_albedo, inout 
         sdLine(rel, tip_upward, tip_upward + vec2(arrow_width, arrow_len))
     );
 
-    float d_arrows = min(d_arr_right, d_arr_upward);
-    float d_marker = min(min(d_cross, d_dot), d_arrows);
+    float d_right = min(d_line1, d_arr_right);
+    float d_up = min(d_line2, d_arr_upward);
+    float d_marker = min(min(d_right, d_up), d_dot);
 
     if (d_marker < glow_thickness) {
         // Crisp core
@@ -690,6 +690,12 @@ void compute_position_marker(vec3 w_pos, vec3 nrm, inout vec3 out_albedo, inout 
         float glow = (1.0 - smoothstep(thickness, glow_thickness, d_marker)) * 0.5;
 
         vec3 marker_color = vec3(0.4);
+        if (abs(d_marker - d_right) < 0.0001) {
+            marker_color = mix(marker_color, vec3(0.3647, 0.847, 0.7843), 0.5);
+        } else if (abs(d_marker - d_up) < 0.0001) {
+            marker_color = mix(marker_color, vec3(0.8313, 0.3725, 0.6274), 0.5);
+        }
+
         float intensity = core + glow;
 
         // Draw just above terrain means we just render it directly on the terrain surface.
