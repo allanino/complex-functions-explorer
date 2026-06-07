@@ -269,7 +269,7 @@ var _last_hud_state = {}
 func _update_hud_layout():
 	if not hud_columns: return
 
-	var cards = [target_panel, minimap_panel, domain_panel, monitor_panel, zeros_panel, menu_overlay.perf_label]
+	var cards = [minimap_panel, target_panel, domain_panel, monitor_panel, zeros_panel, menu_overlay.perf_label]
 
 	var actual_hud_scale = Config.hud_scale
 
