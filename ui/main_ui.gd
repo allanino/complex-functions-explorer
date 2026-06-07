@@ -169,8 +169,7 @@ func _process(_delta):
 			zeros_count_label.text = str(total_count)
 
 			var current_size = GameState.visited_zeros.size()
-			if GameState.accented_zero_index == -1 or GameState.accented_zero_index >= current_size:
-				GameState.accented_zero_index = current_size - 1
+			GameState.accented_zero_index = current_size - 1
 
 			# Clear existing items
 			for child in zeros_list_label.get_children():
