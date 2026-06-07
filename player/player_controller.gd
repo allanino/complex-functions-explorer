@@ -64,7 +64,11 @@ var camera_push_offset: Vector3 = Vector3.ZERO
 func _ready():
 	add_to_group("player")
 	# Set the global position directly using a Vector3(x, y, z)
-	global_position = Vector3(5.0, 0.0, 0.0)
+	if Config.function.get("is_dirichlect", false):
+		global_position = Vector3(5.0, 0.0, 0.0)
+	else:
+		global_position = Vector3(0.0, 0.0, 0.0)
+		rotation.y = -PI / 2.0
 	var complex_pos = Config.world_to_complex(global_position.x, global_position.z)
 	last_t = complex_pos.y
 	last_z = complex_pos
@@ -213,8 +217,14 @@ func _unhandled_input(event):
 			else:
 				auto_walk_state = AutoWalkState.NONE
 		elif event.keycode == KEY_R:
-			global_position.x = 0.0
-			global_position.z = 0.0
+			if Config.function.get("is_dirichlect", false):
+				global_position.x = 5.0
+				global_position.z = 0.0
+				rotation.y = 0.0
+			else:
+				global_position.x = 0.0
+				global_position.z = 0.0
+				rotation.y = -PI / 2.0
 			velocity = Vector3.ZERO
 			auto_walk_state = AutoWalkState.NONE
 			height_offset = 0.0
