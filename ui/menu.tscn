@@ -904,12 +904,6 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "Monitor FPS"
 
-[node name="HudMonitorChunksCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/UI/Margin/VBox" unique_id=1212894815 instance=ExtResource("3_checkbox")]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-text = "Monitor Chunks"
-
 [node name="AUDIO" type="ScrollContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer" unique_id=1363046571]
 visible = false
 layout_mode = 2
