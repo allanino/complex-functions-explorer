@@ -7,6 +7,8 @@ extends Node3D
 # Day night cycle variables
 var _golden_hour_transition: float = 0.0
 var _sun_color = Color("#fc9500")
+
+# Smooth angle variables
 var _current_angle: float = 0.0
 var _is_first_frame: bool = true
 
@@ -29,22 +31,24 @@ func _update_fog_settings():
 			env.fog_density = Config.fog_density * 0.05
 			env.fog_aerial_perspective = (1.0 - Config.fog_density)
 
-func _physics_process(delta):
+func _process(delta):
 	# Environment logic
 	var night_factor = 0.0
 	var sunrise_rad = deg_to_rad(Config.sunrise_direction - 180.0)
 	# Orbit axis is perpendicular to sunrise vector (cos, 0, sin) and zenith (0, 1, 0)
 	var orbit_axis = Vector3(sin(sunrise_rad), 0, -cos(sunrise_rad))
 
-	var progress = 0.0
+	var angular_velocity = 0.0
 	if not Config.freeze_time: # Dynamic
 		# Increment day time based on day duration
 		# 86400 seconds in a day / day_duration = speed multiplier
-		Config.day_time += delta * (86400.0 / Config.day_duration)
+		var speed_multiplier = 86400.0 / Config.day_duration
+		Config.day_time += delta * speed_multiplier
 		if Config.day_time >= 86400.0:
 			Config.day_time -= 86400.0
+		angular_velocity = (TAU / 86400.0) * speed_multiplier
 
-	progress = Config.day_time / 86400.0
+	var progress = Config.day_time / 86400.0
 
 	# angle = PI is Midnight (progress 0.0), angle = 0.0 is Noon (progress 0.5)
 	var target_angle = (progress + 0.5) * TAU
@@ -53,8 +57,10 @@ func _physics_process(delta):
 		_current_angle = target_angle
 		_is_first_frame = false
 	else:
-		# Smooth interpolation to avoid staggering
-		_current_angle = lerp_angle(_current_angle, target_angle, 5.0 * delta)
+		# Add continuous velocity to avoid floating point staggering on large day_duration
+		_current_angle += angular_velocity * delta
+		# Gently correct any drift towards the true target angle
+		_current_angle = lerp_angle(_current_angle, target_angle, 0.1 * delta)
 
 	# Sun direction: rotate Noon (0, -1, 0) around orbit axis
 	var sun_dir = Quaternion(orbit_axis, _current_angle) * Vector3.DOWN
