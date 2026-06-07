@@ -501,6 +501,8 @@ func _init_slider_bindings():
 			SLIDER_BINDINGS[slider] = bindings[slider]
 
 func _on_generic_slider_changed(slider: Control, value: float):
+	if _syncing_ui:
+		return
 	if not SLIDER_BINDINGS.has(slider):
 		return
 	var binding = SLIDER_BINDINGS[slider]
@@ -562,12 +564,16 @@ func _on_func_selected(f_type: int):
 	var is_multivalued_n = f_type == Config.ComplexFunc.MULTIVALUED_Z_POW
 
 	if has_iters:
+		_syncing_ui = true
 		iter_slider.min_value = iters_range[0]
 		iter_slider.max_value = iters_range[1]
 		iter_slider.step = iters_range[2]
 
 		Config.iterations = Config.function_iterations.get(f_type, iters_range[3])
-		iter_slider.value = Config.iterations
+		iter_slider.set_value_no_signal(Config.iterations)
+		if SLIDER_BINDINGS.has(iter_slider) and "format" in SLIDER_BINDINGS[iter_slider]:
+			iter_slider.value_text = SLIDER_BINDINGS[iter_slider]["format"].call(Config.iterations)
+		_syncing_ui = false
 
 	func_rational_container.visible = is_rational
 	if is_rational:
