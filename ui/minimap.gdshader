@@ -184,33 +184,36 @@ void fragment() {
     }
 
     if (show_hud_zeros && visited_zeros_size > 0) {
-        float cross_intensity = 0.0;
+        float core_intensity = 0.0;
+        float border_intensity = 0.0;
         float scale = zoom_factor * 16.0;
-        float cross_len = 0.3 * scale;
-        float cross_width = 0.02 * scale;
+        
+        float r_core = 0.15 * scale;
+        float border_width = 0.05 * scale;
+        float r_total = r_core + border_width;
 
-        float offset_len = cross_len * 0.70710678;
         for (int i = 0; i < visited_zeros_size; i++) {
             vec2 p = vec2(visited_zeros[i].x * 10.0 * zoom_factor, -visited_zeros[i].y * 10.0 * zoom_factor);
 
-            float d1 = sdLine(world_pos, p + vec2(-offset_len, -offset_len), p + vec2(offset_len, offset_len));
-            float d2 = sdLine(world_pos, p + vec2(-offset_len, offset_len), p + vec2(offset_len, -offset_len));
+            float d_center = length(world_pos - p);
+            float aa = fwidth(d_center);
 
-            float d = min(d1, d2);
-            float aa = fwidth(d);
-            
-            float core_edge_low = max(0.0, cross_width - aa);
-            float core_edge_high = cross_width + aa;
-            float core = 1.0 - smoothstep(core_edge_low, core_edge_high, d);
+            float core_val = 1.0 - smoothstep(r_core - aa, r_core + aa, d_center);
+            float total_val = 1.0 - smoothstep(r_total - aa, r_total + aa, d_center);
+            float border_val = clamp(total_val - core_val, 0.0, 1.0);
 
-            cross_intensity = max(cross_intensity, core);
+            core_intensity = max(core_intensity, core_val);
+            border_intensity = max(border_intensity, border_val);
         }
 
-        if (cross_intensity > 0.0) {
-            vec3 gold = vec3(1.0, 0.84, 0.3);
-            base_color = mix(base_color, gold, clamp(cross_intensity, 0.0, 1.0));
+        if (core_intensity > 0.0 || border_intensity > 0.0) {
+            vec3 bright_gold = vec3(1.0, 0.84, 0.3); // Bright gold
+            vec3 dark_gold = vec3(0.5, 0.35, 0.05);   // Darker gold tone
+            
+            base_color = mix(base_color, dark_gold, clamp(border_intensity, 0.0, 1.0));
+            base_color = mix(base_color, bright_gold, clamp(core_intensity, 0.0, 1.0));
         }
     }
 
-    COLOR = vec4(base_color * 0.8, 1.0);
+    COLOR = vec4(base_color * 0.9, 1.0);
 }
