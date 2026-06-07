@@ -168,12 +168,14 @@ func _process(_delta):
 			_last_zeros_count = total_count
 			zeros_count_label.text = str(total_count)
 
+			var current_size = GameState.visited_zeros.size()
+			GameState.accented_zero_index = current_size - 1
+
 			# Clear existing items
 			for child in zeros_list_label.get_children():
 				zeros_list_label.remove_child(child)
 				child.queue_free()
 
-			var current_size = GameState.visited_zeros.size()
 			var actual_hud_scale = Config.hud_scale
 			for i in range(current_size - 1, max(-1, current_size - 11), -1):
 				var zero = GameState.visited_zeros[i]
@@ -181,9 +183,11 @@ func _process(_delta):
 				var im_str = _format_float_3(zero[1])
 				var item = ZERO_LIST_ITEM_SCENE.instantiate()
 				zeros_list_label.add_child(item)
-				item.set_values(re_str, im_str)
+				item.zero_index = i
+				item.clicked.connect(_on_zero_item_clicked)
+				item.set_values(re_str, im_str, f_data.get("is_dirichlect", false))
 				_rescale_card(item, actual_hud_scale)
-				if i == current_size - 1:
+				if i == GameState.accented_zero_index:
 					item.is_active = true
 
 		# Riemann-von Mangoldt formula: N(T) ≈ (T/2π) log(T/2πe) + 7/8
@@ -480,3 +484,8 @@ func _on_config_changed(key: String):
 		if menu_overlay:
 			menu_overlay.day_time_slider.set_value_no_signal(Config.day_time)
 			menu_overlay.day_time_slider.value_text = menu_overlay._format_time(Config.day_time)
+
+func _on_zero_item_clicked(index: int):
+	GameState.accented_zero_index = index
+	for item in zeros_list_label.get_children():
+		item.is_active = (item.zero_index == index)

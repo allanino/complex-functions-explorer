@@ -1,5 +1,9 @@
 extends PanelContainer
 
+signal clicked(index: int)
+var zero_index: int = -1
+
+
 @onready var real_label = %RealLabel
 @onready var imag_label = %ImagLabel
 
@@ -16,6 +20,16 @@ func set_active(val: bool):
 		style.bg_color = Color(0.909804, 0.894118, 0.862745, 0.08)
 	add_theme_stylebox_override("panel", style)
 
-func set_values(re: String, im: String):
-	real_label.text = "1/2" if re == "0.500" else re
+func set_values(re: String, im: String, is_dirichlet: bool):
+	if is_dirichlet and re == "0.500":
+		real_label.text = "1/2"
+		real_label.add_theme_color_override("font_color", Color(0.784314, 0.662745, 0.431373, 1)) # Gold
+	else:
+		real_label.text = re
+		real_label.add_theme_color_override("font_color", Color(0.3647, 0.847, 0.7843, 1)) # Cyan
+
 	imag_label.text = " + " + im + " i"
+
+func _gui_input(event):
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+		clicked.emit(zero_index)
