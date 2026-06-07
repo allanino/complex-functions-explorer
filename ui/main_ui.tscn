@@ -9,7 +9,7 @@
 [ext_resource type="Script" path="res://ui/components/detach_controller.gd" id="7_detach_controller"]
 [ext_resource type="PackedScene" path="res://ui/components/virtual_joystick.tscn" id="8_joy"]
 [ext_resource type="PackedScene" path="res://ui/components/virtual_button.tscn" id="9_btn"]
-[ext_resource type="FontVariation" path="res://ui/theme/font_neon.tres" id="1_spacemono"]
+[ext_resource type="FontVariation" path="res://ui/theme/font_neon.tres" id="font_spacemono"]
 [ext_resource type="FontFile" path="res://fonts/EBGaramond-Light.ttf" id="font_garamond"]
 [ext_resource type="Theme" path="res://ui/theme/theme.tres" id="theme_tres"]
 [ext_resource type="PackedScene" path="res://ui/minimap.tscn" id="10_minimap"]
@@ -398,7 +398,7 @@ layout_mode = 2
 unique_name_in_owner = true
 custom_minimum_size = Vector2(120, 0)
 layout_mode = 2
-theme_override_fonts/normal_font = ExtResource("1_spacemono")
+theme_override_fonts/normal_font = ExtResource("font_spacemono")
 theme_override_font_sizes/normal_font_size = 12
 bbcode_enabled = true
 text = "[color=gray]N(t) ≈[/color] [color=#c8a96e]0.00[/color]"
@@ -411,7 +411,7 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(70, 0)
 layout_mode = 2
 theme_override_colors/default_color = Color(0.909804, 0.894118, 0.862745, 0.45)
-theme_override_fonts/normal_font = ExtResource("1_spacemono")
+theme_override_fonts/normal_font = ExtResource("font_spacemono")
 theme_override_font_sizes/normal_font_size = 12
 bbcode_enabled = true
 text = "Δ = +0.00"
@@ -491,8 +491,8 @@ unique_name_in_owner = true
 visible = false
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.8, 0, 1)
-theme_override_fonts/font = ExtResource("1_spacemono")
-theme_override_font_sizes/font_size = 17
+theme_override_fonts/font = ExtResource("font_spacemono")
+theme_override_font_sizes/font_size = 18
 text = "Performance protection activated, adjust settings."
 horizontal_alignment = 1
 autowrap_mode = 3
@@ -502,8 +502,8 @@ unique_name_in_owner = true
 visible = false
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.8, 0, 1)
-theme_override_fonts/font = ExtResource("1_spacemono")
-theme_override_font_sizes/font_size = 17
+theme_override_fonts/font = ExtResource("font_spacemono")
+theme_override_font_sizes/font_size = 18
 text = "Max world height reached, returned to safe heights."
 horizontal_alignment = 1
 autowrap_mode = 3
