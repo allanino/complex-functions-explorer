@@ -1,0 +1,18 @@
+--- ui/hud_complex_plane.gdshader
++++ ui/hud_complex_plane.gdshader
+@@ -87,14 +87,14 @@
+
+         // Arrow head
+         vec2 perp = vec2(-dir.y, dir.x);
+         vec2 head_base = tip - 0.15 * dir * (scale / 2.0); // Adjust size by scale
+         float d_head = sdTriangle(z, tip, head_base + 0.08 * perp * (scale / 2.0), head_base - 0.08 * perp * (scale / 2.0));
+
+-        d = min(d - arrow_thickness, d_head);
++        d = min(d, d_head);
+
+-        float arrow_mask = 1.0 - smoothstep(0.0, fwidth(d), d);
++        float arrow_mask = smoothstep(arrow_thickness, 0.0, d);
+         color = mix(color, vec3(1.0), arrow_mask);
+     }
+
+     COLOR = vec4(color, 1.0);

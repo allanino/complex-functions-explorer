@@ -1,0 +1,12 @@
+--- ui/hud_complex_plane.gdshader
++++ ui/hud_complex_plane.gdshader
+@@ -83,8 +83,7 @@
+
+         // Shaft
+         float d = sdSegment(z, vec2(0.0), tip);
+-        // The base arrow thickness is 0.02 * scale, adding fwidth(d) thickens by 1px
+-        float arrow_thickness = 0.02 * scale + fwidth(d);
++        float arrow_thickness = 0.03 * scale;
+
+         // Arrow head
+         vec2 perp = vec2(-dir.y, dir.x);
