@@ -49,6 +49,10 @@ func _ready():
 	# Start invisible to avoid layout snapping/popping at startup
 	hud_columns.visible = false
 
+	# Ensure the performance protection label uses the correct neon font variation
+	if menu_overlay and menu_overlay.perf_label:
+		menu_overlay.perf_label.add_theme_font_override("font", NEON_FONT)
+
 	var mobile_controls = get_node_or_null("Control/MobileControls")
 	if mobile_controls and mobile_controls.has_node("SettingsButton"):
 		var settings_btn = mobile_controls.get_node("SettingsButton")
@@ -240,7 +244,7 @@ func _process(_delta):
 	complex_aspect.visible = Config.show_hud_complex
 	domain_panel.visible = Config.show_hud_navigation
 	target_panel.visible = Config.show_hud_navigation
-	monitor_panel.visible = Config.show_hud_monitor_fps or Config.show_hud_monitor_chunks
+	monitor_panel.visible = Config.show_hud_monitor_fps or Config.show_hud_monitor_chunks or GameState.performance_protection_active
 	if monitor_panel.visible:
 		if Config.show_hud_monitor_fps:
 			fps_hbox.visible = true
@@ -278,7 +282,7 @@ var _last_hud_state = {}
 func _update_hud_layout():
 	if not hud_columns: return
 
-	var cards = [minimap_panel, target_panel, domain_panel, monitor_panel, zeros_panel, menu_overlay.perf_label]
+	var cards = [minimap_panel, target_panel, domain_panel, zeros_panel, monitor_panel]
 
 	var actual_hud_scale = Config.hud_scale
 
