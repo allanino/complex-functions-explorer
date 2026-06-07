@@ -349,7 +349,7 @@ void compute_multivalued_highlight(vec3 w_pos, inout vec3 final_emission) {
 }
 
 
-void compute_critical_stripe_highlight(vec3 w_pos, inout vec3 final_emission, out float core_critical_out) {
+void compute_critical_stripe_highlight(vec3 w_pos, vec3 nrm, inout vec3 final_emission, out float core_critical_out) {
     float zoom = zoom_factor;
 
     // Pulsing glow intensity
@@ -358,8 +358,11 @@ void compute_critical_stripe_highlight(vec3 w_pos, inout vec3 final_emission, ou
     // Thin analytic-looking core
     float line_width = 0.015 * zoom;
 
+    // Slope correction
+    float slope_scale = max(abs(nrm.y), 0.15);
+
     // Screen-space anti-aliasing
-    float aa = fwidth(w_pos.x) * 1.5;
+    float aa = fwidth(w_pos.x) * 1.5 / slope_scale;
 
     vec3 critical_color = vec3(1.0, 0.655, 0.0);
     vec3 boundary_color = vec3(1.0);
@@ -368,7 +371,7 @@ void compute_critical_stripe_highlight(vec3 w_pos, inout vec3 final_emission, ou
     // Critical line (Re = 0.5)
     // =========================================================
 
-    float d_critical = abs(w_pos.x - 5.0 * zoom);
+    float d_critical = abs(w_pos.x - 5.0 * zoom) / slope_scale;
 
     float core_critical =
         1.0 - smoothstep(
@@ -385,7 +388,7 @@ void compute_critical_stripe_highlight(vec3 w_pos, inout vec3 final_emission, ou
     // Left boundary (Re = 0)
     // =========================================================
 
-    float d0 = abs(w_pos.x);
+    float d0 = abs(w_pos.x) / slope_scale;
 
     float core_0 =
         1.0 - smoothstep(
@@ -401,7 +404,7 @@ void compute_critical_stripe_highlight(vec3 w_pos, inout vec3 final_emission, ou
     // Right boundary (Re = 1)
     // =========================================================
 
-    float d10 = abs(w_pos.x - 10.0 * zoom);
+    float d10 = abs(w_pos.x - 10.0 * zoom) / slope_scale;
 
     float core_10 =
         1.0 - smoothstep(
@@ -841,7 +844,7 @@ void fragment() {
 
         float core_critical = 0.0;
         if (show_critical_stripe && is_dirichlect) {
-            compute_critical_stripe_highlight(world_pos, final_emission, core_critical);
+            compute_critical_stripe_highlight(world_pos, v_normal, final_emission, core_critical);
             ALBEDO = mix(ALBEDO, vec3(1.0, 0.655, 0.0), core_critical);
         }
 
