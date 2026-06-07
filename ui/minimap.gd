@@ -128,7 +128,7 @@ func _process(_delta):
 	var mat = map_rect.material as ShaderMaterial
 	if mat:
 		mat.set_shader_parameter("player_pos_world", Vector2(player.global_position.x, player.global_position.z))
-		mat.set_shader_parameter("view_radius", view_radius * GameState.effective_zoom)
+		mat.set_shader_parameter("view_radius", view_radius)
 
 	fov_overlay.queue_redraw()
 
