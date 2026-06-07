@@ -7,6 +7,8 @@ extends Node3D
 # Day night cycle variables
 var _golden_hour_transition: float = 0.0
 var _sun_color = Color("#fc9500")
+var _current_angle: float = 0.0
+var _is_first_frame: bool = true
 
 func _ready():
 	Config.config_changed.connect(_on_config_changed)
@@ -27,7 +29,7 @@ func _update_fog_settings():
 			env.fog_density = Config.fog_density * 0.05
 			env.fog_aerial_perspective = (1.0 - Config.fog_density)
 
-func _process(delta):
+func _physics_process(delta):
 	# Environment logic
 	var night_factor = 0.0
 	var sunrise_rad = deg_to_rad(Config.sunrise_direction - 180.0)
@@ -45,10 +47,17 @@ func _process(delta):
 	progress = Config.day_time / 86400.0
 
 	# angle = PI is Midnight (progress 0.0), angle = 0.0 is Noon (progress 0.5)
-	var angle = (progress + 0.5) * TAU
+	var target_angle = (progress + 0.5) * TAU
+
+	if _is_first_frame:
+		_current_angle = target_angle
+		_is_first_frame = false
+	else:
+		# Smooth interpolation to avoid staggering
+		_current_angle = lerp_angle(_current_angle, target_angle, 5.0 * delta)
 
 	# Sun direction: rotate Noon (0, -1, 0) around orbit axis
-	var sun_dir = Quaternion(orbit_axis, angle) * Vector3.DOWN
+	var sun_dir = Quaternion(orbit_axis, _current_angle) * Vector3.DOWN
 	var moon_dir = - sun_dir
 
 	var sun_elevation = - sun_dir.y
