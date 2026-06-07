@@ -439,13 +439,15 @@ func _physics_process(delta):
 
 	# Prevent player from probing heights higher/lower than MAX_WORLD_HEIGHT
 	if abs(terrain_h) >= MAX_WORLD_HEIGHT:
+		GameState.height_protection_active = true
 		# If moving to a height that is greater in magnitude than our current/last height, block it
 		if abs(terrain_h) > abs(last_terrain_h):
 			velocity.x = 0.0
 			velocity.z = 0.0
 			terrain_h = last_terrain_h
 		terrain_h = clamp(terrain_h, -MAX_WORLD_HEIGHT, MAX_WORLD_HEIGHT)
-
+	else:
+		GameState.height_protection_active = false
 
 	# Estimate slope and push camera away from rising walls
 	var target_offset = camera_push_offset

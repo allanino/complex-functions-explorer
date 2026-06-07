@@ -56,6 +56,8 @@ func _ready():
 	# Ensure the performance protection label uses the correct neon font variation
 	if menu_overlay and menu_overlay.perf_label:
 		menu_overlay.perf_label.add_theme_font_override("font", NEON_FONT)
+	if menu_overlay and menu_overlay.height_label:
+		menu_overlay.height_label.add_theme_font_override("font", NEON_FONT)
 
 	var mobile_controls = get_node_or_null("Control/MobileControls")
 	if mobile_controls and mobile_controls.has_node("SettingsButton"):
@@ -149,6 +151,8 @@ func _process(_delta):
 		GameState.rvm_start_t = abs(Config.world_to_complex(0.0, player.global_position.z).y)
 	_last_zeros_visible = Config.show_hud_zeros
 	menu_overlay.perf_label.visible = GameState.performance_protection_active
+	if menu_overlay.height_label:
+		menu_overlay.height_label.visible = GameState.height_protection_active
 
 	if not player:
 		return
@@ -253,7 +257,7 @@ func _process(_delta):
 	complex_aspect.visible = Config.show_hud_complex
 	domain_panel.visible = Config.show_hud_navigation
 	target_panel.visible = Config.show_hud_navigation
-	monitor_panel.visible = Config.show_hud_monitor_fps or show_hud_chunks or GameState.performance_protection_active
+	monitor_panel.visible = Config.show_hud_monitor_fps or show_hud_chunks or GameState.performance_protection_active or GameState.height_protection_active
 	if monitor_panel.visible:
 		if Config.show_hud_monitor_fps:
 			fps_hbox.visible = true
