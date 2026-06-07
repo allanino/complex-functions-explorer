@@ -326,15 +326,6 @@ layout_mode = 2
 theme_override_constants/separation = 10
 alignment = 2
 
-[node name="PerfProtectionLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight"]
-unique_name_in_owner = true
-visible = false
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.8, 0, 1)
-theme_override_font_sizes/font_size = 18
-text = "Performance protection activated, adjust settings."
-horizontal_alignment = 1
-autowrap_mode = 3
 
 [node name="ZerosPanel" type="PanelContainer" parent="Control/MainUIColumns/MainUIStackRight"]
 unique_name_in_owner = true
@@ -460,7 +451,7 @@ theme_override_constants/separation = 5
 layout_mode = 2
 
 [node name="TitleLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/MonitorPanel/MarginContainer/VBox/TitleLabelHBox"]
-theme_type_variation = &"HeaderLabel"
+theme_type_variation = &"InkDimLabel"
 layout_mode = 2
 theme_override_constants/character_spacing = 2
 theme_override_constants/outline_size = 0
@@ -494,6 +485,18 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"SecondaryLabel"
 text = "Chunks"
+
+[node name="PerfProtectionLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/MonitorPanel/MarginContainer/VBox"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.8, 0, 1)
+theme_override_fonts/font = ExtResource("font_spacemono")
+theme_override_font_sizes/font_size = 18
+text = "Performance protection activated, adjust settings."
+horizontal_alignment = 1
+autowrap_mode = 3
+
 
 [node name="DomainPanel" type="PanelContainer" parent="Control/MainUIColumns/MainUIStackRight"]
 unique_name_in_owner = true
@@ -642,7 +645,7 @@ text = "|f|"
 
 [node name="PhaseAbsVal" type="Label" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox/PhaseGrid"]
 unique_name_in_owner = true
-theme_type_variation = &"ValueCyanLabel"
+theme_type_variation = &"ValueGoldLabel"
 layout_mode = 2
 size_flags_horizontal = 3
 text = "0.000"
@@ -655,7 +658,7 @@ text = "arg(f)"
 
 [node name="PhaseArgVal" type="Label" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox/PhaseGrid"]
 unique_name_in_owner = true
-theme_type_variation = &"ValueMagentaLabel"
+theme_type_variation = &"InkLabel"
 layout_mode = 2
 size_flags_horizontal = 3
 text = "0°"

@@ -46,6 +46,22 @@ signal detach_requested(slider: HSlider, value_label: Label)
 			$DetachButton.visible = v
 
 static var _grabber_initialized: bool = false
+static var _grabber_pressed_tex: ImageTexture
+static var _grabber_highlight_tex: ImageTexture
+
+static func _create_grabber_texture(color: Color, _size: int, center: Vector2) -> ImageTexture:
+	var img = Image.create(_size, _size, false, Image.FORMAT_RGBA8)
+	for y in range(_size):
+		for x in range(_size):
+			var dist = center.distance_to(Vector2(x, y))
+			if dist <= 6.0:
+				img.set_pixel(x, y, color)
+			elif dist < 6.5:
+				var alpha = (6.5 - dist) / 0.5
+				img.set_pixel(x, y, Color(color.r, color.g, color.b, color.a * alpha))
+			else:
+				img.set_pixel(x, y, Color(0.0, 0.0, 0.0, 0.0))
+	return ImageTexture.create_from_image(img)
 
 func _ready():
 	$Label.text = text
@@ -58,29 +74,33 @@ func _ready():
 
 	if not _grabber_initialized:
 		_grabber_initialized = true
-		var grabber_size = 14
-		var img = Image.create(grabber_size, grabber_size, false, Image.FORMAT_RGBA8)
-		var center = Vector2(5.5, 5.5)
-		var gold_color = Color(0.862745, 0.729020, 0.474510, 1.0)
-		for y in range(grabber_size):
-			for x in range(grabber_size):
-				var dist = center.distance_to(Vector2(x, y))
-				if dist <= 5.5:
-					img.set_pixel(x, y, gold_color)
-				elif dist < 6.0:
-					var alpha = (6.0 - dist) / 0.5
-					img.set_pixel(x, y, Color(gold_color.r, gold_color.g, gold_color.b, alpha))
-				else:
-					img.set_pixel(x, y, Color(0.0, 0.0, 0.0, 0.0))
-		var grabber_tex = ImageTexture.create_from_image(img)
+		var grabber_size = 18
+		var center = Vector2(9.0, 9.0)
+
+		var normal_color = Color(0.784314, 0.662745, 0.431373, 1.0)
+		var hover_color = normal_color.lightened(0.2)
+		var pressed_color = normal_color.darkened(0.2)
+
+		var tex_normal = _create_grabber_texture(normal_color, grabber_size, center)
+		_grabber_highlight_tex = _create_grabber_texture(hover_color, grabber_size, center)
+		_grabber_pressed_tex = _create_grabber_texture(pressed_color, grabber_size, center)
+
 		var global_theme = preload("res://ui/theme/theme.tres")
-		global_theme.set_icon("grabber", "HSlider", grabber_tex)
-		global_theme.set_icon("grabber_highlight", "HSlider", grabber_tex)
-		global_theme.set_icon("grabber_disabled", "HSlider", grabber_tex)
+		global_theme.set_icon("grabber", "HSlider", tex_normal)
+		global_theme.set_icon("grabber_highlight", "HSlider", _grabber_highlight_tex)
+		global_theme.set_icon("grabber_disabled", "HSlider", tex_normal)
 
 	$Slider.value_changed.connect(func(v):
 		value = v
 		value_changed.emit(v)
+	)
+
+	$Slider.drag_started.connect(func():
+		$Slider.add_theme_icon_override("grabber_highlight", _grabber_pressed_tex)
+	)
+
+	$Slider.drag_ended.connect(func(_value_changed: bool):
+		$Slider.remove_theme_icon_override("grabber_highlight")
 	)
 
 	$DetachButton.pressed.connect(func():

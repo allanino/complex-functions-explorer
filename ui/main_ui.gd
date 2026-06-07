@@ -49,7 +49,12 @@ var _last_zeros_count: int = -1
 func _ready():
 	Config.config_changed.connect(_on_config_changed)
 	
-	pass
+	# Start invisible to avoid layout snapping/popping at startup
+	hud_columns.visible = false
+
+	# Ensure the performance protection label uses the correct neon font variation
+	if menu_overlay and menu_overlay.perf_label:
+		menu_overlay.perf_label.add_theme_font_override("font", NEON_FONT)
 
 	var mobile_controls = get_node_or_null("Control/MobileControls")
 	if mobile_controls and mobile_controls.has_node("SettingsButton"):
@@ -132,7 +137,12 @@ func _skip_render_hud() -> bool:
 
 
 func _process(_delta):
-	if _skip_render_hud(): return
+	var is_first_run = not hud_columns.visible
+	if is_first_run:
+		# Force a full update on the very first frame to layout correctly
+		_skip_frame_counter = 0
+	elif _skip_render_hud():
+		return
 
 	if Config.show_hud_zeros and not _last_zeros_visible:
 		GameState.rvm_start_t = abs(Config.world_to_complex(0.0, player.global_position.z).y)
@@ -237,7 +247,7 @@ func _process(_delta):
 	complex_aspect.visible = Config.show_hud_complex
 	domain_panel.visible = Config.show_hud_navigation
 	target_panel.visible = Config.show_hud_navigation
-	monitor_panel.visible = Config.show_hud_monitor_fps or show_hud_chunks
+	monitor_panel.visible = Config.show_hud_monitor_fps or show_hud_chunks or GameState.performance_protection_active
 	if monitor_panel.visible:
 		if Config.show_hud_monitor_fps:
 			fps_hbox.visible = true
@@ -267,12 +277,15 @@ func _process(_delta):
 
 	_update_hud_layout()
 
+	if is_first_run:
+		hud_columns.visible = true
+
 var _last_hud_state = {}
 
 func _update_hud_layout():
 	if not hud_columns: return
 
-	var cards = [minimap_panel, target_panel, domain_panel, monitor_panel, zeros_panel, menu_overlay.perf_label]
+	var cards = [minimap_panel, target_panel, domain_panel, zeros_panel, monitor_panel]
 
 	var actual_hud_scale = Config.hud_scale
 
@@ -456,5 +469,5 @@ func _on_config_changed(key: String):
 				menu_overlay.zoom_slider.value = menu_overlay._zoom_to_slider(Config.zoom_factor)
 	if key == "day_time" and not Config.freeze_time:
 		if menu_overlay:
-			menu_overlay.day_time_slider.value = Config.day_time
+			menu_overlay.day_time_slider.set_value_no_signal(Config.day_time)
 			menu_overlay.day_time_slider.value_text = menu_overlay._format_time(Config.day_time)
