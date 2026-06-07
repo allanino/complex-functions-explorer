@@ -18,6 +18,10 @@ uniform vec2 newton_path[50];
 uniform int newton_path_size;
 uniform vec4 newton_path_bbox; // x_min, x_max, y_min, y_max
 
+uniform bool show_hud_zeros = false;
+uniform vec2 visited_zeros[10];
+uniform int visited_zeros_size;
+
 float sdLine(vec2 p, vec2 a, vec2 b) {
     vec2 pa = p - a, ba = b - a;
     float h = clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0);
@@ -112,7 +116,7 @@ void fragment() {
     }
 
     if (newton_path_size > 0) {
-        float expand = 2.0;
+        float expand = 20.0;
         float x_min = newton_path_bbox.x * 10.0 * zoom_factor - expand;
         float x_max = newton_path_bbox.y * 10.0 * zoom_factor + expand;
         float z_min = -newton_path_bbox.w * 10.0 * zoom_factor - expand;
@@ -121,15 +125,17 @@ void fragment() {
         if (world_pos.x >= x_min && world_pos.x <= x_max && world_pos.y >= z_min && world_pos.y <= z_max) {
             float total_intensity = 0.0;
             float scale = clamp(0.5 / zoom_factor, 0.2, 0.5) * 2.0;
+            
+            float pixel_size_world = fwidth(UV.x) * 2.0 * view_radius;
+            float aa = pixel_size_world * 1.0;
+            float min_thickness = pixel_size_world * 1.5;
+
             for (int i = 0; i < newton_path_size - 1; i++) {
                 vec2 p1 = vec2(newton_path[i].x * 10.0 * zoom_factor, -newton_path[i].y * 10.0 * zoom_factor);
                 vec2 p2 = vec2(newton_path[i+1].x * 10.0 * zoom_factor, -newton_path[i+1].y * 10.0 * zoom_factor);
 
                 float seg_len = length(p2 - p1);
                 if (seg_len < 0.0001) continue;
-
-                float aa = fwidth(world_pos.x) * 1.0;
-                float min_thickness = fwidth(world_pos.x) * 1.5;
 
                 float local_thickness = max(min_thickness, min(0.02 * scale, seg_len * 0.05));
                 float d_seg = sdLine(world_pos, p1, p2);
@@ -154,7 +160,8 @@ void fragment() {
                 total_intensity = max(total_intensity, arr_core + arr_glow);
             }
             if (total_intensity > 0.0) {
-                vec3 final_emission = vec3(1.0, 1.0, 1.0) * total_intensity * 2.0;
+                vec3 path_color = vec3(1.0, 1.0, 1.0);
+                vec3 final_emission = path_color * total_intensity * 2.0;
                 base_color = mix(base_color, final_emission, clamp(total_intensity, 0.0, 1.0));
             }
         }
@@ -164,24 +171,76 @@ void fragment() {
         vec2 complex_pos = world_to_complex(world_pos.x, world_pos.y);
         if (complex_pos.x >= 0.0 && complex_pos.x <= 1.0) {
             base_color = mix(base_color, vec3(1.0), 0.15); // highlight
-            
-            float aa = fwidth(world_pos.x) * 1.0;
-            float line_width = fwidth(world_pos.x) * 0.75;
-            
-            // Screen-space anti-aliased gold center line at Re = 0.5 (world_x = 5.0 * zoom_factor)
-            float d_critical = abs(world_pos.x - 5.0 * zoom_factor);
-            float line_val = 1.0 - smoothstep(line_width - aa, line_width + aa, d_critical);
-            base_color = mix(base_color, vec3(1.0, 0.655, 0.0), line_val * 0.8);
-            
-            // Screen-space anti-aliased white boundary lines at Re = 0 (world_x = 0.0) and Re = 1 (world_x = 10.0 * zoom_factor)
-            float d0 = abs(world_pos.x);
-            float d10 = abs(world_pos.x - 10.0 * zoom_factor);
-            float line0_val = 1.0 - smoothstep(line_width - aa, line_width + aa, d0);
-            float line10_val = 1.0 - smoothstep(line_width - aa, line_width + aa, d10);
-            base_color = mix(base_color, vec3(1.0), max(line0_val, line10_val) * 0.8);
         }
+        
+        float pixel_size_world = fwidth(UV.x) * 2.0 * view_radius;
+        float aa = pixel_size_world * 1.0;
+        float line_width = pixel_size_world * 1.25;
+        
+        float pulse = 0.5 + 0.5 * sin(TIME * 2.0);
+        
+        // Screen-space anti-aliased gold center line at Re = 0.5 (world_x = 5.0 * zoom_factor)
+        float d_critical = abs(world_pos.x - 5.0 * zoom_factor);
+        float line_val = 1.0 - smoothstep(line_width - aa, line_width + aa, d_critical);
+        
+        // Outer glow for the critical center line
+        float glow_width = pixel_size_world * 3.0;
+        float critical_glow = (1.0 - smoothstep(line_width - aa, line_width + glow_width + aa, d_critical)) * (1.0 - line_val);
+        
+        // Mix critical line glow
+        base_color = mix(base_color, vec3(1.0, 0.84, 0.3), critical_glow * pulse * 0.5);
+        
+        // Mix pulsed critical center line core
+        vec3 pulsed_gold = vec3(1.0, 0.84, 0.3) * (1.0 + 0.15 * pulse);
+        base_color = mix(base_color, pulsed_gold, line_val * 0.8);
     }
 
+    if (show_hud_zeros && visited_zeros_size > 0) {
+        float core_intensity = 0.0;
+        float border_intensity = 0.0;
+        float glow_intensity = 0.0;
+        float scale = zoom_factor * 32.0;
+        
+        float r_core = 0.10 * scale;
+        float border_width = 0.05 * scale;
+        float r_total = r_core + border_width;
+        float r_glow = r_total + 0.20 * scale;
+
+        float pulse = 0.5 + 0.5 * sin(TIME * 5.0);
+
+        for (int i = 0; i < visited_zeros_size; i++) {
+            vec2 p = vec2(visited_zeros[i].x * 10.0 * zoom_factor, -visited_zeros[i].y * 10.0 * zoom_factor);
+
+            float d_center = length(world_pos - p);
+            float aa = fwidth(d_center);
+
+            float core_val = 1.0 - smoothstep(r_core - aa, r_core + aa, d_center);
+            float total_val = 1.0 - smoothstep(r_total - aa, r_total + aa, d_center);
+            float border_val = clamp(total_val - core_val, 0.0, 1.0);
+
+            // Pulsing glow outside the circle boundary
+            float glow_val = (1.0 - smoothstep(r_total - aa, r_glow + aa, d_center)) * (1.0 - total_val);
+
+            core_intensity = max(core_intensity, core_val);
+            border_intensity = max(border_intensity, border_val);
+            glow_intensity = max(glow_intensity, glow_val);
+        }
+
+        if (core_intensity > 0.0 || border_intensity > 0.0 || glow_intensity > 0.0) {
+            vec3 bright_gold = vec3(1.0, 0.84, 0.3); // Bright gold
+            vec3 dark_gold = vec3(0.5, 0.35, 0.05);   // Darker gold tone
+            
+            // First mix the pulsing glow outside the circle
+            base_color = mix(base_color, bright_gold, glow_intensity * pulse * 0.7);
+            
+            // Then mix the dark gold outline
+            base_color = mix(base_color, dark_gold, clamp(border_intensity, 0.0, 1.0));
+            
+            // Overlay the bright gold core with a subtle brightness pulse
+            vec3 pulsed_core_color = bright_gold * (1.0 + 0.25 * pulse);
+            base_color = mix(base_color, pulsed_core_color, clamp(core_intensity, 0.0, 1.0));
+        }
+    }
 
     COLOR = vec4(base_color * 0.9, 1.0);
 }
