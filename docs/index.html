@@ -340,27 +340,22 @@
 
                 <h3>The Riemann zeta function</h3>
 
-                <h4>Eta function analytical continuation</h4>
                 <p>
-                    Defined as \( \zeta(s) = \sum_{n=1}^\infty n^{-s} \) for \( \operatorname{Re}(s) > 1 \), it is analytically continued to the rest of the complex plane. Our implementation uses the <strong>Dirichlet eta representation</strong> for numerical stability:
+                    Defined as \( \zeta(s) = \sum_{n=1}^\infty n^{-s} \) for \( \operatorname{Re}(s) > 1 \), it is analytically continued to the rest of the complex plane. Our implementation uses the <strong>Dirichlet eta representation</strong> for numerical stability when \( \operatorname{Re}(s) > 0.5 \):
                 </p>
 
                 <div class="math-block">
                     \[ \zeta(s) = \frac{1}{1 - 2^{1-s}} \sum_{n=1}^\infty \frac{(-1)^{n-1}}{n^s} \]
                 </div>
-                <p>
-                    This alternating series converges for all \( s \) with \( \operatorname{Re}(s) > 0 \), which is essential for visualizing the critical strip where the most famous unsolved problem in mathematics, the Riemann Hypothesis, resides.
-                </p>
 
-                <h4>Reflection formula analytical continuation</h4>
                 <p>
-                    In this case we use the <strong>Dirichlet eta representation</strong> from the previous section for \( \operatorname{Re}(s) > 0.5 \), but for \( \operatorname{Re}(s) <= 0.5 \) the explorer utilizes the <strong>reflection formula</strong> to achieve analytical continuation to the entire complex plane:
+                    For \( \operatorname{Re}(s) \le 0.5 \), the explorer utilizes the <strong>reflection formula</strong> to achieve analytical continuation to the entire complex plane:
                 </p>
                 <div class="math-block">
                     \[ \zeta(s) = 2^s \pi^{s-1} \sin\left(\frac{\pi s}{2}\right) \Gamma(1-s) \zeta(1-s) \]
                 </div>
                 <p>
-                    In this calculation, the term \( \zeta(1-s) \) is evaluated using the Dirichlet Eta representation, since for \( \operatorname{Re}(s) < 0.5 \), the reflected point \( 1-s \) has a real part greater than \( 0.5 \). This allows evaluation across the critical strip and beyond.
+                    In this calculation, the term \( \zeta(1-s) \) is evaluated using the Dirichlet Eta representation, since for \( \operatorname{Re}(s) \le 0.5 \), the reflected point \( 1-s \) has a real part greater than or equal to \( 0.5 \). This allows evaluation across the critical strip and beyond.
                 </p>
 
                 <div class="math-block" style="border-left: 4px solid var(--accent-color);">
@@ -370,7 +365,8 @@
                         These 
                         effects are especially pronounced in the \( \sin \) and \( \Gamma \) terms 
                         of the reflection formula, both of which can grow rapidly in magnitude.
-                    </div>
+                    </p>
+                </div>
 
                 <h3>The Dirichlet beta function</h3>
                 <p>
