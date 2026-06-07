@@ -37,6 +37,7 @@ signal update_hud_layout_signal()
 @onready var zero_proximity_nav_slider = %ZeroProximityNavContainer
 @onready var camera_height_slider = %CameraHeightContainer
 @onready var auto_walk_checkbox = %AutoWalkCheckbox
+@onready var zero_walk_checkbox = %ZeroWalkCheckbox
 @onready var terrain_detail_button = %TerrainDetailContainer.get_option_button()
 @onready var aa_button = %AAContainer.get_option_button()
 @onready var color_scheme_button = %ColorSchemeContainer.get_option_button()
@@ -705,12 +706,16 @@ func _on_set_pos_pressed(_toggle_menu: bool = true):
 
 		# Update auto-walk state
 		if auto_walk_checkbox.button_pressed:
-			if player.auto_walk_state == 0: # NONE
+			if player.auto_walk_state == 0 or player.auto_walk_state == 3: # NONE or NEWTON_WALK
 				player.auto_walk_state = 1 # MOVING_TO_LINE
 				GameState.rvm_start_t = abs(Config.world_to_complex(0.0, player.global_position.z).y)
 				GameState.visited_zeros.clear()
 				if "last_detected_t" in player:
 					player.last_detected_t = -1.0
+		elif zero_walk_checkbox.button_pressed:
+			if player.auto_walk_state == 0 or player.auto_walk_state == 1 or player.auto_walk_state == 2:
+				player.auto_walk_state = 0 # Reset state before starting newton walk
+				player.start_newton_walk()
 		else:
 			player.auto_walk_state = 0 # NONE
 
@@ -761,7 +766,8 @@ func _sync_ui_to_config():
 	hud_monitor_fps_checkbox.button_pressed = Config.show_hud_monitor_fps
 
 	if player:
-		auto_walk_checkbox.button_pressed = (player.auto_walk_state != 0)
+		auto_walk_checkbox.button_pressed = (player.auto_walk_state == 1 or player.auto_walk_state == 2)
+		zero_walk_checkbox.button_pressed = (player.auto_walk_state == 3)
 
 	flow_checkbox.button_pressed = Config.show_flow
 	position_marker_checkbox.button_pressed = Config.show_position_marker

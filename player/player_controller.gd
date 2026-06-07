@@ -209,71 +209,7 @@ func _unhandled_input(event):
 				auto_walk_state = AutoWalkState.NONE
 		elif event.keycode == KEY_Z:
 			if auto_walk_state == AutoWalkState.NONE:
-				auto_walk_state = AutoWalkState.NEWTON_WALK
-				var complex_pos = Config.world_to_complex(global_position.x, global_position.z)
-
-				newton_target_z = ComplexField.newton_step(complex_pos, 2.0)[0]
-				last_newton_idx = 1
-
-				newton_wait_timer = 0.1
-				newton_converged = false
-				Config.show_hud_zeros = true
-
-				# Pre-calculate Newton path
-				var path = PackedVector2Array()
-				var _current_z = complex_pos
-				path.append(_current_z)
-
-				var min_x = _current_z.x
-				var max_x = _current_z.x
-				var min_y = _current_z.y
-				var max_y = _current_z.y
-
-				var step_mult = 1.0
-				var loop_detected = false
-
-				for i in range(200):
-					if path.size() >= 200:
-						break
-
-					var result = ComplexField.newton_step(_current_z, step_mult)
-					var next_z: Vector2 = result[0]
-					var f_val: Vector2 = result[1]
-
-					if f_val.length() < 1e-6:
-						break
-
-					# Cycle detection: check if we are jumping back and forth
-					loop_detected = false
-					for j in range(max(0, path.size() - 4), path.size()):
-						if path[j].distance_to(next_z) < 1e-3:
-							loop_detected = true
-							break
-
-					if loop_detected:
-						step_mult *= 0.5
-						# Recalculate with smaller step (f_val unchanged — same _current_z)
-						next_z = ComplexField.newton_step(_current_z, step_mult)[0]
-					else:
-						# Recover step size if no cycle detected
-						if step_mult < 1.0:
-							step_mult = min(1.0, step_mult * 1.5)
-
-					path.append(next_z)
-					min_x = min(min_x, next_z.x)
-					max_x = max(max_x, next_z.x)
-					min_y = min(min_y, next_z.y)
-					max_y = max(max_y, next_z.y)
-
-					if next_z.distance_to(_current_z) < 1e-6:
-						break
-					_current_z = next_z
-
-				# Set final target
-				newton_target_z = path[1] if path.size() > 1 else path[0]
-
-				GameState.newton_path = path
-				GameState.newton_path_bbox = Vector4(min_x, max_x, min_y, max_y)
+				start_newton_walk()
 			else:
 				auto_walk_state = AutoWalkState.NONE
 		elif event.keycode == KEY_R:
@@ -694,7 +630,7 @@ func _physics_process(delta):
 					# print("Final: ", refined_z, " Converged: ", converged, " f_val: ", f_val.length())
 					true_z = refined_z
 
-					if converged:
+					if converged && true_z.distance_to(last_detected_z) > 0.001:
 						GameState.total_zeros_found += 1
 						GameState.visited_zeros.push_back(true_z)
 						if GameState.visited_zeros.size() > 10:
@@ -846,3 +782,72 @@ func _process(_delta):
 			re_label.visible = false
 		if im_label:
 			im_label.visible = false
+
+
+func start_newton_walk():
+	if auto_walk_state == AutoWalkState.NONE:
+		auto_walk_state = AutoWalkState.NEWTON_WALK
+		var complex_pos = Config.world_to_complex(global_position.x, global_position.z)
+
+		newton_target_z = ComplexField.newton_step(complex_pos, 2.0)[0]
+		last_newton_idx = 1
+
+		newton_wait_timer = 0.1
+		newton_converged = false
+		Config.show_hud_zeros = true
+
+		# Pre-calculate Newton path
+		var path = PackedVector2Array()
+		var _current_z = complex_pos
+		path.append(_current_z)
+
+		var min_x = _current_z.x
+		var max_x = _current_z.x
+		var min_y = _current_z.y
+		var max_y = _current_z.y
+
+		var step_mult = 1.0
+		var loop_detected = false
+
+		for i in range(200):
+			if path.size() >= 200:
+				break
+
+			var result = ComplexField.newton_step(_current_z, step_mult)
+			var next_z: Vector2 = result[0]
+			var f_val: Vector2 = result[1]
+	
+			if f_val.length() < 1e-6:
+				break
+
+			# Cycle detection: check if we are jumping back and forth
+			loop_detected = false
+			for j in range(max(0, path.size() - 4), path.size()):
+				if path[j].distance_to(next_z) < 1e-3:
+					loop_detected = true
+					break
+
+			if loop_detected:
+				step_mult *= 0.5
+				# Recalculate with smaller step
+				next_z = ComplexField.newton_step(_current_z, step_mult)[0]
+			else:
+				# Recover step size if no cycle detected
+				if step_mult < 1.0:
+					step_mult = min(1.0, step_mult * 1.5)
+
+			path.append(next_z)
+			min_x = min(min_x, next_z.x)
+			max_x = max(max_x, next_z.x)
+			min_y = min(min_y, next_z.y)
+			max_y = max(max_y, next_z.y)
+
+			if next_z.distance_to(_current_z) < 1e-6:
+				break
+			_current_z = next_z
+
+		# Set final target
+		newton_target_z = path[1] if path.size() > 1 else path[0]
+
+		GameState.newton_path = path
+		GameState.newton_path_bbox = Vector4(min_x, max_x, min_y, max_y)
