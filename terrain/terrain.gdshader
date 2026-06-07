@@ -358,11 +358,11 @@ void compute_critical_stripe_highlight(vec3 w_pos, vec3 nrm, inout vec3 final_em
     // Thin analytic-looking core
     float line_width = 0.015 * zoom;
 
-    // Screen-space anti-aliasing
-    float aa = fwidth(w_pos.x) * 1.5;
-
     // Slope correction
     float slope_scale = max(abs(nrm.y), 0.15);
+
+    // Screen-space anti-aliasing
+    float aa = fwidth(w_pos.x) * 1.5 / slope_scale;
 
     vec3 critical_color = vec3(1.0, 0.655, 0.0);
     vec3 boundary_color = vec3(1.0);
