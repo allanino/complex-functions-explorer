@@ -466,7 +466,9 @@ func _on_config_changed(key: String):
 	if key == "zoom_factor":
 		if menu_overlay:
 			if abs(menu_overlay._slider_to_zoom(menu_overlay.zoom_slider.value) - Config.zoom_factor) > 0.001:
-				menu_overlay.zoom_slider.value = menu_overlay._zoom_to_slider(Config.zoom_factor)
+				var new_val = menu_overlay._zoom_to_slider(Config.zoom_factor)
+				menu_overlay.zoom_slider.set_value_no_signal(new_val)
+				menu_overlay.zoom_slider.value_text = "x%.2f" % menu_overlay._slider_to_zoom(new_val)
 	if key == "day_time" and not Config.freeze_time:
 		if menu_overlay:
 			menu_overlay.day_time_slider.set_value_no_signal(Config.day_time)
