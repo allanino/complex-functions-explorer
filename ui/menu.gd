@@ -61,7 +61,6 @@ signal update_hud_layout_signal()
 @onready var hud_zeros_checkbox = %HudZerosDetectionCheckbox
 @onready var rvm_checkbox = %RvmCheckbox
 @onready var hud_monitor_fps_checkbox = %HudMonitorFpsCheckbox
-@onready var hud_monitor_chunks_checkbox = %HudMonitorChunksCheckbox
 @onready var menu_scale_slider = %MenuScaleContainer
 @onready var hud_scale_slider = %HudScaleContainer
 @onready var master_volume_slider = %MasterVolumeContainer
@@ -219,7 +218,6 @@ func _ready():
 	hud_zeros_checkbox.toggled.connect(_on_hud_zeros_toggled)
 	rvm_checkbox.toggled.connect(_on_rvm_toggled)
 	hud_monitor_fps_checkbox.toggled.connect(_on_hud_monitor_fps_toggled)
-	hud_monitor_chunks_checkbox.toggled.connect(_on_hud_monitor_chunks_toggled)
 	color_scheme_button.item_selected.connect(_on_color_scheme_selected)
 
 	apply_button.pressed.connect(_on_set_pos_pressed)
@@ -648,7 +646,6 @@ func _on_set_pos_pressed(_toggle_menu: bool = true):
 	Config.show_hud_zeros = hud_zeros_checkbox.button_pressed
 	Config.show_rvm = rvm_checkbox.button_pressed
 	Config.show_hud_monitor_fps = hud_monitor_fps_checkbox.button_pressed
-	Config.show_hud_monitor_chunks = hud_monitor_chunks_checkbox.button_pressed
 	Config.show_flow = flow_checkbox.button_pressed
 	Config.show_position_marker = position_marker_checkbox.button_pressed
 	Config.function_type = func_button.get_item_id(func_button.selected)
@@ -761,7 +758,6 @@ func _sync_ui_to_config():
 	hud_zeros_checkbox.button_pressed = Config.show_hud_zeros
 	rvm_checkbox.button_pressed = Config.show_rvm
 	hud_monitor_fps_checkbox.button_pressed = Config.show_hud_monitor_fps
-	hud_monitor_chunks_checkbox.button_pressed = Config.show_hud_monitor_chunks
 
 	if player:
 		auto_walk_checkbox.button_pressed = (player.auto_walk_state != 0)
@@ -850,9 +846,6 @@ func _on_rvm_toggled(pressed: bool):
 
 func _on_hud_monitor_fps_toggled(pressed: bool):
 	Config.show_hud_monitor_fps = pressed
-
-func _on_hud_monitor_chunks_toggled(pressed: bool):
-	Config.show_hud_monitor_chunks = pressed
 
 func _on_color_scheme_selected(index: int):
 	Config.color_scheme = index
