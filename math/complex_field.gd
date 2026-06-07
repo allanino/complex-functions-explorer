@@ -366,9 +366,9 @@ static func newton_step(z: Vector2, step_size_mult: float, max_step: float = 1.0
 	return z - step * step_size_mult
 
 static func get_height_from_field(f: Vector2) -> float:
-	if not is_finite(f.x) or not is_finite(f.y): return 0.0
+	if not is_finite(f.x) or not is_finite(f.y): return NAN
 	var mag = f.length()
-	if not is_finite(mag): return 0.0
+	if not is_finite(mag): return NAN
 	
 	mag = clamp(mag, -1e5, 1e5)
 
@@ -387,7 +387,7 @@ static func get_height_from_field(f: Vector2) -> float:
 	h = clamp(h, -1e5, 1e5)
 	h *= blend * GameState.effective_zoom
 
-	return h if is_finite(h) else 0.0
+	return h if is_finite(h) else NAN
 
 static func get_height(x: float, z: float) -> float:
 	if GameState.performance_protection_active:

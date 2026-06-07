@@ -472,10 +472,17 @@ func _physics_process(delta):
 
 	# Predict player's position based on velocity and check its height
 	var predicted_pos = global_position + velocity * delta
+	var is_field_valid = is_finite(current_f.x) and is_finite(current_f.y) and is_finite(current_mag)
+
+	if not is_field_valid:
+		velocity.x = 0.0
+		velocity.z = 0.0
+
 	var terrain_h = get_terrain_height(predicted_pos.x, predicted_pos.z)
 
-	var is_field_valid = is_finite(current_f.x) and is_finite(current_f.y) and is_finite(current_mag)
-	if not is_field_valid or not is_finite(terrain_h):
+	if not is_finite(terrain_h):
+		velocity.x = 0.0
+		velocity.z = 0.0
 		terrain_h = last_valid_terrain_height
 	else:
 		last_valid_terrain_height = terrain_h
