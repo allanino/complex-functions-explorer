@@ -1,5 +1,9 @@
 extends PanelContainer
 
+signal clicked(index: int)
+var zero_index: int = -1
+
+
 @onready var real_label = %RealLabel
 @onready var imag_label = %ImagLabel
 
@@ -19,3 +23,7 @@ func set_active(val: bool):
 func set_values(re: String, im: String):
 	real_label.text = "1/2" if re == "0.500" else re
 	imag_label.text = " + " + im + " i"
+
+func _gui_input(event):
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+		clicked.emit(zero_index)
