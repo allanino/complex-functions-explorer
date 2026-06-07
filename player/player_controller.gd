@@ -663,23 +663,15 @@ func _physics_process(delta):
 					# Refine zero location using numerical complex Newton-Raphson steps
 					var refined_z = true_z
 					var diverged = false
-					for step_idx in range(10):
+					for step_idx in range(15):
 						var p_ref = Config.complex_to_world(refined_z.x, refined_z.y)
 						var f_val = ComplexField.get_field(p_ref.x, p_ref.y)
 						if f_val.length() < 1e-6:
 							break
 						
-						var delta_z = 1e-5
-						var p_ref_dx = Config.complex_to_world(refined_z.x + delta_z, refined_z.y)
-						var f_val_dx = ComplexField.get_field(p_ref_dx.x, p_ref_dx.y)
-						var f_prime = (f_val_dx - f_val) / delta_z
-						
-						var newton_step = ComplexField.complex_div(f_val, f_prime)
-						if newton_step.length() > 1.0:
-							diverged = true
-							break # Prevent divergence / wild jumps
-						refined_z -= newton_step
-					
+						var next_z = ComplexField.newton_step(refined_z, 0.1, 0.1)
+						refined_z = next_z
+
 					true_z = refined_z
 
 					if not diverged and true_z.distance_to(last_detected_z) > 0.01:
