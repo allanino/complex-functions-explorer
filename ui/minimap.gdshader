@@ -172,7 +172,7 @@ void fragment() {
             // Screen-space anti-aliased gold center line at Re = 0.5 (world_x = 5.0 * zoom_factor)
             float d_critical = abs(world_pos.x - 5.0 * zoom_factor);
             float line_val = 1.0 - smoothstep(line_width - aa, line_width + aa, d_critical);
-            base_color = mix(base_color, vec3(1.0, 0.655, 0.0), line_val * 0.8);
+            base_color = mix(base_color, vec3(1.0, 0.84, 0.3), line_val * 0.8);
             
             // Screen-space anti-aliased white boundary lines at Re = 0 (world_x = 0.0) and Re = 1 (world_x = 10.0 * zoom_factor)
             float d0 = abs(world_pos.x);
@@ -185,25 +185,29 @@ void fragment() {
 
     if (show_hud_zeros && visited_zeros_size > 0) {
         float cross_intensity = 0.0;
-        float scale = clamp(0.5 / zoom_factor, 0.2, 0.5) * 2.0;
-        float cross_len = 0.5 * scale;
+        float scale = zoom_factor * 16.0;
+        float cross_len = 0.3 * scale;
         float cross_width = 0.02 * scale;
 
+        float offset_len = cross_len * 0.70710678;
         for (int i = 0; i < visited_zeros_size; i++) {
             vec2 p = vec2(visited_zeros[i].x * 10.0 * zoom_factor, -visited_zeros[i].y * 10.0 * zoom_factor);
 
-            float d1 = sdLine(world_pos, p + vec2(-cross_len, 0.0), p + vec2(cross_len, 0.0));
-            float d2 = sdLine(world_pos, p + vec2(0.0, -cross_len), p + vec2(0.0, cross_len));
+            float d1 = sdLine(world_pos, p + vec2(-offset_len, -offset_len), p + vec2(offset_len, offset_len));
+            float d2 = sdLine(world_pos, p + vec2(-offset_len, offset_len), p + vec2(offset_len, -offset_len));
 
             float d = min(d1, d2);
-            float core = 1.0 - step(cross_width, d);
-            float glow = (1.0 - smoothstep(cross_width, cross_width * 3.0, d)) * 0.5;
+            float aa = fwidth(d);
+            
+            float core_edge_low = max(0.0, cross_width - aa);
+            float core_edge_high = cross_width + aa;
+            float core = 1.0 - smoothstep(core_edge_low, core_edge_high, d);
 
-            cross_intensity = max(cross_intensity, core + glow);
+            cross_intensity = max(cross_intensity, core);
         }
 
         if (cross_intensity > 0.0) {
-            vec3 gold = vec3(1.0, 0.84, 0.0);
+            vec3 gold = vec3(1.0, 0.84, 0.3);
             base_color = mix(base_color, gold, clamp(cross_intensity, 0.0, 1.0));
         }
     }
