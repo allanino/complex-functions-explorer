@@ -14,6 +14,8 @@
 [ext_resource type="Theme" path="res://ui/theme/theme.tres" id="theme_tres"]
 [ext_resource type="PackedScene" path="res://ui/minimap.tscn" id="10_minimap"]
 [ext_resource type="PackedScene" path="res://ui/phase_wheel.tscn" id="11_phase_wheel"]
+[ext_resource type="Script" path="res://ui/components/hud_arrow.gd" id="12_hud_arrow"]
+
 
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_1"]
@@ -583,22 +585,41 @@ autowrap_mode = 0
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="PositionArgLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/PositionPanel/MarginContainer/VBox"]
+[node name="PositionArgContainer" type="HBoxContainer" parent="Control/MainUIColumns/MainUIStackRight/PositionPanel/MarginContainer/VBox"]
 unique_name_in_owner = true
 visible = false
+layout_mode = 2
+
+
+[node name="PositionArgText" type="VBoxContainer" parent="Control/MainUIColumns/MainUIStackRight/PositionPanel/MarginContainer/VBox/PositionArgContainer"]
+layout_mode = 2
+
+
+[node name="PositionArgLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/PositionPanel/MarginContainer/VBox/PositionArgContainer/PositionArgText"]
+unique_name_in_owner = true
 theme_type_variation = &"SecondaryLabel"
 layout_mode = 2
 text = "arg(f)"
 
-[node name="PositionArgVal" type="Label" parent="Control/MainUIColumns/MainUIStackRight/PositionPanel/MarginContainer/VBox"]
-unique_name_in_owner = true
-visible = false
+
+[node name="PositionArgRow" type="HBoxContainer" parent="Control/MainUIColumns/MainUIStackRight/PositionPanel/MarginContainer/VBox/PositionArgContainer/PositionArgText"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+
+[node name="PositionArgVal" type="Label" parent="Control/MainUIColumns/MainUIStackRight/PositionPanel/MarginContainer/VBox/PositionArgContainer/PositionArgText/PositionArgRow"]
 unique_name_in_owner = true
 theme_type_variation = &"ValueInkLabel"
 layout_mode = 2
-size_flags_horizontal = 3
 text = "0.000"
-horizontal_alignment = 0
+vertical_alignment = 1
+
+[node name="PositionArgArrow" type="Control" parent="Control/MainUIColumns/MainUIStackRight/PositionPanel/MarginContainer/VBox/PositionArgContainer/PositionArgText/PositionArgRow"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(28, 28)
+size_flags_vertical = 4
+script = ExtResource("12_hud_arrow")
 
 [node name="AbsLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/PositionPanel/MarginContainer/VBox"]
 theme_type_variation = &"SecondaryLabel"
