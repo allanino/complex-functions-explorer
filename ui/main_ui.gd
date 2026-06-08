@@ -317,7 +317,8 @@ func _update_hud_layout():
 		"show_rvm": Config.show_rvm and f_data.get("has_von_mangoldt", false),
 		"show_fps": Config.show_hud_monitor_fps,
 		"show_chunks": show_hud_chunks,
-		"is_multivalued": f_data.get("is_multivalued", false)
+		"is_multivalued": f_data.get("is_multivalued", false),
+		"cards_heights": cards.map(func(c): return c.get_combined_minimum_size().y if c.visible else 0.0)
 	}
 
 	if current_state.hash() == _last_hud_state.hash():
@@ -337,14 +338,16 @@ func _update_hud_layout():
 
 	var right_cards = []
 	var left_cards = []
+	var right_stack_full = false
 
 	for card in cards:
 		if not card.visible: continue
 		var card_height = card.get_combined_minimum_size().y
-		if current_height + card_height <= available_height:
+		if not right_stack_full and current_height + card_height <= available_height:
 			right_cards.push_back(card)
 			current_height += card_height + separation
 		else:
+			right_stack_full = true
 			left_cards.push_back(card)
 
 	_apply_stack_layout(hud_stack_right, right_cards)
