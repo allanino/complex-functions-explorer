@@ -53,6 +53,7 @@ var lpf_effect: AudioEffectLowPassFilter
 var portal_sfx_player: AudioStreamPlayer
 var player: Node3D
 var math_bus_index: int = -1
+var master_bus_index: int = -1
 
 # --- BUFFER DEBUG ---
 var buffer_min_available := 999999
@@ -61,6 +62,8 @@ var buffer_max_available := 0
 func _ready():
 	# Finding the player to sample position
 	player = get_tree().get_first_node_in_group("player")
+
+	Config.config_changed.connect(_on_config_changed)
 
 	setup_audio_bus_and_effects()
 
@@ -88,6 +91,8 @@ func _ready():
 
 	setup_background_music()
 	setup_portal_sfx()
+
+	_process_audio_toggles()
 
 func play_portal_crossing():
 	if portal_sfx_player and not is_suppressed:
@@ -121,6 +126,8 @@ func setup_background_music():
 		music_player.play()
 
 func setup_audio_bus_and_effects():
+	master_bus_index = AudioServer.get_bus_index("Master")
+
 	var bus_name = "MathematicalSoundscape"
 
 	var bus_index = AudioServer.get_bus_index(bus_name)
@@ -160,8 +167,6 @@ func setup_audio_bus_and_effects():
 
 func _physics_process(delta):
 	startup_time += delta
-
-	_process_audio_toggles()
 
 	if playback == null:
 		var stream_player = _audio_stream_player
@@ -340,7 +345,8 @@ func _process_audio_toggles():
 	if is_suppressed:
 		master_vol = 0.0
 
-	AudioServer.set_bus_volume_db(AudioServer.get_bus_index("Master"), linear_to_db(master_vol))
+	if master_bus_index != -1:
+		AudioServer.set_bus_volume_db(master_bus_index, linear_to_db(master_vol))
 
 	# 1. Background Music
 	if _background_music_player:
@@ -375,7 +381,13 @@ func _process_audio_toggles():
 			AudioServer.set_bus_bypass_effects(math_bus_index, true)
 
 func set_performance_protection(active: bool):
-	is_suppressed = active
+	if is_suppressed != active:
+		is_suppressed = active
+		_process_audio_toggles()
+
+func _on_config_changed(key: String):
+	if key in ["master_volume", "bg_music_volume", "drone_volume"]:
+		_process_audio_toggles()
 
 func _exit_tree():
 	if _audio_stream_player and _audio_stream_player.playing:
