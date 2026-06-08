@@ -798,10 +798,9 @@ layout_mode = 2
 theme_override_constants/separation = 20
 
 [node name="Label" type="Label" parent="Control/DetachOverlay/MarginContainer/HBox"]
+theme_type_variation = &"SecondaryLabel"
 unique_name_in_owner = true
-custom_minimum_size = Vector2(80, 0)
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
 text = "Name"
 
 [node name="DetachSlider" type="HSlider" parent="Control/DetachOverlay/MarginContainer/HBox"]
@@ -811,10 +810,10 @@ size_flags_horizontal = 3
 size_flags_vertical = 4
 
 [node name="DetachValue" type="Label" parent="Control/DetachOverlay/MarginContainer/HBox"]
+theme_type_variation = &"InkLabel"
 unique_name_in_owner = true
-custom_minimum_size = Vector2(50, 0)
+custom_minimum_size = Vector2(60, 0)
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
 text = "0"
 horizontal_alignment = 2
 
@@ -823,7 +822,6 @@ unique_name_in_owner = true
 theme_type_variation = &"DetachButton"
 flat = true
 theme_override_font_sizes/font_size = 26
-custom_minimum_size = Vector2(60, 0)
 layout_mode = 2
 size_flags_vertical = 4
 text = "▶"
