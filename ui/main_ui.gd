@@ -299,7 +299,8 @@ func _update_hud_layout():
 
 	var actual_hud_scale = Config.hud_scale
 
-	var available_height = get_viewport().size.y - 40
+	var scale_factor = get_viewport().size.x / 1920.0
+	var available_height = get_viewport().size.y / scale_factor
 	var mobile_controls = get_node_or_null("Control/MobileControls")
 	if mobile_controls and mobile_controls.visible and mobile_controls.has_node("SettingsButton"):
 		var settings_btn = mobile_controls.get_node("SettingsButton")
