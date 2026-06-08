@@ -38,7 +38,7 @@ const DESCRIPTIONS = {
 	"Fog Density": "Adjust the thickness of the fog and aerial perspective.",
 	"Shadows": "Enable real-time directional shadows for terrain features.",
 	"Phase wheel": "Show the phase wheel for the argument of f(s).",
-	"Navigation": "Show coordinate and magnitude information on the HUD.",
+	"Position": "Show coordinate and magnitude information for domain and target on the HUD.",
 	"Zeros detection": "Show the list of discovered zeros during walking.",
 	"Riemann–von Mangoldt": "Show the estimated number of zeta zeros N(t) based on the Riemann–von Mangoldt formula.",
 	"Monitor FPS": "Show real-time performance metrics (FPS) on the HUD.",
