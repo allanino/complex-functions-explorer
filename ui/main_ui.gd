@@ -91,6 +91,12 @@ func update_arg_val(f: Vector2):
 
 	position_arg_val.add_theme_color_override("font_color", final_color)
 
+	var position_arg_arrow = get_node_or_null("%PositionArgArrow")
+	if position_arg_arrow:
+		position_arg_arrow.angle_deg = angle_deg
+		position_arg_arrow.color = final_color
+		position_arg_arrow.queue_redraw()
+
 func _ready():
 	hud_columns.modulate.a = 0.0
 	Config.config_changed.connect(_on_config_changed)
@@ -122,8 +128,15 @@ func _ready():
 	menu_overlay.apply_aa_signal.connect(apply_aa)
 	menu_overlay.update_hud_layout_signal.connect(_update_hud_layout)
 
-	position_arg_label.visible = !Config.show_hud_phase_wheel
-	position_arg_val.visible = !Config.show_hud_phase_wheel
+	var has_container = get_node_or_null("%PositionArgContainer") != null
+	if has_container:
+		var position_arg_container = get_node_or_null("%PositionArgContainer")
+		if position_arg_container:
+			position_arg_container.visible = !Config.show_hud_phase_wheel
+	else:
+		position_arg_label.visible = !Config.show_hud_phase_wheel
+		position_arg_val.visible = !Config.show_hud_phase_wheel
+
 
 	if menu_overlay:
 			menu_overlay.player = player
@@ -537,8 +550,14 @@ func _on_config_changed(key: String):
 			menu_overlay.day_time_slider.set_value_no_signal(Config.day_time)
 			menu_overlay.day_time_slider.value_text = menu_overlay._format_time(Config.day_time)
 	if key == "show_hud_phase_wheel":
-		position_arg_label.visible = !Config.show_hud_phase_wheel
-		position_arg_val.visible = !Config.show_hud_phase_wheel
+		var has_container = get_node_or_null("%PositionArgContainer") != null
+		if has_container:
+			var position_arg_container = get_node_or_null("%PositionArgContainer")
+			if position_arg_container:
+				position_arg_container.visible = !Config.show_hud_phase_wheel
+		else:
+			position_arg_label.visible = !Config.show_hud_phase_wheel
+			position_arg_val.visible = !Config.show_hud_phase_wheel
 		
 func _on_zero_item_clicked(index: int):
 	GameState.accented_zero_index = index
