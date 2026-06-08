@@ -369,8 +369,7 @@ func _update_hud_layout():
 		"show_rvm": Config.show_rvm and f_data.get("has_von_mangoldt", false),
 		"show_fps": Config.show_hud_monitor_fps,
 		"show_chunks": show_hud_chunks,
-		"is_multivalued": f_data.get("is_multivalued", false),
-		"cards_height": cards.map(func(c): return c.get_combined_minimum_size().y if c.visible else 0.0)
+		"is_multivalued": f_data.get("is_multivalued", false)
 	}
 
 	if current_state.hash() == _last_hud_state.hash():

@@ -21,7 +21,6 @@ func _ready():
 	_sync_all_uniforms()
 
 func _on_resized():
-
 	if custom_minimum_size.y != size.x:
 		custom_minimum_size.y = size.x
 
