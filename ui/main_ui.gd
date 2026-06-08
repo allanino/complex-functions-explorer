@@ -459,7 +459,7 @@ func _rescale_card(card: Control, _scale: float):
 
 		if node is Control:
 			# Only scale custom minimum size for specific panels to maintain layout proportions
-			if node.name == "ComplexAspect" or node.name == "PhaseWheel":
+			if node.name == "ComplexAspect" or node.name == "MinimapAspect" or node.name == "PhaseWheel":
 				pass
 			elif node.name == "PositionPanel":
 				if not node.has_meta("base_min_size"):
