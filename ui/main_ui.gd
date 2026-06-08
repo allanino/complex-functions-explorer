@@ -264,7 +264,7 @@ func _process(_delta):
 	phase_abs_val.text = _format_float_3(f.length())
 
 	minimap_panel.visible = Config.show_minimap
-	phase_wheel.visible = Config.show_hud_complex
+	phase_wheel.visible = Config.show_hud_phase_wheel
 	position_panel.visible = Config.show_hud_navigation
 	monitor_panel.visible = Config.show_hud_monitor_fps or show_hud_chunks or GameState.performance_protection_active or GameState.height_protection_active
 	if monitor_panel.visible:
