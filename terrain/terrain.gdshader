@@ -583,17 +583,11 @@ void compute_self_illumination_effect(vec3 w_pos, vec3 camera_position_world, ve
 }
 
 
-void compute_newton_path(vec3 w_pos, vec3 nrm, inout vec3 out_albedo, inout vec3 final_emission) {
+void compute_newton_path(vec3 w_pos, inout vec3 out_albedo, inout vec3 final_emission) {
     if (newton_path_size <= 0) return;
 
     vec2 pos_xz = w_pos.xz;
     float scale = clamp(0.5 / zoom_factor, 0.2, 0.5) * 2.0;
-
-    // Slope correction
-    float slope_scale = max(abs(nrm.y), 0.15);
-
-    // Screen-space anti-aliasing
-    float aa = fwidth(w_pos.x) * 1.5 / slope_scale;
 
     // Expand bounding box a bit to account for line width and interpolation
     float expand = 2.0;
@@ -613,9 +607,9 @@ void compute_newton_path(vec3 w_pos, vec3 nrm, inout vec3 out_albedo, inout vec3
             if (seg_len < 0.0001) continue;
 
             float local_thickness = max(0.005 * scale, min(0.02 * scale, seg_len * 0.05));
-            float d_seg = sdLine(pos_xz, p1, p2) / slope_scale;
-            float core = 1.0 - smoothstep(local_thickness - aa, local_thickness + aa, d_seg);
-            float glow = (1.0 - smoothstep(local_thickness, local_thickness * 2.0 + aa, d_seg)) * 0.5;
+            float d_seg = sdLine(pos_xz, p1, p2);
+            float core = 1.0 - smoothstep(local_thickness * 0.9, local_thickness * 1.1, d_seg);
+            float glow = (1.0 - smoothstep(local_thickness, local_thickness * 2.0, d_seg)) * 0.5;
             total_intensity = max(total_intensity, core + glow);
 
             // Add an arrow pointing from p1 to p2
@@ -631,10 +625,10 @@ void compute_newton_path(vec3 w_pos, vec3 nrm, inout vec3 out_albedo, inout vec3
             float d_arr = min(
                 sdLine(pos_xz, mid + dir * path_arrow_len * 0.5, mid - dir * path_arrow_len * 0.5 + perp * path_arrow_width),
                 sdLine(pos_xz, mid + dir * path_arrow_len * 0.5, mid - dir * path_arrow_len * 0.5 - perp * path_arrow_width)
-            ) / slope_scale;
+            );
 
-            float arr_core = 1.0 - smoothstep(local_arr_thickness - aa, local_arr_thickness + aa, d_arr);
-            float arr_glow = (1.0 - smoothstep(local_arr_thickness, local_arr_thickness * 2.0 + aa, d_arr)) * 0.5;
+            float arr_core = 1.0 - smoothstep(local_arr_thickness * 0.9, local_arr_thickness * 1.1, d_arr);
+            float arr_glow = (1.0 - smoothstep(local_arr_thickness, local_arr_thickness * 2.0, d_arr)) * 0.5;
             total_intensity = max(total_intensity, arr_core + arr_glow);
         }
     }
@@ -871,7 +865,7 @@ void fragment() {
             compute_position_marker(world_pos, v_normal, ALBEDO, final_emission);
         }
 
-        compute_newton_path(world_pos, v_normal, ALBEDO, final_emission);
+        compute_newton_path(world_pos, ALBEDO, final_emission);
 
         // Reinhard Tone Mapping to keep high emissions from blowing out to absolute white
         final_emission = final_emission / (final_emission + vec3(1.0));
