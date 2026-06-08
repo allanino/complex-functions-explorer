@@ -777,14 +777,14 @@ unique_name_in_owner = true
 script = ExtResource("7_detach_controller")
 
 visible = false
-custom_minimum_size = Vector2(400, 60)
+custom_minimum_size = Vector2(500, 60)
 layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -200.0
+offset_left = -250.0
 offset_top = 20.0
-offset_right = 200.0
+offset_right = 250.0
 offset_bottom = 80.0
 grow_horizontal = 2
 
@@ -820,7 +820,8 @@ horizontal_alignment = 2
 
 [node name="PlayButton" type="Button" parent="Control/DetachOverlay/MarginContainer/HBox"]
 unique_name_in_owner = true
-theme_type_variation = &"PresetBarButton"
+theme_type_variation = &"DetachButton"
+flat = true
 custom_minimum_size = Vector2(60, 0)
 layout_mode = 2
 size_flags_vertical = 4
@@ -828,10 +829,11 @@ text = "▶"
 
 [node name="ExitDetachButton" type="Button" parent="Control/DetachOverlay/MarginContainer/HBox"]
 unique_name_in_owner = true
-theme_type_variation = &"PresetBarButton"
+theme_type_variation = &"DetachButton"
+flat = true
 layout_mode = 2
 size_flags_vertical = 4
-text = "Exit"
+text = "↙"
 
 [node name="MenuOverlay" parent="Control" instance=ExtResource("4_menu")]
 unique_name_in_owner = true

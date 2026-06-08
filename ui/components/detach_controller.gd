@@ -15,6 +15,7 @@ var interaction_active: bool = true
 var is_playing: bool = false
 var play_direction: float = 1.0
 var playback_value: float = 0.0
+var original_step: float = 0.0
 
 func _ready():
 	detach_slider.value_changed.connect(_on_detach_slider_changed)
@@ -35,11 +36,12 @@ func detach_slider_control(source_slider: HSlider, source_value_label: Label, ti
 	# Expand bounds first to avoid clamping
 	detach_slider.min_value = min(detach_slider.min_value, source_slider.min_value)
 	detach_slider.max_value = max(detach_slider.max_value, source_slider.max_value)
-	detach_slider.custom_minimum_size = Vector2(200.0, 50.0)
+	detach_slider.custom_minimum_size = Vector2(300.0, 50.0)
 
 	detach_slider.min_value = source_slider.min_value
 	detach_slider.max_value = source_slider.max_value
 	detach_slider.step = source_slider.step
+	original_step = source_slider.step
 	detach_slider.value = source_slider.value
 	detach_slider.set_block_signals(false)
 
@@ -58,7 +60,7 @@ func _process(delta):
 	if is_playing and detach_slider:
 		var range_val = detach_slider.max_value - detach_slider.min_value
 		if range_val > 0.0:
-			var speed = range_val / 5.0
+			var speed = max(original_step, range_val / 5.0)
 			playback_value += play_direction * speed * delta
 			if playback_value >= detach_slider.max_value:
 				playback_value = detach_slider.max_value
@@ -73,8 +75,12 @@ func _on_play_pressed():
 	if is_playing:
 		play_button.text = "■"
 		playback_value = detach_slider.value
+		# Set smaller step size for smooth playback
+		detach_slider.step = original_step * 0.1
 	else:
 		play_button.text = "▶"
+		# Revert to original step size
+		detach_slider.step = original_step
 
 func _on_detach_slider_changed(value: float):
 	playback_value = value
@@ -88,6 +94,8 @@ func _on_detach_slider_changed(value: float):
 func _on_exit_detach_pressed():
 	is_playing = false
 	play_button.text = "▶"
+	if detach_slider:
+		detach_slider.step = original_step
 
 	# Avoid accidental morph blending when returning from a detached slider
 	if "morph_slider" in main_ui:
