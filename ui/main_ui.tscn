@@ -13,6 +13,7 @@
 [ext_resource type="FontFile" path="res://fonts/EBGaramond-Light.ttf" id="font_garamond"]
 [ext_resource type="Theme" path="res://ui/theme/theme.tres" id="theme_tres"]
 [ext_resource type="PackedScene" path="res://ui/minimap.tscn" id="10_minimap"]
+[ext_resource type="PackedScene" path="res://ui/phase_wheel.tscn" id="11_phase_wheel"]
 
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_1"]
@@ -695,33 +696,8 @@ horizontal_alignment = 2
 custom_minimum_size = Vector2(0, 3)
 layout_mode = 2
 
-[node name="ComplexAspect" type="AspectRatioContainer" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox"]
+[node name="PhaseWheel" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox" instance=ExtResource("11_phase_wheel")]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 240)
-layout_mode = 2
-size_flags_horizontal = 3
-ratio = 1.0
-stretch_mode = 2
-
-[node name="ComplexPanel" type="MarginContainer" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox/ComplexAspect"]
-layout_mode = 2
-
-[node name="MarginContainer" type="MarginContainer" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox/ComplexAspect/ComplexPanel"]
-layout_mode = 2
-theme_override_constants/margin_left = 0
-theme_override_constants/margin_top = 0
-theme_override_constants/margin_right = 0
-theme_override_constants/margin_bottom = 0
-
-[node name="ClipPanel" type="PanelContainer" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox/ComplexAspect/ComplexPanel/MarginContainer"]
-layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_mask")
-clip_children = 2
-
-[node name="ComplexPlane" type="ColorRect" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox/ComplexAspect/ComplexPanel/MarginContainer/ClipPanel"]
-unique_name_in_owner = true
-material = SubResource("ShaderMaterial_1")
-mouse_filter = 2
 layout_mode = 2
 
 

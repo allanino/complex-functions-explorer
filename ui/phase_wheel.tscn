@@ -1,0 +1,119 @@
+[gd_scene load_steps=6 format=3 uid="uid://phase_wheel_1"]
+
+[ext_resource type="Script" path="res://ui/phase_wheel.gd" id="1_pw_script"]
+[ext_resource type="Shader" path="res://ui/phase_wheel.gdshader" id="2_pw_shader"]
+[ext_resource type="Theme" uid="uid://df5w5o26i6vde" path="res://ui/theme/theme.tres" id="3_pw_theme"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_pw_1"]
+shader = ExtResource("2_pw_shader")
+shader_parameter/current_f = Vector2(1, 0)
+shader_parameter/color_scheme = 0
+shader_parameter/brightness = 1.0
+shader_parameter/saturation = 0.85
+shader_parameter/albedo = 0.15
+shader_parameter/emission = 0.1
+
+[node name="PhaseWheel" type="AspectRatioContainer"]
+custom_minimum_size = Vector2(0, 240)
+size_flags_horizontal = 3
+ratio = 1.0
+stretch_mode = 2
+script = ExtResource("1_pw_script")
+
+[node name="Panel" type="MarginContainer" parent="."]
+layout_mode = 2
+
+[node name="ColorRect" type="ColorRect" parent="Panel"]
+unique_name_in_owner = true
+material = SubResource("ShaderMaterial_pw_1")
+layout_mode = 2
+color = Color(0, 0, 0, 1)
+
+[node name="CenterText" type="VBoxContainer" parent="Panel"]
+layout_mode = 2
+alignment = 1
+
+[node name="FormulaLabel" type="Label" parent="Panel/CenterText"]
+layout_mode = 2
+theme_type_variation = &"HeaderLabel"
+theme_override_colors/font_color = Color(0.5, 0.5, 0.5, 1)
+text = "arg f(s)"
+horizontal_alignment = 1
+
+[node name="AngleLabel" type="Label" parent="Panel/CenterText"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"HeaderLabel"
+theme_override_font_sizes/font_size = 24
+text = "0.0°"
+horizontal_alignment = 1
+
+[node name="Markers" type="Control" parent="Panel"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="LabelTop" type="Label" parent="Panel/Markers"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -20.0
+offset_right = 20.0
+offset_bottom = 26.0
+grow_horizontal = 2
+theme = ExtResource("3_pw_theme")
+theme_type_variation = &"HeaderLabel"
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+text = "π/2"
+horizontal_alignment = 1
+
+[node name="LabelBottom" type="Label" parent="Panel/Markers"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -20.0
+offset_top = -26.0
+offset_right = 20.0
+grow_horizontal = 2
+grow_vertical = 0
+theme = ExtResource("3_pw_theme")
+theme_type_variation = &"HeaderLabel"
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+text = "-π/2"
+horizontal_alignment = 1
+
+[node name="LabelLeft" type="Label" parent="Panel/Markers"]
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_top = -13.0
+offset_right = 40.0
+offset_bottom = 13.0
+grow_vertical = 2
+theme = ExtResource("3_pw_theme")
+theme_type_variation = &"HeaderLabel"
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+text = "π"
+horizontal_alignment = 1
+
+[node name="LabelRight" type="Label" parent="Panel/Markers"]
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -40.0
+offset_top = -13.0
+offset_bottom = 13.0
+grow_horizontal = 0
+grow_vertical = 2
+theme = ExtResource("3_pw_theme")
+theme_type_variation = &"HeaderLabel"
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+text = "0"
+horizontal_alignment = 2

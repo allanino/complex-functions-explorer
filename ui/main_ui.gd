@@ -6,14 +6,13 @@ const NEON_FONT = preload("res://ui/theme/font_neon.tres")
 @onready var hud_stack_left = %MainUIStackLeft
 @onready var hud_stack_right = %MainUIStackRight
 @onready var minimap_panel = %MinimapPanel
-@onready var complex_aspect = %ComplexAspect
+@onready var phase_wheel = %PhaseWheel
 @onready var domain_panel = %DomainPanel
 @onready var target_panel = %TargetPanel
 @onready var monitor_panel = %MonitorPanel
 @onready var fps_hbox = %FpsHBox
 @onready var fps_val_label = %FpsValLabel
 @onready var chunks_label = %ChunksLabel
-@onready var complex_rect = %ComplexPlane
 @onready var world_manager = get_node_or_null("../WorldManager")
 @onready var domain_re_val = %DomainReVal
 @onready var domain_im_val = %DomainImVal
@@ -72,8 +71,8 @@ func _ready():
 	portal_flash.visible = false
 	$Control.add_child(portal_flash)
 
-	if complex_aspect:
-		complex_aspect.resized.connect(_on_complex_aspect_resized)
+	if phase_wheel:
+		phase_wheel.resized.connect(_on_complex_aspect_resized)
 
 	hud_columns.offset_top = -1000
 
@@ -92,8 +91,8 @@ func _ready():
 
 
 func _on_complex_aspect_resized():
-	if complex_aspect.custom_minimum_size.y != complex_aspect.size.x:
-		complex_aspect.custom_minimum_size.y = complex_aspect.size.x
+	if phase_wheel.custom_minimum_size.y != phase_wheel.size.x:
+		phase_wheel.custom_minimum_size.y = phase_wheel.size.x
 
 
 func apply_aa():
@@ -215,18 +214,9 @@ func _process(_delta):
 			if rvm_hbox:
 				rvm_hbox.visible = false
 
-	# Update shader uniforms
-	var material = complex_rect.material as ShaderMaterial
-	material.set_shader_parameter("current_f", f)
-	material.set_shader_parameter("multivalued_n", Config.multivalued_n)
-	material.set_shader_parameter("function_type", Config.function_type)
-	material.set_shader_parameter("color_scheme", Config.color_scheme)
-	material.set_shader_parameter("scale", current_scale)
-	material.set_shader_parameter("performance_protection_active", GameState.performance_protection_active)
-	material.set_shader_parameter("brightness", Config.terrain_brightness)
-	material.set_shader_parameter("saturation", Config.terrain_saturation)
-	material.set_shader_parameter("albedo", Config.terrain_albedo)
-	material.set_shader_parameter("emission", Config.terrain_emission)
+	# Update phase wheel
+	if phase_wheel:
+		phase_wheel.update_data(f)
 
 	var complex_pos = Config.world_to_complex(x, z)
 	var val_re = complex_pos.x
@@ -254,7 +244,7 @@ func _process(_delta):
 	phase_arg_val.text = "%d°" % round(angle_deg)
 
 	minimap_panel.visible = Config.show_minimap
-	complex_aspect.visible = Config.show_hud_complex
+	phase_wheel.visible = Config.show_hud_complex
 	domain_panel.visible = Config.show_hud_navigation
 	target_panel.visible = Config.show_hud_navigation
 	monitor_panel.visible = Config.show_hud_monitor_fps or show_hud_chunks or GameState.performance_protection_active or GameState.height_protection_active
@@ -402,7 +392,7 @@ func _rescale_card(card: Control, _scale: float):
 
 		if node is Control:
 			# Only scale custom minimum size for specific panels to maintain layout proportions
-			if node.name == "ComplexAspect":
+			if node.name == "ComplexAspect" or node.name == "PhaseWheel":
 				pass
 			elif node.name == "DomainPanel" or node.name == "TargetPanel":
 				if not node.has_meta("base_min_size"):
