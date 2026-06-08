@@ -8,6 +8,10 @@ extends Node3D
 var _golden_hour_transition: float = 0.0
 var _sun_color = Color("#fc9500")
 
+# Smooth angle variables
+var _current_angle: float = 0.0
+var _is_first_frame: bool = true
+
 func _ready():
 	Config.config_changed.connect(_on_config_changed)
 	if world_environment and world_environment.environment:
@@ -35,7 +39,7 @@ func _process(delta):
 	var orbit_axis = Vector3(sin(sunrise_rad), 0, -cos(sunrise_rad))
 
 	var progress = 0.0
-	if not Config.freeze_time: # Dynamic
+	if not Config.freeze_time and not GameState.is_menu_open: # Dynamic
 		# Increment day time based on day duration
 		# 86400 seconds in a day / day_duration = speed multiplier
 		Config.day_time += delta * (86400.0 / Config.day_duration)
@@ -45,10 +49,17 @@ func _process(delta):
 	progress = Config.day_time / 86400.0
 
 	# angle = PI is Midnight (progress 0.0), angle = 0.0 is Noon (progress 0.5)
-	var angle = (progress + 0.5) * TAU
+	var target_angle = (progress + 0.5) * TAU
+
+	if _is_first_frame:
+		_current_angle = target_angle
+		_is_first_frame = false
+	else:
+		# Use Godot's built-in lerp_angle for completely smooth tracking
+		_current_angle = lerp_angle(_current_angle, target_angle, 10.0 * delta)
 
 	# Sun direction: rotate Noon (0, -1, 0) around orbit axis
-	var sun_dir = Quaternion(orbit_axis, angle) * Vector3.DOWN
+	var sun_dir = Quaternion(orbit_axis, _current_angle) * Vector3.DOWN
 	var moon_dir = - sun_dir
 
 	var sun_elevation = - sun_dir.y

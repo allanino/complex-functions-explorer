@@ -1,6 +1,6 @@
 extends HBoxContainer
 
-@export var text: String = "Label" :
+@export var text: String = "Label":
 	set(v):
 		text = v
 		if is_inside_tree():
@@ -13,11 +13,11 @@ func _ready():
 
 	if not _arrow_initialized:
 		_arrow_initialized = true
-		var size = 16
-		var img = Image.create(size, size, false, Image.FORMAT_RGBA8)
+		var arrow_size = 16
+		var img = Image.create(arrow_size, arrow_size, false, Image.FORMAT_RGBA8)
 		var gold_color = Color(0.784314, 0.662745, 0.431373, 1.0)
-		for y in range(size):
-			for x in range(size):
+		for y in range(arrow_size):
+			for x in range(arrow_size):
 				if y >= 6 and y <= 10:
 					var half_w = (10 - y)
 					var center_x = 8.0

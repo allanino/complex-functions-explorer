@@ -38,25 +38,25 @@ const FUNCTIONS = {
 		"is_dirichlect": true,
 		"has_von_mangoldt": true,
 		# [min, max, step, initial]
-		"iters_range": [200.0, 10000.0, 200.0, 200.0],
+		"iters_range": [100.0, 10000.0, 100.0, 100.0],
 	},
 	ComplexFunc.ZETA_REFLECTION: {
 		"name": "Zeta",
 		"is_dirichlect": true,
 		"has_von_mangoldt": true,
-		"iters_range": [200.0, 10000.0, 200.0, 200.0],
+		"iters_range": [100.0, 10000.0, 100.0, 100.0],
 	},
 	ComplexFunc.DIRICHLET_ETA: {
 		"name": "Dirichlet Eta (σ > 0)",
 		"is_dirichlect": true,
 		"has_von_mangoldt": true,
-		"iters_range": [200.0, 10000.0, 200.0, 200.0],
+		"iters_range": [100.0, 10000.0, 100.0, 100.0],
 	},
 	ComplexFunc.DIRICHLET_BETA: {
 		"name": "Dirichlet Beta (σ > 0)",
 		"is_dirichlect": true,
 		"has_von_mangoldt": true,
-		"iters_range": [200.0, 10000.0, 200.0, 200.0],
+		"iters_range": [100.0, 10000.0, 100.0, 100.0],
 	},
 	ComplexFunc.GAMMA: {
 		"name": "Gamma"
@@ -351,9 +351,21 @@ var hud_scale: float = 1.0
 var menu_scale: float = 1.0
 
 # Audio parameters
-var master_volume: float = 100.0
-var bg_music_volume: float = 100.0
-var drone_volume: float = 100.0
+var master_volume: float = 100.0:
+	set(v):
+		if master_volume == v: return
+		master_volume = v
+		config_changed.emit("master_volume")
+var bg_music_volume: float = 100.0:
+	set(v):
+		if bg_music_volume == v: return
+		bg_music_volume = v
+		config_changed.emit("bg_music_volume")
+var drone_volume: float = 100.0:
+	set(v):
+		if drone_volume == v: return
+		drone_volume = v
+		config_changed.emit("drone_volume")
 
 
 func _set_zoom_factor(value: float):

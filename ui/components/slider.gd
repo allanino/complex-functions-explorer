@@ -27,8 +27,12 @@ signal detach_requested(slider: HSlider, value_label: Label)
 		if is_inside_tree():
 			$Slider.step = v
 
+var _syncing: bool = false
 @export var value: float = 0.0:
 	set(v):
+		if _syncing:
+			value = v
+			return
 		value = v
 		if is_inside_tree():
 			$Slider.value = v
@@ -108,8 +112,11 @@ func _ready():
 	)
 
 func set_value_no_signal(v: float):
+	_syncing = true
 	value = v
-	$Slider.set_value_no_signal(v)
+	_syncing = false
+	if is_inside_tree():
+		$Slider.set_value_no_signal(v)
 
 func get_slider() -> HSlider:
 	return $Slider
