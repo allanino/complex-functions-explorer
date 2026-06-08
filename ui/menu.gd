@@ -422,8 +422,7 @@ func _init_slider_bindings():
 			"config_key": "hud_scale",
 			"to_config": func(v): return v / 100.0,
 			"from_config": func(c): return c * 100.0,
-			"format": func(v): return str(int(round(v))) + "%",
-			"on_changed": func(_v): emit_signal('update_hud_layout_signal')
+			"format": func(v): return str(int(round(v))) + "%"
 		},
 		iter_slider: {
 			"config_key": "iterations",
@@ -999,6 +998,71 @@ func _rescale_menu(_scale: float):
 					node.set_meta("base_separation", node.get_theme_constant("separation"))
 				node.add_theme_constant_override("separation", int(round(node.get_meta("base_separation") * actual_scale)))
 
+		# Scale Sliders and ScrollBars
+		if node is HSlider or node is VScrollBar or node is HScrollBar:
+			var scale_factor = max(1.0, actual_scale)
+
+			if node is HSlider:
+				if not node.has_meta("base_scaled_slider"):
+					node.set_meta("base_scaled_slider", true)
+
+				var grabber_size = int(round(18 * scale_factor))
+				var center = Vector2(grabber_size / 2.0, grabber_size / 2.0)
+				var inner_radius = 6.0 * scale_factor
+				var outer_radius = 6.5 * scale_factor
+
+				var normal_color = Color(0.784314, 0.662745, 0.431373, 1.0)
+				var hover_color = normal_color.lightened(0.2)
+				var pressed_color = normal_color.darkened(0.2)
+
+				var tex_normal = _create_scaled_grabber_texture(normal_color, grabber_size, center, inner_radius, outer_radius)
+				var tex_hover = _create_scaled_grabber_texture(hover_color, grabber_size, center, inner_radius, outer_radius)
+				var tex_pressed = _create_scaled_grabber_texture(pressed_color, grabber_size, center, inner_radius, outer_radius)
+
+				node.add_theme_icon_override("grabber", tex_normal)
+				node.add_theme_icon_override("grabber_highlight", tex_hover)
+				node.add_theme_icon_override("grabber_disabled", tex_normal)
+				node.set_meta("custom_grabber_pressed", tex_pressed)
+				node.set_meta("custom_grabber_highlight", tex_hover)
+
+				for style_name in ["slider", "grabber_area", "grabber_area_highlight"]:
+					var base_style = node.get_theme_stylebox(style_name)
+					if base_style and base_style is StyleBoxFlat:
+						if not node.has_meta("base_style_" + style_name + "_top"):
+							node.set_meta("base_style_" + style_name + "_top", base_style.content_margin_top)
+							node.set_meta("base_style_" + style_name + "_bottom", base_style.content_margin_bottom)
+
+						var dup = base_style.duplicate()
+						dup.content_margin_top = node.get_meta("base_style_" + style_name + "_top") * scale_factor
+						dup.content_margin_bottom = node.get_meta("base_style_" + style_name + "_bottom") * scale_factor
+						node.add_theme_stylebox_override(style_name, dup)
+
+			if node is VScrollBar:
+				for style_name in ["scroll", "grabber", "grabber_hover", "grabber_pressed"]:
+					var base_style = node.get_theme_stylebox(style_name)
+					if base_style and base_style is StyleBoxFlat:
+						if not node.has_meta("base_style_" + style_name + "_left"):
+							node.set_meta("base_style_" + style_name + "_left", base_style.content_margin_left)
+							node.set_meta("base_style_" + style_name + "_right", base_style.content_margin_right)
+
+						var dup = base_style.duplicate()
+						dup.content_margin_left = node.get_meta("base_style_" + style_name + "_left") * scale_factor
+						dup.content_margin_right = node.get_meta("base_style_" + style_name + "_right") * scale_factor
+						node.add_theme_stylebox_override(style_name, dup)
+
+			if node is HScrollBar:
+				for style_name in ["scroll", "grabber", "grabber_hover", "grabber_pressed"]:
+					var base_style = node.get_theme_stylebox(style_name)
+					if base_style and base_style is StyleBoxFlat:
+						if not node.has_meta("base_style_" + style_name + "_top"):
+							node.set_meta("base_style_" + style_name + "_top", base_style.content_margin_top)
+							node.set_meta("base_style_" + style_name + "_bottom", base_style.content_margin_bottom)
+
+						var dup = base_style.duplicate()
+						dup.content_margin_top = node.get_meta("base_style_" + style_name + "_top") * scale_factor
+						dup.content_margin_bottom = node.get_meta("base_style_" + style_name + "_bottom") * scale_factor
+						node.add_theme_stylebox_override(style_name, dup)
+
 		# Traverse children
 		for child in node.get_children():
 			if child is Control:
@@ -1140,7 +1204,6 @@ func toggle_menu(applied: bool = false):
 				Config.menu_scale = _initial_menu_scale
 			if Config.hud_scale != _initial_hud_scale:
 				Config.hud_scale = _initial_hud_scale
-				emit_signal('update_hud_layout_signal')
 			Config.sky_luminosity = _initial_sky_luminosity
 			Config.sun_luminosity = _initial_sun_luminosity
 			Config.self_illumination = _initial_self_illumination
@@ -1157,3 +1220,18 @@ func toggle_menu(applied: bool = false):
 			Config._edited_presets = _initial_edited_presets
 
 			emit_signal('apply_aa_signal')
+
+
+static func _create_scaled_grabber_texture(color: Color, _size: int, center: Vector2, inner_radius: float, outer_radius: float) -> ImageTexture:
+	var img = Image.create(_size, _size, false, Image.FORMAT_RGBA8)
+	for y in range(_size):
+		for x in range(_size):
+			var dist = center.distance_to(Vector2(x, y))
+			if dist <= inner_radius:
+				img.set_pixel(x, y, color)
+			elif dist < outer_radius:
+				var alpha = (outer_radius - dist) / (outer_radius - inner_radius)
+				img.set_pixel(x, y, Color(color.r, color.g, color.b, color.a * alpha))
+			else:
+				img.set_pixel(x, y, Color(0.0, 0.0, 0.0, 0.0))
+	return ImageTexture.create_from_image(img)

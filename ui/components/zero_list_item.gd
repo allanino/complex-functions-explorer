@@ -28,7 +28,10 @@ func set_values(re: String, im: String, is_dirichlet: bool):
 		real_label.text = re
 		real_label.add_theme_color_override("font_color", Color(0.3647, 0.847, 0.7843, 1)) # Cyan
 
-	imag_label.text = " + " + im + " i"
+	if im.begins_with("-"):
+		imag_label.text = " - " + im.substr(1) + " i"
+	else:
+		imag_label.text = " + " + im + " i"
 
 func _gui_input(event):
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
