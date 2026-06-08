@@ -100,11 +100,17 @@ func _ready():
 	)
 
 	$Slider.drag_started.connect(func():
-		$Slider.add_theme_icon_override("grabber_highlight", _grabber_pressed_tex)
+		if $Slider.has_meta("custom_grabber_pressed"):
+			$Slider.add_theme_icon_override("grabber_highlight", $Slider.get_meta("custom_grabber_pressed"))
+		else:
+			$Slider.add_theme_icon_override("grabber_highlight", _grabber_pressed_tex)
 	)
 
 	$Slider.drag_ended.connect(func(_value_changed: bool):
-		$Slider.remove_theme_icon_override("grabber_highlight")
+		if $Slider.has_meta("custom_grabber_highlight"):
+			$Slider.add_theme_icon_override("grabber_highlight", $Slider.get_meta("custom_grabber_highlight"))
+		else:
+			$Slider.remove_theme_icon_override("grabber_highlight")
 	)
 
 	$DetachButton.pressed.connect(func():
