@@ -95,7 +95,10 @@ func _ready():
 	await get_tree().process_frame
 
 	_update_hud_layout()
-	hud_columns.modulate.a = 1.0
+	
+	# Smooth fade-in to make the HUD appearance feel premium and completely hide the layout settling
+	var tween = create_tween()
+	tween.tween_property(hud_columns, "modulate:a", 1.0, 0.15).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 
 
 func _on_complex_aspect_resized():
