@@ -874,23 +874,23 @@ step = 5.0
 value = 100.0
 value_text = "100%"
 
-[node name="MinimapCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/UI/Margin/VBox" instance=ExtResource("3_checkbox")]
+[node name="HudPositionCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/UI/Margin/VBox" unique_id=274307069 instance=ExtResource("3_checkbox")]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Minimap"
+text = "Position"
 
 [node name="HudComplexCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/UI/Margin/VBox" unique_id=153931705 instance=ExtResource("3_checkbox")]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Complex plane"
+text = "Phase wheel"
 
-[node name="HudNavigationCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/UI/Margin/VBox" unique_id=274307069 instance=ExtResource("3_checkbox")]
+[node name="MinimapCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/UI/Margin/VBox" instance=ExtResource("3_checkbox")]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Navigation"
+text = "Minimap"
 
 [node name="HudZerosDetectionCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/UI/Margin/VBox" unique_id=1573142176 instance=ExtResource("3_checkbox")]
 unique_name_in_owner = true

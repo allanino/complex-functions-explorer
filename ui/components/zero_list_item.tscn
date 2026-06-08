@@ -18,21 +18,25 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_item")
 
 [node name="HBox" type="HBoxContainer" parent="."]
 layout_mode = 2
-theme_override_constants/separation = 4
+theme_override_constants/separation = 0
 alignment = 1
 
-[node name="RealLabel" type="Label" parent="HBox"]
+[node name="RealLabel" type="RichTextLabel" parent="HBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.784314, 0.662745, 0.431373, 1)
-theme_override_fonts/font = ExtResource("1_font")
-theme_override_font_sizes/font_size = 14
-text = "1/2"
+theme_override_fonts/normal_font = ExtResource("1_font")
+theme_override_font_sizes/normal_font_size = 14
+bbcode_enabled = true
+text = "[color=#c8a96e]1/2[/color]"
+fit_content = true
+autowrap_mode = 0
 
-[node name="ImagLabel" type="Label" parent="HBox"]
+[node name="ImagLabel" type="RichTextLabel" parent="HBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.8313, 0.3725, 0.6274, 1)
-theme_override_fonts/font = ExtResource("1_font")
-theme_override_font_sizes/font_size = 14
-text = "+ 0.000 i"
+theme_override_fonts/normal_font = ExtResource("1_font")
+theme_override_font_sizes/normal_font_size = 14
+bbcode_enabled = true
+text = "[color=#d45fa0]+ 0.000 i[/color]"
+fit_content = true
+autowrap_mode = 0

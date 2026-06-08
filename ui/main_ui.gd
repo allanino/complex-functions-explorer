@@ -6,23 +6,18 @@ const NEON_FONT = preload("res://ui/theme/font_neon.tres")
 @onready var hud_stack_left = %MainUIStackLeft
 @onready var hud_stack_right = %MainUIStackRight
 @onready var minimap_panel = %MinimapPanel
-@onready var complex_aspect = %ComplexAspect
-@onready var domain_panel = %DomainPanel
-@onready var target_panel = %TargetPanel
+@onready var phase_wheel = %PhaseWheel
+@onready var position_panel = %PositionPanel
 @onready var monitor_panel = %MonitorPanel
 @onready var fps_hbox = %FpsHBox
 @onready var fps_val_label = %FpsValLabel
 @onready var chunks_label = %ChunksLabel
-@onready var complex_rect = %ComplexPlane
 @onready var world_manager = get_node_or_null("../WorldManager")
-@onready var domain_re_val = %DomainReVal
-@onready var domain_im_val = %DomainImVal
-@onready var target_re_val = %TargetReVal
-@onready var target_im_val = %TargetImVal
+@onready var domain_val = %DomainVal
+@onready var target_val = %TargetVal
 @onready var phase_branch_val = %PhaseBranchVal
 @onready var branch_label = %BranchLabel
 @onready var phase_abs_val = %PhaseAbsVal
-@onready var phase_arg_val = %PhaseArgVal
 @onready var zeros_panel = %ZerosPanel
 @onready var zeros_count_label = %CountLabel
 @onready var rvm_hbox = %RvmHBox
@@ -35,6 +30,8 @@ var portal_flash: ColorRect
 @onready var tooltip_manager = %TooltipManager
 @onready var detach_controller = %DetachOverlay
 @onready var preset_controller = %PresetController
+@onready var position_arg_label = %PositionArgLabel
+@onready var position_arg_val = %PositionArgVal
 
 @export var show_hud_chunks: bool = false
 
@@ -46,6 +43,53 @@ const RENDER_EACH_N_FRAME: int = 3
 var _skip_frame_counter: int = 0
 var _last_zeros_count: int = -1
 var _last_visited_zeros_size: int = -1
+
+# Theme color constants (BBCode hex)
+const CLR_DIM = "#e7e4dc80" # ink_dim (50% alpha)
+const CLR_GOLD = "#c8a96e" # theme gold
+const CLR_CYAN = "#5dd8c8" # cyan
+const CLR_MAGENTA = "#d45fa0" # magenta
+
+# Wraps a numeric string in BBCode: dims a leading '-' sign, colors the rest.
+func _bb_re(value: String, color: String) -> String:
+	if value.begins_with("-"):
+		return "[color=%s]-[/color][color=%s]%s[/color]" % [CLR_DIM, color, value.substr(1)]
+	return "[color=%s]%s[/color]" % [color, value]
+
+# Formats an imaginary value as "± number i" with a dim operator separator.
+func _bb_im(im: String) -> String:
+	if im.begins_with("-"):
+		return "[color=%s] - [/color][color=%s]%s i[/color]" % [CLR_DIM, CLR_MAGENTA, im.substr(1)]
+	return "[color=%s] + [/color][color=%s]%s i[/color]" % [CLR_DIM, CLR_MAGENTA, im]
+
+func update_arg_val(f: Vector2):
+	var angle_rad = atan2(f.y, f.x)
+	var angle_deg = rad_to_deg(angle_rad)
+	if angle_deg < 0:
+		angle_deg += 360.0
+
+	position_arg_val.text = "%.1f°" % angle_deg
+
+	# Compute matching color
+	var hue = (angle_rad + PI) / (2.0 * PI)
+	if Config.color_scheme == 1:
+		hue = wrapf(hue + 0.5, 0.0, 1.0)
+
+	var saturation = clamp(Config.terrain_saturation, 0.3, 1.0) * 0.5
+	var brightness = Config.terrain_brightness
+
+	var hsv_color = Color.from_hsv(hue, saturation, min(brightness, 1.0))
+	if Config.color_scheme == 2:
+		var v = 0.5 + 0.5 * cos(angle_rad)
+		hsv_color = Color(v, v, v) * brightness
+
+	var final_color = hsv_color * (Config.terrain_albedo + Config.terrain_emission) * 2.0
+	final_color.r = clamp(final_color.r, 0.0, 1.0)
+	final_color.g = clamp(final_color.g, 0.0, 1.0)
+	final_color.b = clamp(final_color.b, 0.0, 1.0)
+	final_color.a = 1.0
+
+	position_arg_val.add_theme_color_override("font_color", final_color)
 
 func _ready():
 	hud_columns.modulate.a = 0.0
@@ -70,14 +114,16 @@ func _ready():
 	portal_flash.visible = false
 	$Control.add_child(portal_flash)
 
-	if complex_aspect:
-		complex_aspect.resized.connect(_on_complex_aspect_resized)
+	if phase_wheel:
+		phase_wheel.resized.connect(_on_complex_aspect_resized)
 
 	hud_columns.offset_top = -1000
 
 	menu_overlay.apply_aa_signal.connect(apply_aa)
 	menu_overlay.update_hud_layout_signal.connect(_update_hud_layout)
 
+	position_arg_label.visible = !Config.show_hud_phase_wheel
+	position_arg_val.visible = !Config.show_hud_phase_wheel
 
 	if menu_overlay:
 			menu_overlay.player = player
@@ -102,8 +148,8 @@ func _ready():
 
 
 func _on_complex_aspect_resized():
-	if complex_aspect.custom_minimum_size.y != complex_aspect.size.x:
-		complex_aspect.custom_minimum_size.y = complex_aspect.size.x
+	if phase_wheel.custom_minimum_size.y != phase_wheel.size.x:
+		phase_wheel.custom_minimum_size.y = phase_wheel.size.x
 
 
 func apply_aa():
@@ -168,6 +214,9 @@ func _process(_delta):
 
 	var f = player.current_f
 
+	if position_arg_val.visible:
+		update_arg_val(f)
+
 	# Update Zeta Zeros display
 	var f_data = Config.function
 
@@ -211,9 +260,9 @@ func _process(_delta):
 			var delta_sign = "+" if delta_val >= 0 else ""
 
 			if rvm_n_label:
-				rvm_n_label.text = "[color=gray]N(t) ≈ %.2f[/color]" % rvm_val
+				rvm_n_label.text = "[color=gray]N(t)[/color] ≈ [color=#c8a96e]%.1f[/color]" % rvm_val
 			if rvm_delta_label:
-				rvm_delta_label.text = "Δ = %s%.2f" % [delta_sign, delta_val]
+				rvm_delta_label.text = "Δ = %s%.1f" % [delta_sign, delta_val]
 
 			if rvm_hbox:
 				rvm_hbox.visible = true
@@ -221,18 +270,9 @@ func _process(_delta):
 			if rvm_hbox:
 				rvm_hbox.visible = false
 
-	# Update shader uniforms
-	var material = complex_rect.material as ShaderMaterial
-	material.set_shader_parameter("current_f", f)
-	material.set_shader_parameter("multivalued_n", Config.multivalued_n)
-	material.set_shader_parameter("function_type", Config.function_type)
-	material.set_shader_parameter("color_scheme", Config.color_scheme)
-	material.set_shader_parameter("scale", current_scale)
-	material.set_shader_parameter("performance_protection_active", GameState.performance_protection_active)
-	material.set_shader_parameter("brightness", Config.terrain_brightness)
-	material.set_shader_parameter("saturation", Config.terrain_saturation)
-	material.set_shader_parameter("albedo", Config.terrain_albedo)
-	material.set_shader_parameter("emission", Config.terrain_emission)
+	# Update phase wheel
+	if phase_wheel:
+		phase_wheel.update_data(f)
 
 	var complex_pos = Config.world_to_complex(x, z)
 	var val_re = complex_pos.x
@@ -240,11 +280,15 @@ func _process(_delta):
 	var val_fx = f.x
 	var val_fy = f.y
 
-	domain_re_val.text = _format_float_3(val_re)
-	domain_im_val.text = _format_float_3(val_im)
+	var target_re = _format_float_3(val_fx)
+	var target_im = _format_float_3(val_fy)
 
-	target_re_val.text = _format_float_3(val_fx)
-	target_im_val.text = _format_float_3(val_fy)
+	var domain_re = _format_float_3(val_re)
+	var domain_im = _format_float_3(val_im)
+
+	target_val.text = _bb_re(target_re, CLR_CYAN) + _bb_im(target_im)
+	domain_val.text = _bb_re(domain_re, CLR_CYAN) + _bb_im(domain_im)
+
 	if f_data.get("is_multivalued", false):
 		phase_branch_val.text = str(GameState.current_branch)
 		phase_branch_val.visible = true
@@ -253,16 +297,11 @@ func _process(_delta):
 		phase_branch_val.visible = false
 		branch_label.visible = false
 
-	var angle_deg = rad_to_deg(f.angle())
-	if angle_deg < 0:
-		angle_deg += 360.0
 	phase_abs_val.text = _format_float_3(f.length())
-	phase_arg_val.text = "%d°" % round(angle_deg)
 
 	minimap_panel.visible = Config.show_minimap
-	complex_aspect.visible = Config.show_hud_complex
-	domain_panel.visible = Config.show_hud_navigation
-	target_panel.visible = Config.show_hud_navigation
+	phase_wheel.visible = Config.show_hud_phase_wheel
+	position_panel.visible = Config.show_hud_navigation
 	monitor_panel.visible = Config.show_hud_monitor_fps or show_hud_chunks or GameState.performance_protection_active or GameState.height_protection_active
 	if monitor_panel.visible:
 		if Config.show_hud_monitor_fps:
@@ -298,7 +337,7 @@ var _last_hud_state = {}
 func _update_hud_layout():
 	if not hud_columns: return
 
-	var cards = [minimap_panel, target_panel, domain_panel, zeros_panel, monitor_panel]
+	var cards = [minimap_panel, position_panel, zeros_panel, monitor_panel]
 
 	var actual_hud_scale = Config.hud_scale
 
@@ -409,9 +448,9 @@ func _rescale_card(card: Control, _scale: float):
 
 		if node is Control:
 			# Only scale custom minimum size for specific panels to maintain layout proportions
-			if node.name == "ComplexAspect":
+			if node.name == "ComplexAspect" or node.name == "PhaseWheel":
 				pass
-			elif node.name == "DomainPanel" or node.name == "TargetPanel":
+			elif node.name == "PositionPanel":
 				if not node.has_meta("base_min_size"):
 					node.set_meta("base_min_size", node.custom_minimum_size)
 				node.custom_minimum_size.y = node.get_meta("base_min_size").y * _scale
@@ -497,7 +536,10 @@ func _on_config_changed(key: String):
 		if menu_overlay:
 			menu_overlay.day_time_slider.set_value_no_signal(Config.day_time)
 			menu_overlay.day_time_slider.value_text = menu_overlay._format_time(Config.day_time)
-
+	if key == "show_hud_phase_wheel":
+		position_arg_label.visible = !Config.show_hud_phase_wheel
+		position_arg_val.visible = !Config.show_hud_phase_wheel
+		
 func _on_zero_item_clicked(index: int):
 	GameState.accented_zero_index = index
 	for item in zeros_list_label.get_children():

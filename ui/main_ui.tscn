@@ -13,6 +13,7 @@
 [ext_resource type="FontFile" path="res://fonts/EBGaramond-Light.ttf" id="font_garamond"]
 [ext_resource type="Theme" path="res://ui/theme/theme.tres" id="theme_tres"]
 [ext_resource type="PackedScene" path="res://ui/minimap.tscn" id="10_minimap"]
+[ext_resource type="PackedScene" path="res://ui/phase_wheel.tscn" id="11_phase_wheel"]
 
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_1"]
@@ -401,7 +402,7 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(120, 0)
 layout_mode = 2
 theme_override_fonts/normal_font = ExtResource("font_spacemono")
-theme_override_font_sizes/normal_font_size = 12
+theme_override_font_sizes/normal_font_size = 14
 bbcode_enabled = true
 text = "[color=gray]N(t) ≈[/color] [color=#c8a96e]0.00[/color]"
 fit_content = true
@@ -414,7 +415,7 @@ custom_minimum_size = Vector2(70, 0)
 layout_mode = 2
 theme_override_colors/default_color = Color(0.909804, 0.894118, 0.862745, 0.45)
 theme_override_fonts/normal_font = ExtResource("font_spacemono")
-theme_override_font_sizes/normal_font_size = 12
+theme_override_font_sizes/normal_font_size = 14
 bbcode_enabled = true
 text = "Δ = +0.00"
 fit_content = true
@@ -511,219 +512,120 @@ horizontal_alignment = 1
 autowrap_mode = 3
 
 
-[node name="DomainPanel" type="PanelContainer" parent="Control/MainUIColumns/MainUIStackRight"]
+[node name="PositionPanel" type="PanelContainer" parent="Control/MainUIColumns/MainUIStackRight"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 100)
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="MarginContainer" type="MarginContainer" parent="Control/MainUIColumns/MainUIStackRight/DomainPanel"]
+[node name="MarginContainer" type="MarginContainer" parent="Control/MainUIColumns/MainUIStackRight/PositionPanel"]
 layout_mode = 2
 theme_override_constants/margin_left = 10
 theme_override_constants/margin_top = 10
 theme_override_constants/margin_right = 10
 theme_override_constants/margin_bottom = 10
 
-[node name="VBox" type="VBoxContainer" parent="Control/MainUIColumns/MainUIStackRight/DomainPanel/MarginContainer"]
+[node name="VBox" type="VBoxContainer" parent="Control/MainUIColumns/MainUIStackRight/PositionPanel/MarginContainer"]
 layout_mode = 2
 theme_override_constants/separation = 5
 
-[node name="DomainTitleHBox" type="HBoxContainer" parent="Control/MainUIColumns/MainUIStackRight/DomainPanel/MarginContainer/VBox"]
+[node name="PositionTitleHBox" type="HBoxContainer" parent="Control/MainUIColumns/MainUIStackRight/PositionPanel/MarginContainer/VBox"]
 layout_mode = 2
 
-[node name="DomainTitle" type="Label" parent="Control/MainUIColumns/MainUIStackRight/DomainPanel/MarginContainer/VBox/DomainTitleHBox"]
+[node name="PositionTitle" type="Label" parent="Control/MainUIColumns/MainUIStackRight/PositionPanel/MarginContainer/VBox/PositionTitleHBox"]
 theme_type_variation = &"HeaderLabel"
 layout_mode = 2
 theme_override_constants/character_spacing = 2
 theme_override_constants/outline_size = 0
 theme_override_constants/shadow_outline_size = 0
-text = "DOMAIN"
+text = "POSITION"
 horizontal_alignment = 0
 
-[node name="HSeparator" type="HSeparator" parent="Control/MainUIColumns/MainUIStackRight/DomainPanel/MarginContainer/VBox/DomainTitleHBox"]
+[node name="HSeparator" type="HSeparator" parent="Control/MainUIColumns/MainUIStackRight/PositionPanel/MarginContainer/VBox/PositionTitleHBox"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_styles/separator = SubResource("StyleBoxLine_header_sep")
 
-[node name="DomainGrid" type="GridContainer" parent="Control/MainUIColumns/MainUIStackRight/DomainPanel/MarginContainer/VBox"]
-layout_mode = 2
-theme_override_constants/h_separation = 10
-columns = 2
-
-[node name="ReLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/DomainPanel/MarginContainer/VBox/DomainGrid"]
+[node name="DomainLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/PositionPanel/MarginContainer/VBox"]
 theme_type_variation = &"SecondaryLabel"
 layout_mode = 2
-text = "Re(s)"
+text = "s"
 
-[node name="DomainReVal" type="Label" parent="Control/MainUIColumns/MainUIStackRight/DomainPanel/MarginContainer/VBox/DomainGrid"]
+[node name="DomainVal" type="RichTextLabel" parent="Control/MainUIColumns/MainUIStackRight/PositionPanel/MarginContainer/VBox"]
 unique_name_in_owner = true
-theme_type_variation = &"ValueCyanLabel"
 layout_mode = 2
-size_flags_horizontal = 3
-text = "0.000"
-horizontal_alignment = 2
-
-[node name="ImLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/DomainPanel/MarginContainer/VBox/DomainGrid"]
-theme_type_variation = &"SecondaryLabel"
-layout_mode = 2
-text = "Im(s)"
-
-[node name="DomainImVal" type="Label" parent="Control/MainUIColumns/MainUIStackRight/DomainPanel/MarginContainer/VBox/DomainGrid"]
-unique_name_in_owner = true
-theme_type_variation = &"ValueMagentaLabel"
-layout_mode = 2
-size_flags_horizontal = 3
-text = "0.000"
-horizontal_alignment = 2
-
-[node name="TargetPanel" type="PanelContainer" parent="Control/MainUIColumns/MainUIStackRight"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 100)
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="MarginContainer" type="MarginContainer" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel"]
-layout_mode = 2
-theme_override_constants/margin_left = 10
-theme_override_constants/margin_top = 10
-theme_override_constants/margin_right = 10
-theme_override_constants/margin_bottom = 10
-
-[node name="VBox" type="VBoxContainer" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer"]
-layout_mode = 2
-theme_override_constants/separation = 5
-
-[node name="TargetTitleHBox" type="HBoxContainer" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox"]
-layout_mode = 2
-
-[node name="TargetTitle" type="Label" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox/TargetTitleHBox"]
-theme_type_variation = &"HeaderLabel"
-layout_mode = 2
-theme_override_constants/character_spacing = 2
-theme_override_constants/outline_size = 0
-theme_override_constants/shadow_outline_size = 0
-text = "TARGET"
+text = "0.000 + 0.000 i"
 horizontal_alignment = 0
+bbcode_enabled = true
+fit_content = true
+autowrap_mode = 0
 
-[node name="HSeparator" type="HSeparator" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox/TargetTitleHBox"]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_styles/separator = SubResource("StyleBoxLine_header_sep")
-
-[node name="TargetGrid" type="GridContainer" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox"]
-layout_mode = 2
-theme_override_constants/h_separation = 10
-columns = 2
-
-[node name="ReLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox/TargetGrid"]
-theme_type_variation = &"SecondaryLabel"
-layout_mode = 2
-text = "Re(f)"
-
-[node name="TargetReVal" type="Label" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox/TargetGrid"]
-unique_name_in_owner = true
-theme_type_variation = &"ValueCyanLabel"
-layout_mode = 2
-size_flags_horizontal = 3
-text = "0.000"
-horizontal_alignment = 2
-
-[node name="ImLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox/TargetGrid"]
-theme_type_variation = &"SecondaryLabel"
-layout_mode = 2
-text = "Im(f)"
-
-[node name="TargetImVal" type="Label" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox/TargetGrid"]
-unique_name_in_owner = true
-theme_type_variation = &"ValueMagentaLabel"
-layout_mode = 2
-size_flags_horizontal = 3
-text = "0.000"
-horizontal_alignment = 2
-
-[node name="TargetPhaseHSeparator" type="HSeparator" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox"]
+[node name="DomainHSeparator" type="HSeparator" parent="Control/MainUIColumns/MainUIStackRight/PositionPanel/MarginContainer/VBox"]
 layout_mode = 2
 theme_override_constants/separation = 7
 theme_override_styles/separator = SubResource("StyleBoxLine_hseparator_custom")
 
-[node name="PhaseGrid" type="GridContainer" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox"]
+[node name="TargetLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/PositionPanel/MarginContainer/VBox"]
+theme_type_variation = &"SecondaryLabel"
 layout_mode = 2
-theme_override_constants/h_separation = 10
-columns = 2
+text = "f(s)"
 
-[node name="AbsLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox/PhaseGrid"]
+[node name="TargetVal" type="RichTextLabel" parent="Control/MainUIColumns/MainUIStackRight/PositionPanel/MarginContainer/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "0.000 + 0.000 i"
+horizontal_alignment = 0
+bbcode_enabled = true
+fit_content = true
+autowrap_mode = 0
+
+[node name="PhaseWheel" parent="Control/MainUIColumns/MainUIStackRight/PositionPanel/MarginContainer/VBox" instance=ExtResource("11_phase_wheel")]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="PositionArgLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/PositionPanel/MarginContainer/VBox"]
+unique_name_in_owner = true
+visible = false
+theme_type_variation = &"SecondaryLabel"
+layout_mode = 2
+text = "arg(f)"
+
+[node name="PositionArgVal" type="Label" parent="Control/MainUIColumns/MainUIStackRight/PositionPanel/MarginContainer/VBox"]
+unique_name_in_owner = true
+visible = false
+unique_name_in_owner = true
+theme_type_variation = &"ValueInkLabel"
+layout_mode = 2
+size_flags_horizontal = 3
+text = "0.000"
+horizontal_alignment = 0
+
+[node name="AbsLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/PositionPanel/MarginContainer/VBox"]
 theme_type_variation = &"SecondaryLabel"
 layout_mode = 2
 text = "|f|"
 
-[node name="PhaseAbsVal" type="Label" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox/PhaseGrid"]
+[node name="PhaseAbsVal" type="Label" parent="Control/MainUIColumns/MainUIStackRight/PositionPanel/MarginContainer/VBox"]
 unique_name_in_owner = true
 theme_type_variation = &"ValueGoldLabel"
 layout_mode = 2
 size_flags_horizontal = 3
 text = "0.000"
-horizontal_alignment = 2
+horizontal_alignment = 0
 
-[node name="ArgLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox/PhaseGrid"]
-theme_type_variation = &"SecondaryLabel"
-layout_mode = 2
-text = "arg(f)"
-
-[node name="PhaseArgVal" type="Label" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox/PhaseGrid"]
-unique_name_in_owner = true
-theme_type_variation = &"InkLabel"
-layout_mode = 2
-size_flags_horizontal = 3
-text = "0°"
-horizontal_alignment = 2
-
-[node name="BranchLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox/PhaseGrid"]
+[node name="BranchLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/PositionPanel/MarginContainer/VBox"]
 unique_name_in_owner = true
 theme_type_variation = &"SecondaryLabel"
 layout_mode = 2
 text = "BRANCH K"
 
-[node name="PhaseBranchVal" type="Label" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox/PhaseGrid"]
+[node name="PhaseBranchVal" type="Label" parent="Control/MainUIColumns/MainUIStackRight/PositionPanel/MarginContainer/VBox"]
 unique_name_in_owner = true
 theme_type_variation = &"ValueWhiteLabel"
 layout_mode = 2
 size_flags_horizontal = 3
 text = "0"
-horizontal_alignment = 2
-
-[node name="Spacer" type="Control" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox"]
-custom_minimum_size = Vector2(0, 3)
-layout_mode = 2
-
-[node name="ComplexAspect" type="AspectRatioContainer" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 240)
-layout_mode = 2
-size_flags_horizontal = 3
-ratio = 1.0
-stretch_mode = 2
-
-[node name="ComplexPanel" type="MarginContainer" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox/ComplexAspect"]
-layout_mode = 2
-
-[node name="MarginContainer" type="MarginContainer" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox/ComplexAspect/ComplexPanel"]
-layout_mode = 2
-theme_override_constants/margin_left = 0
-theme_override_constants/margin_top = 0
-theme_override_constants/margin_right = 0
-theme_override_constants/margin_bottom = 0
-
-[node name="ClipPanel" type="PanelContainer" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox/ComplexAspect/ComplexPanel/MarginContainer"]
-layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_mask")
-clip_children = 2
-
-[node name="ComplexPlane" type="ColorRect" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox/ComplexAspect/ComplexPanel/MarginContainer/ClipPanel"]
-unique_name_in_owner = true
-material = SubResource("ShaderMaterial_1")
-mouse_filter = 2
-layout_mode = 2
-
+horizontal_alignment = 0
 
 [node name="MinimapPanel" type="PanelContainer" parent="Control/MainUIColumns/MainUIStackRight"]
 unique_name_in_owner = true
