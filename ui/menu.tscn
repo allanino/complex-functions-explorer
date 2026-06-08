@@ -884,7 +884,7 @@ text = "Minimap"
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Complex plane"
+text = "Phase wheel"
 
 [node name="HudNavigationCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/UI/Margin/VBox" unique_id=274307069 instance=ExtResource("3_checkbox")]
 unique_name_in_owner = true
