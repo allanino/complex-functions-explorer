@@ -27,4 +27,9 @@ func _draw():
 	# Draw arrowhead
 	var points = PackedVector2Array([tip, head_left, head_right])
 	var colors = PackedColorArray([color, color, color])
+		# Draw polygon fill
 	draw_polygon(points, colors)
+
+	# Draw polyline outline for anti-aliasing the edges
+	var outline_points = PackedVector2Array([tip, head_left, head_right, tip])
+	draw_polyline(outline_points, color, 1.0, true)

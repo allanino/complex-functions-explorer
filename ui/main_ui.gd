@@ -68,7 +68,7 @@ func update_arg_val(f: Vector2):
 	if angle_deg < 0:
 		angle_deg += 360.0
 
-	position_arg_val.text = "%.1f°" % angle_deg
+	position_arg_val.text = "%5.1f°" % angle_deg
 
 	# Compute matching color
 	var hue = (angle_rad + PI) / (2.0 * PI)
@@ -128,11 +128,9 @@ func _ready():
 	menu_overlay.apply_aa_signal.connect(apply_aa)
 	menu_overlay.update_hud_layout_signal.connect(_update_hud_layout)
 
-	var has_container = get_node_or_null("%PositionArgContainer") != null
-	if has_container:
-		var position_arg_container = get_node_or_null("%PositionArgContainer")
-		if position_arg_container:
-			position_arg_container.visible = !Config.show_hud_phase_wheel
+	var position_arg_container = get_node_or_null("%PositionArgContainer")
+	if position_arg_container:
+		position_arg_container.visible = !Config.show_hud_phase_wheel
 	else:
 		position_arg_label.visible = !Config.show_hud_phase_wheel
 		position_arg_val.visible = !Config.show_hud_phase_wheel
@@ -550,11 +548,9 @@ func _on_config_changed(key: String):
 			menu_overlay.day_time_slider.set_value_no_signal(Config.day_time)
 			menu_overlay.day_time_slider.value_text = menu_overlay._format_time(Config.day_time)
 	if key == "show_hud_phase_wheel":
-		var has_container = get_node_or_null("%PositionArgContainer") != null
-		if has_container:
-			var position_arg_container = get_node_or_null("%PositionArgContainer")
-			if position_arg_container:
-				position_arg_container.visible = !Config.show_hud_phase_wheel
+		var position_arg_container = get_node_or_null("%PositionArgContainer")
+		if position_arg_container:
+			position_arg_container.visible = !Config.show_hud_phase_wheel
 		else:
 			position_arg_label.visible = !Config.show_hud_phase_wheel
 			position_arg_val.visible = !Config.show_hud_phase_wheel

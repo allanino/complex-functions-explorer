@@ -589,10 +589,11 @@ layout_mode = 2
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
+theme_override_constants/separation = 12
 
 [node name="PositionArgText" type="VBoxContainer" parent="Control/MainUIColumns/MainUIStackRight/PositionPanel/MarginContainer/VBox/PositionArgContainer"]
 layout_mode = 2
-size_flags_horizontal = 3
+custom_minimum_size = Vector2(60, 0)
 
 [node name="PositionArgLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/PositionPanel/MarginContainer/VBox/PositionArgContainer/PositionArgText"]
 unique_name_in_owner = true
