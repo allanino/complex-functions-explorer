@@ -38,25 +38,25 @@ const FUNCTIONS = {
 		"is_dirichlect": true,
 		"has_von_mangoldt": true,
 		# [min, max, step, initial]
-		"iters_range": [200.0, 10000.0, 200.0, 200.0],
+		"iters_range": [100.0, 10000.0, 100.0, 100.0],
 	},
 	ComplexFunc.ZETA_REFLECTION: {
 		"name": "Zeta",
 		"is_dirichlect": true,
 		"has_von_mangoldt": true,
-		"iters_range": [200.0, 10000.0, 200.0, 200.0],
+		"iters_range": [100.0, 10000.0, 100.0, 100.0],
 	},
 	ComplexFunc.DIRICHLET_ETA: {
 		"name": "Dirichlet Eta (σ > 0)",
 		"is_dirichlect": true,
 		"has_von_mangoldt": true,
-		"iters_range": [200.0, 10000.0, 200.0, 200.0],
+		"iters_range": [100.0, 10000.0, 100.0, 100.0],
 	},
 	ComplexFunc.DIRICHLET_BETA: {
 		"name": "Dirichlet Beta (σ > 0)",
 		"is_dirichlect": true,
 		"has_von_mangoldt": true,
-		"iters_range": [200.0, 10000.0, 200.0, 200.0],
+		"iters_range": [100.0, 10000.0, 100.0, 100.0],
 	},
 	ComplexFunc.GAMMA: {
 		"name": "Gamma"
