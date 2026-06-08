@@ -66,7 +66,7 @@ void fragment() {
     vec3 color_hsv = base * (albedo + emission) * 2.0;
 
     // Radius of the main track
-    float track_radius = 0.75;
+    float track_radius = 0.90;
 
     // Draw the glowing track ring
     float track_dist = abs(mag - track_radius);
