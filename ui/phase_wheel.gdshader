@@ -76,12 +76,16 @@ void fragment() {
     // Core of the ring
     float track_core = smoothstep(0.015 + fwidth(track_dist), 0.0, track_dist);
 
-    // Base composition is dark background + colored glowing ring
+    // Base composition is a transparent background + colored glowing ring
     vec3 color = vec3(0.0);
+    float alpha = 0.0;
+
     // Add colored ring. The color depends on the phase at that point on the ring.
     vec3 ring_color = color_hsv;
     color += ring_color * track_glow;
+    alpha += track_glow;
     color = mix(color, ring_color * 1.5, track_core); // Make the core bright
+    alpha = max(alpha, track_core);
 
     // Calculate phase and magnitude of current_f
     float f_mag = length(current_f);
@@ -112,6 +116,7 @@ void fragment() {
 
         // Overlay sharp stark white arrow
         color = mix(color, vec3(1.0), arrow_mask);
+        alpha = max(alpha, arrow_mask);
     }
 
     // Draw tick marks inside the ring
@@ -124,6 +129,7 @@ void fragment() {
 
     // Subtle off-white ticks
     color = mix(color, vec3(0.5), ticks * 0.5);
+    alpha = max(alpha, ticks * 0.5);
 
-    COLOR = vec4(color, 1.0);
+    COLOR = vec4(color, clamp(alpha, 0.0, 1.0));
 }
