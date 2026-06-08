@@ -72,7 +72,7 @@ void fragment() {
     float track_dist = abs(mag - track_radius);
 
     // Create an emissive neon-like glow bleeding effect
-    float track_glow = exp(-track_dist * 15.0) * 0.4;
+    float track_glow = exp(-track_dist * 10.0) * 0.4;
     // Core of the ring
     float track_core = smoothstep(0.0225 + fwidth(track_dist), 0.0, track_dist);
 
@@ -100,17 +100,17 @@ void fragment() {
         // Start the shaft partway out to avoid crossing the central text
         vec2 shaft_start = dir * 0.45;
         float d_shaft = sdSegment(z, shaft_start, tip);
-        float arrow_thickness = 0.012 + fw;
+        float arrow_thickness = 0.008 + fw;
         float shaft_mask = smoothstep(arrow_thickness + fw, arrow_thickness - fw, d_shaft);
 
         // Arrow head
         vec2 perp = vec2(-dir.y, dir.x);
-        vec2 head_base = tip - 0.12 * dir;
-        float d_head = sdTriangle(z, tip, head_base + 0.07 * perp, head_base - 0.07 * perp);
+        vec2 head_base = tip - 0.1 * dir;
+        float d_head = sdTriangle(z, tip, head_base + 0.05 * perp, head_base - 0.05 * perp);
         float head_mask = smoothstep(fw, -fw, d_head);
 
         // Arrow dot/bead precisely on the track
-        float d_bead = length(z - tip) - 0.035;
+        float d_bead = length(z - tip) - 0.025;
         float bead_mask = smoothstep(fw, -fw, d_bead);
 
         // Combine arrow elements
