@@ -27,7 +27,7 @@ func update_data(f: Vector2) -> void:
 		if Config.color_scheme == 1:
 			hue = wrapf(hue + 0.5, 0.0, 1.0)
 
-		var saturation = clamp(Config.terrain_saturation, 0.3, 1.0) * 0.7
+		var saturation = clamp(Config.terrain_saturation, 0.3, 1.0) * 0.5
 		var brightness = Config.terrain_brightness
 
 		var hsv_color = Color.from_hsv(hue, saturation, min(brightness, 1.0))

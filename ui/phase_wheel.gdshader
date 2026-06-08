@@ -66,7 +66,7 @@ void fragment() {
     vec3 color_hsv = base * (albedo + emission) * 2.0;
 
     // Radius of the main track
-    float track_radius = 0.90;
+    float track_radius = 0.86;
 
     // Draw the glowing track ring
     float track_dist = abs(mag - track_radius);
@@ -87,51 +87,84 @@ void fragment() {
     color = mix(color, ring_color * 1.5, track_core); // Make the core bright
     alpha = max(alpha, track_core);
 
-    // Calculate phase and magnitude of current_f
+    // Calculate arrow mask (deferred compositing so it renders on top of ticks)
+    float arrow_mask = 0.0;
     float f_mag = length(current_f);
-    if (f_mag > 0.001) {
+    if (f_mag > 0.00001) {
         vec2 dir = current_f / f_mag;
-        vec2 tip = dir * track_radius; // Pointing precisely to the track
+        float arrow_gap = 0.12; // gap between arrowhead tip and the color ring
+        vec2 tip = dir * (track_radius - arrow_gap);
+        vec2 bead_pos = dir * track_radius; // bead stays on the ring
 
         // Dynamic minimum line thickness
-        float fw = fwidth(z.x);
+        float fw_arrow = fwidth(z.x);
 
-        // Shaft
-        // Start the shaft partway out to avoid crossing the central text
+        // Shaft - start partway out to avoid crossing the central text, end at arrowhead base
         vec2 shaft_start = dir * 0.45;
-        float d_shaft = sdSegment(z, shaft_start, tip);
-        float arrow_thickness = 0.008 + fw;
-        float shaft_mask = smoothstep(arrow_thickness + fw, arrow_thickness - fw, d_shaft);
+        vec2 head_base = tip - 0.1 * dir;
+        float d_shaft = sdSegment(z, shaft_start, head_base);
+        float arrow_thickness = 0.008 + fw_arrow;
+        float shaft_mask = smoothstep(arrow_thickness + fw_arrow, arrow_thickness - fw_arrow, d_shaft);
 
         // Arrow head
         vec2 perp = vec2(-dir.y, dir.x);
-        vec2 head_base = tip - 0.1 * dir;
         float d_head = sdTriangle(z, tip, head_base + 0.05 * perp, head_base - 0.05 * perp);
-        float head_mask = smoothstep(fw, -fw, d_head);
+        float head_mask = smoothstep(fw_arrow, -fw_arrow, d_head);
 
-        // Arrow dot/bead precisely on the track
-        float d_bead = length(z - tip) - 0.025;
-        float bead_mask = smoothstep(fw, -fw, d_bead);
+        // Arrow dot/bead pinned to the track ring
+        float d_bead = length(z - bead_pos) - 0.025;
+        float bead_mask = smoothstep(fw_arrow, -fw_arrow, d_bead);
 
-        // Combine arrow elements
-        float arrow_mask = max(shaft_mask, max(head_mask, bead_mask));
-
-        // Overlay sharp stark white arrow
-        color = mix(color, vec3(1.0), arrow_mask);
-        alpha = max(alpha, arrow_mask);
+        arrow_mask = max(shaft_mask, max(head_mask, bead_mask));
     }
 
-    // Draw tick marks inside the ring
-    // 72 ticks (every 5 degrees)
-    float tick_count = 72.0;
-    float tick_phase = fract((phase + PI) / (2.0 * PI) * tick_count);
-    float tick_mask = step(abs(tick_phase - 0.5), 0.05); // tick width
-    float tick_dist = step(mag, track_radius - 0.02) * step(track_radius - 0.06, mag);
-    float ticks = tick_mask * tick_dist;
+    // Draw tick marks as true radial line segments (AA, angle-aligned)
+    float fw = fwidth(mag);
+    float tick_count = 16.0; // one tick every 10 degrees
 
-    // Subtle off-white ticks
-    color = mix(color, vec3(0.5), ticks * 0.5);
-    alpha = max(alpha, ticks * 0.5);
+    float pixel_angle = phase;
+    float step_rad = 2.0 * PI / tick_count;
+    float nearest_tick_index = round(pixel_angle / step_rad);
+
+    // Check the three nearest ticks (for pixels near a tick boundary)
+    float best_minor = 0.0;
+    float best_cardinal = 0.0;
+    for (int i = -1; i <= 1; i++) {
+        float tick_angle = (nearest_tick_index + float(i)) * step_rad;
+        vec2 tick_dir = vec2(cos(tick_angle), sin(tick_angle));
+
+        // Cardinal tick (0, 90, 180, 270 degrees)?
+        float cardinal_check = mod(abs(tick_angle), PI * 0.5);
+        bool is_cardinal = (cardinal_check < 0.001 || cardinal_check > PI * 0.5 - 0.001);
+
+        // Radial extent of the tick segment: just inside the track
+        float tick_inner = is_cardinal ? track_radius - 0.08 : track_radius - 0.06;
+        float tick_outer = track_radius - 0.02;
+        float tick_half_width = is_cardinal ? 0.008 : 0.004;
+
+        vec2 p0 = tick_dir * tick_inner;
+        vec2 p1 = tick_dir * tick_outer;
+        float d = sdSegment(z, p0, p1);
+        float tick_mask = smoothstep(tick_half_width + fw, tick_half_width - fw, d);
+
+        if (is_cardinal) {
+            best_cardinal = max(best_cardinal, tick_mask * 1.0);
+        } else {
+            best_minor = max(best_minor, tick_mask * 0.6);
+        }
+    }
+
+    // Composite: ticks first, then arrow on top
+    vec3 brighter_gold = vec3(1.0, 0.84, 0.3);
+    vec3 darker_gold = vec3(0.784, 0.663, 0.431);
+    color = mix(color, darker_gold, best_minor);
+    alpha = max(alpha, best_minor);
+    color = mix(color, brighter_gold, best_cardinal);
+    alpha = max(alpha, best_cardinal);
+
+    // Overlay sharp stark white arrow on top of everything
+    color = mix(color, vec3(1.0), arrow_mask);
+    alpha = max(alpha, arrow_mask);
 
     COLOR = vec4(color, clamp(alpha, 0.0, 1.0));
 }

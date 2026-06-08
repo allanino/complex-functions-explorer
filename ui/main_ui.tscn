@@ -514,7 +514,7 @@ autowrap_mode = 3
 
 [node name="DomainPanel" type="PanelContainer" parent="Control/MainUIColumns/MainUIStackRight"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 100)
+custom_minimum_size = Vector2(0, 90)
 layout_mode = 2
 size_flags_horizontal = 3
 
@@ -642,10 +642,9 @@ size_flags_horizontal = 3
 text = "0.000"
 horizontal_alignment = 2
 
-[node name="TargetPhaseHSeparator" type="HSeparator" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox"]
+[node name="PhaseWheel" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox" instance=ExtResource("11_phase_wheel")]
+unique_name_in_owner = true
 layout_mode = 2
-theme_override_constants/separation = 7
-theme_override_styles/separator = SubResource("StyleBoxLine_hseparator_custom")
 
 [node name="PhaseGrid" type="GridContainer" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox"]
 layout_mode = 2
@@ -665,6 +664,21 @@ size_flags_horizontal = 3
 text = "0.000"
 horizontal_alignment = 2
 
+[node name="TargetArgLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox/PhaseGrid"]
+visible = false
+theme_type_variation = &"SecondaryLabel"
+layout_mode = 2
+text = "arg(f)"
+
+[node name="TargetArgVal" type="Label" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox/PhaseGrid"]
+visible = false
+unique_name_in_owner = true
+theme_type_variation = &"ValueInkLabel"
+layout_mode = 2
+size_flags_horizontal = 3
+text = "0.000"
+horizontal_alignment = 2
+
 [node name="BranchLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox/PhaseGrid"]
 unique_name_in_owner = true
 theme_type_variation = &"SecondaryLabel"
@@ -678,15 +692,6 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "0"
 horizontal_alignment = 2
-
-[node name="Spacer" type="Control" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox"]
-custom_minimum_size = Vector2(0, 3)
-layout_mode = 2
-
-[node name="PhaseWheel" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox" instance=ExtResource("11_phase_wheel")]
-unique_name_in_owner = true
-layout_mode = 2
-
 
 [node name="MinimapPanel" type="PanelContainer" parent="Control/MainUIColumns/MainUIStackRight"]
 unique_name_in_owner = true
