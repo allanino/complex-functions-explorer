@@ -351,9 +351,21 @@ var hud_scale: float = 1.0
 var menu_scale: float = 1.0
 
 # Audio parameters
-var master_volume: float = 100.0
-var bg_music_volume: float = 100.0
-var drone_volume: float = 100.0
+var master_volume: float = 100.0:
+	set(v):
+		if master_volume == v: return
+		master_volume = v
+		config_changed.emit("master_volume")
+var bg_music_volume: float = 100.0:
+	set(v):
+		if bg_music_volume == v: return
+		bg_music_volume = v
+		config_changed.emit("bg_music_volume")
+var drone_volume: float = 100.0:
+	set(v):
+		if drone_volume == v: return
+		drone_volume = v
+		config_changed.emit("drone_volume")
 
 
 func _set_zoom_factor(value: float):
