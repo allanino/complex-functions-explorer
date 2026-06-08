@@ -62,7 +62,7 @@ func test_function_type_setter():
 func test_save_and_load_settings():
 	config_manager.movement_speed = 99.9
 	config_manager.color_scheme = 2
-	config_manager.show_hud_complex = false
+	config_manager.hud_complex_mode = 0
 	config_manager.function_type = ConfigManager.ComplexFunc.GAMMA
 
 	config_manager.save_settings()
@@ -74,7 +74,7 @@ func test_save_and_load_settings():
 
 	assert_almost_eq(new_config.movement_speed, 99.9, 0.001)
 	assert_eq(new_config.color_scheme, 2)
-	assert_eq(new_config.show_hud_complex, false)
+	assert_eq(new_config.hud_complex_mode, 0)
 	assert_eq(new_config.function_type, ConfigManager.ComplexFunc.GAMMA)
 
 	new_config.free()

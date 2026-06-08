@@ -13,7 +13,17 @@
 [ext_resource type="FontFile" path="res://fonts/EBGaramond-Light.ttf" id="font_garamond"]
 [ext_resource type="Theme" path="res://ui/theme/theme.tres" id="theme_tres"]
 [ext_resource type="PackedScene" path="res://ui/minimap.tscn" id="10_minimap"]
+[ext_resource type="Shader" path="res://ui/hud_linear_complex.gdshader" id="hud_linear_complex"]
 
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_Linear"]
+shader = ExtResource("hud_linear_complex")
+shader_parameter/current_f = Vector2(1, 0)
+shader_parameter/color_scheme = 0
+shader_parameter/brightness = 1.0
+shader_parameter/saturation = 0.85
+shader_parameter/albedo = 0.15
+shader_parameter/emission = 0.1
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_1"]
 shader = ExtResource("2_shader")
@@ -693,6 +703,17 @@ horizontal_alignment = 2
 
 [node name="Spacer" type="Control" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox"]
 custom_minimum_size = Vector2(0, 3)
+layout_mode = 2
+
+[node name="LinearComplexPanel" type="PanelContainer" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+
+[node name="LinearComplexPlane" type="ColorRect" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox/LinearComplexPanel"]
+unique_name_in_owner = true
+material = SubResource("ShaderMaterial_Linear")
+mouse_filter = 2
 layout_mode = 2
 
 [node name="ComplexAspect" type="AspectRatioContainer" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox"]

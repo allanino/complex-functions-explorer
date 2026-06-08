@@ -37,7 +37,7 @@ const DESCRIPTIONS = {
 	"Fog": "Enable or disable global volumetric fog effects.",
 	"Fog Density": "Adjust the thickness of the fog and aerial perspective.",
 	"Shadows": "Enable real-time directional shadows for terrain features.",
-	"Complex plane": "Show the domain coloring map of the current position on the HUD.",
+	"Complex plane": "Select the domain coloring map type for the current position on the HUD.",
 	"Navigation": "Show coordinate and magnitude information on the HUD.",
 	"Zeros detection": "Show the list of discovered zeros during walking.",
 	"Riemann–von Mangoldt": "Show the estimated number of zeta zeros N(t) based on the Riemann–von Mangoldt formula.",

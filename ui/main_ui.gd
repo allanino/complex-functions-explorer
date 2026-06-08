@@ -7,6 +7,8 @@ const NEON_FONT = preload("res://ui/theme/font_neon.tres")
 @onready var hud_stack_right = %MainUIStackRight
 @onready var minimap_panel = %MinimapPanel
 @onready var complex_aspect = %ComplexAspect
+@onready var linear_complex_panel = %LinearComplexPanel
+@onready var linear_rect = %LinearComplexPlane
 @onready var domain_panel = %DomainPanel
 @onready var target_panel = %TargetPanel
 @onready var monitor_panel = %MonitorPanel
@@ -222,6 +224,14 @@ func _process(_delta):
 	material.set_shader_parameter("function_type", Config.function_type)
 	material.set_shader_parameter("color_scheme", Config.color_scheme)
 	material.set_shader_parameter("scale", current_scale)
+
+	var linear_material = linear_rect.material as ShaderMaterial
+	linear_material.set_shader_parameter("current_f", f)
+	linear_material.set_shader_parameter("color_scheme", Config.color_scheme)
+	linear_material.set_shader_parameter("brightness", Config.terrain_brightness)
+	linear_material.set_shader_parameter("saturation", Config.terrain_saturation)
+	linear_material.set_shader_parameter("albedo", Config.terrain_albedo)
+	linear_material.set_shader_parameter("emission", Config.terrain_emission)
 	material.set_shader_parameter("performance_protection_active", GameState.performance_protection_active)
 	material.set_shader_parameter("brightness", Config.terrain_brightness)
 	material.set_shader_parameter("saturation", Config.terrain_saturation)
@@ -254,7 +264,8 @@ func _process(_delta):
 	phase_arg_val.text = "%d°" % round(angle_deg)
 
 	minimap_panel.visible = Config.show_minimap
-	complex_aspect.visible = Config.show_hud_complex
+	complex_aspect.visible = Config.hud_complex_mode == 1
+	linear_complex_panel.visible = Config.hud_complex_mode == 2
 	domain_panel.visible = Config.show_hud_navigation
 	target_panel.visible = Config.show_hud_navigation
 	monitor_panel.visible = Config.show_hud_monitor_fps or show_hud_chunks or GameState.performance_protection_active or GameState.height_protection_active
