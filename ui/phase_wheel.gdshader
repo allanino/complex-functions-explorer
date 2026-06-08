@@ -74,7 +74,7 @@ void fragment() {
     // Create an emissive neon-like glow bleeding effect
     float track_glow = exp(-track_dist * 15.0) * 0.4;
     // Core of the ring
-    float track_core = smoothstep(0.015 + fwidth(track_dist), 0.0, track_dist);
+    float track_core = smoothstep(0.0225 + fwidth(track_dist), 0.0, track_dist);
 
     // Base composition is a transparent background + colored glowing ring
     vec3 color = vec3(0.0);

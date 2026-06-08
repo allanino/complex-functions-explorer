@@ -44,46 +44,6 @@ horizontal_alignment = 1
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"HeaderLabel"
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 19
 text = "0.0°"
-horizontal_alignment = 1
-
-[node name="Markers" type="Control" parent="Panel"]
-layout_mode = 2
-mouse_filter = 2
-
-[node name="LabelTop" type="Label" parent="Panel/Markers"]
-unique_name_in_owner = true
-layout_mode = 0
-theme = ExtResource("3_pw_theme")
-theme_type_variation = &"GaramondLabel"
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-text = "π/2"
-horizontal_alignment = 1
-
-[node name="LabelBottom" type="Label" parent="Panel/Markers"]
-unique_name_in_owner = true
-layout_mode = 0
-theme = ExtResource("3_pw_theme")
-theme_type_variation = &"GaramondLabel"
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-text = "-π/2"
-horizontal_alignment = 1
-
-[node name="LabelLeft" type="Label" parent="Panel/Markers"]
-unique_name_in_owner = true
-layout_mode = 0
-theme = ExtResource("3_pw_theme")
-theme_type_variation = &"GaramondLabel"
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-text = "π"
-horizontal_alignment = 1
-
-[node name="LabelRight" type="Label" parent="Panel/Markers"]
-unique_name_in_owner = true
-layout_mode = 0
-theme = ExtResource("3_pw_theme")
-theme_type_variation = &"GaramondLabel"
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-text = "0"
 horizontal_alignment = 1
