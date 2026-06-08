@@ -39,7 +39,7 @@ func _process(delta):
 	var orbit_axis = Vector3(sin(sunrise_rad), 0, -cos(sunrise_rad))
 
 	var progress = 0.0
-	if not Config.freeze_time: # Dynamic
+	if not Config.freeze_time and not GameState.is_menu_open: # Dynamic
 		# Increment day time based on day duration
 		# 86400 seconds in a day / day_duration = speed multiplier
 		Config.day_time += delta * (86400.0 / Config.day_duration)

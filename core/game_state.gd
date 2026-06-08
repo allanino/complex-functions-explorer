@@ -9,6 +9,7 @@ var accented_zero_index: int = -1
 
 var rvm_start_t: float = 0.0
 var performance_protection_active: bool = false
+var is_menu_open: bool = false
 var effective_zoom: float = 1.0:
 	set(v):
 		if effective_zoom == v: return

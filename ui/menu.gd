@@ -1058,6 +1058,8 @@ func toggle_menu(applied: bool = false):
 		_rescale_menu(Config.menu_scale)
 
 	visible = !visible
+	GameState.is_menu_open = visible
+
 	if visible:
 		emit_signal("menu_opened")
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
