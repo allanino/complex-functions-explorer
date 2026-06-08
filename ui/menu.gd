@@ -857,6 +857,7 @@ func _on_hud_phase_wheel_toggled(pressed: bool):
 
 func _on_hud_navigation_toggled(pressed: bool):
 	Config.show_hud_navigation = pressed
+	emit_signal('update_hud_layout_signal')
 
 func _on_hud_zeros_toggled(pressed: bool):
 	Config.show_hud_zeros = pressed

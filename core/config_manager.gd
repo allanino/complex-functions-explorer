@@ -341,7 +341,11 @@ var zero_proximity_nav: float = 0.5
 
 # UI parameters
 var show_minimap: bool = true
-var show_hud_phase_wheel: bool = true
+var show_hud_phase_wheel: bool = true:
+	set(v):
+		if show_hud_phase_wheel == v: return
+		show_hud_phase_wheel = v
+		config_changed.emit("show_hud_phase_wheel")
 var show_hud_navigation: bool = true
 var show_hud_zeros: bool = true
 var show_rvm: bool = true

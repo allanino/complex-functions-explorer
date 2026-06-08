@@ -30,6 +30,8 @@ var portal_flash: ColorRect
 @onready var tooltip_manager = %TooltipManager
 @onready var detach_controller = %DetachOverlay
 @onready var preset_controller = %PresetController
+@onready var position_arg_label = %PositionArgLabel
+@onready var position_arg_val = %PositionArgVal
 
 @export var show_hud_chunks: bool = false
 
@@ -59,6 +61,35 @@ func _bb_im(im: String) -> String:
 	if im.begins_with("-"):
 		return "[color=%s] - [/color][color=%s]%s i[/color]" % [CLR_DIM, CLR_MAGENTA, im.substr(1)]
 	return "[color=%s] + [/color][color=%s]%s i[/color]" % [CLR_DIM, CLR_MAGENTA, im]
+
+func update_arg_val(f: Vector2):
+	var angle_rad = atan2(f.y, f.x)
+	var angle_deg = rad_to_deg(angle_rad)
+	if angle_deg < 0:
+		angle_deg += 360.0
+
+	position_arg_val.text = "%.1f°" % angle_deg
+
+	# Compute matching color
+	var hue = (angle_rad + PI) / (2.0 * PI)
+	if Config.color_scheme == 1:
+		hue = wrapf(hue + 0.5, 0.0, 1.0)
+
+	var saturation = clamp(Config.terrain_saturation, 0.3, 1.0) * 0.5
+	var brightness = Config.terrain_brightness
+
+	var hsv_color = Color.from_hsv(hue, saturation, min(brightness, 1.0))
+	if Config.color_scheme == 2:
+		var v = 0.5 + 0.5 * cos(angle_rad)
+		hsv_color = Color(v, v, v) * brightness
+
+	var final_color = hsv_color * (Config.terrain_albedo + Config.terrain_emission) * 2.0
+	final_color.r = clamp(final_color.r, 0.0, 1.0)
+	final_color.g = clamp(final_color.g, 0.0, 1.0)
+	final_color.b = clamp(final_color.b, 0.0, 1.0)
+	final_color.a = 1.0
+
+	position_arg_val.add_theme_color_override("font_color", final_color)
 
 func _ready():
 	hud_columns.modulate.a = 0.0
@@ -91,6 +122,8 @@ func _ready():
 	menu_overlay.apply_aa_signal.connect(apply_aa)
 	menu_overlay.update_hud_layout_signal.connect(_update_hud_layout)
 
+	position_arg_label.visible = !Config.show_hud_phase_wheel
+	position_arg_val.visible = !Config.show_hud_phase_wheel
 
 	if menu_overlay:
 			menu_overlay.player = player
@@ -180,6 +213,9 @@ func _process(_delta):
 	var z = player.global_position.z
 
 	var f = player.current_f
+
+	if position_arg_val.visible:
+		update_arg_val(f)
 
 	# Update Zeta Zeros display
 	var f_data = Config.function
@@ -500,7 +536,10 @@ func _on_config_changed(key: String):
 		if menu_overlay:
 			menu_overlay.day_time_slider.set_value_no_signal(Config.day_time)
 			menu_overlay.day_time_slider.value_text = menu_overlay._format_time(Config.day_time)
-
+	if key == "show_hud_phase_wheel":
+		position_arg_label.visible = !Config.show_hud_phase_wheel
+		position_arg_val.visible = !Config.show_hud_phase_wheel
+		
 func _on_zero_item_clicked(index: int):
 	GameState.accented_zero_index = index
 	for item in zeros_list_label.get_children():

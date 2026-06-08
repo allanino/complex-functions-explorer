@@ -583,6 +583,23 @@ autowrap_mode = 0
 unique_name_in_owner = true
 layout_mode = 2
 
+[node name="PositionArgLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/PositionPanel/MarginContainer/VBox"]
+unique_name_in_owner = true
+visible = false
+theme_type_variation = &"SecondaryLabel"
+layout_mode = 2
+text = "arg(f)"
+
+[node name="PositionArgVal" type="Label" parent="Control/MainUIColumns/MainUIStackRight/PositionPanel/MarginContainer/VBox"]
+unique_name_in_owner = true
+visible = false
+unique_name_in_owner = true
+theme_type_variation = &"ValueInkLabel"
+layout_mode = 2
+size_flags_horizontal = 3
+text = "0.000"
+horizontal_alignment = 0
+
 [node name="AbsLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/PositionPanel/MarginContainer/VBox"]
 theme_type_variation = &"SecondaryLabel"
 layout_mode = 2
@@ -591,21 +608,6 @@ text = "|f|"
 [node name="PhaseAbsVal" type="Label" parent="Control/MainUIColumns/MainUIStackRight/PositionPanel/MarginContainer/VBox"]
 unique_name_in_owner = true
 theme_type_variation = &"ValueGoldLabel"
-layout_mode = 2
-size_flags_horizontal = 3
-text = "0.000"
-horizontal_alignment = 0
-
-[node name="PositionArgLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/PositionPanel/MarginContainer/VBox"]
-visible = false
-theme_type_variation = &"SecondaryLabel"
-layout_mode = 2
-text = "arg(f)"
-
-[node name="PositionArgVal" type="Label" parent="Control/MainUIColumns/MainUIStackRight/PositionPanel/MarginContainer/VBox"]
-visible = false
-unique_name_in_owner = true
-theme_type_variation = &"ValueInkLabel"
 layout_mode = 2
 size_flags_horizontal = 3
 text = "0.000"
