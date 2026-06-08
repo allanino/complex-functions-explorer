@@ -46,6 +46,7 @@ const RENDER_EACH_N_FRAME: int = 3
 var _skip_frame_counter: int = 0
 var _last_zeros_count: int = -1
 var _last_visited_zeros_size: int = -1
+var _startup_frames: int = 0
 
 func _ready():
 	Config.config_changed.connect(_on_config_changed)
@@ -140,11 +141,12 @@ func _skip_render_hud() -> bool:
 
 
 func _process(_delta):
-	var is_first_run = not hud_columns.visible
-	if is_first_run:
-		# Force a full update on the very first frame to layout correctly
+	if _startup_frames < 3:
+		_startup_frames += 1
+		# Force layout updates in the first few frames
 		_skip_frame_counter = 0
-	elif _skip_render_hud():
+
+	if _startup_frames >= 3 and _skip_render_hud():
 		return
 
 	if Config.show_hud_zeros and not _last_zeros_visible:
@@ -287,7 +289,7 @@ func _process(_delta):
 
 	_update_hud_layout()
 
-	if is_first_run:
+	if _startup_frames == 2:
 		hud_columns.visible = true
 
 var _last_hud_state = {}
