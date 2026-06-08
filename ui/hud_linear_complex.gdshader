@@ -17,15 +17,10 @@ vec3 hsv2rgb(vec3 c) {
 void fragment() {
     float current_phase = atan(current_f.y, current_f.x);
 
-    // UV.x maps from 0 to 1.
-    // We want the center (UV.x = 0.5) to correspond to the current phase.
-    // So for a given UV.x, what is its phase?
-    // Let offset be from -PI to PI
-    float phase_offset = (UV.x - 0.5) * 2.0 * PI;
+    // UV.x maps from 0 to 1, representing phase from -PI to PI
+    float phase = (UV.x - 0.5) * 2.0 * PI;
 
-    float phase = current_phase + phase_offset;
-
-    // Background color based on phase
+    // Background color based on fixed phase mapping
     float hue = (phase + PI) / (2.0 * PI);
     if (color_scheme == 1) {
         hue = fract(hue + 0.5);
@@ -39,8 +34,10 @@ void fragment() {
 
     vec3 color = base * (albedo + emission ) * 2.0;
 
-    // Draw white line indicator at the center
-    float line_mask = smoothstep(0.015, 0.01, abs(UV.x - 0.5));
+    // Draw white line indicator where UV.x matches current_phase
+    // Map current_phase from [-PI, PI] to UV.x space [0, 1]
+    float current_uv_x = (current_phase / (2.0 * PI)) + 0.5;
+    float line_mask = smoothstep(0.015, 0.01, abs(UV.x - current_uv_x));
 
     // Draw magnitude string based on current_f
     float f_mag = length(current_f);
