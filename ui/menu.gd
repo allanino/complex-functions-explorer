@@ -215,7 +215,7 @@ func _ready():
 	flow_checkbox.toggled.connect(_on_flow_toggled)
 	position_marker_checkbox.toggled.connect(_on_position_marker_toggled)
 	minimap_checkbox.toggled.connect(_on_minimap_toggled)
-	hud_phase_wheel_checkbox.toggled.connect(_on_hud_complex_toggled)
+	hud_phase_wheel_checkbox.toggled.connect(_on_hud_phase_wheel_toggled)
 	hud_position_checkbox.toggled.connect(_on_hud_navigation_toggled)
 	hud_zeros_checkbox.toggled.connect(_on_hud_zeros_toggled)
 	rvm_checkbox.toggled.connect(_on_rvm_toggled)
@@ -852,7 +852,7 @@ func _on_position_marker_toggled(pressed: bool):
 func _on_minimap_toggled(pressed: bool):
 	Config.show_minimap = pressed
 
-func _on_hud_complex_toggled(pressed: bool):
+func _on_hud_phase_wheel_toggled(pressed: bool):
 	Config.show_hud_phase_wheel = pressed
 
 func _on_hud_navigation_toggled(pressed: bool):
