@@ -46,14 +46,11 @@ const RENDER_EACH_N_FRAME: int = 3
 var _skip_frame_counter: int = 0
 var _last_zeros_count: int = -1
 var _last_visited_zeros_size: int = -1
-var _startup_frames: int = 0
 
 func _ready():
+	hud_columns.modulate.a = 0.0
 	Config.config_changed.connect(_on_config_changed)
 	
-	# Start invisible to avoid layout snapping/popping at startup
-	hud_columns.visible = false
-
 	# Ensure the performance protection label uses the correct neon font variation
 	if menu_overlay and menu_overlay.perf_label:
 		menu_overlay.perf_label.add_theme_font_override("font", NEON_FONT)
@@ -90,6 +87,15 @@ func _ready():
 	menu_overlay.tooltip_manager = tooltip_manager
 
 	_last_zeros_visible = Config.show_hud_zeros
+
+	# Wait for layout passes to finish with visibility active (so sizes calculate)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	await get_tree().process_frame
+	await get_tree().process_frame
+
+	_update_hud_layout()
+	hud_columns.modulate.a = 1.0
 
 
 func _on_complex_aspect_resized():
@@ -141,12 +147,7 @@ func _skip_render_hud() -> bool:
 
 
 func _process(_delta):
-	if _startup_frames < 3:
-		_startup_frames += 1
-		# Force layout updates in the first few frames
-		_skip_frame_counter = 0
-
-	if _startup_frames >= 3 and _skip_render_hud():
+	if _skip_render_hud():
 		return
 
 	if Config.show_hud_zeros and not _last_zeros_visible:
@@ -288,9 +289,6 @@ func _process(_delta):
 			chunks_label.visible = false
 
 	_update_hud_layout()
-
-	if _startup_frames == 2:
-		hud_columns.visible = true
 
 var _last_hud_state = {}
 
