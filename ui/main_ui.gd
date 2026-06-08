@@ -48,11 +48,9 @@ var _last_zeros_count: int = -1
 var _last_visited_zeros_size: int = -1
 
 func _ready():
+	hud_columns.modulate.a = 0.0
 	Config.config_changed.connect(_on_config_changed)
 	
-	# Start invisible to avoid layout snapping/popping at startup
-	hud_columns.visible = false
-
 	# Ensure the performance protection label uses the correct neon font variation
 	if menu_overlay and menu_overlay.perf_label:
 		menu_overlay.perf_label.add_theme_font_override("font", NEON_FONT)
@@ -89,6 +87,18 @@ func _ready():
 	menu_overlay.tooltip_manager = tooltip_manager
 
 	_last_zeros_visible = Config.show_hud_zeros
+
+	# Wait for layout passes to finish with visibility active (so sizes calculate)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	await get_tree().process_frame
+	await get_tree().process_frame
+
+	_update_hud_layout()
+	
+	# Smooth fade-in to make the HUD appearance feel premium and completely hide the layout settling
+	var tween = create_tween()
+	tween.tween_property(hud_columns, "modulate:a", 1.0, 0.15).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 
 
 func _on_complex_aspect_resized():
@@ -140,11 +150,7 @@ func _skip_render_hud() -> bool:
 
 
 func _process(_delta):
-	var is_first_run = not hud_columns.visible
-	if is_first_run:
-		# Force a full update on the very first frame to layout correctly
-		_skip_frame_counter = 0
-	elif _skip_render_hud():
+	if _skip_render_hud():
 		return
 
 	if Config.show_hud_zeros and not _last_zeros_visible:
@@ -287,9 +293,6 @@ func _process(_delta):
 
 	_update_hud_layout()
 
-	if is_first_run:
-		hud_columns.visible = true
-
 var _last_hud_state = {}
 
 func _update_hud_layout():
@@ -318,7 +321,8 @@ func _update_hud_layout():
 		"show_rvm": Config.show_rvm and f_data.get("has_von_mangoldt", false),
 		"show_fps": Config.show_hud_monitor_fps,
 		"show_chunks": show_hud_chunks,
-		"is_multivalued": f_data.get("is_multivalued", false)
+		"is_multivalued": f_data.get("is_multivalued", false),
+		"cards_heights": cards.map(func(c): return c.get_combined_minimum_size().y if c.visible else 0.0)
 	}
 
 	if current_state.hash() == _last_hud_state.hash():
@@ -338,14 +342,16 @@ func _update_hud_layout():
 
 	var right_cards = []
 	var left_cards = []
+	var right_stack_full = false
 
 	for card in cards:
 		if not card.visible: continue
 		var card_height = card.get_combined_minimum_size().y
-		if current_height + card_height <= available_height:
+		if not right_stack_full and current_height + card_height <= available_height:
 			right_cards.push_back(card)
 			current_height += card_height + separation
 		else:
+			right_stack_full = true
 			left_cards.push_back(card)
 
 	_apply_stack_layout(hud_stack_right, right_cards)
