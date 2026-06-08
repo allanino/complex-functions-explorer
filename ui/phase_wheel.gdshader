@@ -97,18 +97,20 @@ void fragment() {
         float fw = fwidth(z.x);
 
         // Shaft
-        float d_shaft = sdSegment(z, vec2(0.0), tip);
-        float arrow_thickness = 0.008 + fw;
+        // Start the shaft partway out to avoid crossing the central text
+        vec2 shaft_start = dir * 0.45;
+        float d_shaft = sdSegment(z, shaft_start, tip);
+        float arrow_thickness = 0.012 + fw;
         float shaft_mask = smoothstep(arrow_thickness + fw, arrow_thickness - fw, d_shaft);
 
         // Arrow head
         vec2 perp = vec2(-dir.y, dir.x);
-        vec2 head_base = tip - 0.1 * dir;
-        float d_head = sdTriangle(z, tip, head_base + 0.05 * perp, head_base - 0.05 * perp);
+        vec2 head_base = tip - 0.12 * dir;
+        float d_head = sdTriangle(z, tip, head_base + 0.07 * perp, head_base - 0.07 * perp);
         float head_mask = smoothstep(fw, -fw, d_head);
 
         // Arrow dot/bead precisely on the track
-        float d_bead = length(z - tip) - 0.025;
+        float d_bead = length(z - tip) - 0.035;
         float bead_mask = smoothstep(fw, -fw, d_bead);
 
         // Combine arrow elements
