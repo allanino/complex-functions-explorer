@@ -64,7 +64,11 @@ var camera_push_offset: Vector3 = Vector3.ZERO
 func _ready():
 	add_to_group("player")
 	# Set the global position directly using a Vector3(x, y, z)
-	global_position = Vector3(5.0, 0.0, 0.0)
+	if Config.function.get("is_dirichlect", false):
+		global_position = Vector3(5.0, 0.0, 0.0)
+	else:
+		global_position = Vector3(0.0, 0.0, 0.0)
+		rotation.y = -PI / 2.0
 	var complex_pos = Config.world_to_complex(global_position.x, global_position.z)
 	last_t = complex_pos.y
 	last_z = complex_pos
@@ -198,10 +202,15 @@ func _unhandled_input(event):
 			Config.freeze_time = false
 			Config.save_settings()
 		elif event.keycode == KEY_C:
+			var f_data = Config.function
+			if not f_data.get("is_dirichlect", false):
+				return
+
 			if auto_walk_state == AutoWalkState.NONE:
 				auto_walk_state = AutoWalkState.MOVING_TO_LINE
 				# Reset zero counter when starting auto-walk
 				GameState.visited_zeros.clear()
+				GameState.total_zeros_found = 0
 				last_detected_z = Vector2(0.0, 0.0)
 				Config.show_hud_zeros = true
 				GameState.rvm_start_t = abs(Config.world_to_complex(0.0, global_position.z).y)
@@ -213,8 +222,14 @@ func _unhandled_input(event):
 			else:
 				auto_walk_state = AutoWalkState.NONE
 		elif event.keycode == KEY_R:
-			global_position.x = 0.0
-			global_position.z = 0.0
+			if Config.function.get("is_dirichlect", false):
+				global_position.x = 5.0
+				global_position.z = 0.0
+				rotation.y = 0.0
+			else:
+				global_position.x = 0.0
+				global_position.z = 0.0
+				rotation.y = -PI / 2.0
 			velocity = Vector3.ZERO
 			auto_walk_state = AutoWalkState.NONE
 			height_offset = 0.0
@@ -424,13 +439,15 @@ func _physics_process(delta):
 
 	# Prevent player from probing heights higher/lower than MAX_WORLD_HEIGHT
 	if abs(terrain_h) >= MAX_WORLD_HEIGHT:
+		GameState.height_protection_active = true
 		# If moving to a height that is greater in magnitude than our current/last height, block it
 		if abs(terrain_h) > abs(last_terrain_h):
 			velocity.x = 0.0
 			velocity.z = 0.0
 			terrain_h = last_terrain_h
 		terrain_h = clamp(terrain_h, -MAX_WORLD_HEIGHT, MAX_WORLD_HEIGHT)
-
+	else:
+		GameState.height_protection_active = false
 
 	# Estimate slope and push camera away from rising walls
 	var target_offset = camera_push_offset
@@ -630,6 +647,9 @@ func _physics_process(delta):
 					# print("Final: ", refined_z, " Converged: ", converged, " f_val: ", f_val.length())
 					true_z = refined_z
 
+					if f_val.length() < 1e-2 && Config.function.get("is_dirichlect"):
+						converged = true
+
 					if converged && true_z.distance_to(last_detected_z) > 0.001:
 						GameState.total_zeros_found += 1
 						GameState.visited_zeros.push_back(true_z)
@@ -713,6 +733,7 @@ func demo_actions():
 func _start_auto_walk_from_demo():
 	auto_walk_state = AutoWalkState.MOVING_TO_LINE
 	GameState.visited_zeros.clear()
+	GameState.total_zeros_found = 0
 	last_detected_z = Vector2(0.0, 0.0)
 	Config.show_hud_zeros = true
 	Config.show_critical_stripe = true

@@ -45,6 +45,7 @@ const BASE_HUD_PANEL_SIZE: float = 190.0
 const RENDER_EACH_N_FRAME: int = 3
 var _skip_frame_counter: int = 0
 var _last_zeros_count: int = -1
+var _last_visited_zeros_size: int = -1
 
 func _ready():
 	Config.config_changed.connect(_on_config_changed)
@@ -55,6 +56,8 @@ func _ready():
 	# Ensure the performance protection label uses the correct neon font variation
 	if menu_overlay and menu_overlay.perf_label:
 		menu_overlay.perf_label.add_theme_font_override("font", NEON_FONT)
+	if menu_overlay and menu_overlay.height_label:
+		menu_overlay.height_label.add_theme_font_override("font", NEON_FONT)
 
 	var mobile_controls = get_node_or_null("Control/MobileControls")
 	if mobile_controls and mobile_controls.has_node("SettingsButton"):
@@ -148,6 +151,8 @@ func _process(_delta):
 		GameState.rvm_start_t = abs(Config.world_to_complex(0.0, player.global_position.z).y)
 	_last_zeros_visible = Config.show_hud_zeros
 	menu_overlay.perf_label.visible = GameState.performance_protection_active
+	if menu_overlay.height_label:
+		menu_overlay.height_label.visible = GameState.height_protection_active
 
 	if not player:
 		return
@@ -164,11 +169,12 @@ func _process(_delta):
 
 	if Config.show_hud_zeros:
 		var total_count = GameState.total_zeros_found
-		if total_count != _last_zeros_count:
+		var current_size = GameState.visited_zeros.size()
+		if total_count != _last_zeros_count or current_size != _last_visited_zeros_size:
 			_last_zeros_count = total_count
+			_last_visited_zeros_size = current_size
 			zeros_count_label.text = str(total_count)
 
-			var current_size = GameState.visited_zeros.size()
 			GameState.accented_zero_index = current_size - 1
 
 			# Clear existing items
@@ -251,7 +257,7 @@ func _process(_delta):
 	complex_aspect.visible = Config.show_hud_complex
 	domain_panel.visible = Config.show_hud_navigation
 	target_panel.visible = Config.show_hud_navigation
-	monitor_panel.visible = Config.show_hud_monitor_fps or show_hud_chunks or GameState.performance_protection_active
+	monitor_panel.visible = Config.show_hud_monitor_fps or show_hud_chunks or GameState.performance_protection_active or GameState.height_protection_active
 	if monitor_panel.visible:
 		if Config.show_hud_monitor_fps:
 			fps_hbox.visible = true

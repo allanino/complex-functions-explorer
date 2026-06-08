@@ -210,11 +210,11 @@ void fragment() {
         float r_core = 0.10 * scale;
         float border_width = 0.05 * scale;
         float r_total = r_core + border_width;
-        float r_glow = r_total + 0.20 * scale;
+        float r_glow = r_total + 0.15 * scale;
 
-        float acc_r_core = 0.15 * scale;
+        float acc_r_core = 0.10 * scale;
         float acc_r_total = acc_r_core + border_width;
-        float acc_r_glow = acc_r_total + 0.30 * scale;
+        float acc_r_glow = acc_r_total + 0.20 * scale;
 
         float pulse = 0.5 + 0.5 * sin(TIME * 5.0);
         float fast_pulse = 0.5 + 0.5 * sin(TIME * 15.0);
