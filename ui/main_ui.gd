@@ -7,17 +7,14 @@ const NEON_FONT = preload("res://ui/theme/font_neon.tres")
 @onready var hud_stack_right = %MainUIStackRight
 @onready var minimap_panel = %MinimapPanel
 @onready var phase_wheel = %PhaseWheel
-@onready var domain_panel = %DomainPanel
-@onready var target_panel = %TargetPanel
+@onready var position_panel = %PositionPanel
 @onready var monitor_panel = %MonitorPanel
 @onready var fps_hbox = %FpsHBox
 @onready var fps_val_label = %FpsValLabel
 @onready var chunks_label = %ChunksLabel
 @onready var world_manager = get_node_or_null("../WorldManager")
-@onready var domain_re_val = %DomainReVal
-@onready var domain_im_val = %DomainImVal
-@onready var target_re_val = %TargetReVal
-@onready var target_im_val = %TargetImVal
+@onready var domain_val = %DomainVal
+@onready var target_val = %TargetVal
 @onready var phase_branch_val = %PhaseBranchVal
 @onready var branch_label = %BranchLabel
 @onready var phase_abs_val = %PhaseAbsVal
@@ -44,6 +41,24 @@ const RENDER_EACH_N_FRAME: int = 3
 var _skip_frame_counter: int = 0
 var _last_zeros_count: int = -1
 var _last_visited_zeros_size: int = -1
+
+# Theme color constants (BBCode hex)
+const CLR_DIM = "#e7e4dc80" # ink_dim (50% alpha)
+const CLR_GOLD = "#c8a96e" # theme gold
+const CLR_CYAN = "#5dd8c8" # cyan
+const CLR_MAGENTA = "#d45fa0" # magenta
+
+# Wraps a numeric string in BBCode: dims a leading '-' sign, colors the rest.
+func _bb_re(value: String, color: String) -> String:
+	if value.begins_with("-"):
+		return "[color=%s]-[/color][color=%s]%s[/color]" % [CLR_DIM, color, value.substr(1)]
+	return "[color=%s]%s[/color]" % [color, value]
+
+# Formats an imaginary value as "± number i" with a dim operator separator.
+func _bb_im(im: String) -> String:
+	if im.begins_with("-"):
+		return "[color=%s] - [/color][color=%s]%s i[/color]" % [CLR_DIM, CLR_MAGENTA, im.substr(1)]
+	return "[color=%s] + [/color][color=%s]%s i[/color]" % [CLR_DIM, CLR_MAGENTA, im]
 
 func _ready():
 	hud_columns.modulate.a = 0.0
@@ -229,11 +244,15 @@ func _process(_delta):
 	var val_fx = f.x
 	var val_fy = f.y
 
-	domain_re_val.text = _format_float_3(val_re)
-	domain_im_val.text = _format_float_3(val_im)
+	var target_re = _format_float_3(val_fx)
+	var target_im = _format_float_3(val_fy)
 
-	target_re_val.text = _format_float_3(val_fx)
-	target_im_val.text = _format_float_3(val_fy)
+	var domain_re = _format_float_3(val_re)
+	var domain_im = _format_float_3(val_im)
+
+	target_val.text = _bb_re(target_re, CLR_CYAN) + _bb_im(target_im)
+	domain_val.text = _bb_re(domain_re, CLR_CYAN) + _bb_im(domain_im)
+
 	if f_data.get("is_multivalued", false):
 		phase_branch_val.text = str(GameState.current_branch)
 		phase_branch_val.visible = true
@@ -246,8 +265,7 @@ func _process(_delta):
 
 	minimap_panel.visible = Config.show_minimap
 	phase_wheel.visible = Config.show_hud_complex
-	domain_panel.visible = Config.show_hud_navigation
-	target_panel.visible = Config.show_hud_navigation
+	position_panel.visible = Config.show_hud_navigation
 	monitor_panel.visible = Config.show_hud_monitor_fps or show_hud_chunks or GameState.performance_protection_active or GameState.height_protection_active
 	if monitor_panel.visible:
 		if Config.show_hud_monitor_fps:
@@ -283,7 +301,7 @@ var _last_hud_state = {}
 func _update_hud_layout():
 	if not hud_columns: return
 
-	var cards = [minimap_panel, target_panel, domain_panel, zeros_panel, monitor_panel]
+	var cards = [minimap_panel, position_panel, zeros_panel, monitor_panel]
 
 	var actual_hud_scale = Config.hud_scale
 
@@ -396,7 +414,7 @@ func _rescale_card(card: Control, _scale: float):
 			# Only scale custom minimum size for specific panels to maintain layout proportions
 			if node.name == "ComplexAspect" or node.name == "PhaseWheel":
 				pass
-			elif node.name == "DomainPanel" or node.name == "TargetPanel":
+			elif node.name == "PositionPanel":
 				if not node.has_meta("base_min_size"):
 					node.set_meta("base_min_size", node.custom_minimum_size)
 				node.custom_minimum_size.y = node.get_meta("base_min_size").y * _scale
