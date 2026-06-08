@@ -77,10 +77,14 @@ func _on_play_pressed():
 		playback_value = detach_slider.value
 		# Set smaller step size for smooth playback
 		detach_slider.step = original_step * 0.1
+		if active_detached_slider:
+			active_detached_slider.step = original_step * 0.1
 	else:
 		play_button.text = "▶"
 		# Revert to original step size
 		detach_slider.step = original_step
+		if active_detached_slider:
+			active_detached_slider.step = original_step
 
 func _on_detach_slider_changed(value: float):
 	playback_value = value
@@ -96,6 +100,8 @@ func _on_exit_detach_pressed():
 	play_button.text = "▶"
 	if detach_slider:
 		detach_slider.step = original_step
+		if active_detached_slider:
+			active_detached_slider.step = original_step
 
 	# Avoid accidental morph blending when returning from a detached slider
 	if "morph_slider" in main_ui:
