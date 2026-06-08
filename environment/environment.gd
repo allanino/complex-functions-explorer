@@ -17,6 +17,7 @@ func _ready():
 	if world_environment and world_environment.environment:
 		world_environment.environment.fog_mode = Environment.FOG_MODE_EXPONENTIAL
 	_update_fog_settings()
+	_update_sky_positions(0.0)
 
 func _on_config_changed(key: String):
 	if key == "fog_density":
@@ -32,6 +33,9 @@ func _update_fog_settings():
 			env.fog_aerial_perspective = (1.0 - Config.fog_density)
 
 func _process(delta):
+	_update_sky_positions(delta)
+
+func _update_sky_positions(delta: float):
 	# Environment logic
 	var night_factor = 0.0
 	var sunrise_rad = deg_to_rad(Config.sunrise_direction - 180.0)
@@ -39,7 +43,7 @@ func _process(delta):
 	var orbit_axis = Vector3(sin(sunrise_rad), 0, -cos(sunrise_rad))
 
 	var progress = 0.0
-	if not Config.freeze_time and not GameState.is_menu_open: # Dynamic
+	if not Config.freeze_time and not GameState.is_menu_open and delta > 0.0: # Dynamic
 		# Increment day time based on day duration
 		# 86400 seconds in a day / day_duration = speed multiplier
 		Config.day_time += delta * (86400.0 / Config.day_duration)
@@ -55,8 +59,11 @@ func _process(delta):
 		_current_angle = target_angle
 		_is_first_frame = false
 	else:
-		# Use Godot's built-in lerp_angle for completely smooth tracking
-		_current_angle = lerp_angle(_current_angle, target_angle, 10.0 * delta)
+		if delta > 0.0:
+			# Use Godot's built-in lerp_angle for completely smooth tracking
+			_current_angle = lerp_angle(_current_angle, target_angle, 10.0 * delta)
+		else:
+			_current_angle = target_angle
 
 	# Sun direction: rotate Noon (0, -1, 0) around orbit axis
 	var sun_dir = Quaternion(orbit_axis, _current_angle) * Vector3.DOWN
