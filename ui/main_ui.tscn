@@ -560,6 +560,11 @@ bbcode_enabled = true
 fit_content = true
 autowrap_mode = 0
 
+[node name="DomainHSeparator" type="HSeparator" parent="Control/MainUIColumns/MainUIStackRight/PositionPanel/MarginContainer/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 7
+theme_override_styles/separator = SubResource("StyleBoxLine_hseparator_custom")
+
 [node name="TargetLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/PositionPanel/MarginContainer/VBox"]
 theme_type_variation = &"SecondaryLabel"
 layout_mode = 2
