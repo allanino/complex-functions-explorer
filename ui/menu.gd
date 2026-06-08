@@ -422,8 +422,7 @@ func _init_slider_bindings():
 			"config_key": "hud_scale",
 			"to_config": func(v): return v / 100.0,
 			"from_config": func(c): return c * 100.0,
-			"format": func(v): return str(int(round(v))) + "%",
-			"on_changed": func(_v): emit_signal('update_hud_layout_signal')
+			"format": func(v): return str(int(round(v))) + "%"
 		},
 		iter_slider: {
 			"config_key": "iterations",
@@ -1140,7 +1139,6 @@ func toggle_menu(applied: bool = false):
 				Config.menu_scale = _initial_menu_scale
 			if Config.hud_scale != _initial_hud_scale:
 				Config.hud_scale = _initial_hud_scale
-				emit_signal('update_hud_layout_signal')
 			Config.sky_luminosity = _initial_sky_luminosity
 			Config.sun_luminosity = _initial_sun_luminosity
 			Config.self_illumination = _initial_self_illumination

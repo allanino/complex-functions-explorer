@@ -312,6 +312,15 @@ func _update_hud_layout():
 
 	var f_data = Config.function
 	
+	# Ensure elements are proactively rescaled BEFORE minimum heights are requested
+	# This fixes the jitter during dynamic layout reflows when fonts and boxes haven't settled
+	for card in cards:
+		_rescale_card(card, actual_hud_scale)
+
+	if hud_stack_right.custom_minimum_size.x != BASE_HUD_PANEL_SIZE * actual_hud_scale:
+		hud_stack_right.custom_minimum_size.x = BASE_HUD_PANEL_SIZE * actual_hud_scale
+		hud_stack_left.custom_minimum_size.x = BASE_HUD_PANEL_SIZE * actual_hud_scale
+
 	var current_state = {
 		"size": get_viewport().size,
 		"scale": Config.hud_scale,
@@ -328,14 +337,6 @@ func _update_hud_layout():
 	if current_state.hash() == _last_hud_state.hash():
 		return
 	_last_hud_state = current_state
-
-	# Only rescale cards when layout state changes
-	for card in cards:
-		_rescale_card(card, actual_hud_scale)
-
-	# Scale stack widths to accommodate wider fonts
-	hud_stack_right.custom_minimum_size.x = BASE_HUD_PANEL_SIZE * actual_hud_scale
-	hud_stack_left.custom_minimum_size.x = BASE_HUD_PANEL_SIZE * actual_hud_scale
 
 	var current_height = 0.0
 	var separation = 10.0
