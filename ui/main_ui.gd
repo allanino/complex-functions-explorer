@@ -21,7 +21,6 @@ const NEON_FONT = preload("res://ui/theme/font_neon.tres")
 @onready var phase_branch_val = %PhaseBranchVal
 @onready var branch_label = %BranchLabel
 @onready var phase_abs_val = %PhaseAbsVal
-@onready var phase_arg_val = %PhaseArgVal
 @onready var zeros_panel = %ZerosPanel
 @onready var zeros_count_label = %CountLabel
 @onready var rvm_hbox = %RvmHBox
@@ -237,11 +236,7 @@ func _process(_delta):
 		phase_branch_val.visible = false
 		branch_label.visible = false
 
-	var angle_deg = rad_to_deg(f.angle())
-	if angle_deg < 0:
-		angle_deg += 360.0
 	phase_abs_val.text = _format_float_3(f.length())
-	phase_arg_val.text = "%d°" % round(angle_deg)
 
 	minimap_panel.visible = Config.show_minimap
 	phase_wheel.visible = Config.show_hud_complex

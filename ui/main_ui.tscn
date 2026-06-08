@@ -665,19 +665,6 @@ size_flags_horizontal = 3
 text = "0.000"
 horizontal_alignment = 2
 
-[node name="ArgLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox/PhaseGrid"]
-theme_type_variation = &"SecondaryLabel"
-layout_mode = 2
-text = "arg(f)"
-
-[node name="PhaseArgVal" type="Label" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox/PhaseGrid"]
-unique_name_in_owner = true
-theme_type_variation = &"InkLabel"
-layout_mode = 2
-size_flags_horizontal = 3
-text = "0°"
-horizontal_alignment = 2
-
 [node name="BranchLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/TargetPanel/MarginContainer/VBox/PhaseGrid"]
 unique_name_in_owner = true
 theme_type_variation = &"SecondaryLabel"
