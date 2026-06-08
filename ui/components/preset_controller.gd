@@ -134,7 +134,7 @@ func _connect_preset_dirtiers():
 
 	# Connect checkboxes
 	for cb in [
-		main_ui.menu_overlay.curves_checkbox, main_ui.menu_overlay.critical_checkbox, main_ui.menu_overlay.flow_checkbox, main_ui.menu_overlay.hud_complex_checkbox,
+		main_ui.menu_overlay.curves_checkbox, main_ui.menu_overlay.critical_checkbox, main_ui.menu_overlay.flow_checkbox,
 		main_ui.menu_overlay.hud_navigation_checkbox, main_ui.menu_overlay.hud_zeros_checkbox, main_ui.menu_overlay.rvm_checkbox,
 		main_ui.menu_overlay.hud_monitor_fps_checkbox, main_ui.menu_overlay.shadows_checkbox,
 		main_ui.menu_overlay.auto_walk_checkbox, main_ui.menu_overlay.freeze_time_checkbox
@@ -143,7 +143,7 @@ func _connect_preset_dirtiers():
 			cb.toggled.connect(on_changed)
 
 	# Connect buttons/option buttons
-	for ob in [main_ui.menu_overlay.func_button, main_ui.menu_overlay.height_button, main_ui.menu_overlay.terrain_detail_button, main_ui.menu_overlay.aa_button, main_ui.menu_overlay.color_scheme_button]:
+	for ob in [main_ui.menu_overlay.func_button, main_ui.menu_overlay.height_button, main_ui.menu_overlay.terrain_detail_button, main_ui.menu_overlay.aa_button, main_ui.menu_overlay.color_scheme_button, main_ui.menu_overlay.hud_complex_button]:
 		if ob and ob.has_signal("item_selected"):
 			ob.item_selected.connect(on_changed)
 
