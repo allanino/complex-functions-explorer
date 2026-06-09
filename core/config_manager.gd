@@ -33,7 +33,8 @@ enum ComplexFunc {
 
 const FUNCTIONS = {
 	ComplexFunc.ZETA: {
-		"name": "Zeta (σ > 0)",
+		"name": "Zeta",
+		"symbol": "ζ (σ > 0)",
 		"hidden": true,
 		"is_dirichlect": true,
 		"has_von_mangoldt": true,
@@ -42,75 +43,94 @@ const FUNCTIONS = {
 	},
 	ComplexFunc.ZETA_REFLECTION: {
 		"name": "Zeta",
+		"symbol": "ζ",
 		"is_dirichlect": true,
 		"has_von_mangoldt": true,
 		"iters_range": [100.0, 10000.0, 100.0, 100.0],
 	},
 	ComplexFunc.DIRICHLET_ETA: {
-		"name": "Dirichlet Eta (σ > 0)",
+		"name": "Dirichlet Eta",
+		"symbol": "η (σ > 0)",
 		"is_dirichlect": true,
 		"has_von_mangoldt": true,
 		"iters_range": [100.0, 10000.0, 100.0, 100.0],
 	},
 	ComplexFunc.DIRICHLET_BETA: {
-		"name": "Dirichlet Beta (σ > 0)",
+		"name": "Dirichlet Beta",
+		"symbol": "β (σ > 0)",
 		"is_dirichlect": true,
 		"has_von_mangoldt": true,
 		"iters_range": [100.0, 10000.0, 100.0, 100.0],
 	},
 	ComplexFunc.GAMMA: {
-		"name": "Gamma"
+		"name": "Gamma",
+		"symbol": "Γ",
 	},
 	ComplexFunc.LOG_GAMMA: {
-		"name": "Log Gamma"
+		"name": "Log Gamma",
+		"symbol": "log Γ",
 	},
 	ComplexFunc.DEDEKIND_ETA: {
 		"name": "Dedekind Eta",
+		"symbol": "η",
 		"iters_range": [1.0, 20.0, 1.0, 10.0],
 	},
 	ComplexFunc.MANDELBROT: {
 		"name": "Mandelbrot",
+		"symbol": "f",
 		"iters_range": [100.0, 5000.0, 100.0, 500.0],
 	},
 	ComplexFunc.SIN: {
 		"name": "Sin",
+		"symbol": "f",
 	},
 	ComplexFunc.COS: {
 		"name": "Cos",
+		"symbol": "f",
 	},
 	ComplexFunc.TAN: {
 		"name": "Tan",
+		"symbol": "f",
 	},
 	ComplexFunc.COT: {
 		"name": "Cot",
+		"symbol": "f",
 	},
 	ComplexFunc.EXP: {
 		"name": "Exp",
+		"symbol": "f",
 	},
 	ComplexFunc.LOG: {
 		"name": "Log",
+		"symbol": "f",
 	},
 	ComplexFunc.IDENTITY: {
 		"name": "Identity",
+		"symbol": "f",
 	},
 	ComplexFunc.RATIONAL: {
 		"name": "Rational",
+		"symbol": "f",
 		"is_rational": true,
 	},
 	ComplexFunc.MULTIVALUED_Z_POW: {
 		"name": "Multivalued z^(1/n)",
+		"symbol": "f",
 		"is_multivalued": true,
 	},
 	ComplexFunc.MULTIVALUED_LOG: {
 		"name": "Multivalued Log",
+		"symbol": "f",
 		"is_multivalued": true,
 	},
 	ComplexFunc.MULTIVALUED_ASIN: {
-		"name": "Multivalued ArcSin",
+		"name": "Multivalued arcsin",
+		"symbol": "f",
 		"is_multivalued": true,
 	},
 	ComplexFunc.MULTIVALUED_ACOS: {
-		"name": "Multivalued ArcCos",
+		"name": "Multivalued arccos",
+		"symbol": "f",
 		"is_multivalued": true,
 	},
 }
