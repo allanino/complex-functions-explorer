@@ -5,7 +5,11 @@ signal state_changed(key: String)
 # Session state (not saved)
 var visited_zeros: Array[Vector2] = []
 var total_zeros_found: int = 0
-var accented_zero_index: int = -1
+var accented_zero_index: int = -1:
+	set(v):
+		if accented_zero_index == v: return
+		accented_zero_index = v
+		state_changed.emit("accented_zero_index")
 
 var rvm_start_t: float = 0.0
 var performance_protection_active: bool = false

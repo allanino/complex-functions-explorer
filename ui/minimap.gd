@@ -7,6 +7,10 @@ var player: Node3D = null
 var camera: Camera3D = null
 var view_radius: float = 80.0
 
+# Tracking state for optimization
+var _last_camera_yaw: float = 999.0
+var _last_fov_size: Vector2 = Vector2.ZERO
+
 func _ready():
 	await get_tree().process_frame
 	player = get_tree().get_first_node_in_group("player")
@@ -27,6 +31,7 @@ func _on_resized():
 func _sync_all_uniforms():
 	if map_rect and map_rect.material:
 		var mat = map_rect.material as ShaderMaterial
+		mat.set_shader_parameter("view_radius", view_radius)
 		mat.set_shader_parameter("iterations", Config.iterations)
 		mat.set_shader_parameter("zoom_factor", GameState.effective_zoom)
 		mat.set_shader_parameter("function_type", Config.function_type)
@@ -42,7 +47,8 @@ func _sync_all_uniforms():
 		mat.set_shader_parameter("current_branch", GameState.current_branch)
 		mat.set_shader_parameter("show_curves", Config.show_curves)
 		mat.set_shader_parameter("show_critical_stripe", Config.show_critical_stripe)
-		mat.set_shader_parameter("show_hud_zeros", Config.show_hud_zeros)
+
+		_update_zeros_shader()
 
 		var real_shaded = PackedFloat32Array()
 		for val in GameState.real_level_curves_highlighted:
@@ -71,10 +77,39 @@ func _sync_all_uniforms():
 		mat.set_shader_parameter("newton_path_bbox", GameState.newton_path_bbox)
 
 
+
+func _update_zeros_shader():
+	if not map_rect or not map_rect.material: return
+	var mat = map_rect.material as ShaderMaterial
+	mat.set_shader_parameter("show_hud_zeros", Config.show_hud_zeros)
+	if Config.show_hud_zeros:
+		var visited = PackedVector2Array()
+		for val in GameState.visited_zeros:
+			visited.append(val)
+		var v_size = min(visited.size(), 10)
+		var shader_accented_index = GameState.accented_zero_index
+		if visited.size() > 10:
+			shader_accented_index = GameState.accented_zero_index - (visited.size() - 10)
+
+		while visited.size() < 10:
+			visited.append(Vector2.ZERO)
+
+		if visited.size() > 10:
+			var truncated = PackedVector2Array()
+			for i in range(visited.size() - 10, visited.size()):
+				truncated.append(visited[i])
+			visited = truncated
+
+		mat.set_shader_parameter("visited_zeros_size", v_size)
+		mat.set_shader_parameter("visited_zeros", visited)
+		mat.set_shader_parameter("accented_zero_index", shader_accented_index)
+
 func _on_config_changed(key: String):
 	var mat = map_rect.material as ShaderMaterial
 	if not mat: return
-	if key in ["iterations", "zoom_factor", "function_type", "input_function_type", "color_scheme", "rational_num_coeffs", "rational_den_coeffs", "input_rational_num_coeffs", "input_rational_den_coeffs", "multivalued_n", "show_curves", "show_critical_stripe", "show_hud_zeros"]:
+	if key == "show_hud_zeros":
+		_update_zeros_shader()
+	elif key in ["iterations", "zoom_factor", "function_type", "input_function_type", "color_scheme", "rational_num_coeffs", "rational_den_coeffs", "input_rational_num_coeffs", "input_rational_den_coeffs", "multivalued_n", "show_curves", "show_critical_stripe"]:
 		_sync_all_uniforms()
 
 func _on_state_changed(key: String):
@@ -106,6 +141,9 @@ func _on_state_changed(key: String):
 	if key == "newton_path_bbox":
 		mat.set_shader_parameter("newton_path_bbox", GameState.newton_path_bbox)
 
+	if key == "visited_zeros" or key == "accented_zero_index":
+		_update_zeros_shader()
+
 	if key == "newton_path":
 		if GameState.newton_path.size() > 0:
 			var newton_path = PackedVector2Array()
@@ -129,31 +167,14 @@ func _process(_delta):
 	var mat = map_rect.material as ShaderMaterial
 	if mat:
 		mat.set_shader_parameter("player_pos_world", Vector2(player.global_position.x, player.global_position.z))
-		mat.set_shader_parameter("view_radius", view_radius)
 
-		if Config.show_hud_zeros:
-			var visited = PackedVector2Array()
-			for val in GameState.visited_zeros:
-				visited.append(val)
-			var v_size = min(visited.size(), 10)
-			var shader_accented_index = GameState.accented_zero_index
-			if visited.size() > 10:
-				shader_accented_index = GameState.accented_zero_index - (visited.size() - 10)
-
-			while visited.size() < 10:
-				visited.append(Vector2.ZERO)
-
-			if visited.size() > 10:
-				var truncated = PackedVector2Array()
-				for i in range(visited.size() - 10, visited.size()):
-					truncated.append(visited[i])
-				visited = truncated
-
-			mat.set_shader_parameter("visited_zeros_size", v_size)
-			mat.set_shader_parameter("visited_zeros", visited)
-			mat.set_shader_parameter("accented_zero_index", shader_accented_index)
-
-	fov_overlay.queue_redraw()
+	# Only redraw FOV overlay if camera yaw or overlay size changed
+	var current_yaw = camera.global_rotation.y
+	var current_size = fov_overlay.size
+	if abs(current_yaw - _last_camera_yaw) > 0.001 or current_size != _last_fov_size:
+		_last_camera_yaw = current_yaw
+		_last_fov_size = current_size
+		fov_overlay.queue_redraw()
 
 func _on_fov_overlay_draw():
 	if not player or not camera: return
