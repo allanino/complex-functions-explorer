@@ -354,8 +354,7 @@ func _init_slider_bindings():
 			"config_key": "zoom_factor",
 			"to_config": func(v): return _slider_to_zoom(v),
 			"from_config": func(c): return _zoom_to_slider(c),
-				"format": func(v): return "x%.2f" % _slider_to_zoom(v),
-				"on_changed": func(_v): Config.apply_zoom_immediate()
+				"format": func(v): return "x%.2f" % _slider_to_zoom(v)
 		},
 		zero_speed_slider: {
 			"config_key": "speed_near_zeros",

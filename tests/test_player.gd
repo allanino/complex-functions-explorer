@@ -233,27 +233,22 @@ func test_player_zoom_scaling():
 	player.is_menu_open = false
 	player.is_detached_interactive = false
 	player.global_position = Vector3(10.0, 0.0, 10.0)
-	# Call physics process to update logic
 	player._physics_process(0.016)
 
 	var initial_height_scale = player.zoom_height_scale
 	var initial_speed_scale = player.zoom_speed_scale
 
 	Config.zoom_factor = 2.0
-	GameState.effective_zoom = 1.0
 	for i in range(50):
 		player._physics_process(0.016)
 
-	# Verify mathematical position is the same
 	var new_complex = Config.world_to_complex(player.global_position.x, player.global_position.z)
 	assert_almost_eq(1.0, new_complex.x, 0.001)
 	assert_almost_eq(-1.0, new_complex.y, 0.001)
 
-	# Verify height scale and speed scale both decreased when zooming in
 	assert_lt(player.zoom_height_scale, initial_height_scale)
 	assert_lt(player.zoom_speed_scale, initial_speed_scale)
 
-	# Restore Config
 	Config.zoom_factor = original_zoom_factor
 	Config.zoom_damping = original_zoom_damping
 	GameState.effective_zoom = original_ez

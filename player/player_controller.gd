@@ -269,10 +269,6 @@ func _physics_process(delta):
 				rotation_x = clamp(rotation_x, -PI / 2, PI / 2)
 				camera.rotation.x = rotation_x
 
-	if is_detached_interactive or is_menu_open:
-		velocity = Vector3.ZERO
-		return
-
 	# Smooth zoom interpolation
 	var old_ez = GameState.effective_zoom
 	GameState.effective_zoom = lerp(GameState.effective_zoom, float(Config.zoom_factor), delta * 8.0)
@@ -289,6 +285,28 @@ func _physics_process(delta):
 
 	var scaled_camera_height = Config.camera_height * zoom_height_scale
 	var scaled_movement_speed = Config.movement_speed * zoom_speed_scale
+
+	if is_detached_interactive or is_menu_open:
+		velocity = Vector3.ZERO
+		var target_y_menu = get_terrain_height(global_position.x, global_position.z) + scaled_camera_height + height_offset
+		camera.position = Vector3(0.0, target_y_menu, 0.0) + transform.basis.inverse() * camera_push_offset
+		return
+
+	if is_detached_interactive or is_menu_open:
+		velocity = Vector3.ZERO
+		# Update camera height even if menu is open, so it visually zooms
+		var terrain_h_local = get_terrain_height(global_position.x, global_position.z)
+		var target_y = terrain_h_local + scaled_camera_height + height_offset
+		camera.position = Vector3(0.0, target_y, 0.0) + transform.basis.inverse() * camera_push_offset
+		return
+
+	if is_detached_interactive or is_menu_open:
+		velocity = Vector3.ZERO
+		# Update camera height even if menu is open, so it visually zooms
+		var terrain_h_local = get_terrain_height(global_position.x, global_position.z)
+		var target_y = terrain_h_local + scaled_camera_height + height_offset
+		camera.position = Vector3(0.0, target_y, 0.0) + transform.basis.inverse() * camera_push_offset
+		return
 
 	# Cache current field value and mathematical coordinates for reuse
 	# Converts player's world position back to the mathematical complex plane to calculate field values
