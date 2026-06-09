@@ -164,7 +164,6 @@ func _ready():
 	_update_zeros_list()
 
 
-
 func _on_monitor_timer_timeout():
 	if Config.show_hud_monitor_fps or show_hud_chunks:
 		_update_monitor_label()
@@ -172,7 +171,7 @@ func _on_monitor_timer_timeout():
 func _on_game_state_changed(key: String):
 	if key in ["performance_protection_active", "height_protection_active", "found_off_critical_line", "missed_zeta_zero"]:
 		_update_monitor_label()
-	elif key in ["visited_zeros", "total_zeros_found", "accented_zero_index"]:
+	elif key in ["visited_zeros", "total_zeros_found"]:
 		_update_zeros_list()
 
 func _update_monitor_label():
@@ -318,8 +317,6 @@ func _process(_delta):
 	zeros_panel.visible = Config.show_hud_zeros
 
 	if Config.show_hud_zeros:
-
-
 		# Riemann-von Mangoldt formula: N(T) ≈ (T/2π) log(T/2πe) + 7/8
 		if Config.show_rvm and f_data.get("has_von_mangoldt", false):
 			var T = abs(Config.world_to_complex(0.0, z).y)
