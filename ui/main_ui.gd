@@ -213,9 +213,6 @@ func _process(_delta):
 	if Config.show_hud_zeros and not _last_zeros_visible:
 		GameState.rvm_start_t = abs(Config.world_to_complex(0.0, player.global_position.z).y)
 	_last_zeros_visible = Config.show_hud_zeros
-	menu_overlay.perf_label.visible = GameState.performance_protection_active
-	if menu_overlay.height_label:
-		menu_overlay.height_label.visible = GameState.height_protection_active
 
 	if not player:
 		return
