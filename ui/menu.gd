@@ -352,8 +352,7 @@ func _init_slider_bindings():
 			"config_key": "zoom_factor",
 			"to_config": func(v): return _slider_to_zoom(v),
 			"from_config": func(c): return _zoom_to_slider(c),
-				"format": func(v): return "x%.2f" % _slider_to_zoom(v),
-				"on_changed": func(_v): Config.apply_zoom_immediate()
+			"format": func(v): return "x%.2f" % _slider_to_zoom(v)
 		},
 		zero_speed_slider: {
 			"config_key": "speed_near_zeros",
@@ -1072,15 +1071,15 @@ func _format_time(total_seconds: float) -> String:
 
 
 func _slider_to_zoom(value: float) -> float:
-	var min_zoom = 0.01
-	var max_zoom = 200.0
+	var min_zoom = 0.1
+	var max_zoom = 100.0
 	var b = (log(max_zoom) - log(min_zoom)) / 100.0
 	return exp(log(min_zoom) + value * b)
 
 
 func _zoom_to_slider(zoom: float) -> float:
-	var min_zoom = 0.01
-	var max_zoom = 200.0
+	var min_zoom = 0.1
+	var max_zoom = 100.0
 	var b = (log(max_zoom) - log(min_zoom)) / 100.0
 	return (log(zoom) - log(min_zoom)) / b
 

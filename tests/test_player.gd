@@ -3,6 +3,10 @@ extends GutTest
 var player_scene = preload("res://player/player.tscn")
 var ui_scene = preload("res://ui/main_ui.tscn")
 
+func before_all():
+	Config.zoom_factor = 1.0
+	Config.zoom_damping = 0.5
+
 func test_player_loads_and_physics_process_runs():
 	var player = player_scene.instantiate()
 	player.run_demo = false
@@ -210,6 +214,41 @@ func test_player_max_world_height_limit():
 	Config.height_type = original_height_type
 
 
+func test_player_zoom_scaling():
+	var player = player_scene.instantiate()
+	var main_ui = ui_scene.instantiate()
+	add_child_autoqfree(player)
+	add_child_autoqfree(main_ui)
 
+	player.main_ui = main_ui
 
+	var original_zoom_factor = Config.zoom_factor
+	var original_zoom_damping = Config.zoom_damping
+	var original_ez = GameState.effective_zoom
 
+	Config.zoom_factor = 1.0
+	Config.zoom_damping = 0.5
+	GameState.effective_zoom = 1.0
+
+	player.is_menu_open = false
+	player.is_detached_interactive = false
+	player.global_position = Vector3(10.0, 0.0, 10.0)
+	player._physics_process(0.016)
+
+	var initial_height_scale = player.zoom_height_scale
+	var initial_speed_scale = player.zoom_speed_scale
+
+	Config.zoom_factor = 2.0
+	for i in range(10):
+		player._physics_process(0.016)
+
+	var new_complex = Config.world_to_complex(player.global_position.x, player.global_position.z)
+	assert_almost_eq(1.0, new_complex.x, 0.001)
+	assert_almost_eq(-1.0, new_complex.y, 0.001)
+
+	assert_almost_eq(player.zoom_height_scale, initial_height_scale * pow(GameState.effective_zoom, Config.zoom_damping - 1.0), 0.001)
+	assert_almost_eq(player.zoom_speed_scale, initial_speed_scale * pow(GameState.effective_zoom, 1.0 - Config.zoom_damping), 0.001)
+
+	Config.zoom_factor = original_zoom_factor
+	Config.zoom_damping = original_zoom_damping
+	GameState.effective_zoom = original_ez

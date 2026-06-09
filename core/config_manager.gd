@@ -393,7 +393,7 @@ var drone_volume: float = 100.0:
 
 
 func _set_zoom_factor(value: float):
-	var nv = clampf(value, 0.01, 200.0)
+	var nv = clampf(value, 0.1, 100.0)
 	if zoom_factor == nv:
 		return
 	zoom_factor = nv
