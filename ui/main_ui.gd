@@ -322,6 +322,13 @@ func _process(_delta):
 	monitor_panel.visible = Config.show_hud_monitor_fps or show_hud_chunks or GameState.performance_protection_active or GameState.height_protection_active or GameState.found_off_critical_line
 	if monitor_panel.visible and monitor_rt_label:
 		var bbcode = ""
+
+		if GameState.performance_protection_active:
+			bbcode += "[color=#ffcc00][font_size=14]Performance protection activated, adjust settings.[/font_size][/color]\n"
+
+		if GameState.height_protection_active:
+			bbcode += "[color=#ffcc00][font_size=14]Max world height reached, return to safe heights.[/font_size][/color]\n"
+
 		if GameState.found_off_critical_line:
 			bbcode += "[color=#ffcc00][font_size=14]Zero found off critical line. Increase zeta iterations.[/font_size][/color]\n"
 
@@ -345,12 +352,6 @@ func _process(_delta):
 					chunks_text += "\n[color=#e8e4dc73][font_size=15]%d: %d[/font_size][/color]" % [world_manager.LOD_SUBS[i], lod_counts[i]]
 			bbcode += chunks_text + "\n"
 
-		if GameState.performance_protection_active:
-			bbcode += "[color=#ffcc00][font_size=14]Performance protection activated, adjust settings.[/font_size][/color]\n"
-
-		if GameState.height_protection_active:
-			bbcode += "[color=#ffcc00][font_size=14]Max world height reached, return to safe heights.[/font_size][/color]\n"
-
 		monitor_rt_label.text = bbcode.strip_edges()
 
 	_update_hud_layout()
@@ -365,7 +366,7 @@ func _update_hud_layout():
 	var actual_hud_scale = Config.hud_scale
 
 	var scale_factor = get_viewport().size.x / 1920.0
-	var available_height = get_viewport().size.y / scale_factor - 40.0
+	var available_height = get_viewport().size.y / scale_factor - 50.0
 	var mobile_controls = get_node_or_null("Control/MobileControls")
 	if mobile_controls and mobile_controls.visible and mobile_controls.has_node("SettingsButton"):
 		var settings_btn = mobile_controls.get_node("SettingsButton")
@@ -392,11 +393,13 @@ func _update_hud_layout():
 		"show_rvm": Config.show_rvm and f_data.get("has_von_mangoldt", false),
 		"show_fps": Config.show_hud_monitor_fps,
 		"show_chunks": show_hud_chunks,
-		"is_multivalued": f_data.get("is_multivalued", false)
+		"is_multivalued": f_data.get("is_multivalued", false),
+		"cards_heights": cards.map(func(c): return c.get_combined_minimum_size().y if c.visible else 0.0)
 	}
 
 	if current_state.hash() == _last_hud_state.hash():
 		return
+
 	_last_hud_state = current_state
 
 	var current_height = 0.0
