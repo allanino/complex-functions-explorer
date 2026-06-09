@@ -94,6 +94,14 @@ func update_arg_val(f: Vector2):
 		position_arg_arrow.color = final_color
 		position_arg_arrow.queue_redraw()
 
+func _setup_branch_data():
+	if Config.function.get("is_multivalued", false):
+		phase_branch_val.visible = true
+		branch_label.visible = true
+	else:
+		phase_branch_val.visible = false
+		branch_label.visible = false
+
 func _ready():
 	hud_columns.modulate.a = 0.0
 	Config.config_changed.connect(_on_config_changed)
@@ -130,6 +138,12 @@ func _ready():
 	monitor_timer.timeout.connect(_on_monitor_timer_timeout)
 	add_child(monitor_timer)
 
+	var rvm_timer = Timer.new()
+	rvm_timer.autostart = true
+	rvm_timer.wait_time = 0.05
+	rvm_timer.timeout.connect(_on_rvm_timer_timeout)
+	add_child(rvm_timer)
+
 	var position_arg_container = get_node_or_null("%PositionArgContainer")
 	if position_arg_container:
 		position_arg_container.visible = !Config.show_hud_phase_wheel
@@ -150,6 +164,8 @@ func _ready():
 	phase_wheel.visible = Config.show_hud_phase_wheel
 	position_panel.visible = Config.show_hud_navigation
 
+	_setup_branch_data()
+
 	# Wait for layout passes to finish with visibility active (so sizes calculate)
 	await get_tree().process_frame
 	await get_tree().process_frame
@@ -165,6 +181,37 @@ func _ready():
 	_update_monitor_label()
 	_update_zeros_list()
 
+func _on_rvm_timer_timeout():
+	var z = player.global_position.z
+
+	if Config.show_hud_zeros:
+		if Config.show_rvm and Config.function.get("has_von_mangoldt", false):
+			var T = abs(Config.world_to_complex(0.0, z).y)
+			var rvm_val = _get_rvm_n(T) - _get_rvm_n(GameState.rvm_start_t)
+			rvm_val = max(0.0, rvm_val)
+			var delta_val = GameState.total_zeros_found - rvm_val
+			var delta_sign = "+" if delta_val >= 0 else ""
+
+			if player.auto_walk_state == 1 or player.auto_walk_state == 2:
+				if abs(delta_val) >= 2.0:
+					GameState.missed_zeta_zero = true
+			else:
+				GameState.missed_zeta_zero = false
+
+			if rvm_n_label:
+				rvm_n_label.text = "[color=gray]N(t)[/color] ≈ [color=#c8a96e]%.1f[/color]" % rvm_val
+			if rvm_delta_label:
+				if GameState.missed_zeta_zero:
+					rvm_delta_label.text = "Δ = %s[color=red]%.1f[/color]" % [delta_sign, delta_val]
+				else:
+					rvm_delta_label.text = "Δ = %s%.1f" % [delta_sign, delta_val]
+
+			if rvm_hbox:
+				rvm_hbox.visible = true
+		else:
+			if rvm_hbox:
+				rvm_hbox.visible = false
+
 
 func _on_monitor_timer_timeout():
 	if Config.show_hud_monitor_fps or show_hud_chunks:
@@ -175,6 +222,8 @@ func _on_game_state_changed(key: String):
 		_update_monitor_label()
 	elif key in ["visited_zeros", "total_zeros_found"]:
 		_update_zeros_list()
+	elif key == "current_branch":
+		phase_branch_val.text = str(GameState.current_branch)
 
 func _update_monitor_label():
 	monitor_panel.visible = Config.show_hud_monitor_fps or show_hud_chunks or GameState.performance_protection_active or GameState.height_protection_active or GameState.found_off_critical_line or GameState.missed_zeta_zero
@@ -293,54 +342,20 @@ func _skip_render_hud() -> bool:
 	_skip_frame_counter = 0
 	return false
 
-
 func _process(_delta):
 	if _skip_render_hud():
 		return
 
 	var x = player.global_position.x
 	var z = player.global_position.z
-
 	var f = player.current_f
-
-	if position_arg_val.visible:
-		update_arg_val(f)
-
-	# Update Zeta Zeros display
-	var f_data = Config.function
-
-	if Config.show_hud_zeros:
-		# Riemann-von Mangoldt formula: N(T) ≈ (T/2π) log(T/2πe) + 7/8
-		if Config.show_rvm and f_data.get("has_von_mangoldt", false):
-			var T = abs(Config.world_to_complex(0.0, z).y)
-			var rvm_val = _get_rvm_n(T) - _get_rvm_n(GameState.rvm_start_t)
-			rvm_val = max(0.0, rvm_val)
-			var delta_val = GameState.total_zeros_found - rvm_val
-			var delta_sign = "+" if delta_val >= 0 else ""
-
-			if player.auto_walk_state == 1 or player.auto_walk_state == 2:
-				if abs(delta_val) >= 2.0:
-					GameState.missed_zeta_zero = true
-			else:
-				GameState.missed_zeta_zero = false
-
-			if rvm_n_label:
-				rvm_n_label.text = "[color=gray]N(t)[/color] ≈ [color=#c8a96e]%.1f[/color]" % rvm_val
-			if rvm_delta_label:
-				if GameState.missed_zeta_zero:
-					rvm_delta_label.text = "Δ = %s[color=red]%.1f[/color]" % [delta_sign, delta_val]
-				else:
-					rvm_delta_label.text = "Δ = %s%.1f" % [delta_sign, delta_val]
-
-			if rvm_hbox:
-				rvm_hbox.visible = true
-		else:
-			if rvm_hbox:
-				rvm_hbox.visible = false
 
 	# Update phase wheel
 	if phase_wheel:
 		phase_wheel.update_data(f)
+
+	if position_arg_val.visible:
+		update_arg_val(f)
 
 	var complex_pos = Config.world_to_complex(x, z)
 	var val_re = complex_pos.x
@@ -356,14 +371,6 @@ func _process(_delta):
 
 	target_val.text = _bb_re(target_re, CLR_CYAN) + _bb_im(target_im)
 	domain_val.text = _bb_re(domain_re, CLR_CYAN) + _bb_im(domain_im)
-
-	if f_data.get("is_multivalued", false):
-		phase_branch_val.text = str(GameState.current_branch)
-		phase_branch_val.visible = true
-		branch_label.visible = true
-	else:
-		phase_branch_val.visible = false
-		branch_label.visible = false
 
 	phase_abs_val.text = _format_float_3(f.length())
 
@@ -569,6 +576,7 @@ func _zoom_to_slider(zoom: float) -> float:
 func _on_config_changed(key: String):
 	if key == "function_type":
 		_update_zeros_list()
+		_setup_branch_data()
 	if key == "show_hud_navigation":
 		position_panel.visible = Config.show_hud_navigation
 	if key == "show_minimap":
