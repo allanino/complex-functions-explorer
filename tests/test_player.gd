@@ -213,3 +213,44 @@ func test_player_max_world_height_limit():
 
 
 
+
+func test_player_zoom_scaling():
+	var player = player_scene.instantiate()
+	var main_ui = ui_scene.instantiate()
+	add_child_autoqfree(player)
+	add_child_autoqfree(main_ui)
+
+	player.main_ui = main_ui
+
+	var original_zoom_factor = Config.zoom_factor
+	var original_zoom_damping = Config.zoom_damping
+	var original_ez = GameState.effective_zoom
+
+	Config.zoom_factor = 1.0
+	Config.zoom_damping = 0.5
+	GameState.effective_zoom = 1.0
+
+	player.global_position = Vector3(10.0, 0.0, 10.0)
+	# Call physics process to update logic
+	player._physics_process(0.016)
+
+	var initial_height_scale = player.zoom_height_scale
+	var initial_speed_scale = player.zoom_speed_scale
+
+	Config.zoom_factor = 2.0
+	player._physics_process(0.5) # multiple steps or large delta to allow lerp to catch up
+	player._physics_process(0.5)
+	player._physics_process(0.5)
+
+	# Verify world position is the same
+	assert_almost_eq(player.global_position.x, 10.0, 0.001)
+	assert_almost_eq(player.global_position.z, 10.0, 0.001)
+
+	# Verify height scale and speed scale both decreased when zooming in
+	assert_lt(player.zoom_height_scale, initial_height_scale)
+	assert_lt(player.zoom_speed_scale, initial_speed_scale)
+
+	# Restore Config
+	Config.zoom_factor = original_zoom_factor
+	Config.zoom_damping = original_zoom_damping
+	GameState.effective_zoom = original_ez
