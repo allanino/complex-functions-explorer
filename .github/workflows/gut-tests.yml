@@ -32,5 +32,4 @@ jobs:
           godot --headless -s addons/gut/gut_cmdln.gd \
             -gdir=res://tests \
             -ginclude_subdirs \
-            -gselect="test*.gd" \
             -gexit
