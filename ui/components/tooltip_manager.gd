@@ -2,7 +2,7 @@ extends CanvasLayer
 
 const DESCRIPTIONS = {
 	"Function": "Select the complex function to visualize on the terrain.",
-	"Input": "Select the input expression or transformation passed to the function. Choose 'z' to evaluate directly at the complex coordinate z.",
+	"Input": "Select the input expression or transformation passed to the function. Choose 'Identity' to evaluate directly at the complex coordinate z.",
 	"Height Map": "Choose how the function's magnitude is mapped to terrain height.",
 	"Parameter a": "Scaling factor for logarithmic height mapping.",
 	"Parameter ε": "Small offset in logarithmic mapping to prevent log(0) at zeros.",
