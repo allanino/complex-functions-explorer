@@ -87,8 +87,6 @@ signal update_hud_layout_signal()
 @onready var quit_cancel = %QuitCancel
 @onready var quit_save_and_quit = %QuitSaveAndQuit
 @onready var quit_confirm = %QuitConfirm
-@onready var perf_label = %PerfProtectionLabel
-@onready var height_label = %HeightProtectionLabel
 @onready var func_tab_button = %FunctionTabButton
 @onready var env_tab_button = %EnvironmentTabButton
 @onready var terrain_tab_button = %TerrainTabButton

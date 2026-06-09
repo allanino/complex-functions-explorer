@@ -469,57 +469,12 @@ size_flags_horizontal = 3
 theme_override_styles/separator = SubResource("StyleBoxLine_header_sep")
 
 
-[node name="FpsHBox" type="HBoxContainer" parent="Control/MainUIColumns/MainUIStackRight/MonitorPanel/MarginContainer/VBox"]
+[node name="MonitorRichTextLabel" type="RichTextLabel" parent="Control/MainUIColumns/MainUIStackRight/MonitorPanel/MarginContainer/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
-
-[node name="OffCriticalLineLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/MonitorPanel/MarginContainer/VBox"]
-unique_name_in_owner = true
-visible = false
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.8, 0, 1)
-theme_override_font_sizes/font_size = 14
-text = "Zero found off critical line. Increase zeta iterations."
-horizontal_alignment = 0
-autowrap_mode = 3
-
-[node name="FpsValLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/MonitorPanel/MarginContainer/VBox/FpsHBox"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_type_variation = &"ValueWhiteLabel"
-text = "60"
-
-[node name="FpsTextLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/MonitorPanel/MarginContainer/VBox/FpsHBox"]
-layout_mode = 2
-theme_type_variation = &"SecondaryLabel"
-text = "FPS"
-
-[node name="ChunksLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/MonitorPanel/MarginContainer/VBox"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_type_variation = &"SecondaryLabel"
-text = "Chunks"
-
-[node name="PerfProtectionLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/MonitorPanel/MarginContainer/VBox"]
-unique_name_in_owner = true
-visible = false
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.8, 0, 1)
-theme_override_font_sizes/font_size = 14
-text = "Performance protection activated, adjust settings."
-horizontal_alignment = 0
-autowrap_mode = 3
-
-[node name="HeightProtectionLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/MonitorPanel/MarginContainer/VBox"]
-unique_name_in_owner = true
-visible = false
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.8, 0, 1)
-theme_override_font_sizes/font_size = 14
-text = "Max world height reached, return to safe heights."
-horizontal_alignment = 0
-autowrap_mode = 3
-
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
 
 [node name="PositionPanel" type="PanelContainer" parent="Control/MainUIColumns/MainUIStackRight"]
 unique_name_in_owner = true
