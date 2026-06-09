@@ -34,7 +34,7 @@ var _im_label_target_pos: Vector3 = Vector3.ZERO
 
 var height_offset = 0.0
 var zoom_height_scale = pow(GameState.effective_zoom, Config.zoom_damping - 1.0)
-var zoom_speed_scale = pow(GameState.effective_zoom, Config.zoom_damping - 1.0)
+var zoom_speed_scale = pow(GameState.effective_zoom, 1.0 - Config.zoom_damping)
 var last_space_time = 0.0
 var space_held_time = 0.0
 var is_resetting_height = false
@@ -280,8 +280,8 @@ func _physics_process(delta):
 		global_position.x *= zoom_ratio
 		global_position.z *= zoom_ratio
 
-		zoom_height_scale = pow(GameState.effective_zoom, Config.zoom_damping - 1.0)
-		zoom_speed_scale = pow(GameState.effective_zoom, Config.zoom_damping - 1.0)
+	zoom_height_scale = pow(GameState.effective_zoom, Config.zoom_damping - 1.0)
+	zoom_speed_scale = pow(GameState.effective_zoom, 1.0 - Config.zoom_damping)
 
 	var scaled_camera_height = Config.camera_height * zoom_height_scale
 	var scaled_movement_speed = Config.movement_speed * zoom_speed_scale

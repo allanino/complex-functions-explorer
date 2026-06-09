@@ -210,10 +210,6 @@ func test_player_max_world_height_limit():
 	Config.height_type = original_height_type
 
 
-
-
-
-
 func test_player_zoom_scaling():
 	var player = player_scene.instantiate()
 	var main_ui = ui_scene.instantiate()
@@ -239,15 +235,15 @@ func test_player_zoom_scaling():
 	var initial_speed_scale = player.zoom_speed_scale
 
 	Config.zoom_factor = 2.0
-	for i in range(50):
+	for i in range(100):
 		player._physics_process(0.016)
 
 	var new_complex = Config.world_to_complex(player.global_position.x, player.global_position.z)
 	assert_almost_eq(1.0, new_complex.x, 0.001)
 	assert_almost_eq(-1.0, new_complex.y, 0.001)
 
-	assert_lt(player.zoom_height_scale, initial_height_scale)
-	assert_lt(player.zoom_speed_scale, initial_speed_scale)
+	assert_almost_eq(player.zoom_height_scale, initial_height_scale * pow(GameState.effective_zoom, Config.zoom_damping - 1.0), 0.001)
+	assert_almost_eq(player.zoom_speed_scale, initial_speed_scale * pow(GameState.effective_zoom, 1.0 - Config.zoom_damping), 0.001)
 
 	Config.zoom_factor = original_zoom_factor
 	Config.zoom_damping = original_zoom_damping
