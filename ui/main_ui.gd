@@ -137,7 +137,7 @@ func _ready():
 
 	var values_timer = Timer.new()
 	values_timer.autostart = true
-	values_timer.wait_time = 0.05
+	values_timer.wait_time = 0.04
 	values_timer.timeout.connect(_on_values_timer_timeout)
 	add_child(values_timer)
 

@@ -6,7 +6,7 @@ extends AspectRatioContainer
 var target_f := Vector2.RIGHT
 var display_f := Vector2.RIGHT
 
-const ROT_SPEED := 180.0
+const ROT_SPEED := 360.0
 
 func update_data(f: Vector2) -> void:
 	target_f = f
