@@ -340,16 +340,36 @@ var zero_proximity_nav: float = 0.5
 
 
 # UI parameters
-var show_minimap: bool = true
+var show_minimap: bool = true:
+	set(v):
+		if show_minimap == v: return
+		show_minimap = v
+		config_changed.emit("show_minimap")
 var show_hud_phase_wheel: bool = true:
 	set(v):
 		if show_hud_phase_wheel == v: return
 		show_hud_phase_wheel = v
 		config_changed.emit("show_hud_phase_wheel")
-var show_hud_navigation: bool = true
-var show_hud_zeros: bool = true
-var show_rvm: bool = true
-var show_hud_monitor_fps: bool = false
+var show_hud_navigation: bool = true:
+	set(v):
+		if show_hud_navigation == v: return
+		show_hud_navigation = v
+		config_changed.emit("show_hud_navigation")
+var show_hud_zeros: bool = true:
+	set(v):
+		if show_hud_zeros == v: return
+		show_hud_zeros = v
+		config_changed.emit("show_hud_zeros")
+var show_rvm: bool = true:
+	set(v):
+		if show_rvm == v: return
+		show_rvm = v
+		config_changed.emit("show_rvm")
+var show_hud_monitor_fps: bool = false:
+	set(v):
+		if show_hud_monitor_fps == v: return
+		show_hud_monitor_fps = v
+		config_changed.emit("show_hud_monitor_fps")
 
 var hud_scale: float = 1.0
 var menu_scale: float = 1.0

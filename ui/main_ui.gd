@@ -37,7 +37,6 @@ var portal_flash: ColorRect
 
 # New UI Node Paths
 var current_scale = 2.0
-var _last_zeros_visible: bool = false
 const BASE_HUD_PANEL_SIZE: float = 240.0
 const RENDER_EACH_N_FRAME: int = 3
 var _skip_frame_counter: int = 0
@@ -146,7 +145,10 @@ func _ready():
 	menu_overlay.world_manager = world_manager
 	menu_overlay.tooltip_manager = tooltip_manager
 
-	_last_zeros_visible = Config.show_hud_zeros
+	zeros_panel.visible = Config.show_hud_zeros
+	minimap_panel.visible = Config.show_minimap
+	phase_wheel.visible = Config.show_hud_phase_wheel
+	position_panel.visible = Config.show_hud_navigation
 
 	# Wait for layout passes to finish with visibility active (so sizes calculate)
 	await get_tree().process_frame
@@ -307,8 +309,6 @@ func _process(_delta):
 	# Update Zeta Zeros display
 	var f_data = Config.function
 
-	zeros_panel.visible = Config.show_hud_zeros
-
 	if Config.show_hud_zeros:
 		# Riemann-von Mangoldt formula: N(T) ≈ (T/2π) log(T/2πe) + 7/8
 		if Config.show_rvm and f_data.get("has_von_mangoldt", false):
@@ -366,11 +366,6 @@ func _process(_delta):
 		branch_label.visible = false
 
 	phase_abs_val.text = _format_float_3(f.length())
-
-	minimap_panel.visible = Config.show_minimap
-	phase_wheel.visible = Config.show_hud_phase_wheel
-	position_panel.visible = Config.show_hud_navigation
-
 
 	_update_hud_layout()
 
@@ -572,10 +567,29 @@ func _zoom_to_slider(zoom: float) -> float:
 	return (log(zoom) - log(min_zoom)) / b
 
 func _on_config_changed(key: String):
-	if key in ["function_type", "show_hud_zeros"]:
+	if key == "function_type":
+		_update_zeros_list()
+	if key == "show_hud_navigation":
+		position_panel.visible = Config.show_hud_navigation
+	if key == "show_minimap":
+		minimap_panel.visible = Config.show_minimap
+	if key == "show_hud_zeros":
+		zeros_panel.visible = Config.show_hud_zeros
 		_update_zeros_list()
 	if key in ["show_hud_monitor_fps", "show_hud_chunks"]:
 		_update_monitor_label()
+	if key == "show_hud_phase_wheel":
+		var position_arg_container = get_node_or_null("%PositionArgContainer")
+		if position_arg_container:
+			position_arg_container.visible = !Config.show_hud_phase_wheel
+		else:
+			position_arg_label.visible = !Config.show_hud_phase_wheel
+			position_arg_val.visible = !Config.show_hud_phase_wheel
+
+		phase_wheel.visible = Config.show_hud_phase_wheel
+
+	_update_hud_layout()
+
 	if key == "zoom_factor":
 		if menu_overlay:
 			if abs(menu_overlay._slider_to_zoom(menu_overlay.zoom_slider.value) - Config.zoom_factor) > 0.001:
@@ -584,13 +598,6 @@ func _on_config_changed(key: String):
 		if menu_overlay:
 			menu_overlay.day_time_slider.set_value_no_signal(Config.day_time)
 			menu_overlay.day_time_slider.value_text = menu_overlay._format_time(Config.day_time)
-	if key == "show_hud_phase_wheel":
-		var position_arg_container = get_node_or_null("%PositionArgContainer")
-		if position_arg_container:
-			position_arg_container.visible = !Config.show_hud_phase_wheel
-		else:
-			position_arg_label.visible = !Config.show_hud_phase_wheel
-			position_arg_val.visible = !Config.show_hud_phase_wheel
 		
 func _on_zero_item_clicked(index: int):
 	GameState.accented_zero_index = index
