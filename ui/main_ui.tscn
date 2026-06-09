@@ -480,9 +480,9 @@ visible = false
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.8, 0, 1)
 theme_override_fonts/font = ExtResource("font_spacemono")
-theme_override_font_sizes/font_size = 15
-text = "We found a zero off the critical line! Increase zeta iterations for improved accuracy."
-horizontal_alignment = 1
+theme_override_font_sizes/font_size = 14
+text = "Zero found off critical line. Increase zeta iterations."
+horizontal_alignment = 0
 autowrap_mode = 3
 
 [node name="FpsValLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/MonitorPanel/MarginContainer/VBox/FpsHBox"]
@@ -508,9 +508,9 @@ visible = false
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.8, 0, 1)
 theme_override_fonts/font = ExtResource("font_spacemono")
-theme_override_font_sizes/font_size = 15
+theme_override_font_sizes/font_size = 14
 text = "Performance protection activated, adjust settings."
-horizontal_alignment = 1
+horizontal_alignment = 0
 autowrap_mode = 3
 
 [node name="HeightProtectionLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/MonitorPanel/MarginContainer/VBox"]
@@ -519,9 +519,9 @@ visible = false
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.8, 0, 1)
 theme_override_fonts/font = ExtResource("font_spacemono")
-theme_override_font_sizes/font_size = 15
+theme_override_font_sizes/font_size = 14
 text = "Max world height reached, return to safe heights."
-horizontal_alignment = 1
+horizontal_alignment = 0
 autowrap_mode = 3
 
 
