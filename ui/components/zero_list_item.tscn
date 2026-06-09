@@ -18,12 +18,14 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_item")
 
 [node name="HBox" type="HBoxContainer" parent="."]
 layout_mode = 2
+mouse_filter = 2
 theme_override_constants/separation = 0
 alignment = 1
 
 [node name="RealLabel" type="RichTextLabel" parent="HBox"]
 unique_name_in_owner = true
 layout_mode = 2
+mouse_filter = 2
 theme_override_fonts/normal_font = ExtResource("1_font")
 theme_override_font_sizes/normal_font_size = 14
 bbcode_enabled = true
@@ -34,6 +36,7 @@ autowrap_mode = 0
 [node name="ImagLabel" type="RichTextLabel" parent="HBox"]
 unique_name_in_owner = true
 layout_mode = 2
+mouse_filter = 2
 theme_override_fonts/normal_font = ExtResource("1_font")
 theme_override_font_sizes/normal_font_size = 14
 bbcode_enabled = true
