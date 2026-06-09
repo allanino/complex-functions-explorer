@@ -1,0 +1,30 @@
+name: "Run GUT Unit Tests"
+
+on:
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  run-tests:
+    runs-on: ubuntu-latest
+    container:
+      image: barichello/godot-ci:4.6.3
+
+    steps:
+      - name: "Checkout Repository"
+        uses: actions/checkout@v4
+
+      - name: "Create Godot Editor Settings and Import Assets"
+        run: |
+          mkdir -p ~/.config/godot
+          # Running headless once forces Godot to import all assets and generate .godot/ directory
+          godot --headless --editor --quit
+
+      - name: "Run GUT Test Suite"
+        run: |
+          godot --headless -s addons/gut/gut_cmdline.gd \
+            -gdir=res://tests \
+            -ginclude_subdirs \
+            -gselect="test*.gd" \
+            -gexit
