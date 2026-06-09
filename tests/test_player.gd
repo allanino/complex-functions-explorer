@@ -244,9 +244,10 @@ func test_player_zoom_scaling():
 	for i in range(50):
 		player._physics_process(0.016)
 
-	# Verify world position is the same
-	assert_almost_eq(player.global_position.x, 10.0, 0.001)
-	assert_almost_eq(player.global_position.z, 10.0, 0.001)
+	# Verify mathematical position is the same
+	var new_complex = Config.world_to_complex(player.global_position.x, player.global_position.z)
+	assert_almost_eq(1.0, new_complex.x, 0.001)
+	assert_almost_eq(-1.0, new_complex.y, 0.001)
 
 	# Verify height scale and speed scale both decreased when zooming in
 	assert_lt(player.zoom_height_scale, initial_height_scale)
