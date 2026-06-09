@@ -5,7 +5,15 @@ extends Node3D
 @export var player: Node3D
 @export var chunk_size: float = 16.0
 
+@export_group("Frustum Culling")
+@export var preload_distance: int = 1
+@export var frustum_expansion: float = 2.0
+@export var behind_camera_allowance: float = 2.0
+@export var minimum_generation_radius: int = 2
+@export var generation_budget_per_frame: int = 2
+
 var chunks = {}
+var _generation_queue: Array[Vector2i] = []
 var chunk_leeway = 0.01
 var LOD_SUBS = [] # This will be set in code
 var _lod_mesh_cache = {}
@@ -56,27 +64,153 @@ func _process(delta):
 
 	# Chunk and LOD Dynamic Update
 	if player_chunk_x != _last_player_chunk.x or player_chunk_z != _last_player_chunk.y:
-		_update_chunks(player_chunk_x, player_chunk_z)
+		_queue_chunk_updates(player_chunk_x, player_chunk_z)
+
+	_process_chunk_culling()
 
 
-func _update_chunks(p_x: int, p_z: int):
+func _is_aabb_in_frustum(coord: Vector2i, camera: Camera3D) -> bool:
+	if not camera:
+		return false
+
+	var planes = camera.get_frustum()
+	var base_x = coord.x * chunk_size + chunk_size * 0.5
+	var base_z = coord.y * chunk_size + chunk_size * 0.5
+
+	var aabb_min = Vector3(base_x - (chunk_size + chunk_leeway) * 0.5, -50, base_z - (chunk_size + chunk_leeway) * 0.5)
+	var aabb_max = Vector3(base_x + (chunk_size + chunk_leeway) * 0.5, 1350, base_z + (chunk_size + chunk_leeway) * 0.5)
+
+	# Create AABB corners
+	var corners = [
+		Vector3(aabb_min.x, aabb_min.y, aabb_min.z),
+		Vector3(aabb_max.x, aabb_min.y, aabb_min.z),
+		Vector3(aabb_min.x, aabb_max.y, aabb_min.z),
+		Vector3(aabb_max.x, aabb_max.y, aabb_min.z),
+		Vector3(aabb_min.x, aabb_min.y, aabb_max.z),
+		Vector3(aabb_max.x, aabb_min.y, aabb_max.z),
+		Vector3(aabb_min.x, aabb_max.y, aabb_max.z),
+		Vector3(aabb_max.x, aabb_max.y, aabb_max.z)
+	]
+
+	var center = (aabb_min + aabb_max) * 0.5
+	var extents = (aabb_max - aabb_min) * 0.5
+	var radius = extents.length()
+
+	# Check each plane
+	for i in range(planes.size()):
+		var plane = planes[i]
+		var plane_expansion = frustum_expansion
+
+		# Plane 0 is typically the near plane in Godot Camera3D frustum
+		# Normal points INWARD (into the frustum), so negative distance means outside
+		if i == 0:
+			plane_expansion = behind_camera_allowance
+
+		# Fast sphere check
+		var d = plane.distance_to(center)
+		if d < -radius - plane_expansion:
+			return false
+
+		# Detailed AABB check
+		var all_outside = true
+		for corner in corners:
+			if plane.distance_to(corner) >= -plane_expansion:
+				all_outside = false
+				break
+
+		if all_outside:
+			return false
+
+	return true
+
+
+func _process_chunk_culling():
+	var camera = get_viewport().get_camera_3d()
+	if not camera: return
+
+	var p_x = _last_player_chunk.x
+	var p_z = _last_player_chunk.y
+	var min_rad_sq = minimum_generation_radius * minimum_generation_radius
+
+	for coord in chunks.keys():
+		var chunk = chunks[coord]
+		var dist_sq = (coord.x - p_x) * (coord.x - p_x) + (coord.y - p_z) * (coord.y - p_z)
+
+		var is_visible = false
+		if dist_sq <= min_rad_sq:
+			is_visible = true
+		else:
+			is_visible = _is_aabb_in_frustum(coord, camera)
+
+		chunk.visible = is_visible and not GameState.performance_protection_active
+
+	# Process the generation queue
+	if _generation_queue.size() > 0:
+		_sort_generation_queue(camera, p_x, p_z, min_rad_sq)
+		var generated = 0
+		var remaining_queue: Array[Vector2i] = []
+
+		for coord in _generation_queue:
+			if generated < generation_budget_per_frame:
+				if not chunks.has(coord):
+					_load_chunk(coord)
+					generated += 1
+			else:
+				remaining_queue.append(coord)
+
+		_generation_queue = remaining_queue
+
+func _sort_generation_queue(camera: Camera3D, p_x: int, p_z: int, min_rad_sq: float):
+	# Calculate scores for sorting: Lower score is better
+	# Priorities:
+	# 1. Within min radius or frustum (high priority: 0 to view_dist)
+	# 2. Outside frustum (low priority: view_dist + distance)
+	var queue_scores = {}
+	for coord in _generation_queue:
+		var dist_sq = (coord.x - p_x) * (coord.x - p_x) + (coord.y - p_z) * (coord.y - p_z)
+		var is_important = dist_sq <= min_rad_sq or _is_aabb_in_frustum(coord, camera)
+		var score = dist_sq
+		if not is_important:
+			score += 1000000.0 # Push to back of queue
+		queue_scores[coord] = score
+
+	_generation_queue.sort_custom(func(a, b): return queue_scores[a] < queue_scores[b])
+
+func _queue_chunk_updates(p_x: int, p_z: int):
 	_last_player_chunk = Vector2i(p_x, p_z)
 
-	# Load new chunks
-	for x in range(p_x - Config.view_distance, p_x + Config.view_distance + 1):
-		for z in range(p_z - Config.view_distance, p_z + Config.view_distance + 1):
-			var chunk_coord = Vector2i(x, z)
-			if not chunks.has(chunk_coord):
-				_load_chunk(chunk_coord)
+	var camera = get_viewport().get_camera_3d()
+	var view_dist = Config.view_distance
+	var preload_dist = view_dist + preload_distance
+	var view_dist_sq = view_dist * view_dist
+	var preload_dist_sq = preload_dist * preload_dist
+
+	# Identify new candidate chunks using circular filtering
+	for x in range(p_x - preload_dist, p_x + preload_dist + 1):
+		for z in range(p_z - preload_dist, p_z + preload_dist + 1):
+			var dist_sq = (x - p_x) * (x - p_x) + (z - p_z) * (z - p_z)
+			if dist_sq <= preload_dist_sq:
+				var chunk_coord = Vector2i(x, z)
+				if not chunks.has(chunk_coord) and not _generation_queue.has(chunk_coord):
+					_generation_queue.append(chunk_coord)
 
 	# Unload distant chunks
 	var chunks_to_remove = []
 	for chunk_coord in chunks.keys():
-		if abs(chunk_coord.x - p_x) > Config.view_distance or abs(chunk_coord.y - p_z) > Config.view_distance:
+		var dist_sq = (chunk_coord.x - p_x) * (chunk_coord.x - p_x) + (chunk_coord.y - p_z) * (chunk_coord.y - p_z)
+		if dist_sq > preload_dist_sq:
 			chunks_to_remove.append(chunk_coord)
 
 	for chunk_coord in chunks_to_remove:
 		_unload_chunk(chunk_coord)
+
+	# Remove distant chunks from the queue
+	var new_queue: Array[Vector2i] = []
+	for chunk_coord in _generation_queue:
+		var dist_sq = (chunk_coord.x - p_x) * (chunk_coord.x - p_x) + (chunk_coord.y - p_z) * (chunk_coord.y - p_z)
+		if dist_sq <= preload_dist_sq:
+			new_queue.append(chunk_coord)
+	_generation_queue = new_queue
 
 	_update_all_chunks_lod()
 
@@ -316,7 +450,7 @@ func _on_config_changed(key: String):
 			_update_all_chunks_lod(true)
 		if key == "view_distance" or key == "terrain_detail" or key == "function_type":
 			if player:
-				_update_chunks(floor(player.global_position.x / chunk_size), floor(player.global_position.z / chunk_size))
+				_queue_chunk_updates(floor(player.global_position.x / chunk_size), floor(player.global_position.z / chunk_size))
 
 func _on_state_changed(key: String):
 	if key in ["current_branch", "morph_value", "newton_path", "newton_path_bbox", "real_level_curves_highlighted", "imag_level_curves_highlighted", "effective_zoom"]:
