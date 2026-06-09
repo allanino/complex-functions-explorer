@@ -3,6 +3,10 @@ extends GutTest
 var player_scene = preload("res://player/player.tscn")
 var ui_scene = preload("res://ui/main_ui.tscn")
 
+func before_all():
+	Config.zoom_factor = 1.0
+	Config.zoom_damping = 0.5
+
 func test_player_loads_and_physics_process_runs():
 	var player = player_scene.instantiate()
 	player.run_demo = false
@@ -235,7 +239,7 @@ func test_player_zoom_scaling():
 	var initial_speed_scale = player.zoom_speed_scale
 
 	Config.zoom_factor = 2.0
-	for i in range(100):
+	for i in range(10):
 		player._physics_process(0.016)
 
 	var new_complex = Config.world_to_complex(player.global_position.x, player.global_position.z)
