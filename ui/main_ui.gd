@@ -298,7 +298,7 @@ func _update_zeros_list():
 		child.queue_free()
 
 	var actual_hud_scale = Config.hud_scale
-	for i in range(current_size - 1, max(-1, current_size - 11), -1):
+	for i in range(current_size - 1, max(-1, current_size - 101), -1):
 		var zero = GameState.visited_zeros[i]
 		var re_str = _format_float_3(zero[0])
 		var im_str = _format_float_3(zero[1])

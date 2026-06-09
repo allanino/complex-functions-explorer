@@ -666,7 +666,7 @@ func _physics_process(delta):
 						if auto_walk_state == AutoWalkState.MOVING_TO_LINE or auto_walk_state == AutoWalkState.WALKING:
 							if snappedf(true_z.x, 0.001) != 0.500:
 								GameState.found_off_critical_line = true
-						if GameState.visited_zeros.size() > 10:
+						if GameState.visited_zeros.size() > 100:
 							GameState.visited_zeros.pop_front()
 						GameState.state_changed.emit("visited_zeros")
 						last_detected_z = true_z
