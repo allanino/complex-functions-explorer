@@ -74,7 +74,7 @@ func _ready():
 		global_position = Vector3(5.0, 0.0, 0.0)
 	else:
 		global_position = Vector3(0.0, 0.0, 0.0)
-		rotation.y = -PI / 2.0
+		rotation.y = - PI / 2.0
 	var complex_pos = Config.world_to_complex(global_position.x, global_position.z)
 	last_t = complex_pos.y
 	last_z = complex_pos
@@ -235,7 +235,7 @@ func _unhandled_input(event):
 			else:
 				global_position.x = 0.0
 				global_position.z = 0.0
-				rotation.y = -PI / 2.0
+				rotation.y = - PI / 2.0
 			velocity = Vector3.ZERO
 			auto_walk_state = AutoWalkState.NONE
 			height_offset = 0.0
@@ -290,22 +290,6 @@ func _physics_process(delta):
 		velocity = Vector3.ZERO
 		var target_y_menu = get_terrain_height(global_position.x, global_position.z) + scaled_camera_height + height_offset
 		camera.position = Vector3(0.0, target_y_menu, 0.0) + transform.basis.inverse() * camera_push_offset
-		return
-
-	if is_detached_interactive or is_menu_open:
-		velocity = Vector3.ZERO
-		# Update camera height even if menu is open, so it visually zooms
-		var terrain_h_local = get_terrain_height(global_position.x, global_position.z)
-		var target_y = terrain_h_local + scaled_camera_height + height_offset
-		camera.position = Vector3(0.0, target_y, 0.0) + transform.basis.inverse() * camera_push_offset
-		return
-
-	if is_detached_interactive or is_menu_open:
-		velocity = Vector3.ZERO
-		# Update camera height even if menu is open, so it visually zooms
-		var terrain_h_local = get_terrain_height(global_position.x, global_position.z)
-		var target_y = terrain_h_local + scaled_camera_height + height_offset
-		camera.position = Vector3(0.0, target_y, 0.0) + transform.basis.inverse() * camera_push_offset
 		return
 
 	# Cache current field value and mathematical coordinates for reuse
