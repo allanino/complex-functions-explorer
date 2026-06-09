@@ -32,15 +32,11 @@ var portal_flash: ColorRect
 @onready var position_arg_label = %PositionArgLabel
 @onready var position_arg_val = %PositionArgVal
 
-
 @export var show_hud_chunks: bool = false
 
 # New UI Node Paths
 var current_scale = 2.0
-var _last_zeros_visible: bool = false
 const BASE_HUD_PANEL_SIZE: float = 240.0
-const RENDER_EACH_N_FRAME: int = 3
-var _skip_frame_counter: int = 0
 
 # Theme color constants (BBCode hex)
 const CLR_DIM = "#e7e4dc80" # ink_dim (50% alpha)
@@ -95,8 +91,15 @@ func update_arg_val(f: Vector2):
 		position_arg_arrow.color = final_color
 		position_arg_arrow.queue_redraw()
 
+func _setup_branch_data():
+	if Config.function.get("is_multivalued", false):
+		phase_branch_val.visible = true
+		branch_label.visible = true
+	else:
+		phase_branch_val.visible = false
+		branch_label.visible = false
+
 func _ready():
-	hud_columns.modulate.a = 0.0
 	Config.config_changed.connect(_on_config_changed)
 
 	var mobile_controls = get_node_or_null("Control/MobileControls")
@@ -124,12 +127,25 @@ func _ready():
 	menu_overlay.update_hud_layout_signal.connect(_update_hud_layout)
 
 	GameState.state_changed.connect(_on_game_state_changed)
-
+	
+	# Monitor card don't need high frequency update
 	var monitor_timer = Timer.new()
 	monitor_timer.autostart = true
 	monitor_timer.wait_time = 0.5
 	monitor_timer.timeout.connect(_on_monitor_timer_timeout)
 	add_child(monitor_timer)
+
+	var values_timer = Timer.new()
+	values_timer.autostart = true
+	values_timer.wait_time = 0.05
+	values_timer.timeout.connect(_on_values_timer_timeout)
+	add_child(values_timer)
+
+	var update_layout_timer = Timer.new()
+	update_layout_timer.autostart = true
+	update_layout_timer.wait_time = 0.1
+	update_layout_timer.timeout.connect(_update_hud_layout)
+	add_child(update_layout_timer)
 
 	var position_arg_container = get_node_or_null("%PositionArgContainer")
 	if position_arg_container:
@@ -146,22 +162,74 @@ func _ready():
 	menu_overlay.world_manager = world_manager
 	menu_overlay.tooltip_manager = tooltip_manager
 
-	_last_zeros_visible = Config.show_hud_zeros
+	zeros_panel.visible = Config.show_hud_zeros
+	minimap_panel.visible = Config.show_minimap
+	phase_wheel.visible = Config.show_hud_phase_wheel
+	position_panel.visible = Config.show_hud_navigation
 
-	# Wait for layout passes to finish with visibility active (so sizes calculate)
-	await get_tree().process_frame
-	await get_tree().process_frame
-	await get_tree().process_frame
-	await get_tree().process_frame
-
-	_update_hud_layout()
-	
-	# Smooth fade-in to make the HUD appearance feel premium and completely hide the layout settling
-	var tween = create_tween()
-	tween.tween_property(hud_columns, "modulate:a", 1.0, 0.15).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-
+	_setup_branch_data()
 	_update_monitor_label()
 	_update_zeros_list()
+
+	_update_hud_layout()
+
+func _on_values_timer_timeout():
+	var z = player.global_position.z
+
+	if Config.show_hud_zeros:
+		if Config.show_rvm and Config.function.get("has_von_mangoldt", false):
+			var T = abs(Config.world_to_complex(0.0, z).y)
+			var rvm_val = _get_rvm_n(T) - _get_rvm_n(GameState.rvm_start_t)
+			rvm_val = max(0.0, rvm_val)
+			var delta_val = GameState.total_zeros_found - rvm_val
+			var delta_sign = "+" if delta_val >= 0 else ""
+
+			if player.auto_walk_state == 1 or player.auto_walk_state == 2:
+				if abs(delta_val) >= 2.0:
+					GameState.missed_zeta_zero = true
+			else:
+				GameState.missed_zeta_zero = false
+
+			if rvm_n_label:
+				rvm_n_label.text = "[color=gray]N(t)[/color] ≈ [color=#c8a96e]%.1f[/color]" % rvm_val
+			if rvm_delta_label:
+				if GameState.missed_zeta_zero:
+					rvm_delta_label.text = "Δ = %s[color=red]%.1f[/color]" % [delta_sign, delta_val]
+				else:
+					rvm_delta_label.text = "Δ = %s%.1f" % [delta_sign, delta_val]
+
+			if rvm_hbox:
+				rvm_hbox.visible = true
+		else:
+			if rvm_hbox:
+				rvm_hbox.visible = false
+
+	var x = player.global_position.x
+	var f = player.current_f
+
+	# Update phase wheel
+	if phase_wheel:
+		phase_wheel.update_data(f)
+
+	if position_arg_val.visible:
+		update_arg_val(f)
+
+	var complex_pos = Config.world_to_complex(x, z)
+	var val_re = complex_pos.x
+	var val_im = complex_pos.y
+	var val_fx = f.x
+	var val_fy = f.y
+
+	var target_re = _format_float_3(val_fx)
+	var target_im = _format_float_3(val_fy)
+
+	var domain_re = _format_float_3(val_re)
+	var domain_im = _format_float_3(val_im)
+
+	target_val.text = _bb_re(target_re, CLR_CYAN) + _bb_im(target_im)
+	domain_val.text = _bb_re(domain_re, CLR_CYAN) + _bb_im(domain_im)
+
+	phase_abs_val.text = _format_float_3(f.length())
 
 
 func _on_monitor_timer_timeout():
@@ -173,6 +241,8 @@ func _on_game_state_changed(key: String):
 		_update_monitor_label()
 	elif key in ["visited_zeros", "total_zeros_found"]:
 		_update_zeros_list()
+	elif key == "current_branch":
+		phase_branch_val.text = str(GameState.current_branch)
 
 func _update_monitor_label():
 	monitor_panel.visible = Config.show_hud_monitor_fps or show_hud_chunks or GameState.performance_protection_active or GameState.height_protection_active or GameState.found_off_critical_line or GameState.missed_zeta_zero
@@ -282,104 +352,6 @@ func _get_rvm_n(T: float) -> float:
 
 	# Riemann-von Mangoldt formula for Zeta: N(T) ≈ (T/2π) log(T/2πe) + 7/8
 	return (T / (2.0 * PI)) * (log(T / (2.0 * PI)) - 1.0) + 7.0 / 8.0
-
-func _skip_render_hud() -> bool:
-	_skip_frame_counter += 1
-	if _skip_frame_counter % RENDER_EACH_N_FRAME != 0:
-		return true
-
-	_skip_frame_counter = 0
-	return false
-
-
-func _process(_delta):
-	if _skip_render_hud():
-		return
-
-	if Config.show_hud_zeros and not _last_zeros_visible:
-		GameState.rvm_start_t = abs(Config.world_to_complex(0.0, player.global_position.z).y)
-	_last_zeros_visible = Config.show_hud_zeros
-
-	if not player:
-		return
-
-	var x = player.global_position.x
-	var z = player.global_position.z
-
-	var f = player.current_f
-
-	if position_arg_val.visible:
-		update_arg_val(f)
-
-	# Update Zeta Zeros display
-	var f_data = Config.function
-
-	zeros_panel.visible = Config.show_hud_zeros
-
-	if Config.show_hud_zeros:
-		# Riemann-von Mangoldt formula: N(T) ≈ (T/2π) log(T/2πe) + 7/8
-		if Config.show_rvm and f_data.get("has_von_mangoldt", false):
-			var T = abs(Config.world_to_complex(0.0, z).y)
-			var rvm_val = _get_rvm_n(T) - _get_rvm_n(GameState.rvm_start_t)
-			rvm_val = max(0.0, rvm_val)
-			var delta_val = GameState.total_zeros_found - rvm_val
-			var delta_sign = "+" if delta_val >= 0 else ""
-
-			if player.auto_walk_state == 1 or player.auto_walk_state == 2:
-				if abs(delta_val) >= 2.0:
-					GameState.missed_zeta_zero = true
-			else:
-				GameState.missed_zeta_zero = false
-
-			if rvm_n_label:
-				rvm_n_label.text = "[color=gray]N(t)[/color] ≈ [color=#c8a96e]%.1f[/color]" % rvm_val
-			if rvm_delta_label:
-				if GameState.missed_zeta_zero:
-					rvm_delta_label.text = "Δ = %s[color=red]%.1f[/color]" % [delta_sign, delta_val]
-				else:
-					rvm_delta_label.text = "Δ = %s%.1f" % [delta_sign, delta_val]
-
-			if rvm_hbox:
-				rvm_hbox.visible = true
-		else:
-			if rvm_hbox:
-				rvm_hbox.visible = false
-
-	# Update phase wheel
-	if phase_wheel:
-		phase_wheel.update_data(f)
-
-	var complex_pos = Config.world_to_complex(x, z)
-	var val_re = complex_pos.x
-	var val_im = complex_pos.y
-	var val_fx = f.x
-	var val_fy = f.y
-
-	var target_re = _format_float_3(val_fx)
-	var target_im = _format_float_3(val_fy)
-
-	var domain_re = _format_float_3(val_re)
-	var domain_im = _format_float_3(val_im)
-
-	target_val.text = _bb_re(target_re, CLR_CYAN) + _bb_im(target_im)
-	domain_val.text = _bb_re(domain_re, CLR_CYAN) + _bb_im(domain_im)
-
-	if f_data.get("is_multivalued", false):
-		phase_branch_val.text = str(GameState.current_branch)
-		phase_branch_val.visible = true
-		branch_label.visible = true
-	else:
-		phase_branch_val.visible = false
-		branch_label.visible = false
-
-	phase_abs_val.text = _format_float_3(f.length())
-
-	minimap_panel.visible = Config.show_minimap
-	phase_wheel.visible = Config.show_hud_phase_wheel
-	position_panel.visible = Config.show_hud_navigation
-
-
-	_update_hud_layout()
 
 var _last_hud_state = {}
 
@@ -579,10 +551,31 @@ func _zoom_to_slider(zoom: float) -> float:
 	return (log(zoom) - log(min_zoom)) / b
 
 func _on_config_changed(key: String):
-	if key in ["function_type", "show_hud_zeros"]:
+	if key == "function_type":
+		_update_zeros_list()
+		_setup_branch_data()
+	if key == "show_hud_navigation":
+		position_panel.visible = Config.show_hud_navigation
+	if key == "show_minimap":
+		minimap_panel.visible = Config.show_minimap
+	if key == "show_hud_zeros":
+		zeros_panel.visible = Config.show_hud_zeros
 		_update_zeros_list()
 	if key in ["show_hud_monitor_fps", "show_hud_chunks"]:
 		_update_monitor_label()
+	if key == "show_hud_phase_wheel":
+		var position_arg_container = get_node_or_null("%PositionArgContainer")
+		if position_arg_container:
+			position_arg_container.visible = !Config.show_hud_phase_wheel
+		else:
+			position_arg_label.visible = !Config.show_hud_phase_wheel
+			position_arg_val.visible = !Config.show_hud_phase_wheel
+
+		phase_wheel.visible = Config.show_hud_phase_wheel
+
+	if key in ["function_type", "show_hud_navigation", "show_hud_phase_wheel", "show_minimap", "show_hud_zeros", "show_hud_monitor_fps", "show_hud_chunks"]:
+		_update_hud_layout()
+
 	if key == "zoom_factor":
 		if menu_overlay:
 			if abs(menu_overlay._slider_to_zoom(menu_overlay.zoom_slider.value) - Config.zoom_factor) > 0.001:
@@ -591,13 +584,6 @@ func _on_config_changed(key: String):
 		if menu_overlay:
 			menu_overlay.day_time_slider.set_value_no_signal(Config.day_time)
 			menu_overlay.day_time_slider.value_text = menu_overlay._format_time(Config.day_time)
-	if key == "show_hud_phase_wheel":
-		var position_arg_container = get_node_or_null("%PositionArgContainer")
-		if position_arg_container:
-			position_arg_container.visible = !Config.show_hud_phase_wheel
-		else:
-			position_arg_label.visible = !Config.show_hud_phase_wheel
-			position_arg_val.visible = !Config.show_hud_phase_wheel
 		
 func _on_zero_item_clicked(index: int):
 	GameState.accented_zero_index = index
