@@ -325,7 +325,6 @@ alignment = 2
 
 [node name="MainUIStackRight" type="VBoxContainer" parent="Control/MainUIColumns"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(150, 0)
 layout_mode = 2
 size_flags_vertical = 8
 theme_override_constants/separation = 10
@@ -516,7 +515,6 @@ autowrap_mode = 3
 
 [node name="PositionPanel" type="PanelContainer" parent="Control/MainUIColumns/MainUIStackRight"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 100)
 layout_mode = 2
 size_flags_horizontal = 3
 
@@ -655,7 +653,7 @@ horizontal_alignment = 0
 
 [node name="MinimapPanel" type="PanelContainer" parent="Control/MainUIColumns/MainUIStackRight"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 100)
+custom_minimum_size = Vector2(0, 240)
 layout_mode = 2
 size_flags_horizontal = 3
 
@@ -692,7 +690,6 @@ custom_minimum_size = Vector2(0, 3)
 layout_mode = 2
 
 [node name="MinimapAspect" parent="Control/MainUIColumns/MainUIStackRight/MinimapPanel/MarginContainer/VBox" instance=ExtResource("10_minimap")]
-custom_minimum_size = Vector2(0, 170)
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3

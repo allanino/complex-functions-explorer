@@ -6,6 +6,7 @@ const NEON_FONT = preload("res://ui/theme/font_neon.tres")
 @onready var hud_stack_left = %MainUIStackLeft
 @onready var hud_stack_right = %MainUIStackRight
 @onready var minimap_panel = %MinimapPanel
+@onready var minimap = %MinimapAspect
 @onready var phase_wheel = %PhaseWheel
 @onready var position_panel = %PositionPanel
 @onready var monitor_panel = %MonitorPanel
@@ -38,7 +39,7 @@ var portal_flash: ColorRect
 # New UI Node Paths
 var current_scale = 2.0
 var _last_zeros_visible: bool = false
-const BASE_HUD_PANEL_SIZE: float = 190.0
+const BASE_HUD_PANEL_SIZE: float = 240.0
 const RENDER_EACH_N_FRAME: int = 3
 var _skip_frame_counter: int = 0
 var _last_zeros_count: int = -1
@@ -123,6 +124,9 @@ func _ready():
 	if phase_wheel:
 		phase_wheel.resized.connect(_on_complex_aspect_resized)
 
+	if minimap:
+		minimap.resized.connect(_on_minimap_resized)
+
 	hud_columns.offset_top = -1000
 
 	menu_overlay.apply_aa_signal.connect(apply_aa)
@@ -162,6 +166,9 @@ func _on_complex_aspect_resized():
 	if phase_wheel.custom_minimum_size.y != phase_wheel.size.x:
 		phase_wheel.custom_minimum_size.y = phase_wheel.size.x
 
+func _on_minimap_resized():
+	if minimap.custom_minimum_size.y != minimap.size.x:
+		minimap.custom_minimum_size.y = minimap.size.x
 
 func apply_aa():
 	var vp = get_viewport()
