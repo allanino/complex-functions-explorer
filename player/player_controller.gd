@@ -280,8 +280,8 @@ func _physics_process(delta):
 		global_position.x *= zoom_ratio
 		global_position.z *= zoom_ratio
 
-	zoom_height_scale = pow(GameState.effective_zoom, Config.zoom_damping - 1.0)
-	zoom_speed_scale = pow(GameState.effective_zoom, Config.zoom_damping - 1.0)
+		zoom_height_scale = pow(GameState.effective_zoom, Config.zoom_damping - 1.0)
+		zoom_speed_scale = pow(GameState.effective_zoom, Config.zoom_damping - 1.0)
 
 	var scaled_camera_height = Config.camera_height * zoom_height_scale
 	var scaled_movement_speed = Config.movement_speed * zoom_speed_scale
