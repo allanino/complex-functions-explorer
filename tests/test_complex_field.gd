@@ -1,4 +1,4 @@
-extends GutTest
+extends BaseTest
 
 const ComplexFieldScript = preload("res://math/complex_field.gd")
 

@@ -1,9 +1,11 @@
-extends GutTest
+extends BaseTest
 
 var player_scene = preload("res://player/player.tscn")
 var ui_scene = preload("res://ui/main_ui.tscn")
 
 func before_all():
+	super.before_all()
+
 	Config.zoom_factor = 1.0
 	Config.zoom_damping = 0.5
 
