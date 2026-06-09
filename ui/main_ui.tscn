@@ -693,7 +693,6 @@ layout_mode = 2
 
 [node name="MinimapAspect" parent="Control/MainUIColumns/MainUIStackRight/MinimapPanel/MarginContainer/VBox" instance=ExtResource("10_minimap")]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 240)
 layout_mode = 2
 size_flags_horizontal = 3
 ratio = 1.0
