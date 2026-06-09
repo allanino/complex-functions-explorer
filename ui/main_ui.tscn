@@ -583,8 +583,8 @@ autowrap_mode = 0
 
 [node name="PhaseWheelMargin" type="MarginContainer" parent="Control/MainUIColumns/MainUIStackRight/PositionPanel/MarginContainer/VBox"]
 layout_mode = 2
-theme_override_constants/margin_left = 30
-theme_override_constants/margin_right = 30
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_right = 20
 
 [node name="PhaseWheel" parent="Control/MainUIColumns/MainUIStackRight/PositionPanel/MarginContainer/VBox/PhaseWheelMargin" instance=ExtResource("11_phase_wheel")]
 unique_name_in_owner = true
