@@ -4,7 +4,11 @@ signal state_changed(key: String)
 
 # Session state (not saved)
 var visited_zeros: Array[Vector2] = []
-var total_zeros_found: int = 0
+var total_zeros_found: int = 0:
+	set(v):
+		if total_zeros_found == v: return
+		total_zeros_found = v
+		state_changed.emit("total_zeros_found")
 var accented_zero_index: int = -1:
 	set(v):
 		if accented_zero_index == v: return
@@ -12,11 +16,27 @@ var accented_zero_index: int = -1:
 		state_changed.emit("accented_zero_index")
 
 var rvm_start_t: float = 0.0
-var performance_protection_active: bool = false
+var performance_protection_active: bool = false:
+	set(v):
+		if performance_protection_active == v: return
+		performance_protection_active = v
+		state_changed.emit("performance_protection_active")
 var is_menu_open: bool = false
-var height_protection_active: bool = false
-var missed_zeta_zero: bool = false
-var found_off_critical_line: bool = false
+var height_protection_active: bool = false:
+	set(v):
+		if height_protection_active == v: return
+		height_protection_active = v
+		state_changed.emit("height_protection_active")
+var missed_zeta_zero: bool = false:
+	set(v):
+		if missed_zeta_zero == v: return
+		missed_zeta_zero = v
+		state_changed.emit("missed_zeta_zero")
+var found_off_critical_line: bool = false:
+	set(v):
+		if found_off_critical_line == v: return
+		found_off_critical_line = v
+		state_changed.emit("found_off_critical_line")
 var effective_zoom: float = 1.0:
 	set(v):
 		if effective_zoom == v: return
