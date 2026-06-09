@@ -15,9 +15,15 @@ enum AutoWalkState {NONE, MOVING_TO_LINE, WALKING, NEWTON_WALK}
 
 var rotation_x = 0.0
 var camera_input_dir: Vector2 = Vector2.ZERO
-var auto_walk_state = AutoWalkState.NONE
+var auto_walk_state = AutoWalkState.NONE: set = _set_auto_walk_state
 var newton_target_z: Vector2 = Vector2.ZERO
 var newton_wait_timer: float = 0.0
+
+func _set_auto_walk_state(value):
+	auto_walk_state = value
+	if auto_walk_state == AutoWalkState.NONE:
+		GameState.found_off_critical_line = false
+		GameState.missed_zeta_zero = false
 var newton_converged: bool = false
 var re_label: Label3D
 var im_label: Label3D
@@ -653,6 +659,9 @@ func _physics_process(delta):
 					if converged && true_z.distance_to(last_detected_z) > 0.001:
 						GameState.total_zeros_found += 1
 						GameState.visited_zeros.push_back(true_z)
+						if auto_walk_state == AutoWalkState.MOVING_TO_LINE or auto_walk_state == AutoWalkState.WALKING:
+							if abs(true_z.x - 0.5) > 0.0001:
+								GameState.found_off_critical_line = true
 						if GameState.visited_zeros.size() > 10:
 							GameState.visited_zeros.pop_front()
 						last_detected_z = true_z
