@@ -1,11 +1,5 @@
 extends BaseTest
 
-
-
-
-
-
-
 func test_sky_shader_loads():
 	var shader := load("res://environment/sky.gdshader")
 

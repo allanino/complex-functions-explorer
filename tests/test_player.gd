@@ -1,6 +1,5 @@
 extends BaseTest
 
-
 var player_scene = preload("res://player/player.tscn")
 var ui_scene = preload("res://ui/main_ui.tscn")
 
