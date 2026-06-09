@@ -113,21 +113,21 @@ corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_scrollbar_thumb_normal"]
-bg_color = Color(0.89, 0.875, 0.845, 0.45)
+bg_color = Color(0.784314, 0.662745, 0.431373, 0.4)
 corner_radius_top_left = 4
 corner_radius_top_right = 4
 corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_scrollbar_thumb_hover"]
-bg_color = Color(0.89, 0.875, 0.845, 0.6)
+bg_color = Color(0.784314, 0.662745, 0.431373, 0.7)
 corner_radius_top_left = 4
 corner_radius_top_right = 4
 corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_scrollbar_thumb_pressed"]
-bg_color = Color(0.784, 0.663, 0.431, 0.75)
+bg_color = Color(0.784314, 0.662745, 0.431373, 1)
 corner_radius_top_left = 4
 corner_radius_top_right = 4
 corner_radius_bottom_right = 4
