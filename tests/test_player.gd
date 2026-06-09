@@ -230,6 +230,8 @@ func test_player_zoom_scaling():
 	Config.zoom_damping = 0.5
 	GameState.effective_zoom = 1.0
 
+	player.is_menu_open = false
+	player.is_detached_interactive = false
 	player.global_position = Vector3(10.0, 0.0, 10.0)
 	# Call physics process to update logic
 	player._physics_process(0.016)
@@ -238,6 +240,7 @@ func test_player_zoom_scaling():
 	var initial_speed_scale = player.zoom_speed_scale
 
 	Config.zoom_factor = 2.0
+	GameState.effective_zoom = 1.0
 	for i in range(50):
 		player._physics_process(0.016)
 

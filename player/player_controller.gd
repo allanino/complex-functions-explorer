@@ -274,14 +274,12 @@ func _physics_process(delta):
 		return
 
 	# Smooth zoom interpolation
-	var old_ez = GameState.effective_zoom
 	GameState.effective_zoom = lerp(GameState.effective_zoom, float(Config.zoom_factor), delta * 8.0)
 	if abs(GameState.effective_zoom - Config.zoom_factor) < 0.001:
 		GameState.effective_zoom = float(Config.zoom_factor)
 
-	if GameState.effective_zoom != old_ez:
-		zoom_height_scale = pow(GameState.effective_zoom, Config.zoom_damping - 1.0)
-		zoom_speed_scale = pow(GameState.effective_zoom, Config.zoom_damping - 1.0)
+	zoom_height_scale = pow(GameState.effective_zoom, Config.zoom_damping - 1.0)
+	zoom_speed_scale = pow(GameState.effective_zoom, Config.zoom_damping - 1.0)
 
 	var scaled_camera_height = Config.camera_height * zoom_height_scale
 	var scaled_movement_speed = Config.movement_speed * zoom_speed_scale
