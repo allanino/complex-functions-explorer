@@ -71,10 +71,11 @@ void fragment() {
     // Draw the glowing track ring
     float track_dist = abs(mag - track_radius);
 
-    // Create an emissive neon-like glow bleeding effect
-    float track_glow = exp(-track_dist * 20.0) * 0.1;
     // Core of the ring
-    float track_core = smoothstep(0.05 + fwidth(track_dist), 0.0, track_dist);
+    float ring_half_width = 0.05;
+    float aa = fwidth(track_dist) * 0.8;
+
+    float track_core = smoothstep(ring_half_width + aa, ring_half_width - aa, track_dist);
 
     // Base composition is a transparent background + colored glowing ring
     vec3 color = vec3(0.0);
@@ -82,10 +83,9 @@ void fragment() {
 
     // Add colored ring. The color depends on the phase at that point on the ring.
     vec3 ring_color = color_hsv;
-    color += ring_color * track_glow;
-    alpha += track_glow;
-    color = mix(color, ring_color * 1.5, track_core); // Make the core bright
-    alpha = max(alpha, track_core);
+
+    color = mix(color, ring_color * 1.15, track_core); // Make the core bright
+    alpha = max(alpha, pow(track_core, 1.4));
 
     // Calculate arrow mask (deferred compositing so it renders on top of ticks)
     float arrow_mask = 0.0;
@@ -94,7 +94,12 @@ void fragment() {
         vec2 dir = current_f / f_mag;
         float arrow_gap = 0.12; // gap between arrowhead tip and the color ring
         vec2 tip = dir * (track_radius - arrow_gap);
-        vec2 bead_pos = dir * track_radius; // bead stays on the ring
+
+    
+        float ring_thickness = 0.003; // tune visually
+        vec2 bead_pos = dir * (track_radius - ring_thickness * 0.5);
+
+        // vec2 bead_pos = dir * track_radius; // bead stays on the ring
 
         // Dynamic minimum line thickness
         float fw_arrow = fwidth(z.x);
@@ -103,8 +108,17 @@ void fragment() {
         vec2 shaft_start = dir * 0.5;
         vec2 head_base = tip - 0.1 * dir;
         float d_shaft = sdSegment(z, shaft_start, head_base);
-        float arrow_thickness = 0.007 + fw_arrow;
-        float shaft_mask = smoothstep(arrow_thickness + fw_arrow, arrow_thickness - fw_arrow, d_shaft);
+        float arrow_thickness = 0.015;
+        
+        float arrow_aa = fw_arrow * 0.9;
+
+        float shaft_mask = smoothstep(
+            arrow_thickness + arrow_aa,
+            arrow_thickness - arrow_aa,
+            d_shaft
+        );
+
+        
 
         // Arrow head
         vec2 perp = vec2(-dir.y, dir.x);
@@ -112,7 +126,8 @@ void fragment() {
         float head_mask = smoothstep(fw_arrow, -fw_arrow, d_head);
 
         // Arrow dot/bead pinned to the track ring
-        float d_bead = length(z - bead_pos) - 0.025;
+        float bead_radius = 0.025;
+        float d_bead = length(z - bead_pos) - bead_radius;
         float bead_mask = smoothstep(fw_arrow, -fw_arrow, d_bead);
 
         arrow_mask = max(shaft_mask, max(head_mask, bead_mask));
@@ -138,14 +153,21 @@ void fragment() {
         bool is_cardinal = (cardinal_check < 0.001 || cardinal_check > PI * 0.5 - 0.001);
 
         // Radial extent of the tick segment: just inside the track
-        float tick_inner = is_cardinal ? track_radius - 0.08 : track_radius - 0.06;
-        float tick_outer = track_radius - 0.02;
-        float tick_half_width = is_cardinal ? 0.008 : 0.004;
+        float tick_inner = is_cardinal ? track_radius - 0.1 : track_radius - 0.08;
+        float tick_outer = track_radius - 0.05;
+        float tick_half_width = is_cardinal ? 0.008 : 0.006;
 
         vec2 p0 = tick_dir * tick_inner;
         vec2 p1 = tick_dir * tick_outer;
         float d = sdSegment(z, p0, p1);
-        float tick_mask = smoothstep(tick_half_width + fw, tick_half_width - fw, d);
+       
+        float tick_aa = fw * 0.45;
+
+        float tick_mask = smoothstep(
+            tick_half_width + tick_aa,
+            tick_half_width - tick_aa,
+            d
+        );
 
         if (is_cardinal) {
             best_cardinal = max(best_cardinal, tick_mask * 1.0);
