@@ -33,6 +33,7 @@ var portal_flash: ColorRect
 @onready var preset_controller = %PresetController
 @onready var position_arg_label = %PositionArgLabel
 @onready var position_arg_val = %PositionArgVal
+@onready var off_critical_line_label = %OffCriticalLineLabel
 
 @export var show_hud_chunks: bool = false
 
@@ -101,12 +102,6 @@ func update_arg_val(f: Vector2):
 func _ready():
 	hud_columns.modulate.a = 0.0
 	Config.config_changed.connect(_on_config_changed)
-	
-	# Ensure the performance protection label uses the correct neon font variation
-	if menu_overlay and menu_overlay.perf_label:
-		menu_overlay.perf_label.add_theme_font_override("font", NEON_FONT)
-	if menu_overlay and menu_overlay.height_label:
-		menu_overlay.height_label.add_theme_font_override("font", NEON_FONT)
 
 	var mobile_controls = get_node_or_null("Control/MobileControls")
 	if mobile_controls and mobile_controls.has_node("SettingsButton"):
@@ -277,10 +272,19 @@ func _process(_delta):
 			var delta_val = total_count - rvm_val
 			var delta_sign = "+" if delta_val >= 0 else ""
 
+			if player.auto_walk_state == 1 or player.auto_walk_state == 2:
+				if abs(delta_val) >= 2.0:
+					GameState.missed_zeta_zero = true
+			else:
+				GameState.missed_zeta_zero = false
+
 			if rvm_n_label:
 				rvm_n_label.text = "[color=gray]N(t)[/color] ≈ [color=#c8a96e]%.1f[/color]" % rvm_val
 			if rvm_delta_label:
-				rvm_delta_label.text = "Δ = %s%.1f" % [delta_sign, delta_val]
+				if GameState.missed_zeta_zero:
+					rvm_delta_label.text = "Δ = %s[color=red]%.1f[/color]" % [delta_sign, delta_val]
+				else:
+					rvm_delta_label.text = "Δ = %s%.1f" % [delta_sign, delta_val]
 
 			if rvm_hbox:
 				rvm_hbox.visible = true
@@ -320,7 +324,9 @@ func _process(_delta):
 	minimap_panel.visible = Config.show_minimap
 	phase_wheel.visible = Config.show_hud_phase_wheel
 	position_panel.visible = Config.show_hud_navigation
-	monitor_panel.visible = Config.show_hud_monitor_fps or show_hud_chunks or GameState.performance_protection_active or GameState.height_protection_active
+	monitor_panel.visible = Config.show_hud_monitor_fps or show_hud_chunks or GameState.performance_protection_active or GameState.height_protection_active or GameState.found_off_critical_line
+	if off_critical_line_label:
+		off_critical_line_label.visible = GameState.found_off_critical_line
 	if monitor_panel.visible:
 		if Config.show_hud_monitor_fps:
 			fps_hbox.visible = true

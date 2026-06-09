@@ -11,6 +11,8 @@ var rvm_start_t: float = 0.0
 var performance_protection_active: bool = false
 var is_menu_open: bool = false
 var height_protection_active: bool = false
+var missed_zeta_zero: bool = false
+var found_off_critical_line: bool = false
 var effective_zoom: float = 1.0:
 	set(v):
 		if effective_zoom == v: return
