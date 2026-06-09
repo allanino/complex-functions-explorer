@@ -664,39 +664,14 @@ func _on_set_pos_pressed(_toggle_menu: bool = true):
 	emit_signal('apply_aa_signal')
 
 	if Config.function_type == Config.ComplexFunc.RATIONAL:
-		var expr = func_rational_input.text.replace(" ", "")
-		if "/" in expr:
-			var parts = expr.split("/")
-			# We only strip outer parentheses if they enclose the whole numerator/denominator
-			var num_str = parts[0]
-			if num_str.begins_with("(") and num_str.ends_with(")"):
-				num_str = num_str.substr(1, num_str.length() - 2)
-			var den_str = parts[1]
-			if den_str.begins_with("(") and den_str.ends_with(")"):
-				den_str = den_str.substr(1, den_str.length() - 2)
-
-			Config.rational_num_coeffs = FormulaParser.parse_poly(num_str)
-			Config.rational_den_coeffs = FormulaParser.parse_poly(den_str)
-		else:
-			Config.rational_num_coeffs = FormulaParser.parse_poly(expr)
-			Config.rational_den_coeffs = PackedVector2Array([Vector2(1, 0), Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO])
+		var coeffs = _parse_rational_expression(func_rational_input.text)
+		Config.rational_num_coeffs = coeffs[0]
+		Config.rational_den_coeffs = coeffs[1]
 
 	if Config.input_function_type == Config.ComplexFunc.RATIONAL:
-		var expr = input_rational_input.text.replace(" ", "")
-		if "/" in expr:
-			var parts = expr.split("/")
-			var num_str = parts[0]
-			if num_str.begins_with("(") and num_str.ends_with(")"):
-				num_str = num_str.substr(1, num_str.length() - 2)
-			var den_str = parts[1]
-			if den_str.begins_with("(") and den_str.ends_with(")"):
-				den_str = den_str.substr(1, den_str.length() - 2)
-
-			Config.input_rational_num_coeffs = FormulaParser.parse_poly(num_str)
-			Config.input_rational_den_coeffs = FormulaParser.parse_poly(den_str)
-		else:
-			Config.input_rational_num_coeffs = FormulaParser.parse_poly(expr)
-			Config.input_rational_den_coeffs = PackedVector2Array([Vector2(1, 0), Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO])
+		var coeffs = _parse_rational_expression(input_rational_input.text)
+		Config.input_rational_num_coeffs = coeffs[0]
+		Config.input_rational_den_coeffs = coeffs[1]
 
 	Config.save_settings()
 	emit_signal('update_hud_layout_signal')
@@ -915,39 +890,35 @@ func _on_height_eps_text_submitted(new_text: String):
 
 func _on_func_rational_text_submitted(new_text: String):
 	if Config.function_type == Config.ComplexFunc.RATIONAL:
-		var expr = new_text.replace(" ", "")
-		if "/" in expr:
-			var parts = expr.split("/")
-			var num_str = parts[0]
-			if num_str.begins_with("(") and num_str.ends_with(")"):
-				num_str = num_str.substr(1, num_str.length() - 2)
-			var den_str = parts[1]
-			if den_str.begins_with("(") and den_str.ends_with(")"):
-				den_str = den_str.substr(1, den_str.length() - 2)
-
-			Config.rational_num_coeffs = FormulaParser.parse_poly(num_str)
-			Config.rational_den_coeffs = FormulaParser.parse_poly(den_str)
-		else:
-			Config.rational_num_coeffs = FormulaParser.parse_poly(expr)
-			Config.rational_den_coeffs = PackedVector2Array([Vector2(1, 0), Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO])
+		var coeffs = _parse_rational_expression(new_text)
+		Config.rational_num_coeffs = coeffs[0]
+		Config.rational_den_coeffs = coeffs[1]
 
 func _on_input_rational_text_submitted(new_text: String):
 	if Config.input_function_type == Config.ComplexFunc.RATIONAL:
-		var expr = new_text.replace(" ", "")
-		if "/" in expr:
-			var parts = expr.split("/")
-			var num_str = parts[0]
-			if num_str.begins_with("(") and num_str.ends_with(")"):
-				num_str = num_str.substr(1, num_str.length() - 2)
-			var den_str = parts[1]
-			if den_str.begins_with("(") and den_str.ends_with(")"):
-				den_str = den_str.substr(1, den_str.length() - 2)
+		var coeffs = _parse_rational_expression(new_text)
+		Config.input_rational_num_coeffs = coeffs[0]
+		Config.input_rational_den_coeffs = coeffs[1]
 
-			Config.input_rational_num_coeffs = FormulaParser.parse_poly(num_str)
-			Config.input_rational_den_coeffs = FormulaParser.parse_poly(den_str)
-		else:
-			Config.input_rational_num_coeffs = FormulaParser.parse_poly(expr)
-			Config.input_rational_den_coeffs = PackedVector2Array([Vector2(1, 0), Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO])
+func _parse_rational_expression(text: String) -> Array:
+	var expr = text.replace(" ", "")
+	var num_coeffs
+	var den_coeffs
+	if "/" in expr:
+		var parts = expr.split("/")
+		var num_str = parts[0]
+		if num_str.begins_with("(") and num_str.ends_with(")"):
+			num_str = num_str.substr(1, num_str.length() - 2)
+		var den_str = parts[1]
+		if den_str.begins_with("(") and den_str.ends_with(")"):
+			den_str = den_str.substr(1, den_str.length() - 2)
+
+		num_coeffs = FormulaParser.parse_poly(num_str)
+		den_coeffs = FormulaParser.parse_poly(den_str)
+	else:
+		num_coeffs = FormulaParser.parse_poly(expr)
+		den_coeffs = PackedVector2Array([Vector2(1, 0), Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO])
+	return [num_coeffs, den_coeffs]
 
 func _rescale_menu(_scale: float):
 	if main_menu_panel == null: return
