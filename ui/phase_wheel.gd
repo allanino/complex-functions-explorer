@@ -3,7 +3,15 @@ extends AspectRatioContainer
 @onready var color_rect = %ColorRect
 @onready var angle_label = %AngleLabel
 
+var target_f := Vector2.RIGHT
+var display_f := Vector2.RIGHT
+
+const ROT_SPEED := 180.0
+
 func update_data(f: Vector2) -> void:
+	target_f = f
+
+func _apply_phase(f: Vector2) -> void:
 	if color_rect and color_rect.material:
 		var mat = color_rect.material as ShaderMaterial
 		mat.set_shader_parameter("current_f", f)
@@ -43,3 +51,25 @@ func update_data(f: Vector2) -> void:
 		final_color.a = 1.0
 
 		angle_label.add_theme_color_override("font_color", final_color)
+
+func _process(delta: float) -> void:
+	if target_f.length_squared() < 1e-8:
+		return
+
+	var current_angle = display_f.angle()
+	var target_angle = target_f.angle()
+
+	# shortest rotation
+	var diff = wrapf(target_angle - current_angle, -PI, PI)
+
+	# exponential smoothing
+	var t = 1.0 - exp(-ROT_SPEED * delta)
+
+	var new_angle = current_angle + diff * t
+
+	# preserve current displayed magnitude smoothly
+	var mag = lerpf(display_f.length(), target_f.length(), t)
+
+	display_f = Vector2.from_angle(new_angle) * mag
+
+	_apply_phase(display_f)

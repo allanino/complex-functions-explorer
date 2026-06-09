@@ -32,7 +32,6 @@ var portal_flash: ColorRect
 @onready var position_arg_label = %PositionArgLabel
 @onready var position_arg_val = %PositionArgVal
 
-
 @export var show_hud_chunks: bool = false
 
 # New UI Node Paths
