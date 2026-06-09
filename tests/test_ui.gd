@@ -24,6 +24,8 @@ func before_all():
 	Config.load_settings()
 	# Restore PRESETS to built-ins only (in case previous session saved custom presets)
 	Config.PRESETS = Config.PRESET_DEFAULTS.PRESETS.duplicate(true)
+	# Apply Default preset to ensure reproducibility across local environments
+	Config.apply_preset("Default")
 
 func after_all():
 	# Remove the temporary test settings file

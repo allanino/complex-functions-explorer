@@ -1,9 +1,29 @@
 extends GutTest
+var _original_save_path: String
+var _has_backup: bool = false
+
 
 var player_scene = preload("res://player/player.tscn")
 var ui_scene = preload("res://ui/main_ui.tscn")
 
 func before_all():
+	_original_save_path = Config.save_path
+	Config.save_path = "user://test_player_settings.cfg"
+
+	var dir = DirAccess.open("user://")
+	if dir:
+		if dir.file_exists("test_player_settings.cfg"):
+			dir.remove("test_player_settings.cfg")
+
+		if dir.file_exists("settings.cfg"):
+			var err = dir.copy("user://settings.cfg", "user://settings.cfg.bak")
+			if err == OK:
+				_has_backup = true
+
+	Config.load_settings()
+	Config.PRESETS = Config.PRESET_DEFAULTS.PRESETS.duplicate(true)
+	Config.apply_preset("Default")
+
 	Config.zoom_factor = 1.0
 	Config.zoom_damping = 0.5
 
@@ -252,3 +272,18 @@ func test_player_zoom_scaling():
 	Config.zoom_factor = original_zoom_factor
 	Config.zoom_damping = original_zoom_damping
 	GameState.effective_zoom = original_ez
+
+
+func after_all():
+	var dir = DirAccess.open("user://")
+	if dir:
+		if dir.file_exists("test_player_settings.cfg"):
+			dir.remove("test_player_settings.cfg")
+
+		if _has_backup and dir.file_exists("settings.cfg.bak"):
+			if dir.file_exists("settings.cfg"):
+				dir.remove("settings.cfg")
+			dir.rename("settings.cfg.bak", "settings.cfg")
+
+	Config.save_path = _original_save_path
+	Config.load_settings()
