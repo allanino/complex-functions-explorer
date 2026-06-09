@@ -238,9 +238,8 @@ func test_player_zoom_scaling():
 	var initial_speed_scale = player.zoom_speed_scale
 
 	Config.zoom_factor = 2.0
-	player._physics_process(0.5) # multiple steps or large delta to allow lerp to catch up
-	player._physics_process(0.5)
-	player._physics_process(0.5)
+	for i in range(50):
+		player._physics_process(0.016)
 
 	# Verify world position is the same
 	assert_almost_eq(player.global_position.x, 10.0, 0.001)
