@@ -1,7 +1,3 @@
 ## 2025-02-12 - Prevent redundant _process_audio_toggles() call
 **Learning:** Audio settings (_process_audio_toggles()) were being applied every single physics frame (_physics_process), despite volume settings rarely changing. This redundant check wastes CPU cycles.
 **Action:** Move the toggling logic to react to config changes via signals (Config.config_changed.connect) instead of continuously updating in a physics process loop.
-
-## 2024-05-24 - Minimap Redraw and Array Allocation in _process
-**Learning:** The `ui/minimap.gd` `_process` function was a significant source of CPU load on the main thread because it was unconditionally allocating arrays (`PackedVector2Array` for `visited_zeros`), updating complex shader parameters, and queuing canvas redraws (`fov_overlay.queue_redraw()`) on every single frame, regardless of game state changes. Furthermore, modifying Godot `Array` variables in-place (e.g., using `.push_back()` or `.clear()`) does not trigger property setter functions, meaning simple state polling isn't always easily refactorable.
-**Action:** When refactoring Godot UI scripts, avoid unconditionally allocating memory or updating shaders in `_process()`. Instead, use an event-driven approach by listening to signals (e.g., `GameState.state_changed`). To ensure property setters (and their associated signals) are automatically triggered in state containers like `GameState`, reassign the array entirely (e.g., `array = []` or duplicate, modify, and reassign) instead of using in-place mutation methods.
