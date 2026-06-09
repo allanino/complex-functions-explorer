@@ -41,8 +41,6 @@ var _last_zeros_visible: bool = false
 const BASE_HUD_PANEL_SIZE: float = 240.0
 const RENDER_EACH_N_FRAME: int = 3
 var _skip_frame_counter: int = 0
-var _last_zeros_count: int = -1
-var _last_visited_zeros_size: int = -1
 
 # Theme color constants (BBCode hex)
 const CLR_DIM = "#e7e4dc80" # ink_dim (50% alpha)
@@ -125,6 +123,14 @@ func _ready():
 	menu_overlay.apply_aa_signal.connect(apply_aa)
 	menu_overlay.update_hud_layout_signal.connect(_update_hud_layout)
 
+	GameState.state_changed.connect(_on_game_state_changed)
+
+	var monitor_timer = Timer.new()
+	monitor_timer.autostart = true
+	monitor_timer.wait_time = 0.5
+	monitor_timer.timeout.connect(_on_monitor_timer_timeout)
+	add_child(monitor_timer)
+
 	var position_arg_container = get_node_or_null("%PositionArgContainer")
 	if position_arg_container:
 		position_arg_container.visible = !Config.show_hud_phase_wheel
@@ -154,6 +160,87 @@ func _ready():
 	var tween = create_tween()
 	tween.tween_property(hud_columns, "modulate:a", 1.0, 0.15).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 
+	_update_monitor_label()
+	_update_zeros_list()
+
+
+
+func _on_monitor_timer_timeout():
+	if Config.show_hud_monitor_fps or show_hud_chunks:
+		_update_monitor_label()
+
+func _on_game_state_changed(key: String):
+	if key in ["performance_protection_active", "height_protection_active", "found_off_critical_line", "missed_zeta_zero"]:
+		_update_monitor_label()
+	elif key in ["visited_zeros", "total_zeros_found", "accented_zero_index"]:
+		_update_zeros_list()
+
+func _update_monitor_label():
+	monitor_panel.visible = Config.show_hud_monitor_fps or show_hud_chunks or GameState.performance_protection_active or GameState.height_protection_active or GameState.found_off_critical_line or GameState.missed_zeta_zero
+	if monitor_panel.visible and monitor_rt_label:
+		var bbcode = ""
+
+		if GameState.performance_protection_active:
+			bbcode += "[color=#ffcc00][font_size=14]Performance protection activated, adjust settings.[/font_size][/color]\n"
+
+		if GameState.height_protection_active:
+			bbcode += "[color=#ffcc00][font_size=14]Max world height reached, return to safe heights.[/font_size][/color]\n"
+
+		if GameState.found_off_critical_line:
+			bbcode += "[color=#ffcc00][font_size=14]Zero found off critical line. Increase zeta iterations.[/font_size][/color]\n"
+
+		if GameState.missed_zeta_zero:
+			bbcode += "[color=#ffcc00][font_size=14]Zeta zeros diverging from Riemann-von Mangoldt.[/font_size][/color]\n"
+
+		if Config.show_hud_monitor_fps:
+			bbcode += "[color=#ffffff]%d[/color] [color=#e8e4dc73][font_size=15]FPS[/font_size][/color]\n" % Engine.get_frames_per_second()
+
+		if show_hud_chunks and world_manager:
+			var chunks_text = "[color=#e8e4dc73][font_size=15]Chunks[/font_size][/color]"
+			var num_lods = world_manager.LOD_SUBS.size()
+			var lod_counts = []
+			lod_counts.resize(num_lods)
+			lod_counts.fill(0)
+
+			for chunk in world_manager.chunks.values():
+				var lod = chunk.get_meta("lod_level", 0)
+				if lod >= 0 and lod < num_lods:
+					lod_counts[lod] += 1
+
+			for i in range(num_lods):
+				if lod_counts[i] > 0:
+					chunks_text += "\n[color=#e8e4dc73][font_size=15]%d: %d[/font_size][/color]" % [world_manager.LOD_SUBS[i], lod_counts[i]]
+			bbcode += chunks_text + "\n"
+
+		monitor_rt_label.text = bbcode.strip_edges()
+
+func _update_zeros_list():
+	var f_data = Config.function
+	var total_count = GameState.total_zeros_found
+	var current_size = GameState.visited_zeros.size()
+
+	zeros_count_label.text = str(total_count)
+
+	GameState.accented_zero_index = current_size - 1
+
+	# Clear existing items
+	for child in zeros_list_label.get_children():
+		zeros_list_label.remove_child(child)
+		child.queue_free()
+
+	var actual_hud_scale = Config.hud_scale
+	for i in range(current_size - 1, max(-1, current_size - 11), -1):
+		var zero = GameState.visited_zeros[i]
+		var re_str = _format_float_3(zero[0])
+		var im_str = _format_float_3(zero[1])
+		var item = ZERO_LIST_ITEM_SCENE.instantiate()
+		zeros_list_label.add_child(item)
+		item.zero_index = i
+		item.clicked.connect(_on_zero_item_clicked)
+		item.set_values(re_str, im_str, f_data.get("is_dirichlect", false))
+		_rescale_card(item, actual_hud_scale)
+		if i == GameState.accented_zero_index:
+			item.is_active = true
 
 func _on_complex_aspect_resized():
 	if phase_wheel.custom_minimum_size.y != phase_wheel.size.x:
@@ -231,40 +318,14 @@ func _process(_delta):
 	zeros_panel.visible = Config.show_hud_zeros
 
 	if Config.show_hud_zeros:
-		var total_count = GameState.total_zeros_found
-		var current_size = GameState.visited_zeros.size()
-		if total_count != _last_zeros_count or current_size != _last_visited_zeros_size:
-			_last_zeros_count = total_count
-			_last_visited_zeros_size = current_size
-			zeros_count_label.text = str(total_count)
 
-			GameState.accented_zero_index = current_size - 1
-
-			# Clear existing items
-			for child in zeros_list_label.get_children():
-				zeros_list_label.remove_child(child)
-				child.queue_free()
-
-			var actual_hud_scale = Config.hud_scale
-			for i in range(current_size - 1, max(-1, current_size - 11), -1):
-				var zero = GameState.visited_zeros[i]
-				var re_str = _format_float_3(zero[0])
-				var im_str = _format_float_3(zero[1])
-				var item = ZERO_LIST_ITEM_SCENE.instantiate()
-				zeros_list_label.add_child(item)
-				item.zero_index = i
-				item.clicked.connect(_on_zero_item_clicked)
-				item.set_values(re_str, im_str, f_data.get("is_dirichlect", false))
-				_rescale_card(item, actual_hud_scale)
-				if i == GameState.accented_zero_index:
-					item.is_active = true
 
 		# Riemann-von Mangoldt formula: N(T) ≈ (T/2π) log(T/2πe) + 7/8
 		if Config.show_rvm and f_data.get("has_von_mangoldt", false):
 			var T = abs(Config.world_to_complex(0.0, z).y)
 			var rvm_val = _get_rvm_n(T) - _get_rvm_n(GameState.rvm_start_t)
 			rvm_val = max(0.0, rvm_val)
-			var delta_val = total_count - rvm_val
+			var delta_val = GameState.total_zeros_found - rvm_val
 			var delta_sign = "+" if delta_val >= 0 else ""
 
 			if player.auto_walk_state == 1 or player.auto_walk_state == 2:
@@ -319,43 +380,7 @@ func _process(_delta):
 	minimap_panel.visible = Config.show_minimap
 	phase_wheel.visible = Config.show_hud_phase_wheel
 	position_panel.visible = Config.show_hud_navigation
-	monitor_panel.visible = Config.show_hud_monitor_fps or show_hud_chunks or GameState.performance_protection_active or GameState.height_protection_active or GameState.found_off_critical_line or GameState.missed_zeta_zero
-	if monitor_panel.visible and monitor_rt_label:
-		var bbcode = ""
 
-		if GameState.performance_protection_active:
-			bbcode += "[color=#ffcc00][font_size=14]Performance protection activated, adjust settings.[/font_size][/color]\n"
-
-		if GameState.height_protection_active:
-			bbcode += "[color=#ffcc00][font_size=14]Max world height reached, return to safe heights.[/font_size][/color]\n"
-
-		if GameState.found_off_critical_line:
-			bbcode += "[color=#ffcc00][font_size=14]Zero found off critical line. Increase zeta iterations.[/font_size][/color]\n"
-
-		if GameState.missed_zeta_zero:
-			bbcode += "[color=#ffcc00][font_size=14]Zeta zeros diverging from Riemann-von Mangoldt.[/font_size][/color]\n"
-
-		if Config.show_hud_monitor_fps:
-			bbcode += "[color=#ffffff]%d[/color] [color=#e8e4dc73][font_size=15]FPS[/font_size][/color]\n" % Engine.get_frames_per_second()
-
-		if show_hud_chunks and world_manager:
-			var chunks_text = "[color=#e8e4dc73][font_size=15]Chunks[/font_size][/color]"
-			var num_lods = world_manager.LOD_SUBS.size()
-			var lod_counts = []
-			lod_counts.resize(num_lods)
-			lod_counts.fill(0)
-
-			for chunk in world_manager.chunks.values():
-				var lod = chunk.get_meta("lod_level", 0)
-				if lod >= 0 and lod < num_lods:
-					lod_counts[lod] += 1
-
-			for i in range(num_lods):
-				if lod_counts[i] > 0:
-					chunks_text += "\n[color=#e8e4dc73][font_size=15]%d: %d[/font_size][/color]" % [world_manager.LOD_SUBS[i], lod_counts[i]]
-			bbcode += chunks_text + "\n"
-
-		monitor_rt_label.text = bbcode.strip_edges()
 
 	_update_hud_layout()
 
@@ -557,6 +582,10 @@ func _zoom_to_slider(zoom: float) -> float:
 	return (log(zoom) - log(min_zoom)) / b
 
 func _on_config_changed(key: String):
+	if key in ["function_type", "show_hud_zeros"]:
+		_update_zeros_list()
+	if key in ["show_hud_monitor_fps", "show_hud_chunks"]:
+		_update_monitor_label()
 	if key == "zoom_factor":
 		if menu_overlay:
 			if abs(menu_overlay._slider_to_zoom(menu_overlay.zoom_slider.value) - Config.zoom_factor) > 0.001:
