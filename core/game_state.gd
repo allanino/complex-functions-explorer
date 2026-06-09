@@ -3,7 +3,10 @@ extends Node
 signal state_changed(key: String)
 
 # Session state (not saved)
-var visited_zeros: Array[Vector2] = []
+var visited_zeros: Array[Vector2] = []:
+	set(v):
+		visited_zeros = v
+		state_changed.emit("visited_zeros")
 var total_zeros_found: int = 0
 var accented_zero_index: int = -1:
 	set(v):

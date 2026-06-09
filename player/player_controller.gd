@@ -209,8 +209,7 @@ func _unhandled_input(event):
 			if auto_walk_state == AutoWalkState.NONE:
 				auto_walk_state = AutoWalkState.MOVING_TO_LINE
 				# Reset zero counter when starting auto-walk
-				GameState.visited_zeros.clear()
-				GameState.state_changed.emit("visited_zeros")
+				GameState.visited_zeros = []
 				GameState.total_zeros_found = 0
 				last_detected_z = Vector2(0.0, 0.0)
 				Config.show_hud_zeros = true
@@ -653,10 +652,11 @@ func _physics_process(delta):
 
 					if converged && true_z.distance_to(last_detected_z) > 0.001:
 						GameState.total_zeros_found += 1
-						GameState.visited_zeros.push_back(true_z)
-						if GameState.visited_zeros.size() > 10:
-							GameState.visited_zeros.pop_front()
-						GameState.state_changed.emit("visited_zeros")
+						var _new_zeros = GameState.visited_zeros.duplicate()
+						_new_zeros.push_back(true_z)
+						if _new_zeros.size() > 10:
+							_new_zeros.pop_front()
+						GameState.visited_zeros = _new_zeros
 						last_detected_z = true_z
 
 	move_and_slide()
@@ -734,8 +734,7 @@ func demo_actions():
 
 func _start_auto_walk_from_demo():
 	auto_walk_state = AutoWalkState.MOVING_TO_LINE
-	GameState.visited_zeros.clear()
-	GameState.state_changed.emit("visited_zeros")
+	GameState.visited_zeros = []
 	GameState.total_zeros_found = 0
 	last_detected_z = Vector2(0.0, 0.0)
 	Config.show_hud_zeros = true
