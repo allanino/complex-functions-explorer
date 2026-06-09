@@ -296,13 +296,6 @@ func _process(_delta):
 	if _skip_render_hud():
 		return
 
-	if Config.show_hud_zeros and not _last_zeros_visible:
-		GameState.rvm_start_t = abs(Config.world_to_complex(0.0, player.global_position.z).y)
-	_last_zeros_visible = Config.show_hud_zeros
-
-	if not player:
-		return
-
 	var x = player.global_position.x
 	var z = player.global_position.z
 
