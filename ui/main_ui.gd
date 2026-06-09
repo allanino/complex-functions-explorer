@@ -319,7 +319,7 @@ func _process(_delta):
 	minimap_panel.visible = Config.show_minimap
 	phase_wheel.visible = Config.show_hud_phase_wheel
 	position_panel.visible = Config.show_hud_navigation
-	monitor_panel.visible = Config.show_hud_monitor_fps or show_hud_chunks or GameState.performance_protection_active or GameState.height_protection_active or GameState.found_off_critical_line
+	monitor_panel.visible = Config.show_hud_monitor_fps or show_hud_chunks or GameState.performance_protection_active or GameState.height_protection_active or GameState.found_off_critical_line or GameState.missed_zeta_zero
 	if monitor_panel.visible and monitor_rt_label:
 		var bbcode = ""
 
@@ -331,6 +331,9 @@ func _process(_delta):
 
 		if GameState.found_off_critical_line:
 			bbcode += "[color=#ffcc00][font_size=14]Zero found off critical line. Increase zeta iterations.[/font_size][/color]\n"
+
+		if GameState.missed_zeta_zero:
+			bbcode += "[color=#ffcc00][font_size=14]Zeta zeros diverging from Riemann-von Mangoldt.[/font_size][/color]\n"
 
 		if Config.show_hud_monitor_fps:
 			bbcode += "[color=#ffffff]%d[/color] [color=#e8e4dc73][font_size=15]FPS[/font_size][/color]\n" % Engine.get_frames_per_second()
