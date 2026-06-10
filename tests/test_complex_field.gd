@@ -204,6 +204,44 @@ func test_zeta():
 	assert_almost_eq(res.x, 0.0, 0.015)
 	assert_almost_eq(res.y, 0.0, 0.015)
 	
+func test_zeta_with_derivatives():
+	# Test at first non-trivial zero (same as test_zeta)
+	var x1 = 0.5
+	var y1 = 14.134725
+	var res = ComplexFieldScript.zeta_with_derivatives(x1, y1, Config.iterations)
+	assert_eq(res.size(), 2)
+	assert_true(typeof(res[0]) == TYPE_VECTOR2)
+	assert_true(typeof(res[1]) == TYPE_VECTOR2)
+
+	# Value should match the pure zeta function
+	var val_pure = ComplexFieldScript.zeta(x1, y1)
+	assert_almost_eq(res[0].x, val_pure.x, 0.0001)
+	assert_almost_eq(res[0].y, val_pure.y, 0.0001)
+
+	# Value should be close to 0 (since it's a zero)
+	assert_almost_eq(res[0].x, 0.0, 0.015)
+	assert_almost_eq(res[0].y, 0.0, 0.015)
+
+	# Derivative should not be zero, NaN, or Inf (basic structural check)
+	assert_true(res[1].length_squared() > 0.0)
+	assert_false(is_nan(res[1].x) or is_inf(res[1].x))
+	assert_false(is_nan(res[1].y) or is_inf(res[1].y))
+
+	# Test at a point on the real line
+	# zeta(2) ~ 1.64493, zeta'(2) ~ -0.937548
+	var x2 = 2.0
+	var y2 = 0.0
+	var res2 = ComplexFieldScript.zeta_with_derivatives(x2, y2, Config.iterations)
+	assert_eq(res2.size(), 2)
+	assert_true(typeof(res2[0]) == TYPE_VECTOR2)
+	assert_true(typeof(res2[1]) == TYPE_VECTOR2)
+
+	assert_almost_eq(res2[0].x, 1.64493, 0.0001)
+	assert_almost_eq(res2[0].y, 0.0, 0.0001)
+
+	assert_almost_eq(res2[1].x, -0.937548, 0.0001)
+	assert_almost_eq(res2[1].y, 0.0, 0.0001)
+
 func test_zeta_continuation():
 	var res = ComplexFieldScript.zeta_continuation(0.5, 14.134725)
 	assert_almost_eq(res.x, 0.0, 0.015)
