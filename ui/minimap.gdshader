@@ -205,7 +205,7 @@ void fragment() {
         float accented_border_intensity = 0.0;
         float accented_glow_intensity = 0.0;
 
-        float scale = zoom_factor * 32.0;
+        float scale = view_radius * 0.4;
         
         float r_core = 0.10 * scale;
         float border_width = 0.05 * scale;
