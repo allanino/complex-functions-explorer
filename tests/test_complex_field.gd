@@ -125,6 +125,49 @@ func test_complex_gamma():
 	assert_almost_eq(res2.x, 0.133910, 0.0001)
 	assert_almost_eq(res2.y, 0.0962865, 0.0001)
 
+func test_lanczos_log_gamma_with_derivatives():
+	# Test z = 1.0 + 0.0i
+	var res1 = ComplexFieldScript.lanczos_log_gamma_with_derivatives(Vector2(1.0, 0.0))
+	assert_almost_eq(res1[0].x, 0.0, 0.015)
+	assert_almost_eq(res1[0].y, 0.0, 0.015)
+	assert_almost_eq(res1[1].x, -0.577215, 0.015)
+	assert_almost_eq(res1[1].y, 0.0, 0.015)
+
+	# Test z = 2.0 + 0.0i
+	var res2 = ComplexFieldScript.lanczos_log_gamma_with_derivatives(Vector2(2.0, 0.0))
+	assert_almost_eq(res2[0].x, 0.0, 0.015)
+	assert_almost_eq(res2[0].y, 0.0, 0.015)
+	assert_almost_eq(res2[1].x, 0.422784, 0.015)
+	assert_almost_eq(res2[1].y, 0.0, 0.015)
+
+	# Test z = 3.0 + 0.0i
+	var res3 = ComplexFieldScript.lanczos_log_gamma_with_derivatives(Vector2(3.0, 0.0))
+	assert_almost_eq(res3[0].x, 0.693147, 0.015)
+	assert_almost_eq(res3[0].y, 0.0, 0.015)
+	assert_almost_eq(res3[1].x, 0.922784, 0.015)
+	assert_almost_eq(res3[1].y, 0.0, 0.015)
+
+	# Test z = 0.5 + 0.0i
+	var res4 = ComplexFieldScript.lanczos_log_gamma_with_derivatives(Vector2(0.5, 0.0))
+	assert_almost_eq(res4[0].x, 0.572364, 0.015)
+	assert_almost_eq(res4[0].y, 0.0, 0.015)
+	assert_almost_eq(res4[1].x, -1.96351, 0.015)
+	assert_almost_eq(res4[1].y, 0.0, 0.015)
+
+	# Test z = 2.0 + 1.0i
+	var res5 = ComplexFieldScript.lanczos_log_gamma_with_derivatives(Vector2(2.0, 1.0))
+	assert_almost_eq(res5[0].x, -0.304349, 0.015)
+	assert_almost_eq(res5[0].y, 0.483757, 0.015)
+	assert_almost_eq(res5[1].x, 0.59465, 0.015)
+	assert_almost_eq(res5[1].y, 0.576674, 0.015)
+
+	# Test z = 1.5 + 0.5i
+	var res6 = ComplexFieldScript.lanczos_log_gamma_with_derivatives(Vector2(1.5, 0.5))
+	assert_almost_eq(res6[0].x, -0.234186, 0.015)
+	assert_almost_eq(res6[0].y, 0.034668, 0.015)
+	assert_almost_eq(res6[1].x, 0.131892, 0.015)
+	assert_almost_eq(res6[1].y, 0.440659, 0.015)
+
 func test_complex_log_gamma():
 	var res = ComplexFieldScript.complex_log_gamma(1, 0)
 	assert_almost_eq(res.x, 0.0, 0.0001)
