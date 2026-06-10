@@ -529,6 +529,7 @@ theme_override_constants/separation = 7
 theme_override_styles/separator = SubResource("StyleBoxLine_hseparator_custom")
 
 [node name="TargetLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/PositionPanel/MarginContainer/VBox"]
+unique_name_in_owner = true
 theme_type_variation = &"SecondaryLabel"
 layout_mode = 2
 text = "f(s)"
@@ -588,6 +589,7 @@ size_flags_vertical = 4
 script = ExtResource("12_hud_arrow")
 
 [node name="AbsLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/PositionPanel/MarginContainer/VBox"]
+unique_name_in_owner = true
 theme_type_variation = &"SecondaryLabel"
 layout_mode = 2
 text = "|f|"
