@@ -259,7 +259,11 @@ func _update_monitor_label():
 			bbcode += "[color=#ffcc00][font_size=14]Max world height reached, return to safe heights.[/font_size][/color]\n"
 
 		if GameState.found_off_critical_line:
-			bbcode += "[color=#ffcc00][font_size=14]Zero found off critical line. Increase zeta iterations.[/font_size][/color]\n"
+			var off_z = GameState.found_off_critical_line_val
+			var re_str = _format_float_3(off_z.x)
+			var im_str = _format_float_3(off_z.y)
+			var zero_str = _bb_re(re_str, CLR_CYAN) + _bb_im(im_str)
+			bbcode += "[color=#ffcc00][font_size=14]Zero found off critical line (" + zero_str + "[color=#ffcc00]). Increase zeta iterations.[/color][/font_size]\n"
 
 		if GameState.missed_zeta_zero:
 			bbcode += "[color=#ffcc00][font_size=14]Zeta zeros diverging from Riemann-von Mangoldt.[/font_size][/color]\n"

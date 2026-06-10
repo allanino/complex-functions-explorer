@@ -37,6 +37,11 @@ var found_off_critical_line: bool = false:
 		if found_off_critical_line == v: return
 		found_off_critical_line = v
 		state_changed.emit("found_off_critical_line")
+var found_off_critical_line_val: Vector2 = Vector2.ZERO:
+	set(v):
+		if found_off_critical_line_val == v: return
+		found_off_critical_line_val = v
+		state_changed.emit("found_off_critical_line_val")
 var effective_zoom: float = 1.0:
 	set(v):
 		if effective_zoom == v: return

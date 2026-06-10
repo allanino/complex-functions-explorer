@@ -23,6 +23,7 @@ func _set_auto_walk_state(value):
 	auto_walk_state = value
 	if auto_walk_state == AutoWalkState.NONE:
 		GameState.found_off_critical_line = false
+		GameState.found_off_critical_line_val = Vector2.ZERO
 		GameState.missed_zeta_zero = false
 var newton_converged: bool = false
 var re_label: Label3D
@@ -665,6 +666,8 @@ func _physics_process(delta):
 						GameState.visited_zeros.push_back(true_z)
 						if auto_walk_state == AutoWalkState.MOVING_TO_LINE or auto_walk_state == AutoWalkState.WALKING:
 							if snappedf(true_z.x, 0.001) != 0.500:
+								if not GameState.found_off_critical_line:
+									GameState.found_off_critical_line_val = true_z
 								GameState.found_off_critical_line = true
 						if GameState.visited_zeros.size() > 100:
 							GameState.visited_zeros.pop_front()
