@@ -10,10 +10,7 @@ varying float v_nan;
 varying float v_h_clamped;
 
 instance uniform int lod_level = 0;
-instance uniform int neighbor_lod_left = -1;
-instance uniform int neighbor_lod_right = -1;
-instance uniform int neighbor_lod_top = -1;
-instance uniform int neighbor_lod_bottom = -1;
+instance uniform ivec4 neighbor_lods = ivec4(-1, -1, -1, -1);
 
 uniform float lod_segments[7];
 uniform float chunk_size;
@@ -135,17 +132,17 @@ vec3 apply_lod_snapping(vec3 vertex_pos, float half_size) {
     int n_lod = -1;
     bool horizontal_edge = false; // edge along X (Top/Bottom)
 
-    if (on_left && neighbor_lod_left > lod_level) {
-        n_lod = neighbor_lod_left;
+    if (on_left && neighbor_lods.x > lod_level) {
+        n_lod = neighbor_lods.x;
         horizontal_edge = false;
-    } else if (on_right && neighbor_lod_right > lod_level) {
-        n_lod = neighbor_lod_right;
+    } else if (on_right && neighbor_lods.y > lod_level) {
+        n_lod = neighbor_lods.y;
         horizontal_edge = false;
-    } else if (on_top && neighbor_lod_top > lod_level) {
-        n_lod = neighbor_lod_top;
+    } else if (on_top && neighbor_lods.z > lod_level) {
+        n_lod = neighbor_lods.z;
         horizontal_edge = true;
-    } else if (on_bottom && neighbor_lod_bottom > lod_level) {
-        n_lod = neighbor_lod_bottom;
+    } else if (on_bottom && neighbor_lods.w > lod_level) {
+        n_lod = neighbor_lods.w;
         horizontal_edge = true;
     }
 
