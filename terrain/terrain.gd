@@ -10,6 +10,7 @@ var chunk_leeway = 0.01
 var LOD_SUBS = [] # This will be set in code
 var _lod_mesh_cache = {}
 var _last_player_chunk = Vector2i(9999, 9999)
+var _last_view_distance: int = -1
 var slow_frame_counter: int = 0
 var _shaders_stopped: bool = false
 
@@ -60,21 +61,23 @@ func _process(delta):
 
 
 func _update_chunks(p_x: int, p_z: int):
-	var old_min_x = _last_player_chunk.x - Config.view_distance
-	var old_max_x = _last_player_chunk.x + Config.view_distance
-	var old_min_z = _last_player_chunk.y - Config.view_distance
-	var old_max_z = _last_player_chunk.y + Config.view_distance
+	var old_min_x = _last_player_chunk.x - _last_view_distance
+	var old_max_x = _last_player_chunk.x + _last_view_distance
+	var old_min_z = _last_player_chunk.y - _last_view_distance
+	var old_max_z = _last_player_chunk.y + _last_view_distance
 
 	var is_first_update = chunks.is_empty()
+	var view_distance_changed = _last_view_distance != -1 and _last_view_distance != Config.view_distance
 
 	_last_player_chunk = Vector2i(p_x, p_z)
+	_last_view_distance = Config.view_distance
 
 	# Load new chunks
 	for x in range(p_x - Config.view_distance, p_x + Config.view_distance + 1):
 		for z in range(p_z - Config.view_distance, p_z + Config.view_distance + 1):
 			# Optimization: skip chunks that were already within the previous view distance bounds.
 			# This drastically reduces redundant dictionary lookups when the player moves by a small amount.
-			if not is_first_update and x >= old_min_x and x <= old_max_x and z >= old_min_z and z <= old_max_z:
+			if not is_first_update and not view_distance_changed and x >= old_min_x and x <= old_max_x and z >= old_min_z and z <= old_max_z:
 				continue
 
 			var chunk_coord = Vector2i(x, z)
