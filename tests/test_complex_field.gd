@@ -284,11 +284,10 @@ func test_multivalued_asin_exact_values():
 func test_multivalued_acos_exact_values():
 	var orig_branch = GameState.current_branch
 
-	# TODO: implement a more standard Multivalued acos.
 	# The current implementation is not standard.
-	# It does this:
-	# Table[{B, With[{n=If[EvenQ[B],-B/2,(B+1)/2], s=If[EvenQ[B],1,-1]}, 2*Pi*n + s*ArcCos[1.5+0.01*I]]}, {B,-2,2}]
-	
+	# Mathematica code:
+	# Table[Pi/2 - (Pi*B + (-1)^B * (Pi/2 - ArcCos[1.5 + 0.01*I])), {B, -2, 2}]
+
 	var expected_values = {
 		-2: Vector2(6.2921, -0.9625),
 		-1: Vector2(6.2742, 0.9625),
