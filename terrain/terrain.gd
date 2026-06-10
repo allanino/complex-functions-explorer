@@ -60,11 +60,23 @@ func _process(delta):
 
 
 func _update_chunks(p_x: int, p_z: int):
+	var old_min_x = _last_player_chunk.x - Config.view_distance
+	var old_max_x = _last_player_chunk.x + Config.view_distance
+	var old_min_z = _last_player_chunk.y - Config.view_distance
+	var old_max_z = _last_player_chunk.y + Config.view_distance
+
+	var is_first_update = chunks.is_empty()
+
 	_last_player_chunk = Vector2i(p_x, p_z)
 
 	# Load new chunks
 	for x in range(p_x - Config.view_distance, p_x + Config.view_distance + 1):
 		for z in range(p_z - Config.view_distance, p_z + Config.view_distance + 1):
+			# Optimization: skip chunks that were already within the previous view distance bounds.
+			# This drastically reduces redundant dictionary lookups when the player moves by a small amount.
+			if not is_first_update and x >= old_min_x and x <= old_max_x and z >= old_min_z and z <= old_max_z:
+				continue
+
 			var chunk_coord = Vector2i(x, z)
 			if not chunks.has(chunk_coord):
 				_load_chunk(chunk_coord)
