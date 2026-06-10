@@ -1,8 +1,0 @@
-print("Ah! At a zero, zeta(0.5, 14.134725) returns approx 0.")
-print("zeta_with_derivatives returns [0, zeta'].")
-print("log_zeta_continuation_with_derivatives calculates:")
-print("z_val = 0")
-print("val = log(0) -> which is (-inf, 0) or similar in complex_log (actually log(epsilon)).")
-print("zeta_continuation_with_derivatives calculates exp(log(zeta)).")
-print("exp(log(zeta)) = exp(-inf) = 0.")
-print("But wait... complex_log handles zero differently? Let's check complex_log in math/complex_field.gd")

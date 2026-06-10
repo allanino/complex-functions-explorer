@@ -1,8 +1,0 @@
-print("Yes, zeta_continuation(x, y) also computes exp(log_zeta_continuation(x,y)).")
-print("And log_zeta_continuation(x,y) does:")
-print("	if x >= 0.5:")
-print("		var z = zeta(x, y)")
-print("		return complex_log(z.x, z.y)")
-print("So it ALSO returns log(zeta).")
-print("Then zeta_continuation computes exp(log(zeta)).")
-print("But why doesn't test_zeta_continuation fail at (0.5, 14.134725)?")
