@@ -330,6 +330,7 @@ func test_multivalued_log():
 func test_multivalued_asin_exact_values():
 	var orig_branch = GameState.current_branch
 
+	# Table[Pi*B + (-1)^B * ArcSin[1.5 + 0.01*I], {B, -2, 2}]
 	var expected_values = {
 		-2: Vector2(-4.7213, 0.9625),
 		-1: Vector2(-4.7034, -0.9625),
@@ -350,10 +351,7 @@ func test_multivalued_asin_exact_values():
 func test_multivalued_acos_exact_values():
 	var orig_branch = GameState.current_branch
 
-	# The current implementation is not standard.
-	# Mathematica code:
 	# Table[Pi/2 - (Pi*B + (-1)^B * (Pi/2 - ArcCos[1.5 + 0.01*I])), {B, -2, 2}]
-
 	var expected_values = {
 		-2: Vector2(6.2921, -0.9625),
 		-1: Vector2(6.2742, 0.9625),
