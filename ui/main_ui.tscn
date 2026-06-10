@@ -403,9 +403,10 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(120, 0)
 layout_mode = 2
 theme_override_fonts/normal_font = ExtResource("font_spacemono")
+theme_override_constants/separation = 18
 theme_override_font_sizes/normal_font_size = 14
 bbcode_enabled = true
-text = "[color=gray]N(t) ≈[/color] [color=#c8a96e]0.00[/color]"
+text = "[color=#c8a96e]N(t) ≈[/color] [color=#c8a96e]0.00[/color]"
 fit_content = true
 scroll_active = false
 autowrap_mode = 0
@@ -414,11 +415,12 @@ autowrap_mode = 0
 unique_name_in_owner = true
 custom_minimum_size = Vector2(70, 0)
 layout_mode = 2
+size_flags_horizontal = 10
 theme_override_colors/default_color = Color(0.909804, 0.894118, 0.862745, 0.45)
 theme_override_fonts/normal_font = ExtResource("font_spacemono")
 theme_override_font_sizes/normal_font_size = 14
 bbcode_enabled = true
-text = "Δ = +0.00"
+text = "[right]Δ = +0.00[/right]"
 fit_content = true
 scroll_active = false
 autowrap_mode = 0

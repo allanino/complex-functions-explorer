@@ -191,12 +191,12 @@ func _on_values_timer_timeout():
 				GameState.missed_zeta_zero = false
 
 			if rvm_n_label:
-				rvm_n_label.text = "[color=gray]N(t)[/color] ≈ [color=#c8a96e]%.1f[/color]" % rvm_val
+				rvm_n_label.text = "[color=gray]N(t) ≈ [/color][color=#c8a96e]%.2f[/color]" % rvm_val
 			if rvm_delta_label:
 				if GameState.missed_zeta_zero:
-					rvm_delta_label.text = "Δ = %s[color=red]%.1f[/color]" % [delta_sign, delta_val]
+					rvm_delta_label.text = "[right]Δ = %s[color=red]%.2f[/color][/right]" % [delta_sign, delta_val]
 				else:
-					rvm_delta_label.text = "Δ = %s%.1f" % [delta_sign, delta_val]
+					rvm_delta_label.text = "[right]Δ = %s%.2f[/right]" % [delta_sign, delta_val]
 
 			if rvm_hbox:
 				rvm_hbox.visible = true
