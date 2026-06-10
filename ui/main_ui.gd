@@ -150,7 +150,7 @@ func _ready():
 	update_layout_timer.timeout.connect(_update_hud_layout)
 	add_child(update_layout_timer)
 
-	position_arg_container.visible = !Config.show_hud_phase_wheel
+	position_arg_container.visible = !Config.show_hud_phase_wheel and Config.show_hud_navigation
 
 	if menu_overlay:
 			menu_overlay.player = player
@@ -161,7 +161,13 @@ func _ready():
 
 	zeros_panel.visible = Config.show_hud_zeros
 	minimap_panel.visible = Config.show_minimap
-	phase_wheel.visible = Config.show_hud_phase_wheel
+	phase_wheel.get_parent().visible = Config.show_hud_phase_wheel and Config.show_hud_navigation
+	phase_wheel.visible = Config.show_hud_phase_wheel and Config.show_hud_navigation
+	if phase_wheel.visible:
+		_on_complex_aspect_resized()
+	phase_wheel.update_minimum_size()
+	phase_wheel.get_parent().update_minimum_size()
+	position_panel.update_minimum_size()
 	position_panel.visible = Config.show_hud_navigation
 
 	_setup_branch_data()
@@ -582,6 +588,12 @@ func _on_config_changed(key: String):
 	if key == "show_hud_phase_wheel":
 		position_arg_container.visible = !Config.show_hud_phase_wheel
 		phase_wheel.visible = Config.show_hud_phase_wheel
+		if phase_wheel.visible:
+			_on_complex_aspect_resized()
+		phase_wheel.update_minimum_size()
+		phase_wheel.get_parent().update_minimum_size()
+		position_panel.update_minimum_size()
+		position_panel.queue_sort()
 
 	if key in ["function_type", "show_hud_navigation", "show_hud_phase_wheel", "show_minimap", "show_hud_zeros", "show_hud_monitor_fps", "show_hud_chunks"]:
 		_update_hud_layout()
