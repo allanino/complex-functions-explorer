@@ -164,7 +164,8 @@ func _ready():
 
 	zeros_panel.visible = Config.show_hud_zeros
 	minimap_panel.visible = Config.show_minimap
-	phase_wheel.visible = Config.show_hud_phase_wheel
+	phase_wheel.get_parent().visible = Config.show_hud_phase_wheel and Config.show_hud_navigation
+	phase_wheel.visible = Config.show_hud_phase_wheel and Config.show_hud_navigation
 	position_panel.visible = Config.show_hud_navigation
 
 	_setup_branch_data()
@@ -571,6 +572,7 @@ func _on_config_changed(key: String):
 			position_arg_label.visible = !Config.show_hud_phase_wheel and Config.show_hud_navigation
 			position_arg_val.visible = !Config.show_hud_phase_wheel and Config.show_hud_navigation
 
+		phase_wheel.get_parent().visible = Config.show_hud_phase_wheel and Config.show_hud_navigation
 		phase_wheel.visible = Config.show_hud_phase_wheel and Config.show_hud_navigation
 
 	if key in ["function_type", "show_hud_navigation", "show_hud_phase_wheel", "show_minimap", "show_hud_zeros", "show_hud_monitor_fps", "show_hud_chunks"]:
