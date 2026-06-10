@@ -95,10 +95,7 @@ func _update_zeros_shader():
 			visited.append(Vector2.ZERO)
 
 		if visited.size() > 10:
-			var truncated = PackedVector2Array()
-			for i in range(visited.size() - 10, visited.size()):
-				truncated.append(visited[i])
-			visited = truncated
+			visited = visited.slice(-10)
 
 		mat.set_shader_parameter("visited_zeros_size", v_size)
 		mat.set_shader_parameter("visited_zeros", visited)
