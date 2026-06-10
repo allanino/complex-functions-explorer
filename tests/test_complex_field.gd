@@ -179,12 +179,21 @@ func test_zeta_continuation_with_derivatives():
 	assert_true(typeof(res2[0]) == TYPE_VECTOR2)
 	assert_true(typeof(res2[1]) == TYPE_VECTOR2)
 
+	# Zeta derivative from Mathematica:
+	# D[Zeta[x + 3.0 I], x] /. x -> -2.0
+	# 0.132743 - 0.037438 I
+	assert_almost_eq(res2[1].x, 0.132743, 0.0001)
+	assert_almost_eq(res2[1].y, -0.037438, 0.0001)
+
 	var val_pure2 = ComplexFieldScript.zeta_continuation(x2, y2)
 	assert_almost_eq(res2[0].x, val_pure2.x, 0.0001)
 	assert_almost_eq(res2[0].y, val_pure2.y, 0.0001)
 
-	assert_almost_eq(res2[0].x, 0.132971, 0.015)
-	assert_almost_eq(res2[0].y, 0.123053, 0.015)
+	# Zeta from Mathematica:
+	# Zeta[-2. + 3. I]
+	# 0.132971 + 0.123053 I
+	assert_almost_eq(res2[0].x, 0.132971, 0.0001)
+	assert_almost_eq(res2[0].y, 0.123053, 0.0001)
 
 	assert_true(res2[1].length_squared() > 0.0)
 	assert_false(is_nan(res2[1].x) or is_inf(res2[1].x))
