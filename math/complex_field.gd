@@ -395,16 +395,16 @@ static func complex_log_gamma_with_derivatives(x: float, y: float) -> Array:
 
 		var val = Vector2(LOG_PI, 0.0) - log_sin_pi_z - lg1z[0]
 		var cot_pi_z = complex_cot(pi_z.x, pi_z.y)
-		var dx = -PI * cot_pi_z + lg1z[1]
+		var dx = - PI * cot_pi_z + lg1z[1]
 		return [val, dx]
 	else:
 		return lanczos_log_gamma_with_derivatives(Vector2(x, y))
 
 static func log_zeta_continuation_with_derivatives(x: float, y: float, iters: int) -> Array:
 	if x >= 0.5:
-		var z_data = zeta_with_derivatives(x, y, iters)
-		var z_val = z_data[0]
-		var z_dx = z_data[1]
+		var zeta_data = zeta_with_derivatives(x, y, iters)
+		var z_val = zeta_data[0]
+		var z_dx = zeta_data[1]
 		var val = complex_log(z_val.x, z_val.y)
 		var dx = complex_div(z_dx, z_val)
 		return [val, dx]
@@ -424,10 +424,10 @@ static func log_zeta_continuation_with_derivatives(x: float, y: float, iters: in
 	log_sum += lg_data[0]
 	ratio -= lg_data[1]
 
-	var z_data = zeta_with_derivatives(s1.x, s1.y, iters)
-	var z_val = z_data[0]
-	log_sum += complex_log(z_val.x, z_val.y)
-	ratio -= complex_div(z_data[1], z_val)
+	var reflected_zeta_data = zeta_with_derivatives(s1.x, s1.y, iters)
+	var reflected_val = reflected_zeta_data[0]
+	log_sum += complex_log(reflected_val.x, reflected_val.y)
+	ratio -= complex_div(reflected_zeta_data[1], reflected_val)
 
 	return [log_sum, ratio]
 
