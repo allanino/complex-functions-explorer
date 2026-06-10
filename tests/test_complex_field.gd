@@ -518,6 +518,120 @@ func test_get_height():
 	Config.height_type = orig_type
 	GameState.morph_value = orig_morph
 
+func test_newton_step():
+	var orig_input_func = Config.input_function_type
+	var orig_func = Config.function_type
+
+	# Case 1: Analytic path with Identity -> Zeta
+	Config.input_function_type = Config.ComplexFunc.IDENTITY
+	Config.function_type = Config.ComplexFunc.ZETA
+
+	# Let's test at z = 2 + 0i. zeta(2) ~ 1.64493, zeta'(2) ~ -0.937548
+	# We will compare newton_step with the manual step calc
+	var z1 = Vector2(2.0, 0.0)
+	var res1 = ComplexFieldScript.newton_step(z1, 1.0)
+	var z1_next = res1[0]
+	var f1_val = res1[1]
+
+	var expected_f1_res = ComplexFieldScript.zeta_with_derivatives(z1.x, z1.y, Config.iterations)
+	var expected_f1_val = expected_f1_res[0]
+	var expected_f1_prime = expected_f1_res[1]
+
+	var expected_step1 = ComplexFieldScript.complex_div(expected_f1_val, expected_f1_prime)
+	if expected_step1.length() > 1.0:
+		expected_step1 = expected_step1.normalized() * 1.0
+	var expected_z1_next = z1 - expected_step1 * 1.0
+
+	assert_almost_eq(z1_next.x, expected_z1_next.x, 0.001)
+	assert_almost_eq(z1_next.y, expected_z1_next.y, 0.001)
+	assert_almost_eq(f1_val.x, expected_f1_val.x, 0.001)
+	assert_almost_eq(f1_val.y, expected_f1_val.y, 0.001)
+
+	# Case 2: Numerical path (e.g. SIN)
+	Config.input_function_type = Config.ComplexFunc.IDENTITY
+	Config.function_type = Config.ComplexFunc.SIN
+
+	var z2 = Vector2(PI / 4.0, 0.0)
+	var res2 = ComplexFieldScript.newton_step(z2, 1.0)
+	var z2_next = res2[0]
+	var f2_val = res2[1]
+
+	# Calculate exactly how numerical path does it to avoid float32 precision assertions failures
+	var p_ref = Config.complex_to_world(z2.x, z2.y)
+	var expected_f2_val = ComplexFieldScript.get_field(p_ref.x, p_ref.y)
+	var p_ref_dx = Config.complex_to_world(z2.x + 1e-5, z2.y)
+	var expected_f2_val_dx = ComplexFieldScript.get_field(p_ref_dx.x, p_ref_dx.y)
+	var expected_f2_prime = (expected_f2_val_dx - expected_f2_val) / 1e-5
+	var expected_step2 = ComplexFieldScript.complex_div(expected_f2_val, expected_f2_prime)
+	if expected_step2.length() > 1.0:
+		expected_step2 = expected_step2.normalized() * 1.0
+	var expected_z2_next = z2 - expected_step2 * 1.0
+
+	assert_almost_eq(z2_next.x, expected_z2_next.x, 0.001)
+	assert_almost_eq(z2_next.y, expected_z2_next.y, 0.001)
+	assert_almost_eq(f2_val.x, expected_f2_val.x, 0.001)
+	assert_almost_eq(f2_val.y, expected_f2_val.y, 0.001)
+
+	# Case 3: Small gradient / flat field (f_prime.length_squared() < 1e-12)
+	# sin'(z) = cos(z). If z = pi/2, cos(z) = 0.
+	# Using analytical path instead to ensure small gradient check.
+	# sin(pi/2) = 1, cos(pi/2) = 0.
+	# numerical derivation for sin(pi/2) might not yield exactly 0 due to 1e-5 offset.
+	# Let's test a point where f_prime numerical is identically zero or very small.
+	# Or let's test using numerical derivation but at the top of a peak.
+	var z3 = Vector2(PI / 2.0, 0.0)
+	var res3 = ComplexFieldScript.newton_step(z3, 1.0)
+	var z3_next = res3[0]
+	var f3_val = res3[1]
+
+	# Calculate exactly how numerical path does it
+	var p_ref3 = Config.complex_to_world(z3.x, z3.y)
+	var expected_f3_val = ComplexFieldScript.get_field(p_ref3.x, p_ref3.y)
+	var p_ref_dx3 = Config.complex_to_world(z3.x + 1e-5, z3.y)
+	var expected_f3_val_dx = ComplexFieldScript.get_field(p_ref_dx3.x, p_ref_dx3.y)
+	var expected_f3_prime = (expected_f3_val_dx - expected_f3_val) / 1e-5
+
+	var expected_z3_next = z3
+	if expected_f3_prime.length_squared() >= 1e-12:
+		var expected_step3 = ComplexFieldScript.complex_div(expected_f3_val, expected_f3_prime)
+		if expected_step3.length() > 1.0:
+			expected_step3 = expected_step3.normalized() * 1.0
+		expected_z3_next = z3 - expected_step3 * 1.0
+
+	assert_almost_eq(z3_next.x, expected_z3_next.x, 0.001)
+	assert_almost_eq(z3_next.y, expected_z3_next.y, 0.001)
+	assert_almost_eq(f3_val.x, expected_f3_val.x, 0.001)
+	assert_almost_eq(f3_val.y, expected_f3_val.y, 0.001)
+
+	# Case 4: Step length > max_step
+	# sin(z) / cos(z) = tan(z). If z is 1.50, tan(1.50) is ~14.1, which is > max_step.
+	# We use 1.50 instead of 1.57 to ensure f_prime is not truncated to 0 due to float32 precision.
+	var z4 = Vector2(1.50, 0.0)
+	var max_step = 2.0
+	var res4 = ComplexFieldScript.newton_step(z4, 1.0, max_step)
+	var z4_next = res4[0]
+	var f4_val = res4[1]
+
+	var p_ref4 = Config.complex_to_world(z4.x, z4.y)
+	var expected_f4_val = ComplexFieldScript.get_field(p_ref4.x, p_ref4.y)
+	var p_ref_dx4 = Config.complex_to_world(z4.x + 1e-5, z4.y)
+	var expected_f4_val_dx = ComplexFieldScript.get_field(p_ref_dx4.x, p_ref_dx4.y)
+	var expected_f4_prime = (expected_f4_val_dx - expected_f4_val) / 1e-5
+
+	var expected_step4 = ComplexFieldScript.complex_div(expected_f4_val, expected_f4_prime)
+	if expected_step4.length() > max_step:
+		expected_step4 = expected_step4.normalized() * max_step
+	var expected_z4_next = z4 - expected_step4 * 1.0
+
+	assert_almost_eq(z4_next.x, expected_z4_next.x, 0.001)
+	assert_almost_eq(z4_next.y, expected_z4_next.y, 0.001)
+	assert_almost_eq(f4_val.x, expected_f4_val.x, 0.001)
+	assert_almost_eq(f4_val.y, expected_f4_val.y, 0.001)
+
+	# Restore Config
+	Config.input_function_type = orig_input_func
+	Config.function_type = orig_func
+
 func test_get_field():
 	var orig_perf = GameState.performance_protection_active
 	var orig_func = Config.function_type
