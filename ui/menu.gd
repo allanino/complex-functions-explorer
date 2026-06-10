@@ -756,6 +756,7 @@ func _sync_ui_to_config():
 	minimap_checkbox.button_pressed = Config.show_minimap
 	hud_phase_wheel_checkbox.button_pressed = Config.show_hud_phase_wheel
 	hud_position_checkbox.button_pressed = Config.show_hud_navigation
+	hud_phase_wheel_checkbox.visible = Config.show_hud_navigation
 	hud_zeros_checkbox.button_pressed = Config.show_hud_zeros
 	rvm_checkbox.button_pressed = Config.show_rvm
 	hud_monitor_fps_checkbox.button_pressed = Config.show_hud_monitor_fps
@@ -837,6 +838,7 @@ func _on_hud_phase_wheel_toggled(pressed: bool):
 
 func _on_hud_navigation_toggled(pressed: bool):
 	Config.show_hud_navigation = pressed
+	hud_phase_wheel_checkbox.visible = pressed
 	emit_signal('update_hud_layout_signal')
 
 func _on_hud_zeros_toggled(pressed: bool):
