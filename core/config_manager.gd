@@ -68,7 +68,7 @@ const FUNCTIONS = {
 	},
 	ComplexFunc.LOG_GAMMA: {
 		"name": "Log Gamma",
-		"symbol": "log Γ",
+		"symbol": "f",
 	},
 	ComplexFunc.DEDEKIND_ETA: {
 		"name": "Dedekind Eta",
