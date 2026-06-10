@@ -148,6 +148,57 @@ func test_zeta_continuation():
 	assert_almost_eq(res2.x, 0.132971, 0.015)
 	assert_almost_eq(res2.y, 0.123053, 0.015)
 
+func test_zeta_continuation_with_derivatives():
+	# Test at first non-trivial zero (same as test_zeta)
+	var x1 = 0.5
+	var y1 = 14.134725
+	var res = ComplexFieldScript.zeta_continuation_with_derivatives(x1, y1, Config.iterations)
+	assert_eq(res.size(), 2)
+	assert_true(typeof(res[0]) == TYPE_VECTOR2)
+	assert_true(typeof(res[1]) == TYPE_VECTOR2)
+
+	# Value should match the pure continuation function
+	var val_pure = ComplexFieldScript.zeta_continuation(x1, y1)
+	assert_almost_eq(res[0].x, val_pure.x, 0.0001)
+	assert_almost_eq(res[0].y, val_pure.y, 0.0001)
+
+	# Value should be close to 0 (since it's a zero)
+	assert_almost_eq(res[0].x, 0.0, 0.015)
+	assert_almost_eq(res[0].y, 0.0, 0.015)
+
+	# Derivative should not be zero, NaN, or Inf (basic structural check)
+	assert_true(res[1].length_squared() > 0.0)
+	assert_false(is_nan(res[1].x) or is_inf(res[1].x))
+	assert_false(is_nan(res[1].y) or is_inf(res[1].y))
+
+	# Test at a point with x < 0.5
+	var x2 = -2.0
+	var y2 = 3.0
+	var res2 = ComplexFieldScript.zeta_continuation_with_derivatives(x2, y2, Config.iterations)
+	assert_eq(res2.size(), 2)
+	assert_true(typeof(res2[0]) == TYPE_VECTOR2)
+	assert_true(typeof(res2[1]) == TYPE_VECTOR2)
+
+	# Zeta derivative from Mathematica:
+	# D[Zeta[x + 3.0 I], x] /. x -> -2.0
+	# 0.132743 - 0.037438 I
+	assert_almost_eq(res2[1].x, 0.132743, 0.0001)
+	assert_almost_eq(res2[1].y, -0.037438, 0.0001)
+
+	var val_pure2 = ComplexFieldScript.zeta_continuation(x2, y2)
+	assert_almost_eq(res2[0].x, val_pure2.x, 0.0001)
+	assert_almost_eq(res2[0].y, val_pure2.y, 0.0001)
+
+	# Zeta from Mathematica:
+	# Zeta[-2. + 3. I]
+	# 0.132971 + 0.123053 I
+	assert_almost_eq(res2[0].x, 0.132971, 0.0001)
+	assert_almost_eq(res2[0].y, 0.123053, 0.0001)
+
+	assert_true(res2[1].length_squared() > 0.0)
+	assert_false(is_nan(res2[1].x) or is_inf(res2[1].x))
+	assert_false(is_nan(res2[1].y) or is_inf(res2[1].y))
+
 func test_dedekind_eta():
 	var res = ComplexFieldScript.dedekind_eta(0, 1)
 	assert_almost_eq(res.x, 0.7682, 0.01)

@@ -432,6 +432,9 @@ static func log_zeta_continuation_with_derivatives(x: float, y: float, iters: in
 	return [log_sum, ratio]
 
 static func zeta_continuation_with_derivatives(x: float, y: float, iters: int) -> Array:
+	if x >= 0.5:
+		return zeta_with_derivatives(x, y, iters)
+
 	var log_z = log_zeta_continuation_with_derivatives(x, y, iters)
 	var val = complex_exp(log_z[0].x, log_z[0].y)
 	var dx = complex_mul(val, log_z[1])
