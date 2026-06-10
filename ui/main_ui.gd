@@ -149,10 +149,10 @@ func _ready():
 
 	var position_arg_container = get_node_or_null("%PositionArgContainer")
 	if position_arg_container:
-		position_arg_container.visible = !Config.show_hud_phase_wheel
+		position_arg_container.visible = !Config.show_hud_phase_wheel and Config.show_hud_navigation
 	else:
-		position_arg_label.visible = !Config.show_hud_phase_wheel
-		position_arg_val.visible = !Config.show_hud_phase_wheel
+		position_arg_label.visible = !Config.show_hud_phase_wheel and Config.show_hud_navigation
+		position_arg_val.visible = !Config.show_hud_phase_wheel and Config.show_hud_navigation
 
 
 	if menu_overlay:
@@ -563,15 +563,15 @@ func _on_config_changed(key: String):
 		_update_zeros_list()
 	if key in ["show_hud_monitor_fps", "show_hud_chunks"]:
 		_update_monitor_label()
-	if key == "show_hud_phase_wheel":
+	if key in ["show_hud_phase_wheel", "show_hud_navigation"]:
 		var position_arg_container = get_node_or_null("%PositionArgContainer")
 		if position_arg_container:
-			position_arg_container.visible = !Config.show_hud_phase_wheel
+			position_arg_container.visible = !Config.show_hud_phase_wheel and Config.show_hud_navigation
 		else:
-			position_arg_label.visible = !Config.show_hud_phase_wheel
-			position_arg_val.visible = !Config.show_hud_phase_wheel
+			position_arg_label.visible = !Config.show_hud_phase_wheel and Config.show_hud_navigation
+			position_arg_val.visible = !Config.show_hud_phase_wheel and Config.show_hud_navigation
 
-		phase_wheel.visible = Config.show_hud_phase_wheel
+		phase_wheel.visible = Config.show_hud_phase_wheel and Config.show_hud_navigation
 
 	if key in ["function_type", "show_hud_navigation", "show_hud_phase_wheel", "show_minimap", "show_hud_zeros", "show_hud_monitor_fps", "show_hud_chunks"]:
 		_update_hud_layout()
