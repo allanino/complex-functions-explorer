@@ -449,14 +449,27 @@ func _physics_process(delta):
 		last_valid_terrain_height = terrain_h
 
 	# Prevent player from probing heights higher/lower than MAX_WORLD_HEIGHT
-	if abs(terrain_h) >= MAX_WORLD_HEIGHT:
+	var target_y = terrain_h + scaled_camera_height + height_offset
+	var last_target_y = last_terrain_h + scaled_camera_height + height_offset
+
+	if abs(target_y) >= MAX_WORLD_HEIGHT:
 		GameState.height_protection_active = true
 		# If moving to a height that is greater in magnitude than our current/last height, block it
-		if abs(terrain_h) > abs(last_terrain_h):
+		if abs(target_y) > abs(last_target_y):
 			velocity.x = 0.0
 			velocity.z = 0.0
 			terrain_h = last_terrain_h
-		terrain_h = clamp(terrain_h, -MAX_WORLD_HEIGHT, MAX_WORLD_HEIGHT)
+
+		# Ensure height_offset stays bounded by MAX_WORLD_HEIGHT impeding further offset
+		var max_allowed_offset = MAX_WORLD_HEIGHT - terrain_h - scaled_camera_height
+		var min_allowed_offset = -MAX_WORLD_HEIGHT - terrain_h - scaled_camera_height
+
+		if target_y > MAX_WORLD_HEIGHT:
+			height_offset = min(height_offset, max_allowed_offset)
+		elif target_y < -MAX_WORLD_HEIGHT:
+			height_offset = max(height_offset, min_allowed_offset)
+
+		target_y = clamp(terrain_h + scaled_camera_height + height_offset, -MAX_WORLD_HEIGHT, MAX_WORLD_HEIGHT)
 	else:
 		GameState.height_protection_active = false
 
@@ -484,8 +497,6 @@ func _physics_process(delta):
 	
 	last_player_pos = global_position
 	last_terrain_h = terrain_h
-
-	var target_y = terrain_h + scaled_camera_height + height_offset
 
 	# Compute surface normal to offset camera horizontally and avoid entering in vertical walls
 	camera.position = Vector3(0.0, target_y, 0.0) + transform.basis.inverse() * camera_push_offset
