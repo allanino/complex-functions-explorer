@@ -466,3 +466,76 @@ func test_get_height():
 	GameState.effective_zoom = orig_zoom
 	Config.height_type = orig_type
 	GameState.morph_value = orig_morph
+
+func test_newton_step():
+	var orig_input_func = Config.input_function_type
+	var orig_func = Config.function_type
+
+	# Case 1: Analytic path with Identity -> Zeta
+	Config.input_function_type = Config.ComplexFunc.IDENTITY
+	Config.function_type = Config.ComplexFunc.ZETA
+
+	# Let's test at z = 2 + 0i. zeta(2) ~ 1.64493, zeta'(2) ~ -0.937548
+	# We will compare newton_step with the manual step calc
+	var z1 = Vector2(2.0, 0.0)
+	var res1 = ComplexFieldScript.newton_step(z1, 1.0)
+	var z1_next = res1[0]
+	var f1_val = res1[1]
+
+	var expected_f1_res = ComplexFieldScript.zeta_with_derivatives(z1.x, z1.y, Config.iterations)
+	var expected_f1_val = expected_f1_res[0]
+	var expected_f1_prime = expected_f1_res[1]
+
+	var expected_step1 = ComplexFieldScript.complex_div(expected_f1_val, expected_f1_prime)
+	var expected_z1_next = z1 - expected_step1
+
+	assert_almost_eq(z1_next.x, expected_z1_next.x, 0.001)
+	assert_almost_eq(z1_next.y, expected_z1_next.y, 0.001)
+	assert_almost_eq(f1_val.x, expected_f1_val.x, 0.001)
+	assert_almost_eq(f1_val.y, expected_f1_val.y, 0.001)
+
+	# Case 2: Numerical path (e.g. SIN)
+	Config.input_function_type = Config.ComplexFunc.IDENTITY
+	Config.function_type = Config.ComplexFunc.SIN
+
+	# For f(z) = sin(z), let's use z = pi/4 + 0i
+	# sin(pi/4) = sqrt(2)/2, cos(pi/4) = sqrt(2)/2. step = f/f' = 1 -> z_next = pi/4 - 1
+	var z2 = Vector2(PI / 4.0, 0.0)
+	var res2 = ComplexFieldScript.newton_step(z2, 1.0)
+	var z2_next = res2[0]
+	var f2_val = res2[1]
+
+	var expected_z2_next = z2 - Vector2(1.0, 0.0)
+	var expected_f2_val = Vector2(sin(PI / 4.0), 0.0)
+
+	assert_almost_eq(z2_next.x, expected_z2_next.x, 0.001)
+	assert_almost_eq(z2_next.y, expected_z2_next.y, 0.001)
+	assert_almost_eq(f2_val.x, expected_f2_val.x, 0.001)
+	assert_almost_eq(f2_val.y, expected_f2_val.y, 0.001)
+
+	# Case 3: Small gradient / flat field (f_prime.length_squared() < 1e-12)
+	# sin'(z) = cos(z). If z = pi/2, cos(z) = 0.
+	var z3 = Vector2(PI / 2.0, 0.0)
+	var res3 = ComplexFieldScript.newton_step(z3, 1.0)
+	var z3_next = res3[0]
+	var f3_val = res3[1]
+
+	# Should return original z because f_prime is near zero
+	assert_almost_eq(z3_next.x, z3.x, 0.001)
+	assert_almost_eq(z3_next.y, z3.y, 0.001)
+	assert_almost_eq(f3_val.x, 1.0, 0.001)
+	assert_almost_eq(f3_val.y, 0.0, 0.001)
+
+	# Case 4: Step length > max_step
+	# sin(z) / cos(z) = tan(z). If z is near pi/2 but not exactly (e.g. 1.57), tan(z) is huge.
+	var z4 = Vector2(1.57, 0.0) # tan(1.57) ~ 1255.7
+	var max_step = 2.0
+	var res4 = ComplexFieldScript.newton_step(z4, 1.0, max_step)
+	var z4_next = res4[0]
+
+	var diff4 = z4 - z4_next
+	assert_almost_eq(diff4.length(), max_step, 0.001)
+
+	# Restore Config
+	Config.input_function_type = orig_input_func
+	Config.function_type = orig_func
