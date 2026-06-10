@@ -277,6 +277,30 @@ func test_get_rational():
 	Config.rational_num_coeffs = orig_num
 	Config.rational_den_coeffs = orig_den
 
+func test_xi():
+	# Exact value: xi(2) = pi / 6
+	var res_2 = ComplexFieldScript.xi(2.0, 0.0)
+	assert_almost_eq(res_2.x, PI / 6.0, 0.015)
+	assert_almost_eq(res_2.y, 0.0, 0.015)
+
+	# Functional equation symmetry: xi(s) = xi(1 - s)
+	var s_1 = Vector2(0.7, 1.2)
+	var s_1_sym = Vector2(1.0 - s_1.x, -s_1.y) # 1 - s
+	var res_s_1 = ComplexFieldScript.xi(s_1.x, s_1.y)
+	var res_s_1_sym = ComplexFieldScript.xi(s_1_sym.x, s_1_sym.y)
+	assert_almost_eq(res_s_1.x, res_s_1_sym.x, 0.015)
+	assert_almost_eq(res_s_1.y, res_s_1_sym.y, 0.015)
+
+	# Real on the critical line: Re(s) = 0.5
+	var res_crit = ComplexFieldScript.xi(0.5, 5.0)
+	assert_almost_eq(res_crit.y, 0.0, 0.015)
+
+	# First non-trivial zero of zeta is also a zero of xi
+	var first_zero_y = 14.134725
+	var res_zero = ComplexFieldScript.xi(0.5, first_zero_y)
+	assert_almost_eq(res_zero.x, 0.0, 0.015)
+	assert_almost_eq(res_zero.y, 0.0, 0.015)
+
 func test_multivalued_z_pow_inv_n():
 	# Save original config values to restore them later
 	var orig_current_branch = GameState.current_branch
