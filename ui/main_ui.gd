@@ -35,6 +35,8 @@ var portal_flash: ColorRect
 @onready var position_arg_container = %PositionArgContainer
 @onready var mobile_controls = $Control/MobileControls
 @onready var mobile_settings_btn = $Control/MobileControls/SettingsButton
+@onready var target_label = %TargetLabel
+@onready var abs_label = %AbsLabel
 
 @export var show_hud_chunks: bool = false
 
@@ -103,6 +105,7 @@ func _setup_branch_data():
 
 func _ready():
 	Config.config_changed.connect(_on_config_changed)
+	_update_function_labels()
 
 	if not mobile_settings_btn.pressed.is_connected(toggle_menu.bind(false)):
 		mobile_settings_btn.pressed.connect(toggle_menu.bind(false))
@@ -276,6 +279,16 @@ func _update_monitor_label():
 			bbcode += chunks_text + "\n"
 
 		monitor_rt_label.text = bbcode.strip_edges()
+
+func _update_function_labels():
+	var symbol = Config.function.get("symbol", "f")
+	if symbol.length() > 0:
+		symbol = symbol[0]
+	else:
+		symbol = "f"
+	target_label.text = symbol + "(s)"
+	position_arg_label.text = "arg(" + symbol + ")"
+	abs_label.text = "|" + symbol + "|"
 
 func _update_zeros_list():
 	var f_data = Config.function
@@ -546,6 +559,7 @@ func _on_config_changed(key: String):
 	if key == "function_type":
 		_update_zeros_list()
 		_setup_branch_data()
+		_update_function_labels()
 	if key == "show_hud_navigation":
 		position_panel.visible = Config.show_hud_navigation
 	if key == "show_minimap":
