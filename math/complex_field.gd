@@ -273,6 +273,20 @@ static func get_rational(x: float, y: float, num_coeffs: PackedVector2Array, den
 	return complex_div(num, den)
 
 
+
+static func get_shader_patch_centers() -> PackedVector2Array:
+	var centers = PackedVector2Array()
+	for i in range(min(64, zeta_patches.size())):
+		centers.append(zeta_patches[i]["center"])
+	return centers
+
+static func get_shader_patch_coeffs() -> PackedVector2Array:
+	var coeffs = PackedVector2Array()
+	for i in range(min(64, zeta_patches.size())):
+		for k in range(16):
+			coeffs.append(zeta_patches[i]["coeffs"][k])
+	return coeffs
+
 static func evaluate_power_series(center: Vector2, coeffs: Array, z: Vector2) -> Vector2:
 	var res = Vector2.ZERO
 	var dz = z - center

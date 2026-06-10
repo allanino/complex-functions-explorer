@@ -139,6 +139,10 @@ func _apply_performance_protection(active: bool):
 		audio.set_performance_protection(active)
 
 func _update_all_terrain_material_uniforms():
+	if terrain_material:
+		terrain_material.set_shader_parameter("zeta_patch_count", min(64, ComplexField.zeta_patches.size()))
+		terrain_material.set_shader_parameter("zeta_patch_centers", ComplexField.get_shader_patch_centers())
+		terrain_material.set_shader_parameter("zeta_patch_coeffs", ComplexField.get_shader_patch_coeffs())
 	var init_keys = [
 		"function_type",
 		"iterations", "show_curves", "show_critical_stripe", "show_flow",

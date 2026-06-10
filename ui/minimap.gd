@@ -29,6 +29,11 @@ func _on_resized():
 		custom_minimum_size.y = size.x
 
 func _sync_all_uniforms():
+	if minimap_material:
+		minimap_material.set_shader_parameter("zeta_patch_count", min(64, ComplexField.zeta_patches.size()))
+		minimap_material.set_shader_parameter("zeta_patch_centers", ComplexField.get_shader_patch_centers())
+		minimap_material.set_shader_parameter("zeta_patch_coeffs", ComplexField.get_shader_patch_coeffs())
+
 	if map_rect and map_rect.material:
 		var mat = map_rect.material as ShaderMaterial
 		mat.set_shader_parameter("view_radius", view_radius)

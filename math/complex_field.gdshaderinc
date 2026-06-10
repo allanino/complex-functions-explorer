@@ -637,6 +637,11 @@ ComplexFieldData log_zeta_continuation_with_derivatives(float x, float y, int it
 }
 
 
+
+uniform int zeta_patch_count = 0;
+uniform vec2 zeta_patch_centers[64];
+uniform vec2 zeta_patch_coeffs[1024]; // 64 * 16
+
 const int PATCH_MAX_K = 15;
 const float PATCH_RADIUS = 2.0;
 const float PATCH_THRESHOLD = 0.65;
@@ -699,47 +704,29 @@ ComplexFieldData zeta_continuation_power_series_with_derivatives(float x, float 
 	}
 
 	vec2 z = vec2(x, y);
+	int closest_idx = -1;
+	float min_dist = 1e9;
 
-	// Bootstrapping
-	float start_x = max(z.x, 0.5);
-	vec2 curr_center = vec2(start_x, z.y);
+	for (int i = 0; i < zeta_patch_count; i++) {
+		float dist = length(z - zeta_patch_centers[i]);
+		if (dist < min_dist) {
+			min_dist = dist;
+			closest_idx = i;
+		}
+	}
 
+	if (closest_idx == -1 || min_dist > PATCH_RADIUS * PATCH_THRESHOLD) {
+		ComplexFieldData nan_res;
+		nan_res.value = vec2(0.0 / 0.0);
+		nan_res.dx = vec2(0.0 / 0.0);
+		nan_res.dy = vec2(0.0 / 0.0);
+		return nan_res;
+	}
+
+	vec2 curr_center = zeta_patch_centers[closest_idx];
 	vec2 curr_coeffs[16];
-	compute_zeta_taylor_patch(curr_center.x, curr_center.y, iters, curr_coeffs);
-
-	// Step until we are within threshold
-	float dist = length(z - curr_center);
-	while (dist > PATCH_RADIUS * PATCH_THRESHOLD) {
-		vec2 dir = normalize(z - curr_center);
-		float step_dist = min(dist, PATCH_RADIUS * PATCH_THRESHOLD);
-		vec2 new_center = curr_center + dir * step_dist;
-
-		vec2 new_coeffs[16];
-		for (int k = 0; k <= PATCH_MAX_K; k++) {
-			new_coeffs[k] = vec2(0.0);
-		}
-
-		vec2 dz = new_center - curr_center;
-		for (int j = 0; j <= PATCH_MAX_K; j++) {
-			vec2 res = vec2(0.0);
-			vec2 dz_k = vec2(1.0, 0.0);
-			for (int k = j; k <= PATCH_MAX_K; k++) {
-				float comb = 1.0;
-				for (int i = 1; i <= k - j; i++) {
-					comb = comb * float(j + i) / float(i);
-				}
-				vec2 term = complex_mul(curr_coeffs[k], dz_k);
-				res += term * comb;
-				dz_k = complex_mul(dz_k, dz);
-			}
-			new_coeffs[j] = res;
-		}
-
-		curr_center = new_center;
-		for (int k = 0; k <= PATCH_MAX_K; k++) {
-			curr_coeffs[k] = new_coeffs[k];
-		}
-		dist = length(z - curr_center);
+	for (int k = 0; k <= PATCH_MAX_K; k++) {
+		curr_coeffs[k] = zeta_patch_coeffs[closest_idx * 16 + k];
 	}
 
 	ComplexFieldData res;
