@@ -197,9 +197,9 @@ func _on_values_timer_timeout():
 				rvm_n_label.text = "[color=gray]N(t)[/color] ≈ [color=#c8a96e]%.1f[/color]" % rvm_val
 			if rvm_delta_label:
 				if GameState.missed_zeta_zero:
-					rvm_delta_label.text = "Δ = %s[color=red]%.1f[/color]" % [delta_sign, delta_val]
+					rvm_delta_label.text = "[font=res://ui/theme/font_xenon.tres]Δ[/font] = %s[color=red]%.1f[/color]" % [delta_sign, delta_val]
 				else:
-					rvm_delta_label.text = "Δ = %s%.1f" % [delta_sign, delta_val]
+					rvm_delta_label.text = "[font=res://ui/theme/font_xenon.tres]Δ[/font] = %s%.1f" % [delta_sign, delta_val]
 
 			if rvm_hbox:
 				rvm_hbox.visible = true
@@ -292,9 +292,9 @@ func _update_function_labels():
 		symbol = symbol[0]
 	else:
 		symbol = "f"
-	target_label.text = symbol + "(s)"
-	position_arg_label.text = "arg(" + symbol + ")"
-	abs_label.text = "|" + symbol + "|"
+	target_label.text = "[font=res://ui/theme/font_xenon.tres]" + symbol + "(s)[/font]"
+	position_arg_label.text = "arg([font=res://ui/theme/font_xenon.tres]" + symbol + "[/font])"
+	abs_label.text = "|[font=res://ui/theme/font_xenon.tres]" + symbol + "[/font]|"
 
 func _update_zeros_list():
 	var f_data = Config.function

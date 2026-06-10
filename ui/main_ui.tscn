@@ -528,10 +528,12 @@ layout_mode = 2
 theme_override_constants/separation = 7
 theme_override_styles/separator = SubResource("StyleBoxLine_hseparator_custom")
 
-[node name="TargetLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/PositionPanel/MarginContainer/VBox"]
+[node name="TargetLabel" type="RichTextLabel" parent="Control/MainUIColumns/MainUIStackRight/PositionPanel/MarginContainer/VBox"]
 unique_name_in_owner = true
 theme_type_variation = &"SecondaryLabel"
 layout_mode = 2
+bbcode_enabled = true
+fit_content = true
 text = "f(s)"
 
 [node name="TargetVal" type="RichTextLabel" parent="Control/MainUIColumns/MainUIStackRight/PositionPanel/MarginContainer/VBox"]
@@ -562,10 +564,12 @@ layout_mode = 2
 layout_mode = 2
 
 
-[node name="PositionArgLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/PositionPanel/MarginContainer/VBox/PositionArgContainer/PositionArgText"]
+[node name="PositionArgLabel" type="RichTextLabel" parent="Control/MainUIColumns/MainUIStackRight/PositionPanel/MarginContainer/VBox/PositionArgContainer/PositionArgText"]
 unique_name_in_owner = true
 theme_type_variation = &"SecondaryLabel"
 layout_mode = 2
+bbcode_enabled = true
+fit_content = true
 text = "arg(f)"
 
 
@@ -588,10 +592,12 @@ custom_minimum_size = Vector2(28, 28)
 size_flags_vertical = 4
 script = ExtResource("12_hud_arrow")
 
-[node name="AbsLabel" type="Label" parent="Control/MainUIColumns/MainUIStackRight/PositionPanel/MarginContainer/VBox"]
+[node name="AbsLabel" type="RichTextLabel" parent="Control/MainUIColumns/MainUIStackRight/PositionPanel/MarginContainer/VBox"]
 unique_name_in_owner = true
 theme_type_variation = &"SecondaryLabel"
 layout_mode = 2
+bbcode_enabled = true
+fit_content = true
 text = "|f|"
 
 [node name="PhaseAbsVal" type="Label" parent="Control/MainUIColumns/MainUIStackRight/PositionPanel/MarginContainer/VBox"]
