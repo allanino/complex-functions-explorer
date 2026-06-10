@@ -152,7 +152,7 @@ func test_zeta_continuation_with_derivatives():
 	# Test at first non-trivial zero (same as test_zeta)
 	var x1 = 0.5
 	var y1 = 14.134725
-	var res = ComplexFieldScript.zeta_continuation_with_derivatives(x1, y1, 10)
+	var res = ComplexFieldScript.zeta_continuation_with_derivatives(x1, y1, Config.iterations)
 	assert_eq(res.size(), 2)
 	assert_true(typeof(res[0]) == TYPE_VECTOR2)
 	assert_true(typeof(res[1]) == TYPE_VECTOR2)
@@ -174,7 +174,7 @@ func test_zeta_continuation_with_derivatives():
 	# Test at a point with x < 0.5
 	var x2 = -2.0
 	var y2 = 3.0
-	var res2 = ComplexFieldScript.zeta_continuation_with_derivatives(x2, y2, 10)
+	var res2 = ComplexFieldScript.zeta_continuation_with_derivatives(x2, y2, Config.iterations)
 	assert_eq(res2.size(), 2)
 	assert_true(typeof(res2[0]) == TYPE_VECTOR2)
 	assert_true(typeof(res2[1]) == TYPE_VECTOR2)

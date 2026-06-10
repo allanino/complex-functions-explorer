@@ -1,0 +1,6 @@
+print("Ah!")
+print("z_val approx 0 -> mag_sq < 1e-48")
+print("complex_log returns (-60.0, 0.0)")
+print("Then dx in log_zeta_continuation_with_derivatives:")
+print("dx = complex_div(z_dx, z_val)")
+print("Wait, if z_val is 0, what does complex_div do?")
