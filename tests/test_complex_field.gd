@@ -261,6 +261,37 @@ func test_multivalued_log():
 	# Restore config values
 	GameState.current_branch = orig_current_branch
 
+func test_multivalued_asin():
+	var orig_branch = GameState.current_branch
+	GameState.current_branch = 0
+
+	# asin(0) = 0
+	var res = ComplexFieldScript.multivalued_asin(0, 0)
+	assert_almost_eq(res.x, 0.0, 0.0001)
+	assert_almost_eq(res.y, 0.0, 0.0001)
+
+	# asin(1) = pi/2
+	res = ComplexFieldScript.multivalued_asin(1, 0)
+	assert_almost_eq(res.x, PI / 2.0, 0.0001)
+	assert_almost_eq(res.y, 0.0, 0.0001)
+
+	# asin(-1) = -pi/2
+	res = ComplexFieldScript.multivalued_asin(-1, 0)
+	assert_almost_eq(res.x, -PI / 2.0, 0.0001)
+	assert_almost_eq(res.y, 0.0, 0.0001)
+
+	# asin(2) = pi/2 - i*acosh(2) approx 1.5708 - 1.3169i
+	res = ComplexFieldScript.multivalued_asin(2, 0)
+	assert_almost_eq(res.x, PI / 2.0, 0.0001)
+	assert_almost_eq(res.y, -1.31695, 0.0001)
+
+	# asin(i) = i * asinh(1) approx 0.88137i
+	res = ComplexFieldScript.multivalued_asin(0, 1)
+	assert_almost_eq(res.x, 0.0, 0.0001)
+	assert_almost_eq(res.y, 0.88137, 0.0001)
+
+	GameState.current_branch = orig_branch
+
 func test_multivalued_asin_exact_values():
 	var orig_branch = GameState.current_branch
 
