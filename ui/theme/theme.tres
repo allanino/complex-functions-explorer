@@ -2,6 +2,9 @@
 
 [ext_resource type="FontVariation" path="res://ui/theme/font_neon.tres" id="1_spacemono"]
 [ext_resource type="FontFile" path="res://fonts/EBGaramond-Light.ttf" id="3_ebgaramond"]
+[ext_resource type="Texture2D" path="res://ui/theme/icons/arrow.png" id="tex_arrow"]
+[ext_resource type="Texture2D" path="res://ui/theme/icons/radio_checked.png" id="tex_radio_checked"]
+[ext_resource type="Texture2D" path="res://ui/theme/icons/radio_unchecked.png" id="tex_radio_unchecked"]
 [ext_resource type="FontVariation" path="res://ui/theme/font_garamond.tres" id="4_ebgaramond_italic"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dropdown_normal"]
@@ -429,6 +432,19 @@ corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
 
 [resource]
+OptionButton/icons/arrow = ExtResource("tex_arrow")
+OptionButton/icons/checked = ExtResource("tex_radio_checked")
+OptionButton/icons/radio_checked = ExtResource("tex_radio_checked")
+OptionButton/icons/radio_unchecked = ExtResource("tex_radio_unchecked")
+OptionButton/icons/unchecked = ExtResource("tex_radio_unchecked")
+PopupMenu/icons/checked = ExtResource("tex_radio_checked")
+PopupMenu/icons/checked_disabled = ExtResource("tex_radio_checked")
+PopupMenu/icons/radio_checked = ExtResource("tex_radio_checked")
+PopupMenu/icons/radio_checked_disabled = ExtResource("tex_radio_checked")
+PopupMenu/icons/radio_unchecked = ExtResource("tex_radio_unchecked")
+PopupMenu/icons/radio_unchecked_disabled = ExtResource("tex_radio_unchecked")
+PopupMenu/icons/unchecked = ExtResource("tex_radio_unchecked")
+PopupMenu/icons/unchecked_disabled = ExtResource("tex_radio_unchecked")
 default_font = ExtResource("1_spacemono")
 Button/font_sizes/font_size = 16
 CheckBox/colors/font_color = Color(0.909804, 0.894118, 0.862745, 1)
