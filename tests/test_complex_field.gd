@@ -148,6 +148,57 @@ func test_zeta_continuation():
 	assert_almost_eq(res2.x, 0.132971, 0.015)
 	assert_almost_eq(res2.y, 0.123053, 0.015)
 
+func test_zeta_continuation_with_derivatives():
+	# Test at first non-trivial zero (same as test_zeta)
+	var x1 = 0.5
+	var y1 = 14.134725
+	var res = ComplexFieldScript.zeta_continuation_with_derivatives(x1, y1, Config.iterations)
+	assert_eq(res.size(), 2)
+	assert_true(typeof(res[0]) == TYPE_VECTOR2)
+	assert_true(typeof(res[1]) == TYPE_VECTOR2)
+
+	# Value should match the pure continuation function
+	var val_pure = ComplexFieldScript.zeta_continuation(x1, y1)
+	assert_almost_eq(res[0].x, val_pure.x, 0.0001)
+	assert_almost_eq(res[0].y, val_pure.y, 0.0001)
+
+	# Value should be close to 0 (since it's a zero)
+	assert_almost_eq(res[0].x, 0.0, 0.015)
+	assert_almost_eq(res[0].y, 0.0, 0.015)
+
+	# Derivative should not be zero, NaN, or Inf (basic structural check)
+	assert_true(res[1].length_squared() > 0.0)
+	assert_false(is_nan(res[1].x) or is_inf(res[1].x))
+	assert_false(is_nan(res[1].y) or is_inf(res[1].y))
+
+	# Test at a point with x < 0.5
+	var x2 = -2.0
+	var y2 = 3.0
+	var res2 = ComplexFieldScript.zeta_continuation_with_derivatives(x2, y2, Config.iterations)
+	assert_eq(res2.size(), 2)
+	assert_true(typeof(res2[0]) == TYPE_VECTOR2)
+	assert_true(typeof(res2[1]) == TYPE_VECTOR2)
+
+	# Zeta derivative from Mathematica:
+	# D[Zeta[x + 3.0 I], x] /. x -> -2.0
+	# 0.132743 - 0.037438 I
+	assert_almost_eq(res2[1].x, 0.132743, 0.0001)
+	assert_almost_eq(res2[1].y, -0.037438, 0.0001)
+
+	var val_pure2 = ComplexFieldScript.zeta_continuation(x2, y2)
+	assert_almost_eq(res2[0].x, val_pure2.x, 0.0001)
+	assert_almost_eq(res2[0].y, val_pure2.y, 0.0001)
+
+	# Zeta from Mathematica:
+	# Zeta[-2. + 3. I]
+	# 0.132971 + 0.123053 I
+	assert_almost_eq(res2[0].x, 0.132971, 0.0001)
+	assert_almost_eq(res2[0].y, 0.123053, 0.0001)
+
+	assert_true(res2[1].length_squared() > 0.0)
+	assert_false(is_nan(res2[1].x) or is_inf(res2[1].x))
+	assert_false(is_nan(res2[1].y) or is_inf(res2[1].y))
+
 func test_dedekind_eta():
 	var res = ComplexFieldScript.dedekind_eta(0, 1)
 	assert_almost_eq(res.x, 0.7682, 0.01)
@@ -580,3 +631,36 @@ func test_newton_step():
 	# Restore Config
 	Config.input_function_type = orig_input_func
 	Config.function_type = orig_func
+
+func test_get_field():
+	var orig_perf = GameState.performance_protection_active
+	var orig_func = Config.function_type
+	var orig_in_func = Config.input_function_type
+
+	# Test performance protection early exit
+	GameState.performance_protection_active = true
+	var f1 = ComplexFieldScript.get_field(1.0, 2.0)
+	assert_eq(f1, Vector2.ZERO)
+
+	GameState.performance_protection_active = false
+
+	# Test normal behavior
+	Config.set("input_function_type", Config.ComplexFunc.SIN)
+	Config.set("function_type", Config.ComplexFunc.GAMMA)
+	var world_x = 1.0
+	var world_z = -1.0
+
+	# Calculate expected manually using the logic
+	var complex_pos = Config.world_to_complex(world_x, world_z)
+	var w = ComplexFieldScript.get_field_at(complex_pos.x, complex_pos.y, Config.ComplexFunc.SIN, true)
+	var expected = ComplexFieldScript.get_field_at(w.x, w.y, Config.ComplexFunc.GAMMA, false)
+
+	var result = ComplexFieldScript.get_field(world_x, world_z)
+
+	assert_almost_eq(result.x, expected.x, 0.0001)
+	assert_almost_eq(result.y, expected.y, 0.0001)
+
+	# Restore state
+	GameState.performance_protection_active = orig_perf
+	Config.set("input_function_type", orig_in_func)
+	Config.set("function_type", orig_func)

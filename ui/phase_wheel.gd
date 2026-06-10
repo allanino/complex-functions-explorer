@@ -2,11 +2,29 @@ extends AspectRatioContainer
 
 @onready var color_rect = %ColorRect
 @onready var angle_label = %AngleLabel
+@onready var formula_label = %FormulaLabel
 
 var target_f := Vector2.RIGHT
 var display_f := Vector2.RIGHT
 
 const ROT_SPEED := 360.0
+
+func _ready():
+	Config.config_changed.connect(_on_config_changed)
+	_update_formula_label()
+
+func _on_config_changed(key: String):
+	if key == "function_type":
+		_update_formula_label()
+
+func _update_formula_label():
+	if formula_label:
+		var symbol = Config.function.get("symbol", "f")
+		if symbol.length() > 0:
+			symbol = symbol[0]
+		else:
+			symbol = "f"
+		formula_label.text = "arg(" + symbol + ")"
 
 func update_data(f: Vector2) -> void:
 	target_f = f
