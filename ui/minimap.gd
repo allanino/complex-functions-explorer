@@ -77,7 +77,6 @@ func _sync_all_uniforms():
 		mat.set_shader_parameter("newton_path_bbox", GameState.newton_path_bbox)
 
 
-
 func _update_zeros_shader():
 	if not map_rect or not map_rect.material: return
 	var mat = map_rect.material as ShaderMaterial
