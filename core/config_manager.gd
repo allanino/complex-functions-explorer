@@ -144,6 +144,7 @@ const PRESET_KEYS = [
 	"show_curves_labels",
 	"show_critical_stripe",
 	"view_distance",
+	"optimize_auto_walk",
 	"show_flow",
 	"show_position_marker",
 	"color_scheme",
@@ -280,6 +281,11 @@ var view_distance: int = 7:
 		if view_distance == v: return
 		view_distance = v
 		config_changed.emit("view_distance")
+var optimize_auto_walk: bool = false:
+	set(v):
+		if optimize_auto_walk == v: return
+		optimize_auto_walk = v
+		config_changed.emit("optimize_auto_walk")
 var show_flow: bool = false:
 	set(v):
 		if show_flow == v: return
@@ -552,6 +558,7 @@ func save_settings():
 	config.set_value("rendering", "show_curves_labels", show_curves_labels)
 	config.set_value("rendering", "show_critical_stripe", show_critical_stripe)
 	config.set_value("rendering", "view_distance", view_distance)
+	config.set_value("rendering", "optimize_auto_walk", optimize_auto_walk)
 	config.set_value("rendering", "show_flow", show_flow)
 	config.set_value("rendering", "show_position_marker", show_position_marker)
 	config.set_value("rendering", "color_scheme", color_scheme)
@@ -630,6 +637,7 @@ func load_settings():
 	show_curves_labels = config.get_value("rendering", "show_curves_labels", show_curves_labels)
 	show_critical_stripe = config.get_value("rendering", "show_critical_stripe", show_critical_stripe)
 	view_distance = config.get_value("rendering", "view_distance", view_distance)
+	optimize_auto_walk = config.get_value("rendering", "optimize_auto_walk", optimize_auto_walk)
 	show_flow = config.get_value("rendering", "show_flow", show_flow)
 	show_position_marker = config.get_value("rendering", "show_position_marker", show_position_marker)
 	color_scheme = config.get_value("rendering", "color_scheme", color_scheme)

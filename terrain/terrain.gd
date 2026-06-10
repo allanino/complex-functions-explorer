@@ -10,8 +10,10 @@ var chunk_leeway = 0.01
 var LOD_SUBS = [] # This will be set in code
 var _lod_mesh_cache = {}
 var _last_player_chunk = Vector2i(9999, 9999)
+var _last_auto_walk_state: int = -1
 var slow_frame_counter: int = 0
 var _shaders_stopped: bool = false
+const OPTIMIZED_VICINITY = 1
 
 @onready var environment_node = get_node("../Environment")
 @onready var audio = get_node_or_null("../Audio")
@@ -55,16 +57,31 @@ func _process(delta):
 
 
 	# Chunk and LOD Dynamic Update
-	if player_chunk_x != _last_player_chunk.x or player_chunk_z != _last_player_chunk.y:
+	var auto_walk_state = player.get("auto_walk_state") if player and "auto_walk_state" in player else 0
+	if player_chunk_x != _last_player_chunk.x or player_chunk_z != _last_player_chunk.y or auto_walk_state != _last_auto_walk_state:
+		_last_auto_walk_state = auto_walk_state
 		_update_chunks(player_chunk_x, player_chunk_z)
 
 
 func _update_chunks(p_x: int, p_z: int):
 	_last_player_chunk = Vector2i(p_x, p_z)
 
+	var min_x = p_x - Config.view_distance
+	var max_x = p_x + Config.view_distance
+	var min_z = p_z - Config.view_distance
+	var max_z = p_z + Config.view_distance
+
+	var auto_walk_state = player.get("auto_walk_state") if player and "auto_walk_state" in player else 0
+	if Config.optimize_auto_walk and (auto_walk_state == 1 or auto_walk_state == 2):
+		var target_world_pos = Config.complex_to_world(0.5, 0.0) # 0.5 is CRITICAL_LINE_COMPLEX_X
+		var critical_chunk_x = floor(target_world_pos.x / chunk_size)
+		min_x = min(critical_chunk_x, p_x) - OPTIMIZED_VICINITY
+		max_x = max(critical_chunk_x, p_x) + OPTIMIZED_VICINITY
+		max_z = p_z + OPTIMIZED_VICINITY # Only load up to OPTIMIZED_VICINITY chunks behind the player
+
 	# Load new chunks
-	for x in range(p_x - Config.view_distance, p_x + Config.view_distance + 1):
-		for z in range(p_z - Config.view_distance, p_z + Config.view_distance + 1):
+	for x in range(min_x, max_x + 1):
+		for z in range(min_z, max_z + 1):
 			var chunk_coord = Vector2i(x, z)
 			if not chunks.has(chunk_coord):
 				_load_chunk(chunk_coord)
@@ -72,7 +89,7 @@ func _update_chunks(p_x: int, p_z: int):
 	# Unload distant chunks
 	var chunks_to_remove = []
 	for chunk_coord in chunks.keys():
-		if abs(chunk_coord.x - p_x) > Config.view_distance or abs(chunk_coord.y - p_z) > Config.view_distance:
+		if chunk_coord.x < min_x or chunk_coord.x > max_x or chunk_coord.y < min_z or chunk_coord.y > max_z:
 			chunks_to_remove.append(chunk_coord)
 
 	for chunk_coord in chunks_to_remove:
@@ -314,7 +331,7 @@ func _on_config_changed(key: String):
 			_update_lod_subs()
 			_lod_mesh_cache.clear()
 			_update_all_chunks_lod(true)
-		if key == "view_distance" or key == "terrain_detail" or key == "function_type":
+		if key == "view_distance" or key == "terrain_detail" or key == "function_type" or key == "optimize_auto_walk":
 			if player:
 				_update_chunks(floor(player.global_position.x / chunk_size), floor(player.global_position.z / chunk_size))
 

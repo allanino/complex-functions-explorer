@@ -37,6 +37,7 @@ signal update_hud_layout_signal()
 @onready var zero_proximity_nav_slider = %ZeroProximityNavContainer
 @onready var camera_height_slider = %CameraHeightContainer
 @onready var auto_walk_checkbox = %AutoWalkCheckbox
+@onready var optimize_auto_walk_checkbox = %OptimizeAutoWalkCheckbox
 @onready var zero_walk_checkbox = %ZeroWalkCheckbox
 @onready var terrain_detail_button = %TerrainDetailContainer.get_option_button()
 @onready var aa_button = %AAContainer.get_option_button()
@@ -239,6 +240,8 @@ func _ready():
 	terrain_detail_button.item_selected.connect(_on_terrain_detail_selected)
 	aa_button.item_selected.connect(_on_aa_selected)
 	shadows_checkbox.toggled.connect(_on_shadows_toggled)
+	optimize_auto_walk_checkbox.toggled.connect(_on_optimize_auto_walk_toggled)
+	auto_walk_checkbox.toggled.connect(_on_auto_walk_toggled)
 	get_viewport().size_changed.connect(func(): emit_signal("update_hud_layout_signal"))
 
 	var xenon_font = preload("res://ui/theme/font_xenon.tres")
@@ -589,6 +592,7 @@ func _on_func_selected(f_type: int):
 	iter_slider.visible = has_iters
 	critical_checkbox.visible = is_dirichlect
 	auto_walk_checkbox.visible = is_dirichlect
+	optimize_auto_walk_checkbox.visible = is_dirichlect and auto_walk_checkbox.button_pressed
 	rvm_checkbox.visible = is_dirichlect
 
 	var is_multivalued = f_data.get("is_multivalued", false)
@@ -699,6 +703,7 @@ func _on_set_pos_pressed(_toggle_menu: bool = true):
 			GameState.rvm_start_t = abs(Config.world_to_complex(0.0, player.global_position.z).y)
 
 		# Update auto-walk state
+		optimize_auto_walk_checkbox.visible = auto_walk_checkbox.button_pressed
 		if auto_walk_checkbox.button_pressed:
 			if player.auto_walk_state == 0 or player.auto_walk_state == 3: # NONE or NEWTON_WALK
 				player.auto_walk_state = 1 # MOVING_TO_LINE
@@ -764,6 +769,9 @@ func _sync_ui_to_config():
 		auto_walk_checkbox.button_pressed = (player.auto_walk_state == 1 or player.auto_walk_state == 2)
 		zero_walk_checkbox.button_pressed = (player.auto_walk_state == 3)
 
+	optimize_auto_walk_checkbox.button_pressed = Config.optimize_auto_walk
+	optimize_auto_walk_checkbox.visible = auto_walk_checkbox.button_pressed
+
 	flow_checkbox.button_pressed = Config.show_flow
 	position_marker_checkbox.button_pressed = Config.show_position_marker
 
@@ -813,6 +821,13 @@ func _on_aa_selected(index: int):
 
 func _on_shadows_toggled(pressed: bool):
 	Config.shadows_enabled = pressed
+
+func _on_optimize_auto_walk_toggled(pressed: bool):
+	if _syncing_ui: return
+	Config.optimize_auto_walk = pressed
+
+func _on_auto_walk_toggled(pressed: bool):
+	optimize_auto_walk_checkbox.visible = pressed
 
 func _on_curves_toggled(pressed: bool):
 	Config.show_curves = pressed
