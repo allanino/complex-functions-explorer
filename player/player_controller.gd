@@ -584,107 +584,10 @@ func _physics_process(delta):
 			if mag_history[1] < ZEROS_DETECTION_EPS:
 				var z_mid = z_history[1]
 
-				# 2. Sample nearby points to estimate the minima paraboloid
-				var h = 0.01
-				var p_center = Config.complex_to_world(z_mid.x, z_mid.y)
-				var m0 = ComplexField.get_field(p_center.x, p_center.y).length_squared()
-
-				var p_x_plus = Config.complex_to_world(z_mid.x + h, z_mid.y)
-				var m_x_plus = ComplexField.get_field(p_x_plus.x, p_x_plus.y).length_squared()
-
-				var p_x_minus = Config.complex_to_world(z_mid.x - h, z_mid.y)
-				var m_x_minus = ComplexField.get_field(p_x_minus.x, p_x_minus.y).length_squared()
-
-				var p_y_plus = Config.complex_to_world(z_mid.x, z_mid.y + h)
-				var m_y_plus = ComplexField.get_field(p_y_plus.x, p_y_plus.y).length_squared()
-
-				var p_y_minus = Config.complex_to_world(z_mid.x, z_mid.y - h)
-				var m_y_minus = ComplexField.get_field(p_y_minus.x, p_y_minus.y).length_squared()
-
-				var p_xy_plus = Config.complex_to_world(z_mid.x + h, z_mid.y + h)
-				var m_xy_plus = ComplexField.get_field(p_xy_plus.x, p_xy_plus.y).length_squared()
-
-				var p_x_minus_y = Config.complex_to_world(z_mid.x + h, z_mid.y - h)
-				var m_x_minus_y = ComplexField.get_field(p_x_minus_y.x, p_x_minus_y.y).length_squared()
-
-				var p_mx_y_plus = Config.complex_to_world(z_mid.x - h, z_mid.y + h)
-				var m_mx_y_plus = ComplexField.get_field(p_mx_y_plus.x, p_mx_y_plus.y).length_squared()
-
-				var p_mx_my = Config.complex_to_world(z_mid.x - h, z_mid.y - h)
-				var m_mx_my = ComplexField.get_field(p_mx_my.x, p_mx_my.y).length_squared()
-
-				# 3. Compute gradients and Hessian matrix elements
-				var gx = (m_x_plus - m_x_minus) / (2.0 * h)
-				var gy = (m_y_plus - m_y_minus) / (2.0 * h)
-
-				var hxx = (m_x_plus - 2.0 * m0 + m_x_minus) / (h * h)
-				var hyy = (m_y_plus - 2.0 * m0 + m_y_minus) / (h * h)
-				var hxy = (m_xy_plus - m_x_minus_y - m_mx_y_plus + m_mx_my) / (4.0 * h * h)
-
-				var det = hxx * hyy - hxy * hxy
-
-				# 4. Check if it forms a paraboloid (local minimum)
-				if det > 0.0 and hxx > 0.0:
-					var dx = (hxy * gy - hyy * gx) / det
-					var dy = (hxy * gx - hxx * gy) / det
-
-					var true_z = z_mid + Vector2(dx, dy)
-
-					# Refine zero location using numerical complex Newton-Raphson steps
-					var converged = false
-					var refined_z = true_z
-					var step_mult = 0.6
-					var step_max = 0.3
-					var f_val: Vector2 = Vector2.INF
-					# print("\nStarting at: ", refined_z)
-					for step_idx in range(15):
-						var result = ComplexField.newton_step(refined_z, step_mult, step_max)
-						var next_z: Vector2 = result[0]
-						f_val = result[1]
-
-						if f_val.length() < 0.01:
-							step_mult *= 0.99
-
-						if f_val.length() < 0.001:
-							step_mult *= 0.9
-
-						refined_z = next_z
-
-						# print(
-						# 	"Step %4d | z (%9.4f, %9.4f) | f (%9.4f, %9.4f) | len %10.6f | mult %6.2f"
-						# 	% [
-						# 		step_idx,
-						# 		refined_z.x, refined_z.y,
-						# 		f_val.x, f_val.y,
-						# 		f_val.length(),
-						# 		step_mult
-						# 	]
-						# )
-						if f_val.length() < 1e-5:
-							converged = true
-							break
-
-					# print("Final: ", refined_z, " Converged: ", converged, " f_val: ", f_val.length())
-					true_z = refined_z
-
-					if f_val.length() < 1e-2 && Config.function.get("is_dirichlect"):
-						converged = true
-
-					if converged && true_z.distance_to(last_detected_z) > 0.001:
-						GameState.total_zeros_found += 1
-						GameState.visited_zeros.push_back(true_z)
-						if auto_walk_state == AutoWalkState.MOVING_TO_LINE or auto_walk_state == AutoWalkState.WALKING:
-							if snappedf(true_z.x, 0.001) != 0.500:
-								if not GameState.found_off_critical_line:
-									GameState.found_off_critical_line_val = true_z
-								GameState.found_off_critical_line = true
-						if GameState.visited_zeros.size() > 100:
-							GameState.visited_zeros.pop_front()
-						GameState.state_changed.emit("visited_zeros")
-						last_detected_z = true_z
+				var state = auto_walk_state
+				WorkerThreadPool.add_task(_process_zero_detection.bind(z_mid, state))
 
 	move_and_slide()
-
 
 func demo_actions():
 	Config.function_type = Config.ComplexFunc.ZETA_REFLECTION
@@ -899,3 +802,106 @@ func start_newton_walk():
 
 		GameState.newton_path = path
 		GameState.newton_path_bbox = Vector4(min_x, max_x, min_y, max_y)
+
+func _process_zero_detection(z_mid: Vector2, current_auto_walk_state: int):
+	# 2. Sample nearby points to estimate the minima paraboloid
+	var h = 0.01
+	var p_center = Config.complex_to_world(z_mid.x, z_mid.y)
+	var m0 = ComplexField.get_field(p_center.x, p_center.y).length_squared()
+
+	var p_x_plus = Config.complex_to_world(z_mid.x + h, z_mid.y)
+	var m_x_plus = ComplexField.get_field(p_x_plus.x, p_x_plus.y).length_squared()
+
+	var p_x_minus = Config.complex_to_world(z_mid.x - h, z_mid.y)
+	var m_x_minus = ComplexField.get_field(p_x_minus.x, p_x_minus.y).length_squared()
+
+	var p_y_plus = Config.complex_to_world(z_mid.x, z_mid.y + h)
+	var m_y_plus = ComplexField.get_field(p_y_plus.x, p_y_plus.y).length_squared()
+
+	var p_y_minus = Config.complex_to_world(z_mid.x, z_mid.y - h)
+	var m_y_minus = ComplexField.get_field(p_y_minus.x, p_y_minus.y).length_squared()
+
+	var p_xy_plus = Config.complex_to_world(z_mid.x + h, z_mid.y + h)
+	var m_xy_plus = ComplexField.get_field(p_xy_plus.x, p_xy_plus.y).length_squared()
+
+	var p_x_minus_y = Config.complex_to_world(z_mid.x + h, z_mid.y - h)
+	var m_x_minus_y = ComplexField.get_field(p_x_minus_y.x, p_x_minus_y.y).length_squared()
+
+	var p_mx_y_plus = Config.complex_to_world(z_mid.x - h, z_mid.y + h)
+	var m_mx_y_plus = ComplexField.get_field(p_mx_y_plus.x, p_mx_y_plus.y).length_squared()
+
+	var p_mx_my = Config.complex_to_world(z_mid.x - h, z_mid.y - h)
+	var m_mx_my = ComplexField.get_field(p_mx_my.x, p_mx_my.y).length_squared()
+
+	# 3. Compute gradients and Hessian matrix elements
+	var gx = (m_x_plus - m_x_minus) / (2.0 * h)
+	var gy = (m_y_plus - m_y_minus) / (2.0 * h)
+
+	var hxx = (m_x_plus - 2.0 * m0 + m_x_minus) / (h * h)
+	var hyy = (m_y_plus - 2.0 * m0 + m_y_minus) / (h * h)
+	var hxy = (m_xy_plus - m_x_minus_y - m_mx_y_plus + m_mx_my) / (4.0 * h * h)
+
+	var det = hxx * hyy - hxy * hxy
+
+	# 4. Check if it forms a paraboloid (local minimum)
+	if det > 0.0 and hxx > 0.0:
+		var dx = (hxy * gy - hyy * gx) / det
+		var dy = (hxy * gx - hxx * gy) / det
+
+		var true_z = z_mid + Vector2(dx, dy)
+
+		# Refine zero location using numerical complex Newton-Raphson steps
+		var converged = false
+		var refined_z = true_z
+		var step_mult = 0.6
+		var step_max = 0.3
+		var f_val: Vector2 = Vector2.INF
+		for step_idx in range(15):
+			var result = ComplexField.newton_step(refined_z, step_mult, step_max)
+			var next_z: Vector2 = result[0]
+			f_val = result[1]
+
+			if f_val.length() < 0.01:
+				step_mult *= 0.99
+
+			if f_val.length() < 0.001:
+				step_mult *= 0.9
+
+			refined_z = next_z
+
+      # print(
+      # 	"Step %4d | z (%9.4f, %9.4f) | f (%9.4f, %9.4f) | len %10.6f | mult %6.2f"
+      # 	% [
+      # 		step_idx,
+      # 		refined_z.x, refined_z.y,
+      # 		f_val.x, f_val.y,
+      # 		f_val.length(),
+      # 		step_mult
+      # 	]
+      # )
+
+			if f_val.length() < 1e-5:
+				converged = true
+				break
+
+		true_z = refined_z
+
+		if f_val.length() < 1e-2 && Config.function.get("is_dirichlect"):
+			converged = true
+
+		if converged:
+			call_deferred("_on_zero_detected", true_z, current_auto_walk_state)
+
+func _on_zero_detected(true_z: Vector2, current_auto_walk_state: int):
+	if true_z.distance_to(last_detected_z) > 0.001:
+		GameState.total_zeros_found += 1
+		GameState.visited_zeros.push_back(true_z)
+		if current_auto_walk_state == AutoWalkState.MOVING_TO_LINE or current_auto_walk_state == AutoWalkState.WALKING:
+			if snappedf(true_z.x, 0.001) != 0.500:
+				if not GameState.found_off_critical_line:
+					GameState.found_off_critical_line_val = true_z
+				GameState.found_off_critical_line = true
+		if GameState.visited_zeros.size() > 100:
+			GameState.visited_zeros.pop_front()
+		GameState.state_changed.emit("visited_zeros")
+		last_detected_z = true_z
