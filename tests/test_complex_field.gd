@@ -163,6 +163,15 @@ func test_log_zeta_continuation_with_derivatives():
 	assert_almost_eq(res2[1].x, 0.3974, 0.0001)
 	assert_almost_eq(res2[1].y, -0.6493, 0.0001)
 
+func test_zeta_continuation_power_series_with_derivatives():
+	var res2 = ComplexFieldScript.zeta_continuation_power_series_with_derivatives(-2.0, 3.0, 50)
+	# Values should match exactly to the test case from the user
+	assert_almost_eq(res2[0].x, -1.7083, 0.0001)
+	assert_almost_eq(res2[0].y, 0.7467, 0.0001)
+	assert_almost_eq(res2[1].x, 0.3974, 0.0001)
+	assert_almost_eq(res2[1].y, -0.6493, 0.0001)
+
+
 func test_zeta_continuation_with_derivatives():
 	# Test at first non-trivial zero (same as test_zeta)
 	var x1 = 0.5

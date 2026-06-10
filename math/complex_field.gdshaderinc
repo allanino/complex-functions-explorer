@@ -636,6 +636,135 @@ ComplexFieldData log_zeta_continuation_with_derivatives(float x, float y, int it
     return res;
 }
 
+
+const int PATCH_MAX_K = 15;
+const float PATCH_RADIUS = 2.0;
+const float PATCH_THRESHOLD = 0.65;
+
+vec2 evaluate_power_series(vec2 center, vec2 coeffs[16], vec2 z) {
+	vec2 res = vec2(0.0);
+	vec2 dz = z - center;
+	vec2 dz_k = vec2(1.0, 0.0);
+	for (int k = 0; k <= PATCH_MAX_K; k++) {
+		res += complex_mul(coeffs[k], dz_k);
+		dz_k = complex_mul(dz_k, dz);
+	}
+	return res;
+}
+
+void compute_zeta_taylor_patch(float x, float y, int iters, out vec2 coeffs[16]) {
+	vec2 eta_coeffs[16];
+	for (int k = 0; k <= PATCH_MAX_K; k++) {
+		eta_coeffs[k] = vec2(0.0);
+	}
+
+	for (int n = 1; n <= iters; n++) {
+		float nf = float(n);
+		float amp = pow(nf, -x);
+		float log_n = log(nf);
+		float theta = -y * log_n;
+
+		float sign_f = (n % 2 != 0) ? 1.0 : -1.0;
+		vec2 base = sign_f * amp * vec2(cos(theta), sin(theta));
+
+		vec2 term = base;
+		eta_coeffs[0] += term;
+		for (int k = 1; k <= PATCH_MAX_K; k++) {
+			term = term * (-log_n / float(k));
+			eta_coeffs[k] += term;
+		}
+	}
+
+	vec2 d_coeffs[16];
+	vec2 base_d = 2.0 * pow(2.0, -x) * vec2(cos(-y * LOG_2), sin(-y * LOG_2));
+	vec2 d_term = base_d;
+	d_coeffs[0] = vec2(1.0, 0.0) - d_term;
+	for (int k = 1; k <= PATCH_MAX_K; k++) {
+		d_term = d_term * (-LOG_2 / float(k));
+		d_coeffs[k] = -d_term;
+	}
+
+	for (int k = 0; k <= PATCH_MAX_K; k++) {
+		vec2 sum_val = eta_coeffs[k];
+		for (int j = 0; j < k; j++) {
+			sum_val -= complex_mul(coeffs[j], d_coeffs[k - j]);
+		}
+		coeffs[k] = complex_div(sum_val, d_coeffs[0]);
+	}
+}
+
+ComplexFieldData zeta_continuation_power_series_with_derivatives(float x, float y, int iters) {
+	if (x >= 0.5) {
+		return zeta_with_derivatives(x, y, iters);
+	}
+
+	vec2 z = vec2(x, y);
+
+	// Bootstrapping
+	float start_x = max(z.x, 0.5);
+	vec2 curr_center = vec2(start_x, z.y);
+
+	vec2 curr_coeffs[16];
+	compute_zeta_taylor_patch(curr_center.x, curr_center.y, iters, curr_coeffs);
+
+	// Step until we are within threshold
+	float dist = length(z - curr_center);
+	while (dist > PATCH_RADIUS * PATCH_THRESHOLD) {
+		vec2 dir = normalize(z - curr_center);
+		float step_dist = min(dist, PATCH_RADIUS * PATCH_THRESHOLD);
+		vec2 new_center = curr_center + dir * step_dist;
+
+		vec2 new_coeffs[16];
+		for (int k = 0; k <= PATCH_MAX_K; k++) {
+			new_coeffs[k] = vec2(0.0);
+		}
+
+		vec2 dz = new_center - curr_center;
+		for (int j = 0; j <= PATCH_MAX_K; j++) {
+			vec2 res = vec2(0.0);
+			vec2 dz_k = vec2(1.0, 0.0);
+			for (int k = j; k <= PATCH_MAX_K; k++) {
+				float comb = 1.0;
+				for (int i = 1; i <= k - j; i++) {
+					comb = comb * float(j + i) / float(i);
+				}
+				vec2 term = complex_mul(curr_coeffs[k], dz_k);
+				res += term * comb;
+				dz_k = complex_mul(dz_k, dz);
+			}
+			new_coeffs[j] = res;
+		}
+
+		curr_center = new_center;
+		for (int k = 0; k <= PATCH_MAX_K; k++) {
+			curr_coeffs[k] = new_coeffs[k];
+		}
+		dist = length(z - curr_center);
+	}
+
+	ComplexFieldData res;
+	res.value = evaluate_power_series(curr_center, curr_coeffs, z);
+
+	vec2 res_prime = vec2(0.0);
+	vec2 dz = z - curr_center;
+	vec2 dz_k = vec2(1.0, 0.0);
+	for (int k = 1; k <= PATCH_MAX_K; k++) {
+		vec2 coeff_scaled = curr_coeffs[k] * float(k);
+		res_prime += complex_mul(coeff_scaled, dz_k);
+		dz_k = complex_mul(dz_k, dz);
+	}
+
+	res.dx = res_prime;
+	res.dy = vec2(-res.dx.y, res.dx.x);
+	return res;
+}
+
+
+vec2 zeta_continuation_power_series(float x, float y, int iters) {
+	ComplexFieldData res = zeta_continuation_power_series_with_derivatives(x, y, iters);
+	return res.value;
+}
+
 ComplexFieldData zeta_continuation_with_derivatives(float x, float y, int iters) {
     ComplexFieldData log_z = log_zeta_continuation_with_derivatives(x, y, iters);
     ComplexFieldData res;
