@@ -574,6 +574,7 @@ func _on_config_changed(key: String):
 
 		phase_wheel.get_parent().visible = Config.show_hud_phase_wheel and Config.show_hud_navigation
 		phase_wheel.visible = Config.show_hud_phase_wheel and Config.show_hud_navigation
+		phase_wheel.get_parent().get_parent().queue_sort()
 
 	if key in ["function_type", "show_hud_navigation", "show_hud_phase_wheel", "show_minimap", "show_hud_zeros", "show_hud_monitor_fps", "show_hud_chunks"]:
 		_update_hud_layout()
