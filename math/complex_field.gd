@@ -487,7 +487,7 @@ static func newton_step(z: Vector2, step_size_mult: float, max_step: float = 1.0
 
 	if Config.input_function_type == Config.ComplexFunc.IDENTITY:
 		if Config.function_type == Config.ComplexFunc.ZETA:
-			var res = zeta_with_derivatives(z.x, z.y, Config.iterations)
+			var res = zeta_with_derivatives(z.x, z.y, Config.iterations * 2)
 			f_val = res[0]
 			f_prime = res[1]
 			use_analytic = true

@@ -589,7 +589,6 @@ func _physics_process(delta):
 
 	move_and_slide()
 
-
 func demo_actions():
 	Config.function_type = Config.ComplexFunc.ZETA_REFLECTION
 	Config.day_time = 15060
@@ -869,6 +868,17 @@ func _process_zero_detection(z_mid: Vector2, current_auto_walk_state: int):
 				step_mult *= 0.9
 
 			refined_z = next_z
+
+      # print(
+      # 	"Step %4d | z (%9.4f, %9.4f) | f (%9.4f, %9.4f) | len %10.6f | mult %6.2f"
+      # 	% [
+      # 		step_idx,
+      # 		refined_z.x, refined_z.y,
+      # 		f_val.x, f_val.y,
+      # 		f_val.length(),
+      # 		step_mult
+      # 	]
+      # )
 
 			if f_val.length() < 1e-5:
 				converged = true
