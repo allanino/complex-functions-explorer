@@ -1,6 +1,11 @@
 # Shared field and height functions for GDScript
 class_name ComplexField
 
+const PATCH_MAX_K = 15
+const PATCH_RADIUS = 2.0
+const PATCH_THRESHOLD = 0.65
+static var zeta_patches: Array = []
+
 #-------------------------------------------------------------------------
 # Complex Arithmetic
 #-------------------------------------------------------------------------
@@ -266,6 +271,139 @@ static func get_rational(x: float, y: float, num_coeffs: PackedVector2Array, den
 	var num = evaluate_poly(x, y, num_coeffs)
 	var den = evaluate_poly(x, y, den_coeffs)
 	return complex_div(num, den)
+
+
+static func evaluate_power_series(center: Vector2, coeffs: Array, z: Vector2) -> Vector2:
+	var res = Vector2.ZERO
+	var dz = z - center
+	var dz_k = Vector2(1.0, 0.0)
+	for k in range(coeffs.size()):
+		res += complex_mul(coeffs[k], dz_k)
+		dz_k = complex_mul(dz_k, dz)
+	return res
+
+static func compute_zeta_taylor_patch(x: float, y: float, iters: int) -> Array:
+	var eta_coeffs = []
+	for k in range(PATCH_MAX_K + 1):
+		eta_coeffs.append(Vector2.ZERO)
+
+	for n in range(1, iters + 1):
+		var nf = float(n)
+		var amp = pow(nf, -x)
+		var log_n = log(nf)
+		var theta = -y * log_n
+
+		var sign_f = 1.0 if n % 2 != 0 else -1.0
+		var base = sign_f * amp * Vector2(cos(theta), sin(theta))
+
+		var term = base
+		eta_coeffs[0] += term
+		for k in range(1, PATCH_MAX_K + 1):
+			term = term * (-log_n / float(k))
+			eta_coeffs[k] += term
+
+	var d_coeffs = []
+	var base_d = 2.0 * pow(2.0, -x) * Vector2(cos(-y * LOG_2), sin(-y * LOG_2))
+	var d_term = base_d
+	d_coeffs.append(Vector2(1.0, 0.0) - d_term)
+	for k in range(1, PATCH_MAX_K + 1):
+		d_term = d_term * (-LOG_2 / float(k))
+		d_coeffs.append(-d_term)
+
+	var zeta_coeffs = []
+	for k in range(PATCH_MAX_K + 1):
+		var sum_val = eta_coeffs[k]
+		for j in range(k):
+			sum_val -= complex_mul(zeta_coeffs[j], d_coeffs[k - j])
+		zeta_coeffs.append(complex_div(sum_val, d_coeffs[0]))
+
+	return zeta_coeffs
+
+static func _get_or_create_patch(z: Vector2, iters: int) -> Dictionary:
+	var closest_patch = null
+	var min_dist = 1e9
+
+	for patch in zeta_patches:
+		var dist = (z - patch["center"]).length()
+		if dist < min_dist:
+			min_dist = dist
+			closest_patch = patch
+
+	if closest_patch != null and min_dist <= PATCH_RADIUS * PATCH_THRESHOLD:
+		return closest_patch
+
+	if closest_patch == null:
+		var start_x = max(z.x, 0.5)
+		var start_z = Vector2(start_x, z.y)
+		var coeffs = compute_zeta_taylor_patch(start_z.x, start_z.y, iters)
+		var p = {
+			"center": start_z,
+			"coeffs": coeffs,
+			"radius": PATCH_RADIUS
+		}
+		zeta_patches.append(p)
+		return _get_or_create_patch(z, iters)
+
+	var dir = (z - closest_patch["center"]).normalized()
+	var step_dist = min(min_dist, PATCH_RADIUS * PATCH_THRESHOLD)
+	var new_center = closest_patch["center"] + dir * step_dist
+
+	var K = PATCH_MAX_K
+	var new_coeffs = []
+
+	# The reviewer noted: "when Re(s_0) > 0, generate coefficients directly from eta / Dirichlet evaluation... when Re(s_0) <= 0, do not evaluate the Dirichlet series at the patch center."
+	if new_center.x > 0.0:
+		new_coeffs = compute_zeta_taylor_patch(new_center.x, new_center.y, iters)
+	else:
+		for k in range(K + 1):
+			new_coeffs.append(Vector2.ZERO)
+
+		var dz = new_center - closest_patch["center"]
+		var old_coeffs = closest_patch["coeffs"]
+
+		for j in range(K + 1):
+			var res = Vector2.ZERO
+			var dz_k = Vector2(1.0, 0.0)
+			for k in range(j, K + 1):
+				var comb = 1.0
+				for i in range(1, k - j + 1):
+					comb = comb * float(j + i) / float(i)
+				var term = complex_mul(old_coeffs[k], dz_k)
+				res += term * comb
+				dz_k = complex_mul(dz_k, dz)
+			new_coeffs[j] = res
+
+	var new_patch = {
+		"center": new_center,
+		"coeffs": new_coeffs,
+		"radius": PATCH_RADIUS
+	}
+	zeta_patches.append(new_patch)
+	return _get_or_create_patch(z, iters)
+
+static func zeta_continuation_power_series(x: float, y: float) -> Vector2:
+	if x >= 0.5:
+		return zeta(x, y)
+	var z = Vector2(x, y)
+	var patch = _get_or_create_patch(z, Config.iterations)
+	return evaluate_power_series(patch["center"], patch["coeffs"], z)
+
+static func zeta_continuation_power_series_with_derivatives(x: float, y: float, iters: int) -> Array:
+	if x >= 0.5:
+		return zeta_with_derivatives(x, y, iters)
+	var z = Vector2(x, y)
+	var patch = _get_or_create_patch(z, iters)
+	var val = evaluate_power_series(patch["center"], patch["coeffs"], z)
+
+	var res_prime = Vector2.ZERO
+	var dz = z - patch["center"]
+	var dz_k = Vector2(1.0, 0.0)
+	for k in range(1, patch["coeffs"].size()):
+		var coeff_scaled = patch["coeffs"][k] * float(k)
+		res_prime += complex_mul(coeff_scaled, dz_k)
+		dz_k = complex_mul(dz_k, dz)
+
+	return [val, res_prime]
 
 static func xi(x: float, y: float) -> Vector2:
 	var s = Vector2(x, y)
