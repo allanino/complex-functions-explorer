@@ -1200,42 +1200,18 @@ func toggle_menu(applied: bool = false):
 
 
 static func _create_scaled_grabber_texture(color: Color, _size: int, center: Vector2, inner_radius: float, outer_radius: float) -> Texture2D:
-	var data = PackedByteArray()
-	data.resize(_size * _size * 4)
-	var cx = center.x
-	var cy = center.y
-	var cr = int(color.r * 255.0)
-	var cg = int(color.g * 255.0)
-	var cb = int(color.b * 255.0)
-	var ca = color.a
-	var outer = outer_radius
-	var inner = inner_radius
-	var inv_range = 1.0 / (outer - inner) if outer > inner else 0.0
-	var idx = 0
+	var tex = GradientTexture2D.new()
+	tex.width = _size
+	tex.height = _size
+	tex.fill = GradientTexture2D.FILL_RADIAL
+	tex.fill_from = center / float(_size)
+	tex.fill_to = Vector2(center.x + outer_radius, center.y) / float(_size)
 
-	for y in range(_size):
-		var dy = (float(y) + 0.5) - cy
-		var dy2 = dy * dy
-		for x in range(_size):
-			var dx = (float(x) + 0.5) - cx
-			var dist = sqrt(dx * dx + dy2)
-			if dist <= inner:
-				data[idx] = cr
-				data[idx+1] = cg
-				data[idx+2] = cb
-				data[idx+3] = int(ca * 255.0)
-			elif dist < outer:
-				var alpha = (outer - dist) * inv_range
-				data[idx] = cr
-				data[idx+1] = cg
-				data[idx+2] = cb
-				data[idx+3] = int(ca * alpha * 255.0)
-			else:
-				data[idx] = 0
-				data[idx+1] = 0
-				data[idx+2] = 0
-				data[idx+3] = 0
-			idx += 4
+	var grad = Gradient.new()
+	grad.interpolation_mode = Gradient.GRADIENT_INTERPOLATE_LINEAR
+	var inner_offset = inner_radius / outer_radius
+	grad.offsets = PackedFloat32Array([0.0, inner_offset, 1.0])
+	grad.colors = PackedColorArray([color, color, Color(color.r, color.g, color.b, 0.0)])
 
-	var img = Image.create_from_data(_size, _size, false, Image.FORMAT_RGBA8, data)
-	return ImageTexture.create_from_image(img)
+	tex.gradient = grad
+	return tex
