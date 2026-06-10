@@ -650,7 +650,16 @@ func _physics_process(delta):
 
 						refined_z = next_z
 
-						# print("Step ", step_idx, ": ", refined_z, " - f_val ", f_val, " - length ", f_val.length(), " step_mult", step_mult)
+						# print(
+						# 	"Step %4d | z (%9.4f, %9.4f) | f (%9.4f, %9.4f) | len %10.6f | mult %6.2f"
+						# 	% [
+						# 		step_idx,
+						# 		refined_z.x, refined_z.y,
+						# 		f_val.x, f_val.y,
+						# 		f_val.length(),
+						# 		step_mult
+						# 	]
+						# )
 						if f_val.length() < 1e-5:
 							converged = true
 							break
