@@ -3,3 +3,8 @@
 Learning: Extracting repeated string parsing logic into unified helper functions improves maintainability and prevents duplication, particularly for UI input handling like rational expressions.
 
 Action: Whenever identical string manipulation blocks exist across multiple UI callbacks, create a private helper function to encapsulate the logic and return the parsed data in an organized structure (like an Array or Dictionary).
+2025-02-24 - Excessive defensive programming in UI scripts
+
+Learning: Removing redundant `get_node_or_null` lookups and corresponding `if` conditions for statically defined scene nodes cleans up logic branches and improves clarity. Nodes cached via `@onready` or unique scene names (`%NodeName`) are guaranteed to exist, rendering runtime existence checks unnecessary.
+
+Action: Always prefer `@onready var` to cache UI elements and remove defensive null checks for static nodes that are confirmed to exist within the scene hierarchy.

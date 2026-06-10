@@ -120,8 +120,8 @@ func _ready():
 
 	if mobile_controls:
 		mobile_controls.visible = enable_joystick
-		var settings_btn = mobile_controls.get_node_or_null("SettingsButton")
-		if settings_btn and not settings_btn.pressed.is_connected(main_ui.toggle_menu.bind(false)):
+		var settings_btn = mobile_controls.get_node("SettingsButton")
+		if not settings_btn.pressed.is_connected(main_ui.toggle_menu.bind(false)):
 			settings_btn.pressed.connect(main_ui.toggle_menu.bind(false))
 
 	if run_demo:
@@ -166,7 +166,7 @@ func _unhandled_input(event):
 				# If close to a real curve level, push or toggle it in the list capped at 10
 				var closest_curve_real = round(current_f.x)
 				if abs(current_f.x - closest_curve_real) < 0.1:
-					var curves = GameState.real_level_curves_highlighted.duplicate()
+					var curves = GameState.real_level_curves_highlighted
 					if closest_curve_real in curves:
 						curves.erase(closest_curve_real)
 					else:
@@ -177,7 +177,7 @@ func _unhandled_input(event):
 
 				var closest_curve_imag = round(current_f.y)
 				if abs(current_f.y - closest_curve_imag) < 0.1:
-					var curves = GameState.imag_level_curves_highlighted.duplicate()
+					var curves = GameState.imag_level_curves_highlighted
 					if closest_curve_imag in curves:
 						curves.erase(closest_curve_imag)
 					else:

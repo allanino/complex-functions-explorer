@@ -31,6 +31,12 @@ var portal_flash: ColorRect
 @onready var preset_controller = %PresetController
 @onready var position_arg_label = %PositionArgLabel
 @onready var position_arg_val = %PositionArgVal
+@onready var position_arg_arrow = %PositionArgArrow
+@onready var position_arg_container = %PositionArgContainer
+@onready var mobile_controls = $Control/MobileControls
+@onready var mobile_settings_btn = $Control/MobileControls/SettingsButton
+@onready var target_label = %TargetLabel
+@onready var abs_label = %AbsLabel
 
 @export var show_hud_chunks: bool = false
 
@@ -85,11 +91,9 @@ func update_arg_val(f: Vector2):
 
 	position_arg_val.add_theme_color_override("font_color", final_color)
 
-	var position_arg_arrow = get_node_or_null("%PositionArgArrow")
-	if position_arg_arrow:
-		position_arg_arrow.angle_deg = angle_deg
-		position_arg_arrow.color = final_color
-		position_arg_arrow.queue_redraw()
+	position_arg_arrow.angle_deg = angle_deg
+	position_arg_arrow.color = final_color
+	position_arg_arrow.queue_redraw()
 
 func _setup_branch_data():
 	if Config.function.get("is_multivalued", false):
@@ -101,12 +105,11 @@ func _setup_branch_data():
 
 func _ready():
 	Config.config_changed.connect(_on_config_changed)
+	_update_function_labels()
 
-	var mobile_controls = get_node_or_null("Control/MobileControls")
-	if mobile_controls and mobile_controls.has_node("SettingsButton"):
-		var settings_btn = mobile_controls.get_node("SettingsButton")
-		if not settings_btn.pressed.is_connected(toggle_menu.bind(false)):
-			settings_btn.pressed.connect(toggle_menu.bind(false))
+	if not mobile_settings_btn.pressed.is_connected(toggle_menu.bind(false)):
+		mobile_settings_btn.pressed.connect(toggle_menu.bind(false))
+
 	portal_flash = ColorRect.new()
 	portal_flash.name = "PortalFlash"
 	portal_flash.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -147,13 +150,7 @@ func _ready():
 	update_layout_timer.timeout.connect(_update_hud_layout)
 	add_child(update_layout_timer)
 
-	var position_arg_container = get_node_or_null("%PositionArgContainer")
-	if position_arg_container:
-		position_arg_container.visible = !Config.show_hud_phase_wheel and Config.show_hud_navigation
-	else:
-		position_arg_label.visible = !Config.show_hud_phase_wheel and Config.show_hud_navigation
-		position_arg_val.visible = !Config.show_hud_phase_wheel and Config.show_hud_navigation
-
+	position_arg_container.visible = !Config.show_hud_phase_wheel and Config.show_hud_navigation
 
 	if menu_overlay:
 			menu_overlay.player = player
@@ -289,6 +286,16 @@ func _update_monitor_label():
 
 		monitor_rt_label.text = bbcode.strip_edges()
 
+func _update_function_labels():
+	var symbol = Config.function.get("symbol", "f")
+	if symbol.length() > 0:
+		symbol = symbol[0]
+	else:
+		symbol = "f"
+	target_label.text = symbol + "(s)"
+	position_arg_label.text = "arg(" + symbol + ")"
+	abs_label.text = "|" + symbol + "|"
+
 func _update_zeros_list():
 	var f_data = Config.function
 	var total_count = GameState.total_zeros_found
@@ -298,24 +305,34 @@ func _update_zeros_list():
 
 	GameState.accented_zero_index = current_size - 1
 
-	# Clear existing items
-	for child in zeros_list_label.get_children():
-		zeros_list_label.remove_child(child)
-		child.queue_free()
-
 	var actual_hud_scale = Config.hud_scale
+	var children = zeros_list_label.get_children()
+	var child_idx = 0
+
 	for i in range(current_size - 1, max(-1, current_size - 101), -1):
 		var zero = GameState.visited_zeros[i]
 		var re_str = _format_float_3(zero[0])
 		var im_str = _format_float_3(zero[1])
-		var item = ZERO_LIST_ITEM_SCENE.instantiate()
-		zeros_list_label.add_child(item)
+
+		var item
+		if child_idx < children.size():
+			item = children[child_idx]
+			item.visible = true
+		else:
+			item = ZERO_LIST_ITEM_SCENE.instantiate()
+			zeros_list_label.add_child(item)
+			item.clicked.connect(_on_zero_item_clicked)
+
 		item.zero_index = i
-		item.clicked.connect(_on_zero_item_clicked)
 		item.set_values(re_str, im_str, f_data.get("is_dirichlect", false))
 		_rescale_card(item, actual_hud_scale)
-		if i == GameState.accented_zero_index:
-			item.is_active = true
+		item.is_active = (i == GameState.accented_zero_index)
+
+		child_idx += 1
+
+	# Hide remaining unused items
+	for i in range(child_idx, children.size()):
+		children[i].visible = false
 
 func _on_complex_aspect_resized():
 	if phase_wheel.custom_minimum_size.y != phase_wheel.size.x:
@@ -370,11 +387,9 @@ func _update_hud_layout():
 
 	var scale_factor = get_viewport().size.x / 1920.0
 	var available_height = get_viewport().size.y / scale_factor - 50.0
-	var mobile_controls = get_node_or_null("Control/MobileControls")
-	if mobile_controls and mobile_controls.visible and mobile_controls.has_node("SettingsButton"):
-		var settings_btn = mobile_controls.get_node("SettingsButton")
-		if settings_btn.visible:
-			available_height -= (settings_btn.position.y + settings_btn.size.y)
+
+	if mobile_controls.visible and mobile_settings_btn.visible:
+		available_height -= (mobile_settings_btn.position.y + mobile_settings_btn.size.y)
 
 	var f_data = Config.function
 	
@@ -560,6 +575,7 @@ func _on_config_changed(key: String):
 	if key == "function_type":
 		_update_zeros_list()
 		_setup_branch_data()
+		_update_function_labels()
 	if key == "show_hud_navigation":
 		position_panel.visible = Config.show_hud_navigation
 	if key == "show_minimap":
@@ -569,16 +585,9 @@ func _on_config_changed(key: String):
 		_update_zeros_list()
 	if key in ["show_hud_monitor_fps", "show_hud_chunks"]:
 		_update_monitor_label()
-	if key in ["show_hud_phase_wheel", "show_hud_navigation"]:
-		var position_arg_container = get_node_or_null("%PositionArgContainer")
-		if position_arg_container:
-			position_arg_container.visible = !Config.show_hud_phase_wheel and Config.show_hud_navigation
-		else:
-			position_arg_label.visible = !Config.show_hud_phase_wheel and Config.show_hud_navigation
-			position_arg_val.visible = !Config.show_hud_phase_wheel and Config.show_hud_navigation
-
-		phase_wheel.get_parent().visible = Config.show_hud_phase_wheel and Config.show_hud_navigation
-		phase_wheel.visible = Config.show_hud_phase_wheel and Config.show_hud_navigation
+	if key == "show_hud_phase_wheel":
+		position_arg_container.visible = !Config.show_hud_phase_wheel
+		phase_wheel.visible = Config.show_hud_phase_wheel
 		if phase_wheel.visible:
 			_on_complex_aspect_resized()
 		phase_wheel.update_minimum_size()
@@ -601,4 +610,5 @@ func _on_config_changed(key: String):
 func _on_zero_item_clicked(index: int):
 	GameState.accented_zero_index = index
 	for item in zeros_list_label.get_children():
-		item.is_active = (item.zero_index == index)
+		if item.visible:
+			item.is_active = (item.zero_index == index)

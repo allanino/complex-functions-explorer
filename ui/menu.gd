@@ -241,14 +241,6 @@ func _ready():
 	shadows_checkbox.toggled.connect(_on_shadows_toggled)
 	get_viewport().size_changed.connect(func(): emit_signal("update_hud_layout_signal"))
 
-	var xenon_font = preload("res://ui/theme/font_xenon.tres")
-	func_button.add_theme_font_override("font", xenon_font)
-	input_button.add_theme_font_override("font", xenon_font)
-	func_button.get_popup().add_theme_font_override("font", xenon_font)
-	input_button.get_popup().add_theme_font_override("font", xenon_font)
-	height_button.add_theme_font_override("font", xenon_font)
-	height_button.get_popup().add_theme_font_override("font", xenon_font)
-
 	_populate_function_dropdown(func_button, false)
 	_populate_function_dropdown(input_button, true)
 
@@ -1201,16 +1193,19 @@ func toggle_menu(applied: bool = false):
 			emit_signal('apply_aa_signal')
 
 
-static func _create_scaled_grabber_texture(color: Color, _size: int, center: Vector2, inner_radius: float, outer_radius: float) -> ImageTexture:
-	var img = Image.create(_size, _size, false, Image.FORMAT_RGBA8)
-	for y in range(_size):
-		for x in range(_size):
-			var dist = center.distance_to(Vector2(x, y))
-			if dist <= inner_radius:
-				img.set_pixel(x, y, color)
-			elif dist < outer_radius:
-				var alpha = (outer_radius - dist) / (outer_radius - inner_radius)
-				img.set_pixel(x, y, Color(color.r, color.g, color.b, color.a * alpha))
-			else:
-				img.set_pixel(x, y, Color(0.0, 0.0, 0.0, 0.0))
-	return ImageTexture.create_from_image(img)
+static func _create_scaled_grabber_texture(color: Color, _size: int, center: Vector2, inner_radius: float, outer_radius: float) -> Texture2D:
+	var tex = GradientTexture2D.new()
+	tex.width = _size
+	tex.height = _size
+	tex.fill = GradientTexture2D.FILL_RADIAL
+	tex.fill_from = center / float(_size)
+	tex.fill_to = Vector2(center.x + outer_radius, center.y) / float(_size)
+
+	var grad = Gradient.new()
+	grad.interpolation_mode = Gradient.GRADIENT_INTERPOLATE_LINEAR
+	var inner_offset = inner_radius / outer_radius
+	grad.offsets = PackedFloat32Array([0.0, inner_offset, 1.0])
+	grad.colors = PackedColorArray([color, color, Color(color.r, color.g, color.b, 0.0)])
+
+	tex.gradient = grad
+	return tex
