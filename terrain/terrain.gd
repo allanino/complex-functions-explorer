@@ -8,7 +8,6 @@ extends Node3D
 var chunks = {}
 var _chunk_lods = {}
 var _dirty_neighbor_coords = {}
-var _last_lod_update_time: int = 0
 var chunk_leeway = 0.01
 var LOD_SUBS = [] # This will be set in code
 var _lod_mesh_cache = {}
@@ -16,6 +15,7 @@ var _last_player_chunk = Vector2i(9999, 9999)
 var _last_view_distance: int = -1
 var slow_frame_counter: int = 0
 var _shaders_stopped: bool = false
+var _last_lod_player_chunk = Vector2i(9999, 9999)
 
 @onready var environment_node = get_node("../Environment")
 @onready var audio = get_node_or_null("../Audio")
@@ -27,7 +27,6 @@ func _ready():
 	_update_all_terrain_material_uniforms()
 	# Uncomment this to debug the mesh wireframe
 	# get_viewport().debug_draw = Viewport.DEBUG_DRAW_WIREFRAME
-
 
 func _process(delta):
 	if not player:
@@ -57,11 +56,17 @@ func _process(delta):
 	if terrain_material:
 		terrain_material.set_shader_parameter("player_position_world", player_pos)
 
-
 	# Chunk and LOD Dynamic Update
 	if player_chunk_x != _last_player_chunk.x or player_chunk_z != _last_player_chunk.y:
 		_update_chunks(player_chunk_x, player_chunk_z)
 
+
+	var current = Vector2i(player_chunk_x, player_chunk_z)
+
+	if current != _last_lod_player_chunk:
+		_update_all_chunks_lod()
+		_last_lod_player_chunk = current
+	
 
 func _update_chunks(p_x: int, p_z: int):
 	var old_min_x = _last_player_chunk.x - _last_view_distance
@@ -89,28 +94,18 @@ func _update_chunks(p_x: int, p_z: int):
 
 	# Unload distant chunks
 	var chunks_to_remove = []
-	for chunk_coord in chunks.keys():
+	for chunk_coord in chunks:
 		if abs(chunk_coord.x - p_x) > Config.view_distance or abs(chunk_coord.y - p_z) > Config.view_distance:
 			chunks_to_remove.append(chunk_coord)
 
 	for chunk_coord in chunks_to_remove:
 		_unload_chunk(chunk_coord)
 
-	_update_all_chunks_lod()
-	for coord in _dirty_neighbor_coords.keys():
-		_update_neighbor_lod_uniforms(coord)
-	_dirty_neighbor_coords.clear()
-
 func _update_all_chunks_lod(force: bool = false):
-	var current_time = Time.get_ticks_msec()
-	if not force and current_time - _last_lod_update_time < 100:
-		return
-	_last_lod_update_time = current_time
-
 	_dirty_neighbor_coords.clear()
 
 	var player_chunk_coord = _last_player_chunk
-	for coord in chunks.keys():
+	for coord in chunks:
 		var chunk = chunks[coord]
 		var desired_lod = _get_lod_level(coord, player_chunk_coord)
 		if force or _chunk_lods.get(coord, -1) != desired_lod:
@@ -118,6 +113,10 @@ func _update_all_chunks_lod(force: bool = false):
 
 	for coord in _dirty_neighbor_coords.keys():
 		_update_neighbor_lod_uniforms(coord)
+
+	for coord in _dirty_neighbor_coords.keys():
+		_update_neighbor_lod_uniforms(coord)
+	_dirty_neighbor_coords.clear()
 
 func _update_lod_subs():
 	match Config.terrain_detail:
@@ -264,7 +263,6 @@ func _update_terrain_material_uniforms(key: String):
 func _update_chunk_uniforms(chunk: MeshInstance3D, coord: Vector2i):
 	var lod = _chunk_lods.get(coord, 0)
 	chunk.set_instance_shader_parameter("lod_level", lod)
-
 
 
 func _update_neighbor_lod_uniforms(coord: Vector2i):
