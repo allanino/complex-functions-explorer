@@ -728,3 +728,58 @@ func test_get_field():
 	GameState.performance_protection_active = orig_perf
 	Config.set("input_function_type", orig_in_func)
 	Config.set("function_type", orig_func)
+
+func test_get_field_at():
+	var x = 1.2
+	var y = 3.4
+
+	# Test simple functions
+	var res_identity = ComplexFieldScript.get_field_at(x, y, Config.ComplexFunc.IDENTITY, false)
+	assert_eq(res_identity, Vector2(x, y))
+
+	var res_sin = ComplexFieldScript.get_field_at(x, y, Config.ComplexFunc.SIN, false)
+	assert_eq(res_sin, ComplexFieldScript.complex_sin(x, y))
+
+	var res_zeta = ComplexFieldScript.get_field_at(x, y, Config.ComplexFunc.ZETA, false)
+	assert_eq(res_zeta, ComplexFieldScript.zeta(x, y))
+
+	var res_zeta_refl = ComplexFieldScript.get_field_at(x, y, Config.ComplexFunc.ZETA_REFLECTION, false)
+	assert_eq(res_zeta_refl, ComplexFieldScript.zeta_continuation(x, y))
+
+	var res_gamma = ComplexFieldScript.get_field_at(x, y, Config.ComplexFunc.GAMMA, false)
+	assert_eq(res_gamma, ComplexFieldScript.complex_gamma(x, y))
+
+	var res_log_gamma = ComplexFieldScript.get_field_at(x, y, Config.ComplexFunc.LOG_GAMMA, false)
+	assert_eq(res_log_gamma, ComplexFieldScript.complex_log_gamma(x, y))
+
+	var res_dedekind_eta = ComplexFieldScript.get_field_at(x, y, Config.ComplexFunc.DEDEKIND_ETA, false)
+	assert_eq(res_dedekind_eta, ComplexFieldScript.dedekind_eta(x, y))
+
+	# Test functions with Config.iterations
+	var res_eta = ComplexFieldScript.get_field_at(x, y, Config.ComplexFunc.DIRICHLET_ETA, false)
+	assert_eq(res_eta, ComplexFieldScript.dirichlet_eta(x, y, Config.iterations))
+
+	var res_beta = ComplexFieldScript.get_field_at(x, y, Config.ComplexFunc.DIRICHLET_BETA, false)
+	assert_eq(res_beta, ComplexFieldScript.dirichlet_beta(x, y, Config.iterations))
+
+	var res_mandelbrot = ComplexFieldScript.get_field_at(x, y, Config.ComplexFunc.MANDELBROT, false)
+	assert_eq(res_mandelbrot, ComplexFieldScript.mandelbrot(x, y, Config.iterations))
+
+	# Test functions with Config.multivalued_n and hardcoded values
+	var res_z_pow = ComplexFieldScript.get_field_at(x, y, Config.ComplexFunc.MULTIVALUED_Z_POW, false)
+	assert_eq(res_z_pow, ComplexFieldScript.multivalued_z_pow_inv_n(x, y, Config.multivalued_n, -99999, true))
+
+	var res_log = ComplexFieldScript.get_field_at(x, y, Config.ComplexFunc.MULTIVALUED_LOG, false)
+	assert_eq(res_log, ComplexFieldScript.multivalued_log(x, y, -99999, true))
+
+	# Test RATIONAL is_input=true
+	var res_rational_in = ComplexFieldScript.get_field_at(x, y, Config.ComplexFunc.RATIONAL, true)
+	assert_eq(res_rational_in, ComplexFieldScript.get_rational(x, y, Config.input_rational_num_coeffs, Config.input_rational_den_coeffs))
+
+	# Test RATIONAL is_input=false
+	var res_rational_out = ComplexFieldScript.get_field_at(x, y, Config.ComplexFunc.RATIONAL, false)
+	assert_eq(res_rational_out, ComplexFieldScript.get_rational(x, y, Config.rational_num_coeffs, Config.rational_den_coeffs))
+
+	# Test invalid function type fallback
+	var res_invalid = ComplexFieldScript.get_field_at(x, y, -1, false)
+	assert_eq(res_invalid, Vector2.ZERO)
