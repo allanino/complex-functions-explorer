@@ -292,24 +292,34 @@ func _update_zeros_list():
 
 	GameState.accented_zero_index = current_size - 1
 
-	# Clear existing items
-	for child in zeros_list_label.get_children():
-		zeros_list_label.remove_child(child)
-		child.queue_free()
-
 	var actual_hud_scale = Config.hud_scale
+	var children = zeros_list_label.get_children()
+	var child_idx = 0
+
 	for i in range(current_size - 1, max(-1, current_size - 101), -1):
 		var zero = GameState.visited_zeros[i]
 		var re_str = _format_float_3(zero[0])
 		var im_str = _format_float_3(zero[1])
-		var item = ZERO_LIST_ITEM_SCENE.instantiate()
-		zeros_list_label.add_child(item)
+
+		var item
+		if child_idx < children.size():
+			item = children[child_idx]
+			item.visible = true
+		else:
+			item = ZERO_LIST_ITEM_SCENE.instantiate()
+			zeros_list_label.add_child(item)
+			item.clicked.connect(_on_zero_item_clicked)
+
 		item.zero_index = i
-		item.clicked.connect(_on_zero_item_clicked)
 		item.set_values(re_str, im_str, f_data.get("is_dirichlect", false))
 		_rescale_card(item, actual_hud_scale)
-		if i == GameState.accented_zero_index:
-			item.is_active = true
+		item.is_active = (i == GameState.accented_zero_index)
+
+		child_idx += 1
+
+	# Hide remaining unused items
+	for i in range(child_idx, children.size()):
+		children[i].visible = false
 
 func _on_complex_aspect_resized():
 	if phase_wheel.custom_minimum_size.y != phase_wheel.size.x:
@@ -588,4 +598,5 @@ func _on_config_changed(key: String):
 func _on_zero_item_clicked(index: int):
 	GameState.accented_zero_index = index
 	for item in zeros_list_label.get_children():
-		item.is_active = (item.zero_index == index)
+		if item.visible:
+			item.is_active = (item.zero_index == index)
