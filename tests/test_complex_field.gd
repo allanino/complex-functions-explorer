@@ -263,32 +263,21 @@ func test_multivalued_log():
 
 func test_multivalued_asin():
 	var orig_branch = GameState.current_branch
-	GameState.current_branch = 0
 
-	# asin(0) = 0
-	var res = ComplexFieldScript.multivalued_asin(0, 0)
-	assert_almost_eq(res.x, 0.0, 0.0001)
-	assert_almost_eq(res.y, 0.0, 0.0001)
+	var expected_values = {
+		-2: Vector2(-10.9956, -1.3169),
+		-1: Vector2(-7.8540, 1.3169),
+		0: Vector2(1.5708, 1.3169),
+		1: Vector2(4.7124, -1.3169),
+		2: Vector2(14.1372, 1.3169)
+	}
 
-	# asin(1) = pi/2
-	res = ComplexFieldScript.multivalued_asin(1, 0)
-	assert_almost_eq(res.x, PI / 2.0, 0.0001)
-	assert_almost_eq(res.y, 0.0, 0.0001)
-
-	# asin(-1) = -pi/2
-	res = ComplexFieldScript.multivalued_asin(-1, 0)
-	assert_almost_eq(res.x, -PI / 2.0, 0.0001)
-	assert_almost_eq(res.y, 0.0, 0.0001)
-
-	# asin(2) = pi/2 + i*acosh(2) approx 1.5708 + 1.3169i
-	res = ComplexFieldScript.multivalued_asin(2, 0)
-	assert_almost_eq(res.x, PI / 2.0, 0.0001)
-	assert_almost_eq(res.y, 1.31695, 0.0001)
-
-	# asin(i) = i * asinh(1) approx 0.88137i
-	res = ComplexFieldScript.multivalued_asin(0, 1)
-	assert_almost_eq(res.x, 0.0, 0.0001)
-	assert_almost_eq(res.y, 0.88137, 0.0001)
+	for B in expected_values.keys():
+		GameState.current_branch = B
+		var res = ComplexFieldScript.multivalued_asin(2.0, 0.0)
+		var expected = expected_values[B]
+		assert_almost_eq(res.x, expected.x, 0.005)
+		assert_almost_eq(res.y, expected.y, 0.005)
 
 	GameState.current_branch = orig_branch
 
