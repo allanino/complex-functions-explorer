@@ -347,6 +347,57 @@ func test_multivalued_asin_exact_values():
 
 	GameState.current_branch = orig_branch
 
+func test_multivalued_acos_exact_values():
+	var orig_branch = GameState.current_branch
+
+	# The current implementation is not standard.
+	# Mathematica code:
+	# Table[Pi/2 - (Pi*B + (-1)^B * (Pi/2 - ArcCos[1.5 + 0.01*I])), {B, -2, 2}]
+
+	var expected_values = {
+		-2: Vector2(6.2921, -0.9625),
+		-1: Vector2(6.2742, 0.9625),
+		0: Vector2(0.0089, -0.9625),
+		1: Vector2(-0.0089, 0.9625),
+		2: Vector2(-6.2742, -0.9625)
+	}
+
+	for B in expected_values.keys():
+		GameState.current_branch = B
+		var res = ComplexFieldScript.multivalued_acos(1.5, 0.01)
+		var expected = expected_values[B]
+		assert_almost_eq(res.x, expected.x, 0.005)
+		assert_almost_eq(res.y, expected.y, 0.005)
+
+	GameState.current_branch = orig_branch
+
+func test_multivalued_acos_continuity():
+	var orig_branch = GameState.current_branch
+
+	for B in [-2, -1, 0, 1, 2]:
+		GameState.current_branch = B
+		var val_above = ComplexFieldScript.multivalued_acos(1.5, 0.01)
+
+		var B_next_pos = B + 1 if B % 2 == 0 else B - 1
+		GameState.current_branch = B_next_pos
+		var val_below = ComplexFieldScript.multivalued_acos(1.5, -0.01)
+
+		assert_almost_eq(val_above.x, val_below.x, 0.05)
+		assert_almost_eq(val_above.y, val_below.y, 0.05)
+
+	for B in [-2, -1, 0, 1, 2]:
+		GameState.current_branch = B
+		var val_above = ComplexFieldScript.multivalued_acos(-1.5, 0.01)
+
+		var B_next_neg = B - 1 if B % 2 == 0 else B + 1
+		GameState.current_branch = B_next_neg
+		var val_below = ComplexFieldScript.multivalued_acos(-1.5, -0.01)
+
+		assert_almost_eq(val_above.x, val_below.x, 0.05)
+		assert_almost_eq(val_above.y, val_below.y, 0.05)
+
+	GameState.current_branch = orig_branch
+
 func test_multivalued_asin_continuity():
 	var orig_branch = GameState.current_branch
 
