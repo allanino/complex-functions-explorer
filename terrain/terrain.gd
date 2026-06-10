@@ -13,7 +13,9 @@ var _last_player_chunk = Vector2i(9999, 9999)
 var _last_auto_walk_state: int = -1
 var slow_frame_counter: int = 0
 var _shaders_stopped: bool = false
-const OPTIMIZED_VICINITY = 1
+const OPTIMIZED_VICINITY_MINUS_X = 1
+const OPTIMIZED_VICINITY_PLUS_X = 15
+const OPTIMIZED_VICINITY_MINUS_Z = 0
 
 @onready var environment_node = get_node("../Environment")
 @onready var audio = get_node_or_null("../Audio")
@@ -75,9 +77,9 @@ func _update_chunks(p_x: int, p_z: int):
 	if Config.optimize_auto_walk and (auto_walk_state == 1 or auto_walk_state == 2):
 		var target_world_pos = Config.complex_to_world(0.5, 0.0) # 0.5 is CRITICAL_LINE_COMPLEX_X
 		var critical_chunk_x = floor(target_world_pos.x / chunk_size)
-		min_x = min(critical_chunk_x, p_x) - OPTIMIZED_VICINITY
-		max_x = max(critical_chunk_x, p_x) + OPTIMIZED_VICINITY
-		max_z = p_z + OPTIMIZED_VICINITY # Only load up to OPTIMIZED_VICINITY chunks behind the player
+		min_x = min(critical_chunk_x, p_x) - OPTIMIZED_VICINITY_MINUS_X
+		max_x = max(critical_chunk_x, p_x) + OPTIMIZED_VICINITY_PLUS_X
+		max_z = p_z + OPTIMIZED_VICINITY_MINUS_Z
 
 	# Load new chunks
 	for x in range(min_x, max_x + 1):
