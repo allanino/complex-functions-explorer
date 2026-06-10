@@ -466,3 +466,36 @@ func test_get_height():
 	GameState.effective_zoom = orig_zoom
 	Config.height_type = orig_type
 	GameState.morph_value = orig_morph
+
+func test_get_field():
+	var orig_perf = GameState.performance_protection_active
+	var orig_func = Config.function_type
+	var orig_in_func = Config.input_function_type
+
+	# Test performance protection early exit
+	GameState.performance_protection_active = true
+	var f1 = ComplexFieldScript.get_field(1.0, 2.0)
+	assert_eq(f1, Vector2.ZERO)
+
+	GameState.performance_protection_active = false
+
+	# Test normal behavior
+	Config.set("input_function_type", Config.ComplexFunc.SIN)
+	Config.set("function_type", Config.ComplexFunc.GAMMA)
+	var world_x = 1.0
+	var world_z = -1.0
+
+	# Calculate expected manually using the logic
+	var complex_pos = Config.world_to_complex(world_x, world_z)
+	var w = ComplexFieldScript.get_field_at(complex_pos.x, complex_pos.y, Config.ComplexFunc.SIN, true)
+	var expected = ComplexFieldScript.get_field_at(w.x, w.y, Config.ComplexFunc.GAMMA, false)
+
+	var result = ComplexFieldScript.get_field(world_x, world_z)
+
+	assert_almost_eq(result.x, expected.x, 0.0001)
+	assert_almost_eq(result.y, expected.y, 0.0001)
+
+	# Restore state
+	GameState.performance_protection_active = orig_perf
+	Config.set("input_function_type", orig_in_func)
+	Config.set("function_type", orig_func)
