@@ -199,6 +199,34 @@ func test_complex_log_gamma():
 	assert_almost_eq(res2.x, -1.802215, 0.0001)
 	assert_almost_eq(res2.y, 0.62339, 0.0001)
 
+func test_complex_log_gamma_with_derivatives():
+	# Test x >= 0.5 (should match lanczos_log_gamma_with_derivatives)
+	var z1 = Vector2(1.5, 0.5)
+	var res1 = ComplexFieldScript.complex_log_gamma_with_derivatives(z1.x, z1.y)
+	var expected1 = ComplexFieldScript.lanczos_log_gamma_with_derivatives(z1)
+	assert_eq(res1.size(), 2)
+	assert_almost_eq(res1[0].x, expected1[0].x, 0.0001)
+	assert_almost_eq(res1[0].y, expected1[0].y, 0.0001)
+	assert_almost_eq(res1[1].x, expected1[1].x, 0.0001)
+	assert_almost_eq(res1[1].y, expected1[1].y, 0.0001)
+
+	# Test x < 0.5
+	var z2 = Vector2(-2.0, -1.0)
+	var res2 = ComplexFieldScript.complex_log_gamma_with_derivatives(z2.x, z2.y)
+	var val_pure2 = ComplexFieldScript.complex_log_gamma(z2.x, z2.y)
+	assert_eq(res2.size(), 2)
+	assert_almost_eq(res2[0].x, val_pure2.x, 0.0001)
+	assert_almost_eq(res2[0].y, val_pure2.y, 0.0001)
+	# derivative should be finite and non-zero
+	assert_true(res2[1].length_squared() > 0.0)
+	assert_false(is_nan(res2[1].x) or is_inf(res2[1].x))
+	assert_false(is_nan(res2[1].y) or is_inf(res2[1].y))
+
+	# Also test actual known derivative values for < 0.5 to be sure.
+	# From python script: z = -2.0 + -1.0i -> dx: x=0.994650, y=-2.776674
+	assert_almost_eq(res2[1].x, 0.994650, 0.005)
+	assert_almost_eq(res2[1].y, -2.776674, 0.005)
+
 func test_zeta():
 	var res = ComplexFieldScript.zeta(0.5, 14.134725)
 	assert_almost_eq(res.x, 0.0, 0.015)
