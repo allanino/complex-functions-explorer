@@ -151,17 +151,17 @@ func test_zeta_continuation():
 func test_log_zeta_continuation_with_derivatives():
 	# Test x >= 0.5 branch
 	var res3 = ComplexFieldScript.log_zeta_continuation_with_derivatives(2.0, 3.0, 50)
-	assert_almost_eq(res3[0].x, -0.215563, 0.015)
-	assert_almost_eq(res3[0].y, -0.141579, 0.015)
-	assert_almost_eq(res3[1].x, 0.168333, 0.015)
-	assert_almost_eq(res3[1].y, 0.050953, 0.015)
+	assert_almost_eq(res3[0].x, -0.215563, 0.0001)
+	assert_almost_eq(res3[0].y, -0.141579, 0.0001)
+	assert_almost_eq(res3[1].x, 0.168333, 0.0001)
+	assert_almost_eq(res3[1].y, 0.050953, 0.0001)
 
 	# Test x < 0.5 branch
 	var res2 = ComplexFieldScript.log_zeta_continuation_with_derivatives(-2.0, 3.0, 50)
-	assert_almost_eq(res2[0].x, -1.708306, 0.015)
-	assert_almost_eq(res2[0].y, 0.746679, 0.015)
-	assert_almost_eq(res2[1].x, 0.397404, 0.015)
-	assert_almost_eq(res2[1].y, -0.649313, 0.015)
+	assert_almost_eq(res2[0].x, -1.7083, 0.0001)
+	assert_almost_eq(res2[0].y, 0.7467, 0.0001)
+	assert_almost_eq(res2[1].x, 0.3974, 0.0001)
+	assert_almost_eq(res2[1].y, -0.6493, 0.0001)
 
 func test_dedekind_eta():
 	var res = ComplexFieldScript.dedekind_eta(0, 1)
