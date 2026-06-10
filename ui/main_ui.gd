@@ -31,6 +31,10 @@ var portal_flash: ColorRect
 @onready var preset_controller = %PresetController
 @onready var position_arg_label = %PositionArgLabel
 @onready var position_arg_val = %PositionArgVal
+@onready var position_arg_arrow = %PositionArgArrow
+@onready var position_arg_container = %PositionArgContainer
+@onready var mobile_controls = $Control/MobileControls
+@onready var mobile_settings_btn = $Control/MobileControls/SettingsButton
 @onready var target_label = %TargetLabel
 @onready var abs_label = %AbsLabel
 
@@ -87,11 +91,9 @@ func update_arg_val(f: Vector2):
 
 	position_arg_val.add_theme_color_override("font_color", final_color)
 
-	var position_arg_arrow = get_node_or_null("%PositionArgArrow")
-	if position_arg_arrow:
-		position_arg_arrow.angle_deg = angle_deg
-		position_arg_arrow.color = final_color
-		position_arg_arrow.queue_redraw()
+	position_arg_arrow.angle_deg = angle_deg
+	position_arg_arrow.color = final_color
+	position_arg_arrow.queue_redraw()
 
 func _setup_branch_data():
 	if Config.function.get("is_multivalued", false):
@@ -105,11 +107,9 @@ func _ready():
 	Config.config_changed.connect(_on_config_changed)
 	_update_function_labels()
 
-	var mobile_controls = get_node_or_null("Control/MobileControls")
-	if mobile_controls and mobile_controls.has_node("SettingsButton"):
-		var settings_btn = mobile_controls.get_node("SettingsButton")
-		if not settings_btn.pressed.is_connected(toggle_menu.bind(false)):
-			settings_btn.pressed.connect(toggle_menu.bind(false))
+	if not mobile_settings_btn.pressed.is_connected(toggle_menu.bind(false)):
+		mobile_settings_btn.pressed.connect(toggle_menu.bind(false))
+
 	portal_flash = ColorRect.new()
 	portal_flash.name = "PortalFlash"
 	portal_flash.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -150,13 +150,7 @@ func _ready():
 	update_layout_timer.timeout.connect(_update_hud_layout)
 	add_child(update_layout_timer)
 
-	var position_arg_container = get_node_or_null("%PositionArgContainer")
-	if position_arg_container:
-		position_arg_container.visible = !Config.show_hud_phase_wheel
-	else:
-		position_arg_label.visible = !Config.show_hud_phase_wheel
-		position_arg_val.visible = !Config.show_hud_phase_wheel
-
+	position_arg_container.visible = !Config.show_hud_phase_wheel
 
 	if menu_overlay:
 			menu_overlay.player = player
@@ -377,11 +371,9 @@ func _update_hud_layout():
 
 	var scale_factor = get_viewport().size.x / 1920.0
 	var available_height = get_viewport().size.y / scale_factor - 50.0
-	var mobile_controls = get_node_or_null("Control/MobileControls")
-	if mobile_controls and mobile_controls.visible and mobile_controls.has_node("SettingsButton"):
-		var settings_btn = mobile_controls.get_node("SettingsButton")
-		if settings_btn.visible:
-			available_height -= (settings_btn.position.y + settings_btn.size.y)
+
+	if mobile_controls.visible and mobile_settings_btn.visible:
+		available_height -= (mobile_settings_btn.position.y + mobile_settings_btn.size.y)
 
 	var f_data = Config.function
 	
@@ -578,13 +570,7 @@ func _on_config_changed(key: String):
 	if key in ["show_hud_monitor_fps", "show_hud_chunks"]:
 		_update_monitor_label()
 	if key == "show_hud_phase_wheel":
-		var position_arg_container = get_node_or_null("%PositionArgContainer")
-		if position_arg_container:
-			position_arg_container.visible = !Config.show_hud_phase_wheel
-		else:
-			position_arg_label.visible = !Config.show_hud_phase_wheel
-			position_arg_val.visible = !Config.show_hud_phase_wheel
-
+		position_arg_container.visible = !Config.show_hud_phase_wheel
 		phase_wheel.visible = Config.show_hud_phase_wheel
 
 	if key in ["function_type", "show_hud_navigation", "show_hud_phase_wheel", "show_minimap", "show_hud_zeros", "show_hud_monitor_fps", "show_hud_chunks"]:
