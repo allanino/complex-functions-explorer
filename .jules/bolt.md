@@ -8,3 +8,6 @@
 ## 2024-10-31 - [Thread-safe Heavy Computations]
 **Learning:** Heavy calculations in frequent loops like `_physics_process` can cause severe frame drops. Godot 4 provides `WorkerThreadPool` to easily dispatch these tasks to background threads.
 **Action:** Extract heavy operations into a separate function, dispatch them via `WorkerThreadPool.add_task(func.bind(args))`, and ensure any state or UI updates are safely returned to the main thread using `call_deferred()`.
+## 2024-05-19 - Enforce Camera Height Boundary via target_y
+**Learning:** To properly restrict the camera from exceeding the world height limit without corrupting physical player position logic, the boundary check must evaluate `target_y` (terrain + base camera height + user offset) rather than just the raw `terrain_h`.
+**Action:** When implementing camera position constraints, mathematically clamp the variable components that contribute to the target offset (e.g., `height_offset`) instead of artifically altering physical world states (`terrain_h`).
