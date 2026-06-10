@@ -422,13 +422,8 @@ func _set_zoom_factor(value: float):
 func apply_zoom_immediate():
 	GameState.effective_zoom = float(zoom_factor)
 
-func get_zoom_scale() -> float:
-	return 1.0 / GameState.effective_zoom
-
-# Converts 3D world coordinates (x, z) to 2D complex plane coordinates (Re, Im), accounting for zoom.
 func world_to_complex(world_x: float, world_z: float) -> Vector2:
-	var scale = get_zoom_scale()
-	return Vector2(world_x * 0.1 * scale, -world_z * 0.1 * scale)
+	return Vector2(world_x * 0.1 / GameState.effective_zoom, -world_z * 0.1 / GameState.effective_zoom)
 
 # Converts 2D complex plane coordinates (Re, Im) to 3D world coordinates (x, z), accounting for zoom.
 func complex_to_world(complex_x: float, complex_y: float) -> Vector2:
