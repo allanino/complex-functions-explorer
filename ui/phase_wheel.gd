@@ -40,7 +40,13 @@ func _apply_phase(f: Vector2) -> void:
 		mat.set_shader_parameter("emission", Config.terrain_emission)
 
 	if angle_label:
-		var angle_rad = atan2(f.y, f.x)
+		var angle_rad: float
+		if f.length() > 1e-12:
+			var f_dir = f.normalized()
+			angle_rad = atan2(f_dir.y, f_dir.x)
+		else:
+			angle_rad = atan2(f.y, f.x)
+
 		var angle_deg = rad_to_deg(angle_rad)
 		if angle_deg < 0:
 			angle_deg += 360.0

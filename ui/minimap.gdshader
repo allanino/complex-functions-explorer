@@ -55,7 +55,7 @@ void fragment() {
     vec2 field_val = mix(z_id, f, blend);
 
     vec2 f_dir;
-    if (length(field_val) > 0.0) {
+    if (length(field_val) > 1e-12) {
         f_dir = normalize(field_val);
     } else {
         f_dir = vec2(0.0);
