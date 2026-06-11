@@ -68,13 +68,17 @@ var camera_push_offset: Vector3 = Vector3.ZERO
 @onready var world_manager = get_node_or_null("/root/Main/WorldManager")
 @onready var audio_system = get_node_or_null("/root/Main/Audio")
 
+func get_initial_position() -> Vector3:
+	if Config.function.get("is_dirichlect", false):
+		return Vector3(5.0, 0.0, 0.0)
+	else:
+		return Vector3(0.0, 0.0, 0.0)
+
 func _ready():
 	add_to_group("player")
 	# Set the global position directly using a Vector3(x, y, z)
-	if Config.function.get("is_dirichlect", false):
-		global_position = Vector3(5.0, 0.0, 0.0)
-	else:
-		global_position = Vector3(0.0, 0.0, 0.0)
+	global_position = get_initial_position()
+	if not Config.function.get("is_dirichlect", false):
 		rotation.y = - PI / 2.0
 	var complex_pos = Config.world_to_complex(global_position.x, global_position.z)
 	last_t = complex_pos.y
@@ -916,3 +920,14 @@ func _on_zero_detected(true_z: Vector2, current_auto_walk_state: int):
 			GameState.visited_zeros.pop_front()
 		GameState.state_changed.emit("visited_zeros")
 		last_detected_z = true_z
+
+func teleport_to_world_pos(target_x: float, target_z: float):
+	velocity = Vector3.ZERO
+	var terrain_h = get_terrain_height(target_x, target_z)
+	if not is_finite(terrain_h) or abs(terrain_h) >= MAX_WORLD_HEIGHT:
+		global_position = get_initial_position()
+		GameState.out_of_bounds_teleport_active = false # toggle to fire signal
+		GameState.out_of_bounds_teleport_active = true
+	else:
+		global_position.x = target_x
+		global_position.z = target_z

@@ -26,6 +26,9 @@ const NEON_FONT = preload("res://ui/theme/font_neon.tres")
 @onready var zeros_scroll = %ZerosScroll
 @onready var menu_overlay = %MenuOverlay
 var portal_flash: ColorRect
+var _height_protection_timer: float = 0.0
+var _out_of_bounds_teleport_timer: float = 0.0
+
 @onready var tooltip_manager = %TooltipManager
 @onready var detach_controller = %DetachOverlay
 @onready var preset_controller = %PresetController
@@ -104,6 +107,7 @@ func _setup_branch_data():
 		branch_label.visible = false
 
 func _ready():
+	set_process(true)
 	Config.config_changed.connect(_on_config_changed)
 	_update_function_labels()
 
@@ -232,7 +236,11 @@ func _on_monitor_timer_timeout():
 		_update_monitor_label()
 
 func _on_game_state_changed(key: String):
-	if key in ["performance_protection_active", "height_protection_active", "found_off_critical_line", "missed_zeta_zero"]:
+	if key in ["performance_protection_active", "height_protection_active", "out_of_bounds_teleport_active", "found_off_critical_line", "missed_zeta_zero"]:
+		if key == "height_protection_active" and GameState.height_protection_active:
+			_height_protection_timer = 5.0
+		if key == "out_of_bounds_teleport_active" and GameState.out_of_bounds_teleport_active:
+			_out_of_bounds_teleport_timer = 5.0
 		_update_monitor_label()
 	elif key in ["visited_zeros", "total_zeros_found"]:
 		_update_zeros_list()
@@ -240,15 +248,19 @@ func _on_game_state_changed(key: String):
 		phase_branch_val.text = str(GameState.current_branch)
 
 func _update_monitor_label():
-	monitor_panel.visible = Config.show_hud_monitor_fps or show_hud_chunks or GameState.performance_protection_active or GameState.height_protection_active or GameState.found_off_critical_line or GameState.missed_zeta_zero
+	monitor_panel.visible = Config.show_hud_monitor_fps or show_hud_chunks or GameState.performance_protection_active or _height_protection_timer > 0.0 or _out_of_bounds_teleport_timer > 0.0 or GameState.found_off_critical_line or GameState.missed_zeta_zero
 	if monitor_panel.visible and monitor_rt_label:
 		var bbcode = ""
 
 		if GameState.performance_protection_active:
 			bbcode += "[color=#ffcc00][font_size=14]Performance protection activated, adjust settings.[/font_size][/color]\n"
 
-		if GameState.height_protection_active:
+		if _height_protection_timer > 0.0:
 			bbcode += "[color=#ffcc00][font_size=14]Max world height reached, return to safe heights.[/font_size][/color]\n"
+
+		if _out_of_bounds_teleport_timer > 0.0:
+			bbcode += "[color=#ffcc00][font_size=14]Could not travel to out-of-bounds area.[/font_size][/color]\n"
+
 
 		if GameState.found_off_critical_line:
 			var off_z = GameState.found_off_critical_line_val
@@ -606,3 +618,14 @@ func _on_zero_item_clicked(index: int):
 	for item in zeros_list_label.get_children():
 		if item.visible:
 			item.is_active = (item.zero_index == index)
+
+func _process(delta):
+	if _height_protection_timer > 0.0:
+		_height_protection_timer -= delta
+		if _height_protection_timer <= 0.0:
+			_update_monitor_label()
+
+	if _out_of_bounds_teleport_timer > 0.0:
+		_out_of_bounds_teleport_timer -= delta
+		if _out_of_bounds_teleport_timer <= 0.0:
+			_update_monitor_label()
