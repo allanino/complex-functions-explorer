@@ -87,7 +87,7 @@ void fragment() {
     } else if (h_abs > max_world_height) {
         // Exponentially smooth decay from 1.0 approaching 0.3
         float excess = h_abs - max_world_height;
-        float decay_rate = 0.005; // Tunes how fast it fades out
+        float decay_rate = 0.0005; // Tunes how fast it fades out
         float exp_fade = exp(-decay_rate * excess);
         fade_factor = 0.3 + 0.7 * exp_fade;
     }
