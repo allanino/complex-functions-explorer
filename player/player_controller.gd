@@ -59,6 +59,10 @@ var last_player_pos: Vector3 = Vector3.ZERO
 var last_terrain_h: float = 0.0
 var camera_push_offset: Vector3 = Vector3.ZERO
 
+
+var _predicted_pos := Vector2.INF
+var _predicted_next_f := Vector2.INF
+
 @onready var mobile_controls = get_node_or_null("/root/Main/MainUI/Control/MobileControls")
 @onready var right_joy = get_node_or_null("/root/Main/MainUI/Control/MobileControls/RightJoystick")
 
@@ -297,7 +301,11 @@ func _physics_process(delta):
 	# Cache current field value and mathematical coordinates for reuse
 	# Converts player's world position back to the mathematical complex plane to calculate field values
 	current_z = Config.world_to_complex(global_position.x, global_position.z)
-	current_f = ComplexField.get_field(global_position.x, global_position.z)
+	var current_pos2d = Vector2(global_position.x, global_position.z)
+	if _predicted_pos != Vector2.INF and _predicted_pos.distance_to(current_pos2d) < 0.001:
+		current_f = _predicted_next_f
+	else:
+		current_f = ComplexField.get_field(global_position.x, global_position.z)
 	current_mag = current_f.length()
 
 	if auto_walk_state != AutoWalkState.NONE:
@@ -439,7 +447,9 @@ func _physics_process(delta):
 		velocity.x = 0.0
 		velocity.z = 0.0
 
-	var terrain_h = get_terrain_height(predicted_pos.x, predicted_pos.z)
+	_predicted_pos = Vector2(predicted_pos.x, predicted_pos.z)
+	_predicted_next_f = ComplexField.get_field(predicted_pos.x, predicted_pos.z)
+	var terrain_h = get_terrain_height(predicted_pos.x, predicted_pos.z, _predicted_next_f)
 
 	if not is_finite(terrain_h):
 		velocity.x = 0.0
