@@ -66,6 +66,7 @@ const FUNCTIONS = {
 	ComplexFunc.GAMMA: {
 		"name": "Gamma",
 		"symbol": "Γ",
+		"initial_pos": Vector3(3.0, 0.0, 0.0),
 	},
 	ComplexFunc.LOG_GAMMA: {
 		"name": "Log Gamma",

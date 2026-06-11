@@ -71,14 +71,32 @@ var _predicted_next_f := Vector2.INF
 @onready var world_manager = get_node_or_null("/root/Main/WorldManager")
 @onready var audio_system = get_node_or_null("/root/Main/Audio")
 
+func get_initial_position() -> Vector3:
+	if Config.function.has("initial_pos"):
+		return Config.function["initial_pos"]
+	if Config.function.get("is_dirichlect", false):
+		return Vector3(5.0, 0.0, 0.0)
+	return Vector3(0.0, 0.0, 0.0)
+
+func teleport_to_world_pos(target_pos: Vector3) -> void:
+	var terrain_h = get_terrain_height(target_pos.x, target_pos.z)
+	if not is_finite(terrain_h) or abs(terrain_h) >= GameState.MAX_WORLD_HEIGHT:
+		GameState.out_of_bounds_teleport_active = true
+		target_pos = get_initial_position()
+
+		# Apply initial rotation if needed when resetting
+		if not Config.function.get("is_dirichlect", false) and not Config.function.has("initial_pos"):
+			rotation.y = - PI / 2.0
+
+	global_position = target_pos
+
 func _ready():
 	add_to_group("player")
-	# Set the global position directly using a Vector3(x, y, z)
-	if Config.function.get("is_dirichlect", false):
-		global_position = Vector3(5.0, 0.0, 0.0)
-	else:
-		global_position = Vector3(0.0, 0.0, 0.0)
+
+	global_position = get_initial_position()
+	if not Config.function.get("is_dirichlect", false) and not Config.function.has("initial_pos"):
 		rotation.y = - PI / 2.0
+
 	var complex_pos = Config.world_to_complex(global_position.x, global_position.z)
 	last_t = complex_pos.y
 	last_z = complex_pos

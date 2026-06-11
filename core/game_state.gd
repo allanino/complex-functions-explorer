@@ -29,6 +29,11 @@ var height_protection_active: bool = false:
 		if height_protection_active == v: return
 		height_protection_active = v
 		state_changed.emit("height_protection_active")
+var out_of_bounds_teleport_active: bool = false:
+	set(v):
+		if out_of_bounds_teleport_active == v: return
+		out_of_bounds_teleport_active = v
+		state_changed.emit("out_of_bounds_teleport_active")
 var missed_zeta_zero: bool = false:
 	set(v):
 		if missed_zeta_zero == v: return

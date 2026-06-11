@@ -40,6 +40,9 @@ var portal_flash: ColorRect
 
 @export var show_hud_chunks: bool = false
 
+var _height_protection_timer: float = 0.0
+var _out_of_bounds_timer: float = 0.0
+
 # New UI Node Paths
 var current_scale = 2.0
 const BASE_HUD_PANEL_SIZE: float = 240.0
@@ -102,6 +105,23 @@ func _setup_branch_data():
 	else:
 		phase_branch_val.visible = false
 		branch_label.visible = false
+
+func _process(delta: float) -> void:
+	var needs_update = false
+	if _height_protection_timer > 0.0:
+		_height_protection_timer -= delta
+		if _height_protection_timer <= 0.0:
+			GameState.height_protection_active = false
+			needs_update = true
+
+	if _out_of_bounds_timer > 0.0:
+		_out_of_bounds_timer -= delta
+		if _out_of_bounds_timer <= 0.0:
+			GameState.out_of_bounds_teleport_active = false
+			needs_update = true
+
+	if needs_update:
+		_update_monitor_label()
 
 func _ready():
 	Config.config_changed.connect(_on_config_changed)
@@ -234,7 +254,11 @@ func _on_monitor_timer_timeout():
 		_update_monitor_label()
 
 func _on_game_state_changed(key: String):
-	if key in ["performance_protection_active", "height_protection_active", "found_off_critical_line", "missed_zeta_zero"]:
+	if key in ["performance_protection_active", "height_protection_active", "out_of_bounds_teleport_active", "found_off_critical_line", "missed_zeta_zero"]:
+		if key == "height_protection_active" and GameState.height_protection_active:
+			_height_protection_timer = 5.0
+		if key == "out_of_bounds_teleport_active" and GameState.out_of_bounds_teleport_active:
+			_out_of_bounds_timer = 5.0
 		_update_monitor_label()
 	elif key in ["visited_zeros", "total_zeros_found"]:
 		_update_zeros_list()
@@ -242,15 +266,20 @@ func _on_game_state_changed(key: String):
 		phase_branch_val.text = str(GameState.current_branch)
 
 func _update_monitor_label():
-	monitor_panel.visible = Config.show_hud_monitor_fps or show_hud_chunks or GameState.performance_protection_active or GameState.height_protection_active or GameState.found_off_critical_line or GameState.missed_zeta_zero
+	var show_height_protection = GameState.height_protection_active and _height_protection_timer > 0.0
+	var show_out_of_bounds = GameState.out_of_bounds_teleport_active and _out_of_bounds_timer > 0.0
+	monitor_panel.visible = Config.show_hud_monitor_fps or show_hud_chunks or GameState.performance_protection_active or show_height_protection or show_out_of_bounds or GameState.found_off_critical_line or GameState.missed_zeta_zero
 	if monitor_panel.visible and monitor_rt_label:
 		var bbcode = ""
 
 		if GameState.performance_protection_active:
 			bbcode += "[color=#ffcc00][font_size=14]Performance protection activated, adjust settings.[/font_size][/color]\n"
 
-		if GameState.height_protection_active:
+		if show_height_protection:
 			bbcode += "[color=#ffcc00][font_size=14]Max world height reached, return to safe heights.[/font_size][/color]\n"
+
+		if show_out_of_bounds:
+			bbcode += "[color=#ffcc00][font_size=14]Could not travel to out-of-bounds area.[/font_size][/color]\n"
 
 		if GameState.found_off_critical_line:
 			var off_z = GameState.found_off_critical_line_val
