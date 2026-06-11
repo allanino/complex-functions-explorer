@@ -59,7 +59,6 @@ var last_player_pos: Vector3 = Vector3.ZERO
 var last_terrain_h: float = 0.0
 var camera_push_offset: Vector3 = Vector3.ZERO
 
-
 var _predicted_pos := Vector2.INF
 var _predicted_next_f := Vector2.INF
 
