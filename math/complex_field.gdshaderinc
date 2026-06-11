@@ -1116,6 +1116,7 @@ ComplexFieldData evaluate_function_with_derivatives(float x, float y, int func_t
     if (func_type == 17) return multivalued_log_with_derivatives(x, y, b_offset, true);
     if (func_type == 18) return multivalued_asin_with_derivatives(x, y, b_offset);
     if (func_type == 19) return multivalued_acos_with_derivatives(x, y, b_offset);
+    if (func_type == 20) return zeta_continuation_power_series_with_derivatives(x, y, iters);
     ComplexFieldData res;
     res.value = vec2(0.0);
     res.dx = vec2(0.0);

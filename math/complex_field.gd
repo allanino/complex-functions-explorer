@@ -1,9 +1,9 @@
 # Shared field and height functions for GDScript
 class_name ComplexField
 
-const PATCH_MAX_K = 15
-const PATCH_RADIUS = 2.0
-const PATCH_THRESHOLD = 0.65
+const PATCH_MAX_K = 20
+const PATCH_RADIUS = 0.2
+const PATCH_THRESHOLD = 0.5
 static var zeta_patches: Array = []
 
 #-------------------------------------------------------------------------
@@ -271,7 +271,6 @@ static func get_rational(x: float, y: float, num_coeffs: PackedVector2Array, den
 	var num = evaluate_poly(x, y, num_coeffs)
 	var den = evaluate_poly(x, y, den_coeffs)
 	return complex_div(num, den)
-
 
 
 static func get_shader_patch_centers() -> PackedVector2Array:
@@ -547,7 +546,7 @@ static func complex_log_gamma_with_derivatives(x: float, y: float) -> Array:
 
 		var val = Vector2(LOG_PI, 0.0) - log_sin_pi_z - lg1z[0]
 		var cot_pi_z = complex_cot(pi_z.x, pi_z.y)
-		var dx = -PI * cot_pi_z + lg1z[1]
+		var dx = - PI * cot_pi_z + lg1z[1]
 		return [val, dx]
 	else:
 		return lanczos_log_gamma_with_derivatives(Vector2(x, y))
@@ -618,6 +617,7 @@ static func get_field_at(x: float, y: float, function_type: int, is_input: bool)
 		Config.ComplexFunc.MULTIVALUED_LOG: return multivalued_log(x, y, -99999, true)
 		Config.ComplexFunc.MULTIVALUED_ASIN: return multivalued_asin(x, y)
 		Config.ComplexFunc.MULTIVALUED_ACOS: return multivalued_acos(x, y)
+		Config.ComplexFunc.ZETA_POWER_SERIES: return zeta_continuation_power_series(x, y)
 	return Vector2.ZERO
 
 static func get_field(world_x: float, world_z: float) -> Vector2:
