@@ -961,3 +961,84 @@ func test_get_field_at():
 	# Test invalid function type fallback
 	var res_invalid = ComplexFieldScript.get_field_at(x, y, -1, false)
 	assert_eq(res_invalid, Vector2.ZERO)
+
+
+func test_zeta_borwein():
+	var res = ComplexFieldScript.zeta_borwein(2.0, 0.0, 50)
+	assert_almost_eq(res.x, 1.644934, 0.015)
+	assert_almost_eq(res.y, 0.0, 0.015)
+
+	res = ComplexFieldScript.zeta_borwein(0.0, 0.0, 50)
+	assert_almost_eq(res.x, -0.5, 0.015)
+	assert_almost_eq(res.y, 0.0, 0.015)
+
+	res = ComplexFieldScript.zeta_borwein(-1.0, 0.0, 50)
+	assert_almost_eq(res.x, -0.08333, 0.015)
+	assert_almost_eq(res.y, 0.0, 0.015)
+
+	res = ComplexFieldScript.zeta_borwein(0.5, 14.134725, 50)
+	assert_almost_eq(res.x, 0.0, 0.015)
+	assert_almost_eq(res.y, 0.0, 0.015)
+
+func test_zeta_accelerated():
+	var res = ComplexFieldScript.zeta_accelerated(2.0, 0.0, 100)
+	assert_almost_eq(res.x, 1.644934, 0.015)
+	assert_almost_eq(res.y, 0.0, 0.015)
+
+	res = ComplexFieldScript.zeta_accelerated(0.0, 0.0, 100)
+	assert_almost_eq(res.x, -0.5, 0.015)
+	assert_almost_eq(res.y, 0.0, 0.015)
+
+	res = ComplexFieldScript.zeta_accelerated(-1.0, 0.0, 100)
+	assert_almost_eq(res.x, -0.08333, 0.015)
+	assert_almost_eq(res.y, 0.0, 0.015)
+
+	res = ComplexFieldScript.zeta_accelerated(0.5, 14.134725, 100)
+	assert_almost_eq(res.x, 0.0, 0.015)
+	assert_almost_eq(res.y, 0.0, 0.015)
+
+func test_dirichlet_eta_accelerated():
+	var res = ComplexFieldScript.dirichlet_eta_accelerated(2.0, 0.0, 100)
+	assert_almost_eq(res.x, 0.822467033, 0.015)
+	assert_almost_eq(res.y, 0.0, 0.015)
+
+	res = ComplexFieldScript.dirichlet_eta_accelerated(0.0, 0.0, 100)
+	assert_almost_eq(res.x, 0.5, 0.015)
+	assert_almost_eq(res.y, 0.0, 0.015)
+
+	res = ComplexFieldScript.dirichlet_eta_accelerated(-1.0, 0.0, 100)
+	assert_almost_eq(res.x, 0.25, 0.015)
+	assert_almost_eq(res.y, 0.0, 0.015)
+
+	res = ComplexFieldScript.dirichlet_eta_accelerated(-2.0, 0.0, 100)
+	assert_almost_eq(res.x, 0.0, 0.015)
+	assert_almost_eq(res.y, 0.0, 0.015)
+
+	res = ComplexFieldScript.dirichlet_eta_accelerated(-4.0, 0.0, 100)
+	assert_almost_eq(res.x, 0.0, 0.1)
+	assert_almost_eq(res.y, 0.0, 0.015)
+
+func test_eta_borwein():
+	var res = ComplexFieldScript.eta_borwein(2.0, 0.0, 50)
+	assert_almost_eq(res.x, 0.822467033, 0.015)
+	assert_almost_eq(res.y, 0.0, 0.015)
+
+	res = ComplexFieldScript.eta_borwein(0.0, 0.0, 50)
+	assert_almost_eq(res.x, 0.5, 0.015)
+	assert_almost_eq(res.y, 0.0, 0.015)
+
+	res = ComplexFieldScript.eta_borwein(-1.0, 0.0, 50)
+	assert_almost_eq(res.x, 0.25, 0.015)
+	assert_almost_eq(res.y, 0.0, 0.015)
+
+	res = ComplexFieldScript.eta_borwein(-2.0, 0.0, 50)
+	assert_almost_eq(res.x, 0.0, 0.015)
+	assert_almost_eq(res.y, 0.0, 0.015)
+
+	res = ComplexFieldScript.eta_borwein(-4.0, 0.0, 50)
+	assert_almost_eq(res.x, 0.0, 0.1)
+	assert_almost_eq(res.y, 0.0, 0.015)
+
+	res = ComplexFieldScript.eta_borwein(0.5, 14.134725, 50)
+	assert_almost_eq(res.x, 0.0, 0.015)
+	assert_almost_eq(res.y, 0.0, 0.015)

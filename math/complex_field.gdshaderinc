@@ -1049,6 +1049,136 @@ ComplexFieldData multivalued_acos_with_derivatives(float x, float y, int branch_
 // Dispatchers
 //-------------------------------------------------------------------------
 
+ComplexFieldData eta_borwein_with_derivatives(float x, float y, int order) {
+    ComplexFieldData res;
+    if (order <= 0) {
+        res.value = vec2(0.0);
+        res.dx = vec2(0.0);
+        res.dy = vec2(0.0);
+        return res;
+    }
+
+    float binom = 1.0;
+    float cumulative = 0.0;
+    float pow2n = pow(2.0, float(order));
+
+    vec2 sum_val = vec2(0.0);
+    vec2 sum_dx = vec2(0.0);
+    float eps = 1e-15;
+
+    for (int k = 0; k < order; k++) {
+        cumulative += binom;
+        float coeff = 1.0 - cumulative / pow2n;
+        binom *= float(order - k) / float(k + 1);
+
+        float k_plus_1 = float(k + 1);
+        float logk = log(k_plus_1);
+        float amp = exp(-x * logk);
+        float theta = -y * logk;
+
+        vec2 pow_term = amp * vec2(cos(theta), sin(theta));
+        if ((k & 1) != 0) {
+            pow_term = -pow_term;
+        }
+
+        vec2 term = coeff * pow_term;
+        vec2 term_dx = -logk * term;
+
+        sum_val += term;
+        sum_dx += term_dx;
+
+        if (length(term) < eps * length(sum_val) && k > 10) {
+            break;
+        }
+    }
+
+    res.value = sum_val;
+    res.dx = sum_dx;
+    res.dy = vec2(-sum_dx.y, sum_dx.x);
+    return res;
+}
+
+ComplexFieldData dirichlet_eta_accelerated_with_derivatives(float x, float y, int iters) {
+    ComplexFieldData res;
+    if (iters <= 0) {
+        res.value = vec2(0.0);
+        res.dx = vec2(0.0);
+        res.dy = vec2(0.0);
+        return res;
+    }
+    vec2 sum_outer = vec2(0.0);
+    vec2 sum_outer_dx = vec2(0.0);
+    float weight = 0.5;
+    float eps = 1e-15;
+    for (int n = 0; n < iters; n++) {
+        vec2 inner = vec2(0.0);
+        vec2 inner_dx = vec2(0.0);
+        float binom = 1.0;
+        for (int k = 0; k <= n; k++) {
+            float k_plus_1 = float(k + 1);
+            float logk = log(k_plus_1);
+            float amp = exp(-x * logk);
+            float theta = -y * logk;
+            vec2 term = binom * amp * vec2(cos(theta), sin(theta));
+            if ((k & 1) != 0) {
+                term = -term;
+            }
+            vec2 term_dx = -logk * term;
+            inner += term;
+            inner_dx += term_dx;
+            binom *= float(n - k) / float(k + 1);
+        }
+        if (weight * length(inner) < eps * length(sum_outer) && n > 0) {
+            break;
+        }
+        sum_outer += weight * inner;
+        sum_outer_dx += weight * inner_dx;
+        weight *= 0.5;
+    }
+    res.value = sum_outer;
+    res.dx = sum_outer_dx;
+    res.dy = vec2(-sum_outer_dx.y, sum_outer_dx.x);
+    return res;
+}
+
+ComplexFieldData zeta_borwein_with_derivatives(float x, float y, int order) {
+    ComplexFieldData eta_data = eta_borwein_with_derivatives(x, y, order);
+    vec2 eta = eta_data.value;
+    vec2 deta_dx = eta_data.dx;
+
+    float amp2 = pow(2.0, 1.0 - x);
+    float theta2 = -y * LOG_2;
+    vec2 two_term = amp2 * vec2(cos(theta2), sin(theta2));
+    vec2 denom = vec2(1.0, 0.0) - two_term;
+    vec2 ddenom_dx = LOG_2 * two_term;
+    ComplexFieldData result;
+    result.value = complex_div(eta, denom);
+    vec2 denom_sqr = complex_mul(denom, denom);
+    vec2 num_x = complex_mul(deta_dx, denom) - complex_mul(eta, ddenom_dx);
+    result.dx = complex_div(num_x, denom_sqr);
+    result.dy = vec2(-result.dx.y, result.dx.x);
+    return result;
+}
+
+ComplexFieldData zeta_accelerated_with_derivatives(float x, float y, int iters) {
+    ComplexFieldData eta_data = dirichlet_eta_accelerated_with_derivatives(x, y, iters);
+    vec2 eta = eta_data.value;
+    vec2 deta_dx = eta_data.dx;
+
+    float amp2 = pow(2.0, 1.0 - x);
+    float theta2 = -y * LOG_2;
+    vec2 two_term = amp2 * vec2(cos(theta2), sin(theta2));
+    vec2 denom = vec2(1.0, 0.0) - two_term;
+    vec2 ddenom_dx = LOG_2 * two_term;
+    ComplexFieldData result;
+    result.value = complex_div(eta, denom);
+    vec2 denom_sqr = complex_mul(denom, denom);
+    vec2 num_x = complex_mul(deta_dx, denom) - complex_mul(eta, ddenom_dx);
+    result.dx = complex_div(num_x, denom_sqr);
+    result.dy = vec2(-result.dx.y, result.dx.x);
+    return result;
+}
+
 ComplexFieldData evaluate_function_with_derivatives(float x, float y, int func_type, int iters, int b_offset, bool is_input) {
     if (func_type == 0) return zeta_with_derivatives(x, y, iters);
     if (func_type == 1) return zeta_continuation_with_derivatives(x, y, iters);
@@ -1077,6 +1207,10 @@ ComplexFieldData evaluate_function_with_derivatives(float x, float y, int func_t
     if (func_type == 18) return multivalued_asin_with_derivatives(x, y, b_offset);
     if (func_type == 19) return multivalued_acos_with_derivatives(x, y, b_offset);
     if (func_type == 20) return zeta_continuation_power_series_with_derivatives(x, y, iters);
+    if (func_type == 21) return dirichlet_eta_accelerated_with_derivatives(x, y, iters);
+    if (func_type == 22) return eta_borwein_with_derivatives(x, y, iters);
+    if (func_type == 23) return zeta_accelerated_with_derivatives(x, y, iters);
+    if (func_type == 24) return zeta_borwein_with_derivatives(x, y, iters);
     ComplexFieldData res;
     res.value = vec2(0.0);
     res.dx = vec2(0.0);

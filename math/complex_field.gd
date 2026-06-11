@@ -701,6 +701,221 @@ static func zeta_continuation_with_derivatives(x: float, y: float, iters: int) -
 	var d2x = complex_mul(val, log_z[2] + complex_mul(log_z[1], log_z[1]))
 	return [val, dx, d2x]
 
+static func eta_borwein(x: float, y: float, order: int) -> Vector2:
+	if ClassDB.class_exists("ComplexFunctions"):
+		var ext = ClassDB.instantiate("ComplexFunctions")
+		return ext.call("eta_borwein", x, y, order)
+	if order <= 0: return Vector2.ZERO
+	var binom = 1.0
+	var cumulative = 0.0
+	var pow2n = pow(2.0, float(order))
+	var sum_val = Vector2.ZERO
+	var eps = 1e-15
+	for k in range(order):
+		cumulative += binom
+		var coeff = 1.0 - cumulative / pow2n
+		binom *= float(order - k) / float(k + 1)
+
+		var k_plus_1 = float(k + 1)
+		var logk = log(k_plus_1)
+		var amp = exp(-x * logk)
+		var theta = -y * logk
+
+		var pow_term = amp * Vector2(cos(theta), sin(theta))
+		if k & 1 != 0:
+			pow_term = -pow_term
+
+		var term = coeff * pow_term
+		sum_val += term
+
+		if term.length() < eps * sum_val.length() and k > 10:
+			break
+
+	return sum_val
+
+static func dirichlet_eta_accelerated(x: float, y: float, iters: int) -> Vector2:
+	if ClassDB.class_exists("ComplexFunctions"):
+		var ext = ClassDB.instantiate("ComplexFunctions")
+		return ext.call("dirichlet_eta_accelerated", x, y, iters)
+	if iters <= 0: return Vector2.ZERO
+	var sum_outer = Vector2.ZERO
+	var weight = 0.5
+	var eps = 1e-15
+	for n in range(iters):
+		var inner = Vector2.ZERO
+		var binom = 1.0
+		for k in range(n + 1):
+			var k_plus_1 = float(k + 1)
+			var logk = log(k_plus_1)
+			var amp = exp(-x * logk)
+			var theta = -y * logk
+			var term = binom * amp * Vector2(cos(theta), sin(theta))
+			if k & 1 != 0:
+				term = -term
+			inner += term
+			binom *= float(n - k) / float(k + 1)
+
+		if weight * inner.length() < eps * sum_outer.length() and n > 0:
+			break
+		sum_outer += weight * inner
+		weight *= 0.5
+	return sum_outer
+
+static func zeta_borwein(x: float, y: float, order: int) -> Vector2:
+	if ClassDB.class_exists("ComplexFunctions"):
+		var ext = ClassDB.instantiate("ComplexFunctions")
+		return ext.call("zeta_borwein", x, y, order)
+	var eta = eta_borwein(x, y, order)
+	var amp2 = pow(2.0, 1.0 - x)
+	var theta2 = -y * LOG_2
+	var two_term = amp2 * Vector2(cos(theta2), sin(theta2))
+	var denom = Vector2(1.0, 0.0) - two_term
+	return complex_div(eta, denom)
+
+static func zeta_accelerated(x: float, y: float, iters: int) -> Vector2:
+	if ClassDB.class_exists("ComplexFunctions"):
+		var ext = ClassDB.instantiate("ComplexFunctions")
+		return ext.call("zeta_accelerated", x, y, iters)
+	var eta = dirichlet_eta_accelerated(x, y, iters)
+	var amp2 = pow(2.0, 1.0 - x)
+	var theta2 = -y * LOG_2
+	var two_term = amp2 * Vector2(cos(theta2), sin(theta2))
+	var denom = Vector2(1.0, 0.0) - two_term
+	return complex_div(eta, denom)
+
+static func eta_borwein_with_derivatives(x: float, y: float, order: int) -> Array:
+	if ClassDB.class_exists("ComplexFunctions"):
+		var ext = ClassDB.instantiate("ComplexFunctions")
+		return ext.call("eta_borwein_with_derivatives", x, y, order)
+	if order <= 0: return [Vector2.ZERO, Vector2.ZERO, Vector2.ZERO]
+	var binom = 1.0
+	var cumulative = 0.0
+	var pow2n = pow(2.0, float(order))
+	var sum_val = Vector2.ZERO
+	var sum_dx = Vector2.ZERO
+	var sum_d2x = Vector2.ZERO
+	var eps = 1e-15
+	for k in range(order):
+		cumulative += binom
+		var coeff = 1.0 - cumulative / pow2n
+		binom *= float(order - k) / float(k + 1)
+
+		var k_plus_1 = float(k + 1)
+		var logk = log(k_plus_1)
+		var amp = exp(-x * logk)
+		var theta = -y * logk
+
+		var pow_term = amp * Vector2(cos(theta), sin(theta))
+		if k & 1 != 0:
+			pow_term = -pow_term
+
+		var term = coeff * pow_term
+		var term_dx = -logk * term
+		var term_d2x = logk * logk * term
+
+		sum_val += term
+		sum_dx += term_dx
+		sum_d2x += term_d2x
+
+		if term.length() < eps * sum_val.length() and k > 10:
+			break
+
+	return [sum_val, sum_dx, sum_d2x]
+
+static func dirichlet_eta_accelerated_with_derivatives(x: float, y: float, iters: int) -> Array:
+	if ClassDB.class_exists("ComplexFunctions"):
+		var ext = ClassDB.instantiate("ComplexFunctions")
+		return ext.call("dirichlet_eta_accelerated_with_derivatives", x, y, iters)
+	if iters <= 0: return [Vector2.ZERO, Vector2.ZERO, Vector2.ZERO]
+	var sum_outer = Vector2.ZERO
+	var sum_outer_dx = Vector2.ZERO
+	var sum_outer_d2x = Vector2.ZERO
+	var weight = 0.5
+	var eps = 1e-15
+	for n in range(iters):
+		var inner = Vector2.ZERO
+		var inner_dx = Vector2.ZERO
+		var inner_d2x = Vector2.ZERO
+		var binom = 1.0
+		for k in range(n + 1):
+			var k_plus_1 = float(k + 1)
+			var logk = log(k_plus_1)
+			var amp = exp(-x * logk)
+			var theta = -y * logk
+			var term = binom * amp * Vector2(cos(theta), sin(theta))
+			if k & 1 != 0:
+				term = -term
+			var term_dx = -logk * term
+			var term_d2x = logk * logk * term
+			inner += term
+			inner_dx += term_dx
+			inner_d2x += term_d2x
+			binom *= float(n - k) / float(k + 1)
+
+		if weight * inner.length() < eps * sum_outer.length() and n > 0:
+			break
+		sum_outer += weight * inner
+		sum_outer_dx += weight * inner_dx
+		sum_outer_d2x += weight * inner_d2x
+		weight *= 0.5
+	return [sum_outer, sum_outer_dx, sum_outer_d2x]
+
+static func zeta_borwein_with_derivatives(x: float, y: float, order: int) -> Array:
+	if ClassDB.class_exists("ComplexFunctions"):
+		var ext = ClassDB.instantiate("ComplexFunctions")
+		return ext.call("zeta_borwein_with_derivatives", x, y, order)
+	var eta_data = eta_borwein_with_derivatives(x, y, order)
+	var eta = eta_data[0]
+	var deta_dx = eta_data[1]
+	var d2eta_dx2 = eta_data[2]
+
+	var amp2 = pow(2.0, 1.0 - x)
+	var theta2 = -y * LOG_2
+	var two_term = amp2 * Vector2(cos(theta2), sin(theta2))
+	var denom = Vector2(1.0, 0.0) - two_term
+	var ddenom_dx = LOG_2 * two_term
+	var d2denom_dx2 = - (LOG_2 * LOG_2) * two_term
+
+	var val = complex_div(eta, denom)
+	var denom_sqr = complex_mul(denom, denom)
+	var num_x = complex_mul(deta_dx, denom) - complex_mul(eta, ddenom_dx)
+	var dx = complex_div(num_x, denom_sqr)
+
+	var term1 = complex_mul(d2eta_dx2, denom) - complex_mul(eta, d2denom_dx2)
+	var term2 = complex_mul(Vector2(2.0, 0.0), complex_mul(ddenom_dx, num_x))
+	var term2_scaled = complex_div(term2, denom)
+	var d2x = complex_div(term1 - term2_scaled, denom_sqr)
+
+	return [val, dx, d2x]
+
+static func zeta_accelerated_with_derivatives(x: float, y: float, iters: int) -> Array:
+	if ClassDB.class_exists("ComplexFunctions"):
+		var ext = ClassDB.instantiate("ComplexFunctions")
+		return ext.call("zeta_accelerated_with_derivatives", x, y, iters)
+	var eta_data = dirichlet_eta_accelerated_with_derivatives(x, y, iters)
+	var eta = eta_data[0]
+	var deta_dx = eta_data[1]
+	var d2eta_dx2 = eta_data[2]
+
+	var amp2 = pow(2.0, 1.0 - x)
+	var theta2 = -y * LOG_2
+	var two_term = amp2 * Vector2(cos(theta2), sin(theta2))
+	var denom = Vector2(1.0, 0.0) - two_term
+	var ddenom_dx = LOG_2 * two_term
+	var d2denom_dx2 = - (LOG_2 * LOG_2) * two_term
+
+	var val = complex_div(eta, denom)
+	var denom_sqr = complex_mul(denom, denom)
+	var num_x = complex_mul(deta_dx, denom) - complex_mul(eta, ddenom_dx)
+	var dx = complex_div(num_x, denom_sqr)
+
+	var term1 = complex_mul(d2eta_dx2, denom) - complex_mul(eta, d2denom_dx2)
+	var term2 = complex_mul(Vector2(2.0, 0.0), complex_mul(ddenom_dx, num_x))
+	var term2_scaled = complex_div(term2, denom)
+	var d2x = complex_div(term1 - term2_scaled, denom_sqr)
+
+	return [val, dx, d2x]
+
 static func get_field_at(x: float, y: float, function_type: int, is_input: bool) -> Vector2:
 	match function_type:
 		Config.ComplexFunc.ZETA: return zeta(x, y)
@@ -728,6 +943,10 @@ static func get_field_at(x: float, y: float, function_type: int, is_input: bool)
 		Config.ComplexFunc.MULTIVALUED_ASIN: return multivalued_asin(x, y)
 		Config.ComplexFunc.MULTIVALUED_ACOS: return multivalued_acos(x, y)
 		Config.ComplexFunc.ZETA_POWER_SERIES: return zeta_continuation_power_series(x, y)
+		Config.ComplexFunc.ETA_ACCELERATED: return dirichlet_eta_accelerated(x, y, Config.iterations)
+		Config.ComplexFunc.ETA_BORWEIN: return eta_borwein(x, y, Config.iterations)
+		Config.ComplexFunc.ZETA_ACCELERATED: return zeta_accelerated(x, y, Config.iterations)
+		Config.ComplexFunc.ZETA_BORWEIN: return zeta_borwein(x, y, Config.iterations)
 	return Vector2.ZERO
 
 static func get_field(world_x: float, world_z: float) -> Vector2:
@@ -763,6 +982,30 @@ static func newton_step(z: Vector2, step_size_mult: float, max_step: float = 1.0
 			use_analytic = true
 		elif Config.function_type == Config.ComplexFunc.DIRICHLET_ETA:
 			var res = dirichlet_eta_with_derivatives(z.x, z.y, Config.iterations * 2)
+			f_val = res[0]
+			f_prime = res[1]
+			f_second = res[2]
+			use_analytic = true
+		elif Config.function_type == Config.ComplexFunc.ETA_ACCELERATED:
+			var res = dirichlet_eta_accelerated_with_derivatives(z.x, z.y, Config.iterations * 2)
+			f_val = res[0]
+			f_prime = res[1]
+			f_second = res[2]
+			use_analytic = true
+		elif Config.function_type == Config.ComplexFunc.ETA_BORWEIN:
+			var res = eta_borwein_with_derivatives(z.x, z.y, Config.iterations * 2)
+			f_val = res[0]
+			f_prime = res[1]
+			f_second = res[2]
+			use_analytic = true
+		elif Config.function_type == Config.ComplexFunc.ZETA_ACCELERATED:
+			var res = zeta_accelerated_with_derivatives(z.x, z.y, Config.iterations * 2)
+			f_val = res[0]
+			f_prime = res[1]
+			f_second = res[2]
+			use_analytic = true
+		elif Config.function_type == Config.ComplexFunc.ZETA_BORWEIN:
+			var res = zeta_borwein_with_derivatives(z.x, z.y, Config.iterations * 2)
 			f_val = res[0]
 			f_prime = res[1]
 			f_second = res[2]
