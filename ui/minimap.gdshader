@@ -26,6 +26,10 @@ uniform vec2 visited_zeros[10];
 uniform int visited_zeros_size;
 uniform int accented_zero_index = -1;
 
+uniform vec2 current_patch_center;
+uniform float patch_radius;
+uniform float patch_threshold;
+
 float sdLine(vec2 p, vec2 a, vec2 b) {
     vec2 pa = p - a, ba = b - a;
     float h = clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0);
@@ -71,6 +75,19 @@ void fragment() {
 
     // Dim the color when moiré is high
     base_color = mix(base_color, vec3(0.5), moire_suppression * 0.5);
+
+    if (function_type == 20) {
+        vec2 complex_pos = world_to_complex(world_pos.x, world_pos.y);
+        float dist = length(complex_pos - current_patch_center);
+        if (dist <= patch_radius * patch_threshold) {
+            base_color *= 1.5;
+        } else {
+            base_color *= 0.2;
+        }
+    }
+
+
+
 
     float blend = 0.5 - 0.5 * cos(PI * morph);
     vec2 z_id = vec2(0.1 * world_pos.x, -0.1 * world_pos.y) / zoom_factor;

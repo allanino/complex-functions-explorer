@@ -45,6 +45,9 @@ func _sync_all_uniforms():
 		mat.set_shader_parameter("zeta_patch_count", min(64, ComplexField.zeta_patches.size()))
 		mat.set_shader_parameter("zeta_patch_centers", ComplexField.get_shader_patch_centers())
 		mat.set_shader_parameter("zeta_patch_coeffs", ComplexField.get_shader_patch_coeffs())
+		mat.set_shader_parameter("current_patch_center", ComplexField.current_patch_center)
+		mat.set_shader_parameter("patch_radius", ComplexField.PATCH_RADIUS)
+		mat.set_shader_parameter("patch_threshold", ComplexField.PATCH_THRESHOLD)
 		mat.set_shader_parameter("morph", GameState.morph_value)
 		mat.set_shader_parameter("height_type", Config.height_type)
 		mat.set_shader_parameter("height_a", Config.height_a)
@@ -128,6 +131,9 @@ func _on_state_changed(key: String):
 		mat.set_shader_parameter("zeta_patch_count", min(64, ComplexField.zeta_patches.size()))
 		mat.set_shader_parameter("zeta_patch_centers", ComplexField.get_shader_patch_centers())
 		mat.set_shader_parameter("zeta_patch_coeffs", ComplexField.get_shader_patch_coeffs())
+		mat.set_shader_parameter("current_patch_center", ComplexField.current_patch_center)
+		mat.set_shader_parameter("patch_radius", ComplexField.PATCH_RADIUS)
+		mat.set_shader_parameter("patch_threshold", ComplexField.PATCH_THRESHOLD)
 
 	if key == "real_level_curves_highlighted":
 		var real_shaded = PackedFloat32Array()
@@ -174,6 +180,7 @@ func _process(_delta):
 	var mat = map_rect.material as ShaderMaterial
 	if mat:
 		mat.set_shader_parameter("player_pos_world", Vector2(player.global_position.x, player.global_position.z))
+		mat.set_shader_parameter("current_patch_center", ComplexField.current_patch_center)
 
 	# Only redraw FOV overlay if camera yaw or overlay size changed
 	var current_yaw = camera.global_rotation.y

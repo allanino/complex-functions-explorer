@@ -5,6 +5,7 @@ const PATCH_MAX_K = 20
 const PATCH_RADIUS = 0.2
 const PATCH_THRESHOLD = 1.0
 static var zeta_patches: Array = []
+static var current_patch_center: Vector2 = Vector2.ZERO
 
 #-------------------------------------------------------------------------
 # Complex Arithmetic
@@ -404,6 +405,7 @@ static func _get_or_create_patch(z: Vector2, iters: int) -> Dictionary:
 			"radius": PATCH_RADIUS
 		}
 		zeta_patches.append(p)
+		current_patch_center = start_z
 		if GameState and GameState.has_signal("state_changed"):
 			GameState.call_deferred("emit_signal", "state_changed", "zeta_patches")
 
@@ -420,6 +422,7 @@ static func _get_or_create_patch(z: Vector2, iters: int) -> Dictionary:
 
 		# If the target is within the safe valid radius of our closest patch, return it!
 		if min_dist <= PATCH_RADIUS * PATCH_THRESHOLD:
+			current_patch_center = closest_patch["center"]
 			return closest_patch
 
 		# Otherwise, step systematically from our closest patch toward the target
@@ -439,6 +442,7 @@ static func _get_or_create_patch(z: Vector2, iters: int) -> Dictionary:
 			"radius": PATCH_RADIUS
 		}
 		zeta_patches.append(new_patch)
+		current_patch_center = new_center
 
 		if GameState and GameState.has_signal("state_changed"):
 			GameState.call_deferred("emit_signal", "state_changed", "zeta_patches")
