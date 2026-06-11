@@ -11,13 +11,13 @@ func before_all():
 
 func test_player_loads_and_physics_process_runs():
 	var player = player_scene.instantiate()
-	player.run_demo = false
+	player.set("run_demo", false)
 	var main_ui = ui_scene.instantiate()
 	add_child_autoqfree(player)
 	add_child_autoqfree(main_ui)
 	
 	# Manually link main_ui to player for the test
-	player.main_ui = main_ui
+	player.set("main_ui", main_ui)
 	
 	# Trigger physics process to verify it doesn't crash
 	player._physics_process(0.016)
@@ -32,12 +32,12 @@ func test_player_loads_and_physics_process_runs():
 
 func test_player_movement_disabled_when_menu_open():
 	var player = player_scene.instantiate()
-	player.run_demo = false
+	player.set("run_demo", false)
 	var main_ui = ui_scene.instantiate()
 	add_child_autoqfree(player)
 	add_child_autoqfree(main_ui)
 	
-	player.main_ui = main_ui
+	player.set("main_ui", main_ui)
 	
 	# Open menu
 	main_ui.menu_overlay.visible = true
@@ -50,14 +50,14 @@ func test_player_movement_disabled_when_menu_open():
 	# Velocity should be reset to zero and physics process should return early
 	assert_eq(player.velocity, Vector3.ZERO)
 
-# func test_detached_slider_esc_toggle():
-# 	var player = player_scene.instantiate()
-# 	player.run_demo = false
-# 	var main_ui = ui_scene.instantiate()
-# 	add_child_autoqfree(player)
-# 	add_child_autoqfree(main_ui)
+func test_detached_slider_esc_toggle():
+	var player = player_scene.instantiate()
+	player.set("run_demo", false)
+	var main_ui = ui_scene.instantiate()
+	add_child_autoqfree(player)
+	add_child_autoqfree(main_ui)
 	
-# 	player.main_ui = main_ui
+	player.set("main_ui", main_ui)
 	
 # 	# Enter detached mode
 # 	main_ui.detach_controller.visible = true
@@ -100,7 +100,7 @@ func test_curve_labels_throttled_update():
 	Config.function_type = Config.ComplexFunc.IDENTITY
 
 	var player = player_scene.instantiate()
-	player.run_demo = false
+	player.set("run_demo", false)
 	add_child_autoqfree(player)
 		
 	# Verify labels start visible is false (until updated)
@@ -160,7 +160,7 @@ func test_player_max_world_height_limit():
 	add_child_autoqfree(player)
 	add_child_autoqfree(main_ui)
 	
-	player.main_ui = main_ui
+	player.set("main_ui", main_ui)
 
 	var original_show_curves = Config.show_curves
 	var original_show_curves_labels = Config.show_curves_labels
@@ -222,7 +222,7 @@ func test_player_zoom_scaling():
 	add_child_autoqfree(player)
 	add_child_autoqfree(main_ui)
 
-	player.main_ui = main_ui
+	player.set("main_ui", main_ui)
 
 	var original_zoom_factor = Config.zoom_factor
 	var original_zoom_damping = Config.zoom_damping
