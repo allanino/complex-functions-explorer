@@ -1,22 +1,27 @@
 #!/usr/bin/env python
-import os
-import sys
+
+from SCons.Script import *
 
 env = SConscript("godot-cpp/SConstruct")
 
-env.Append(CPPPATH=["src/"])
-sources = Glob("src/*.cpp")
+env.Append(CPPPATH=["cpp"])
+
+sources = Glob("cpp/*.cpp")
 
 if env["platform"] == "macos":
     library = env.SharedLibrary(
-        "bin/libcomplex_functions.{}.{}.framework/libcomplex_functions.{}.{}".format(
-            env["platform"], env["target"], env["platform"], env["target"]
+        "bin/libcomplex_functions{}.framework/libcomplex_functions{}".format(
+            env["suffix"],
+            env["suffix"],
         ),
         source=sources,
     )
 else:
     library = env.SharedLibrary(
-        "bin/libcomplex_functions{}{}".format(env["suffix"], env["SHLIBSUFFIX"]),
+        "bin/libcomplex_functions{}{}".format(
+            env["suffix"],
+            env["SHLIBSUFFIX"],
+        ),
         source=sources,
     )
 
