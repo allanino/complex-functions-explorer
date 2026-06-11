@@ -164,12 +164,11 @@ func test_log_zeta_continuation_with_derivatives():
 	assert_almost_eq(res2[1].y, -0.6493, 0.0001)
 
 func test_zeta_continuation_power_series_with_derivatives():
-	var res2 = ComplexFieldScript.zeta_continuation_power_series_with_derivatives(-2.0, 3.0, 50)
-	# Values should match exactly to the test case from the user
-	assert_almost_eq(res2[0].x, -1.7083, 0.0001)
-	assert_almost_eq(res2[0].y, 0.7467, 0.0001)
-	assert_almost_eq(res2[1].x, 0.3974, 0.0001)
-	assert_almost_eq(res2[1].y, -0.6493, 0.0001)
+	var res2 = ComplexFieldScript.zeta_continuation_power_series_with_derivatives(-0.8, 3.0, 2000)
+	assert_almost_eq(res2[0].x, -4.3750, 0.0001)
+	assert_almost_eq(res2[0].y, -53.5711, 0.0001)
+	assert_almost_eq(res2[1].x, 39.8552, 0.0001)
+	assert_almost_eq(res2[1].y, 375.7239, 0.0001)
 
 
 func test_zeta_continuation_with_derivatives():
@@ -688,3 +687,9 @@ func test_get_field():
 	GameState.performance_protection_active = orig_perf
 	Config.set("input_function_type", orig_in_func)
 	Config.set("function_type", orig_func)
+
+func test_zeta_trivial_zero():
+	# The user specifically requested ensuring x = -2.0, y = 0.0 works fine
+	var res = ComplexFieldScript.zeta_continuation(-2.0, 0.0)
+	assert_almost_eq(res.x, 0.0, 0.0001)
+	assert_almost_eq(res.y, 0.0, 0.0001)

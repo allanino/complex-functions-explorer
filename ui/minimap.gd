@@ -122,6 +122,11 @@ func _on_state_changed(key: String):
 		if key == "effective_zoom":
 			mat.set_shader_parameter("zoom_factor", GameState.effective_zoom)
 
+	if key == "zeta_patches":
+		mat.set_shader_parameter("zeta_patch_count", min(64, ComplexField.zeta_patches.size()))
+		mat.set_shader_parameter("zeta_patch_centers", ComplexField.get_shader_patch_centers())
+		mat.set_shader_parameter("zeta_patch_coeffs", ComplexField.get_shader_patch_coeffs())
+
 	if key == "real_level_curves_highlighted":
 		var real_shaded = PackedFloat32Array()
 		for val in GameState.real_level_curves_highlighted:

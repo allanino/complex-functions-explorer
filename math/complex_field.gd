@@ -333,11 +333,12 @@ static func compute_zeta_taylor_patch(x: float, y: float, iters: int) -> Array:
 	return zeta_coeffs
 
 static func _get_or_create_patch(z: Vector2, iters: int) -> Dictionary:
+	var target_z = Vector2(max(z.x, 0.1), z.y)
 	var closest_patch = null
 	var min_dist = 1e9
 
 	for patch in zeta_patches:
-		var dist = (z - patch["center"]).length()
+		var dist = (target_z - patch["center"]).length()
 		if dist < min_dist:
 			min_dist = dist
 			closest_patch = patch
@@ -346,8 +347,8 @@ static func _get_or_create_patch(z: Vector2, iters: int) -> Dictionary:
 		return closest_patch
 
 	if closest_patch == null:
-		var start_x = max(z.x, 0.5)
-		var start_z = Vector2(start_x, z.y)
+		var start_x = max(target_z.x, 0.5)
+		var start_z = Vector2(start_x, target_z.y)
 		var coeffs = compute_zeta_taylor_patch(start_z.x, start_z.y, iters)
 		var p = {
 			"center": start_z,
@@ -355,36 +356,20 @@ static func _get_or_create_patch(z: Vector2, iters: int) -> Dictionary:
 			"radius": PATCH_RADIUS
 		}
 		zeta_patches.append(p)
+		if ClassDB.class_exists("GameState"):
+			var state = Engine.get_main_loop().root.get_node_or_null("/root/GameState")
+			if state and state.has_signal("state_changed"):
+				state.call_deferred("emit_signal", "state_changed", "zeta_patches")
 		return _get_or_create_patch(z, iters)
 
-	var dir = (z - closest_patch["center"]).normalized()
+	var dir = (target_z - closest_patch["center"]).normalized()
 	var step_dist = min(min_dist, PATCH_RADIUS * PATCH_THRESHOLD)
 	var new_center = closest_patch["center"] + dir * step_dist
 
-	var K = PATCH_MAX_K
-	var new_coeffs = []
+	if new_center.x < 0.1:
+		new_center.x = 0.1
 
-	# The reviewer noted: "when Re(s_0) > 0, generate coefficients directly from eta / Dirichlet evaluation... when Re(s_0) <= 0, do not evaluate the Dirichlet series at the patch center."
-	if new_center.x > 0.0:
-		new_coeffs = compute_zeta_taylor_patch(new_center.x, new_center.y, iters)
-	else:
-		for k in range(K + 1):
-			new_coeffs.append(Vector2.ZERO)
-
-		var dz = new_center - closest_patch["center"]
-		var old_coeffs = closest_patch["coeffs"]
-
-		for j in range(K + 1):
-			var res = Vector2.ZERO
-			var dz_k = Vector2(1.0, 0.0)
-			for k in range(j, K + 1):
-				var comb = 1.0
-				for i in range(1, k - j + 1):
-					comb = comb * float(j + i) / float(i)
-				var term = complex_mul(old_coeffs[k], dz_k)
-				res += term * comb
-				dz_k = complex_mul(dz_k, dz)
-			new_coeffs[j] = res
+	var new_coeffs = compute_zeta_taylor_patch(new_center.x, new_center.y, iters)
 
 	var new_patch = {
 		"center": new_center,
@@ -392,6 +377,10 @@ static func _get_or_create_patch(z: Vector2, iters: int) -> Dictionary:
 		"radius": PATCH_RADIUS
 	}
 	zeta_patches.append(new_patch)
+	if ClassDB.class_exists("GameState"):
+		var state = Engine.get_main_loop().root.get_node_or_null("/root/GameState")
+		if state and state.has_signal("state_changed"):
+			state.call_deferred("emit_signal", "state_changed", "zeta_patches")
 	return _get_or_create_patch(z, iters)
 
 static func zeta_continuation_power_series(x: float, y: float) -> Vector2:
