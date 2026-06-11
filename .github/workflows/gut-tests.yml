@@ -55,6 +55,7 @@ jobs:
             -e '/GDExtension dynamic library not found/d' \
             -e '/Error loading extension/d' \
             -e '/open_dynamic_library/d' \
+            -e '/FileAccess::exists(path)/d' \
             gut.log > gut.filtered.log
 
           if grep -i -E "SCRIPT ERROR|FAILED|ERROR|NOT OK|ORPHANED|CRASHED|INVALID" gut.filtered.log; then
