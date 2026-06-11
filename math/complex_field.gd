@@ -296,35 +296,63 @@ static func evaluate_power_series(center: Vector2, coeffs: Array, z: Vector2) ->
 	return res
 
 static func compute_zeta_taylor_patch(x: float, y: float, iters: int) -> Array:
+	var K = PATCH_MAX_K
+	var max_terms = min(80, iters)
+
+	var fact = []
+	fact.append(1.0)
+	for k in range(1, K + 1):
+		fact.append(fact[k-1] * float(k))
+
 	var eta_coeffs = []
-	for k in range(PATCH_MAX_K + 1):
+	for k in range(K + 1):
 		eta_coeffs.append(Vector2.ZERO)
 
-	for n in range(1, iters + 1):
-		var nf = float(n)
-		var amp = pow(nf, -x)
-		var log_n = log(nf)
-		var theta = -y * log_n
+	for n in range(max_terms):
+		var inner_sums = []
+		for k in range(K + 1):
+			inner_sums.append(Vector2.ZERO)
 
-		var sign_f = 1.0 if n % 2 != 0 else -1.0
-		var base = sign_f * amp * Vector2(cos(theta), sin(theta))
+		var binom = 1
+		for k in range(n + 1):
+			var base_term: Vector2
+			var log_k1: float = 0.0
 
-		var term = base
-		eta_coeffs[0] += term
-		for k in range(1, PATCH_MAX_K + 1):
-			term = term * (-log_n / float(k))
-			eta_coeffs[k] += term
+			if k == 0:
+				base_term = Vector2(float(binom), 0.0)
+				log_k1 = 0.0
+			else:
+				var k1 = float(k + 1)
+				var amp = pow(k1, -x)
+				var theta = -y * log(k1)
+				var sign_k = 1.0 if k % 2 == 0 else -1.0
+				base_term = sign_k * float(binom) * amp * Vector2(cos(theta), sin(theta))
+				log_k1 = log(k1)
+
+			inner_sums[0] += base_term
+
+			var current_term = base_term
+			for m in range(1, K + 1):
+				current_term *= -log_k1
+				inner_sums[m] += current_term
+
+			binom = binom * (n - k) / (k + 1)
+
+		var div_pow2 = pow(2.0, float(n + 1))
+		for m in range(K + 1):
+			eta_coeffs[m] += (inner_sums[m] / div_pow2) / fact[m]
 
 	var d_coeffs = []
 	var base_d = 2.0 * pow(2.0, -x) * Vector2(cos(-y * LOG_2), sin(-y * LOG_2))
+	d_coeffs.append(Vector2(1.0, 0.0) - base_d)
+
 	var d_term = base_d
-	d_coeffs.append(Vector2(1.0, 0.0) - d_term)
-	for k in range(1, PATCH_MAX_K + 1):
-		d_term = d_term * (-LOG_2 / float(k))
-		d_coeffs.append(-d_term)
+	for k in range(1, K + 1):
+		d_term *= -LOG_2
+		d_coeffs.append(-d_term / fact[k])
 
 	var zeta_coeffs = []
-	for k in range(PATCH_MAX_K + 1):
+	for k in range(K + 1):
 		var sum_val = eta_coeffs[k]
 		for j in range(k):
 			sum_val -= complex_mul(zeta_coeffs[j], d_coeffs[k - j])
@@ -333,7 +361,7 @@ static func compute_zeta_taylor_patch(x: float, y: float, iters: int) -> Array:
 	return zeta_coeffs
 
 static func _get_or_create_patch(z: Vector2, iters: int) -> Dictionary:
-	var target_z = Vector2(max(z.x, 0.1), z.y)
+	var target_z = z
 	var closest_patch = null
 	var min_dist = 1e9
 
