@@ -146,6 +146,48 @@ func test_eta_borwein():
 	assert_almost_eq(res.x, 0.0, 0.015)
 	assert_almost_eq(res.y, 0.0, 0.015)
 
+func test_zeta_accelerated():
+	# zeta(2,0) ≈ 1.644934
+	var res = ComplexFieldScript.zeta_accelerated(2.0, 0.0, 100)
+	assert_almost_eq(res.x, 1.644934, 0.015)
+	assert_almost_eq(res.y, 0.0, 0.015)
+
+	# zeta(0,0) = -0.5
+	res = ComplexFieldScript.zeta_accelerated(0.0, 0.0, 100)
+	assert_almost_eq(res.x, -0.5, 0.015)
+	assert_almost_eq(res.y, 0.0, 0.015)
+
+	# zeta(-1,0) = -1/12 ≈ -0.08333
+	res = ComplexFieldScript.zeta_accelerated(-1.0, 0.0, 100)
+	assert_almost_eq(res.x, -0.08333, 0.015)
+	assert_almost_eq(res.y, 0.0, 0.015)
+
+	# zeta(0.5, 14.134725) ≈ 0
+	res = ComplexFieldScript.zeta_accelerated(0.5, 14.134725, 100)
+	assert_almost_eq(res.x, 0.0, 0.015)
+	assert_almost_eq(res.y, 0.0, 0.015)
+
+func test_zeta_borwein():
+	# zeta(2,0) ≈ 1.644934
+	var res = ComplexFieldScript.zeta_borwein(2.0, 0.0, 50)
+	assert_almost_eq(res.x, 1.644934, 0.015)
+	assert_almost_eq(res.y, 0.0, 0.015)
+
+	# zeta(0,0) = -0.5
+	res = ComplexFieldScript.zeta_borwein(0.0, 0.0, 50)
+	assert_almost_eq(res.x, -0.5, 0.015)
+	assert_almost_eq(res.y, 0.0, 0.015)
+
+	# zeta(-1,0) = -1/12 ≈ -0.08333
+	res = ComplexFieldScript.zeta_borwein(-1.0, 0.0, 50)
+	assert_almost_eq(res.x, -0.08333, 0.015)
+	assert_almost_eq(res.y, 0.0, 0.015)
+
+	# zeta(0.5, 14.134725) ≈ 0
+	res = ComplexFieldScript.zeta_borwein(0.5, 14.134725, 50)
+	assert_almost_eq(res.x, 0.0, 0.015)
+	assert_almost_eq(res.y, 0.0, 0.015)
+
 func test_dirichlet_eta_with_derivatives():
 	# s = 1
 	var res = ComplexFieldScript.dirichlet_eta_with_derivatives(1, 0, 1000)

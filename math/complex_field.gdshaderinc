@@ -508,6 +508,44 @@ ComplexFieldData dirichlet_beta_with_derivatives(float x, float y, int iters) {
     return result;
 }
 
+ComplexFieldData zeta_accelerated_with_derivatives(float x, float y, int iters) {
+	ComplexFieldData eta_data = dirichlet_eta_accelerated_with_derivatives(x, y, iters);
+	vec2 eta = eta_data.value;
+	vec2 deta_dx = eta_data.dx;
+
+	float amp2 = pow(2.0, 1.0 - x);
+	float theta2 = -y * LOG_2;
+	vec2 two_term = amp2 * vec2(cos(theta2), sin(theta2));
+	vec2 denom = vec2(1.0, 0.0) - two_term;
+	vec2 ddenom_dx = LOG_2 * two_term;
+	ComplexFieldData result;
+	result.value = complex_div(eta, denom);
+	vec2 denom_sqr = complex_mul(denom, denom);
+	vec2 num_x = complex_mul(deta_dx, denom) - complex_mul(eta, ddenom_dx);
+	result.dx = complex_div(num_x, denom_sqr);
+	result.dy = vec2(-result.dx.y, result.dx.x);
+	return result;
+}
+
+ComplexFieldData zeta_borwein_with_derivatives(float x, float y, int iters) {
+	ComplexFieldData eta_data = eta_borwein_with_derivatives(x, y, iters);
+	vec2 eta = eta_data.value;
+	vec2 deta_dx = eta_data.dx;
+
+	float amp2 = pow(2.0, 1.0 - x);
+	float theta2 = -y * LOG_2;
+	vec2 two_term = amp2 * vec2(cos(theta2), sin(theta2));
+	vec2 denom = vec2(1.0, 0.0) - two_term;
+	vec2 ddenom_dx = LOG_2 * two_term;
+	ComplexFieldData result;
+	result.value = complex_div(eta, denom);
+	vec2 denom_sqr = complex_mul(denom, denom);
+	vec2 num_x = complex_mul(deta_dx, denom) - complex_mul(eta, ddenom_dx);
+	result.dx = complex_div(num_x, denom_sqr);
+	result.dy = vec2(-result.dx.y, result.dx.x);
+	return result;
+}
+
 ComplexFieldData zeta_with_derivatives(float x, float y, int iters) {
     ComplexFieldData eta_data = dirichlet_eta_with_derivatives(x, y, iters);
     vec2 eta = eta_data.value;
@@ -1096,6 +1134,8 @@ ComplexFieldData evaluate_function_with_derivatives(float x, float y, int func_t
     if (func_type == 19) return multivalued_acos_with_derivatives(x, y, b_offset);
     if (func_type == 20) return dirichlet_eta_accelerated_with_derivatives(x, y, iters);
     if (func_type == 21) return eta_borwein_with_derivatives(x, y, iters);
+    if (func_type == 22) return zeta_accelerated_with_derivatives(x, y, iters);
+    if (func_type == 23) return zeta_borwein_with_derivatives(x, y, iters);
     ComplexFieldData res;
     res.value = vec2(0.0);
     res.dx = vec2(0.0);

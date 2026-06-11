@@ -28,6 +28,8 @@ enum ComplexFunc {
 	MULTIVALUED_ACOS,
 	ETA_ACCELERATED,
 	ETA_BORWEIN,
+	ZETA_ACCELERATED,
+	ZETA_BORWEIN,
 
 	# Not exposed in UI
 	MULTIVALUED_RSVD3,
@@ -145,6 +147,20 @@ const FUNCTIONS = {
 	ComplexFunc.ETA_BORWEIN: {
 		"name": "Borwein Eta",
 		"symbol": "η (Borwein)",
+		"is_dirichlect": true,
+		"has_von_mangoldt": true,
+		"iters_range": [10.0, 500.0, 10.0, 50.0],
+	},
+	ComplexFunc.ZETA_ACCELERATED: {
+		"name": "Accelerated Zeta",
+		"symbol": "ζ (Euler)",
+		"is_dirichlect": true,
+		"has_von_mangoldt": true,
+		"iters_range": [10.0, 1000.0, 10.0, 100.0],
+	},
+	ComplexFunc.ZETA_BORWEIN: {
+		"name": "Borwein Zeta",
+		"symbol": "ζ (Borwein)",
 		"is_dirichlect": true,
 		"has_von_mangoldt": true,
 		"iters_range": [10.0, 500.0, 10.0, 50.0],
