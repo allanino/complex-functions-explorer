@@ -335,6 +335,7 @@ vec2 complex_log_sin(float x, float y) {
 //-------------------------------------------------------------------------
 
 ComplexFieldData dirichlet_eta_with_derivatives(float x, float y, int iters) {
+    if (x < -1.0) { return ComplexFieldData(vec2(uintBitsToFloat(0x7FC00000u)), vec2(uintBitsToFloat(0x7FC00000u)), vec2(uintBitsToFloat(0x7FC00000u))); }
     vec2 eta = vec2(0.0);
     vec2 deta_dx = vec2(0.0);
     int actual_iters = 0;
@@ -386,6 +387,7 @@ ComplexFieldData dirichlet_eta_with_derivatives(float x, float y, int iters) {
 }
 
 ComplexFieldData dirichlet_beta_with_derivatives(float x, float y, int iters) {
+    if (x < -1.0) { return ComplexFieldData(vec2(uintBitsToFloat(0x7FC00000u)), vec2(uintBitsToFloat(0x7FC00000u)), vec2(uintBitsToFloat(0x7FC00000u))); }
     vec2 beta = vec2(0.0);
     vec2 dbeta_dx = vec2(0.0);
     for (int n = 0; n < iters; n += 2) {
