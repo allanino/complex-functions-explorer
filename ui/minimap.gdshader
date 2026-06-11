@@ -61,7 +61,7 @@ void fragment() {
     } else {
         f_dir = vec2(0.0);
     }
-
+    
     float phase;
     if (length(f_dir) > 1e-12) {
         phase = atan(f_dir.y, f_dir.x);
@@ -81,10 +81,11 @@ void fragment() {
     }
 
     // Moiré suppression to make it smooth
-    float f_mag = length(f);
-    float phase_change = length(vec2(fd.dx.x, fd.dx.y)) / (f_mag + 1e-12);
-    // Rough heuristic for screen-space moiré suppression depending on view_radius/resolution
-    float moire_suppression = smoothstep(0.5, 3.0, phase_change * view_radius * 0.05);
+    float phase_dx = dFdx(phase);
+    float phase_dy = dFdy(phase);
+
+    float phase_screen_change = length(vec2(phase_dx, phase_dy));
+    float moire_suppression = smoothstep(0.5, 2.0, phase_screen_change);
 
     vec3 base_color = hsv2rgb(vec3(hue, 0.85, 1.0));
     if (color_scheme == 2) {
@@ -94,7 +95,7 @@ void fragment() {
 
 
     // Dim the color when moiré is high
-    base_color = mix(base_color, vec3(0.5), moire_suppression * 0.5);
+    base_color = mix(base_color, vec3(0.5), moire_suppression * 0.8);
     bool h_clamped = false;
     float h = get_complex_height(f, field_val, h_clamped);
     h *= blend * zoom_factor;
