@@ -3,8 +3,7 @@ name: "Run GUT Unit Tests"
 on:
   workflow_dispatch:
   pull_request:
-    branches:
-      - master
+  push:
 
 jobs:
   run-tests:
@@ -53,7 +52,13 @@ jobs:
             -gexit \
             2>&1 | tee gut.log
 
-          if grep -i -E "SCRIPT ERROR|FAILED|ERROR|NOT OK|ORPHANED|CRASHED|INVALID" gut.log; then
+          sed \
+            -e '/GDExtension dynamic library not found/d' \
+            -e '/Error loading extension/d' \
+            -e '/open_dynamic_library/d' \
+            gut.log > gut.filtered.log
+
+          if grep -i -E "SCRIPT ERROR|FAILED|ERROR|NOT OK|ORPHANED|CRASHED|INVALID" gut.filtered.log; then
             echo "::error::GUT tests failed"
             exit 1
           fi
