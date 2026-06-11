@@ -320,7 +320,10 @@ static func multivalued_log(x: float, y: float, branch: int = -99999, use_negati
 
 
 static func dirichlet_eta_with_derivatives(x: float, y: float, iters: int) -> Array:
-	if x < -1.0: return [Vector2(NAN, NAN), Vector2(NAN, NAN)]
+	if ClassDB.class_exists("ComplexFunctions"):
+		var ext = ClassDB.instantiate("ComplexFunctions")
+		return ext.call("dirichlet_eta_with_derivatives", x, y, iters)
+	if x < -1.0: return [Vector2(NAN, NAN), Vector2(NAN, NAN), Vector2(NAN, NAN)]
 	var eta = Vector2.ZERO
 	var deta_dx = Vector2.ZERO
 	var d2eta_dx2 = Vector2.ZERO
@@ -364,6 +367,9 @@ static func dirichlet_eta_with_derivatives(x: float, y: float, iters: int) -> Ar
 	return [eta, deta_dx, d2eta_dx2]
 
 static func zeta_with_derivatives(x: float, y: float, iters: int) -> Array:
+	if ClassDB.class_exists("ComplexFunctions"):
+		var ext = ClassDB.instantiate("ComplexFunctions")
+		return ext.call("zeta_with_derivatives", x, y, iters)
 	var eta_data = dirichlet_eta_with_derivatives(x, y, iters)
 	var eta = eta_data[0]
 	var deta_dx = eta_data[1]
@@ -389,6 +395,9 @@ static func zeta_with_derivatives(x: float, y: float, iters: int) -> Array:
 	return [val, dx, d2x]
 
 static func lanczos_log_gamma_with_derivatives(z: Vector2) -> Array:
+	if ClassDB.class_exists("ComplexFunctions"):
+		var ext = ClassDB.instantiate("ComplexFunctions")
+		return ext.call("lanczos_log_gamma_with_derivatives", z)
 	var z_m1 = z - Vector2(1.0, 0.0)
 	var x = Vector2(LANCZOS_P[0], 0.0)
 	var dx_val = Vector2.ZERO
@@ -418,6 +427,9 @@ static func lanczos_log_gamma_with_derivatives(z: Vector2) -> Array:
 	return [val, psi, dpsi]
 
 static func complex_log_gamma_with_derivatives(x: float, y: float) -> Array:
+	if ClassDB.class_exists("ComplexFunctions"):
+		var ext = ClassDB.instantiate("ComplexFunctions")
+		return ext.call("complex_log_gamma_with_derivatives", x, y)
 	if x < 0.5:
 		var pi_z = Vector2(PI * x, PI * y)
 		var lg1z = lanczos_log_gamma_with_derivatives(Vector2(1.0 - x, -y))
@@ -439,6 +451,9 @@ static func complex_log_gamma_with_derivatives(x: float, y: float) -> Array:
 		return lanczos_log_gamma_with_derivatives(Vector2(x, y))
 
 static func log_zeta_continuation_with_derivatives(x: float, y: float, iters: int) -> Array:
+	if ClassDB.class_exists("ComplexFunctions"):
+		var ext = ClassDB.instantiate("ComplexFunctions")
+		return ext.call("log_zeta_continuation_with_derivatives", x, y, iters)
 	if x >= 0.5:
 		var zeta_data = zeta_with_derivatives(x, y, iters)
 		var z_val = zeta_data[0]
@@ -483,6 +498,9 @@ static func log_zeta_continuation_with_derivatives(x: float, y: float, iters: in
 	return [log_sum, ratio, d2_ratio]
 
 static func zeta_continuation_with_derivatives(x: float, y: float, iters: int) -> Array:
+	if ClassDB.class_exists("ComplexFunctions"):
+		var ext = ClassDB.instantiate("ComplexFunctions")
+		return ext.call("zeta_continuation_with_derivatives", x, y, iters)
 	if x >= 0.5:
 		return zeta_with_derivatives(x, y, iters)
 
