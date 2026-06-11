@@ -1058,18 +1058,23 @@ ComplexFieldData eta_borwein_with_derivatives(float x, float y, int order) {
         return res;
     }
 
-    float binom = 1.0;
-    float cumulative = 0.0;
-    float pow2n = pow(2.0, float(order));
+    float n = float(order);
+    float T[201];
+    if (order > 200) order = 200; // Limit dynamically to 200 array bounds just in case
+    T[0] = -log(n);
+    for (int l = 1; l <= order; l++) {
+        float fl = float(l);
+        T[l] = T[l-1] + log(n - fl + 1.0) + log(n + fl - 1.0) - log(2.0 * fl - 1.0) - log(2.0 * fl);
+    }
 
+    float Tn = T[order];
     vec2 sum_val = vec2(0.0);
     vec2 sum_dx = vec2(0.0);
     float eps = 1e-15;
 
     for (int k = 0; k < order; k++) {
-        cumulative += binom;
-        float coeff = 1.0 - cumulative / pow2n;
-        binom *= float(order - k) / float(k + 1);
+        float H = exp(T[k] - Tn);
+        float w_k = 1.0 - H;
 
         float k_plus_1 = float(k + 1);
         float logk = log(k_plus_1);
@@ -1081,7 +1086,7 @@ ComplexFieldData eta_borwein_with_derivatives(float x, float y, int order) {
             pow_term = -pow_term;
         }
 
-        vec2 term = coeff * pow_term;
+        vec2 term = w_k * pow_term;
         vec2 term_dx = -logk * term;
 
         sum_val += term;

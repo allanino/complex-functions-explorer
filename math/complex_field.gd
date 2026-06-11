@@ -706,15 +706,22 @@ static func eta_borwein(x: float, y: float, order: int) -> Vector2:
 		var ext = ClassDB.instantiate("ComplexFunctions")
 		return ext.call("eta_borwein", x, y, order)
 	if order <= 0: return Vector2.ZERO
-	var binom = 1.0
-	var cumulative = 0.0
-	var pow2n = pow(2.0, float(order))
+
+	var n = float(order)
+	var T = []
+	T.resize(order + 1)
+	T[0] = -log(n)
+	for l in range(1, order + 1):
+		var fl = float(l)
+		T[l] = T[l-1] + log(n - fl + 1.0) + log(n + fl - 1.0) - log(2.0 * fl - 1.0) - log(2.0 * fl)
+
+	var Tn = T[order]
 	var sum_val = Vector2.ZERO
 	var eps = 1e-15
+
 	for k in range(order):
-		cumulative += binom
-		var coeff = 1.0 - cumulative / pow2n
-		binom *= float(order - k) / float(k + 1)
+		var H = exp(T[k] - Tn)
+		var w_k = 1.0 - H
 
 		var k_plus_1 = float(k + 1)
 		var logk = log(k_plus_1)
@@ -725,7 +732,7 @@ static func eta_borwein(x: float, y: float, order: int) -> Vector2:
 		if k & 1 != 0:
 			pow_term = -pow_term
 
-		var term = coeff * pow_term
+		var term = w_k * pow_term
 		sum_val += term
 
 		if term.length() < eps * sum_val.length() and k > 10:
@@ -788,17 +795,24 @@ static func eta_borwein_with_derivatives(x: float, y: float, order: int) -> Arra
 		var ext = ClassDB.instantiate("ComplexFunctions")
 		return ext.call("eta_borwein_with_derivatives", x, y, order)
 	if order <= 0: return [Vector2.ZERO, Vector2.ZERO, Vector2.ZERO]
-	var binom = 1.0
-	var cumulative = 0.0
-	var pow2n = pow(2.0, float(order))
+
+	var n = float(order)
+	var T = []
+	T.resize(order + 1)
+	T[0] = -log(n)
+	for l in range(1, order + 1):
+		var fl = float(l)
+		T[l] = T[l-1] + log(n - fl + 1.0) + log(n + fl - 1.0) - log(2.0 * fl - 1.0) - log(2.0 * fl)
+
+	var Tn = T[order]
 	var sum_val = Vector2.ZERO
 	var sum_dx = Vector2.ZERO
 	var sum_d2x = Vector2.ZERO
 	var eps = 1e-15
+
 	for k in range(order):
-		cumulative += binom
-		var coeff = 1.0 - cumulative / pow2n
-		binom *= float(order - k) / float(k + 1)
+		var H = exp(T[k] - Tn)
+		var w_k = 1.0 - H
 
 		var k_plus_1 = float(k + 1)
 		var logk = log(k_plus_1)
@@ -809,7 +823,7 @@ static func eta_borwein_with_derivatives(x: float, y: float, order: int) -> Arra
 		if k & 1 != 0:
 			pow_term = -pow_term
 
-		var term = coeff * pow_term
+		var term = w_k * pow_term
 		var term_dx = -logk * term
 		var term_d2x = logk * logk * term
 
