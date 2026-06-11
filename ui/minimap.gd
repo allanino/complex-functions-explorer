@@ -3,8 +3,8 @@ extends AspectRatioContainer
 @onready var map_rect = %MapRect
 @onready var fov_overlay = %FOVOverlay
 
-var player: Node3D = null
-var camera: Camera3D = null
+@onready var player: Node3D = get_tree().get_first_node_in_group("player")
+@onready var camera: Camera3D = player.get_node("Camera3D") if player else null
 var view_radius: float = 80.0
 
 # Tracking state for optimization
@@ -12,11 +12,6 @@ var _last_camera_yaw: float = 999.0
 var _last_fov_size: Vector2 = Vector2.ZERO
 
 func _ready():
-	await get_tree().process_frame
-	player = get_tree().get_first_node_in_group("player")
-	if player:
-		camera = player.get_node("Camera3D")
-
 	fov_overlay.draw.connect(_on_fov_overlay_draw)
 
 	resized.connect(_on_resized)
