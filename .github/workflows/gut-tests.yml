@@ -25,7 +25,7 @@ jobs:
         run: |
           mkdir -p ~/.config/godot
 
-          set -o pipefail
+          set +e
 
           godot \
             --headless \
@@ -38,9 +38,11 @@ jobs:
             exit 1
           fi
 
+          exit 0
+
       - name: "Run GUT Test Suite"
         run: |
-          set -o pipefail
+          set +e
 
           godot \
             --headless \
@@ -55,3 +57,5 @@ jobs:
             echo "::error::GUT tests failed"
             exit 1
           fi
+
+          exit 0

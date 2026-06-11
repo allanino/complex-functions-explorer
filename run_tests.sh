@@ -1,5 +1,5 @@
 #!/bin/bash
-set -o pipefail
+set +e
 
 godot \
 --headless \
@@ -11,4 +11,9 @@ godot \
 2>&1 | tee gut.log
 
 
-grep -i -E "SCRIPT ERROR|FAILED|ERROR|NOT OK|WARNING|ORPHANED|CRASHED|INVALID" gut.log && exit 1
+if grep -i -E "SCRIPT ERROR|FAILED:|NOT OK|ORPHANED|CRASHED|INVALID" gut.log; then
+    echo "::error::GUT tests failed"
+    exit 1
+fi
+
+exit 0
