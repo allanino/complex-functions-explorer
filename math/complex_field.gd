@@ -165,14 +165,17 @@ const LANCZOS_P = [
 const SQRT_2PI = 2.5066282746310005
 
 static func lanczos_gamma(z_orig: Vector2) -> Vector2:
-	var z = z_orig - Vector2(1.0, 0.0)
-	var x = Vector2(LANCZOS_P[0], 0.0)
-	for i in range(1, 9):
-		x += complex_div(Vector2(LANCZOS_P[i], 0.0), z + Vector2(float(i), 0.0))
-	var tmp = z + Vector2(7.5, 0.0)
-	var p = complex_pow(tmp, z + Vector2(0.5, 0.0))
-	var etmp = complex_exp(-tmp.x, -tmp.y)
-	return SQRT_2PI * complex_mul(complex_mul(p, etmp), x)
+	if ClassDB.class_exists("ComplexFunctions"):
+		return ComplexFunctions.lanczos_gamma(z_orig)
+	else:
+		var z = z_orig - Vector2(1.0, 0.0)
+		var x = Vector2(LANCZOS_P[0], 0.0)
+		for i in range(1, 9):
+			x += complex_div(Vector2(LANCZOS_P[i], 0.0), z + Vector2(float(i), 0.0))
+		var tmp = z + Vector2(7.5, 0.0)
+		var p = complex_pow(tmp, z + Vector2(0.5, 0.0))
+		var etmp = complex_exp(-tmp.x, -tmp.y)
+		return SQRT_2PI * complex_mul(complex_mul(p, etmp), x)
 
 static func complex_gamma(x: float, y: float) -> Vector2:
 	if x < 0.5:
