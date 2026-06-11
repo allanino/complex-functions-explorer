@@ -7,7 +7,6 @@ const MOUSE_SENSITIVITY = 0.002
 const DOUBLE_PRESS_TIME = 0.3
 # The critical line in the complex plane is at Re(s) = 0.5
 const CRITICAL_LINE_COMPLEX_X = 0.5
-const MAX_WORLD_HEIGHT = 1000.0
 const ZEROS_DETECTION_EPS = 0.5
 const ZEROS_DETECTION_START_RECORDING = 0.5
 
@@ -448,11 +447,11 @@ func _physics_process(delta):
 	else:
 		last_valid_terrain_height = terrain_h
 
-	# Prevent player from probing heights higher/lower than MAX_WORLD_HEIGHT
+	# Prevent player from probing heights higher/lower than GameState.MAX_WORLD_HEIGHT
 	var target_y = terrain_h + scaled_camera_height + height_offset
 	var last_target_y = last_terrain_h + scaled_camera_height + height_offset
 
-	if abs(target_y) >= MAX_WORLD_HEIGHT:
+	if abs(target_y) >= GameState.MAX_WORLD_HEIGHT:
 		GameState.height_protection_active = true
 		# If moving to a height that is greater in magnitude than our current/last height, block it
 		if abs(target_y) > abs(last_target_y):
@@ -460,16 +459,16 @@ func _physics_process(delta):
 			velocity.z = 0.0
 			terrain_h = last_terrain_h
 
-		# Ensure height_offset stays bounded by MAX_WORLD_HEIGHT impeding further offset
-		var max_allowed_offset = MAX_WORLD_HEIGHT - terrain_h - scaled_camera_height
-		var min_allowed_offset = -MAX_WORLD_HEIGHT - terrain_h - scaled_camera_height
+		# Ensure height_offset stays bounded by GameState.MAX_WORLD_HEIGHT impeding further offset
+		var max_allowed_offset = GameState.MAX_WORLD_HEIGHT - terrain_h - scaled_camera_height
+		var min_allowed_offset = -GameState.MAX_WORLD_HEIGHT - terrain_h - scaled_camera_height
 
-		if target_y > MAX_WORLD_HEIGHT:
+		if target_y > GameState.MAX_WORLD_HEIGHT:
 			height_offset = min(height_offset, max_allowed_offset)
-		elif target_y < -MAX_WORLD_HEIGHT:
+		elif target_y < -GameState.MAX_WORLD_HEIGHT:
 			height_offset = max(height_offset, min_allowed_offset)
 
-		target_y = clamp(terrain_h + scaled_camera_height + height_offset, -MAX_WORLD_HEIGHT, MAX_WORLD_HEIGHT)
+		target_y = clamp(terrain_h + scaled_camera_height + height_offset, -GameState.MAX_WORLD_HEIGHT, GameState.MAX_WORLD_HEIGHT)
 	else:
 		GameState.height_protection_active = false
 
