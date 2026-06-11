@@ -27,6 +27,10 @@ enum ComplexFunc {
 	MULTIVALUED_ASIN,
 	MULTIVALUED_ACOS,
 	ZETA_POWER_SERIES,
+	ETA_ACCELERATED,
+	ETA_BORWEIN,
+	ZETA_ACCELERATED,
+	ZETA_BORWEIN,
 
 	# Not exposed in UI
 	MULTIVALUED_RSVD3,
@@ -138,18 +142,51 @@ const FUNCTIONS = {
 		"is_multivalued": true,
 		"initial_pos": Vector3(5.0, 0.0, 0.0),
 	},
+	ComplexFunc.MULTIVALUED_ACOS: {
+		"name": "Multivalued arccos",
+		"symbol": "f",
+		"is_multivalued": true,
+	},
 	ComplexFunc.ZETA_POWER_SERIES: {
 		"name": "Zeta (power series)",
 		"symbol": "ζ",
 		"is_dirichlect": true,
 		"has_von_mangoldt": true,
 		"iters_range": [100.0, 10000.0, 100.0, 100.0],
+		"hidden": true,
 	},
-	ComplexFunc.MULTIVALUED_ACOS: {
-		"name": "Multivalued arccos",
-		"symbol": "f",
-		"is_multivalued": true,
+	ComplexFunc.ETA_ACCELERATED: {
+		"name": "Eta Accelerated",
+		"symbol": "η",
+		"is_dirichlect": true,
+		"has_von_mangoldt": true,
+		"iters_range": [10.0, 200.0, 10.0, 50.0],
+		"hidden": true,
 	},
+	ComplexFunc.ETA_BORWEIN: {
+		"name": "Eta Borwein",
+		"symbol": "η",
+		"is_dirichlect": true,
+		"has_von_mangoldt": true,
+		"iters_range": [10.0, 200.0, 10.0, 50.0],
+		"hidden": true,
+	},
+	ComplexFunc.ZETA_ACCELERATED: {
+		"name": "Zeta Accelerated",
+		"symbol": "ζ",
+		"is_dirichlect": true,
+		"has_von_mangoldt": true,
+		"iters_range": [10.0, 200.0, 10.0, 50.0],
+		"hidden": true,
+	},
+	ComplexFunc.ZETA_BORWEIN: {
+		"name": "Zeta Borwein",
+		"symbol": "ζ",
+		"is_dirichlect": true,
+		"has_von_mangoldt": true,
+		"iters_range": [10.0, 200.0, 10.0, 50.0],
+		"hidden": true,
+		},
 }
 
 # Field parameters
