@@ -90,7 +90,7 @@ Vector2 ComplexFunctions::complex_exp(float x, float y) {
 
 Vector2 ComplexFunctions::complex_log(float x, float y) {
 	float mag_sq = x * x + y * y;
-	if (mag_sq < 1e-48f) return Vector2(-60.0f, 0.0f);
+	if (mag_sq < 1e-37f) return Vector2(-60.0f, 0.0f);
 	return Vector2(0.5f * std::log(mag_sq), std::atan2(y, x));
 }
 
@@ -131,9 +131,9 @@ Array ComplexFunctions::dirichlet_eta_with_derivatives(float x, float y, int ite
 		return result;
 	}
 
-	Vector2 eta(0.0f, 0.0f);
-	Vector2 deta_dx(0.0f, 0.0f);
-	Vector2 d2eta_dx2(0.0f, 0.0f);
+	float eta_x = 0.0f, eta_y = 0.0f;
+	float deta_dx_x = 0.0f, deta_dx_y = 0.0f;
+	float d2eta_dx2_x = 0.0f, d2eta_dx2_y = 0.0f;
 	int actual_iters = 0;
 
 	for (int n = 1; n <= iters; n += 2) {
@@ -141,21 +141,23 @@ Array ComplexFunctions::dirichlet_eta_with_derivatives(float x, float y, int ite
 		float amp = std::pow(nf, -x);
 		float log_n = std::log(nf);
 		float theta = -y * log_n;
-		Vector2 term = Vector2(amp * std::cos(theta), amp * std::sin(theta));
+		float term_x = amp * std::cos(theta);
+		float term_y = amp * std::sin(theta);
 
-		eta.x += term.x; eta.y += term.y;
-		deta_dx.x -= log_n * term.x; deta_dx.y -= log_n * term.y;
-		d2eta_dx2.x += (log_n * log_n) * term.x; d2eta_dx2.y += (log_n * log_n) * term.y;
+		eta_x += term_x; eta_y += term_y;
+		deta_dx_x -= log_n * term_x; deta_dx_y -= log_n * term_y;
+		d2eta_dx2_x += (log_n * log_n) * term_x; d2eta_dx2_y += (log_n * log_n) * term_y;
 
 		float nf2 = (float)(n + 1);
 		float amp2 = std::pow(nf2, -x);
 		float log_n2 = std::log(nf2);
 		float theta2 = -y * log_n2;
-		Vector2 term2 = Vector2(amp2 * std::cos(theta2), amp2 * std::sin(theta2));
+		float term2_x = amp2 * std::cos(theta2);
+		float term2_y = amp2 * std::sin(theta2);
 
-		eta.x -= term2.x; eta.y -= term2.y;
-		deta_dx.x += log_n2 * term2.x; deta_dx.y += log_n2 * term2.y;
-		d2eta_dx2.x -= (log_n2 * log_n2) * term2.x; d2eta_dx2.y -= (log_n2 * log_n2) * term2.y;
+		eta_x -= term2_x; eta_y -= term2_y;
+		deta_dx_x += log_n2 * term2_x; deta_dx_y += log_n2 * term2_y;
+		d2eta_dx2_x -= (log_n2 * log_n2) * term2_x; d2eta_dx2_y -= (log_n2 * log_n2) * term2_y;
 
 		actual_iters = n + 1;
 
@@ -169,17 +171,17 @@ Array ComplexFunctions::dirichlet_eta_with_derivatives(float x, float y, int ite
 		float rem_amp = 0.5f * std::pow(next_n, -x);
 		float rem_log_n = std::log(next_n);
 		float rem_theta = -y * rem_log_n;
-		float rem_sign = 1.0f;
-		Vector2 rem_term = Vector2(rem_sign * rem_amp * std::cos(rem_theta), rem_sign * rem_amp * std::sin(rem_theta));
+		float rem_term_x = rem_amp * std::cos(rem_theta);
+		float rem_term_y = rem_amp * std::sin(rem_theta);
 
-		eta.x += rem_term.x; eta.y += rem_term.y;
-		deta_dx.x -= rem_log_n * rem_term.x; deta_dx.y -= rem_log_n * rem_term.y;
-		d2eta_dx2.x += (rem_log_n * rem_log_n) * rem_term.x; d2eta_dx2.y += (rem_log_n * rem_log_n) * rem_term.y;
+		eta_x += rem_term_x; eta_y += rem_term_y;
+		deta_dx_x -= rem_log_n * rem_term_x; deta_dx_y -= rem_log_n * rem_term_y;
+		d2eta_dx2_x += (rem_log_n * rem_log_n) * rem_term_x; d2eta_dx2_y += (rem_log_n * rem_log_n) * rem_term_y;
 	}
 
-	result.push_back(eta);
-	result.push_back(deta_dx);
-	result.push_back(d2eta_dx2);
+	result.push_back(Vector2(eta_x, eta_y));
+	result.push_back(Vector2(deta_dx_x, deta_dx_y));
+	result.push_back(Vector2(d2eta_dx2_x, d2eta_dx2_y));
 
 	return result;
 }
@@ -187,41 +189,37 @@ Array ComplexFunctions::dirichlet_eta_with_derivatives(float x, float y, int ite
 Array ComplexFunctions::zeta_with_derivatives(float x, float y, int iters) {
 	Array eta_data = dirichlet_eta_with_derivatives(x, y, iters);
 
-	Vector2 eta = eta_data[0];
-	Vector2 deta_dx = eta_data[1];
-	Vector2 d2eta_dx2 = eta_data[2];
+	Vector2 eta_v = eta_data[0];
+	Vector2 deta_dx_v = eta_data[1];
+	Vector2 d2eta_dx2_v = eta_data[2];
+
+	std::complex<float> eta(eta_v.x, eta_v.y);
+	std::complex<float> deta_dx(deta_dx_v.x, deta_dx_v.y);
+	std::complex<float> d2eta_dx2(d2eta_dx2_v.x, d2eta_dx2_v.y);
 
 	float amp2 = std::pow(2.0f, 1.0f - x);
 	float theta2 = -y * LOG_2;
-	Vector2 two_term = Vector2(amp2 * std::cos(theta2), amp2 * std::sin(theta2));
-	Vector2 denom = Vector2(1.0f - two_term.x, -two_term.y);
-	Vector2 ddenom_dx = Vector2(LOG_2 * two_term.x, LOG_2 * two_term.y);
-	Vector2 d2denom_dx2 = Vector2(-(LOG_2 * LOG_2) * two_term.x, -(LOG_2 * LOG_2) * two_term.y);
+	std::complex<float> two_term(amp2 * std::cos(theta2), amp2 * std::sin(theta2));
+	std::complex<float> denom(1.0f - two_term.real(), -two_term.imag());
+	std::complex<float> ddenom_dx(LOG_2 * two_term.real(), LOG_2 * two_term.imag());
+	std::complex<float> d2denom_dx2(-(LOG_2 * LOG_2) * two_term.real(), -(LOG_2 * LOG_2) * two_term.imag());
 
-	Vector2 val = complex_div(eta, denom);
-	Vector2 denom_sqr = complex_mul(denom, denom);
+	std::complex<float> val = eta / denom;
+	std::complex<float> denom_sqr = denom * denom;
 
-	Vector2 num_x_p1 = complex_mul(deta_dx, denom);
-	Vector2 num_x_p2 = complex_mul(eta, ddenom_dx);
-	Vector2 num_x = Vector2(num_x_p1.x - num_x_p2.x, num_x_p1.y - num_x_p2.y);
+	std::complex<float> num_x = deta_dx * denom - eta * ddenom_dx;
+	std::complex<float> dx = num_x / denom_sqr;
 
-	Vector2 dx = complex_div(num_x, denom_sqr);
+	std::complex<float> term1 = d2eta_dx2 * denom - eta * d2denom_dx2;
+	std::complex<float> term2 = 2.0f * ddenom_dx * num_x;
+	std::complex<float> term2_scaled = term2 / denom;
 
-	Vector2 term1_p1 = complex_mul(d2eta_dx2, denom);
-	Vector2 term1_p2 = complex_mul(eta, d2denom_dx2);
-	Vector2 term1 = Vector2(term1_p1.x - term1_p2.x, term1_p1.y - term1_p2.y);
-
-	Vector2 term2_inner = complex_mul(ddenom_dx, num_x);
-	Vector2 term2 = complex_mul(Vector2(2.0f, 0.0f), term2_inner);
-	Vector2 term2_scaled = complex_div(term2, denom);
-
-	Vector2 d2x_num = Vector2(term1.x - term2_scaled.x, term1.y - term2_scaled.y);
-	Vector2 d2x = complex_div(d2x_num, denom_sqr);
+	std::complex<float> d2x = (term1 - term2_scaled) / denom_sqr;
 
 	Array result;
-	result.push_back(val);
-	result.push_back(dx);
-	result.push_back(d2x);
+	result.push_back(Vector2(val.real(), val.imag()));
+	result.push_back(Vector2(dx.real(), dx.imag()));
+	result.push_back(Vector2(d2x.real(), d2x.imag()));
 	return result;
 }
 
