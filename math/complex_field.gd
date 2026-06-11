@@ -96,6 +96,7 @@ const LOG_2 = 0.6931471805599453
 const LOG_PI = 1.1447298858494002
 
 static func dirichlet_eta(x: float, y: float, iterations: int) -> Vector2:
+	if x < -1.0: return Vector2(NAN, NAN)
 	if iterations <= 0: return Vector2.ZERO
 	var eta = Vector2.ZERO
 	var actual_iters = 0
@@ -115,7 +116,7 @@ static func dirichlet_eta(x: float, y: float, iterations: int) -> Vector2:
 
 		if (amp < 1e-4 || amp2 < 1e-4 || amp > 1e4 || amp2 > 1e4): break
 
-	if actual_iters > 0:
+	if actual_iters > 0 and x >= 0.5:
 		var next_n = float(actual_iters + 1)
 		var rem_amp = 0.5 * pow(next_n, -x)
 		var rem_theta = -y * log(next_n)
@@ -125,6 +126,7 @@ static func dirichlet_eta(x: float, y: float, iterations: int) -> Vector2:
 	return eta
 
 static func dirichlet_beta(x: float, y: float, iterations: int) -> Vector2:
+	if x < -1.0: return Vector2(NAN, NAN)
 	if iterations <= 0: return Vector2.ZERO
 	var beta = Vector2.ZERO
 	for n in range(0, iterations, 2):
@@ -313,6 +315,7 @@ static func multivalued_log(x: float, y: float, branch: int = -99999, use_negati
 
 
 static func dirichlet_eta_with_derivatives(x: float, y: float, iters: int) -> Array:
+	if x < -1.0: return [Vector2(NAN, NAN), Vector2(NAN, NAN)]
 	var eta = Vector2.ZERO
 	var deta_dx = Vector2.ZERO
 	var d2eta_dx2 = Vector2.ZERO
