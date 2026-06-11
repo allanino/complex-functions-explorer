@@ -41,11 +41,19 @@ func _apply_phase(f: Vector2) -> void:
 
 	if angle_label:
 		var angle_rad: float
-		if f.length() > 1e-12:
-			var f_dir = f.normalized()
+		var f_dir = Vector2(0.0, 0.0)
+		if f.length() > 0:
+			f_dir = f.normalized()
+
+		if f_dir.length() > 1e-12:
 			angle_rad = atan2(f_dir.y, f_dir.x)
 		else:
-			angle_rad = atan2(f.y, f.x)
+			var ry = round(f.y * 1e20) / 1e20
+			var rx = round(f.x * 1e20) / 1e20
+			if rx == 0.0 && ry == 0.0:
+				angle_rad = 0.0
+			else:
+				angle_rad = atan2(ry, rx)
 
 		var angle_deg = rad_to_deg(angle_rad)
 		if angle_deg < 0:
@@ -77,7 +85,8 @@ func _apply_phase(f: Vector2) -> void:
 		angle_label.add_theme_color_override("font_color", final_color)
 
 func _process(delta: float) -> void:
-	if target_f.length_squared() < 1e-8:
+	if target_f.length_squared() < 1e-40:
+		_apply_phase(Vector2.ZERO)
 		return
 
 	var current_angle = display_f.angle()
