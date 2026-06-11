@@ -20,20 +20,20 @@ public:
 
 	Vector2 lanczos_gamma(const Vector2 &z_orig);
 
-	Array dirichlet_eta_with_derivatives(float x, float y, int iters);
-	Array zeta_with_derivatives(float x, float y, int iters);
+	Array dirichlet_eta_with_derivatives(double x, double y, int iters);
+	Array zeta_with_derivatives(double x, double y, int iters);
 	Array lanczos_log_gamma_with_derivatives(const Vector2 &z_orig);
-	Array complex_log_gamma_with_derivatives(float x, float y);
-	Array log_zeta_continuation_with_derivatives(float x, float y, int iters);
-	Array zeta_continuation_with_derivatives(float x, float y, int iters);
+	Array complex_log_gamma_with_derivatives(double x, double y);
+	Array log_zeta_continuation_with_derivatives(double x, double y, int iters);
+	Array zeta_continuation_with_derivatives(double x, double y, int iters);
 
 	Vector2 complex_mul(const Vector2 &a, const Vector2 &b);
 	Vector2 complex_div(const Vector2 &a, const Vector2 &b);
-	Vector2 complex_exp(float x, float y);
-	Vector2 complex_log(float x, float y);
-	Vector2 complex_sin(float x, float y);
-	Vector2 complex_cot(float x, float y);
-	Vector2 complex_log_sin(float x, float y);
+	Vector2 complex_exp(double x, double y);
+	Vector2 complex_log(double x, double y);
+	Vector2 complex_sin(double x, double y);
+	Vector2 complex_cot(double x, double y);
+	Vector2 complex_log_sin(double x, double y);
 
 };
 
