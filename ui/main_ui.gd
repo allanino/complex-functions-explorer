@@ -178,8 +178,6 @@ func _ready():
 	_update_hud_layout()
 
 func _on_values_timer_timeout():
-	if player == null:
-		return
 	var z = player.global_position.z
 
 	if Config.show_hud_zeros:
