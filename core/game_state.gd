@@ -2,6 +2,8 @@ extends Node
 
 signal state_changed(key: String)
 
+const MAX_WORLD_HEIGHT = 1000.0
+
 # Session state (not saved)
 var visited_zeros: Array[Vector2] = []
 var total_zeros_found: int = 0:
@@ -37,6 +39,7 @@ var found_off_critical_line: bool = false:
 		if found_off_critical_line == v: return
 		found_off_critical_line = v
 		state_changed.emit("found_off_critical_line")
+var found_off_critical_line_val: Vector2 = Vector2.ZERO
 var effective_zoom: float = 1.0:
 	set(v):
 		if effective_zoom == v: return

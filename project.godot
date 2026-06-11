@@ -66,4 +66,4 @@ common/physics_interpolation=true
 renderer/rendering_method.mobile="forward_plus"
 reflections/sky_reflections/roughness_layers=7
 driver/depth_prepass/enable=false
-limits/global_shader_variables/buffer_size=262144
+limits/global_shader_variables/buffer_size=500000

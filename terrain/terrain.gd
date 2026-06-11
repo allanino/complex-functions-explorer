@@ -6,12 +6,16 @@ extends Node3D
 @export var chunk_size: float = 16.0
 
 var chunks = {}
+var _chunk_lods = {}
+var _dirty_neighbor_coords = {}
 var chunk_leeway = 0.01
 var LOD_SUBS = [] # This will be set in code
 var _lod_mesh_cache = {}
 var _last_player_chunk = Vector2i(9999, 9999)
+var _last_view_distance: int = -1
 var slow_frame_counter: int = 0
 var _shaders_stopped: bool = false
+var _last_lod_player_chunk = Vector2i(9999, 9999)
 
 @onready var environment_node = get_node("../Environment")
 @onready var audio = get_node_or_null("../Audio")
@@ -23,7 +27,6 @@ func _ready():
 	_update_all_terrain_material_uniforms()
 	# Uncomment this to debug the mesh wireframe
 	# get_viewport().debug_draw = Viewport.DEBUG_DRAW_WIREFRAME
-
 
 func _process(delta):
 	if not player:
@@ -53,40 +56,67 @@ func _process(delta):
 	if terrain_material:
 		terrain_material.set_shader_parameter("player_position_world", player_pos)
 
-
 	# Chunk and LOD Dynamic Update
 	if player_chunk_x != _last_player_chunk.x or player_chunk_z != _last_player_chunk.y:
 		_update_chunks(player_chunk_x, player_chunk_z)
 
 
+	var current = Vector2i(player_chunk_x, player_chunk_z)
+
+	if current != _last_lod_player_chunk:
+		_update_all_chunks_lod()
+		_last_lod_player_chunk = current
+	
+
 func _update_chunks(p_x: int, p_z: int):
+	var old_min_x = _last_player_chunk.x - _last_view_distance
+	var old_max_x = _last_player_chunk.x + _last_view_distance
+	var old_min_z = _last_player_chunk.y - _last_view_distance
+	var old_max_z = _last_player_chunk.y + _last_view_distance
+
+	var is_first_update = chunks.is_empty()
+	var view_distance_changed = _last_view_distance != -1 and _last_view_distance != Config.view_distance
+
 	_last_player_chunk = Vector2i(p_x, p_z)
+	_last_view_distance = Config.view_distance
 
 	# Load new chunks
 	for x in range(p_x - Config.view_distance, p_x + Config.view_distance + 1):
 		for z in range(p_z - Config.view_distance, p_z + Config.view_distance + 1):
+			# Optimization: skip chunks that were already within the previous view distance bounds.
+			# This drastically reduces redundant dictionary lookups when the player moves by a small amount.
+			if not is_first_update and not view_distance_changed and x >= old_min_x and x <= old_max_x and z >= old_min_z and z <= old_max_z:
+				continue
+
 			var chunk_coord = Vector2i(x, z)
 			if not chunks.has(chunk_coord):
 				_load_chunk(chunk_coord)
 
 	# Unload distant chunks
 	var chunks_to_remove = []
-	for chunk_coord in chunks.keys():
+	for chunk_coord in chunks:
 		if abs(chunk_coord.x - p_x) > Config.view_distance or abs(chunk_coord.y - p_z) > Config.view_distance:
 			chunks_to_remove.append(chunk_coord)
 
 	for chunk_coord in chunks_to_remove:
 		_unload_chunk(chunk_coord)
 
-	_update_all_chunks_lod()
+	_flush_dirty_neighbors()
 
 func _update_all_chunks_lod(force: bool = false):
 	var player_chunk_coord = _last_player_chunk
-	for coord in chunks.keys():
+	for coord in chunks:
 		var chunk = chunks[coord]
 		var desired_lod = _get_lod_level(coord, player_chunk_coord)
-		if force or chunk.get_meta("lod_level", -1) != desired_lod:
+		if force or _chunk_lods.get(coord, -1) != desired_lod:
 			_update_chunk_lod(chunk, desired_lod, coord)
+
+	_flush_dirty_neighbors()
+
+func _flush_dirty_neighbors():
+	for coord in _dirty_neighbor_coords.keys():
+		_update_neighbor_lod_uniforms(coord)
+	_dirty_neighbor_coords.clear()
 
 func _update_lod_subs():
 	match Config.terrain_detail:
@@ -234,32 +264,27 @@ func _update_terrain_material_uniforms(key: String):
 		return
 
 
-func _update_chunk_uniforms(chunk: MeshInstance3D):
-	var lod = chunk.get_meta("lod_level", 0)
+func _update_chunk_uniforms(chunk: MeshInstance3D, coord: Vector2i):
+	var lod = _chunk_lods.get(coord, 0)
 	chunk.set_instance_shader_parameter("lod_level", lod)
 
-func _update_neighbor_lods(coord: Vector2i):
-	_update_neighbor_lod_uniforms(coord)
-	_update_neighbor_lod_uniforms(Vector2i(coord.x - 1, coord.y))
-	_update_neighbor_lod_uniforms(Vector2i(coord.x + 1, coord.y))
-	_update_neighbor_lod_uniforms(Vector2i(coord.x, coord.y - 1))
-	_update_neighbor_lod_uniforms(Vector2i(coord.x, coord.y + 1))
 
 func _update_neighbor_lod_uniforms(coord: Vector2i):
 	var chunk = chunks.get(coord)
 	if not chunk: return
 
-	var lod = chunk.get_meta("lod_level", 0)
+	var lod = _chunk_lods.get(coord, 0)
+	var left_coord = Vector2i(coord.x - 1, coord.y)
+	var right_coord = Vector2i(coord.x + 1, coord.y)
+	var top_coord = Vector2i(coord.x, coord.y - 1)
+	var bottom_coord = Vector2i(coord.x, coord.y + 1)
 
-	var left_lod = chunks[Vector2i(coord.x - 1, coord.y)].get_meta("lod_level", lod) if chunks.has(Vector2i(coord.x - 1, coord.y)) else lod
-	var right_lod = chunks[Vector2i(coord.x + 1, coord.y)].get_meta("lod_level", lod) if chunks.has(Vector2i(coord.x + 1, coord.y)) else lod
-	var top_lod = chunks[Vector2i(coord.x, coord.y - 1)].get_meta("lod_level", lod) if chunks.has(Vector2i(coord.x, coord.y - 1)) else lod
-	var bottom_lod = chunks[Vector2i(coord.x, coord.y + 1)].get_meta("lod_level", lod) if chunks.has(Vector2i(coord.x, coord.y + 1)) else lod
+	var left_lod = _chunk_lods.get(left_coord, lod)
+	var right_lod = _chunk_lods.get(right_coord, lod)
+	var top_lod = _chunk_lods.get(top_coord, lod)
+	var bottom_lod = _chunk_lods.get(bottom_coord, lod)
 
-	chunk.set_instance_shader_parameter("neighbor_lod_left", left_lod)
-	chunk.set_instance_shader_parameter("neighbor_lod_right", right_lod)
-	chunk.set_instance_shader_parameter("neighbor_lod_top", top_lod)
-	chunk.set_instance_shader_parameter("neighbor_lod_bottom", bottom_lod)
+	chunk.set_instance_shader_parameter("neighbor_lods", Vector4i(left_lod, right_lod, top_lod, bottom_lod))
 
 func _load_chunk(coord: Vector2i):
 	var chunk = terrain_chunk_scene.instantiate()
@@ -287,13 +312,17 @@ func _load_chunk(coord: Vector2i):
 	)
 
 func _update_chunk_lod(chunk: MeshInstance3D, lod: int, coord: Vector2i):
+	var old_lod = _chunk_lods.get(coord, -1)
+	if old_lod == lod:
+		return
+
 	var subdivisions = LOD_SUBS[lod]
 
 	if not _lod_mesh_cache.has(subdivisions):
 		_lod_mesh_cache[subdivisions] = _create_lod_mesh(chunk_size + chunk_leeway, subdivisions)
 
 	chunk.mesh = _lod_mesh_cache[subdivisions]
-	chunk.set_meta("lod_level", lod)
+	_chunk_lods[coord] = lod
 
 	if Config.shadows_enabled:
 		if lod >= 3:
@@ -301,15 +330,23 @@ func _update_chunk_lod(chunk: MeshInstance3D, lod: int, coord: Vector2i):
 		else:
 			chunk.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
 
-	_update_chunk_uniforms(chunk)
+	_update_chunk_uniforms(chunk, coord)
 
-	_update_neighbor_lods(coord)
+	_dirty_neighbor_coords[coord] = true
+	_dirty_neighbor_coords[Vector2i(coord.x - 1, coord.y)] = true
+	_dirty_neighbor_coords[Vector2i(coord.x + 1, coord.y)] = true
+	_dirty_neighbor_coords[Vector2i(coord.x, coord.y - 1)] = true
+	_dirty_neighbor_coords[Vector2i(coord.x, coord.y + 1)] = true
 
 func _unload_chunk(coord: Vector2i):
 	var chunk = chunks[coord]
 	chunk.queue_free()
 	chunks.erase(coord)
-	_update_neighbor_lods(coord)
+	_chunk_lods.erase(coord)
+	_dirty_neighbor_coords[Vector2i(coord.x - 1, coord.y)] = true
+	_dirty_neighbor_coords[Vector2i(coord.x + 1, coord.y)] = true
+	_dirty_neighbor_coords[Vector2i(coord.x, coord.y - 1)] = true
+	_dirty_neighbor_coords[Vector2i(coord.x, coord.y + 1)] = true
 
 func _on_config_changed(key: String):
 	if key in ["iterations", "terrain_detail", "view_distance", "show_curves", "show_critical_stripe", "show_flow", "show_position_marker", "color_scheme", "function_type", "height_type", "height_a", "height_epsilon", "height_theta", "rational_num_coeffs", "rational_den_coeffs", "input_rational_num_coeffs", "input_rational_den_coeffs", "multivalued_n", "self_illumination", "terrain_brightness", "terrain_saturation", "terrain_albedo", "terrain_emission", "terrain_metallic", "terrain_roughness", "terrain_surface_texture", "morph_value", "fog_density"]:

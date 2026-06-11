@@ -2,12 +2,12 @@ extends CharacterBody3D
 
 var enable_joystick: bool = false
 @export var run_demo: bool = false
+@export var zeros_debug: bool = true
 
 const MOUSE_SENSITIVITY = 0.002
 const DOUBLE_PRESS_TIME = 0.3
 # The critical line in the complex plane is at Re(s) = 0.5
 const CRITICAL_LINE_COMPLEX_X = 0.5
-const MAX_WORLD_HEIGHT = 1000.0
 const ZEROS_DETECTION_EPS = 0.5
 const ZEROS_DETECTION_START_RECORDING = 0.5
 
@@ -23,6 +23,7 @@ func _set_auto_walk_state(value):
 	auto_walk_state = value
 	if auto_walk_state == AutoWalkState.NONE:
 		GameState.found_off_critical_line = false
+		GameState.found_off_critical_line_val = Vector2.ZERO
 		GameState.missed_zeta_zero = false
 var newton_converged: bool = false
 var re_label: Label3D
@@ -57,6 +58,9 @@ var current_z: Vector2 = Vector2(0.0, 0.0)
 var last_player_pos: Vector3 = Vector3.ZERO
 var last_terrain_h: float = 0.0
 var camera_push_offset: Vector3 = Vector3.ZERO
+
+var _predicted_pos := Vector2.INF
+var _predicted_next_f := Vector2.INF
 
 @onready var mobile_controls = get_node_or_null("/root/Main/MainUI/Control/MobileControls")
 @onready var right_joy = get_node_or_null("/root/Main/MainUI/Control/MobileControls/RightJoystick")
@@ -296,7 +300,11 @@ func _physics_process(delta):
 	# Cache current field value and mathematical coordinates for reuse
 	# Converts player's world position back to the mathematical complex plane to calculate field values
 	current_z = Config.world_to_complex(global_position.x, global_position.z)
-	current_f = ComplexField.get_field(global_position.x, global_position.z)
+	var _current_pos2d_check = Vector2(global_position.x, global_position.z)
+	if _predicted_pos != Vector2.INF and _predicted_pos.distance_to(_current_pos2d_check) < 0.001:
+		current_f = _predicted_next_f
+	else:
+		current_f = ComplexField.get_field(global_position.x, global_position.z)
 	current_mag = current_f.length()
 
 	if auto_walk_state != AutoWalkState.NONE:
@@ -438,7 +446,9 @@ func _physics_process(delta):
 		velocity.x = 0.0
 		velocity.z = 0.0
 
-	var terrain_h = get_terrain_height(predicted_pos.x, predicted_pos.z)
+	_predicted_pos = Vector2(predicted_pos.x, predicted_pos.z)
+	_predicted_next_f = ComplexField.get_field(predicted_pos.x, predicted_pos.z)
+	var terrain_h = get_terrain_height(predicted_pos.x, predicted_pos.z, _predicted_next_f)
 
 	if not is_finite(terrain_h):
 		velocity.x = 0.0
@@ -447,15 +457,28 @@ func _physics_process(delta):
 	else:
 		last_valid_terrain_height = terrain_h
 
-	# Prevent player from probing heights higher/lower than MAX_WORLD_HEIGHT
-	if abs(terrain_h) >= MAX_WORLD_HEIGHT:
+	# Prevent player from probing heights higher/lower than GameState.MAX_WORLD_HEIGHT
+	var target_y = terrain_h + scaled_camera_height + height_offset
+	var last_target_y = last_terrain_h + scaled_camera_height + height_offset
+
+	if abs(target_y) >= GameState.MAX_WORLD_HEIGHT:
 		GameState.height_protection_active = true
 		# If moving to a height that is greater in magnitude than our current/last height, block it
-		if abs(terrain_h) > abs(last_terrain_h):
+		if abs(target_y) > abs(last_target_y):
 			velocity.x = 0.0
 			velocity.z = 0.0
 			terrain_h = last_terrain_h
-		terrain_h = clamp(terrain_h, -MAX_WORLD_HEIGHT, MAX_WORLD_HEIGHT)
+
+		# Ensure height_offset stays bounded by GameState.MAX_WORLD_HEIGHT impeding further offset
+		var max_allowed_offset = GameState.MAX_WORLD_HEIGHT - terrain_h - scaled_camera_height
+		var min_allowed_offset = - GameState.MAX_WORLD_HEIGHT - terrain_h - scaled_camera_height
+
+		if target_y > GameState.MAX_WORLD_HEIGHT:
+			height_offset = min(height_offset, max_allowed_offset)
+		elif target_y < -GameState.MAX_WORLD_HEIGHT:
+			height_offset = max(height_offset, min_allowed_offset)
+
+		target_y = clamp(terrain_h + scaled_camera_height + height_offset, -GameState.MAX_WORLD_HEIGHT, GameState.MAX_WORLD_HEIGHT)
 	else:
 		GameState.height_protection_active = false
 
@@ -483,8 +506,6 @@ func _physics_process(delta):
 	
 	last_player_pos = global_position
 	last_terrain_h = terrain_h
-
-	var target_y = terrain_h + scaled_camera_height + height_offset
 
 	# Compute surface normal to offset camera horizontally and avoid entering in vertical walls
 	camera.position = Vector3(0.0, target_y, 0.0) + transform.basis.inverse() * camera_push_offset
@@ -583,96 +604,10 @@ func _physics_process(delta):
 			if mag_history[1] < ZEROS_DETECTION_EPS:
 				var z_mid = z_history[1]
 
-				# 2. Sample nearby points to estimate the minima paraboloid
-				var h = 0.01
-				var p_center = Config.complex_to_world(z_mid.x, z_mid.y)
-				var m0 = ComplexField.get_field(p_center.x, p_center.y).length_squared()
-
-				var p_x_plus = Config.complex_to_world(z_mid.x + h, z_mid.y)
-				var m_x_plus = ComplexField.get_field(p_x_plus.x, p_x_plus.y).length_squared()
-
-				var p_x_minus = Config.complex_to_world(z_mid.x - h, z_mid.y)
-				var m_x_minus = ComplexField.get_field(p_x_minus.x, p_x_minus.y).length_squared()
-
-				var p_y_plus = Config.complex_to_world(z_mid.x, z_mid.y + h)
-				var m_y_plus = ComplexField.get_field(p_y_plus.x, p_y_plus.y).length_squared()
-
-				var p_y_minus = Config.complex_to_world(z_mid.x, z_mid.y - h)
-				var m_y_minus = ComplexField.get_field(p_y_minus.x, p_y_minus.y).length_squared()
-
-				var p_xy_plus = Config.complex_to_world(z_mid.x + h, z_mid.y + h)
-				var m_xy_plus = ComplexField.get_field(p_xy_plus.x, p_xy_plus.y).length_squared()
-
-				var p_x_minus_y = Config.complex_to_world(z_mid.x + h, z_mid.y - h)
-				var m_x_minus_y = ComplexField.get_field(p_x_minus_y.x, p_x_minus_y.y).length_squared()
-
-				var p_mx_y_plus = Config.complex_to_world(z_mid.x - h, z_mid.y + h)
-				var m_mx_y_plus = ComplexField.get_field(p_mx_y_plus.x, p_mx_y_plus.y).length_squared()
-
-				var p_mx_my = Config.complex_to_world(z_mid.x - h, z_mid.y - h)
-				var m_mx_my = ComplexField.get_field(p_mx_my.x, p_mx_my.y).length_squared()
-
-				# 3. Compute gradients and Hessian matrix elements
-				var gx = (m_x_plus - m_x_minus) / (2.0 * h)
-				var gy = (m_y_plus - m_y_minus) / (2.0 * h)
-
-				var hxx = (m_x_plus - 2.0 * m0 + m_x_minus) / (h * h)
-				var hyy = (m_y_plus - 2.0 * m0 + m_y_minus) / (h * h)
-				var hxy = (m_xy_plus - m_x_minus_y - m_mx_y_plus + m_mx_my) / (4.0 * h * h)
-
-				var det = hxx * hyy - hxy * hxy
-
-				# 4. Check if it forms a paraboloid (local minimum)
-				if det > 0.0 and hxx > 0.0:
-					var dx = (hxy * gy - hyy * gx) / det
-					var dy = (hxy * gx - hxx * gy) / det
-
-					var true_z = z_mid + Vector2(dx, dy)
-
-					# Refine zero location using numerical complex Newton-Raphson steps
-					var converged = false
-					var refined_z = true_z
-					var step_mult = 0.6
-					var step_max = 0.3
-					var f_val: Vector2 = Vector2.INF
-					# print("\nStarting at: ", refined_z)
-					for step_idx in range(15):
-						var result = ComplexField.newton_step(refined_z, step_mult, step_max)
-						var next_z: Vector2 = result[0]
-						f_val = result[1]
-
-						if f_val.length() < 0.01:
-							step_mult *= 0.99
-
-						if f_val.length() < 0.001:
-							step_mult *= 0.9
-
-						refined_z = next_z
-
-						# print("Step ", step_idx, ": ", refined_z, " - f_val ", f_val, " - length ", f_val.length(), " step_mult", step_mult)
-						if f_val.length() < 1e-5:
-							converged = true
-							break
-
-					# print("Final: ", refined_z, " Converged: ", converged, " f_val: ", f_val.length())
-					true_z = refined_z
-
-					if f_val.length() < 1e-2 && Config.function.get("is_dirichlect"):
-						converged = true
-
-					if converged && true_z.distance_to(last_detected_z) > 0.001:
-						GameState.total_zeros_found += 1
-						GameState.visited_zeros.push_back(true_z)
-						if auto_walk_state == AutoWalkState.MOVING_TO_LINE or auto_walk_state == AutoWalkState.WALKING:
-							if snappedf(true_z.x, 0.001) != 0.500:
-								GameState.found_off_critical_line = true
-						if GameState.visited_zeros.size() > 100:
-							GameState.visited_zeros.pop_front()
-						GameState.state_changed.emit("visited_zeros")
-						last_detected_z = true_z
+				var state = auto_walk_state
+				WorkerThreadPool.add_task(_process_zero_detection.bind(z_mid, state))
 
 	move_and_slide()
-
 
 func demo_actions():
 	Config.function_type = Config.ComplexFunc.ZETA_REFLECTION
@@ -887,3 +822,145 @@ func start_newton_walk():
 
 		GameState.newton_path = path
 		GameState.newton_path_bbox = Vector4(min_x, max_x, min_y, max_y)
+
+func _process_zero_detection(z_mid: Vector2, current_auto_walk_state: int):
+	var use_analytic = false
+	var kappa = 0.0
+
+	if Config.input_function_type == Config.ComplexFunc.IDENTITY:
+		var res = []
+		if Config.function_type == Config.ComplexFunc.ZETA:
+			res = ComplexField.zeta_with_derivatives(z_mid.x, z_mid.y, Config.iterations * 2)
+			use_analytic = true
+		elif Config.function_type == Config.ComplexFunc.ZETA_REFLECTION:
+			res = ComplexField.zeta_continuation_with_derivatives(z_mid.x, z_mid.y, Config.iterations * 2)
+			use_analytic = true
+		elif Config.function_type == Config.ComplexFunc.DIRICHLET_ETA:
+			res = ComplexField.dirichlet_eta_with_derivatives(z_mid.x, z_mid.y, Config.iterations * 2)
+			use_analytic = true
+
+		if use_analytic:
+			var f_val = res[0]
+			var f_prime = res[1]
+			var f_second = res[2]
+			var num = ComplexField.complex_mul(f_val, f_second).length()
+			var den = max(f_prime.length_squared(), 1e-12)
+			kappa = num / den
+
+	var true_z = z_mid
+	var proceed_to_refine = false
+
+	if use_analytic:
+		if kappa < 1.0:
+			proceed_to_refine = true
+		else:
+			return
+	else:
+		# 2. Sample nearby points to estimate the minima paraboloid
+		var h = 0.01
+		var p_center = Config.complex_to_world(z_mid.x, z_mid.y)
+		var m0 = ComplexField.get_field(p_center.x, p_center.y).length_squared()
+
+		var p_x_plus = Config.complex_to_world(z_mid.x + h, z_mid.y)
+		var m_x_plus = ComplexField.get_field(p_x_plus.x, p_x_plus.y).length_squared()
+
+		var p_x_minus = Config.complex_to_world(z_mid.x - h, z_mid.y)
+		var m_x_minus = ComplexField.get_field(p_x_minus.x, p_x_minus.y).length_squared()
+
+		var p_y_plus = Config.complex_to_world(z_mid.x, z_mid.y + h)
+		var m_y_plus = ComplexField.get_field(p_y_plus.x, p_y_plus.y).length_squared()
+
+		var p_y_minus = Config.complex_to_world(z_mid.x, z_mid.y - h)
+		var m_y_minus = ComplexField.get_field(p_y_minus.x, p_y_minus.y).length_squared()
+
+		var p_xy_plus = Config.complex_to_world(z_mid.x + h, z_mid.y + h)
+		var m_xy_plus = ComplexField.get_field(p_xy_plus.x, p_xy_plus.y).length_squared()
+
+		var p_x_minus_y = Config.complex_to_world(z_mid.x + h, z_mid.y - h)
+		var m_x_minus_y = ComplexField.get_field(p_x_minus_y.x, p_x_minus_y.y).length_squared()
+
+		var p_mx_y_plus = Config.complex_to_world(z_mid.x - h, z_mid.y + h)
+		var m_mx_y_plus = ComplexField.get_field(p_mx_y_plus.x, p_mx_y_plus.y).length_squared()
+
+		var p_mx_my = Config.complex_to_world(z_mid.x - h, z_mid.y - h)
+		var m_mx_my = ComplexField.get_field(p_mx_my.x, p_mx_my.y).length_squared()
+
+		# 3. Compute gradients and Hessian matrix elements
+		var gx = (m_x_plus - m_x_minus) / (2.0 * h)
+		var gy = (m_y_plus - m_y_minus) / (2.0 * h)
+
+		var hxx = (m_x_plus - 2.0 * m0 + m_x_minus) / (h * h)
+		var hyy = (m_y_plus - 2.0 * m0 + m_y_minus) / (h * h)
+		var hxy = (m_xy_plus - m_x_minus_y - m_mx_y_plus + m_mx_my) / (4.0 * h * h)
+
+		var det = hxx * hyy - hxy * hxy
+
+		# 4. Check if it forms a paraboloid (local minimum)
+		if det > 0.0 and hxx > 0.0:
+			var dx = (hxy * gy - hyy * gx) / det
+			var dy = (hxy * gx - hxx * gy) / det
+			true_z = z_mid + Vector2(dx, dy)
+			proceed_to_refine = true
+
+	if proceed_to_refine:
+		# Refine zero location using numerical complex Newton-Raphson steps
+		var converged = false
+		var refined_z = true_z
+		var step_mult = 0.6
+		var step_max = 0.3
+		var f_val: Vector2 = Vector2.INF
+		if zeros_debug:
+			print("\nStarting  | z (%9.5f, %9.5f) | f (%9.5f, %9.5f) | len %10.6f | mult %6.2f | kappa %.3f" % [refined_z.x, refined_z.y, f_val.x, f_val.y, f_val.length(), step_mult, kappa])
+		for step_idx in range(15):
+			var result = ComplexField.newton_step(refined_z, step_mult, step_max)
+			var next_z: Vector2 = result[0]
+			f_val = result[1]
+
+			if f_val.length() < 0.01:
+				step_mult *= 0.99
+
+			if f_val.length() < 0.001:
+				step_mult *= 0.9
+
+			refined_z = next_z
+
+			if zeros_debug:
+				print(
+					"Step %4d | z (%9.5f, %9.5f) | f (%9.5f, %9.5f) | len %10.6f | mult %6.2f"
+					% [
+						step_idx,
+						refined_z.x, refined_z.y,
+						f_val.x, f_val.y,
+						f_val.length(),
+						step_mult
+					]
+				)
+
+			if f_val.length() < 1e-5:
+				converged = true
+				break
+
+		true_z = refined_z
+
+		if f_val.length() < 1e-2 && Config.function.get("is_dirichlect"):
+			converged = true
+
+		if zeros_debug:
+			print("End       | z (%9.5f, %9.5f) | f (%9.5f, %9.5f) | len %10.6f | mult %6.2f | converged %s" % [refined_z.x, refined_z.y, f_val.x, f_val.y, f_val.length(), step_mult, converged])
+
+		if converged:
+			call_deferred("_on_zero_detected", true_z, current_auto_walk_state)
+
+func _on_zero_detected(true_z: Vector2, current_auto_walk_state: int):
+	if true_z.distance_to(last_detected_z) > 0.001:
+		GameState.total_zeros_found += 1
+		GameState.visited_zeros.push_back(true_z)
+		if current_auto_walk_state == AutoWalkState.MOVING_TO_LINE or current_auto_walk_state == AutoWalkState.WALKING:
+			if snappedf(true_z.x, 0.001) != 0.500:
+				if not GameState.found_off_critical_line:
+					GameState.found_off_critical_line_val = true_z
+				GameState.found_off_critical_line = true
+		if GameState.visited_zeros.size() > 100:
+			GameState.visited_zeros.pop_front()
+		GameState.state_changed.emit("visited_zeros")
+		last_detected_z = true_z

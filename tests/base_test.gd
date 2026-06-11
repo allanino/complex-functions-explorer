@@ -21,6 +21,9 @@ func before_all():
 
 	# Load clean/empty test settings so the singleton starts fresh
 	Config.load_settings()
+	Config.iterations = 500
+	Config.function_type = Config.ComplexFunc.ZETA_REFLECTION
+	Config.input_function_type = Config.ComplexFunc.IDENTITY
 	# Restore PRESETS to built-ins only (in case previous session saved custom presets)
 	Config.PRESETS = Config.PRESET_DEFAULTS.PRESETS.duplicate(true)
 	# Apply Default preset to ensure reproducibility across local environments
