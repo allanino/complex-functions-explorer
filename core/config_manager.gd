@@ -26,6 +26,7 @@ enum ComplexFunc {
 	MULTIVALUED_LOG,
 	MULTIVALUED_ASIN,
 	MULTIVALUED_ACOS,
+	ETA_ACCELERATED,
 
 	# Not exposed in UI
 	MULTIVALUED_RSVD3,
@@ -132,6 +133,13 @@ const FUNCTIONS = {
 		"name": "Multivalued arccos",
 		"symbol": "f",
 		"is_multivalued": true,
+	},
+	ComplexFunc.ETA_ACCELERATED: {
+		"name": "Accelerated Eta",
+		"symbol": "η (Euler)",
+		"is_dirichlect": true,
+		"has_von_mangoldt": true,
+		"iters_range": [10.0, 1000.0, 10.0, 100.0],
 	},
 }
 

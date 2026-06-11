@@ -334,6 +334,49 @@ vec2 complex_log_sin(float x, float y) {
 // Component Functions: Zeta, Gamma, Dedekind Eta
 //-------------------------------------------------------------------------
 
+ComplexFieldData dirichlet_eta_accelerated_with_derivatives(float x, float y, int iters) {
+    ComplexFieldData res;
+    if (iters <= 0) {
+        res.value = vec2(0.0);
+        res.dx = vec2(0.0);
+        res.dy = vec2(0.0);
+        return res;
+    }
+    vec2 sum_outer = vec2(0.0);
+    vec2 sum_outer_dx = vec2(0.0);
+    float weight = 0.5;
+    float eps = 1e-15;
+    for (int n = 0; n < iters; n++) {
+        vec2 inner = vec2(0.0);
+        vec2 inner_dx = vec2(0.0);
+        float binom = 1.0;
+        for (int k = 0; k <= n; k++) {
+            float k_plus_1 = float(k + 1);
+            float logk = log(k_plus_1);
+            float amp = exp(-x * logk);
+            float theta = -y * logk;
+            vec2 term = binom * amp * vec2(cos(theta), sin(theta));
+            if ((k & 1) != 0) {
+                term = -term;
+            }
+            vec2 term_dx = -logk * term;
+            inner += term;
+            inner_dx += term_dx;
+            binom *= float(n - k) / float(k + 1);
+        }
+        if (weight * length(inner) < eps * length(sum_outer) && n > 0) {
+            break;
+        }
+        sum_outer += weight * inner;
+        sum_outer_dx += weight * inner_dx;
+        weight *= 0.5;
+    }
+    res.value = sum_outer;
+    res.dx = sum_outer_dx;
+    res.dy = vec2(-sum_outer_dx.y, sum_outer_dx.x);
+    return res;
+}
+
 ComplexFieldData dirichlet_eta_with_derivatives(float x, float y, int iters) {
     vec2 eta = vec2(0.0);
     vec2 deta_dx = vec2(0.0);
@@ -1000,6 +1043,7 @@ ComplexFieldData evaluate_function_with_derivatives(float x, float y, int func_t
     if (func_type == 17) return multivalued_log_with_derivatives(x, y, b_offset, true);
     if (func_type == 18) return multivalued_asin_with_derivatives(x, y, b_offset);
     if (func_type == 19) return multivalued_acos_with_derivatives(x, y, b_offset);
+    if (func_type == 20) return dirichlet_eta_accelerated_with_derivatives(x, y, iters);
     ComplexFieldData res;
     res.value = vec2(0.0);
     res.dx = vec2(0.0);

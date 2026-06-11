@@ -88,6 +88,32 @@ func test_dirichlet_eta():
 	assert_almost_eq(res.x, log(2.0), 0.01)
 	assert_almost_eq(res.y, 0.0, 0.0001)
 
+func test_dirichlet_eta_accelerated():
+	# eta(2,0) ≈ 0.822467033
+	var res = ComplexFieldScript.dirichlet_eta_accelerated(2.0, 0.0, 100)
+	assert_almost_eq(res.x, 0.822467033, 0.015)
+	assert_almost_eq(res.y, 0.0, 0.015)
+
+	# eta(0,0) ≈ 0.5
+	res = ComplexFieldScript.dirichlet_eta_accelerated(0.0, 0.0, 100)
+	assert_almost_eq(res.x, 0.5, 0.015)
+	assert_almost_eq(res.y, 0.0, 0.015)
+
+	# eta(-1,0) ≈ 0.25
+	res = ComplexFieldScript.dirichlet_eta_accelerated(-1.0, 0.0, 100)
+	assert_almost_eq(res.x, 0.25, 0.015)
+	assert_almost_eq(res.y, 0.0, 0.015)
+
+	# eta(-2,0) ≈ 0
+	res = ComplexFieldScript.dirichlet_eta_accelerated(-2.0, 0.0, 100)
+	assert_almost_eq(res.x, 0.0, 0.015)
+	assert_almost_eq(res.y, 0.0, 0.015)
+
+	# eta(-4,0) ≈ 0
+	res = ComplexFieldScript.dirichlet_eta_accelerated(-4.0, 0.0, 100)
+	assert_almost_eq(res.x, 0.0, 0.015)
+	assert_almost_eq(res.y, 0.0, 0.015)
+
 func test_dirichlet_eta_with_derivatives():
 	# s = 1
 	var res = ComplexFieldScript.dirichlet_eta_with_derivatives(1, 0, 1000)

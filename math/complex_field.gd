@@ -95,6 +95,33 @@ static func complex_log_sin(x: float, y: float) -> Vector2:
 const LOG_2 = 0.6931471805599453
 const LOG_PI = 1.1447298858494002
 
+static func dirichlet_eta_accelerated(x: float, y: float, iterations: int) -> Vector2:
+	if iterations <= 0: return Vector2.ZERO
+	var sum_outer = Vector2.ZERO
+	var weight = 0.5
+	var eps = 1e-15
+	for n in range(iterations):
+		var inner = Vector2.ZERO
+		var binom = 1.0
+		for k in range(n + 1):
+			var k_plus_1 = float(k + 1)
+			var logk = log(k_plus_1)
+			var amp = exp(-x * logk)
+			var theta = -y * logk
+			var term = binom * amp * Vector2(cos(theta), sin(theta))
+			if (k & 1) != 0:
+				term = -term
+			inner += term
+			binom *= float(n - k) / float(k + 1)
+
+		if weight * inner.length() < eps * sum_outer.length() and n > 0:
+			break
+
+		sum_outer += weight * inner
+		weight *= 0.5
+
+	return sum_outer
+
 static func dirichlet_eta(x: float, y: float, iterations: int) -> Vector2:
 	if iterations <= 0: return Vector2.ZERO
 	var eta = Vector2.ZERO
@@ -312,6 +339,41 @@ static func multivalued_log(x: float, y: float, branch: int = -99999, use_negati
 #-------------------------------------------------------------------------
 
 
+static func dirichlet_eta_accelerated_with_derivatives(x: float, y: float, iters: int) -> Array:
+	if iters <= 0: return [Vector2.ZERO, Vector2.ZERO, Vector2.ZERO]
+	var sum_outer = Vector2.ZERO
+	var sum_outer_dx = Vector2.ZERO
+	var weight = 0.5
+	var eps = 1e-15
+	for n in range(iters):
+		var inner = Vector2.ZERO
+		var inner_dx = Vector2.ZERO
+		var binom = 1.0
+		for k in range(n + 1):
+			var k_plus_1 = float(k + 1)
+			var logk = log(k_plus_1)
+			var amp = exp(-x * logk)
+			var theta = -y * logk
+			var term = binom * amp * Vector2(cos(theta), sin(theta))
+			if (k & 1) != 0:
+				term = -term
+
+			var term_dx = -logk * term
+
+			inner += term
+			inner_dx += term_dx
+
+			binom *= float(n - k) / float(k + 1)
+
+		if weight * inner.length() < eps * sum_outer.length() and n > 0:
+			break
+
+		sum_outer += weight * inner
+		sum_outer_dx += weight * inner_dx
+		weight *= 0.5
+
+	return [sum_outer, sum_outer_dx, Vector2.ZERO]
+
 static func dirichlet_eta_with_derivatives(x: float, y: float, iters: int) -> Array:
 	var eta = Vector2.ZERO
 	var deta_dx = Vector2.ZERO
@@ -445,6 +507,7 @@ static func get_field_at(x: float, y: float, function_type: int, is_input: bool)
 		Config.ComplexFunc.ZETA: return zeta(x, y)
 		Config.ComplexFunc.ZETA_REFLECTION: return zeta_continuation(x, y)
 		Config.ComplexFunc.DIRICHLET_ETA: return dirichlet_eta(x, y, Config.iterations)
+		Config.ComplexFunc.ETA_ACCELERATED: return dirichlet_eta_accelerated(x, y, Config.iterations)
 		Config.ComplexFunc.DIRICHLET_BETA: return dirichlet_beta(x, y, Config.iterations)
 		Config.ComplexFunc.GAMMA: return complex_gamma(x, y)
 		Config.ComplexFunc.LOG_GAMMA: return complex_log_gamma(x, y)
@@ -498,6 +561,11 @@ static func newton_step(z: Vector2, step_size_mult: float, max_step: float = 1.0
 			use_analytic = true
 		elif Config.function_type == Config.ComplexFunc.DIRICHLET_ETA:
 			var res = dirichlet_eta_with_derivatives(z.x, z.y, Config.iterations)
+			f_val = res[0]
+			f_prime = res[1]
+			use_analytic = true
+		elif Config.function_type == Config.ComplexFunc.ETA_ACCELERATED:
+			var res = dirichlet_eta_accelerated_with_derivatives(z.x, z.y, Config.iterations)
 			f_val = res[0]
 			f_prime = res[1]
 			use_analytic = true
