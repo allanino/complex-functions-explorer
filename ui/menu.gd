@@ -587,6 +587,15 @@ func _on_func_selected(f_type: int):
 	branch_k_slider.visible = is_multivalued
 	_update_branch_k_slider_range()
 
+	var re = float(re_input.text) if re_input.text.is_valid_float() else 0.5
+	var im = float(im_input.text) if im_input.text.is_valid_float() else 0.0
+	if not is_finite(re): re = 0.5
+	if not is_finite(im): im = 0.0
+	
+	if player:
+		var target_pos = Config.complex_to_world(re, im)
+		player.teleport_to_world_pos(Vector3(target_pos.x, 0, target_pos.y))
+
 func _update_branch_k_slider_range():
 	if Config.function_type == Config.ComplexFunc.MULTIVALUED_Z_POW:
 		branch_k_slider.min_value = 0
@@ -678,13 +687,9 @@ func _on_set_pos_pressed(_toggle_menu: bool = true):
 	GameState.total_zeros_found = 0
 
 	if player:
-		var target_world = Config.complex_to_world(re, im)
-		if not is_finite(player.global_position.x) or not is_finite(player.global_position.y) or not is_finite(player.global_position.z):
-			player.velocity = Vector3.ZERO
-			player.global_position = Vector3(target_world.x, 0.0, target_world.y)
-		else:
-			player.global_position.x = target_world.x
-			player.global_position.z = target_world.y
+		if is_finite(re) and is_finite(im) and player:
+			var target_pos = Config.complex_to_world(re, im)
+			player.teleport_to_world_pos(Vector3(target_pos.x, player.global_position.y, target_pos.y))
 
 		var f_data = Config.function
 		if f_data.get("is_dirichlect", false):
