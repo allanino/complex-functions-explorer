@@ -144,6 +144,7 @@ const FUNCTIONS = {
 		"is_dirichlect": true,
 		"has_von_mangoldt": true,
 		"iters_range": [100.0, 10000.0, 100.0, 100.0],
+		"hidden": true,
 	},
 	ComplexFunc.ETA_ACCELERATED: {
 		"name": "Eta Accelerated",
