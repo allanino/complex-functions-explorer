@@ -8,6 +8,10 @@ var target_f := Vector2.RIGHT
 var display_f := Vector2.RIGHT
 
 const ROT_SPEED := 360.0
+const CRAZY_THRESHOLD := 1e-20
+const CRAZY_SPIN := 5.0 # rotations/sec at exact zero
+
+var crazy_angle := 0.0
 
 func _ready():
 	Config.config_changed.connect(_on_config_changed)
@@ -41,6 +45,8 @@ func _apply_phase(f: Vector2) -> void:
 
 	if angle_label:
 		var angle_rad: float
+
+		# This crazy computation is just to match shader's precision limits
 		var f_dir = Vector2(0.0, 0.0)
 		if f.length() > 0:
 			f_dir = f.normalized()
@@ -85,24 +91,34 @@ func _apply_phase(f: Vector2) -> void:
 		angle_label.add_theme_color_override("font_color", final_color)
 
 func _process(delta: float) -> void:
-	if target_f.length_squared() < 1e-40:
-		_apply_phase(Vector2.ZERO)
+	var mag = target_f.length()
+
+	# Enter chaos mode near zero
+	if mag < CRAZY_THRESHOLD:
+		var strength = 1.0 - clamp(mag / CRAZY_THRESHOLD, 0.0, 1.0)
+
+		# quadratic ramp → gets insane close to zero
+		var spin_speed = TAU * CRAZY_SPIN * strength * strength
+
+		crazy_angle += spin_speed * delta
+
+		display_f = Vector2.from_angle(crazy_angle)
+
+		_apply_phase(display_f)
 		return
+
+	# reset chaos so normal tracking resumes cleanly
+	crazy_angle = target_f.angle()
 
 	var current_angle = display_f.angle()
 	var target_angle = target_f.angle()
 
-	# shortest rotation
 	var diff = wrapf(target_angle - current_angle, -PI, PI)
 
-	# exponential smoothing
 	var t = 1.0 - exp(-ROT_SPEED * delta)
 
 	var new_angle = current_angle + diff * t
 
-	# preserve current displayed magnitude smoothly
-	var mag = lerpf(display_f.length(), target_f.length(), t)
-
-	display_f = Vector2.from_angle(new_angle) * mag
+	display_f = Vector2.from_angle(new_angle)
 
 	_apply_phase(display_f)
