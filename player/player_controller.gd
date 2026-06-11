@@ -301,8 +301,8 @@ func _physics_process(delta):
 	# Cache current field value and mathematical coordinates for reuse
 	# Converts player's world position back to the mathematical complex plane to calculate field values
 	current_z = Config.world_to_complex(global_position.x, global_position.z)
-	var current_pos2d = Vector2(global_position.x, global_position.z)
-	if _predicted_pos != Vector2.INF and _predicted_pos.distance_to(current_pos2d) < 0.001:
+	var _current_pos2d_check = Vector2(global_position.x, global_position.z)
+	if _predicted_pos != Vector2.INF and _predicted_pos.distance_to(_current_pos2d_check) < 0.001:
 		current_f = _predicted_next_f
 	else:
 		current_f = ComplexField.get_field(global_position.x, global_position.z)
