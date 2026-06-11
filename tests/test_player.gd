@@ -17,7 +17,8 @@ func test_player_loads_and_physics_process_runs():
 	add_child_autoqfree(main_ui)
 	
 	# Manually link main_ui to player for the test
-	player.main_ui = main_ui
+	player.set("main_ui", main_ui)
+	main_ui.player = player
 	
 	# Trigger physics process to verify it doesn't crash
 	player._physics_process(0.016)
@@ -37,7 +38,8 @@ func test_player_movement_disabled_when_menu_open():
 	add_child_autoqfree(player)
 	add_child_autoqfree(main_ui)
 	
-	player.main_ui = main_ui
+	player.set("main_ui", main_ui)
+	main_ui.player = player
 	
 	# Open menu
 	main_ui.menu_overlay.visible = true
@@ -57,38 +59,39 @@ func test_detached_slider_esc_toggle():
 	add_child_autoqfree(player)
 	add_child_autoqfree(main_ui)
 	
-	player.main_ui = main_ui
+	player.set("main_ui", main_ui)
+	main_ui.player = player
 	
-# 	# Enter detached mode
-# 	main_ui.detach_controller.visible = true
-# 	main_ui.detach_controller.interaction_active = true
-# 	player.is_detached_interactive = true
+	# Enter detached mode
+	main_ui.detach_controller.visible = true
+	main_ui.detach_controller.interaction_active = true
+	player.is_detached_interactive = true
 	
-# 	# 1. While in Interaction mode, movement should be disabled
-# 	player.velocity = Vector3(10, 0, 10)
-# 	player._physics_process(0.016)
-# 	assert_eq(player.velocity, Vector3.ZERO)
+	# 1. While in Interaction mode, movement should be disabled
+	player.velocity = Vector3(10, 0, 10)
+	player._physics_process(0.016)
+	assert_eq(player.velocity, Vector3.ZERO)
 	
-# 	# 2. Toggle to Movement mode via ESC simulation
-# 	main_ui.toggle_menu()
-# 	player.is_detached_interactive = not player.is_detached_interactive
+	# 2. Toggle to Movement mode via ESC simulation
+	main_ui.toggle_menu()
+	player.is_detached_interactive = not player.is_detached_interactive
 	
-# 	assert_false(main_ui.detach_controller.interaction_active)
+	assert_false(main_ui.detach_controller.interaction_active)
 	
-# 	# 3. While in Movement mode, movement should be enabled (physics process executes and updates current_f)
-# 	player.current_f = Vector2.ZERO
-# 	player._physics_process(0.016)
-# 	assert_ne(player.current_f, Vector2.ZERO)
+	# 3. While in Movement mode, movement should be enabled (physics process executes and updates current_f)
+	player.current_f = Vector2.ZERO
+	player._physics_process(0.016)
+	assert_ne(player.current_f, Vector2.ZERO)
 	
-# 	# 4. Toggle back to Interaction mode
-# 	main_ui.toggle_menu()
-# 	player.is_detached_interactive = not player.is_detached_interactive
-# 	assert_true(main_ui.detach_controller.interaction_active)
+	# 4. Toggle back to Interaction mode
+	main_ui.toggle_menu()
+	player.is_detached_interactive = not player.is_detached_interactive
+	assert_true(main_ui.detach_controller.interaction_active)
 	
-# 	# 5. Verify movement is disabled again
-# 	player.velocity = Vector3(10, 0, 10)
-# 	player._physics_process(0.016)
-# 	assert_eq(player.velocity, Vector3.ZERO)
+	# 5. Verify movement is disabled again
+	player.velocity = Vector3(10, 0, 10)
+	player._physics_process(0.016)
+	assert_eq(player.velocity, Vector3.ZERO)
 
 func test_curve_labels_throttled_update():
 	# 1. Enable curve and label settings
@@ -160,7 +163,8 @@ func test_player_max_world_height_limit():
 	add_child_autoqfree(player)
 	add_child_autoqfree(main_ui)
 	
-	player.main_ui = main_ui
+	player.set("main_ui", main_ui)
+	main_ui.player = player
 
 	var original_show_curves = Config.show_curves
 	var original_show_curves_labels = Config.show_curves_labels
@@ -222,7 +226,8 @@ func test_player_zoom_scaling():
 	add_child_autoqfree(player)
 	add_child_autoqfree(main_ui)
 
-	player.main_ui = main_ui
+	player.set("main_ui", main_ui)
+	main_ui.player = player
 
 	var original_zoom_factor = Config.zoom_factor
 	var original_zoom_damping = Config.zoom_damping

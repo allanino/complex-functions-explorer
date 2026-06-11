@@ -30,6 +30,7 @@ enum ComplexFunc {
 	ETA_BORWEIN,
 	ZETA_ACCELERATED,
 	ZETA_BORWEIN,
+	ZETA_POWER_SERIES,
 
 	# Not exposed in UI
 	MULTIVALUED_RSVD3,
@@ -131,6 +132,13 @@ const FUNCTIONS = {
 		"name": "Multivalued arcsin",
 		"symbol": "f",
 		"is_multivalued": true,
+	},
+	ComplexFunc.ZETA_POWER_SERIES: {
+		"name": "Zeta (power series)",
+		"symbol": "ζ",
+		"is_dirichlect": true,
+		"has_von_mangoldt": true,
+		"iters_range": [100.0, 10000.0, 100.0, 100.0],
 	},
 	ComplexFunc.MULTIVALUED_ACOS: {
 		"name": "Multivalued arccos",

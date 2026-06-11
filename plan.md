@@ -1,0 +1,5 @@
+1. **Reproduce the issue**: Create a test for `x = -2.0, y = 0` and confirm it fails.
+2. **Analyze mathematical limitation**: The current Taylor expansion uses standard Dirichlet sum for eta, which diverges for `Re(s) < 0`. Since patch centers are restricted to `x >= 0.1` and the pole at `s=1` restricts the radius of convergence, points like `x = -2.0` cannot be reached. We need to implement a globally convergent series (like Euler acceleration for alternating series) to compute Taylor coefficients accurately anywhere, or properly extend the convergence.
+3. **Fix the mathematical issue**: Implement a method that correctly computes zeta or its derivatives at `x < 0.1` so that patches can be centered anywhere, allowing `-2.0` to be evaluated.
+4. **Fix Shader Sync**: Ensure the terrain shader and minimap shader correctly update when patches are added. The user reported that "terrain shader is not getting updated on new patches and the minimap only sometimes gets updated". We will verify the signal connections.
+5. **Pre-commit and Submit**: Follow pre-commit instructions and submit the PR.

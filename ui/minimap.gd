@@ -42,6 +42,16 @@ func _sync_all_uniforms():
 		mat.set_shader_parameter("current_branch", GameState.current_branch)
 		mat.set_shader_parameter("show_curves", Config.show_curves)
 		mat.set_shader_parameter("show_critical_stripe", Config.show_critical_stripe)
+		mat.set_shader_parameter("zeta_patch_count", min(64, ComplexField.zeta_patches.size()))
+		mat.set_shader_parameter("zeta_patch_centers", ComplexField.get_shader_patch_centers())
+		mat.set_shader_parameter("zeta_patch_coeffs", ComplexField.get_shader_patch_coeffs())
+		mat.set_shader_parameter("morph", GameState.morph_value)
+		mat.set_shader_parameter("height_type", Config.height_type)
+		mat.set_shader_parameter("height_a", Config.height_a)
+		mat.set_shader_parameter("height_epsilon", Config.height_epsilon)
+		mat.set_shader_parameter("height_theta", Config.height_theta)
+
+		mat.set_shader_parameter("max_world_height", GameState.MAX_WORLD_HEIGHT)
 
 		_update_zeros_shader()
 
@@ -112,6 +122,11 @@ func _on_state_changed(key: String):
 		mat.set_shader_parameter("show_critical_stripe", Config.show_critical_stripe)
 		if key == "effective_zoom":
 			mat.set_shader_parameter("zoom_factor", GameState.effective_zoom)
+
+	if key == "zeta_patches":
+		mat.set_shader_parameter("zeta_patch_count", min(64, ComplexField.zeta_patches.size()))
+		mat.set_shader_parameter("zeta_patch_centers", ComplexField.get_shader_patch_centers())
+		mat.set_shader_parameter("zeta_patch_coeffs", ComplexField.get_shader_patch_coeffs())
 
 	if key == "real_level_curves_highlighted":
 		var real_shaded = PackedFloat32Array()
