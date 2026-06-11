@@ -578,57 +578,6 @@ const float LANCZOS_P[9] = float[](
     1.5056327351493116e-7
 );
 
-ComplexFieldData lanczos_gamma_with_derivatives(vec2 z_orig) {
-    vec2 z = z_orig - vec2(1.0, 0.0);
-    vec2 x = vec2(LANCZOS_P[0], 0.0);
-    vec2 dx = vec2(0.0, 0.0);
-    for (int i = 1; i < 9; i++) {
-        vec2 denom = z + vec2(float(i), 0.0);
-        x += complex_div(vec2(LANCZOS_P[i], 0.0), denom);
-        dx -= complex_div(vec2(LANCZOS_P[i], 0.0), complex_mul(denom, denom));
-    }
-    vec2 tmp = z + vec2(7.5, 0.0);
-    vec2 p = complex_pow(tmp, z + vec2(0.5, 0.0));
-    vec2 etmp = complex_exp(-tmp.x, -tmp.y);
-    vec2 value = SQRT_2PI * complex_mul(complex_mul(p, etmp), x);
-    vec2 log_tmp = complex_log(tmp.x, tmp.y);
-    vec2 deriv_ratio = log_tmp + complex_div(z + vec2(0.5, 0.0), tmp) - vec2(1.0, 0.0) + complex_div(dx, x);
-    ComplexFieldData res;
-    res.value = value;
-    res.dx = complex_mul(value, deriv_ratio);
-    res.dy = vec2(-res.dx.y, res.dx.x);
-    return res;
-}
-
-ComplexFieldData complex_gamma_with_derivatives(float x, float y) {
-    if (x < 0.5) {
-        vec2 pi_z = vec2(PI * x, PI * y);
-        // Gamma(z) = pi / (sin(pi z) * Gamma(1-z))
-        // d/dz log Gamma(z) = -pi cot(pi z) - d/dz log Gamma(1-z)
-        // d/dz log Gamma(1-z) = -psi(1-z)
-        // So d/dz log Gamma(z) = -pi cot(pi z) + psi(1-z)
-
-        ComplexFieldData g1z = lanczos_gamma_with_derivatives(vec2(1.0 - x, -y));
-        vec2 sin_pi_z = complex_sin(pi_z.x, pi_z.y);
-        vec2 cot_pi_z = complex_div(complex_cos(pi_z.x, pi_z.y), sin_pi_z);
-
-        // d/dz ln Gamma(1-z) = [Gamma'(1-z)/Gamma(1-z)] * (-1) = -psi(1-z)
-        // g1z.dx is Gamma'(1-z)
-        // psi(1-z) = g1z.dx / g1z.value
-        // ratio = -pi cot(pi z) - (-psi(1-z)) = -pi cot(pi z) + psi(1-z)
-
-        vec2 ratio = -PI * cot_pi_z + complex_div(g1z.dx, g1z.value);
-
-        ComplexFieldData res;
-        res.value = complex_div(vec2(PI, 0.0), complex_mul(sin_pi_z, g1z.value));
-        res.dx = complex_mul(res.value, ratio);
-        res.dy = vec2(-res.dx.y, res.dx.x);
-        return res;
-    }
-    return lanczos_gamma_with_derivatives(vec2(x, y));
-}
-
-// 3. Log Gamma
 ComplexFieldData lanczos_log_gamma_with_derivatives(vec2 z) {
     vec2 z_m1 = z - vec2(1.0, 0.0);
     vec2 x = vec2(LANCZOS_P[0], 0.0);
@@ -674,6 +623,15 @@ ComplexFieldData complex_log_gamma_with_derivatives(float x, float y) {
         res = lanczos_log_gamma_with_derivatives(vec2(x, y));
     }
     res.dy = vec2(-res.dx.y, res.dx.x);
+    return res;
+}
+
+ComplexFieldData complex_gamma_with_derivatives(float x, float y) {
+    ComplexFieldData res;
+    ComplexFieldData lg = complex_log_gamma_with_derivatives(x, y);
+    res.value = complex_exp(lg.value.x, lg.value.y);
+    res.dx = complex_mul(res.value, lg.dx);
+    res.dy = complex_mul(res.value, lg.dy);
     return res;
 }
 
