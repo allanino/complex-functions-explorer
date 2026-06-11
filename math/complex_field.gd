@@ -3,7 +3,7 @@ class_name ComplexField
 
 const PATCH_MAX_K = 20
 const PATCH_RADIUS = 0.2
-const PATCH_THRESHOLD = 0.5
+const PATCH_THRESHOLD = 1.0
 static var zeta_patches: Array = []
 
 #-------------------------------------------------------------------------
@@ -302,7 +302,7 @@ static func compute_zeta_taylor_patch(x: float, y: float, iters: int) -> Array:
 	var fact = []
 	fact.append(1.0)
 	for k in range(1, K + 1):
-		fact.append(fact[k-1] * float(k))
+		fact.append(fact[k - 1] * float(k))
 
 	var eta_coeffs = []
 	for k in range(K + 1):
@@ -313,7 +313,7 @@ static func compute_zeta_taylor_patch(x: float, y: float, iters: int) -> Array:
 		for k in range(K + 1):
 			inner_sums.append(Vector2.ZERO)
 
-		var binom = 1
+		var binom = 1.0
 		for k in range(n + 1):
 			var base_term: Vector2
 			var log_k1: float = 0.0
@@ -360,23 +360,13 @@ static func compute_zeta_taylor_patch(x: float, y: float, iters: int) -> Array:
 
 	return zeta_coeffs
 
+const PATCH_MIN_SPACING = PATCH_RADIUS * 0.25
+
 static func _get_or_create_patch(z: Vector2, iters: int) -> Dictionary:
-	var target_z = z
-	var closest_patch = null
-	var min_dist = 1e9
-
-	for patch in zeta_patches:
-		var dist = (target_z - patch["center"]).length()
-		if dist < min_dist:
-			min_dist = dist
-			closest_patch = patch
-
-	if closest_patch != null and min_dist <= PATCH_RADIUS * PATCH_THRESHOLD:
-		return closest_patch
-
-	if closest_patch == null:
-		var start_x = max(target_z.x, 0.5)
-		var start_z = Vector2(start_x, target_z.y)
+	# 1. If no patches exist, seed the initial patch on the safe domain boundary (x >= 0.5)
+	if zeta_patches.is_empty():
+		var start_x = max(z.x, 0.5)
+		var start_z = Vector2(start_x, z.y)
 		var coeffs = compute_zeta_taylor_patch(start_z.x, start_z.y, iters)
 		var p = {
 			"center": start_z,
@@ -386,26 +376,44 @@ static func _get_or_create_patch(z: Vector2, iters: int) -> Dictionary:
 		zeta_patches.append(p)
 		if GameState and GameState.has_signal("state_changed"):
 			GameState.call_deferred("emit_signal", "state_changed", "zeta_patches")
-		return _get_or_create_patch(z, iters)
 
-	var dir = (target_z - closest_patch["center"]).normalized()
-	var step_dist = min(min_dist, PATCH_RADIUS * PATCH_THRESHOLD)
-	var new_center = closest_patch["center"] + dir * step_dist
+	# 2. Iterate pathfinding / stepping until we reach a patch containing target `z`
+	while true:
+		var closest_patch = null
+		var min_dist = 1e9
 
-	if new_center.x < 0.1:
-		new_center.x = 0.1
+		for patch in zeta_patches:
+			var dist = (z - patch["center"]).length()
+			if dist < min_dist:
+				min_dist = dist
+				closest_patch = patch
 
-	var new_coeffs = compute_zeta_taylor_patch(new_center.x, new_center.y, iters)
+		# If the target is within the safe valid radius of our closest patch, return it!
+		if min_dist <= PATCH_RADIUS * PATCH_THRESHOLD:
+			return closest_patch
 
-	var new_patch = {
-		"center": new_center,
-		"coeffs": new_coeffs,
-		"radius": PATCH_RADIUS
-	}
-	zeta_patches.append(new_patch)
-	if GameState and GameState.has_signal("state_changed"):
-		GameState.call_deferred("emit_signal", "state_changed", "zeta_patches")
-	return _get_or_create_patch(z, iters)
+		# Otherwise, step systematically from our closest patch toward the target
+		var dir = (z - closest_patch["center"]).normalized()
+		var step_dist = PATCH_RADIUS * PATCH_THRESHOLD
+		var new_center = closest_patch["center"] + dir * step_dist
+
+		# Safety boundary guard
+		if new_center.x < -20.0: # Prevent walking into deep computation trivial zeros unguided
+			new_center.x = -20.0
+
+		# Create the new connected patch chain link
+		var new_coeffs = compute_zeta_taylor_patch(new_center.x, new_center.y, iters)
+		var new_patch = {
+			"center": new_center,
+			"coeffs": new_coeffs,
+			"radius": PATCH_RADIUS
+		}
+		zeta_patches.append(new_patch)
+
+		if GameState and GameState.has_signal("state_changed"):
+			GameState.call_deferred("emit_signal", "state_changed", "zeta_patches")
+
+	return {} # Unreachable statement kept for compiler peace of mind
 
 static func zeta_continuation_power_series(x: float, y: float) -> Vector2:
 	if x >= 0.5:
