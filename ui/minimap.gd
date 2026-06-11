@@ -54,8 +54,7 @@ func _sync_all_uniforms():
 		mat.set_shader_parameter("height_epsilon", Config.height_epsilon)
 		mat.set_shader_parameter("height_theta", Config.height_theta)
 
-		var PlayerController = load("res://player/player_controller.gd")
-		mat.set_shader_parameter("max_world_height", PlayerController.MAX_WORLD_HEIGHT)
+		mat.set_shader_parameter("max_world_height", GameState.MAX_WORLD_HEIGHT)
 
 		_update_zeros_shader()
 
