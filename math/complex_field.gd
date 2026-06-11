@@ -267,6 +267,174 @@ static func get_rational(x: float, y: float, num_coeffs: PackedVector2Array, den
 	var den = evaluate_poly(x, y, den_coeffs)
 	return complex_div(num, den)
 
+static func get_shader_patch_centers() -> PackedVector2Array:
+	var centers = PackedVector2Array()
+	var start_idx = max(0, zeta_patches.size() - 64)
+	for i in range(start_idx, zeta_patches.size()):
+		centers.append(zeta_patches[i]["center"])
+	return centers
+
+static func get_shader_patch_coeffs() -> PackedVector2Array:
+	var coeffs = PackedVector2Array()
+	var start_idx = max(0, zeta_patches.size() - 64)
+	for i in range(start_idx, zeta_patches.size()):
+		for k in range(16):
+			coeffs.append(zeta_patches[i]["coeffs"][k])
+	return coeffs
+
+static func evaluate_power_series(center: Vector2, coeffs: Array, z: Vector2) -> Vector2:
+	var res = Vector2.ZERO
+	var dz = z - center
+	var dz_k = Vector2(1.0, 0.0)
+	for k in range(coeffs.size()):
+		res += complex_mul(coeffs[k], dz_k)
+		dz_k = complex_mul(dz_k, dz)
+	return res
+
+static func compute_zeta_taylor_patch(x: float, y: float, iters: int) -> Array:
+	var K = PATCH_MAX_K
+	var max_terms = min(80, iters)
+
+	var fact = []
+	fact.append(1.0)
+	for k in range(1, K + 1):
+		fact.append(fact[k - 1] * float(k))
+
+	var eta_coeffs = []
+	for k in range(K + 1):
+		eta_coeffs.append(Vector2.ZERO)
+
+	for n in range(max_terms):
+		var inner_sums = []
+		for k in range(K + 1):
+			inner_sums.append(Vector2.ZERO)
+
+		var binom = 1.0
+		for k in range(n + 1):
+			var base_term: Vector2
+			var log_k1: float = 0.0
+
+			if k == 0:
+				base_term = Vector2(float(binom), 0.0)
+				log_k1 = 0.0
+			else:
+				var k1 = float(k + 1)
+				var amp = pow(k1, -x)
+				var theta = -y * log(k1)
+				var sign_k = 1.0 if k % 2 == 0 else -1.0
+				base_term = sign_k * float(binom) * amp * Vector2(cos(theta), sin(theta))
+				log_k1 = log(k1)
+
+			inner_sums[0] += base_term
+
+			var current_term = base_term
+			for m in range(1, K + 1):
+				current_term *= -log_k1
+				inner_sums[m] += current_term
+
+			binom = binom * (n - k) / (k + 1)
+
+		var div_pow2 = pow(2.0, float(n + 1))
+		for m in range(K + 1):
+			eta_coeffs[m] += (inner_sums[m] / div_pow2) / fact[m]
+
+	var d_coeffs = []
+	var base_d = 2.0 * pow(2.0, -x) * Vector2(cos(-y * LOG_2), sin(-y * LOG_2))
+	d_coeffs.append(Vector2(1.0, 0.0) - base_d)
+
+	var d_term = base_d
+	for k in range(1, K + 1):
+		d_term *= -LOG_2
+		d_coeffs.append(-d_term / fact[k])
+
+	var zeta_coeffs = []
+	for k in range(K + 1):
+		var sum_val = eta_coeffs[k]
+		for j in range(k):
+			sum_val -= complex_mul(zeta_coeffs[j], d_coeffs[k - j])
+		zeta_coeffs.append(complex_div(sum_val, d_coeffs[0]))
+
+	return zeta_coeffs
+
+const PATCH_MIN_SPACING = PATCH_RADIUS * 0.25
+
+static func _get_or_create_patch(z: Vector2, iters: int) -> Dictionary:
+	# 1. If no patches exist, seed the initial patch on the safe domain boundary (x >= 0.5)
+	if zeta_patches.is_empty():
+		var start_x = max(z.x, 0.5)
+		var start_z = Vector2(start_x, z.y)
+		var coeffs = compute_zeta_taylor_patch(start_z.x, start_z.y, iters)
+		var p = {
+			"center": start_z,
+			"coeffs": coeffs,
+			"radius": PATCH_RADIUS
+		}
+		zeta_patches.append(p)
+		if GameState and GameState.has_signal("state_changed"):
+			GameState.call_deferred("emit_signal", "state_changed", "zeta_patches")
+
+	# 2. Iterate pathfinding / stepping until we reach a patch containing target `z`
+	while true:
+		var closest_patch = null
+		var min_dist = 1e9
+
+		for patch in zeta_patches:
+			var dist = (z - patch["center"]).length()
+			if dist < min_dist:
+				min_dist = dist
+				closest_patch = patch
+
+		# If the target is within the safe valid radius of our closest patch, return it!
+		if min_dist <= PATCH_RADIUS * PATCH_THRESHOLD:
+			return closest_patch
+
+		# Otherwise, step systematically from our closest patch toward the target
+		var dir = (z - closest_patch["center"]).normalized()
+		var step_dist = PATCH_RADIUS * PATCH_THRESHOLD
+		var new_center = closest_patch["center"] + dir * step_dist
+
+		# Safety boundary guard
+		if new_center.x < -20.0: # Prevent walking into deep computation trivial zeros unguided
+			new_center.x = -20.0
+
+		# Create the new connected patch chain link
+		var new_coeffs = compute_zeta_taylor_patch(new_center.x, new_center.y, iters)
+		var new_patch = {
+			"center": new_center,
+			"coeffs": new_coeffs,
+			"radius": PATCH_RADIUS
+		}
+		zeta_patches.append(new_patch)
+
+		if GameState and GameState.has_signal("state_changed"):
+			GameState.call_deferred("emit_signal", "state_changed", "zeta_patches")
+
+	return {} # Unreachable statement kept for compiler peace of mind
+
+static func zeta_continuation_power_series(x: float, y: float) -> Vector2:
+	if x >= 0.5:
+		return zeta(x, y)
+	var z = Vector2(x, y)
+	var patch = _get_or_create_patch(z, Config.iterations)
+	return evaluate_power_series(patch["center"], patch["coeffs"], z)
+
+static func zeta_continuation_power_series_with_derivatives(x: float, y: float, iters: int) -> Array:
+	if x >= 0.5:
+		return zeta_with_derivatives(x, y, iters)
+	var z = Vector2(x, y)
+	var patch = _get_or_create_patch(z, iters)
+	var val = evaluate_power_series(patch["center"], patch["coeffs"], z)
+
+	var res_prime = Vector2.ZERO
+	var dz = z - patch["center"]
+	var dz_k = Vector2(1.0, 0.0)
+	for k in range(1, patch["coeffs"].size()):
+		var coeff_scaled = patch["coeffs"][k] * float(k)
+		res_prime += complex_mul(coeff_scaled, dz_k)
+		dz_k = complex_mul(dz_k, dz)
+
+	return [val, res_prime]
+
 static func xi(x: float, y: float) -> Vector2:
 	var s = Vector2(x, y)
 	var s_minus_1 = Vector2(x - 1.0, y)
