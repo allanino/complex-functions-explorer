@@ -133,6 +133,11 @@ const FUNCTIONS = {
 		"symbol": "f",
 		"is_multivalued": true,
 	},
+	ComplexFunc.MULTIVALUED_ACOS: {
+		"name": "Multivalued arccos",
+		"symbol": "f",
+		"is_multivalued": true,
+	},
 	ComplexFunc.ZETA_POWER_SERIES: {
 		"name": "Zeta (power series)",
 		"symbol": "ζ",
@@ -146,6 +151,7 @@ const FUNCTIONS = {
 		"is_dirichlect": true,
 		"has_von_mangoldt": true,
 		"iters_range": [10.0, 200.0, 10.0, 50.0],
+		"hidden": true,
 	},
 	ComplexFunc.ETA_BORWEIN: {
 		"name": "Eta Borwein",
@@ -153,6 +159,7 @@ const FUNCTIONS = {
 		"is_dirichlect": true,
 		"has_von_mangoldt": true,
 		"iters_range": [10.0, 200.0, 10.0, 50.0],
+		"hidden": true,
 	},
 	ComplexFunc.ZETA_ACCELERATED: {
 		"name": "Zeta Accelerated",
@@ -160,6 +167,7 @@ const FUNCTIONS = {
 		"is_dirichlect": true,
 		"has_von_mangoldt": true,
 		"iters_range": [10.0, 200.0, 10.0, 50.0],
+		"hidden": true,
 	},
 	ComplexFunc.ZETA_BORWEIN: {
 		"name": "Zeta Borwein",
@@ -167,12 +175,8 @@ const FUNCTIONS = {
 		"is_dirichlect": true,
 		"has_von_mangoldt": true,
 		"iters_range": [10.0, 200.0, 10.0, 50.0],
-	},
-	ComplexFunc.MULTIVALUED_ACOS: {
-		"name": "Multivalued arccos",
-		"symbol": "f",
-		"is_multivalued": true,
-	},
+		"hidden": true,
+		},
 }
 
 # Field parameters
