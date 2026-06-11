@@ -156,12 +156,6 @@ Whenever a `.cpp` or `.h` file changes:
 scons platform=linux target=template_debug
 ```
 
-or, if you make it executable:
-
-```bash
-./compile_cpp.sh
-```
-
 SCons rebuilds incrementally (only changed files).
 
 Then reload the Godot project if changes do not appear.

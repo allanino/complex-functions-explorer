@@ -6,12 +6,18 @@ class_name ComplexField
 #-------------------------------------------------------------------------
 
 static func complex_mul(a: Vector2, b: Vector2) -> Vector2:
+	if ClassDB.class_exists("ComplexFunctions"):
+		var ext = ClassDB.instantiate("ComplexFunctions")
+		return ext.call("complex_mul", a, b)
 	return Vector2(
 		a.x * b.x - a.y * b.y,
 		a.x * b.y + a.y * b.x
 	)
 
 static func complex_div(a: Vector2, b: Vector2) -> Vector2:
+	if ClassDB.class_exists("ComplexFunctions"):
+		var ext = ClassDB.instantiate("ComplexFunctions")
+		return ext.call("complex_div", a, b)
 	var denom = b.x * b.x + b.y * b.y + 1e-24
 	return Vector2(
 		(a.x * b.x + a.y * b.y) / denom,
@@ -19,10 +25,16 @@ static func complex_div(a: Vector2, b: Vector2) -> Vector2:
 	)
 
 static func complex_exp(x: float, y: float) -> Vector2:
+	if ClassDB.class_exists("ComplexFunctions"):
+		var ext = ClassDB.instantiate("ComplexFunctions")
+		return ext.call("complex_exp", x, y)
 	var amp = exp(x)
 	return Vector2(amp * cos(y), amp * sin(y))
 
 static func complex_log(x: float, y: float) -> Vector2:
+	if ClassDB.class_exists("ComplexFunctions"):
+		var ext = ClassDB.instantiate("ComplexFunctions")
+		return ext.call("complex_log", x, y)
 	var mag_sq = x * x + y * y
 	if mag_sq < 1e-48: return Vector2(-60.0, 0.0)
 	return Vector2(0.5 * log(mag_sq), atan2(y, x))
@@ -33,6 +45,9 @@ static func complex_pow(z: Vector2, w: Vector2) -> Vector2:
 	return complex_exp(res_log.x, res_log.y)
 
 static func complex_sin(x: float, y: float) -> Vector2:
+	if ClassDB.class_exists("ComplexFunctions"):
+		var ext = ClassDB.instantiate("ComplexFunctions")
+		return ext.call("complex_sin", x, y)
 	return Vector2(sin(x) * cosh(y), cos(x) * sinh(y))
 
 static func complex_cos(x: float, y: float) -> Vector2:
@@ -68,6 +83,9 @@ static func multivalued_acos(x: float, y: float) -> Vector2:
 	return Vector2(PI * 0.5 - asin_val.x, -asin_val.y)
 
 static func complex_cot(x: float, y: float) -> Vector2:
+	if ClassDB.class_exists("ComplexFunctions"):
+		var ext = ClassDB.instantiate("ComplexFunctions")
+		return ext.call("complex_cot", x, y)
 	var abs_2y = 2.0 * abs(y)
 	var exp_neg = exp(-abs_2y)
 	var scaled_cosh = 0.5 * (1.0 + exp_neg * exp_neg)
@@ -78,6 +96,9 @@ static func complex_cot(x: float, y: float) -> Vector2:
 	return Vector2(scaled_sin_2x / denom, -scaled_sinh / denom)
 
 static func complex_log_sin(x: float, y: float) -> Vector2:
+	if ClassDB.class_exists("ComplexFunctions"):
+		var ext = ClassDB.instantiate("ComplexFunctions")
+		return ext.call("complex_log_sin", x, y)
 	var abs_y = abs(y)
 	var log_scale = abs_y - log(2.0)
 	var e_neg2 = exp(-2.0 * abs_y)

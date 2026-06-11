@@ -27,6 +27,14 @@ public:
 	Array log_zeta_continuation_with_derivatives(float x, float y, int iters);
 	Array zeta_continuation_with_derivatives(float x, float y, int iters);
 
+	Vector2 complex_mul(const Vector2 &a, const Vector2 &b);
+	Vector2 complex_div(const Vector2 &a, const Vector2 &b);
+	Vector2 complex_exp(float x, float y);
+	Vector2 complex_log(float x, float y);
+	Vector2 complex_sin(float x, float y);
+	Vector2 complex_cot(float x, float y);
+	Vector2 complex_log_sin(float x, float y);
+
 };
 
 } // namespace godot
