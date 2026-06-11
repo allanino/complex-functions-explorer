@@ -58,8 +58,19 @@ func _draw():
 
     if settings_icon:
         var icon_size = settings_icon.get_size()
+
+        # Calculate available size minus a 10px margin on all sides
+        var margin = 10.0
+        var available_size = size - Vector2(margin * 2.0, margin * 2.0)
+
+        # Determine the scale factor to fit the icon within the available space while maintaining aspect ratio
+        var scale_factor = min(available_size.x / icon_size.x, available_size.y / icon_size.y)
+        var final_icon_size = icon_size * scale_factor
+
         var center = size / 2.0
-        var _draw_rect = Rect2(center - icon_size / 2.0, icon_size)
+        var _draw_rect = Rect2(center - final_icon_size / 2.0, final_icon_size)
         var gold_color = Color(0.784, 0.663, 0.431, 1.0)
         var modulate_color = gold_color * 0.7 if is_pressed else gold_color
+
+        # Draw the icon resized to fit the rect
         draw_texture_rect(settings_icon, _draw_rect, false, modulate_color)
