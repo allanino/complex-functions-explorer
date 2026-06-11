@@ -461,7 +461,7 @@ func _physics_process(delta):
 
 		# Ensure height_offset stays bounded by GameState.MAX_WORLD_HEIGHT impeding further offset
 		var max_allowed_offset = GameState.MAX_WORLD_HEIGHT - terrain_h - scaled_camera_height
-		var min_allowed_offset = -GameState.MAX_WORLD_HEIGHT - terrain_h - scaled_camera_height
+		var min_allowed_offset = - GameState.MAX_WORLD_HEIGHT - terrain_h - scaled_camera_height
 
 		if target_y > GameState.MAX_WORLD_HEIGHT:
 			height_offset = min(height_offset, max_allowed_offset)
@@ -879,16 +879,16 @@ func _process_zero_detection(z_mid: Vector2, current_auto_walk_state: int):
 
 			refined_z = next_z
 
-      # print(
-      # 	"Step %4d | z (%9.4f, %9.4f) | f (%9.4f, %9.4f) | len %10.6f | mult %6.2f"
-      # 	% [
-      # 		step_idx,
-      # 		refined_z.x, refined_z.y,
-      # 		f_val.x, f_val.y,
-      # 		f_val.length(),
-      # 		step_mult
-      # 	]
-      # )
+			# print(
+			# 	"Step %4d | z (%9.4f, %9.4f) | f (%9.4f, %9.4f) | len %10.6f | mult %6.2f"
+			# 	% [
+			# 		step_idx,
+			# 		refined_z.x, refined_z.y,
+			# 		f_val.x, f_val.y,
+			# 		f_val.length(),
+			# 		step_mult
+			# 	]
+			# )
 
 			if f_val.length() < 1e-5:
 				converged = true
