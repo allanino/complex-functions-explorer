@@ -6,6 +6,7 @@ render_mode cull_disabled;
 varying vec3 world_pos;
 varying vec3 v_normal;
 varying vec2 field_val;
+varying vec2 v_f_dir;
 varying float v_nan;
 varying float v_h_clamped;
 
@@ -40,6 +41,7 @@ uniform float portal_height = 50.0;
 uniform float portal_width = 100.0;
 uniform float portal_min_height = -50.0;
 uniform float specular_intensity : hint_range(0.0, 1.0) = 0.1;
+uniform float max_world_height = 1000.0;
 
 uniform float self_illumination = 0.0;
 uniform float fog_density = 0.0;
@@ -727,6 +729,7 @@ void vertex() {
         if (is_invalid) {
             v_nan = 1.0;
             field_val = vec2(0.0);
+            v_f_dir = vec2(0.0);
             v_normal = vec3(0.0, 1.0, 0.0);
             local_pos = vec3(snap_v.x, 0.0, snap_v.z);
             v_h_clamped = 0.0;
@@ -744,6 +747,12 @@ void vertex() {
 
             // Blended map:
             field_val = mix(z_id, fz, blend);
+
+            if (length(fz) > 0.0) {
+                v_f_dir = normalize(fz);
+            } else {
+                v_f_dir = vec2(0.0);
+            }
 
             bool h_clamped = false;
             float h = get_complex_height(fz, field_val, h_clamped);
@@ -785,21 +794,17 @@ void fragment() {
         ROUGHNESS = rgh;
         METALLIC = mtl;
         SPECULAR = spec;
-    } else if (v_h_clamped > 0.5) {
-        vec3 local_albedo, local_emission;
-        float rgh, mtl, spec;
-        compute_matrix_effect(world_pos.xz, vec3(0.0, 0.2, 0.8), vec3(0.7, 0.7, 1.0), local_albedo, local_emission, rgh, mtl, spec);
-        ALBEDO = local_albedo;
-        EMISSION = local_emission;
-        ROUGHNESS = rgh;
-        METALLIC = mtl;
-        SPECULAR = spec;
     } else {
         float x = world_pos.x;
         float z = world_pos.z;
 
         vec2 f = field_val;
-        float phase = atan(f.y, f.x);
+        float phase;
+        if (length(v_f_dir) > 0.0) {
+            phase = atan(v_f_dir.y, v_f_dir.x);
+        } else {
+            phase = atan(f.y, f.x);
+        }
         float hue = (phase + PI) / (2.0 * PI);
         if (color_scheme == 1) {
             hue = fract(hue + 0.5);
@@ -823,6 +828,19 @@ void fragment() {
             v = mix(v, 0.5, moire_suppression);
             base = vec3(v) * eff_bri;
         }
+
+        // Apply smooth decay for large heights, just like minimap
+        float h_abs = abs(world_pos.y);
+        float fade_factor = 1.0;
+        if (v_h_clamped > 0.5) {
+            fade_factor = 0.3;
+        } else if (h_abs > max_world_height) {
+            float excess = h_abs - max_world_height;
+            float decay_rate = 0.0005;
+            float exp_fade = exp(-decay_rate * excess);
+            fade_factor = 0.3 + 0.7 * exp_fade;
+        }
+        base *= fade_factor;
 
         if (show_curves) {
             compute_curves_highlight(f, raw_w_re, raw_w_im, base, highlight_re_glow, highlight_im_glow);

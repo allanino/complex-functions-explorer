@@ -43,6 +43,43 @@ vec2 world_to_complex(float x, float y) {
     return vec2(0.1 * x, -0.1 * y) / zoom_factor;
 }
 
+float curveAA(
+    float value,
+    float raw_width,
+    bool highlighted
+) {
+    float d =
+        abs(fract(value + 0.5) - 0.5);
+
+    // Terrain-like width limiting
+    float w =
+        clamp(
+            raw_width,
+            0.002,
+            0.03
+        );
+
+    w += highlighted ? 0.03 : 0.01;
+
+    // Fade dense bundles away
+    float density =
+        smoothstep(
+            0.25,
+            0.12,
+            raw_width
+        );
+
+    float line =
+        1.0 -
+        smoothstep(
+            0.0,
+            w,
+            d
+        );
+
+    return line * density;
+}
+
 void fragment() {
     vec2 offset = (UV - vec2(0.5)) * 2.0 * view_radius;
     vec2 world_pos = player_pos_world + offset;
@@ -50,17 +87,52 @@ void fragment() {
     ComplexFieldData fd = get_field_with_derivatives(world_pos.x, world_pos.y, current_branch);
     vec2 f = fd.value;
 
-    float phase = atan(f.y, f.x);
+    float blend = 0.5 - 0.5 * cos(PI * morph);
+    vec2 z_id = vec2(0.1 * world_pos.x, -0.1 * world_pos.y) / zoom_factor;
+    vec2 field_val = mix(z_id, f, blend);
+
+    // We try to simulate here the implementation in the terrain shader with float limitations
+    vec2 f_dir;
+    if (length(field_val) > 1e-12) {
+        f_dir = normalize(field_val);
+    } else {
+        f_dir = vec2(0.0);
+    }
+    
+    float phase;
+    if (length(f_dir) > 1e-12) {
+        phase = atan(f_dir.y, f_dir.x);
+    } else {
+        float ry = round(f.y * 1e20) / 1e20;
+        float rx = round(f.x * 1e20) / 1e20;
+        if (rx == 0.0 && ry == 0.0) {
+            phase = 0.0;
+        } else {
+            phase = atan(ry, rx);
+        }
+    }
+
     float hue = (phase + PI) / (2.0 * PI);
     if (color_scheme == 1) {
         hue = fract(hue + 0.5);
     }
 
     // Moiré suppression to make it smooth
-    float f_mag = length(f);
-    float phase_change = length(vec2(fd.dx.x, fd.dx.y)) / (f_mag + 1e-12);
-    // Rough heuristic for screen-space moiré suppression depending on view_radius/resolution
-    float moire_suppression = smoothstep(0.5, 3.0, phase_change * view_radius * 0.05);
+    vec2 phase_vec =
+        vec2(
+            cos(phase),
+            sin(phase)
+        );
+
+    vec2 dx = dFdx(phase_vec);
+    vec2 dy = dFdy(phase_vec);
+
+    float phase_screen_change =
+        sqrt(
+            dot(dx, dx) +
+            dot(dy, dy)
+        );
+    float moire_suppression = smoothstep(0.5, 5.0, phase_screen_change);
 
     vec3 base_color = hsv2rgb(vec3(hue, 0.85, 1.0));
     if (color_scheme == 2) {
@@ -70,11 +142,7 @@ void fragment() {
 
 
     // Dim the color when moiré is high
-    base_color = mix(base_color, vec3(0.5), moire_suppression * 0.5);
-
-    float blend = 0.5 - 0.5 * cos(PI * morph);
-    vec2 z_id = vec2(0.1 * world_pos.x, -0.1 * world_pos.y) / zoom_factor;
-    vec2 field_val = mix(z_id, f, blend);
+    base_color = mix(base_color, vec3(0.5), moire_suppression * 0.8);
     bool h_clamped = false;
     float h = get_complex_height(f, field_val, h_clamped);
     h *= blend * zoom_factor;
@@ -111,12 +179,7 @@ void fragment() {
                     break;
                 }
             }
-            float w_re = raw_w_re * 0.2 + (is_real_highlighted ? 0.02 : 0.006);
-            float line_re = smoothstep(w_re, 0.0, d_re);
-            float density_re = smoothstep(max_density_threshold, max_density_threshold * 0.7, raw_w_re);
-            line_re *= density_re;
 
-            float d_im = abs(f.y - round(f.y));
             bool is_imag_highlighted = false;
             for (int i = 0; i < 10; i++) {
                 if (abs(round(f.y) - imag_level_curves_highlighted[i]) < 0.1) {
@@ -124,20 +187,29 @@ void fragment() {
                     break;
                 }
             }
-            float w_im = raw_w_im * 0.2 + (is_imag_highlighted ? 0.02 : 0.006);
-            float line_im = smoothstep(w_im, 0.0, d_im);
-            float density_im = smoothstep(max_density_threshold, max_density_threshold * 0.7, raw_w_im);
-            line_im *= density_im;
 
-            base_color *= 1.0 - line_re * (is_real_highlighted ? 0.6 : 0.15);
-            base_color *= 1.0 + line_im * (is_imag_highlighted ? 0.6 : 0.15);
+            float line_re =
+                curveAA(
+                    f.x,
+                    fwidth(f.x),
+                    is_real_highlighted
+                );
 
-            if (is_real_highlighted) {
-                base_color += vec3(0.0, 0.6, 1.0) * line_re * 0.6;
-            }
-            if (is_imag_highlighted) {
-                base_color += vec3(1.0, 0.0, 0.549) * line_im * 0.6;
-            }
+            float line_im =
+                curveAA(
+                    f.y,
+                    fwidth(f.y),
+                    is_imag_highlighted
+                );
+base_color *=
+    1.0 -
+    line_re *
+    (is_real_highlighted ? 0.35 : 0.08);
+
+base_color *=
+    1.0 +
+    line_im *
+    (is_imag_highlighted ? 0.35 : 0.08);
         }
     }
 
@@ -302,5 +374,5 @@ void fragment() {
         }
     }
 
-    COLOR = vec4(base_color * 0.9, 1.0);
+    COLOR = vec4(base_color * 0.75, 1.0);
 }
