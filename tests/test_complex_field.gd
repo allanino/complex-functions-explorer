@@ -220,7 +220,7 @@ func test_complex_log_gamma_with_derivatives():
 	var z1 = Vector2(1.5, 0.5)
 	var res1 = ComplexFieldScript.complex_log_gamma_with_derivatives(z1.x, z1.y)
 	var expected1 = ComplexFieldScript.lanczos_log_gamma_with_derivatives(z1)
-	assert_eq(res1.size(), 2)
+	assert_eq(res1.size(), 3)
 	assert_almost_eq(res1[0].x, expected1[0].x, 0.0001)
 	assert_almost_eq(res1[0].y, expected1[0].y, 0.0001)
 	assert_almost_eq(res1[1].x, expected1[1].x, 0.0001)
@@ -230,7 +230,7 @@ func test_complex_log_gamma_with_derivatives():
 	var z2 = Vector2(-2.0, -1.0)
 	var res2 = ComplexFieldScript.complex_log_gamma_with_derivatives(z2.x, z2.y)
 	var val_pure2 = ComplexFieldScript.complex_log_gamma(z2.x, z2.y)
-	assert_eq(res2.size(), 2)
+	assert_eq(res2.size(), 3)
 	assert_almost_eq(res2[0].x, val_pure2.x, 0.0001)
 	assert_almost_eq(res2[0].y, val_pure2.y, 0.0001)
 	# derivative should be finite and non-zero
@@ -253,7 +253,7 @@ func test_zeta_with_derivatives():
 	var x1 = 0.5
 	var y1 = 14.134725
 	var res = ComplexFieldScript.zeta_with_derivatives(x1, y1, Config.iterations)
-	assert_eq(res.size(), 2)
+	assert_eq(res.size(), 3)
 	assert_true(typeof(res[0]) == TYPE_VECTOR2)
 	assert_true(typeof(res[1]) == TYPE_VECTOR2)
 
@@ -276,7 +276,7 @@ func test_zeta_with_derivatives():
 	var x2 = 2.0
 	var y2 = 0.0
 	var res2 = ComplexFieldScript.zeta_with_derivatives(x2, y2, Config.iterations)
-	assert_eq(res2.size(), 2)
+	assert_eq(res2.size(), 3)
 	assert_true(typeof(res2[0]) == TYPE_VECTOR2)
 	assert_true(typeof(res2[1]) == TYPE_VECTOR2)
 
@@ -315,7 +315,7 @@ func test_zeta_continuation_with_derivatives():
 	var x1 = 0.5
 	var y1 = 14.134725
 	var res = ComplexFieldScript.zeta_continuation_with_derivatives(x1, y1, Config.iterations)
-	assert_eq(res.size(), 2)
+	assert_eq(res.size(), 3)
 	assert_true(typeof(res[0]) == TYPE_VECTOR2)
 	assert_true(typeof(res[1]) == TYPE_VECTOR2)
 
@@ -337,7 +337,7 @@ func test_zeta_continuation_with_derivatives():
 	var x2 = -2.0
 	var y2 = 3.0
 	var res2 = ComplexFieldScript.zeta_continuation_with_derivatives(x2, y2, Config.iterations)
-	assert_eq(res2.size(), 2)
+	assert_eq(res2.size(), 3)
 	assert_true(typeof(res2[0]) == TYPE_VECTOR2)
 	assert_true(typeof(res2[1]) == TYPE_VECTOR2)
 
@@ -741,11 +741,20 @@ func test_newton_step():
 	var z1_next = res1[0]
 	var f1_val = res1[1]
 
-	var expected_f1_res = ComplexFieldScript.zeta_with_derivatives(z1.x, z1.y, Config.iterations)
+	var expected_f1_res = ComplexFieldScript.zeta_with_derivatives(z1.x, z1.y, Config.iterations * 2)
 	var expected_f1_val = expected_f1_res[0]
 	var expected_f1_prime = expected_f1_res[1]
+	var expected_f1_second = expected_f1_res[2]
 
-	var expected_step1 = ComplexFieldScript.complex_div(expected_f1_val, expected_f1_prime)
+	var expected_step1 = Vector2.ZERO
+	var term1 = ComplexFieldScript.complex_mul(Vector2(2.0, 0.0), ComplexFieldScript.complex_mul(expected_f1_prime, expected_f1_prime))
+	var term2 = ComplexFieldScript.complex_mul(expected_f1_val, expected_f1_second)
+	var den = term1 - term2
+	if den.length() < 1e-12:
+		expected_step1 = ComplexFieldScript.complex_div(expected_f1_val, expected_f1_prime)
+	else:
+		var num = ComplexFieldScript.complex_mul(Vector2(2.0, 0.0), ComplexFieldScript.complex_mul(expected_f1_val, expected_f1_prime))
+		expected_step1 = ComplexFieldScript.complex_div(num, den)
 	if expected_step1.length() > 1.0:
 		expected_step1 = expected_step1.normalized() * 1.0
 	var expected_z1_next = z1 - expected_step1 * 1.0
