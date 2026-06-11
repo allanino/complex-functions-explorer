@@ -715,7 +715,7 @@ ComplexFieldData zeta_continuation_power_series_with_derivatives(float x, float 
 		}
 	}
 
-	if (closest_idx == -1 || min_dist > PATCH_RADIUS * PATCH_THRESHOLD) {
+	if (closest_idx == -1) {
 		ComplexFieldData nan_res;
 		nan_res.value = vec2(0.0 / 0.0);
 		nan_res.dx = vec2(0.0 / 0.0);
