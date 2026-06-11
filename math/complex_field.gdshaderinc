@@ -334,6 +334,57 @@ vec2 complex_log_sin(float x, float y) {
 // Component Functions: Zeta, Gamma, Dedekind Eta
 //-------------------------------------------------------------------------
 
+ComplexFieldData eta_borwein_with_derivatives(float x, float y, int order) {
+    ComplexFieldData res;
+    if (order <= 0) {
+        res.value = vec2(0.0);
+        res.dx = vec2(0.0);
+        res.dy = vec2(0.0);
+        return res;
+    }
+
+    // We cannot use dynamic arrays in GLSL for the cache in the same way,
+    // so we compute them dynamically here. It's O(N) which is fine for shaders.
+    float binom = 1.0;
+    float cumulative = 0.0;
+    float pow2n = pow(2.0, float(order));
+
+    vec2 sum_val = vec2(0.0);
+    vec2 sum_dx = vec2(0.0);
+    float eps = 1e-15;
+
+    for (int k = 0; k < order; k++) {
+        cumulative += binom;
+        float coeff = 1.0 - cumulative / pow2n;
+        binom *= float(order - k) / float(k + 1);
+
+        float k_plus_1 = float(k + 1);
+        float logk = log(k_plus_1);
+        float amp = exp(-x * logk);
+        float theta = -y * logk;
+
+        vec2 pow_term = amp * vec2(cos(theta), sin(theta));
+        if ((k & 1) != 0) {
+            pow_term = -pow_term;
+        }
+
+        vec2 term = coeff * pow_term;
+        vec2 term_dx = -logk * term;
+
+        sum_val += term;
+        sum_dx += term_dx;
+
+        if (length(term) < eps * length(sum_val) && k > 10) {
+            break;
+        }
+    }
+
+    res.value = sum_val;
+    res.dx = sum_dx;
+    res.dy = vec2(-sum_dx.y, sum_dx.x);
+    return res;
+}
+
 ComplexFieldData dirichlet_eta_accelerated_with_derivatives(float x, float y, int iters) {
     ComplexFieldData res;
     if (iters <= 0) {
@@ -378,7 +429,6 @@ ComplexFieldData dirichlet_eta_accelerated_with_derivatives(float x, float y, in
 }
 
 ComplexFieldData dirichlet_eta_with_derivatives(float x, float y, int iters) {
-    if (x < -1.0) { return ComplexFieldData(vec2(uintBitsToFloat(0x7FC00000u)), vec2(uintBitsToFloat(0x7FC00000u)), vec2(uintBitsToFloat(0x7FC00000u))); }
     vec2 eta = vec2(0.0);
     vec2 deta_dx = vec2(0.0);
     int actual_iters = 0;
@@ -430,7 +480,6 @@ ComplexFieldData dirichlet_eta_with_derivatives(float x, float y, int iters) {
 }
 
 ComplexFieldData dirichlet_beta_with_derivatives(float x, float y, int iters) {
-    if (x < -1.0) { return ComplexFieldData(vec2(uintBitsToFloat(0x7FC00000u)), vec2(uintBitsToFloat(0x7FC00000u)), vec2(uintBitsToFloat(0x7FC00000u))); }
     vec2 beta = vec2(0.0);
     vec2 dbeta_dx = vec2(0.0);
     for (int n = 0; n < iters; n += 2) {
@@ -1046,6 +1095,7 @@ ComplexFieldData evaluate_function_with_derivatives(float x, float y, int func_t
     if (func_type == 18) return multivalued_asin_with_derivatives(x, y, b_offset);
     if (func_type == 19) return multivalued_acos_with_derivatives(x, y, b_offset);
     if (func_type == 20) return dirichlet_eta_accelerated_with_derivatives(x, y, iters);
+    if (func_type == 21) return eta_borwein_with_derivatives(x, y, iters);
     ComplexFieldData res;
     res.value = vec2(0.0);
     res.dx = vec2(0.0);

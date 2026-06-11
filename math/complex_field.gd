@@ -95,6 +95,49 @@ static func complex_log_sin(x: float, y: float) -> Vector2:
 const LOG_2 = 0.6931471805599453
 const LOG_PI = 1.1447298858494002
 
+static var _borwein_coeffs_cache: Dictionary = {}
+
+static func _get_borwein_coeffs(n: int) -> PackedFloat64Array:
+	if _borwein_coeffs_cache.has(n):
+		return _borwein_coeffs_cache[n]
+
+	var coeffs = PackedFloat64Array()
+	coeffs.resize(n)
+	var binom = 1.0
+	var cumulative = 0.0
+	var pow2n = pow(2.0, n)
+
+	for k in range(n):
+		cumulative += binom
+		coeffs[k] = 1.0 - cumulative / pow2n
+		binom *= float(n - k) / float(k + 1)
+
+	_borwein_coeffs_cache[n] = coeffs
+	return coeffs
+
+static func eta_borwein(x: float, y: float, order: int) -> Vector2:
+	if order <= 0: return Vector2.ZERO
+	var coeffs = _get_borwein_coeffs(order)
+	var sum_val = Vector2.ZERO
+	var eps = 1e-15
+	for k in range(order):
+		var k_plus_1 = float(k + 1)
+		var logk = log(k_plus_1)
+		var amp = exp(-x * logk)
+		var theta = -y * logk
+
+		var pow_term = amp * Vector2(cos(theta), sin(theta))
+		if (k & 1) != 0:
+			pow_term = -pow_term
+
+		var term = coeffs[k] * pow_term
+		sum_val += term
+
+		if term.length() < eps * sum_val.length() and k > 10:
+			break
+
+	return sum_val
+
 static func dirichlet_eta_accelerated(x: float, y: float, iterations: int) -> Vector2:
 	if iterations <= 0: return Vector2.ZERO
 	var sum_outer = Vector2.ZERO
@@ -123,7 +166,6 @@ static func dirichlet_eta_accelerated(x: float, y: float, iterations: int) -> Ve
 	return sum_outer
 
 static func dirichlet_eta(x: float, y: float, iterations: int) -> Vector2:
-	if x < -1.0: return Vector2(NAN, NAN)
 	if iterations <= 0: return Vector2.ZERO
 	var eta = Vector2.ZERO
 	var actual_iters = 0
@@ -143,7 +185,7 @@ static func dirichlet_eta(x: float, y: float, iterations: int) -> Vector2:
 
 		if (amp < 1e-4 || amp2 < 1e-4 || amp > 1e4 || amp2 > 1e4): break
 
-	if actual_iters > 0 and x >= 0.5:
+	if actual_iters > 0:
 		var next_n = float(actual_iters + 1)
 		var rem_amp = 0.5 * pow(next_n, -x)
 		var rem_theta = -y * log(next_n)
@@ -153,7 +195,6 @@ static func dirichlet_eta(x: float, y: float, iterations: int) -> Vector2:
 	return eta
 
 static func dirichlet_beta(x: float, y: float, iterations: int) -> Vector2:
-	if x < -1.0: return Vector2(NAN, NAN)
 	if iterations <= 0: return Vector2.ZERO
 	var beta = Vector2.ZERO
 	for n in range(0, iterations, 2):
@@ -341,6 +382,33 @@ static func multivalued_log(x: float, y: float, branch: int = -99999, use_negati
 #-------------------------------------------------------------------------
 
 
+static func eta_borwein_with_derivatives(x: float, y: float, order: int) -> Array:
+	if order <= 0: return [Vector2.ZERO, Vector2.ZERO, Vector2.ZERO]
+	var coeffs = _get_borwein_coeffs(order)
+	var sum_val = Vector2.ZERO
+	var sum_dx = Vector2.ZERO
+	var eps = 1e-15
+	for k in range(order):
+		var k_plus_1 = float(k + 1)
+		var logk = log(k_plus_1)
+		var amp = exp(-x * logk)
+		var theta = -y * logk
+
+		var pow_term = amp * Vector2(cos(theta), sin(theta))
+		if (k & 1) != 0:
+			pow_term = -pow_term
+
+		var term = coeffs[k] * pow_term
+		var term_dx = -logk * term
+
+		sum_val += term
+		sum_dx += term_dx
+
+		if term.length() < eps * sum_val.length() and k > 10:
+			break
+
+	return [sum_val, sum_dx, Vector2.ZERO]
+
 static func dirichlet_eta_accelerated_with_derivatives(x: float, y: float, iters: int) -> Array:
 	if iters <= 0: return [Vector2.ZERO, Vector2.ZERO, Vector2.ZERO]
 	var sum_outer = Vector2.ZERO
@@ -377,7 +445,6 @@ static func dirichlet_eta_accelerated_with_derivatives(x: float, y: float, iters
 	return [sum_outer, sum_outer_dx, Vector2.ZERO]
 
 static func dirichlet_eta_with_derivatives(x: float, y: float, iters: int) -> Array:
-	if x < -1.0: return [Vector2(NAN, NAN), Vector2(NAN, NAN)]
 	var eta = Vector2.ZERO
 	var deta_dx = Vector2.ZERO
 	var actual_iters = 0
@@ -511,6 +578,7 @@ static func get_field_at(x: float, y: float, function_type: int, is_input: bool)
 		Config.ComplexFunc.ZETA_REFLECTION: return zeta_continuation(x, y)
 		Config.ComplexFunc.DIRICHLET_ETA: return dirichlet_eta(x, y, Config.iterations)
 		Config.ComplexFunc.ETA_ACCELERATED: return dirichlet_eta_accelerated(x, y, Config.iterations)
+		Config.ComplexFunc.ETA_BORWEIN: return eta_borwein(x, y, Config.iterations)
 		Config.ComplexFunc.DIRICHLET_BETA: return dirichlet_beta(x, y, Config.iterations)
 		Config.ComplexFunc.GAMMA: return complex_gamma(x, y)
 		Config.ComplexFunc.LOG_GAMMA: return complex_log_gamma(x, y)
@@ -569,6 +637,11 @@ static func newton_step(z: Vector2, step_size_mult: float, max_step: float = 1.0
 			use_analytic = true
 		elif Config.function_type == Config.ComplexFunc.ETA_ACCELERATED:
 			var res = dirichlet_eta_accelerated_with_derivatives(z.x, z.y, Config.iterations)
+			f_val = res[0]
+			f_prime = res[1]
+			use_analytic = true
+		elif Config.function_type == Config.ComplexFunc.ETA_BORWEIN:
+			var res = eta_borwein_with_derivatives(z.x, z.y, Config.iterations)
 			f_val = res[0]
 			f_prime = res[1]
 			use_analytic = true

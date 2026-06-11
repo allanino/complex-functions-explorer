@@ -7,6 +7,7 @@ const MOUSE_SENSITIVITY = 0.002
 const DOUBLE_PRESS_TIME = 0.3
 # The critical line in the complex plane is at Re(s) = 0.5
 const CRITICAL_LINE_COMPLEX_X = 0.5
+const MAX_WORLD_HEIGHT = 1000.0
 const ZEROS_DETECTION_EPS = 0.5
 const ZEROS_DETECTION_START_RECORDING = 0.5
 
@@ -57,9 +58,6 @@ var current_z: Vector2 = Vector2(0.0, 0.0)
 var last_player_pos: Vector3 = Vector3.ZERO
 var last_terrain_h: float = 0.0
 var camera_push_offset: Vector3 = Vector3.ZERO
-
-var _predicted_pos := Vector2.INF
-var _predicted_next_f := Vector2.INF
 
 @onready var mobile_controls = get_node_or_null("/root/Main/MainUI/Control/MobileControls")
 @onready var right_joy = get_node_or_null("/root/Main/MainUI/Control/MobileControls/RightJoystick")
@@ -299,11 +297,7 @@ func _physics_process(delta):
 	# Cache current field value and mathematical coordinates for reuse
 	# Converts player's world position back to the mathematical complex plane to calculate field values
 	current_z = Config.world_to_complex(global_position.x, global_position.z)
-	var _current_pos2d_check = Vector2(global_position.x, global_position.z)
-	if _predicted_pos != Vector2.INF and _predicted_pos.distance_to(_current_pos2d_check) < 0.001:
-		current_f = _predicted_next_f
-	else:
-		current_f = ComplexField.get_field(global_position.x, global_position.z)
+	current_f = ComplexField.get_field(global_position.x, global_position.z)
 	current_mag = current_f.length()
 
 	if auto_walk_state != AutoWalkState.NONE:
@@ -445,9 +439,7 @@ func _physics_process(delta):
 		velocity.x = 0.0
 		velocity.z = 0.0
 
-	_predicted_pos = Vector2(predicted_pos.x, predicted_pos.z)
-	_predicted_next_f = ComplexField.get_field(predicted_pos.x, predicted_pos.z)
-	var terrain_h = get_terrain_height(predicted_pos.x, predicted_pos.z, _predicted_next_f)
+	var terrain_h = get_terrain_height(predicted_pos.x, predicted_pos.z)
 
 	if not is_finite(terrain_h):
 		velocity.x = 0.0
@@ -456,11 +448,11 @@ func _physics_process(delta):
 	else:
 		last_valid_terrain_height = terrain_h
 
-	# Prevent player from probing heights higher/lower than GameState.MAX_WORLD_HEIGHT
+	# Prevent player from probing heights higher/lower than MAX_WORLD_HEIGHT
 	var target_y = terrain_h + scaled_camera_height + height_offset
 	var last_target_y = last_terrain_h + scaled_camera_height + height_offset
 
-	if abs(target_y) >= GameState.MAX_WORLD_HEIGHT:
+	if abs(target_y) >= MAX_WORLD_HEIGHT:
 		GameState.height_protection_active = true
 		# If moving to a height that is greater in magnitude than our current/last height, block it
 		if abs(target_y) > abs(last_target_y):
@@ -468,16 +460,16 @@ func _physics_process(delta):
 			velocity.z = 0.0
 			terrain_h = last_terrain_h
 
-		# Ensure height_offset stays bounded by GameState.MAX_WORLD_HEIGHT impeding further offset
-		var max_allowed_offset = GameState.MAX_WORLD_HEIGHT - terrain_h - scaled_camera_height
-		var min_allowed_offset = - GameState.MAX_WORLD_HEIGHT - terrain_h - scaled_camera_height
+		# Ensure height_offset stays bounded by MAX_WORLD_HEIGHT impeding further offset
+		var max_allowed_offset = MAX_WORLD_HEIGHT - terrain_h - scaled_camera_height
+		var min_allowed_offset = -MAX_WORLD_HEIGHT - terrain_h - scaled_camera_height
 
-		if target_y > GameState.MAX_WORLD_HEIGHT:
+		if target_y > MAX_WORLD_HEIGHT:
 			height_offset = min(height_offset, max_allowed_offset)
-		elif target_y < -GameState.MAX_WORLD_HEIGHT:
+		elif target_y < -MAX_WORLD_HEIGHT:
 			height_offset = max(height_offset, min_allowed_offset)
 
-		target_y = clamp(terrain_h + scaled_camera_height + height_offset, -GameState.MAX_WORLD_HEIGHT, GameState.MAX_WORLD_HEIGHT)
+		target_y = clamp(terrain_h + scaled_camera_height + height_offset, -MAX_WORLD_HEIGHT, MAX_WORLD_HEIGHT)
 	else:
 		GameState.height_protection_active = false
 
@@ -888,16 +880,16 @@ func _process_zero_detection(z_mid: Vector2, current_auto_walk_state: int):
 
 			refined_z = next_z
 
-			# print(
-			# 	"Step %4d | z (%9.4f, %9.4f) | f (%9.4f, %9.4f) | len %10.6f | mult %6.2f"
-			# 	% [
-			# 		step_idx,
-			# 		refined_z.x, refined_z.y,
-			# 		f_val.x, f_val.y,
-			# 		f_val.length(),
-			# 		step_mult
-			# 	]
-			# )
+      # print(
+      # 	"Step %4d | z (%9.4f, %9.4f) | f (%9.4f, %9.4f) | len %10.6f | mult %6.2f"
+      # 	% [
+      # 		step_idx,
+      # 		refined_z.x, refined_z.y,
+      # 		f_val.x, f_val.y,
+      # 		f_val.length(),
+      # 		step_mult
+      # 	]
+      # )
 
 			if f_val.length() < 1e-5:
 				converged = true

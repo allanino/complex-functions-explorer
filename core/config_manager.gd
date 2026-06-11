@@ -27,6 +27,7 @@ enum ComplexFunc {
 	MULTIVALUED_ASIN,
 	MULTIVALUED_ACOS,
 	ETA_ACCELERATED,
+	ETA_BORWEIN,
 
 	# Not exposed in UI
 	MULTIVALUED_RSVD3,
@@ -140,6 +141,13 @@ const FUNCTIONS = {
 		"is_dirichlect": true,
 		"has_von_mangoldt": true,
 		"iters_range": [10.0, 1000.0, 10.0, 100.0],
+	},
+	ComplexFunc.ETA_BORWEIN: {
+		"name": "Borwein Eta",
+		"symbol": "η (Borwein)",
+		"is_dirichlect": true,
+		"has_von_mangoldt": true,
+		"iters_range": [10.0, 500.0, 10.0, 50.0],
 	},
 }
 

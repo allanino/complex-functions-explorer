@@ -43,14 +43,6 @@ func _sync_all_uniforms():
 		mat.set_shader_parameter("show_curves", Config.show_curves)
 		mat.set_shader_parameter("show_critical_stripe", Config.show_critical_stripe)
 
-		mat.set_shader_parameter("morph", GameState.morph_value)
-		mat.set_shader_parameter("height_type", Config.height_type)
-		mat.set_shader_parameter("height_a", Config.height_a)
-		mat.set_shader_parameter("height_epsilon", Config.height_epsilon)
-		mat.set_shader_parameter("height_theta", Config.height_theta)
-
-		mat.set_shader_parameter("max_world_height", GameState.MAX_WORLD_HEIGHT)
-
 		_update_zeros_shader()
 
 		var real_shaded = PackedFloat32Array()
@@ -108,17 +100,16 @@ func _on_config_changed(key: String):
 	if not mat: return
 	if key == "show_hud_zeros":
 		_update_zeros_shader()
-	elif key in ["iterations", "zoom_factor", "function_type", "input_function_type", "color_scheme", "rational_num_coeffs", "rational_den_coeffs", "input_rational_num_coeffs", "input_rational_den_coeffs", "multivalued_n", "show_curves", "show_critical_stripe", "height_type", "height_a", "height_epsilon", "height_theta"]:
+	elif key in ["iterations", "zoom_factor", "function_type", "input_function_type", "color_scheme", "rational_num_coeffs", "rational_den_coeffs", "input_rational_num_coeffs", "input_rational_den_coeffs", "multivalued_n", "show_curves", "show_critical_stripe"]:
 		_sync_all_uniforms()
 
 func _on_state_changed(key: String):
 	var mat = map_rect.material as ShaderMaterial
 	if not mat: return
-	if key == "current_branch" or key == "effective_zoom" or key == "morph_value":
+	if key == "current_branch" or key == "effective_zoom":
 		mat.set_shader_parameter("current_branch", GameState.current_branch)
 		mat.set_shader_parameter("show_curves", Config.show_curves)
 		mat.set_shader_parameter("show_critical_stripe", Config.show_critical_stripe)
-		mat.set_shader_parameter("morph", GameState.morph_value)
 		if key == "effective_zoom":
 			mat.set_shader_parameter("zoom_factor", GameState.effective_zoom)
 
