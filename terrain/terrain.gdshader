@@ -748,7 +748,7 @@ void vertex() {
             // Blended map:
             field_val = mix(z_id, fz, blend);
 
-            if (length(fz) > 1e-12) {
+            if (length(fz) > 0.0) {
                 v_f_dir = normalize(fz);
             } else {
                 v_f_dir = vec2(0.0);

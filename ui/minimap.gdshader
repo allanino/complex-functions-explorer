@@ -54,18 +54,27 @@ void fragment() {
     vec2 z_id = vec2(0.1 * world_pos.x, -0.1 * world_pos.y) / zoom_factor;
     vec2 field_val = mix(z_id, f, blend);
 
+    // We try to simulate here the implementation in the terrain shader with float limitations
     vec2 f_dir;
     if (length(field_val) > 1e-12) {
         f_dir = normalize(field_val);
     } else {
         f_dir = vec2(0.0);
     }
+
     float phase;
-    if (length(f_dir) > 0.0) {
+    if (length(f_dir) > 1e-12) {
         phase = atan(f_dir.y, f_dir.x);
     } else {
-        phase = atan(f.y, f.x);
+        float ry = round(f.y * 1e20) / 1e20;
+        float rx = round(f.x * 1e20) / 1e20;
+        if (rx == 0.0 && ry == 0.0) {
+            phase = 0.0;
+        } else {
+            phase = atan(ry, rx);
+        }
     }
+
     float hue = (phase + PI) / (2.0 * PI);
     if (color_scheme == 1) {
         hue = fract(hue + 0.5);
