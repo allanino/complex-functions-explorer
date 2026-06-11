@@ -1,17 +1,28 @@
 # Shared field and height functions for GDScript
 class_name ComplexField
 
+const PATCH_MAX_K = 20
+const PATCH_RADIUS = 0.2
+const PATCH_THRESHOLD = 1.0
+static var zeta_patches: Array = []
+
 #-------------------------------------------------------------------------
 # Complex Arithmetic
 #-------------------------------------------------------------------------
 
 static func complex_mul(a: Vector2, b: Vector2) -> Vector2:
+	if ClassDB.class_exists("ComplexFunctions"):
+		var ext = ClassDB.instantiate("ComplexFunctions")
+		return ext.call("complex_mul", a, b)
 	return Vector2(
 		a.x * b.x - a.y * b.y,
 		a.x * b.y + a.y * b.x
 	)
 
 static func complex_div(a: Vector2, b: Vector2) -> Vector2:
+	if ClassDB.class_exists("ComplexFunctions"):
+		var ext = ClassDB.instantiate("ComplexFunctions")
+		return ext.call("complex_div", a, b)
 	var denom = b.x * b.x + b.y * b.y + 1e-24
 	return Vector2(
 		(a.x * b.x + a.y * b.y) / denom,
@@ -19,10 +30,16 @@ static func complex_div(a: Vector2, b: Vector2) -> Vector2:
 	)
 
 static func complex_exp(x: float, y: float) -> Vector2:
+	if ClassDB.class_exists("ComplexFunctions"):
+		var ext = ClassDB.instantiate("ComplexFunctions")
+		return ext.call("complex_exp", x, y)
 	var amp = exp(x)
 	return Vector2(amp * cos(y), amp * sin(y))
 
 static func complex_log(x: float, y: float) -> Vector2:
+	if ClassDB.class_exists("ComplexFunctions"):
+		var ext = ClassDB.instantiate("ComplexFunctions")
+		return ext.call("complex_log", x, y)
 	var mag_sq = x * x + y * y
 	if mag_sq < 1e-48: return Vector2(-60.0, 0.0)
 	return Vector2(0.5 * log(mag_sq), atan2(y, x))
@@ -33,6 +50,9 @@ static func complex_pow(z: Vector2, w: Vector2) -> Vector2:
 	return complex_exp(res_log.x, res_log.y)
 
 static func complex_sin(x: float, y: float) -> Vector2:
+	if ClassDB.class_exists("ComplexFunctions"):
+		var ext = ClassDB.instantiate("ComplexFunctions")
+		return ext.call("complex_sin", x, y)
 	return Vector2(sin(x) * cosh(y), cos(x) * sinh(y))
 
 static func complex_cos(x: float, y: float) -> Vector2:
@@ -68,6 +88,9 @@ static func multivalued_acos(x: float, y: float) -> Vector2:
 	return Vector2(PI * 0.5 - asin_val.x, -asin_val.y)
 
 static func complex_cot(x: float, y: float) -> Vector2:
+	if ClassDB.class_exists("ComplexFunctions"):
+		var ext = ClassDB.instantiate("ComplexFunctions")
+		return ext.call("complex_cot", x, y)
 	var abs_2y = 2.0 * abs(y)
 	var exp_neg = exp(-abs_2y)
 	var scaled_cosh = 0.5 * (1.0 + exp_neg * exp_neg)
@@ -78,6 +101,9 @@ static func complex_cot(x: float, y: float) -> Vector2:
 	return Vector2(scaled_sin_2x / denom, -scaled_sinh / denom)
 
 static func complex_log_sin(x: float, y: float) -> Vector2:
+	if ClassDB.class_exists("ComplexFunctions"):
+		var ext = ClassDB.instantiate("ComplexFunctions")
+		return ext.call("complex_log_sin", x, y)
 	var abs_y = abs(y)
 	var log_scale = abs_y - log(2.0)
 	var e_neg2 = exp(-2.0 * abs_y)
@@ -96,6 +122,7 @@ const LOG_2 = 0.6931471805599453
 const LOG_PI = 1.1447298858494002
 
 static func dirichlet_eta(x: float, y: float, iterations: int) -> Vector2:
+	if x < -1.0: return Vector2(NAN, NAN)
 	if iterations <= 0: return Vector2.ZERO
 	var eta = Vector2.ZERO
 	var actual_iters = 0
@@ -115,7 +142,7 @@ static func dirichlet_eta(x: float, y: float, iterations: int) -> Vector2:
 
 		if (amp < 1e-4 || amp2 < 1e-4 || amp > 1e4 || amp2 > 1e4): break
 
-	if actual_iters > 0:
+	if actual_iters > 0 and x >= 0.5:
 		var next_n = float(actual_iters + 1)
 		var rem_amp = 0.5 * pow(next_n, -x)
 		var rem_theta = -y * log(next_n)
@@ -125,6 +152,7 @@ static func dirichlet_eta(x: float, y: float, iterations: int) -> Vector2:
 	return eta
 
 static func dirichlet_beta(x: float, y: float, iterations: int) -> Vector2:
+	if x < -1.0: return Vector2(NAN, NAN)
 	if iterations <= 0: return Vector2.ZERO
 	var beta = Vector2.ZERO
 	for n in range(0, iterations, 2):
@@ -165,14 +193,19 @@ const LANCZOS_P = [
 const SQRT_2PI = 2.5066282746310005
 
 static func lanczos_gamma(z_orig: Vector2) -> Vector2:
-	var z = z_orig - Vector2(1.0, 0.0)
-	var x = Vector2(LANCZOS_P[0], 0.0)
-	for i in range(1, 9):
-		x += complex_div(Vector2(LANCZOS_P[i], 0.0), z + Vector2(float(i), 0.0))
-	var tmp = z + Vector2(7.5, 0.0)
-	var p = complex_pow(tmp, z + Vector2(0.5, 0.0))
-	var etmp = complex_exp(-tmp.x, -tmp.y)
-	return SQRT_2PI * complex_mul(complex_mul(p, etmp), x)
+	if ClassDB.class_exists("ComplexFunctions"):
+		# Use ClassDB.instantiate to avoid parser errors when the extension is not built yet (like in CI)
+		var ext = ClassDB.instantiate("ComplexFunctions")
+		return ext.call("lanczos_gamma", z_orig)
+	else:
+		var z = z_orig - Vector2(1.0, 0.0)
+		var x = Vector2(LANCZOS_P[0], 0.0)
+		for i in range(1, 9):
+			x += complex_div(Vector2(LANCZOS_P[i], 0.0), z + Vector2(float(i), 0.0))
+		var tmp = z + Vector2(7.5, 0.0)
+		var p = complex_pow(tmp, z + Vector2(0.5, 0.0))
+		var etmp = complex_exp(-tmp.x, -tmp.y)
+		return SQRT_2PI * complex_mul(complex_mul(p, etmp), x)
 
 static func complex_gamma(x: float, y: float) -> Vector2:
 	if x < 0.5:
@@ -267,6 +300,173 @@ static func get_rational(x: float, y: float, num_coeffs: PackedVector2Array, den
 	var den = evaluate_poly(x, y, den_coeffs)
 	return complex_div(num, den)
 
+
+static func get_shader_patch_centers() -> PackedVector2Array:
+	var centers = PackedVector2Array()
+	for i in range(min(64, zeta_patches.size())):
+		centers.append(zeta_patches[i]["center"])
+	return centers
+
+static func get_shader_patch_coeffs() -> PackedVector2Array:
+	var coeffs = PackedVector2Array()
+	for i in range(min(64, zeta_patches.size())):
+		for k in range(16):
+			coeffs.append(zeta_patches[i]["coeffs"][k])
+	return coeffs
+
+static func evaluate_power_series(center: Vector2, coeffs: Array, z: Vector2) -> Vector2:
+	var res = Vector2.ZERO
+	var dz = z - center
+	var dz_k = Vector2(1.0, 0.0)
+	for k in range(coeffs.size()):
+		res += complex_mul(coeffs[k], dz_k)
+		dz_k = complex_mul(dz_k, dz)
+	return res
+
+static func compute_zeta_taylor_patch(x: float, y: float, iters: int) -> Array:
+	var K = PATCH_MAX_K
+	var max_terms = min(80, iters)
+
+	var fact = []
+	fact.append(1.0)
+	for k in range(1, K + 1):
+		fact.append(fact[k - 1] * float(k))
+
+	var eta_coeffs = []
+	for k in range(K + 1):
+		eta_coeffs.append(Vector2.ZERO)
+
+	for n in range(max_terms):
+		var inner_sums = []
+		for k in range(K + 1):
+			inner_sums.append(Vector2.ZERO)
+
+		var binom = 1.0
+		for k in range(n + 1):
+			var base_term: Vector2
+			var log_k1: float = 0.0
+
+			if k == 0:
+				base_term = Vector2(float(binom), 0.0)
+				log_k1 = 0.0
+			else:
+				var k1 = float(k + 1)
+				var amp = pow(k1, -x)
+				var theta = -y * log(k1)
+				var sign_k = 1.0 if k % 2 == 0 else -1.0
+				base_term = sign_k * float(binom) * amp * Vector2(cos(theta), sin(theta))
+				log_k1 = log(k1)
+
+			inner_sums[0] += base_term
+
+			var current_term = base_term
+			for m in range(1, K + 1):
+				current_term *= -log_k1
+				inner_sums[m] += current_term
+
+			binom = binom * (n - k) / (k + 1)
+
+		var div_pow2 = pow(2.0, float(n + 1))
+		for m in range(K + 1):
+			eta_coeffs[m] += (inner_sums[m] / div_pow2) / fact[m]
+
+	var d_coeffs = []
+	var base_d = 2.0 * pow(2.0, -x) * Vector2(cos(-y * LOG_2), sin(-y * LOG_2))
+	d_coeffs.append(Vector2(1.0, 0.0) - base_d)
+
+	var d_term = base_d
+	for k in range(1, K + 1):
+		d_term *= -LOG_2
+		d_coeffs.append(-d_term / fact[k])
+
+	var zeta_coeffs = []
+	for k in range(K + 1):
+		var sum_val = eta_coeffs[k]
+		for j in range(k):
+			sum_val -= complex_mul(zeta_coeffs[j], d_coeffs[k - j])
+		zeta_coeffs.append(complex_div(sum_val, d_coeffs[0]))
+
+	return zeta_coeffs
+
+const PATCH_MIN_SPACING = PATCH_RADIUS * 0.25
+
+static func _get_or_create_patch(z: Vector2, iters: int) -> Dictionary:
+	# 1. If no patches exist, seed the initial patch on the safe domain boundary (x >= 0.5)
+	if zeta_patches.is_empty():
+		var start_x = max(z.x, 0.5)
+		var start_z = Vector2(start_x, z.y)
+		var coeffs = compute_zeta_taylor_patch(start_z.x, start_z.y, iters)
+		var p = {
+			"center": start_z,
+			"coeffs": coeffs,
+			"radius": PATCH_RADIUS
+		}
+		zeta_patches.append(p)
+		if GameState and GameState.has_signal("state_changed"):
+			GameState.call_deferred("emit_signal", "state_changed", "zeta_patches")
+
+	# 2. Iterate pathfinding / stepping until we reach a patch containing target `z`
+	while true:
+		var closest_patch = null
+		var min_dist = 1e9
+
+		for patch in zeta_patches:
+			var dist = (z - patch["center"]).length()
+			if dist < min_dist:
+				min_dist = dist
+				closest_patch = patch
+
+		# If the target is within the safe valid radius of our closest patch, return it!
+		if min_dist <= PATCH_RADIUS * PATCH_THRESHOLD:
+			return closest_patch
+
+		# Otherwise, step systematically from our closest patch toward the target
+		var dir = (z - closest_patch["center"]).normalized()
+		var step_dist = PATCH_RADIUS * PATCH_THRESHOLD
+		var new_center = closest_patch["center"] + dir * step_dist
+
+		# Safety boundary guard
+		if new_center.x < -20.0: # Prevent walking into deep computation trivial zeros unguided
+			new_center.x = -20.0
+
+		# Create the new connected patch chain link
+		var new_coeffs = compute_zeta_taylor_patch(new_center.x, new_center.y, iters)
+		var new_patch = {
+			"center": new_center,
+			"coeffs": new_coeffs,
+			"radius": PATCH_RADIUS
+		}
+		zeta_patches.append(new_patch)
+
+		if GameState and GameState.has_signal("state_changed"):
+			GameState.call_deferred("emit_signal", "state_changed", "zeta_patches")
+
+	return {} # Unreachable statement kept for compiler peace of mind
+
+static func zeta_continuation_power_series(x: float, y: float) -> Vector2:
+	if x >= 0.5:
+		return zeta(x, y)
+	var z = Vector2(x, y)
+	var patch = _get_or_create_patch(z, Config.iterations)
+	return evaluate_power_series(patch["center"], patch["coeffs"], z)
+
+static func zeta_continuation_power_series_with_derivatives(x: float, y: float, iters: int) -> Array:
+	if x >= 0.5:
+		return zeta_with_derivatives(x, y, iters)
+	var z = Vector2(x, y)
+	var patch = _get_or_create_patch(z, iters)
+	var val = evaluate_power_series(patch["center"], patch["coeffs"], z)
+
+	var res_prime = Vector2.ZERO
+	var dz = z - patch["center"]
+	var dz_k = Vector2(1.0, 0.0)
+	for k in range(1, patch["coeffs"].size()):
+		var coeff_scaled = patch["coeffs"][k] * float(k)
+		res_prime += complex_mul(coeff_scaled, dz_k)
+		dz_k = complex_mul(dz_k, dz)
+
+	return [val, res_prime]
+
 static func xi(x: float, y: float) -> Vector2:
 	var s = Vector2(x, y)
 	var s_minus_1 = Vector2(x - 1.0, y)
@@ -313,8 +513,13 @@ static func multivalued_log(x: float, y: float, branch: int = -99999, use_negati
 
 
 static func dirichlet_eta_with_derivatives(x: float, y: float, iters: int) -> Array:
+	if ClassDB.class_exists("ComplexFunctions"):
+		var ext = ClassDB.instantiate("ComplexFunctions")
+		return ext.call("dirichlet_eta_with_derivatives", x, y, iters)
+	if x < -1.0: return [Vector2(NAN, NAN), Vector2(NAN, NAN), Vector2(NAN, NAN)]
 	var eta = Vector2.ZERO
 	var deta_dx = Vector2.ZERO
+	var d2eta_dx2 = Vector2.ZERO
 	var actual_iters = 0
 	for n in range(1, iters + 1, 2):
 		var nf = float(n)
@@ -324,6 +529,7 @@ static func dirichlet_eta_with_derivatives(x: float, y: float, iters: int) -> Ar
 		var term = amp * Vector2(cos(theta), sin(theta))
 		eta += term
 		deta_dx -= log_n * term
+		d2eta_dx2 += (log_n * log_n) * term
 
 		var nf2 = float(n + 1)
 		var amp2 = pow(nf2, -x)
@@ -332,6 +538,7 @@ static func dirichlet_eta_with_derivatives(x: float, y: float, iters: int) -> Ar
 		var term2 = amp2 * Vector2(cos(theta2), sin(theta2))
 		eta -= term2
 		deta_dx += log_n2 * term2
+		d2eta_dx2 -= (log_n2 * log_n2) * term2
 
 		actual_iters = n + 1
 
@@ -348,35 +555,54 @@ static func dirichlet_eta_with_derivatives(x: float, y: float, iters: int) -> Ar
 
 		eta += rem_term
 		deta_dx -= rem_log_n * rem_term
+		d2eta_dx2 += (rem_log_n * rem_log_n) * rem_term
 
-	return [eta, deta_dx]
+	return [eta, deta_dx, d2eta_dx2]
 
 static func zeta_with_derivatives(x: float, y: float, iters: int) -> Array:
+	if ClassDB.class_exists("ComplexFunctions"):
+		var ext = ClassDB.instantiate("ComplexFunctions")
+		return ext.call("zeta_with_derivatives", x, y, iters)
 	var eta_data = dirichlet_eta_with_derivatives(x, y, iters)
 	var eta = eta_data[0]
 	var deta_dx = eta_data[1]
+	var d2eta_dx2 = eta_data[2]
 
 	var amp2 = pow(2.0, 1.0 - x)
 	var theta2 = -y * LOG_2
 	var two_term = amp2 * Vector2(cos(theta2), sin(theta2))
 	var denom = Vector2(1.0, 0.0) - two_term
 	var ddenom_dx = LOG_2 * two_term
+	var d2denom_dx2 = - (LOG_2 * LOG_2) * two_term
 
 	var val = complex_div(eta, denom)
 	var denom_sqr = complex_mul(denom, denom)
 	var num_x = complex_mul(deta_dx, denom) - complex_mul(eta, ddenom_dx)
 	var dx = complex_div(num_x, denom_sqr)
 
-	return [val, dx]
+	var term1 = complex_mul(d2eta_dx2, denom) - complex_mul(eta, d2denom_dx2)
+	var term2 = complex_mul(Vector2(2.0, 0.0), complex_mul(ddenom_dx, num_x))
+	var term2_scaled = complex_div(term2, denom)
+	var d2x = complex_div(term1 - term2_scaled, denom_sqr)
+
+	return [val, dx, d2x]
 
 static func lanczos_log_gamma_with_derivatives(z: Vector2) -> Array:
+	# if ClassDB.class_exists("ComplexFunctions"):
+	# 	var ext = ClassDB.instantiate("ComplexFunctions")
+	# 	return ext.call("lanczos_log_gamma_with_derivatives", z)
 	var z_m1 = z - Vector2(1.0, 0.0)
 	var x = Vector2(LANCZOS_P[0], 0.0)
 	var dx_val = Vector2.ZERO
+	var d2x_val = Vector2.ZERO
 	for i in range(1, 9):
 		var denom = z_m1 + Vector2(float(i), 0.0)
-		x += complex_div(Vector2(LANCZOS_P[i], 0.0), denom)
-		dx_val -= complex_div(Vector2(LANCZOS_P[i], 0.0), complex_mul(denom, denom))
+		var denom2 = complex_mul(denom, denom)
+		var denom3 = complex_mul(denom2, denom)
+		var p_i = Vector2(LANCZOS_P[i], 0.0)
+		x += complex_div(p_i, denom)
+		dx_val -= complex_div(p_i, denom2)
+		d2x_val += complex_mul(Vector2(2.0, 0.0), complex_div(p_i, denom3))
 
 	var tmp = z_m1 + Vector2(7.5, 0.0)
 	var log_tmp = complex_log(tmp.x, tmp.y)
@@ -385,9 +611,18 @@ static func lanczos_log_gamma_with_derivatives(z: Vector2) -> Array:
 
 	var psi = log_tmp + complex_div(z - Vector2(0.5, 0.0), tmp) - Vector2(1.0, 0.0) + complex_div(dx_val, x)
 
-	return [val, psi]
+	var term1_d2 = complex_div(Vector2(1.0, 0.0), tmp)
+	var term2_d2 = complex_div(z - Vector2(0.5, 0.0), complex_mul(tmp, tmp))
+	var term3_num = complex_mul(d2x_val, x) - complex_mul(dx_val, dx_val)
+	var term3_d2 = complex_div(term3_num, complex_mul(x, x))
+	var dpsi = term1_d2 - term2_d2 + term3_d2
+
+	return [val, psi, dpsi]
 
 static func complex_log_gamma_with_derivatives(x: float, y: float) -> Array:
+	if ClassDB.class_exists("ComplexFunctions"):
+		var ext = ClassDB.instantiate("ComplexFunctions")
+		return ext.call("complex_log_gamma_with_derivatives", x, y)
 	if x < 0.5:
 		var pi_z = Vector2(PI * x, PI * y)
 		var lg1z = lanczos_log_gamma_with_derivatives(Vector2(1.0 - x, -y))
@@ -396,49 +631,73 @@ static func complex_log_gamma_with_derivatives(x: float, y: float) -> Array:
 		var val = Vector2(LOG_PI, 0.0) - log_sin_pi_z - lg1z[0]
 		var cot_pi_z = complex_cot(pi_z.x, pi_z.y)
 		var dx = - PI * cot_pi_z + lg1z[1]
-		return [val, dx]
+		var cot2 = complex_mul(cot_pi_z, cot_pi_z)
+		var csc2 = Vector2(1.0 + cot2.x, cot2.y)
+		var d2x_p1 = (PI * PI) * csc2
+		var d2x = d2x_p1 - lg1z[2]
+		return [val, dx, d2x]
 	else:
 		return lanczos_log_gamma_with_derivatives(Vector2(x, y))
 
 static func log_zeta_continuation_with_derivatives(x: float, y: float, iters: int) -> Array:
+	if ClassDB.class_exists("ComplexFunctions"):
+		var ext = ClassDB.instantiate("ComplexFunctions")
+		return ext.call("log_zeta_continuation_with_derivatives", x, y, iters)
 	if x >= 0.5:
 		var zeta_data = zeta_with_derivatives(x, y, iters)
 		var z_val = zeta_data[0]
 		var z_dx = zeta_data[1]
+		var z_d2x = zeta_data[2]
 		var val = complex_log(z_val.x, z_val.y)
 		var dx = complex_div(z_dx, z_val)
-		return [val, dx]
+		var dx2 = complex_div(complex_mul(z_d2x, z_val) - complex_mul(z_dx, z_dx), complex_mul(z_val, z_val))
+		return [val, dx, dx2]
 
 	var s = Vector2(x, y)
 	var s1 = Vector2(1.0 - x, -y)
 
 	var log_sum = complex_mul(s, Vector2(LOG_2, 0.0)) + complex_mul(s - Vector2(1.0, 0.0), Vector2(LOG_PI, 0.0))
 	var ratio = Vector2(LOG_2 + LOG_PI, 0.0)
+	var d2_ratio = Vector2.ZERO
 
 	var pi_s_2 = (PI * 0.5) * s
 
 	log_sum += complex_log_sin(pi_s_2.x, pi_s_2.y)
-	ratio += (PI * 0.5) * complex_cot(pi_s_2.x, pi_s_2.y)
+	var cot_pi_s_2 = complex_cot(pi_s_2.x, pi_s_2.y)
+	ratio += (PI * 0.5) * cot_pi_s_2
+
+	var cot_pi_s_2_sq = complex_mul(cot_pi_s_2, cot_pi_s_2)
+	var csc_pi_s_2_sq = Vector2(1.0, 0.0) + cot_pi_s_2_sq
+	d2_ratio -= (PI * PI * 0.25) * csc_pi_s_2_sq
 
 	var lg_data = complex_log_gamma_with_derivatives(s1.x, s1.y)
 	log_sum += lg_data[0]
 	ratio -= lg_data[1]
+	d2_ratio += lg_data[2]
 
 	var reflected_zeta_data = zeta_with_derivatives(s1.x, s1.y, iters)
 	var reflected_val = reflected_zeta_data[0]
+	var reflected_dx = reflected_zeta_data[1]
+	var reflected_d2x = reflected_zeta_data[2]
 	log_sum += complex_log(reflected_val.x, reflected_val.y)
-	ratio -= complex_div(reflected_zeta_data[1], reflected_val)
+	var z_ratio = complex_div(reflected_dx, reflected_val)
+	ratio -= z_ratio
+	d2_ratio += complex_div(complex_mul(reflected_d2x, reflected_val) - complex_mul(reflected_dx, reflected_dx), complex_mul(reflected_val, reflected_val))
 
-	return [log_sum, ratio]
+	return [log_sum, ratio, d2_ratio]
 
 static func zeta_continuation_with_derivatives(x: float, y: float, iters: int) -> Array:
+	if ClassDB.class_exists("ComplexFunctions"):
+		var ext = ClassDB.instantiate("ComplexFunctions")
+		return ext.call("zeta_continuation_with_derivatives", x, y, iters)
 	if x >= 0.5:
 		return zeta_with_derivatives(x, y, iters)
 
 	var log_z = log_zeta_continuation_with_derivatives(x, y, iters)
 	var val = complex_exp(log_z[0].x, log_z[0].y)
 	var dx = complex_mul(val, log_z[1])
-	return [val, dx]
+	var d2x = complex_mul(val, log_z[2] + complex_mul(log_z[1], log_z[1]))
+	return [val, dx, d2x]
 
 static func get_field_at(x: float, y: float, function_type: int, is_input: bool) -> Vector2:
 	match function_type:
@@ -466,6 +725,7 @@ static func get_field_at(x: float, y: float, function_type: int, is_input: bool)
 		Config.ComplexFunc.MULTIVALUED_LOG: return multivalued_log(x, y, -99999, true)
 		Config.ComplexFunc.MULTIVALUED_ASIN: return multivalued_asin(x, y)
 		Config.ComplexFunc.MULTIVALUED_ACOS: return multivalued_acos(x, y)
+		Config.ComplexFunc.ZETA_POWER_SERIES: return zeta_continuation_power_series(x, y)
 	return Vector2.ZERO
 
 static func get_field(world_x: float, world_z: float) -> Vector2:
@@ -484,22 +744,26 @@ static func newton_step(z: Vector2, step_size_mult: float, max_step: float = 1.0
 	var use_analytic = false
 	var f_val = Vector2.ZERO
 	var f_prime = Vector2.ZERO
+	var f_second = Vector2.ZERO
 
 	if Config.input_function_type == Config.ComplexFunc.IDENTITY:
 		if Config.function_type == Config.ComplexFunc.ZETA:
 			var res = zeta_with_derivatives(z.x, z.y, Config.iterations * 2)
 			f_val = res[0]
 			f_prime = res[1]
+			f_second = res[2]
 			use_analytic = true
 		elif Config.function_type == Config.ComplexFunc.ZETA_REFLECTION:
-			var res = zeta_continuation_with_derivatives(z.x, z.y, Config.iterations)
+			var res = zeta_continuation_with_derivatives(z.x, z.y, Config.iterations * 2)
 			f_val = res[0]
 			f_prime = res[1]
+			f_second = res[2]
 			use_analytic = true
 		elif Config.function_type == Config.ComplexFunc.DIRICHLET_ETA:
-			var res = dirichlet_eta_with_derivatives(z.x, z.y, Config.iterations)
+			var res = dirichlet_eta_with_derivatives(z.x, z.y, Config.iterations * 2)
 			f_val = res[0]
 			f_prime = res[1]
+			f_second = res[2]
 			use_analytic = true
 
 	if not use_analytic:
@@ -513,7 +777,20 @@ static func newton_step(z: Vector2, step_size_mult: float, max_step: float = 1.0
 	if f_prime.length_squared() < 1e-12:
 		return [z, f_val]
 
-	var step = complex_div(f_val, f_prime)
+	var step = Vector2.ZERO
+	if use_analytic:
+		var term1 = complex_mul(Vector2(2.0, 0.0), complex_mul(f_prime, f_prime))
+		var term2 = complex_mul(f_val, f_second)
+		var den = term1 - term2
+
+		if den.length() < 1e-12:
+			step = complex_div(f_val, f_prime)
+		else:
+			var num = complex_mul(Vector2(2.0, 0.0), complex_mul(f_val, f_prime))
+			step = complex_div(num, den)
+	else:
+		step = complex_div(f_val, f_prime)
+
 	if step.length() > max_step:
 		step = step.normalized() * max_step
 	return [z - step * step_size_mult, f_val]

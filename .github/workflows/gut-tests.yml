@@ -3,8 +3,6 @@ name: "Run GUT Unit Tests"
 on:
   workflow_dispatch:
   pull_request:
-    branches:
-      - master
 
 jobs:
   run-tests:
@@ -24,12 +22,45 @@ jobs:
       - name: "Create Godot Editor Settings and Import Assets"
         run: |
           mkdir -p ~/.config/godot
-          # Running headless once forces Godot to import all assets and generate .godot/ directory
-          godot --headless --editor --quit
+
+          set +e
+
+          godot \
+            --headless \
+            --editor \
+            --quit \
+            2>&1 | tee godot.log
+            
+          if grep -E "SCRIPT ERROR|Parse Error|Could not find base class|Compilation failed" godot.log; then
+            echo "::error::Godot compilation failed"
+            exit 1
+          fi
+
+          exit 0
 
       - name: "Run GUT Test Suite"
         run: |
-          godot --headless -s addons/gut/gut_cmdln.gd \
+          set +e
+
+          godot \
+            --headless \
+            -s addons/gut/gut_cmdln.gd \
             -gdir=res://tests \
             -ginclude_subdirs \
-            -gexit
+            -glog=2 \
+            -gexit \
+            2>&1 | tee gut.log
+
+          sed \
+            -e '/GDExtension dynamic library not found/d' \
+            -e '/Error loading extension/d' \
+            -e '/open_dynamic_library/d' \
+            -e '/FileAccess::exists(path)/d' \
+            gut.log > gut.filtered.log
+
+          if grep -i -E "SCRIPT ERROR|FAILED|ERROR|NOT OK|ORPHANED|CRASHED|INVALID" gut.filtered.log; then
+            echo "::error::GUT tests failed"
+            exit 1
+          fi
+
+          exit 0

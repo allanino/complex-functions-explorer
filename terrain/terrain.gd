@@ -101,9 +101,9 @@ func _update_chunks(p_x: int, p_z: int):
 	for chunk_coord in chunks_to_remove:
 		_unload_chunk(chunk_coord)
 
-func _update_all_chunks_lod(force: bool = false):
-	_dirty_neighbor_coords.clear()
+	_flush_dirty_neighbors()
 
+func _update_all_chunks_lod(force: bool = false):
 	var player_chunk_coord = _last_player_chunk
 	for coord in chunks:
 		var chunk = chunks[coord]
@@ -111,9 +111,9 @@ func _update_all_chunks_lod(force: bool = false):
 		if force or _chunk_lods.get(coord, -1) != desired_lod:
 			_update_chunk_lod(chunk, desired_lod, coord)
 
-	for coord in _dirty_neighbor_coords.keys():
-		_update_neighbor_lod_uniforms(coord)
+	_flush_dirty_neighbors()
 
+func _flush_dirty_neighbors():
 	for coord in _dirty_neighbor_coords.keys():
 		_update_neighbor_lod_uniforms(coord)
 	_dirty_neighbor_coords.clear()
@@ -169,6 +169,10 @@ func _apply_performance_protection(active: bool):
 		audio.set_performance_protection(active)
 
 func _update_all_terrain_material_uniforms():
+	if terrain_material:
+		terrain_material.set_shader_parameter("zeta_patch_count", min(64, ComplexField.zeta_patches.size()))
+		terrain_material.set_shader_parameter("zeta_patch_centers", ComplexField.get_shader_patch_centers())
+		terrain_material.set_shader_parameter("zeta_patch_coeffs", ComplexField.get_shader_patch_coeffs())
 	var init_keys = [
 		"function_type",
 		"iterations", "show_curves", "show_critical_stripe", "show_flow",
@@ -358,3 +362,8 @@ func _on_config_changed(key: String):
 func _on_state_changed(key: String):
 	if key in ["current_branch", "morph_value", "newton_path", "newton_path_bbox", "real_level_curves_highlighted", "imag_level_curves_highlighted", "effective_zoom"]:
 		_update_terrain_material_uniforms(key)
+	elif key == "zeta_patches":
+		if terrain_material:
+			terrain_material.set_shader_parameter("zeta_patch_count", min(64, ComplexField.zeta_patches.size()))
+			terrain_material.set_shader_parameter("zeta_patch_centers", ComplexField.get_shader_patch_centers())
+			terrain_material.set_shader_parameter("zeta_patch_coeffs", ComplexField.get_shader_patch_coeffs())
