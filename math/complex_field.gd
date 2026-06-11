@@ -588,9 +588,9 @@ static func zeta_with_derivatives(x: float, y: float, iters: int) -> Array:
 	return [val, dx, d2x]
 
 static func lanczos_log_gamma_with_derivatives(z: Vector2) -> Array:
-	if ClassDB.class_exists("ComplexFunctions"):
-		var ext = ClassDB.instantiate("ComplexFunctions")
-		return ext.call("lanczos_log_gamma_with_derivatives", z)
+	# if ClassDB.class_exists("ComplexFunctions"):
+	# 	var ext = ClassDB.instantiate("ComplexFunctions")
+	# 	return ext.call("lanczos_log_gamma_with_derivatives", z)
 	var z_m1 = z - Vector2(1.0, 0.0)
 	var x = Vector2(LANCZOS_P[0], 0.0)
 	var dx_val = Vector2.ZERO
@@ -631,7 +631,11 @@ static func complex_log_gamma_with_derivatives(x: float, y: float) -> Array:
 		var val = Vector2(LOG_PI, 0.0) - log_sin_pi_z - lg1z[0]
 		var cot_pi_z = complex_cot(pi_z.x, pi_z.y)
 		var dx = - PI * cot_pi_z + lg1z[1]
-		return [val, dx]
+		var cot2 = complex_mul(cot_pi_z, cot_pi_z)
+		var csc2 = Vector2(1.0 + cot2.x, cot2.y)
+		var d2x_p1 = (PI * PI) * csc2
+		var d2x = d2x_p1 - lg1z[2]
+		return [val, dx, d2x]
 	else:
 		return lanczos_log_gamma_with_derivatives(Vector2(x, y))
 
