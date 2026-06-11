@@ -74,8 +74,6 @@ var _predicted_next_f := Vector2.INF
 func get_initial_position() -> Vector3:
 	if Config.function.has("initial_pos"):
 		return Config.function["initial_pos"]
-	if Config.function.get("is_dirichlect", false):
-		return Vector3(5.0, 0.0, 0.0)
 	return Vector3(0.0, 0.0, 0.0)
 
 func teleport_to_world_pos(target_pos: Vector3) -> void:
