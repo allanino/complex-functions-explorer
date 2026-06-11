@@ -356,10 +356,8 @@ static func _get_or_create_patch(z: Vector2, iters: int) -> Dictionary:
 			"radius": PATCH_RADIUS
 		}
 		zeta_patches.append(p)
-		if ClassDB.class_exists("GameState"):
-			var state = Engine.get_main_loop().root.get_node_or_null("/root/GameState")
-			if state and state.has_signal("state_changed"):
-				state.call_deferred("emit_signal", "state_changed", "zeta_patches")
+		if GameState and GameState.has_signal("state_changed"):
+			GameState.call_deferred("emit_signal", "state_changed", "zeta_patches")
 		return _get_or_create_patch(z, iters)
 
 	var dir = (target_z - closest_patch["center"]).normalized()
@@ -377,10 +375,8 @@ static func _get_or_create_patch(z: Vector2, iters: int) -> Dictionary:
 		"radius": PATCH_RADIUS
 	}
 	zeta_patches.append(new_patch)
-	if ClassDB.class_exists("GameState"):
-		var state = Engine.get_main_loop().root.get_node_or_null("/root/GameState")
-		if state and state.has_signal("state_changed"):
-			state.call_deferred("emit_signal", "state_changed", "zeta_patches")
+	if GameState and GameState.has_signal("state_changed"):
+		GameState.call_deferred("emit_signal", "state_changed", "zeta_patches")
 	return _get_or_create_patch(z, iters)
 
 static func zeta_continuation_power_series(x: float, y: float) -> Vector2:
