@@ -41,7 +41,7 @@ func test_player_movement_disabled_when_menu_open():
 	
 	# Open menu
 	main_ui.menu_overlay.visible = true
-	GameState.is_menu_open = true
+	player.is_menu_open = true
 	player.velocity = Vector3(10, 0, 10)
 	
 	# Run physics process
@@ -104,8 +104,8 @@ func test_curve_labels_throttled_update():
 	add_child_autoqfree(player)
 		
 	# Verify labels start visible is false (until updated)
-	pass # assert_false(player.re_label.visible)
-	pass # assert_false(player.im_label.visible)
+	assert_false(player.re_label.visible)
+	assert_false(player.im_label.visible)
 	
 	# Set player position and orientation (facing -Z)
 	player.global_position = Vector3(0.0, 0.0, 0.0)
@@ -120,21 +120,21 @@ func test_curve_labels_throttled_update():
 	# Real part is x, Imaginary part is y.
 	# Marching along -Z means x remains 0, while z goes negative (imaginary part y goes positive).
 	# So we should find imaginary crossings (since y = -z/10 goes up) but no real crossings (since x = 0).
-	pass # assert_true(player.im_label.visible)
-	pass # assert_false(player.re_label.visible)
-	pass # assert_almost_eq(player._curve_label_update_timer, 0.0, 0.001)
+	assert_true(player.im_label.visible)
+	assert_false(player.re_label.visible)
+	assert_almost_eq(player._curve_label_update_timer, 0.0, 0.001)
 	
 	# 3. Call _physics_process again with small delta. It should not update the labels (timer goes up but doesn't reach threshold)
 	player.im_label.visible = false # Manually hide to verify it's not set to true
 	player._physics_process(0.016)
-	pass # assert_false(player.im_label.visible)
+	assert_false(player.im_label.visible)
 	assert_almost_eq(player._curve_label_update_timer, 0.016, 0.001)
 	
 	# 4. Call _physics_process with a delta large enough to cross the threshold, and verify it snaps on first visible transition
 	player._curve_label_update_timer = player.CURVE_LABEL_UPDATE_INTERVAL
 	player._physics_process(0.016)
-	pass # assert_true(player.im_label.visible)
-	pass # assert_almost_eq(player._curve_label_update_timer, 0.0, 0.001)
+	assert_true(player.im_label.visible)
+	assert_almost_eq(player._curve_label_update_timer, 0.0, 0.001)
 	var start_pos = player.im_label.global_position
  
 	# 5. Move player past the first curve (to z = -11.0) and verify it slides smoothly (lerps) instead of snapping
@@ -177,7 +177,7 @@ func test_player_max_world_height_limit():
 
 	# 1. Below limit: height is 990 (< 1000)
 	player.global_position = Vector3(9900.0, 0.0, 0.0)
-	pass # player.last_player_pos = Vector3(9800.0, 0.0, 0.0)
+	player.last_player_pos = Vector3(9800.0, 0.0, 0.0)
 	# Set a high velocity (higher than current_speed of 25.0) to prevent it from decaying to 0
 	player.velocity = Vector3(100.0, 0.0, 0.0)
 	
@@ -189,7 +189,7 @@ func test_player_max_world_height_limit():
 	# 2. Above limit: height is 1005 (>= 1000)
 	player.global_position = Vector3(10050.0, 0.0, 0.0)
 	player.last_terrain_h = 999.0 # lower than terrain height to simulate moving uphill
-	pass # player.last_player_pos = Vector3(9950.0, 0.0, 0.0)
+	player.last_player_pos = Vector3(9950.0, 0.0, 0.0)
 
 	# Try to move uphill (velocity in positive X)
 	player.velocity = Vector3(100.0, 0.0, 0.0)
@@ -202,7 +202,7 @@ func test_player_max_world_height_limit():
 	# Try to move downhill (velocity in negative X)
 	player.global_position = Vector3(10050.0, 0.0, 0.0)
 	player.last_terrain_h = 1010.0 # higher than terrain height to simulate moving downhill
-	pass # player.last_player_pos = Vector3(10150.0, 0.0, 0.0)
+	player.last_player_pos = Vector3(10150.0, 0.0, 0.0)
 	player.velocity = Vector3(-100.0, 0.0, 0.0)
 	player._physics_process(0.016)
 
@@ -232,7 +232,7 @@ func test_player_zoom_scaling():
 	Config.zoom_damping = 0.5
 	GameState.effective_zoom = 1.0
 
-	GameState.is_menu_open = false
+	player.is_menu_open = false
 	player.is_detached_interactive = false
 	player.global_position = Vector3(10.0, 0.0, 10.0)
 	player._physics_process(0.016)
