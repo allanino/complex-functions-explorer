@@ -101,9 +101,9 @@ func _update_chunks(p_x: int, p_z: int):
 	for chunk_coord in chunks_to_remove:
 		_unload_chunk(chunk_coord)
 
-func _update_all_chunks_lod(force: bool = false):
-	_dirty_neighbor_coords.clear()
+	_flush_dirty_neighbors()
 
+func _update_all_chunks_lod(force: bool = false):
 	var player_chunk_coord = _last_player_chunk
 	for coord in chunks:
 		var chunk = chunks[coord]
@@ -111,9 +111,9 @@ func _update_all_chunks_lod(force: bool = false):
 		if force or _chunk_lods.get(coord, -1) != desired_lod:
 			_update_chunk_lod(chunk, desired_lod, coord)
 
-	for coord in _dirty_neighbor_coords.keys():
-		_update_neighbor_lod_uniforms(coord)
+	_flush_dirty_neighbors()
 
+func _flush_dirty_neighbors():
 	for coord in _dirty_neighbor_coords.keys():
 		_update_neighbor_lod_uniforms(coord)
 	_dirty_neighbor_coords.clear()

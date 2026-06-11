@@ -114,6 +114,17 @@ func test_dirichlet_eta_accelerated():
 	assert_almost_eq(res.x, 0.0, 0.1) # Note: Using higher tolerance for -4 because the formula starts to drift off without higher precision
 	assert_almost_eq(res.y, 0.0, 0.015)
 
+func test_dirichlet_eta_out_of_bounds():
+	var res = ComplexFieldScript.dirichlet_eta(-2.0, 0.0, 100)
+	assert_true(is_nan(res.x))
+	assert_true(is_nan(res.y))
+
+	var res_deriv = ComplexFieldScript.dirichlet_eta_with_derivatives(-2.0, 0.0, 100)
+	assert_true(is_nan(res_deriv[0].x))
+	assert_true(is_nan(res_deriv[0].y))
+	assert_true(is_nan(res_deriv[1].x))
+	assert_true(is_nan(res_deriv[1].y))
+
 func test_dirichlet_eta_with_derivatives():
 	# s = 1
 	var res = ComplexFieldScript.dirichlet_eta_with_derivatives(1, 0, 1000)
@@ -140,6 +151,11 @@ func test_dirichlet_beta():
 	var res = ComplexFieldScript.dirichlet_beta(1, 0, 100)
 	assert_almost_eq(res.x, PI / 4, 0.01)
 	assert_almost_eq(res.y, 0.0, 0.0001)
+
+func test_dirichlet_beta_out_of_bounds():
+	var res = ComplexFieldScript.dirichlet_beta(-2.0, 0.0, 100)
+	assert_true(is_nan(res.x))
+	assert_true(is_nan(res.y))
 
 func test_evaluate_poly():
 	var coeffs = PackedVector2Array([Vector2(1, 0), Vector2(2, 0), Vector2(3, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)]) # 1 + 2z + 3z^2
