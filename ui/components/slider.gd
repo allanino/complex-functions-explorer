@@ -50,22 +50,26 @@ var _syncing: bool = false
 			$DetachButton.visible = v
 
 static var _grabber_initialized: bool = false
-static var _grabber_pressed_tex: ImageTexture
-static var _grabber_highlight_tex: ImageTexture
+static var _grabber_pressed_tex: Texture2D
+static var _grabber_highlight_tex: Texture2D
 
-static func _create_grabber_texture(color: Color, _size: int, center: Vector2) -> ImageTexture:
-	var img = Image.create(_size, _size, false, Image.FORMAT_RGBA8)
-	for y in range(_size):
-		for x in range(_size):
-			var dist = center.distance_to(Vector2(x, y))
-			if dist <= 6.0:
-				img.set_pixel(x, y, color)
-			elif dist < 6.5:
-				var alpha = (6.5 - dist) / 0.5
-				img.set_pixel(x, y, Color(color.r, color.g, color.b, color.a * alpha))
-			else:
-				img.set_pixel(x, y, Color(0.0, 0.0, 0.0, 0.0))
-	return ImageTexture.create_from_image(img)
+static func _create_grabber_texture(color: Color, _size: int, center: Vector2) -> Texture2D:
+	var tex = GradientTexture2D.new()
+	tex.width = _size
+	tex.height = _size
+	tex.fill = GradientTexture2D.FILL_RADIAL
+	tex.fill_from = center / float(_size)
+	var outer_radius = 6.5
+	tex.fill_to = Vector2(center.x + outer_radius, center.y) / float(_size)
+
+	var grad = Gradient.new()
+	grad.interpolation_mode = Gradient.GRADIENT_INTERPOLATE_LINEAR
+	var inner_offset = 6.0 / outer_radius
+	grad.offsets = PackedFloat32Array([0.0, inner_offset, 1.0])
+	grad.colors = PackedColorArray([color, color, Color(color.r, color.g, color.b, 0.0)])
+
+	tex.gradient = grad
+	return tex
 
 func _ready():
 	$Label.text = text

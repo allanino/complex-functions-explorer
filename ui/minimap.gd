@@ -3,8 +3,8 @@ extends AspectRatioContainer
 @onready var map_rect = %MapRect
 @onready var fov_overlay = %FOVOverlay
 
-var player: Node3D = null
-var camera: Camera3D = null
+@onready var player: Node3D = get_tree().get_first_node_in_group("player")
+@onready var camera: Camera3D = player.get_node("Camera3D") if player else null
 var view_radius: float = 80.0
 
 # Tracking state for optimization
@@ -12,11 +12,6 @@ var _last_camera_yaw: float = 999.0
 var _last_fov_size: Vector2 = Vector2.ZERO
 
 func _ready():
-	await get_tree().process_frame
-	player = get_tree().get_first_node_in_group("player")
-	if player:
-		camera = player.get_node_or_null("Camera3D")
-
 	fov_overlay.draw.connect(_on_fov_overlay_draw)
 
 	resized.connect(_on_resized)
@@ -50,7 +45,13 @@ func _sync_all_uniforms():
 		mat.set_shader_parameter("zeta_patch_count", min(64, ComplexField.zeta_patches.size()))
 		mat.set_shader_parameter("zeta_patch_centers", ComplexField.get_shader_patch_centers())
 		mat.set_shader_parameter("zeta_patch_coeffs", ComplexField.get_shader_patch_coeffs())
-		print(ComplexField.zeta_patches)
+		mat.set_shader_parameter("morph", GameState.morph_value)
+		mat.set_shader_parameter("height_type", Config.height_type)
+		mat.set_shader_parameter("height_a", Config.height_a)
+		mat.set_shader_parameter("height_epsilon", Config.height_epsilon)
+		mat.set_shader_parameter("height_theta", Config.height_theta)
+
+		mat.set_shader_parameter("max_world_height", GameState.MAX_WORLD_HEIGHT)
 
 		_update_zeros_shader()
 
@@ -109,18 +110,24 @@ func _on_config_changed(key: String):
 	if not mat: return
 	if key == "show_hud_zeros":
 		_update_zeros_shader()
-	elif key in ["iterations", "zoom_factor", "function_type", "input_function_type", "color_scheme", "rational_num_coeffs", "rational_den_coeffs", "input_rational_num_coeffs", "input_rational_den_coeffs", "multivalued_n", "show_curves", "show_critical_stripe"]:
+	elif key in ["iterations", "zoom_factor", "function_type", "input_function_type", "color_scheme", "rational_num_coeffs", "rational_den_coeffs", "input_rational_num_coeffs", "input_rational_den_coeffs", "multivalued_n", "show_curves", "show_critical_stripe", "height_type", "height_a", "height_epsilon", "height_theta"]:
 		_sync_all_uniforms()
 
 func _on_state_changed(key: String):
 	var mat = map_rect.material as ShaderMaterial
 	if not mat: return
-	if key == "current_branch" or key == "effective_zoom":
+	if key == "current_branch" or key == "effective_zoom" or key == "morph_value":
 		mat.set_shader_parameter("current_branch", GameState.current_branch)
 		mat.set_shader_parameter("show_curves", Config.show_curves)
 		mat.set_shader_parameter("show_critical_stripe", Config.show_critical_stripe)
+		mat.set_shader_parameter("morph", GameState.morph_value)
 		if key == "effective_zoom":
 			mat.set_shader_parameter("zoom_factor", GameState.effective_zoom)
+
+	if key == "zeta_patches":
+		mat.set_shader_parameter("zeta_patch_count", min(64, ComplexField.zeta_patches.size()))
+		mat.set_shader_parameter("zeta_patch_centers", ComplexField.get_shader_patch_centers())
+		mat.set_shader_parameter("zeta_patch_coeffs", ComplexField.get_shader_patch_coeffs())
 
 	if key == "real_level_curves_highlighted":
 		var real_shaded = PackedFloat32Array()

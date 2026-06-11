@@ -88,10 +88,48 @@ func test_dirichlet_eta():
 	assert_almost_eq(res.x, log(2.0), 0.01)
 	assert_almost_eq(res.y, 0.0, 0.0001)
 
+func test_dirichlet_eta_out_of_bounds():
+	var res = ComplexFieldScript.dirichlet_eta(-2.0, 0.0, 100)
+	assert_true(is_nan(res.x))
+	assert_true(is_nan(res.y))
+
+	var res_deriv = ComplexFieldScript.dirichlet_eta_with_derivatives(-2.0, 0.0, 100)
+	assert_true(is_nan(res_deriv[0].x))
+	assert_true(is_nan(res_deriv[0].y))
+	assert_true(is_nan(res_deriv[1].x))
+	assert_true(is_nan(res_deriv[1].y))
+
+func test_dirichlet_eta_with_derivatives():
+	# s = 1
+	var res = ComplexFieldScript.dirichlet_eta_with_derivatives(1, 0, 1000)
+	assert_almost_eq(res[0].x, 0.6926, 0.001)
+	assert_almost_eq(res[0].y, 0.0, 0.0001)
+	assert_almost_eq(res[1].x, 0.1599, 0.001)
+	assert_almost_eq(res[1].y, 0.0, 0.0001)
+
+	# s = 2
+	res = ComplexFieldScript.dirichlet_eta_with_derivatives(2, 0, 1000)
+	assert_almost_eq(res[0].x, 0.8224, 0.001)
+	assert_almost_eq(res[0].y, 0.0, 0.0001)
+	assert_almost_eq(res[1].x, 0.1013, 0.001)
+	assert_almost_eq(res[1].y, 0.0, 0.0001)
+
+	# s = 0.5 + 14.1347i
+	res = ComplexFieldScript.dirichlet_eta_with_derivatives(0.5, 14.1347, 1000)
+	assert_almost_eq(res[0].x, 0.0000, 0.001)
+	assert_almost_eq(res[0].y, -0.0000, 0.001)
+	assert_almost_eq(res[1].x, 1.879, 0.001)
+	assert_almost_eq(res[1].y, -0.1143, 0.001)
+
 func test_dirichlet_beta():
 	var res = ComplexFieldScript.dirichlet_beta(1, 0, 100)
 	assert_almost_eq(res.x, PI / 4, 0.01)
 	assert_almost_eq(res.y, 0.0, 0.0001)
+
+func test_dirichlet_beta_out_of_bounds():
+	var res = ComplexFieldScript.dirichlet_beta(-2.0, 0.0, 100)
+	assert_true(is_nan(res.x))
+	assert_true(is_nan(res.y))
 
 func test_evaluate_poly():
 	var coeffs = PackedVector2Array([Vector2(1, 0), Vector2(2, 0), Vector2(3, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)]) # 1 + 2z + 3z^2
@@ -125,6 +163,49 @@ func test_complex_gamma():
 	assert_almost_eq(res2.x, 0.133910, 0.0001)
 	assert_almost_eq(res2.y, 0.0962865, 0.0001)
 
+func test_lanczos_log_gamma_with_derivatives():
+	# Test z = 1.0 + 0.0i
+	var res1 = ComplexFieldScript.lanczos_log_gamma_with_derivatives(Vector2(1.0, 0.0))
+	assert_almost_eq(res1[0].x, 0.0, 0.015)
+	assert_almost_eq(res1[0].y, 0.0, 0.015)
+	assert_almost_eq(res1[1].x, -0.577215, 0.015)
+	assert_almost_eq(res1[1].y, 0.0, 0.015)
+
+	# Test z = 2.0 + 0.0i
+	var res2 = ComplexFieldScript.lanczos_log_gamma_with_derivatives(Vector2(2.0, 0.0))
+	assert_almost_eq(res2[0].x, 0.0, 0.015)
+	assert_almost_eq(res2[0].y, 0.0, 0.015)
+	assert_almost_eq(res2[1].x, 0.422784, 0.015)
+	assert_almost_eq(res2[1].y, 0.0, 0.015)
+
+	# Test z = 3.0 + 0.0i
+	var res3 = ComplexFieldScript.lanczos_log_gamma_with_derivatives(Vector2(3.0, 0.0))
+	assert_almost_eq(res3[0].x, 0.693147, 0.015)
+	assert_almost_eq(res3[0].y, 0.0, 0.015)
+	assert_almost_eq(res3[1].x, 0.922784, 0.015)
+	assert_almost_eq(res3[1].y, 0.0, 0.015)
+
+	# Test z = 0.5 + 0.0i
+	var res4 = ComplexFieldScript.lanczos_log_gamma_with_derivatives(Vector2(0.5, 0.0))
+	assert_almost_eq(res4[0].x, 0.572364, 0.015)
+	assert_almost_eq(res4[0].y, 0.0, 0.015)
+	assert_almost_eq(res4[1].x, -1.96351, 0.015)
+	assert_almost_eq(res4[1].y, 0.0, 0.015)
+
+	# Test z = 2.0 + 1.0i
+	var res5 = ComplexFieldScript.lanczos_log_gamma_with_derivatives(Vector2(2.0, 1.0))
+	assert_almost_eq(res5[0].x, -0.304349, 0.015)
+	assert_almost_eq(res5[0].y, 0.483757, 0.015)
+	assert_almost_eq(res5[1].x, 0.59465, 0.015)
+	assert_almost_eq(res5[1].y, 0.576674, 0.015)
+
+	# Test z = 1.5 + 0.5i
+	var res6 = ComplexFieldScript.lanczos_log_gamma_with_derivatives(Vector2(1.5, 0.5))
+	assert_almost_eq(res6[0].x, -0.234186, 0.015)
+	assert_almost_eq(res6[0].y, 0.034668, 0.015)
+	assert_almost_eq(res6[1].x, 0.131892, 0.015)
+	assert_almost_eq(res6[1].y, 0.440659, 0.015)
+
 func test_complex_log_gamma():
 	var res = ComplexFieldScript.complex_log_gamma(1, 0)
 	assert_almost_eq(res.x, 0.0, 0.0001)
@@ -134,11 +215,77 @@ func test_complex_log_gamma():
 	assert_almost_eq(res2.x, -1.802215, 0.0001)
 	assert_almost_eq(res2.y, 0.62339, 0.0001)
 
+func test_complex_log_gamma_with_derivatives():
+	# Test x >= 0.5 (should match lanczos_log_gamma_with_derivatives)
+	var z1 = Vector2(1.5, 0.5)
+	var res1 = ComplexFieldScript.complex_log_gamma_with_derivatives(z1.x, z1.y)
+	var expected1 = ComplexFieldScript.lanczos_log_gamma_with_derivatives(z1)
+	assert_eq(res1.size(), 3)
+	assert_almost_eq(res1[0].x, expected1[0].x, 0.0001)
+	assert_almost_eq(res1[0].y, expected1[0].y, 0.0001)
+	assert_almost_eq(res1[1].x, expected1[1].x, 0.0001)
+	assert_almost_eq(res1[1].y, expected1[1].y, 0.0001)
+
+	# Test x < 0.5
+	var z2 = Vector2(-2.0, -1.0)
+	var res2 = ComplexFieldScript.complex_log_gamma_with_derivatives(z2.x, z2.y)
+	var val_pure2 = ComplexFieldScript.complex_log_gamma(z2.x, z2.y)
+	assert_eq(res2.size(), 3)
+	assert_almost_eq(res2[0].x, val_pure2.x, 0.0001)
+	assert_almost_eq(res2[0].y, val_pure2.y, 0.0001)
+	# derivative should be finite and non-zero
+	assert_true(res2[1].length_squared() > 0.0)
+	assert_false(is_nan(res2[1].x) or is_inf(res2[1].x))
+	assert_false(is_nan(res2[1].y) or is_inf(res2[1].y))
+
+	# Also test actual known derivative values for < 0.5 to be sure.
+	# From python script: z = -2.0 + -1.0i -> dx: x=0.994650, y=-2.776674
+	assert_almost_eq(res2[1].x, 0.994650, 0.005)
+	assert_almost_eq(res2[1].y, -2.776674, 0.005)
+
 func test_zeta():
 	var res = ComplexFieldScript.zeta(0.5, 14.134725)
 	assert_almost_eq(res.x, 0.0, 0.015)
 	assert_almost_eq(res.y, 0.0, 0.015)
 	
+func test_zeta_with_derivatives():
+	# Test at first non-trivial zero (same as test_zeta)
+	var x1 = 0.5
+	var y1 = 14.134725
+	var res = ComplexFieldScript.zeta_with_derivatives(x1, y1, Config.iterations)
+	assert_eq(res.size(), 3)
+	assert_true(typeof(res[0]) == TYPE_VECTOR2)
+	assert_true(typeof(res[1]) == TYPE_VECTOR2)
+
+	# Value should match the pure zeta function
+	var val_pure = ComplexFieldScript.zeta(x1, y1)
+	assert_almost_eq(res[0].x, val_pure.x, 0.0001)
+	assert_almost_eq(res[0].y, val_pure.y, 0.0001)
+
+	# Value should be close to 0 (since it's a zero)
+	assert_almost_eq(res[0].x, 0.0, 0.015)
+	assert_almost_eq(res[0].y, 0.0, 0.015)
+
+	# Derivative should not be zero, NaN, or Inf (basic structural check)
+	assert_true(res[1].length_squared() > 0.0)
+	assert_false(is_nan(res[1].x) or is_inf(res[1].x))
+	assert_false(is_nan(res[1].y) or is_inf(res[1].y))
+
+	# Test at a point on the real line
+	# zeta(2) ~ 1.64493, zeta'(2) ~ -0.937548
+	var x2 = 2.0
+	var y2 = 0.0
+	var res2 = ComplexFieldScript.zeta_with_derivatives(x2, y2, Config.iterations)
+	assert_eq(res2.size(), 3)
+	assert_true(typeof(res2[0]) == TYPE_VECTOR2)
+	assert_true(typeof(res2[1]) == TYPE_VECTOR2)
+
+	assert_almost_eq(res2[0].x, 1.64493, 0.0001)
+	assert_almost_eq(res2[0].y, 0.0, 0.0001)
+
+	assert_almost_eq(res2[1].x, -0.937548, 0.0001)
+	assert_almost_eq(res2[1].y, 0.0, 0.0001)
+
 func test_zeta_continuation():
 	var res = ComplexFieldScript.zeta_continuation(0.5, 14.134725)
 	assert_almost_eq(res.x, 0.0, 0.015)
@@ -164,12 +311,22 @@ func test_log_zeta_continuation_with_derivatives():
 	assert_almost_eq(res2[1].y, -0.6493, 0.0001)
 
 func test_zeta_continuation_power_series_with_derivatives():
-	var res2 = ComplexFieldScript.zeta_continuation_power_series_with_derivatives(-2.0, 3.0, 50)
-	# Values should match exactly to the test case from the user
-	assert_almost_eq(res2[0].x, -1.7083, 0.0001)
-	assert_almost_eq(res2[0].y, 0.7467, 0.0001)
-	assert_almost_eq(res2[1].x, 0.3974, 0.0001)
-	assert_almost_eq(res2[1].y, -0.6493, 0.0001)
+	var res = ComplexFieldScript.zeta_continuation_power_series_with_derivatives(-2.0, 0.0, 2000)
+	assert_almost_eq(res[0].x, 0.0, 0.015, "Trivial zero at s=-2 is 0")
+	assert_almost_eq(res[0].y, 0.0, 0.015, "Trivial zero at s=-2 is 0")
+
+	var res2 = ComplexFieldScript.zeta_continuation_power_series_with_derivatives(-0.8, 3.0, 2000)
+	assert_almost_eq(res2[0].x, 0.304813, 0.0001)
+	assert_almost_eq(res2[0].y, 0.040806, 0.0001)
+
+	assert_almost_eq(res2[1].x, 0.156051, 0.0001)
+	assert_almost_eq(res2[1].y, -0.092655, 0.0001)
+
+	# Continuity test near x = 0
+	var res3 = ComplexFieldScript.zeta_continuation_power_series_with_derivatives(-0.01, 10.0, 2000)
+	var res4 = ComplexFieldScript.zeta_continuation_power_series_with_derivatives(0.01, 10.0, 2000)
+	assert_almost_eq(res3[0].x, res4[0].x, 0.2, "Continuity across x=0 real part")
+	assert_almost_eq(res3[0].y, res4[0].y, 0.2, "Continuity across x=0 imaginary part")
 
 
 func test_zeta_continuation_with_derivatives():
@@ -177,7 +334,7 @@ func test_zeta_continuation_with_derivatives():
 	var x1 = 0.5
 	var y1 = 14.134725
 	var res = ComplexFieldScript.zeta_continuation_with_derivatives(x1, y1, Config.iterations)
-	assert_eq(res.size(), 2)
+	assert_eq(res.size(), 3)
 	assert_true(typeof(res[0]) == TYPE_VECTOR2)
 	assert_true(typeof(res[1]) == TYPE_VECTOR2)
 
@@ -199,7 +356,7 @@ func test_zeta_continuation_with_derivatives():
 	var x2 = -2.0
 	var y2 = 3.0
 	var res2 = ComplexFieldScript.zeta_continuation_with_derivatives(x2, y2, Config.iterations)
-	assert_eq(res2.size(), 2)
+	assert_eq(res2.size(), 3)
 	assert_true(typeof(res2[0]) == TYPE_VECTOR2)
 	assert_true(typeof(res2[1]) == TYPE_VECTOR2)
 
@@ -286,6 +443,30 @@ func test_get_rational():
 	Config.rational_num_coeffs = orig_num
 	Config.rational_den_coeffs = orig_den
 
+func test_xi():
+	# Exact value: xi(2) = pi / 6
+	var res_2 = ComplexFieldScript.xi(2.0, 0.0)
+	assert_almost_eq(res_2.x, PI / 6.0, 0.015)
+	assert_almost_eq(res_2.y, 0.0, 0.015)
+
+	# Functional equation symmetry: xi(s) = xi(1 - s)
+	var s_1 = Vector2(0.7, 1.2)
+	var s_1_sym = Vector2(1.0 - s_1.x, -s_1.y) # 1 - s
+	var res_s_1 = ComplexFieldScript.xi(s_1.x, s_1.y)
+	var res_s_1_sym = ComplexFieldScript.xi(s_1_sym.x, s_1_sym.y)
+	assert_almost_eq(res_s_1.x, res_s_1_sym.x, 0.015)
+	assert_almost_eq(res_s_1.y, res_s_1_sym.y, 0.015)
+
+	# Real on the critical line: Re(s) = 0.5
+	var res_crit = ComplexFieldScript.xi(0.5, 5.0)
+	assert_almost_eq(res_crit.y, 0.0, 0.015)
+
+	# First non-trivial zero of zeta is also a zero of xi
+	var first_zero_y = 14.134725
+	var res_zero = ComplexFieldScript.xi(0.5, first_zero_y)
+	assert_almost_eq(res_zero.x, 0.0, 0.015)
+	assert_almost_eq(res_zero.y, 0.0, 0.015)
+
 func test_multivalued_z_pow_inv_n():
 	# Save original config values to restore them later
 	var orig_current_branch = GameState.current_branch
@@ -339,6 +520,7 @@ func test_multivalued_log():
 func test_multivalued_asin_exact_values():
 	var orig_branch = GameState.current_branch
 
+	# Table[Pi*B + (-1)^B * ArcSin[1.5 + 0.01*I], {B, -2, 2}]
 	var expected_values = {
 		-2: Vector2(-4.7213, 0.9625),
 		-1: Vector2(-4.7034, -0.9625),
@@ -356,30 +538,24 @@ func test_multivalued_asin_exact_values():
 
 	GameState.current_branch = orig_branch
 
-func test_multivalued_asin_continuity():
+func test_multivalued_acos_exact_values():
 	var orig_branch = GameState.current_branch
 
-	for B in [-2, -1, 0, 1, 2]:
+	# Table[Pi/2 - (Pi*B + (-1)^B * (Pi/2 - ArcCos[1.5 + 0.01*I])), {B, -2, 2}]
+	var expected_values = {
+		-2: Vector2(6.2921, -0.9625),
+		-1: Vector2(6.2742, 0.9625),
+		0: Vector2(0.0089, -0.9625),
+		1: Vector2(-0.0089, 0.9625),
+		2: Vector2(-6.2742, -0.9625)
+	}
+
+	for B in expected_values.keys():
 		GameState.current_branch = B
-		var val_above = ComplexFieldScript.multivalued_asin(1.5, 0.01)
-
-		var B_next_pos = B + 1 if B % 2 == 0 else B - 1
-		GameState.current_branch = B_next_pos
-		var val_below = ComplexFieldScript.multivalued_asin(1.5, -0.01)
-
-		assert_almost_eq(val_above.x, val_below.x, 0.05)
-		assert_almost_eq(val_above.y, val_below.y, 0.05)
-
-	for B in [-2, -1, 0, 1, 2]:
-		GameState.current_branch = B
-		var val_above = ComplexFieldScript.multivalued_asin(-1.5, 0.01)
-
-		var B_next_neg = B - 1 if B % 2 == 0 else B + 1
-		GameState.current_branch = B_next_neg
-		var val_below = ComplexFieldScript.multivalued_asin(-1.5, -0.01)
-
-		assert_almost_eq(val_above.x, val_below.x, 0.05)
-		assert_almost_eq(val_above.y, val_below.y, 0.05)
+		var res = ComplexFieldScript.multivalued_acos(1.5, 0.01)
+		var expected = expected_values[B]
+		assert_almost_eq(res.x, expected.x, 0.005)
+		assert_almost_eq(res.y, expected.y, 0.005)
 
 	GameState.current_branch = orig_branch
 
@@ -404,6 +580,33 @@ func test_multivalued_acos_continuity():
 		var B_next_neg = B - 1 if B % 2 == 0 else B + 1
 		GameState.current_branch = B_next_neg
 		var val_below = ComplexFieldScript.multivalued_acos(-1.5, -0.01)
+
+		assert_almost_eq(val_above.x, val_below.x, 0.05)
+		assert_almost_eq(val_above.y, val_below.y, 0.05)
+
+	GameState.current_branch = orig_branch
+
+func test_multivalued_asin_continuity():
+	var orig_branch = GameState.current_branch
+
+	for B in [-2, -1, 0, 1, 2]:
+		GameState.current_branch = B
+		var val_above = ComplexFieldScript.multivalued_asin(1.5, 0.01)
+
+		var B_next_pos = B + 1 if B % 2 == 0 else B - 1
+		GameState.current_branch = B_next_pos
+		var val_below = ComplexFieldScript.multivalued_asin(1.5, -0.01)
+
+		assert_almost_eq(val_above.x, val_below.x, 0.05)
+		assert_almost_eq(val_above.y, val_below.y, 0.05)
+
+	for B in [-2, -1, 0, 1, 2]:
+		GameState.current_branch = B
+		var val_above = ComplexFieldScript.multivalued_asin(-1.5, 0.01)
+
+		var B_next_neg = B - 1 if B % 2 == 0 else B + 1
+		GameState.current_branch = B_next_neg
+		var val_below = ComplexFieldScript.multivalued_asin(-1.5, -0.01)
 
 		assert_almost_eq(val_above.x, val_below.x, 0.05)
 		assert_almost_eq(val_above.y, val_below.y, 0.05)
@@ -557,11 +760,20 @@ func test_newton_step():
 	var z1_next = res1[0]
 	var f1_val = res1[1]
 
-	var expected_f1_res = ComplexFieldScript.zeta_with_derivatives(z1.x, z1.y, Config.iterations)
+	var expected_f1_res = ComplexFieldScript.zeta_with_derivatives(z1.x, z1.y, Config.iterations * 2)
 	var expected_f1_val = expected_f1_res[0]
 	var expected_f1_prime = expected_f1_res[1]
+	var expected_f1_second = expected_f1_res[2]
 
-	var expected_step1 = ComplexFieldScript.complex_div(expected_f1_val, expected_f1_prime)
+	var expected_step1 = Vector2.ZERO
+	var term1 = ComplexFieldScript.complex_mul(Vector2(2.0, 0.0), ComplexFieldScript.complex_mul(expected_f1_prime, expected_f1_prime))
+	var term2 = ComplexFieldScript.complex_mul(expected_f1_val, expected_f1_second)
+	var den = term1 - term2
+	if den.length() < 1e-12:
+		expected_step1 = ComplexFieldScript.complex_div(expected_f1_val, expected_f1_prime)
+	else:
+		var num = ComplexFieldScript.complex_mul(Vector2(2.0, 0.0), ComplexFieldScript.complex_mul(expected_f1_val, expected_f1_prime))
+		expected_step1 = ComplexFieldScript.complex_div(num, den)
 	if expected_step1.length() > 1.0:
 		expected_step1 = expected_step1.normalized() * 1.0
 	var expected_z1_next = z1 - expected_step1 * 1.0
@@ -688,3 +900,64 @@ func test_get_field():
 	GameState.performance_protection_active = orig_perf
 	Config.set("input_function_type", orig_in_func)
 	Config.set("function_type", orig_func)
+
+func test_zeta_trivial_zero():
+	# The user specifically requested ensuring x = -2.0, y = 0.0 works fine
+	var res = ComplexFieldScript.zeta_continuation(-2.0, 0.0)
+	assert_almost_eq(res.x, 0.0, 0.0001)
+	assert_almost_eq(res.y, 0.0, 0.0001)
+
+func test_get_field_at():
+	var x = 1.2
+	var y = 3.4
+
+	# Test simple functions
+	var res_identity = ComplexFieldScript.get_field_at(x, y, Config.ComplexFunc.IDENTITY, false)
+	assert_eq(res_identity, Vector2(x, y))
+
+	var res_sin = ComplexFieldScript.get_field_at(x, y, Config.ComplexFunc.SIN, false)
+	assert_eq(res_sin, ComplexFieldScript.complex_sin(x, y))
+
+	var res_zeta = ComplexFieldScript.get_field_at(x, y, Config.ComplexFunc.ZETA, false)
+	assert_eq(res_zeta, ComplexFieldScript.zeta(x, y))
+
+	var res_zeta_refl = ComplexFieldScript.get_field_at(x, y, Config.ComplexFunc.ZETA_REFLECTION, false)
+	assert_eq(res_zeta_refl, ComplexFieldScript.zeta_continuation(x, y))
+
+	var res_gamma = ComplexFieldScript.get_field_at(x, y, Config.ComplexFunc.GAMMA, false)
+	assert_eq(res_gamma, ComplexFieldScript.complex_gamma(x, y))
+
+	var res_log_gamma = ComplexFieldScript.get_field_at(x, y, Config.ComplexFunc.LOG_GAMMA, false)
+	assert_eq(res_log_gamma, ComplexFieldScript.complex_log_gamma(x, y))
+
+	var res_dedekind_eta = ComplexFieldScript.get_field_at(x, y, Config.ComplexFunc.DEDEKIND_ETA, false)
+	assert_eq(res_dedekind_eta, ComplexFieldScript.dedekind_eta(x, y))
+
+	# Test functions with Config.iterations
+	var res_eta = ComplexFieldScript.get_field_at(x, y, Config.ComplexFunc.DIRICHLET_ETA, false)
+	assert_eq(res_eta, ComplexFieldScript.dirichlet_eta(x, y, Config.iterations))
+
+	var res_beta = ComplexFieldScript.get_field_at(x, y, Config.ComplexFunc.DIRICHLET_BETA, false)
+	assert_eq(res_beta, ComplexFieldScript.dirichlet_beta(x, y, Config.iterations))
+
+	var res_mandelbrot = ComplexFieldScript.get_field_at(x, y, Config.ComplexFunc.MANDELBROT, false)
+	assert_eq(res_mandelbrot, ComplexFieldScript.mandelbrot(x, y, Config.iterations))
+
+	# Test functions with Config.multivalued_n and hardcoded values
+	var res_z_pow = ComplexFieldScript.get_field_at(x, y, Config.ComplexFunc.MULTIVALUED_Z_POW, false)
+	assert_eq(res_z_pow, ComplexFieldScript.multivalued_z_pow_inv_n(x, y, Config.multivalued_n, -99999, true))
+
+	var res_log = ComplexFieldScript.get_field_at(x, y, Config.ComplexFunc.MULTIVALUED_LOG, false)
+	assert_eq(res_log, ComplexFieldScript.multivalued_log(x, y, -99999, true))
+
+	# Test RATIONAL is_input=true
+	var res_rational_in = ComplexFieldScript.get_field_at(x, y, Config.ComplexFunc.RATIONAL, true)
+	assert_eq(res_rational_in, ComplexFieldScript.get_rational(x, y, Config.input_rational_num_coeffs, Config.input_rational_den_coeffs))
+
+	# Test RATIONAL is_input=false
+	var res_rational_out = ComplexFieldScript.get_field_at(x, y, Config.ComplexFunc.RATIONAL, false)
+	assert_eq(res_rational_out, ComplexFieldScript.get_rational(x, y, Config.rational_num_coeffs, Config.rational_den_coeffs))
+
+	# Test invalid function type fallback
+	var res_invalid = ComplexFieldScript.get_field_at(x, y, -1, false)
+	assert_eq(res_invalid, Vector2.ZERO)

@@ -118,11 +118,9 @@ func _ready():
 	portal_flash.visible = false
 	$Control.add_child(portal_flash)
 
-	if phase_wheel:
-		phase_wheel.resized.connect(_on_complex_aspect_resized)
+	phase_wheel.resized.connect(_on_complex_aspect_resized)
 
-	if minimap:
-		minimap.resized.connect(_on_minimap_resized)
+	minimap.resized.connect(_on_minimap_resized)
 
 	hud_columns.offset_top = -1000
 
@@ -150,10 +148,9 @@ func _ready():
 	update_layout_timer.timeout.connect(_update_hud_layout)
 	add_child(update_layout_timer)
 
-	position_arg_container.visible = !Config.show_hud_phase_wheel
+	position_arg_container.visible = !Config.show_hud_phase_wheel and Config.show_hud_navigation
 
-	if menu_overlay:
-			menu_overlay.player = player
+	menu_overlay.player = player
 	menu_overlay.detach_controller = detach_controller
 	menu_overlay.preset_controller = preset_controller
 	menu_overlay.world_manager = world_manager
@@ -161,7 +158,13 @@ func _ready():
 
 	zeros_panel.visible = Config.show_hud_zeros
 	minimap_panel.visible = Config.show_minimap
-	phase_wheel.visible = Config.show_hud_phase_wheel
+	phase_wheel.get_parent().visible = Config.show_hud_phase_wheel and Config.show_hud_navigation
+	phase_wheel.visible = Config.show_hud_phase_wheel and Config.show_hud_navigation
+	if phase_wheel.visible:
+		_on_complex_aspect_resized()
+	phase_wheel.update_minimum_size()
+	phase_wheel.get_parent().update_minimum_size()
+	position_panel.update_minimum_size()
 	position_panel.visible = Config.show_hud_navigation
 
 	_setup_branch_data()
@@ -171,6 +174,8 @@ func _ready():
 	_update_hud_layout()
 
 func _on_values_timer_timeout():
+	if player == null:
+		return
 	var z = player.global_position.z
 
 	if Config.show_hud_zeros:
@@ -187,26 +192,21 @@ func _on_values_timer_timeout():
 			else:
 				GameState.missed_zeta_zero = false
 
-			if rvm_n_label:
-				rvm_n_label.text = "[color=gray]N(t) ≈ [/color][color=#c8a96e]%.2f[/color]" % rvm_val
-			if rvm_delta_label:
-				if GameState.missed_zeta_zero:
-					rvm_delta_label.text = "[right]Δ = %s[color=red]%.2f[/color][/right]" % [delta_sign, delta_val]
-				else:
-					rvm_delta_label.text = "[right]Δ = %s%.2f[/right]" % [delta_sign, delta_val]
+			rvm_n_label.text = "[color=gray]N(t) ≈ [/color][color=#c8a96e]%.2f[/color]" % rvm_val
+			if GameState.missed_zeta_zero:
+				rvm_delta_label.text = "[right]Δ = %s[color=red]%.2f[/color][/right]" % [delta_sign, delta_val]
+			else:
+				rvm_delta_label.text = "[right]Δ = %s[color=gray]%.2f[/color][/right]" % [delta_sign, delta_val]
 
-			if rvm_hbox:
-				rvm_hbox.visible = true
+			rvm_hbox.visible = true
 		else:
-			if rvm_hbox:
-				rvm_hbox.visible = false
+			rvm_hbox.visible = false
 
 	var x = player.global_position.x
 	var f = player.current_f
 
 	# Update phase wheel
-	if phase_wheel:
-		phase_wheel.update_data(f)
+	phase_wheel.update_data(f)
 
 	if position_arg_val.visible:
 		update_arg_val(f)
@@ -253,7 +253,11 @@ func _update_monitor_label():
 			bbcode += "[color=#ffcc00][font_size=14]Max world height reached, return to safe heights.[/font_size][/color]\n"
 
 		if GameState.found_off_critical_line:
-			bbcode += "[color=#ffcc00][font_size=14]Zero found off critical line. Increase zeta iterations.[/font_size][/color]\n"
+			var off_z = GameState.found_off_critical_line_val
+			var re_str = _format_float_3(off_z.x)
+			var im_str = _format_float_3(off_z.y)
+			var zero_str = _bb_re(re_str, CLR_CYAN) + _bb_im(im_str)
+			bbcode += "[color=#ffcc00][font_size=14]Zero found off critical line (" + zero_str + "[color=#ffcc00]). Increase zeta iterations.[/color][/font_size]\n"
 
 		if GameState.missed_zeta_zero:
 			bbcode += "[color=#ffcc00][font_size=14]Zeta zeros diverging from Riemann-von Mangoldt.[/font_size][/color]\n"
@@ -582,18 +586,22 @@ func _on_config_changed(key: String):
 	if key == "show_hud_phase_wheel":
 		position_arg_container.visible = !Config.show_hud_phase_wheel
 		phase_wheel.visible = Config.show_hud_phase_wheel
+		if phase_wheel.visible:
+			_on_complex_aspect_resized()
+		phase_wheel.update_minimum_size()
+		phase_wheel.get_parent().update_minimum_size()
+		position_panel.update_minimum_size()
+		position_panel.queue_sort()
 
 	if key in ["function_type", "show_hud_navigation", "show_hud_phase_wheel", "show_minimap", "show_hud_zeros", "show_hud_monitor_fps", "show_hud_chunks"]:
 		_update_hud_layout()
 
 	if key == "zoom_factor":
-		if menu_overlay:
-			if abs(menu_overlay._slider_to_zoom(menu_overlay.zoom_slider.value) - Config.zoom_factor) > 0.001:
-				menu_overlay.zoom_slider.value = menu_overlay._zoom_to_slider(Config.zoom_factor)
+		if abs(menu_overlay._slider_to_zoom(menu_overlay.zoom_slider.value) - Config.zoom_factor) > 0.001:
+			menu_overlay.zoom_slider.value = menu_overlay._zoom_to_slider(Config.zoom_factor)
 	if key == "day_time" and not Config.freeze_time:
-		if menu_overlay:
-			menu_overlay.day_time_slider.set_value_no_signal(Config.day_time)
-			menu_overlay.day_time_slider.value_text = menu_overlay._format_time(Config.day_time)
+		menu_overlay.day_time_slider.set_value_no_signal(Config.day_time)
+		menu_overlay.day_time_slider.value_text = menu_overlay._format_time(Config.day_time)
 		
 func _on_zero_item_clicked(index: int):
 	GameState.accented_zero_index = index

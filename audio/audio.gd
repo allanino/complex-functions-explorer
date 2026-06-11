@@ -51,7 +51,7 @@ var reverb_effect: AudioEffectReverb
 var lpf_effect: AudioEffectLowPassFilter
 
 var portal_sfx_player: AudioStreamPlayer
-var player: Node3D
+@onready var player: Node3D = get_tree().get_first_node_in_group("player")
 var math_bus_index: int = -1
 var master_bus_index: int = -1
 
@@ -60,9 +60,6 @@ var buffer_min_available := 999999
 var buffer_max_available := 0
 
 func _ready():
-	# Finding the player to sample position
-	player = get_tree().get_first_node_in_group("player")
-
 	Config.config_changed.connect(_on_config_changed)
 
 	setup_audio_bus_and_effects()
@@ -174,13 +171,8 @@ func _physics_process(delta):
 			playback = stream_player.get_stream_playback()
 		if playback == null: return
 
-	if player == null:
-		player = get_tree().get_first_node_in_group("player")
-
 	# Sample complex field
-	var f = Vector2.ZERO
-	if player:
-		f = player.current_f
+	var f = player.current_f
 
 	# --- NAN SAFETY ---
 	if not is_finite(f.x) or not is_finite(f.y):
