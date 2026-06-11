@@ -5,7 +5,7 @@
 namespace godot {
 
 void ComplexFunctions::_bind_methods() {
-	ClassDB::bind_static_method("ComplexFunctions", D_METHOD("lanczos_gamma", "z_orig"), &ComplexFunctions::lanczos_gamma);
+	ClassDB::bind_method(D_METHOD("lanczos_gamma", "z_orig"), &ComplexFunctions::lanczos_gamma);
 }
 
 ComplexFunctions::ComplexFunctions() {

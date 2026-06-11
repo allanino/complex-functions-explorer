@@ -166,7 +166,9 @@ const SQRT_2PI = 2.5066282746310005
 
 static func lanczos_gamma(z_orig: Vector2) -> Vector2:
 	if ClassDB.class_exists("ComplexFunctions"):
-		return ComplexFunctions.lanczos_gamma(z_orig)
+		# Use ClassDB.instantiate to avoid parser errors when the extension is not built yet (like in CI)
+		var ext = ClassDB.instantiate("ComplexFunctions")
+		return ext.call("lanczos_gamma", z_orig)
 	else:
 		var z = z_orig - Vector2(1.0, 0.0)
 		var x = Vector2(LANCZOS_P[0], 0.0)
