@@ -43,6 +43,43 @@ vec2 world_to_complex(float x, float y) {
     return vec2(0.1 * x, -0.1 * y) / zoom_factor;
 }
 
+float curveAA(
+    float value,
+    float raw_width,
+    bool highlighted
+) {
+    float d =
+        abs(fract(value + 0.5) - 0.5);
+
+    // Terrain-like width limiting
+    float w =
+        clamp(
+            raw_width,
+            0.002,
+            0.03
+        );
+
+    w += highlighted ? 0.03 : 0.01;
+
+    // Fade dense bundles away
+    float density =
+        smoothstep(
+            0.25,
+            0.12,
+            raw_width
+        );
+
+    float line =
+        1.0 -
+        smoothstep(
+            0.0,
+            w,
+            d
+        );
+
+    return line * density;
+}
+
 void fragment() {
     vec2 offset = (UV - vec2(0.5)) * 2.0 * view_radius;
     vec2 world_pos = player_pos_world + offset;
@@ -81,11 +118,21 @@ void fragment() {
     }
 
     // Moiré suppression to make it smooth
-    float phase_dx = dFdx(phase);
-    float phase_dy = dFdy(phase);
+    vec2 phase_vec =
+        vec2(
+            cos(phase),
+            sin(phase)
+        );
 
-    float phase_screen_change = length(vec2(phase_dx, phase_dy));
-    float moire_suppression = smoothstep(0.5, 2.0, phase_screen_change);
+    vec2 dx = dFdx(phase_vec);
+    vec2 dy = dFdy(phase_vec);
+
+    float phase_screen_change =
+        sqrt(
+            dot(dx, dx) +
+            dot(dy, dy)
+        );
+    float moire_suppression = smoothstep(0.5, 5.0, phase_screen_change);
 
     vec3 base_color = hsv2rgb(vec3(hue, 0.85, 1.0));
     if (color_scheme == 2) {
@@ -132,12 +179,7 @@ void fragment() {
                     break;
                 }
             }
-            float w_re = raw_w_re * 0.2 + (is_real_highlighted ? 0.02 : 0.006);
-            float line_re = smoothstep(w_re, 0.0, d_re);
-            float density_re = smoothstep(max_density_threshold, max_density_threshold * 0.7, raw_w_re);
-            line_re *= density_re;
 
-            float d_im = abs(f.y - round(f.y));
             bool is_imag_highlighted = false;
             for (int i = 0; i < 10; i++) {
                 if (abs(round(f.y) - imag_level_curves_highlighted[i]) < 0.1) {
@@ -145,20 +187,29 @@ void fragment() {
                     break;
                 }
             }
-            float w_im = raw_w_im * 0.2 + (is_imag_highlighted ? 0.02 : 0.006);
-            float line_im = smoothstep(w_im, 0.0, d_im);
-            float density_im = smoothstep(max_density_threshold, max_density_threshold * 0.7, raw_w_im);
-            line_im *= density_im;
 
-            base_color *= 1.0 - line_re * (is_real_highlighted ? 0.6 : 0.15);
-            base_color *= 1.0 + line_im * (is_imag_highlighted ? 0.6 : 0.15);
+            float line_re =
+                curveAA(
+                    f.x,
+                    fwidth(f.x),
+                    is_real_highlighted
+                );
 
-            if (is_real_highlighted) {
-                base_color += vec3(0.0, 0.6, 1.0) * line_re * 0.6;
-            }
-            if (is_imag_highlighted) {
-                base_color += vec3(1.0, 0.0, 0.549) * line_im * 0.6;
-            }
+            float line_im =
+                curveAA(
+                    f.y,
+                    fwidth(f.y),
+                    is_imag_highlighted
+                );
+base_color *=
+    1.0 -
+    line_re *
+    (is_real_highlighted ? 0.35 : 0.08);
+
+base_color *=
+    1.0 +
+    line_im *
+    (is_imag_highlighted ? 0.35 : 0.08);
         }
     }
 
@@ -323,5 +374,5 @@ void fragment() {
         }
     }
 
-    COLOR = vec4(base_color * 0.9, 1.0);
+    COLOR = vec4(base_color * 0.75, 1.0);
 }
