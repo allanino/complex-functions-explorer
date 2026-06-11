@@ -11,6 +11,8 @@ uniform bool show_critical_stripe = false;
 uniform float level_curve_thickness = 0.1;
 uniform float level_curve_frequency = 10.0;
 
+uniform float morph = 1.0;
+
 uniform float real_level_curves_highlighted[10];
 uniform float imag_level_curves_highlighted[10];
 
@@ -68,6 +70,17 @@ void fragment() {
 
     // Dim the color when moiré is high
     base_color = mix(base_color, vec3(0.5), moire_suppression * 0.5);
+
+    float blend = 0.5 - 0.5 * cos(PI * morph);
+    vec2 z_id = vec2(0.1 * world_pos.x, -0.1 * world_pos.y) / zoom_factor;
+    vec2 field_val = mix(z_id, f, blend);
+    bool h_clamped = false;
+    float h = get_complex_height(f, field_val, h_clamped);
+    h *= blend * zoom_factor;
+
+    if (abs(h) > 1000.0 || h_clamped) {
+        base_color *= 0.3;
+    }
 
     // Grid / Level Curves
     if (show_curves) {
