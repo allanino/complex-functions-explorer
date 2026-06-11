@@ -833,10 +833,10 @@ func _process_zero_detection(z_mid: Vector2, current_auto_walk_state: int):
 			res = ComplexField.zeta_with_derivatives(z_mid.x, z_mid.y, Config.iterations * 2)
 			use_analytic = true
 		elif Config.function_type == Config.ComplexFunc.ZETA_REFLECTION:
-			res = ComplexField.zeta_continuation_with_derivatives(z_mid.x, z_mid.y, Config.iterations)
+			res = ComplexField.zeta_continuation_with_derivatives(z_mid.x, z_mid.y, Config.iterations * 2)
 			use_analytic = true
 		elif Config.function_type == Config.ComplexFunc.DIRICHLET_ETA:
-			res = ComplexField.dirichlet_eta_with_derivatives(z_mid.x, z_mid.y, Config.iterations)
+			res = ComplexField.dirichlet_eta_with_derivatives(z_mid.x, z_mid.y, Config.iterations * 2)
 			use_analytic = true
 
 		if use_analytic:

@@ -369,7 +369,7 @@ static func zeta_with_derivatives(x: float, y: float, iters: int) -> Array:
 	var two_term = amp2 * Vector2(cos(theta2), sin(theta2))
 	var denom = Vector2(1.0, 0.0) - two_term
 	var ddenom_dx = LOG_2 * two_term
-	var d2denom_dx2 = -(LOG_2 * LOG_2) * two_term
+	var d2denom_dx2 = - (LOG_2 * LOG_2) * two_term
 
 	var val = complex_div(eta, denom)
 	var denom_sqr = complex_mul(denom, denom)
@@ -541,13 +541,13 @@ static func newton_step(z: Vector2, step_size_mult: float, max_step: float = 1.0
 			f_second = res[2]
 			use_analytic = true
 		elif Config.function_type == Config.ComplexFunc.ZETA_REFLECTION:
-			var res = zeta_continuation_with_derivatives(z.x, z.y, Config.iterations)
+			var res = zeta_continuation_with_derivatives(z.x, z.y, Config.iterations * 2)
 			f_val = res[0]
 			f_prime = res[1]
 			f_second = res[2]
 			use_analytic = true
 		elif Config.function_type == Config.ComplexFunc.DIRICHLET_ETA:
-			var res = dirichlet_eta_with_derivatives(z.x, z.y, Config.iterations)
+			var res = dirichlet_eta_with_derivatives(z.x, z.y, Config.iterations * 2)
 			f_val = res[0]
 			f_prime = res[1]
 			f_second = res[2]
