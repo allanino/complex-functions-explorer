@@ -213,7 +213,7 @@ func _on_values_timer_timeout():
 			var delta_sign = "+" if delta_val >= 0 else ""
 
 			if player.auto_walk_state == 1 or player.auto_walk_state == 2:
-				if abs(delta_val) >= 2.0:
+				if (T <= 5000.0 and abs(delta_val) >= 2.0) or abs(delta_val) >= 3.0:
 					GameState.missed_zeta_zero = true
 			else:
 				GameState.missed_zeta_zero = false
@@ -222,7 +222,7 @@ func _on_values_timer_timeout():
 			if GameState.missed_zeta_zero:
 				rvm_delta_label.text = "[right]Δ = %s[color=red]%.2f[/color][/right]" % [delta_sign, delta_val]
 			else:
-				rvm_delta_label.text = "[right]Δ = %s[color=gray]%.2f[/color][/right]" % [delta_sign, delta_val]
+				rvm_delta_label.text = "[right]Δ = %s[color=#E8E4DC80]%.2f[/color][/right]" % [delta_sign, delta_val]
 
 			rvm_hbox.visible = true
 		else:
