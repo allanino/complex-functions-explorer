@@ -710,18 +710,30 @@ static func eta_borwein(x: float, y: float, order: int) -> Vector2:
 	var n = float(order)
 	var T = []
 	T.resize(order + 1)
-	T[0] = -log(n)
+	T[0] = 0.0
 	for l in range(1, order + 1):
 		var fl = float(l)
-		T[l] = T[l-1] + log(n - fl + 1.0) + log(n + fl - 1.0) - log(2.0 * fl - 1.0) - log(2.0 * fl)
+		T[l] = T[l-1] + log(n - fl + 1.0) + log(n + fl - 1.0) - log(2.0 * fl - 1.0) - log(2.0 * fl) + log(4.0)
 
-	var Tn = T[order]
+	var log_d = []
+	log_d.resize(order + 1)
+	var current_max = T[0]
+	var current_sum_exp = 0.0
+	for k in range(order + 1):
+		if T[k] > current_max:
+			var diff = current_max - T[k]
+			current_sum_exp = current_sum_exp * exp(diff) + 1.0
+			current_max = T[k]
+		else:
+			current_sum_exp += exp(T[k] - current_max)
+		log_d[k] = current_max + log(current_sum_exp)
+
+	var log_d_n = log_d[order]
 	var sum_val = Vector2.ZERO
 	var eps = 1e-15
 
 	for k in range(order):
-		var H = exp(T[k] - Tn)
-		var w_k = 1.0 - H
+		var w_k = 1.0 - exp(log_d[k] - log_d_n)
 
 		var k_plus_1 = float(k + 1)
 		var logk = log(k_plus_1)
@@ -799,20 +811,32 @@ static func eta_borwein_with_derivatives(x: float, y: float, order: int) -> Arra
 	var n = float(order)
 	var T = []
 	T.resize(order + 1)
-	T[0] = -log(n)
+	T[0] = 0.0
 	for l in range(1, order + 1):
 		var fl = float(l)
-		T[l] = T[l-1] + log(n - fl + 1.0) + log(n + fl - 1.0) - log(2.0 * fl - 1.0) - log(2.0 * fl)
+		T[l] = T[l-1] + log(n - fl + 1.0) + log(n + fl - 1.0) - log(2.0 * fl - 1.0) - log(2.0 * fl) + log(4.0)
 
-	var Tn = T[order]
+	var log_d = []
+	log_d.resize(order + 1)
+	var current_max = T[0]
+	var current_sum_exp = 0.0
+	for k in range(order + 1):
+		if T[k] > current_max:
+			var diff = current_max - T[k]
+			current_sum_exp = current_sum_exp * exp(diff) + 1.0
+			current_max = T[k]
+		else:
+			current_sum_exp += exp(T[k] - current_max)
+		log_d[k] = current_max + log(current_sum_exp)
+
+	var log_d_n = log_d[order]
 	var sum_val = Vector2.ZERO
 	var sum_dx = Vector2.ZERO
 	var sum_d2x = Vector2.ZERO
 	var eps = 1e-15
 
 	for k in range(order):
-		var H = exp(T[k] - Tn)
-		var w_k = 1.0 - H
+		var w_k = 1.0 - exp(log_d[k] - log_d_n)
 
 		var k_plus_1 = float(k + 1)
 		var logk = log(k_plus_1)

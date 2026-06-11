@@ -1060,21 +1060,35 @@ ComplexFieldData eta_borwein_with_derivatives(float x, float y, int order) {
 
     float n = float(order);
     float T[201];
-    if (order > 200) order = 200; // Limit dynamically to 200 array bounds just in case
-    T[0] = -log(n);
+    float log_d[201];
+    if (order > 200) order = 200;
+
+    T[0] = 0.0;
     for (int l = 1; l <= order; l++) {
         float fl = float(l);
-        T[l] = T[l-1] + log(n - fl + 1.0) + log(n + fl - 1.0) - log(2.0 * fl - 1.0) - log(2.0 * fl);
+        T[l] = T[l-1] + log(n - fl + 1.0) + log(n + fl - 1.0) - log(2.0 * fl - 1.0) - log(2.0 * fl) + log(4.0);
     }
 
-    float Tn = T[order];
+    float current_max = T[0];
+    float current_sum_exp = 0.0;
+    for (int k = 0; k <= order; k++) {
+        if (T[k] > current_max) {
+            float diff = current_max - T[k];
+            current_sum_exp = current_sum_exp * exp(diff) + 1.0;
+            current_max = T[k];
+        } else {
+            current_sum_exp += exp(T[k] - current_max);
+        }
+        log_d[k] = current_max + log(current_sum_exp);
+    }
+
+    float log_d_n = log_d[order];
     vec2 sum_val = vec2(0.0);
     vec2 sum_dx = vec2(0.0);
     float eps = 1e-15;
 
     for (int k = 0; k < order; k++) {
-        float H = exp(T[k] - Tn);
-        float w_k = 1.0 - H;
+        float w_k = 1.0 - exp(log_d[k] - log_d_n);
 
         float k_plus_1 = float(k + 1);
         float logk = log(k_plus_1);
