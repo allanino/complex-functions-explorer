@@ -188,6 +188,7 @@ func _update_all_terrain_material_uniforms():
 		"real_level_curves_highlighted", "imag_level_curves_highlighted",
 		"newton_path"
 	]
+	terrain_material.set_shader_parameter("max_world_height", GameState.MAX_WORLD_HEIGHT)
 	for k in init_keys:
 		_update_terrain_material_uniforms(k)
 

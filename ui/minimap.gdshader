@@ -50,7 +50,22 @@ void fragment() {
     ComplexFieldData fd = get_field_with_derivatives(world_pos.x, world_pos.y, current_branch);
     vec2 f = fd.value;
 
-    float phase = atan(f.y, f.x);
+    float blend = 0.5 - 0.5 * cos(PI * morph);
+    vec2 z_id = vec2(0.1 * world_pos.x, -0.1 * world_pos.y) / zoom_factor;
+    vec2 field_val = mix(z_id, f, blend);
+
+    vec2 f_dir;
+    if (length(field_val) > 0.0) {
+        f_dir = normalize(field_val);
+    } else {
+        f_dir = vec2(0.0);
+    }
+    float phase;
+    if (length(f_dir) > 0.0) {
+        phase = atan(f_dir.y, f_dir.x);
+    } else {
+        phase = atan(f.y, f.x);
+    }
     float hue = (phase + PI) / (2.0 * PI);
     if (color_scheme == 1) {
         hue = fract(hue + 0.5);
@@ -71,10 +86,6 @@ void fragment() {
 
     // Dim the color when moiré is high
     base_color = mix(base_color, vec3(0.5), moire_suppression * 0.5);
-
-    float blend = 0.5 - 0.5 * cos(PI * morph);
-    vec2 z_id = vec2(0.1 * world_pos.x, -0.1 * world_pos.y) / zoom_factor;
-    vec2 field_val = mix(z_id, f, blend);
     bool h_clamped = false;
     float h = get_complex_height(f, field_val, h_clamped);
     h *= blend * zoom_factor;
