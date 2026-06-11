@@ -15,7 +15,7 @@ func _ready():
 	await get_tree().process_frame
 	player = get_tree().get_first_node_in_group("player")
 	if player:
-		camera = player.get_node_or_null("Camera3D")
+		camera = player.get_node("Camera3D")
 
 	fov_overlay.draw.connect(_on_fov_overlay_draw)
 
