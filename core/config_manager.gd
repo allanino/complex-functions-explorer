@@ -41,6 +41,7 @@ const FUNCTIONS = {
 		"has_von_mangoldt": true,
 		# [min, max, step, initial]
 		"iters_range": [100.0, 10000.0, 100.0, 100.0],
+		"initial_pos": Vector3(5.0, 0.0, 0.0),
 	},
 	ComplexFunc.ZETA_REFLECTION: {
 		"name": "Zeta",
@@ -48,6 +49,7 @@ const FUNCTIONS = {
 		"is_dirichlect": true,
 		"has_von_mangoldt": true,
 		"iters_range": [100.0, 10000.0, 100.0, 100.0],
+		"initial_pos": Vector3(5.0, 0.0, 0.0),
 	},
 	ComplexFunc.DIRICHLET_ETA: {
 		"name": "Dirichlet Eta",
@@ -55,6 +57,7 @@ const FUNCTIONS = {
 		"is_dirichlect": true,
 		"has_von_mangoldt": true,
 		"iters_range": [100.0, 10000.0, 100.0, 100.0],
+		"initial_pos": Vector3(5.0, 0.0, 0.0),
 	},
 	ComplexFunc.DIRICHLET_BETA: {
 		"name": "Dirichlet Beta",
@@ -62,10 +65,12 @@ const FUNCTIONS = {
 		"is_dirichlect": true,
 		"has_von_mangoldt": true,
 		"iters_range": [100.0, 10000.0, 100.0, 100.0],
+		"initial_pos": Vector3(5.0, 0.0, 0.0),
 	},
 	ComplexFunc.GAMMA: {
 		"name": "Gamma",
 		"symbol": "Γ",
+		"initial_pos": Vector3(30.0, 0.0, 0.0),
 	},
 	ComplexFunc.LOG_GAMMA: {
 		"name": "Log Gamma",
@@ -75,6 +80,7 @@ const FUNCTIONS = {
 		"name": "Dedekind Eta",
 		"symbol": "η",
 		"iters_range": [1.0, 20.0, 1.0, 10.0],
+		"initial_pos": Vector3(10.0, 0.0, 0.0),
 	},
 	ComplexFunc.MANDELBROT: {
 		"name": "Mandelbrot",
@@ -96,6 +102,7 @@ const FUNCTIONS = {
 	ComplexFunc.COT: {
 		"name": "Cot",
 		"symbol": "f",
+		"initial_pos": Vector3(10.0, 0.0, 0.0),
 	},
 	ComplexFunc.EXP: {
 		"name": "Exp",
@@ -123,11 +130,13 @@ const FUNCTIONS = {
 		"name": "Multivalued Log",
 		"symbol": "f",
 		"is_multivalued": true,
+		"initial_pos": Vector3(10.0, 0.0, 0.0),
 	},
 	ComplexFunc.MULTIVALUED_ASIN: {
 		"name": "Multivalued arcsin",
 		"symbol": "f",
 		"is_multivalued": true,
+		"initial_pos": Vector3(5.0, 0.0, 0.0),
 	},
 	ComplexFunc.ZETA_POWER_SERIES: {
 		"name": "Zeta (power series)",
