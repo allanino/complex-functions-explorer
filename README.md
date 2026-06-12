@@ -51,6 +51,28 @@ In this calculation, the term $\zeta(1-s)$ is evaluated using the Dirichlet Eta 
 
 > **Note on Precision:** Calculations are performed in GPU shaders using `float32` arithmetic. This introduces numerical limitations and potential artifacts as the magnitude of the imaginary part $|t|$ increases, due to the rapid oscillation and large intermediate values of the functions involved. These effects are especially pronounced in the $\sin$ and $\Gamma$ terms of the reflection formula, both of which can grow rapidly in magnitude.
 
+#### Zeta Continuation Power Series (Atlas)
+
+While the reflection formula provides an analytic continuation of $\zeta(s)$ to the entire complex plane, its numerical evaluation becomes highly unstable at large $|t|$ due to the rapidly growing $\sin$ and $\Gamma$ terms. To mitigate this, the explorer generates a dynamic atlas of Taylor series patches (power series) to evaluate the function in the left half-plane ($\mathrm{Re}(s) \le 0.5$).
+
+The Taylor coefficients $c_m$ for $\zeta(s)$ at a patch center $s_0$ are derived using the relationship $\zeta(s) = \frac{\eta(s)}{d(s)}$, where $d(s) = 1 - 2^{1-s}$.
+
+First, we compute the Taylor coefficients $a_m$ of the Dirichlet eta function $\eta(s)$ using a globally convergent Euler-accelerated alternating series:
+$$\eta(s) = \sum_{n=0}^{\infty} \frac{1}{2^{n+1}} \sum_{k=0}^{n} \binom{n}{k} \frac{(-1)^k}{(k+1)^s}$$
+Taking the $m$-th derivative and dividing by $m!$ gives the coefficients $a_m$:
+$$a_m = \frac{1}{m!} \sum_{n=0}^{\infty} \frac{1}{2^{n+1}} \sum_{k=0}^{n} \binom{n}{k} \frac{(-1)^{k+m} (\ln(k+1))^m}{(k+1)^{s_0}}$$
+
+Next, we compute the Taylor coefficients $d_m$ of the denominator $d(s) = 1 - 2^{1-s}$.
+The base value is $d_0 = 1 - 2^{1-s_0}$, and the higher-order coefficients ($m \ge 1$) are:
+$$d_m = \frac{-2^{1-s_0} (-\ln 2)^m}{m!}$$
+
+Finally, since $\eta(s) = \zeta(s) d(s)$, the coefficients are related by the Cauchy product:
+$$a_m = \sum_{j=0}^{m} c_j d_{m-j}$$
+We extract the $\zeta(s)$ coefficients $c_m$ using forward substitution:
+$$c_m = \frac{a_m - \sum_{j=0}^{m-1} c_j d_{m-j}}{d_0}$$
+
+This power series representation allows for robust and stable evaluations of the Riemann zeta function even deep into the critical strip and beyond, avoiding the numerical pitfalls of the reflection formula.
+
 #### The Dirichlet Beta Function
 The explorer implements the **Dirichlet beta function** $\beta(s)$ using its series representation, which converges for $\mathrm{Re}(s) > 0$:
 $$\beta(s) = \sum_{n=0}^\infty \frac{(-1)^n}{(2n+1)^s}$$
