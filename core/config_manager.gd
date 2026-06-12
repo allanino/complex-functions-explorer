@@ -4,6 +4,7 @@ signal config_changed(key: String)
 
 
 var save_path = "user://settings.cfg"
+var _cached_config: ConfigFile = null
 
 enum ComplexFunc {
 	ZETA,
@@ -642,12 +643,18 @@ func save_settings():
 	config.set_value("audio", "drone_volume", drone_volume)
 
 	config.save(save_path)
+	_cached_config = config
 
 func load_settings():
-	var config = ConfigFile.new()
-	var err = config.load(save_path)
-	if err != OK:
-		return
+	var config: ConfigFile
+	if _cached_config != null:
+		config = _cached_config
+	else:
+		config = ConfigFile.new()
+		var err = config.load(save_path)
+		if err != OK:
+			return
+		_cached_config = config
 
 	var ft_raw = config.get_value("field", "function_type", int(function_type))
 	function_type = ft_raw
