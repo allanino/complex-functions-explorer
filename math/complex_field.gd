@@ -751,7 +751,8 @@ static func eta_borwein(x: float, y: float, order: int) -> Vector2:
 
 static func dirichlet_eta_accelerated(x: float, y: float, iters: int) -> Vector2:
 	if iters <= 0: return Vector2.ZERO
-	var sum_outer = Vector2.ZERO
+	var sum_outer_x = 0.0
+	var sum_outer_y = 0.0
 	for n in range(iters):
 		var inner_x = 0.0
 		var inner_y = 0.0
@@ -770,8 +771,8 @@ static func dirichlet_eta_accelerated(x: float, y: float, iters: int) -> Vector2
 			var term_x = binom * amp * cos(theta)
 			var term_y = binom * amp * sin(theta)
 			if k & 1 != 0:
-				term_x = -term_x
-				term_y = -term_y
+				term_x = - term_x
+				term_y = - term_y
 
 			var y_term_x = term_x - correction_x
 			var t_x = inner_x + y_term_x
@@ -784,9 +785,9 @@ static func dirichlet_eta_accelerated(x: float, y: float, iters: int) -> Vector2
 			inner_y = t_y
 
 		var scale = exp(-float(n + 1) * log(2.0))
-		var scaled = Vector2(inner_x * scale, inner_y * scale)
-		sum_outer += scaled
-	return sum_outer
+		sum_outer_x += inner_x * scale
+		sum_outer_y += inner_y * scale
+	return Vector2(sum_outer_x, sum_outer_y)
 
 static func zeta_borwein(x: float, y: float, order: int) -> Vector2:
 	var eta = eta_borwein(x, y, order)
@@ -892,11 +893,11 @@ static func dirichlet_eta_accelerated_with_derivatives(x: float, y: float, iters
 			var term_x = binom * amp * cos(theta)
 			var term_y = binom * amp * sin(theta)
 			if k & 1 != 0:
-				term_x = -term_x
-				term_y = -term_y
+				term_x = - term_x
+				term_y = - term_y
 
-			var term_dx_x = -logk * term_x
-			var term_dx_y = -logk * term_y
+			var term_dx_x = - logk * term_x
+			var term_dx_y = - logk * term_y
 			var term_d2x_x = logk * logk * term_x
 			var term_d2x_y = logk * logk * term_y
 
