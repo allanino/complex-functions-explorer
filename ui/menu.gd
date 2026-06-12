@@ -1016,7 +1016,7 @@ func _rescale_menu(_scale: float):
 						node.add_theme_stylebox_override(style_name, dup)
 
 			if node is VScrollBar:
-				for style_name in ["scroll", "grabber", "grabber_hover", "grabber_pressed"]:
+				for style_name in ["scroll", "grabber", "grabber_highlight", "grabber_pressed"]:
 					var base_style = node.get_theme_stylebox(style_name)
 					if base_style and base_style is StyleBoxFlat:
 						if not node.has_meta("base_style_" + style_name + "_left"):
@@ -1029,7 +1029,7 @@ func _rescale_menu(_scale: float):
 						node.add_theme_stylebox_override(style_name, dup)
 
 			if node is HScrollBar:
-				for style_name in ["scroll", "grabber", "grabber_hover", "grabber_pressed"]:
+				for style_name in ["scroll", "grabber", "grabber_highlight", "grabber_pressed"]:
 					var base_style = node.get_theme_stylebox(style_name)
 					if base_style and base_style is StyleBoxFlat:
 						if not node.has_meta("base_style_" + style_name + "_top"):
@@ -1042,7 +1042,7 @@ func _rescale_menu(_scale: float):
 						node.add_theme_stylebox_override(style_name, dup)
 
 		# Traverse children
-		for child in node.get_children():
+		for child in node.get_children(true):
 			if child is Control:
 				stack.push_back(child)
 
