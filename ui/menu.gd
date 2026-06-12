@@ -294,20 +294,18 @@ func _ready():
 	surface_texture_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "SurfaceTexture"))
 	view_distance_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "View Distance"))
 
-	if main_menu_panel:
-		main_menu_panel.scale = Vector2.ONE
-		_rescale_menu(Config.menu_scale)
+	main_menu_panel.scale = Vector2.ONE
+	_rescale_menu(Config.menu_scale)
 
-	if menu_scale_slider:
-		var menu_scale_hslider = menu_scale_slider.get_slider()
-		if menu_scale_hslider:
-			menu_scale_hslider.drag_started.connect(func():
-				_menu_scale_dragging = true
-			)
-			menu_scale_hslider.drag_ended.connect(func(_value_changed: bool):
-				_menu_scale_dragging = false
-				_rescale_menu(Config.menu_scale)
-			)
+	var menu_scale_hslider = menu_scale_slider.get_slider()
+	if menu_scale_hslider:
+		menu_scale_hslider.drag_started.connect(func():
+			_menu_scale_dragging = true
+		)
+		menu_scale_hslider.drag_ended.connect(func(_value_changed: bool):
+			_menu_scale_dragging = false
+			_rescale_menu(Config.menu_scale)
+		)
 
 
 func _init_slider_bindings():
@@ -776,9 +774,8 @@ func _sync_ui_to_config():
 	for key in Config.PRESET_KEYS:
 		Config.set(key, backup[key])
 	_syncing_ui = false
-	if main_menu_panel:
-		main_menu_panel.scale = Vector2.ONE
-		_rescale_menu(Config.menu_scale)
+	main_menu_panel.scale = Vector2.ONE
+	_rescale_menu(Config.menu_scale)
 
 func _on_quit_pressed():
 	if Config.is_preset_dirty():
@@ -938,10 +935,10 @@ func _rescale_menu(_scale: float):
 	var actual_scale = _scale
 
 	var stack = []
-	if main_menu_panel: stack.push_back(main_menu_panel)
-	if new_preset_dialog: stack.push_back(new_preset_dialog)
-	if delete_preset_dialog: stack.push_back(delete_preset_dialog)
-	if quit_dialog: stack.push_back(quit_dialog)
+	stack.push_back(main_menu_panel)
+	stack.push_back(new_preset_dialog)
+	stack.push_back(delete_preset_dialog)
+	stack.push_back(quit_dialog)
 
 	while stack.size() > 0:
 		var node = stack.pop_back()
@@ -1108,9 +1105,8 @@ func toggle_menu(applied: bool = false):
 			emit_signal("detach_finished")
 		return
 
-	if main_menu_panel:
-		main_menu_panel.scale = Vector2.ONE
-		_rescale_menu(Config.menu_scale)
+	main_menu_panel.scale = Vector2.ONE
+	_rescale_menu(Config.menu_scale)
 
 	visible = !visible
 	GameState.is_menu_open = visible
