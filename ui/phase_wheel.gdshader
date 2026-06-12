@@ -89,6 +89,8 @@ void fragment() {
 
     // Calculate arrow mask (deferred compositing so it renders on top of ticks)
     float arrow_mask = 0.0;
+    float bead_core_mask_val = 0.0;
+    float bead_outline_mask = 0.0;
     float f_mag = length(current_f);
     if (f_mag > 0.00001) {
         vec2 dir = current_f / f_mag;
@@ -105,7 +107,7 @@ void fragment() {
         float fw_arrow = fwidth(z.x);
 
         // Shaft - start partway out to avoid crossing the central text, end at arrowhead base
-        vec2 shaft_start = dir * 0.5;
+        vec2 shaft_start = dir * 0.45;
         vec2 head_base = tip - 0.1 * dir;
         float d_shaft = sdSegment(z, shaft_start, head_base);
         float arrow_thickness = 0.015;
@@ -119,18 +121,21 @@ void fragment() {
         );
 
         
-
         // Arrow head
         vec2 perp = vec2(-dir.y, dir.x);
         float d_head = sdTriangle(z, tip, head_base + 0.06 * perp, head_base - 0.06 * perp);
         float head_mask = smoothstep(fw_arrow, -fw_arrow, d_head);
 
-        // Arrow dot/bead pinned to the track ring
+        // Arrow dot/bead pinned to the track ring (with outline for scientific instrumentation contrast)
         float bead_radius = 0.025;
-        float d_bead = length(z - bead_pos) - bead_radius;
-        float bead_mask = smoothstep(fw_arrow, -fw_arrow, d_bead);
+        float dist_bead = length(z - bead_pos);
+        bead_core_mask_val = smoothstep(fw_arrow, -fw_arrow, dist_bead - bead_radius);
+        
+        float outline_width = fw_arrow * 1.0;
+        bead_outline_mask = smoothstep(fw_arrow, -fw_arrow, dist_bead - (bead_radius + outline_width));
 
-        arrow_mask = max(shaft_mask, max(head_mask, bead_mask));
+        // arrow_mask is just shaft and head (bead is rendered separately for transparency)
+        arrow_mask = max(shaft_mask, head_mask);
     }
 
     // Draw tick marks as true radial line segments (AA, angle-aligned)
@@ -184,8 +189,17 @@ void fragment() {
     color = mix(color, brighter_gold, best_cardinal);
     alpha = max(alpha, best_cardinal);
 
+    // Overlay dark outline for the bead with reduced opacity (contrast outline)
+    float bead_opacity = 0.8; // reduce opacity of the bead a little
+    color = mix(color, vec3(0.0), bead_outline_mask * bead_opacity);
+    alpha = max(alpha, bead_outline_mask * bead_opacity);
+
+    // Overlay bead core with reduced opacity
+    color = mix(color, darker_gold, bead_core_mask_val * bead_opacity);
+    alpha = max(alpha, bead_core_mask_val * bead_opacity);
+
     // Overlay sharp stark white arrow on top of everything
-    color = mix(color, vec3(1.0), arrow_mask);
+    color = mix(color, darker_gold, arrow_mask);
     alpha = max(alpha, arrow_mask);
 
     COLOR = vec4(color, clamp(alpha, 0.0, 1.0));
