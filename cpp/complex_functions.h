@@ -3,8 +3,7 @@
 
 #include <godot_cpp/classes/ref_counted.hpp>
 #include <godot_cpp/core/class_db.hpp>
-#include <godot_cpp/variant/vector2.hpp>
-#include <godot_cpp/variant/array.hpp>
+#include <godot_cpp/variant/packed_float64_array.hpp>
 
 namespace godot {
 
@@ -18,22 +17,22 @@ public:
 	ComplexFunctions();
 	~ComplexFunctions();
 
-	Vector2 lanczos_gamma(const Vector2 &z_orig);
+	PackedFloat64Array lanczos_gamma(double x, double y);
 
-	Array dirichlet_eta_with_derivatives(float x, float y, int iters);
-	Array zeta_with_derivatives(float x, float y, int iters);
-	Array lanczos_log_gamma_with_derivatives(const Vector2 &z_orig);
-	Array complex_log_gamma_with_derivatives(float x, float y);
-	Array log_zeta_continuation_with_derivatives(float x, float y, int iters);
-	Array zeta_continuation_with_derivatives(float x, float y, int iters);
+	PackedFloat64Array dirichlet_eta_with_derivatives(double x, double y, int iters);
+	PackedFloat64Array zeta_with_derivatives(double x, double y, int iters);
+	PackedFloat64Array lanczos_log_gamma_with_derivatives(double x, double y);
+	PackedFloat64Array complex_log_gamma_with_derivatives(double x, double y);
+	PackedFloat64Array log_zeta_continuation_with_derivatives(double x, double y, int iters);
+	PackedFloat64Array zeta_continuation_with_derivatives(double x, double y, int iters);
 
-	Vector2 complex_mul(const Vector2 &a, const Vector2 &b);
-	Vector2 complex_div(const Vector2 &a, const Vector2 &b);
-	Vector2 complex_exp(float x, float y);
-	Vector2 complex_log(float x, float y);
-	Vector2 complex_sin(float x, float y);
-	Vector2 complex_cot(float x, float y);
-	Vector2 complex_log_sin(float x, float y);
+	PackedFloat64Array complex_mul(double ax, double ay, double bx, double by);
+	PackedFloat64Array complex_div(double ax, double ay, double bx, double by);
+	PackedFloat64Array complex_exp(double x, double y);
+	PackedFloat64Array complex_log(double x, double y);
+	PackedFloat64Array complex_sin(double x, double y);
+	PackedFloat64Array complex_cot(double x, double y);
+	PackedFloat64Array complex_log_sin(double x, double y);
 
 };
 
