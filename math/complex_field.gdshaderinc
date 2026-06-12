@@ -22,6 +22,49 @@ uniform float height_theta = 0.0;
 const float INV_TWO_PI = 0.15915494309189535;
 const float TWO_PI = 6.2831853071;
 
+// Double-Single Algorithms for FP64 Emulation in FP32
+
+vec2 ds_two_sum(float a, float b) {
+    float s = a + b;
+    float v = s - a;
+    float e = (a - (s - v)) + (b - v);
+    return vec2(s, e);
+}
+
+vec2 ds_add(vec2 a, vec2 b) {
+    vec2 s = ds_two_sum(a.x, b.x);
+    s.y += a.y + b.y;
+    return ds_two_sum(s.x, s.y);
+}
+
+vec2 ds_split(float a) {
+    const float MULTIPLIER = 131073.0; // 2^17 + 1
+    float c = MULTIPLIER * a;
+    float a_hi = c - (c - a);
+    float a_lo = a - a_hi;
+    return vec2(a_hi, a_lo);
+}
+
+vec2 ds_two_prod(float a, float b) {
+    float p = a * b;
+    vec2 a_split = ds_split(a);
+    vec2 b_split = ds_split(b);
+    float err = p - (a_split.x * b_split.x) - (a_split.y * b_split.x) - (a_split.x * b_split.y) - (a_split.y * b_split.y);
+    return vec2(p, err);
+}
+
+vec2 ds_mul(vec2 a, vec2 b) {
+    vec2 p = ds_two_prod(a.x, b.x);
+    p.y += a.x * b.y + a.y * b.x;
+    return ds_two_sum(p.x, p.y);
+}
+
+vec2 ds_mul_scalar(vec2 a, float scalar) {
+    vec2 p = ds_two_prod(a.x, scalar);
+    p.y += a.y * scalar;
+    return ds_two_sum(p.x, p.y);
+}
+
 struct ComplexFieldData {
     vec2 value;    // The actual complex f(x, y)
     vec2 dx;       // Partial derivative with respect to x
@@ -1119,10 +1162,11 @@ ComplexFieldData eta_borwein_with_derivatives(float x, float y, int order) {
     }
 
     float log_d_n = log_d[order];
-    vec2 sum_val = vec2(0.0);
-    vec2 sum_dx = vec2(0.0);
 
-
+    vec2 sum_val_real = vec2(0.0, 0.0);
+    vec2 sum_val_imag = vec2(0.0, 0.0);
+    vec2 sum_dx_real = vec2(0.0, 0.0);
+    vec2 sum_dx_imag = vec2(0.0, 0.0);
 
     for (int k = 0; k < order; k++) {
         float w_k = -_expm1_polyfill(log_d[k] - log_d_n);
@@ -1141,16 +1185,26 @@ ComplexFieldData eta_borwein_with_derivatives(float x, float y, int order) {
             pow_term = -pow_term;
         }
 
-        vec2 term = w_k * pow_term;
-        vec2 term_dx = -logk * term;
+        // w_k * pow_term
+        vec2 term_real = ds_mul_scalar(vec2(pow_term.x, 0.0), w_k);
+        vec2 term_imag = ds_mul_scalar(vec2(pow_term.y, 0.0), w_k);
 
-        sum_val += term;
-        sum_dx += term_dx;
+        // sum_val += term
+        sum_val_real = ds_add(sum_val_real, term_real);
+        sum_val_imag = ds_add(sum_val_imag, term_imag);
+
+        // term_dx = -logk * term
+        vec2 term_dx_real = ds_mul_scalar(term_real, -logk);
+        vec2 term_dx_imag = ds_mul_scalar(term_imag, -logk);
+
+        // sum_dx += term_dx
+        sum_dx_real = ds_add(sum_dx_real, term_dx_real);
+        sum_dx_imag = ds_add(sum_dx_imag, term_dx_imag);
     }
 
-    res.value = sum_val;
-    res.dx = sum_dx;
-    res.dy = vec2(-sum_dx.y, sum_dx.x);
+    res.value = vec2(sum_val_real.x, sum_val_imag.x);
+    res.dx = vec2(sum_dx_real.x, sum_dx_imag.x);
+    res.dy = vec2(-res.dx.y, res.dx.x);
     return res;
 }
 
