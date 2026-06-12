@@ -1,4 +1,4 @@
-[gd_scene format=3 ]
+[gd_scene format=3 uid="uid://dcln0tm8dlsmq"]
 
 [ext_resource type="PackedScene" path="res://environment/environment.tscn" id="1_sky"]
 [ext_resource type="PackedScene" path="res://player/player.tscn" id="2_player"]
@@ -12,6 +12,8 @@
 
 [node name="Player" parent="." unique_id=40729057 instance=ExtResource("2_player")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, 0)
+run_demo = true
+zeros_debug = false
 
 [node name="WorldManager" parent="." unique_id=765195964 node_paths=PackedStringArray("player") instance=ExtResource("5_terrain")]
 player = NodePath("../Player")

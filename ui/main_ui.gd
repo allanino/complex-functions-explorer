@@ -63,8 +63,8 @@ func _bb_re(value: String, color: String) -> String:
 # Formats an imaginary value as "± number i" with a dim operator separator.
 func _bb_im(im: String) -> String:
 	if im.begins_with("-"):
-		return "[color=%s] - [/color][color=%s]%s[/color][color=%s]𝑖[/color]" % [CLR_DIM, CLR_MAGENTA, im.substr(1), CLR_MAGENTA_DIM]
-	return "[color=%s] + [/color][color=%s]%s[/color][color=%s]𝑖[/color]" % [CLR_DIM, CLR_MAGENTA, im, CLR_MAGENTA_DIM]
+		return "[color=%s] - [/color][color=%s]%s[/color][color=%s]i[/color]" % [CLR_DIM, CLR_MAGENTA, im.substr(1), CLR_MAGENTA_DIM]
+	return "[color=%s] + [/color][color=%s]%s[/color][color=%s]i[/color]" % [CLR_DIM, CLR_MAGENTA, im, CLR_MAGENTA_DIM]
 
 func update_arg_val(f: Vector2):
 	var angle_rad: float

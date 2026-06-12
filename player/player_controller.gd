@@ -595,7 +595,7 @@ func _physics_process(delta):
 							im_label.global_position = target_pos
 						_im_label_target_pos = target_pos
 
-						im_label.text = str(int(target_int)) + "𝑖"
+						im_label.text = str(int(target_int)) + "i"
 						im_label.visible = true
 						im_found = true
 
@@ -685,12 +685,11 @@ func demo_actions():
 
 	tween.parallel().tween_property(camera, "rotation:x", -PI / 8.0, tween_duration)
 
-	# Wait a moment to contemplate the sunrise
-	tween.tween_interval(0.5)
-
 	# Phase 6: rotate back to horizontal and start auto-walk
 	tween.tween_property(self , "rotation:y", 0.0, tween_duration * 0.5)
-	tween.parallel().tween_property(camera, "rotation:x", -PI / 8.0, tween_duration)
+	tween.parallel().tween_property(camera, "rotation:x", -PI / 8.0, tween_duration * 0.5)
+
+	tween.tween_interval(0.5)
 
 	tween.tween_callback(self._start_auto_walk_from_demo)
 
