@@ -101,7 +101,7 @@ func setup_audio_bus_and_effects():
 	# Index 1: Low Pass Filter — start fully open
 	var lpf = AudioEffectLowPassFilter.new()
 	lpf.cutoff_hz = 20000.0
-	lpf.resonance = 0.2
+	lpf.resonance = 0.05
 	AudioServer.add_bus_effect(bus_index, lpf)
 
 	_audio_stream_player.bus = bus_name
@@ -124,8 +124,8 @@ func _physics_process(delta):
 	#    Low mag  = open filter (bright), higher volume
 	#    High mag = closed filter (dark),  lower volume
 	target_volume = clamp(0.8 - mag * 0.05, 0.1, 0.8)
-	# Floor at 600 Hz to avoid extreme filtering that causes resonance ringing
-	target_cutoff = lerp(20000.0, 600.0, clamp(mag * 0.1, 0.0, 1.0))
+	# Floor at 800 Hz to avoid low-frequency resonance ringing
+	target_cutoff = lerp(20000.0, 800.0, clamp(mag * 0.1, 0.0, 1.0))
 
 	# 2. PHASE arg(f) -> Pan
 	var arg = atan2(f.y, f.x)
@@ -136,10 +136,10 @@ func _physics_process(delta):
 	if not is_finite(target_cutoff): target_cutoff = 20000.0
 
 	# --- SMOOTHING ---
-	# Slow rates are key: fast LPF movement causes metallic zipper artifacts
-	current_volume = lerp(current_volume, target_volume, delta * 5.0)
-	current_pan = lerp(current_pan, target_pan, delta * 3.0)
-	current_cutoff = lerp(current_cutoff, target_cutoff, delta * 2.0)
+	# Extremely gentle interpolation speeds to prevent any zipper noise or metallic sweeps
+	current_volume = lerp(current_volume, target_volume, delta * 2.0)
+	current_pan = lerp(current_pan, target_pan, delta * 1.5)
+	current_cutoff = lerp(current_cutoff, target_cutoff, delta * 0.8)
 
 	# --- EFFECT MODULATION ---
 	# Must fetch the LIVE effect instances from AudioServer each frame
