@@ -1127,32 +1127,61 @@ ComplexFieldData dirichlet_eta_accelerated_with_derivatives(float x, float y, in
     }
     vec2 sum_outer = vec2(0.0);
     vec2 sum_outer_dx = vec2(0.0);
-    float weight = 0.5;
-    float eps = 1e-15;
     for (int n = 0; n < iters; n++) {
-        vec2 inner = vec2(0.0);
-        vec2 inner_dx = vec2(0.0);
-        float binom = 1.0;
+        float inner_x = 0.0;
+        float inner_y = 0.0;
+        float inner_dx_x = 0.0;
+        float inner_dx_y = 0.0;
+
+        float correction_x = 0.0;
+        float correction_y = 0.0;
+        float correction_dx_x = 0.0;
+        float correction_dx_y = 0.0;
+
+        float log_binom = 0.0;
         for (int k = 0; k <= n; k++) {
             float k_plus_1 = float(k + 1);
+            if (k > 0) {
+                log_binom += log(float(n - k + 1)) - log(float(k));
+            }
+            float binom = exp(log_binom);
             float logk = log(k_plus_1);
             float amp = exp(-x * logk);
-            float theta = -y * logk;
-            vec2 term = binom * amp * vec2(cos(theta), sin(theta));
+            float theta = mod(-y * logk, TAU);
+
+            float term_x = binom * amp * cos(theta);
+            float term_y = binom * amp * sin(theta);
             if ((k & 1) != 0) {
-                term = -term;
+                term_x = -term_x;
+                term_y = -term_y;
             }
-            vec2 term_dx = -logk * term;
-            inner += term;
-            inner_dx += term_dx;
-            binom *= float(n - k) / float(k + 1);
+
+            float term_dx_x = -logk * term_x;
+            float term_dx_y = -logk * term_y;
+
+            float y_term_x = term_x - correction_x;
+            float t_x = inner_x + y_term_x;
+            correction_x = (t_x - inner_x) - y_term_x;
+            inner_x = t_x;
+
+            float y_term_y = term_y - correction_y;
+            float t_y = inner_y + y_term_y;
+            correction_y = (t_y - inner_y) - y_term_y;
+            inner_y = t_y;
+
+            float y_term_dx_x = term_dx_x - correction_dx_x;
+            float t_dx_x = inner_dx_x + y_term_dx_x;
+            correction_dx_x = (t_dx_x - inner_dx_x) - y_term_dx_x;
+            inner_dx_x = t_dx_x;
+
+            float y_term_dx_y = term_dx_y - correction_dx_y;
+            float t_dx_y = inner_dx_y + y_term_dx_y;
+            correction_dx_y = (t_dx_y - inner_dx_y) - y_term_dx_y;
+            inner_dx_y = t_dx_y;
         }
-        if (weight * length(inner) < eps * length(sum_outer) && n > 0) {
-            break;
-        }
-        sum_outer += weight * inner;
-        sum_outer_dx += weight * inner_dx;
-        weight *= 0.5;
+        float scale = exp(-float(n + 1) * log(2.0));
+        sum_outer += vec2(inner_x * scale, inner_y * scale);
+        sum_outer_dx += vec2(inner_dx_x * scale, inner_dx_y * scale);
     }
     res.value = sum_outer;
     res.dx = sum_outer_dx;

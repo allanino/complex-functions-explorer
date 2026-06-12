@@ -999,24 +999,24 @@ func test_zeta_accelerated():
 
 func test_dirichlet_eta_accelerated():
 	var res = ComplexFieldScript.dirichlet_eta_accelerated(2.0, 0.0, 100)
-	assert_almost_eq(res.x, 0.822467033, 0.015)
-	assert_almost_eq(res.y, 0.0, 0.015)
+	assert_almost_eq(res.x, 0.822467033, 0.0001)
+	assert_almost_eq(res.y, 0.0, 0.0001)
 
 	res = ComplexFieldScript.dirichlet_eta_accelerated(0.0, 0.0, 100)
-	assert_almost_eq(res.x, 0.5, 0.015)
-	assert_almost_eq(res.y, 0.0, 0.015)
+	assert_almost_eq(res.x, 0.5, 0.0001)
+	assert_almost_eq(res.y, 0.0, 0.0001)
 
 	res = ComplexFieldScript.dirichlet_eta_accelerated(-1.0, 0.0, 100)
-	assert_almost_eq(res.x, 0.25, 0.015)
-	assert_almost_eq(res.y, 0.0, 0.015)
+	assert_almost_eq(res.x, 0.25, 0.0001)
+	assert_almost_eq(res.y, 0.0, 0.0001)
 
 	res = ComplexFieldScript.dirichlet_eta_accelerated(-2.0, 0.0, 100)
-	assert_almost_eq(res.x, 0.0, 0.015)
-	assert_almost_eq(res.y, 0.0, 0.015)
+	assert_almost_eq(res.x, 0.0, 0.0001)
+	assert_almost_eq(res.y, 0.0, 0.0001)
 
 	res = ComplexFieldScript.dirichlet_eta_accelerated(-4.0, 0.0, 100)
-	assert_almost_eq(res.x, 0.0, 0.25)
-	assert_almost_eq(res.y, 0.0, 0.015)
+	assert_almost_eq(res.x, 0.0, 0.0001)
+	assert_almost_eq(res.y, 0.0, 0.0001)
 
 func test_eta_borwein():
 	var res = ComplexFieldScript.eta_borwein(2.0, 0.0, 50)

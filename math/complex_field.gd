@@ -752,26 +752,40 @@ static func eta_borwein(x: float, y: float, order: int) -> Vector2:
 static func dirichlet_eta_accelerated(x: float, y: float, iters: int) -> Vector2:
 	if iters <= 0: return Vector2.ZERO
 	var sum_outer = Vector2.ZERO
-	var weight = 0.5
-	var eps = 1e-15
 	for n in range(iters):
-		var inner = Vector2.ZERO
-		var binom = 1.0
+		var inner_x = 0.0
+		var inner_y = 0.0
+		var correction_x = 0.0
+		var correction_y = 0.0
+		var log_binom = 0.0
 		for k in range(n + 1):
 			var k_plus_1 = float(k + 1)
+			if k > 0:
+				log_binom += log(float(n - k + 1)) - log(float(k))
+			var binom = exp(log_binom)
 			var logk = log(k_plus_1)
 			var amp = exp(-x * logk)
-			var theta = -y * logk
-			var term = binom * amp * Vector2(cos(theta), sin(theta))
-			if k & 1 != 0:
-				term = - term
-			inner += term
-			binom *= float(n - k) / float(k + 1)
+			var theta = fmod(-y * logk, TAU)
 
-		if weight * inner.length() < eps * sum_outer.length() and n > 0:
-			break
-		sum_outer += weight * inner
-		weight *= 0.5
+			var term_x = binom * amp * cos(theta)
+			var term_y = binom * amp * sin(theta)
+			if k & 1 != 0:
+				term_x = -term_x
+				term_y = -term_y
+
+			var y_term_x = term_x - correction_x
+			var t_x = inner_x + y_term_x
+			correction_x = (t_x - inner_x) - y_term_x
+			inner_x = t_x
+
+			var y_term_y = term_y - correction_y
+			var t_y = inner_y + y_term_y
+			correction_y = (t_y - inner_y) - y_term_y
+			inner_y = t_y
+
+		var scale = exp(-float(n + 1) * log(2.0))
+		var scaled = Vector2(inner_x * scale, inner_y * scale)
+		sum_outer += scaled
 	return sum_outer
 
 static func zeta_borwein(x: float, y: float, order: int) -> Vector2:
@@ -850,34 +864,76 @@ static func dirichlet_eta_accelerated_with_derivatives(x: float, y: float, iters
 	var sum_outer = Vector2.ZERO
 	var sum_outer_dx = Vector2.ZERO
 	var sum_outer_d2x = Vector2.ZERO
-	var weight = 0.5
-	var eps = 1e-15
 	for n in range(iters):
-		var inner = Vector2.ZERO
-		var inner_dx = Vector2.ZERO
-		var inner_d2x = Vector2.ZERO
-		var binom = 1.0
+		var inner_x = 0.0
+		var inner_y = 0.0
+		var inner_dx_x = 0.0
+		var inner_dx_y = 0.0
+		var inner_d2x_x = 0.0
+		var inner_d2x_y = 0.0
+
+		var correction_x = 0.0
+		var correction_y = 0.0
+		var correction_dx_x = 0.0
+		var correction_dx_y = 0.0
+		var correction_d2x_x = 0.0
+		var correction_d2x_y = 0.0
+
+		var log_binom = 0.0
 		for k in range(n + 1):
 			var k_plus_1 = float(k + 1)
+			if k > 0:
+				log_binom += log(float(n - k + 1)) - log(float(k))
+			var binom = exp(log_binom)
 			var logk = log(k_plus_1)
 			var amp = exp(-x * logk)
-			var theta = -y * logk
-			var term = binom * amp * Vector2(cos(theta), sin(theta))
-			if k & 1 != 0:
-				term = - term
-			var term_dx = - logk * term
-			var term_d2x = logk * logk * term
-			inner += term
-			inner_dx += term_dx
-			inner_d2x += term_d2x
-			binom *= float(n - k) / float(k + 1)
+			var theta = fmod(-y * logk, TAU)
 
-		if weight * inner.length() < eps * sum_outer.length() and n > 0:
-			break
-		sum_outer += weight * inner
-		sum_outer_dx += weight * inner_dx
-		sum_outer_d2x += weight * inner_d2x
-		weight *= 0.5
+			var term_x = binom * amp * cos(theta)
+			var term_y = binom * amp * sin(theta)
+			if k & 1 != 0:
+				term_x = -term_x
+				term_y = -term_y
+
+			var term_dx_x = -logk * term_x
+			var term_dx_y = -logk * term_y
+			var term_d2x_x = logk * logk * term_x
+			var term_d2x_y = logk * logk * term_y
+
+			var y_term_x = term_x - correction_x
+			var t_x = inner_x + y_term_x
+			correction_x = (t_x - inner_x) - y_term_x
+			inner_x = t_x
+
+			var y_term_y = term_y - correction_y
+			var t_y = inner_y + y_term_y
+			correction_y = (t_y - inner_y) - y_term_y
+			inner_y = t_y
+
+			var y_term_dx_x = term_dx_x - correction_dx_x
+			var t_dx_x = inner_dx_x + y_term_dx_x
+			correction_dx_x = (t_dx_x - inner_dx_x) - y_term_dx_x
+			inner_dx_x = t_dx_x
+
+			var y_term_dx_y = term_dx_y - correction_dx_y
+			var t_dx_y = inner_dx_y + y_term_dx_y
+			correction_dx_y = (t_dx_y - inner_dx_y) - y_term_dx_y
+			inner_dx_y = t_dx_y
+
+			var y_term_d2x_x = term_d2x_x - correction_d2x_x
+			var t_d2x_x = inner_d2x_x + y_term_d2x_x
+			correction_d2x_x = (t_d2x_x - inner_d2x_x) - y_term_d2x_x
+			inner_d2x_x = t_d2x_x
+
+			var y_term_d2x_y = term_d2x_y - correction_d2x_y
+			var t_d2x_y = inner_d2x_y + y_term_d2x_y
+			correction_d2x_y = (t_d2x_y - inner_d2x_y) - y_term_d2x_y
+			inner_d2x_y = t_d2x_y
+
+		var scale = exp(-float(n + 1) * log(2.0))
+		sum_outer += Vector2(inner_x * scale, inner_y * scale)
+		sum_outer_dx += Vector2(inner_dx_x * scale, inner_dx_y * scale)
+		sum_outer_d2x += Vector2(inner_d2x_x * scale, inner_d2x_y * scale)
 	return [sum_outer, sum_outer_dx, sum_outer_d2x]
 
 static func zeta_borwein_with_derivatives(x: float, y: float, order: int) -> Array:
