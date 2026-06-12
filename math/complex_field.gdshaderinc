@@ -1127,32 +1127,42 @@ ComplexFieldData dirichlet_eta_accelerated_with_derivatives(float x, float y, in
     }
     vec2 sum_outer = vec2(0.0);
     vec2 sum_outer_dx = vec2(0.0);
-    float weight = 0.5;
-    float eps = 1e-15;
     for (int n = 0; n < iters; n++) {
         vec2 inner = vec2(0.0);
         vec2 inner_dx = vec2(0.0);
-        float binom = 1.0;
+
+        vec2 correction = vec2(0.0);
+        vec2 correction_dx = vec2(0.0);
+
+        float log_binom = 0.0;
         for (int k = 0; k <= n; k++) {
             float k_plus_1 = float(k + 1);
+            if (k > 0) {
+                log_binom += log(float(n - k + 1)) - log(float(k));
+            }
+            float binom = exp(log_binom);
             float logk = log(k_plus_1);
             float amp = exp(-x * logk);
-            float theta = -y * logk;
+            float theta = mod(-y * logk, TAU);
             vec2 term = binom * amp * vec2(cos(theta), sin(theta));
             if ((k & 1) != 0) {
                 term = -term;
             }
             vec2 term_dx = -logk * term;
-            inner += term;
-            inner_dx += term_dx;
-            binom *= float(n - k) / float(k + 1);
+
+            vec2 y_term = term - correction;
+            vec2 t = inner + y_term;
+            correction = (t - inner) - y_term;
+            inner = t;
+
+            vec2 y_term_dx = term_dx - correction_dx;
+            vec2 t_dx = inner_dx + y_term_dx;
+            correction_dx = (t_dx - inner_dx) - y_term_dx;
+            inner_dx = t_dx;
         }
-        if (weight * length(inner) < eps * length(sum_outer) && n > 0) {
-            break;
-        }
-        sum_outer += weight * inner;
-        sum_outer_dx += weight * inner_dx;
-        weight *= 0.5;
+        float scale = exp(-float(n + 1) * log(2.0));
+        sum_outer += inner * scale;
+        sum_outer_dx += inner_dx * scale;
     }
     res.value = sum_outer;
     res.dx = sum_outer_dx;

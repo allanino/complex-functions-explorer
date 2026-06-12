@@ -752,26 +752,28 @@ static func eta_borwein(x: float, y: float, order: int) -> Vector2:
 static func dirichlet_eta_accelerated(x: float, y: float, iters: int) -> Vector2:
 	if iters <= 0: return Vector2.ZERO
 	var sum_outer = Vector2.ZERO
-	var weight = 0.5
-	var eps = 1e-15
 	for n in range(iters):
 		var inner = Vector2.ZERO
-		var binom = 1.0
+		var correction = Vector2.ZERO
+		var log_binom = 0.0
 		for k in range(n + 1):
 			var k_plus_1 = float(k + 1)
+			if k > 0:
+				log_binom += log(float(n - k + 1)) - log(float(k))
+			var binom = exp(log_binom)
 			var logk = log(k_plus_1)
 			var amp = exp(-x * logk)
-			var theta = -y * logk
+			var theta = fmod(-y * logk, TAU)
 			var term = binom * amp * Vector2(cos(theta), sin(theta))
 			if k & 1 != 0:
-				term = - term
-			inner += term
-			binom *= float(n - k) / float(k + 1)
+				term = -term
+			var y_term = term - correction
+			var t = inner + y_term
+			correction = (t - inner) - y_term
+			inner = t
 
-		if weight * inner.length() < eps * sum_outer.length() and n > 0:
-			break
-		sum_outer += weight * inner
-		weight *= 0.5
+		var scaled = inner * exp(-float(n + 1) * log(2.0))
+		sum_outer += scaled
 	return sum_outer
 
 static func zeta_borwein(x: float, y: float, order: int) -> Vector2:
@@ -850,34 +852,49 @@ static func dirichlet_eta_accelerated_with_derivatives(x: float, y: float, iters
 	var sum_outer = Vector2.ZERO
 	var sum_outer_dx = Vector2.ZERO
 	var sum_outer_d2x = Vector2.ZERO
-	var weight = 0.5
-	var eps = 1e-15
 	for n in range(iters):
 		var inner = Vector2.ZERO
 		var inner_dx = Vector2.ZERO
 		var inner_d2x = Vector2.ZERO
-		var binom = 1.0
+
+		var correction = Vector2.ZERO
+		var correction_dx = Vector2.ZERO
+		var correction_d2x = Vector2.ZERO
+
+		var log_binom = 0.0
 		for k in range(n + 1):
 			var k_plus_1 = float(k + 1)
+			if k > 0:
+				log_binom += log(float(n - k + 1)) - log(float(k))
+			var binom = exp(log_binom)
 			var logk = log(k_plus_1)
 			var amp = exp(-x * logk)
-			var theta = -y * logk
+			var theta = fmod(-y * logk, TAU)
 			var term = binom * amp * Vector2(cos(theta), sin(theta))
 			if k & 1 != 0:
-				term = - term
-			var term_dx = - logk * term
+				term = -term
+			var term_dx = -logk * term
 			var term_d2x = logk * logk * term
-			inner += term
-			inner_dx += term_dx
-			inner_d2x += term_d2x
-			binom *= float(n - k) / float(k + 1)
 
-		if weight * inner.length() < eps * sum_outer.length() and n > 0:
-			break
-		sum_outer += weight * inner
-		sum_outer_dx += weight * inner_dx
-		sum_outer_d2x += weight * inner_d2x
-		weight *= 0.5
+			var y_term = term - correction
+			var t = inner + y_term
+			correction = (t - inner) - y_term
+			inner = t
+
+			var y_term_dx = term_dx - correction_dx
+			var t_dx = inner_dx + y_term_dx
+			correction_dx = (t_dx - inner_dx) - y_term_dx
+			inner_dx = t_dx
+
+			var y_term_d2x = term_d2x - correction_d2x
+			var t_d2x = inner_d2x + y_term_d2x
+			correction_d2x = (t_d2x - inner_d2x) - y_term_d2x
+			inner_d2x = t_d2x
+
+		var scale = exp(-float(n + 1) * log(2.0))
+		sum_outer += inner * scale
+		sum_outer_dx += inner_dx * scale
+		sum_outer_d2x += inner_d2x * scale
 	return [sum_outer, sum_outer_dx, sum_outer_d2x]
 
 static func zeta_borwein_with_derivatives(x: float, y: float, order: int) -> Array:
