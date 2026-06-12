@@ -705,32 +705,23 @@ static func eta_borwein(x: float, y: float, order: int) -> Vector2:
 	if order <= 0: return Vector2.ZERO
 
 	var n = float(order)
+
 	var T = []
 	T.resize(order + 1)
-	T[0] = 0.0
+	T[0] = -log(n)
+
 	for l in range(1, order + 1):
 		var fl = float(l)
-		T[l] = T[l - 1] + log(n - fl + 1.0) + log(n + fl - 1.0) - log(2.0 * fl - 1.0) - log(2.0 * fl) + log(4.0)
+		T[l] = T[l - 1] + log(n - fl + 1.0) + log(n + fl - 1.0) - log(2.0 * fl - 1.0) - log(2.0 * fl)
 
-	var log_d = []
-	log_d.resize(order + 1)
-	var current_max = T[0]
-	var current_sum_exp = 0.0
-	for k in range(order + 1):
-		if T[k] > current_max:
-			var diff = current_max - T[k]
-			current_sum_exp = current_sum_exp * exp(diff) + 1.0
-			current_max = T[k]
-		else:
-			current_sum_exp += exp(T[k] - current_max)
-		log_d[k] = current_max + log(current_sum_exp)
-
-	var log_d_n = log_d[order]
+	var ln_dn = T[order]
 	var sum_val = Vector2.ZERO
-	var eps = 1e-15
 
 	for k in range(order):
-		var w_k = 1.0 - exp(log_d[k] - log_d_n)
+		var ln_dk = T[k]
+		var delta_ln = ln_dk - ln_dn
+
+		var w_k = -expm1(delta_ln)
 
 		var k_plus_1 = float(k + 1)
 		var logk = log(k_plus_1)
@@ -741,11 +732,7 @@ static func eta_borwein(x: float, y: float, order: int) -> Vector2:
 		if k & 1 != 0:
 			pow_term = - pow_term
 
-		var term = w_k * pow_term
-		sum_val += term
-
-		if term.length() < eps * sum_val.length() and k > 10:
-			break
+		sum_val += w_k * pow_term
 
 	return sum_val
 
@@ -794,34 +781,25 @@ static func eta_borwein_with_derivatives(x: float, y: float, order: int) -> Arra
 	if order <= 0: return [Vector2.ZERO, Vector2.ZERO, Vector2.ZERO]
 
 	var n = float(order)
+
 	var T = []
 	T.resize(order + 1)
-	T[0] = 0.0
+	T[0] = -log(n)
+
 	for l in range(1, order + 1):
 		var fl = float(l)
-		T[l] = T[l - 1] + log(n - fl + 1.0) + log(n + fl - 1.0) - log(2.0 * fl - 1.0) - log(2.0 * fl) + log(4.0)
+		T[l] = T[l - 1] + log(n - fl + 1.0) + log(n + fl - 1.0) - log(2.0 * fl - 1.0) - log(2.0 * fl)
 
-	var log_d = []
-	log_d.resize(order + 1)
-	var current_max = T[0]
-	var current_sum_exp = 0.0
-	for k in range(order + 1):
-		if T[k] > current_max:
-			var diff = current_max - T[k]
-			current_sum_exp = current_sum_exp * exp(diff) + 1.0
-			current_max = T[k]
-		else:
-			current_sum_exp += exp(T[k] - current_max)
-		log_d[k] = current_max + log(current_sum_exp)
-
-	var log_d_n = log_d[order]
+	var ln_dn = T[order]
 	var sum_val = Vector2.ZERO
 	var sum_dx = Vector2.ZERO
 	var sum_d2x = Vector2.ZERO
-	var eps = 1e-15
 
 	for k in range(order):
-		var w_k = 1.0 - exp(log_d[k] - log_d_n)
+		var ln_dk = T[k]
+		var delta_ln = ln_dk - ln_dn
+
+		var w_k = -expm1(delta_ln)
 
 		var k_plus_1 = float(k + 1)
 		var logk = log(k_plus_1)
@@ -839,9 +817,6 @@ static func eta_borwein_with_derivatives(x: float, y: float, order: int) -> Arra
 		sum_val += term
 		sum_dx += term_dx
 		sum_d2x += term_d2x
-
-		if term.length() < eps * sum_val.length() and k > 10:
-			break
 
 	return [sum_val, sum_dx, sum_d2x]
 
