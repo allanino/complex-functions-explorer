@@ -827,7 +827,7 @@ func start_newton_walk():
 			min_y = min(min_y, next_z.y)
 			max_y = max(max_y, next_z.y)
 
-			if (next_z.x - _current_z.x)**2 + (next_z.y - _current_z.y)**2 < 1e-12:
+			if (next_z.x - _current_z.x) ** 2 + (next_z.y - _current_z.y) ** 2 < 1e-12:
 				break
 			_current_z = next_z
 
@@ -935,7 +935,7 @@ func _process_zero_detection(z_mid: Vector2, current_auto_walk_state: int):
 
 			var z_dist = 0.0
 			if typeof(refined_z) == TYPE_VECTOR2:
-				z_dist = sqrt((next_z.x - refined_z.x)**2 + (next_z.y - refined_z.y)**2)
+				z_dist = sqrt((next_z.x - refined_z.x) ** 2 + (next_z.y - refined_z.y) ** 2)
 			else:
 				z_dist = next_z.distance_to(refined_z)
 			if f_mag < 1e-5 or z_dist < 1e-5:
@@ -971,7 +971,7 @@ func _process_zero_detection(z_mid: Vector2, current_auto_walk_state: int):
 			print("End	   | z (%9.6f, %9.6f) | f (%9.6f, %9.6f) | len %10.6f | mult %6.2f | converged %s" % [refined_z.x, refined_z.y, f_val.x, f_val.y, f_mag, step_mult, converged])
 
 		if converged:
-			call_deferred("_on_zero_detected", true_z, current_auto_walk_state)
+			call_deferred("_on_zero_detected", true_z.to_vector2(), current_auto_walk_state)
 
 func _on_zero_detected(true_z: Vector2, current_auto_walk_state: int):
 	if true_z.distance_to(last_detected_z) > 0.001:

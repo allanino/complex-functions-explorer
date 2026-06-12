@@ -810,7 +810,7 @@ static func eta_borwein_with_derivatives(x: float, y: float, order: int) -> Arra
 			Vector2(result[4], result[5])
 		]
 
-	if order <= 0: return [DoubleVector2.new(0,0), DoubleVector2.new(0,0), DoubleVector2.new(0,0)]
+	if order <= 0: return [DoubleVector2.new(0, 0), DoubleVector2.new(0, 0), DoubleVector2.new(0, 0)]
 
 
 	var w = _get_borwein_weights(order)
@@ -859,9 +859,9 @@ static func zeta_borwein_with_derivatives(x: float, y: float, order: int) -> Arr
 		var ext = ClassDB.instantiate("ComplexFunctions")
 		var result = ext.call("zeta_borwein_with_derivatives", x, y, order)
 		return [
-			Vector2(result[0], result[1]),
-			Vector2(result[2], result[3]),
-			Vector2(result[4], result[5])
+			DoubleVector2.new(result[0], result[1]),
+			DoubleVector2.new(result[2], result[3]),
+			DoubleVector2.new(result[4], result[5])
 		]
 
 	var eta_data = eta_borwein_with_derivatives(x, y, order)
@@ -939,9 +939,9 @@ static func newton_step(z_input: Variant, step_size_mult: float, max_step: float
 		z = z_input
 
 	var use_analytic = false
-	var f_val = DoubleVector2.new(0,0)
-	var f_prime = DoubleVector2.new(0,0)
-	var f_second = DoubleVector2.new(0,0)
+	var f_val = DoubleVector2.new(0, 0)
+	var f_prime = DoubleVector2.new(0, 0)
+	var f_second = DoubleVector2.new(0, 0)
 
 	if Config.input_function_type == Config.ComplexFunc.IDENTITY:
 		if Config.function_type == Config.ComplexFunc.ZETA:
@@ -988,7 +988,7 @@ static func newton_step(z_input: Variant, step_size_mult: float, max_step: float
 	if f_prime.length_squared() < 1e-12:
 		return [z, f_val]
 
-	var step = DoubleVector2.new(0,0)
+	var step = DoubleVector2.new(0, 0)
 	if use_analytic:
 		var term1 = DoubleVector2.new(2.0, 0.0).complex_mul(f_prime.complex_mul(f_prime))
 		var term2 = f_val.complex_mul(f_second)
