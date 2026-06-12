@@ -1049,6 +1049,13 @@ ComplexFieldData multivalued_acos_with_derivatives(float x, float y, int branch_
 // Dispatchers
 //-------------------------------------------------------------------------
 
+float _expm1_polyfill(float x) {
+    if (abs(x) < 1e-5) {
+        return x + 0.5 * x * x;
+    }
+    return exp(x) - 1.0;
+}
+
 ComplexFieldData eta_borwein_with_derivatives(float x, float y, int order) {
     ComplexFieldData res;
     if (order <= 0) {
@@ -1076,7 +1083,7 @@ ComplexFieldData eta_borwein_with_derivatives(float x, float y, int order) {
         float ln_dk = T[k];
         float delta_ln = ln_dk - ln_dn;
 
-        float w_k = -(exp(delta_ln) - 1.0);
+        float w_k = -_expm1_polyfill(delta_ln);
 
         float k_plus_1 = float(k + 1);
         float logk = log(k_plus_1);

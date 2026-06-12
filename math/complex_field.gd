@@ -121,6 +121,11 @@ static func complex_log_sin(x: float, y: float) -> Vector2:
 const LOG_2 = 0.6931471805599453
 const LOG_PI = 1.1447298858494002
 
+static func _expm1_polyfill(x: float) -> float:
+	if abs(x) < 1e-5:
+		return x + 0.5 * x * x
+	return exp(x) - 1.0
+
 static func dirichlet_eta(x: float, y: float, iterations: int) -> Vector2:
 	if x < -1.0: return Vector2(NAN, NAN)
 	if iterations <= 0: return Vector2.ZERO
@@ -721,7 +726,7 @@ static func eta_borwein(x: float, y: float, order: int) -> Vector2:
 		var ln_dk = T[k]
 		var delta_ln = ln_dk - ln_dn
 
-		var w_k = -expm1(delta_ln)
+		var w_k = -_expm1_polyfill(delta_ln)
 
 		var k_plus_1 = float(k + 1)
 		var logk = log(k_plus_1)
@@ -799,7 +804,7 @@ static func eta_borwein_with_derivatives(x: float, y: float, order: int) -> Arra
 		var ln_dk = T[k]
 		var delta_ln = ln_dk - ln_dn
 
-		var w_k = -expm1(delta_ln)
+		var w_k = -_expm1_polyfill(delta_ln)
 
 		var k_plus_1 = float(k + 1)
 		var logk = log(k_plus_1)
