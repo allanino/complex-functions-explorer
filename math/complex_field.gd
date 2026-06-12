@@ -791,7 +791,7 @@ static func zeta_borwein(x: float, y: float, order: int) -> Vector2:
 	return complex_div(eta, denom)
 
 static func eta_borwein_with_derivatives(x: float, y: float, order: int) -> Array:
-	if order <= 0: return [Vector2.ZERO, Vector2.ZERO, Vector2.ZERO]
+	if order <= 0: return [DoubleVector2.new(0,0), DoubleVector2.new(0,0), DoubleVector2.new(0,0)]
 
 	var w = _get_borwein_weights(order)
 	var sum_val_x = 0.0
@@ -831,30 +831,30 @@ static func eta_borwein_with_derivatives(x: float, y: float, order: int) -> Arra
 		sum_d2x_x += term_d2x_x
 		sum_d2x_y += term_d2x_y
 
-	return [Vector2(sum_val_x, sum_val_y), Vector2(sum_dx_x, sum_dx_y), Vector2(sum_d2x_x, sum_d2x_y)]
+	return [DoubleVector2.new(sum_val_x, sum_val_y), DoubleVector2.new(sum_dx_x, sum_dx_y), DoubleVector2.new(sum_d2x_x, sum_d2x_y)]
 
 static func zeta_borwein_with_derivatives(x: float, y: float, order: int) -> Array:
 	var eta_data = eta_borwein_with_derivatives(x, y, order)
-	var eta = eta_data[0]
-	var deta_dx = eta_data[1]
-	var d2eta_dx2 = eta_data[2]
+	var eta: DoubleVector2 = eta_data[0]
+	var deta_dx: DoubleVector2 = eta_data[1]
+	var d2eta_dx2: DoubleVector2 = eta_data[2]
 
 	var amp2 = pow(2.0, 1.0 - x)
 	var theta2 = -y * LOG_2
-	var two_term = amp2 * Vector2(cos(theta2), sin(theta2))
-	var denom = Vector2(1.0, 0.0) - two_term
-	var ddenom_dx = LOG_2 * two_term
-	var d2denom_dx2 = - (LOG_2 * LOG_2) * two_term
+	var two_term = DoubleVector2.new(amp2 * cos(theta2), amp2 * sin(theta2))
+	var denom = DoubleVector2.new(1.0, 0.0).sub(two_term)
+	var ddenom_dx = two_term.mul(LOG_2)
+	var d2denom_dx2 = two_term.mul(- (LOG_2 * LOG_2))
 
-	var val = complex_div(eta, denom)
-	var denom_sqr = complex_mul(denom, denom)
-	var num_x = complex_mul(deta_dx, denom) - complex_mul(eta, ddenom_dx)
-	var dx = complex_div(num_x, denom_sqr)
+	var val = eta.complex_div(denom)
+	var denom_sqr = denom.complex_mul(denom)
+	var num_x = deta_dx.complex_mul(denom).sub(eta.complex_mul(ddenom_dx))
+	var dx = num_x.complex_div(denom_sqr)
 
-	var term1 = complex_mul(d2eta_dx2, denom) - complex_mul(eta, d2denom_dx2)
-	var term2 = complex_mul(Vector2(2.0, 0.0), complex_mul(ddenom_dx, num_x))
-	var term2_scaled = complex_div(term2, denom)
-	var d2x = complex_div(term1 - term2_scaled, denom_sqr)
+	var term1 = d2eta_dx2.complex_mul(denom).sub(eta.complex_mul(d2denom_dx2))
+	var term2 = DoubleVector2.new(2.0, 0.0).complex_mul(ddenom_dx.complex_mul(num_x))
+	var term2_scaled = term2.complex_div(denom)
+	var d2x = term1.sub(term2_scaled).complex_div(denom_sqr)
 
 	return [val, dx, d2x]
 
@@ -901,18 +901,24 @@ static func get_field(world_x: float, world_z: float) -> Vector2:
 
 # Returns [next_z: Vector2, f_val: Vector2] so the caller can reuse f_val
 # without an extra get_field evaluation.
-static func newton_step(z: Vector2, step_size_mult: float, max_step: float = 1.0) -> Array:
+static func newton_step(z_input: Variant, step_size_mult: float, max_step: float = 1.0) -> Array:
+	var z: DoubleVector2
+	if z_input is Vector2:
+		z = DoubleVector2.new(z_input.x, z_input.y)
+	else:
+		z = z_input
+
 	var use_analytic = false
-	var f_val = Vector2.ZERO
-	var f_prime = Vector2.ZERO
-	var f_second = Vector2.ZERO
+	var f_val = DoubleVector2.new(0,0)
+	var f_prime = DoubleVector2.new(0,0)
+	var f_second = DoubleVector2.new(0,0)
 
 	if Config.input_function_type == Config.ComplexFunc.IDENTITY:
 		if Config.function_type == Config.ComplexFunc.ZETA:
 			var res = zeta_with_derivatives(z.x, z.y, Config.iterations * 2)
-			f_val = res[0]
-			f_prime = res[1]
-			f_second = res[2]
+			f_val = DoubleVector2.new(res[0].x, res[0].y)
+			f_prime = DoubleVector2.new(res[1].x, res[1].y)
+			f_second = DoubleVector2.new(res[2].x, res[2].y)
 			use_analytic = true
 		elif Config.function_type == Config.ComplexFunc.ZETA_REFLECTION:
 			var res = zeta_borwein_with_derivatives(z.x, z.y, Config.iterations)
@@ -922,9 +928,9 @@ static func newton_step(z: Vector2, step_size_mult: float, max_step: float = 1.0
 			use_analytic = true
 		elif Config.function_type == Config.ComplexFunc.DIRICHLET_ETA:
 			var res = dirichlet_eta_with_derivatives(z.x, z.y, Config.iterations * 2)
-			f_val = res[0]
-			f_prime = res[1]
-			f_second = res[2]
+			f_val = DoubleVector2.new(res[0].x, res[0].y)
+			f_prime = DoubleVector2.new(res[1].x, res[1].y)
+			f_second = DoubleVector2.new(res[2].x, res[2].y)
 			use_analytic = true
 		elif Config.function_type == Config.ComplexFunc.ETA_BORWEIN:
 			var res = eta_borwein_with_derivatives(z.x, z.y, Config.iterations * 2)
@@ -941,32 +947,34 @@ static func newton_step(z: Vector2, step_size_mult: float, max_step: float = 1.0
 
 	if not use_analytic:
 		var p_ref = Config.complex_to_world(z.x, z.y)
-		f_val = get_field(p_ref.x, p_ref.y)
+		var v = get_field(p_ref.x, p_ref.y)
+		f_val = DoubleVector2.new(v.x, v.y)
 		var delta_x = 1e-5
 		var p_ref_dx = Config.complex_to_world(z.x + delta_x, z.y)
-		var f_val_dx = get_field(p_ref_dx.x, p_ref_dx.y)
-		f_prime = (f_val_dx - f_val) / delta_x
+		var f_val_dx_v = get_field(p_ref_dx.x, p_ref_dx.y)
+		var f_val_dx = DoubleVector2.new(f_val_dx_v.x, f_val_dx_v.y)
+		f_prime = f_val_dx.sub(f_val).div(delta_x)
 
 	if f_prime.length_squared() < 1e-12:
 		return [z, f_val]
 
-	var step = Vector2.ZERO
+	var step = DoubleVector2.new(0,0)
 	if use_analytic:
-		var term1 = complex_mul(Vector2(2.0, 0.0), complex_mul(f_prime, f_prime))
-		var term2 = complex_mul(f_val, f_second)
-		var den = term1 - term2
+		var term1 = DoubleVector2.new(2.0, 0.0).complex_mul(f_prime.complex_mul(f_prime))
+		var term2 = f_val.complex_mul(f_second)
+		var den = term1.sub(term2)
 
 		if den.length() < 1e-12:
-			step = complex_div(f_val, f_prime)
+			step = f_val.complex_div(f_prime)
 		else:
-			var num = complex_mul(Vector2(2.0, 0.0), complex_mul(f_val, f_prime))
-			step = complex_div(num, den)
+			var num = DoubleVector2.new(2.0, 0.0).complex_mul(f_val.complex_mul(f_prime))
+			step = num.complex_div(den)
 	else:
-		step = complex_div(f_val, f_prime)
+		step = f_val.complex_div(f_prime)
 
 	if step.length() > max_step:
-		step = step.normalized() * max_step
-	return [z - step * step_size_mult, f_val]
+		step = step.normalized().mul(max_step)
+	return [z.sub(step.mul(step_size_mult)), f_val]
 
 static func get_height_from_field(f: Vector2) -> float:
 	if not is_finite(f.x) or not is_finite(f.y): return NAN
