@@ -249,14 +249,11 @@ func _unhandled_input(event):
 			else:
 				auto_walk_state = AutoWalkState.NONE
 		elif event.keycode == KEY_R:
-			if Config.function.get("is_dirichlect", false):
-				global_position.x = 5.0
-				global_position.z = 0.0
-				rotation.y = 0.0
-			else:
-				global_position.x = 0.0
-				global_position.z = 0.0
+			global_position = get_initial_position()
+			if not Config.function.get("is_dirichlect", false) and not Config.function.has("initial_pos"):
 				rotation.y = - PI / 2.0
+			else:
+				rotation.y = 0.0
 			velocity = Vector3.ZERO
 			auto_walk_state = AutoWalkState.NONE
 			height_offset = 0.0
