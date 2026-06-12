@@ -336,44 +336,92 @@ vec2 complex_log_sin(float x, float y) {
 
 ComplexFieldData dirichlet_eta_with_derivatives(float x, float y, int iters) {
     if (x < -1.0) { return ComplexFieldData(vec2(uintBitsToFloat(0x7FC00000u)), vec2(uintBitsToFloat(0x7FC00000u)), vec2(uintBitsToFloat(0x7FC00000u))); }
+
     vec2 eta = vec2(0.0);
     vec2 deta_dx = vec2(0.0);
+
+    vec2 phase_dir = vec2(1.0, 0.0);
+    float current_log_n = 0.0;
+
     int actual_iters = 0;
-    for (int n = 1; n <= iters; n += 2) {
+
+    for (int n = 1; n <= iters; n++) {
         float nf = float(n);
         float amp = pow(nf, -x);
-        float log_n = log(nf);
-        float theta = -y * log_n;
-        vec2 term = amp * vec2(cos(theta), sin(theta));
+
+        if (n <= 6) {
+            current_log_n = log(nf);
+            float theta = -y * current_log_n;
+            phase_dir = vec2(cos(theta), sin(theta));
+        } else {
+            float inv_n = 1.0 / nf;
+            float inv_n2 = inv_n * inv_n;
+            float delta_log = inv_n + (0.5 * inv_n2) + (0.33333333 * inv_n2 * inv_n);
+            current_log_n += delta_log;
+
+            float delta_theta = -y * delta_log;
+            float dt2 = delta_theta * delta_theta;
+            float cos_d = 1.0 - (0.5 * dt2);
+            float sin_d = delta_theta * (1.0 - (0.16666667 * dt2));
+
+            phase_dir = vec2(
+                phase_dir.x * cos_d - phase_dir.y * sin_d,
+                phase_dir.x * sin_d + phase_dir.y * cos_d
+            );
+
+            if (n % 16 == 0) {
+                phase_dir = normalize(phase_dir);
+            }
+        }
+
+        float sign_multiplier = (n % 2 == 1) ? 1.0 : -1.0;
+
+        vec2 term = sign_multiplier * amp * phase_dir;
         eta += term;
-        deta_dx -= log_n * term;
+        deta_dx -= current_log_n * term;
 
-        float nf2 = float(n + 1);
-        float amp2 = pow(nf2, -x);
-        float log_n2 = log(nf2);
-        float theta2 = -y * log_n2;
-        vec2 term2 = amp2 * vec2(cos(theta2), sin(theta2));
-        eta -= term2;
-        deta_dx += log_n2 * term2;
+        actual_iters = n;
         
-        actual_iters = n + 1;
-
         // We are basically clamping the flat planice x > 1 restricting amp < 1e-4
         // and also preventing overflow when x is very negative by clamping amp > 1e4
         // This improves performance greatly on the acutally interesting region around the critical strip
-        if (amp < 1e-4 || amp2 < 1e-4 || amp > 1e4 || amp2 > 1e4) break;
+        if (n % 2 == 0) {
+            if (amp < 1e-4 || amp > 1e4) break;
+        }
     }
 
     if (actual_iters > 0 && x >= 0.5) {
         float next_n = float(actual_iters + 1);
-
         float rem_amp = 0.5 * pow(next_n, -x);
-        float rem_log_n = log(next_n);
-        float rem_theta = -y * rem_log_n;
 
-        float rem_sign = 1.0;
+        float rem_log_n;
+        vec2 rem_phase_dir;
 
-        vec2 rem_term = rem_sign * rem_amp * vec2(cos(rem_theta), sin(rem_theta));
+        if (actual_iters + 1 <= 6) {
+            rem_log_n = log(next_n);
+            float rem_theta = -y * rem_log_n;
+            rem_phase_dir = vec2(cos(rem_theta), sin(rem_theta));
+        } else {
+            float inv_n = 1.0 / next_n;
+            float inv_n2 = inv_n * inv_n;
+            float delta_log = inv_n + (0.5 * inv_n2) + (0.33333333 * inv_n2 * inv_n);
+            rem_log_n = current_log_n + delta_log;
+
+            float delta_theta = -y * delta_log;
+            float dt2 = delta_theta * delta_theta;
+            float cos_d = 1.0 - (0.5 * dt2);
+            float sin_d = delta_theta * (1.0 - (0.16666667 * dt2));
+
+            rem_phase_dir = vec2(
+                phase_dir.x * cos_d - phase_dir.y * sin_d,
+                phase_dir.x * sin_d + phase_dir.y * cos_d
+            );
+            rem_phase_dir = normalize(rem_phase_dir);
+        }
+
+        float rem_sign = (actual_iters % 2 == 1) ? -1.0 : 1.0;
+
+        vec2 rem_term = rem_sign * rem_amp * rem_phase_dir;
 
         eta += rem_term;
         deta_dx -= rem_log_n * rem_term;
