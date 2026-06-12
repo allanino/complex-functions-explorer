@@ -202,5 +202,5 @@ void fragment() {
     color = mix(color, darker_gold, arrow_mask);
     alpha = max(alpha, arrow_mask);
 
-    COLOR = vec4(color, clamp(alpha, 0.0, 1.0));
+    COLOR = vec4(color, clamp(alpha, 0.0, 0.8));
 }
