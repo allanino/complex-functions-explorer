@@ -1049,6 +1049,15 @@ ComplexFieldData multivalued_acos_with_derivatives(float x, float y, int branch_
 // Dispatchers
 //-------------------------------------------------------------------------
 
+float _expm1_polyfill(float x) {
+    // If x is tiny, the Padé approximant matches exp(x) - 1 with immense precision
+    if (abs(x) < 1e-3f) {
+        return (2.0f * x) / (2.0f - x);
+    }
+    return exp(x) - 1.0f;
+}
+
+
 ComplexFieldData eta_borwein_with_derivatives(float x, float y, int order) {
     ComplexFieldData res;
     if (order <= 0) {
@@ -1058,44 +1067,54 @@ ComplexFieldData eta_borwein_with_derivatives(float x, float y, int order) {
         return res;
     }
 
-    float n = float(order);
-    float T[201];
-    float log_d[201];
     if (order > 200) order = 200;
+    float n = float(order);
 
-    T[0] = 0.0;
+    // To avoid register spilling, we only keep the final log_d values we need.
+    // Since order max is 200, log_d[201] fits better if we streamline it, 
+    // but computing it on-the-fly dynamically without T array saves half the storage.
+    float log_d[201];
+
+    float prev_T = 0.0;
+    float current_max = 0.0;
+    float current_sum_exp = 1.0; // Account for T[0] = 0.0
+    log_d[0] = 0.0;
+
     for (int l = 1; l <= order; l++) {
         float fl = float(l);
-        T[l] = T[l-1] + log(n - fl + 1.0) + log(n + fl - 1.0) - log(2.0 * fl - 1.0) - log(2.0 * fl) + log(4.0);
-    }
-
-    float current_max = T[0];
-    float current_sum_exp = 0.0;
-    for (int k = 0; k <= order; k++) {
-        if (T[k] > current_max) {
-            float diff = current_max - T[k];
+        // Compute T[l] iteratively without needing an entire T[] array buffer
+        float current_T = prev_T + log(n - fl + 1.0) + log(n + fl - 1.0) - log(2.0 * fl - 1.0) - log(2.0 * fl) + log(4.0);
+        
+        if (current_T > current_max) {
+            float diff = current_max - current_T;
             current_sum_exp = current_sum_exp * exp(diff) + 1.0;
-            current_max = T[k];
+            current_max = current_T;
         } else {
-            current_sum_exp += exp(T[k] - current_max);
+            current_sum_exp += exp(current_T - current_max);
         }
-        log_d[k] = current_max + log(current_sum_exp);
+        
+        log_d[l] = current_max + log(current_sum_exp);
+        prev_T = current_T;
     }
 
     float log_d_n = log_d[order];
     vec2 sum_val = vec2(0.0);
     vec2 sum_dx = vec2(0.0);
-    float eps = 1e-15;
+
+    const float INV_TWO_PI = 0.15915494309; 
+    const float TWO_PI = 6.28318530718;
 
     for (int k = 0; k < order; k++) {
-        float w_k = 1.0 - exp(log_d[k] - log_d_n);
+        float w_k = -_expm1_polyfill(log_d[k] - log_d_n);
 
         float k_plus_1 = float(k + 1);
         float logk = log(k_plus_1);
         float amp = exp(-x * logk);
-        float theta = -y * logk;
+        
+        float raw_turns = (-y * logk) * INV_TWO_PI;
+        float safe_theta = fract(raw_turns) * TWO_PI;
+        vec2 pow_term = amp * vec2(cos(safe_theta), sin(safe_theta));
 
-        vec2 pow_term = amp * vec2(cos(theta), sin(theta));
         if ((k & 1) != 0) {
             pow_term = -pow_term;
         }
@@ -1105,10 +1124,6 @@ ComplexFieldData eta_borwein_with_derivatives(float x, float y, int order) {
 
         sum_val += term;
         sum_dx += term_dx;
-
-        if (length(term) < eps * length(sum_val) && k > 10) {
-            break;
-        }
     }
 
     res.value = sum_val;
