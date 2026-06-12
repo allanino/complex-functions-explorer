@@ -112,12 +112,12 @@ func _ready():
 	re_label.no_depth_test = true
 	re_label.fixed_size = true
 	re_label.font = load("res://ui/theme/font_neon.tres")
-	re_label.pixel_size = 0.0025
-	re_label.font_size = 36
-	re_label.outline_size = 4
-	re_label.modulate = Color(0.0, 0.75, 0.75, 1.0)
+	re_label.pixel_size = 0.000625
+	re_label.font_size = 192
+	re_label.outline_size = 8
+	re_label.modulate = Color(0.3647, 0.847, 0.7843, 1)
 	re_label.outline_modulate = Color(0.0, 0.0, 0.0, 1.0)
-	re_label.outline_render_priority = 0
+	re_label.outline_render_priority = -1
 	re_label.top_level = true
 	re_label.visible = false
 	add_child(re_label)
@@ -128,12 +128,12 @@ func _ready():
 	im_label.no_depth_test = true
 	im_label.fixed_size = true
 	im_label.font = load("res://ui/theme/font_neon.tres")
-	im_label.pixel_size = 0.0025
-	im_label.font_size = 36
-	im_label.outline_size = 4
-	im_label.modulate = Color(0.75, 0.0, 0.75, 1.0)
+	im_label.pixel_size = 0.000625
+	im_label.font_size = 192
+	im_label.outline_size = 8
+	im_label.modulate = Color(0.8313, 0.3725, 0.6274, 1)
 	im_label.outline_modulate = Color(1.0, 1.0, 1.0, 1.0)
-	im_label.outline_render_priority = 0
+	im_label.outline_render_priority = -1
 	im_label.top_level = true
 	im_label.visible = false
 	add_child(im_label)
