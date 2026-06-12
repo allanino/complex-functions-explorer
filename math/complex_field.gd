@@ -731,7 +731,8 @@ static func eta_borwein(x: float, y: float, order: int) -> Vector2:
 		log_d[k] = current_max + log(current_sum_exp)
 
 	var log_d_n = log_d[order]
-	var sum_val = Vector2.ZERO
+	var sum_x = 0.0
+	var sum_y = 0.0
 
 	for k in range(order):
 		var w_k = -_expm1_polyfill(log_d[k] - log_d_n)
@@ -741,14 +742,16 @@ static func eta_borwein(x: float, y: float, order: int) -> Vector2:
 		var amp = exp(-x * logk)
 		var theta = -y * logk
 
-		var pow_term = amp * Vector2(cos(theta), sin(theta))
+		var pow_term_x = amp * cos(theta)
+		var pow_term_y = amp * sin(theta)
 		if k & 1 != 0:
-			pow_term = - pow_term
+			pow_term_x = -pow_term_x
+			pow_term_y = -pow_term_y
 
-		var term = w_k * pow_term
-		sum_val += term
+		sum_x += w_k * pow_term_x
+		sum_y += w_k * pow_term_y
 
-	return sum_val
+	return Vector2(sum_x, sum_y)
 
 static func dirichlet_eta_accelerated(x: float, y: float, iters: int) -> Vector2:
 	if iters <= 0: return Vector2.ZERO
@@ -816,9 +819,12 @@ static func eta_borwein_with_derivatives(x: float, y: float, order: int) -> Arra
 		log_d[k] = current_max + log(current_sum_exp)
 
 	var log_d_n = log_d[order]
-	var sum_val = Vector2.ZERO
-	var sum_dx = Vector2.ZERO
-	var sum_d2x = Vector2.ZERO
+	var sum_val_x = 0.0
+	var sum_val_y = 0.0
+	var sum_dx_x = 0.0
+	var sum_dx_y = 0.0
+	var sum_d2x_x = 0.0
+	var sum_d2x_y = 0.0
 
 	for k in range(order):
 		var w_k = -_expm1_polyfill(log_d[k] - log_d_n)
@@ -828,19 +834,29 @@ static func eta_borwein_with_derivatives(x: float, y: float, order: int) -> Arra
 		var amp = exp(-x * logk)
 		var theta = -y * logk
 
-		var pow_term = amp * Vector2(cos(theta), sin(theta))
+		var pow_term_x = amp * cos(theta)
+		var pow_term_y = amp * sin(theta)
 		if k & 1 != 0:
-			pow_term = - pow_term
+			pow_term_x = -pow_term_x
+			pow_term_y = -pow_term_y
 
-		var term = w_k * pow_term
-		var term_dx = - logk * term
-		var term_d2x = logk * logk * term
+		var term_x = w_k * pow_term_x
+		var term_y = w_k * pow_term_y
 
-		sum_val += term
-		sum_dx += term_dx
-		sum_d2x += term_d2x
+		var term_dx_x = -logk * term_x
+		var term_dx_y = -logk * term_y
 
-	return [sum_val, sum_dx, sum_d2x]
+		var term_d2x_x = logk * logk * term_x
+		var term_d2x_y = logk * logk * term_y
+
+		sum_val_x += term_x
+		sum_val_y += term_y
+		sum_dx_x += term_dx_x
+		sum_dx_y += term_dx_y
+		sum_d2x_x += term_d2x_x
+		sum_d2x_y += term_d2x_y
+
+	return [Vector2(sum_val_x, sum_val_y), Vector2(sum_dx_x, sum_dx_y), Vector2(sum_d2x_x, sum_d2x_y)]
 
 static func dirichlet_eta_accelerated_with_derivatives(x: float, y: float, iters: int) -> Array:
 	if iters <= 0: return [Vector2.ZERO, Vector2.ZERO, Vector2.ZERO]
