@@ -137,12 +137,14 @@ static func dirichlet_eta(x: float, y: float, iterations: int) -> Vector2:
 		var nf = float(n)
 		var amp = pow(nf, -x)
 		var log_n = log(nf)
-		var theta = -y * log_n
+		var raw_theta = -y * log_n
+		var theta = fposmod(raw_theta, TAU)
 		eta += amp * Vector2(cos(theta), sin(theta))
 
 		var nf2 = float(n + 1)
 		var amp2 = pow(nf2, -x)
-		var theta2 = -y * log(nf2)
+		var raw_theta2 = -y * log(nf2)
+		var theta2 = fposmod(raw_theta2, TAU)
 		eta -= amp2 * Vector2(cos(theta2), sin(theta2))
 
 		actual_iters = n + 1
@@ -152,7 +154,8 @@ static func dirichlet_eta(x: float, y: float, iterations: int) -> Vector2:
 	if actual_iters > 0 and x >= 0.5:
 		var next_n = float(actual_iters + 1)
 		var rem_amp = 0.5 * pow(next_n, -x)
-		var rem_theta = -y * log(next_n)
+		var raw_rem_theta = -y * log(next_n)
+		var rem_theta = fposmod(raw_rem_theta, TAU)
 		var rem_sign = 1.0
 		eta += rem_sign * rem_amp * Vector2(cos(rem_theta), sin(rem_theta))
 
@@ -165,12 +168,14 @@ static func dirichlet_beta(x: float, y: float, iterations: int) -> Vector2:
 	for n in range(0, iterations, 2):
 		var kf = 2.0 * float(n) + 1.0
 		var amp = pow(kf, -x)
-		var theta = -y * log(kf)
+		var raw_theta = -y * log(kf)
+		var theta = fposmod(raw_theta, TAU)
 		beta += amp * Vector2(cos(theta), sin(theta))
 
 		var kf2 = 2.0 * float(n + 1) + 1.0
 		var amp2 = pow(kf2, -x)
-		var theta2 = -y * log(kf2)
+		var raw_theta2 = -y * log(kf2)
+		var theta2 = fposmod(raw_theta2, TAU)
 		beta -= amp2 * Vector2(cos(theta2), sin(theta2))
 
 		if (amp < 1e-4 || amp2 < 1e-4 || amp > 1e4 || amp2 > 1e4): break
@@ -362,7 +367,8 @@ static func compute_zeta_taylor_patch(x: float, y: float, iters: int) -> Array:
 			else:
 				var k1 = float(k + 1)
 				var amp = pow(k1, -x)
-				var theta = -y * log(k1)
+				var raw_theta = -y * log(k1)
+				var theta = fposmod(raw_theta, TAU)
 				var sign_k = 1.0 if k % 2 == 0 else -1.0
 				base_term = sign_k * float(binom) * amp * Vector2(cos(theta), sin(theta))
 				log_k1 = log(k1)
@@ -536,7 +542,8 @@ static func dirichlet_eta_with_derivatives(x: float, y: float, iters: int) -> Ar
 		var nf = float(n)
 		var amp = pow(nf, -x)
 		var log_n = log(nf)
-		var theta = -y * log_n
+		var raw_theta = -y * log_n
+		var theta = fposmod(raw_theta, TAU)
 		var term = amp * Vector2(cos(theta), sin(theta))
 		eta += term
 		deta_dx -= log_n * term
@@ -545,7 +552,8 @@ static func dirichlet_eta_with_derivatives(x: float, y: float, iters: int) -> Ar
 		var nf2 = float(n + 1)
 		var amp2 = pow(nf2, -x)
 		var log_n2 = log(nf2)
-		var theta2 = -y * log_n2
+		var raw_theta2 = -y * log_n2
+		var theta2 = fposmod(raw_theta2, TAU)
 		var term2 = amp2 * Vector2(cos(theta2), sin(theta2))
 		eta -= term2
 		deta_dx += log_n2 * term2
@@ -560,7 +568,8 @@ static func dirichlet_eta_with_derivatives(x: float, y: float, iters: int) -> Ar
 		var next_n = float(actual_iters + 1)
 		var rem_amp = 0.5 * pow(next_n, -x)
 		var rem_log_n = log(next_n)
-		var rem_theta = -y * rem_log_n
+		var raw_rem_theta = -y * rem_log_n
+		var rem_theta = fposmod(raw_rem_theta, TAU)
 		var rem_sign = 1.0
 		var rem_term = rem_sign * rem_amp * Vector2(cos(rem_theta), sin(rem_theta))
 
@@ -769,10 +778,11 @@ static func eta_borwein(x: float, y: float, order: int) -> Vector2:
 		var k_plus_1 = float(k + 1)
 		var logk = log(k_plus_1)
 		var amp = exp(-x * logk)
-		var theta = -y * logk
+		var raw_theta = -y * logk
+		var safe_theta = fposmod(raw_theta, TAU)
 
-		var pow_term_x = amp * cos(theta)
-		var pow_term_y = amp * sin(theta)
+		var pow_term_x = amp * cos(safe_theta)
+		var pow_term_y = amp * sin(safe_theta)
 		if k & 1 != 0:
 			pow_term_x = - pow_term_x
 			pow_term_y = - pow_term_y
@@ -807,10 +817,11 @@ static func eta_borwein_with_derivatives(x: float, y: float, order: int) -> Arra
 		var k_plus_1 = float(k + 1)
 		var logk = log(k_plus_1)
 		var amp = exp(-x * logk)
-		var theta = -y * logk
+		var raw_theta = -y * logk
+		var safe_theta = fposmod(raw_theta, TAU)
 
-		var pow_term_x = amp * cos(theta)
-		var pow_term_y = amp * sin(theta)
+		var pow_term_x = amp * cos(safe_theta)
+		var pow_term_y = amp * sin(safe_theta)
 		if k & 1 != 0:
 			pow_term_x = - pow_term_x
 			pow_term_y = - pow_term_y
