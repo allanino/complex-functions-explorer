@@ -93,6 +93,7 @@ signal update_hud_layout_signal()
 @onready var visualization_tab_button = %VisualizationTabButton
 @onready var graphics_tab_button = %GraphicsTabButton
 @onready var navigation_tab_button = %NavigationTabButton
+@onready var zeros_tab_button = %ZerosTabButton
 @onready var ui_tab_button = %UiTabButton
 @onready var audio_tab_button = %AudioTabButton
 var tab_buttons: Array = []
@@ -138,6 +139,7 @@ func _ready():
 		visualization_tab_button,
 		graphics_tab_button,
 		navigation_tab_button,
+		zeros_tab_button,
 		ui_tab_button,
 		audio_tab_button
 	]
