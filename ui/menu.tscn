@@ -365,6 +365,12 @@ layout_mode = 2
 text = "NAVIGATION"
 flat = true
 
+[node name="ZerosFinderTabButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/LeftSidebar"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "ZEROS FINDER"
+flat = true
+
 [node name="UiTabButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/LeftSidebar" unique_id=101010111]
 unique_name_in_owner = true
 layout_mode = 2
