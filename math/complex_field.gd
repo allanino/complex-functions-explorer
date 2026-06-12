@@ -907,7 +907,7 @@ static func newton_step(z: Vector2, step_size_mult: float, max_step: float = 1.0
 			f_second = res[2]
 			use_analytic = true
 		elif Config.function_type == Config.ComplexFunc.ZETA_REFLECTION:
-			var res = zeta_continuation_with_derivatives(z.x, z.y, Config.iterations * 2)
+			var res = zeta_borwein_with_derivatives(z.x, z.y, Config.iterations)
 			f_val = res[0]
 			f_prime = res[1]
 			f_second = res[2]
