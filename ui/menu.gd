@@ -562,6 +562,7 @@ func _on_func_selected(f_type: int):
 	var is_rational = f_data.get("is_rational", false)
 	var is_multivalued_n = f_type == Config.ComplexFunc.MULTIVALUED_Z_POW
 
+	var was_syncing = _syncing_ui
 	if has_iters:
 		_syncing_ui = true
 		iter_slider.min_value = iters_range[0]
@@ -572,7 +573,7 @@ func _on_func_selected(f_type: int):
 		iter_slider.set_value_no_signal(Config.iterations)
 		if SLIDER_BINDINGS.has(iter_slider) and "format" in SLIDER_BINDINGS[iter_slider]:
 			iter_slider.value_text = SLIDER_BINDINGS[iter_slider]["format"].call(Config.iterations)
-		_syncing_ui = false
+		_syncing_ui = was_syncing
 
 	func_rational_container.visible = is_rational
 	if is_rational:
@@ -592,7 +593,7 @@ func _on_func_selected(f_type: int):
 	if not is_finite(re): re = 0.5
 	if not is_finite(im): im = 0.0
 	
-	if player:
+	if player and not _syncing_ui:
 		var target_pos = Config.complex_to_world(re, im)
 		player.teleport_to_world_pos(Vector3(target_pos.x, 0, target_pos.y))
 
