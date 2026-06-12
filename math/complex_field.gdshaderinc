@@ -350,9 +350,20 @@ ComplexFieldData dirichlet_eta_with_derivatives(float x, float y, int iters) {
         float amp = pow(nf, -x);
 
         if (n <= 6) {
-            current_log_n = log(nf);
-            float theta = -y * current_log_n;
-            phase_dir = vec2(cos(theta), sin(theta));
+            float delta_log = 0.0;
+            if (n > 1) {
+                delta_log = log(nf / (nf - 1.0));
+            }
+            current_log_n += delta_log;
+
+            float delta_theta = -y * delta_log;
+            float cos_d = cos(delta_theta);
+            float sin_d = sin(delta_theta);
+
+            phase_dir = vec2(
+                phase_dir.x * cos_d - phase_dir.y * sin_d,
+                phase_dir.x * sin_d + phase_dir.y * cos_d
+            );
         } else {
             float inv_n = 1.0 / nf;
             float inv_n2 = inv_n * inv_n;
@@ -398,9 +409,17 @@ ComplexFieldData dirichlet_eta_with_derivatives(float x, float y, int iters) {
         vec2 rem_phase_dir;
 
         if (actual_iters + 1 <= 6) {
-            rem_log_n = log(next_n);
-            float rem_theta = -y * rem_log_n;
-            rem_phase_dir = vec2(cos(rem_theta), sin(rem_theta));
+            float delta_log = log(next_n / float(actual_iters));
+            rem_log_n = current_log_n + delta_log;
+
+            float delta_theta = -y * delta_log;
+            float cos_d = cos(delta_theta);
+            float sin_d = sin(delta_theta);
+
+            rem_phase_dir = vec2(
+                phase_dir.x * cos_d - phase_dir.y * sin_d,
+                phase_dir.x * sin_d + phase_dir.y * cos_d
+            );
         } else {
             float inv_n = 1.0 / next_n;
             float inv_n2 = inv_n * inv_n;
