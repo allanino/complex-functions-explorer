@@ -809,14 +809,42 @@ step = 0.01
 value = 1.0
 value_text = "x1"
 
-[node name="ZeroSpeedContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/NAVIGATION/Margin/VBox" unique_id=652885205 instance=ExtResource("1")]
+[node name="ZEROS FINDER" type="ScrollContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer"]
+visible = false
+layout_mode = 2
+horizontal_scroll_mode = 0
+metadata/_tab_index = 6
+
+[node name="Margin" type="MarginContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/ZEROS FINDER"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/margin_right = 20
+
+[node name="VBox" type="VBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/ZEROS FINDER/Margin"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 20
+
+[node name="AutoWalkCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/ZEROS FINDER/Margin/VBox" unique_id=295163047 instance=ExtResource("3_checkbox")]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Critical Walking"
+
+[node name="ZeroWalkCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/ZEROS FINDER/Margin/VBox" instance=ExtResource("3_checkbox")]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Newton walking"
+
+[node name="ZeroSpeedContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/ZEROS FINDER/Margin/VBox" unique_id=652885205 instance=ExtResource("1")]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Speed near Zeros"
 value = 100.0
 value_text = "100%"
 
-[node name="ZeroProximityNavContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/NAVIGATION/Margin/VBox" unique_id=2009290908 instance=ExtResource("1")]
+[node name="ZeroProximityNavContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/ZEROS FINDER/Margin/VBox" unique_id=2009290908 instance=ExtResource("1")]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Zeros proximity"
@@ -826,23 +854,11 @@ step = 0.01
 value = 0.5
 value_text = "0.50"
 
-[node name="AutoWalkCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/NAVIGATION/Margin/VBox" unique_id=295163047 instance=ExtResource("3_checkbox")]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-text = "Automatic Walking"
-
-[node name="ZeroWalkCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/NAVIGATION/Margin/VBox" instance=ExtResource("3_checkbox")]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-text = "Zero Walking"
-
 [node name="UI" type="ScrollContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer" unique_id=370743622]
 visible = false
 layout_mode = 2
 horizontal_scroll_mode = 0
-metadata/_tab_index = 6
+metadata/_tab_index = 7
 
 [node name="Margin" type="MarginContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/UI" unique_id=1914399448]
 layout_mode = 2
@@ -914,7 +930,7 @@ text = "Monitor FPS"
 visible = false
 layout_mode = 2
 horizontal_scroll_mode = 0
-metadata/_tab_index = 7
+metadata/_tab_index = 8
 
 [node name="Margin" type="MarginContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/AUDIO" unique_id=291425632]
 layout_mode = 2
