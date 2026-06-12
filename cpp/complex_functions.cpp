@@ -8,6 +8,7 @@ void ComplexFunctions::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("lanczos_gamma", "x", "y"), &ComplexFunctions::lanczos_gamma);
 
 	ClassDB::bind_method(D_METHOD("dirichlet_eta_with_derivatives", "x", "y", "iters"), &ComplexFunctions::dirichlet_eta_with_derivatives);
+	ClassDB::bind_method(D_METHOD("zeta_find_zero", "x", "y", "iters", "step_mult", "step_max"), &ComplexFunctions::zeta_find_zero);
 	ClassDB::bind_method(D_METHOD("zeta_with_derivatives", "x", "y", "iters"), &ComplexFunctions::zeta_with_derivatives);
 	ClassDB::bind_method(D_METHOD("eta_borwein_with_derivatives", "x", "y", "order"), &ComplexFunctions::eta_borwein_with_derivatives);
 	ClassDB::bind_method(D_METHOD("zeta_borwein_with_derivatives", "x", "y", "order"), &ComplexFunctions::zeta_borwein_with_derivatives);
@@ -560,3 +561,118 @@ PackedFloat64Array ComplexFunctions::zeta_continuation_with_derivatives(double x
 }
 
 } // namespace godot
+
+PackedFloat64Array ComplexFunctions::zeta_find_zero(double x, double y, int iters, double step_mult, double step_max) {
+	auto res = zeta_with_derivatives(x, y, iters * 2);
+	double f_val_x = res[0]; double f_val_y = res[1];
+	double f_prime_x = res[2]; double f_prime_y = res[3];
+	double f_second_x = res[4]; double f_second_y = res[5];
+
+	// Complex multiplication of f_val and f_second
+	double num_x = f_val_x * f_second_x - f_val_y * f_second_y;
+	double num_y = f_val_x * f_second_y + f_val_y * f_second_x;
+	double num_len = std::hypot(num_x, num_y);
+
+	double f_prime_len_sq = f_prime_x * f_prime_x + f_prime_y * f_prime_y;
+	double den_kappa = std::max(f_prime_len_sq, 1e-12);
+	double kappa = num_len / den_kappa;
+
+	if (kappa >= 1.0) {
+		return PackedFloat64Array();
+	}
+
+	bool converged = false;
+	double refined_x = x;
+	double refined_y = y;
+	double current_step_mult = step_mult;
+	double f_mag = 1e9;
+
+	for (int step_idx = 0; step_idx < 15; step_idx++) {
+		auto n_res = zeta_with_derivatives(refined_x, refined_y, iters * 2);
+		double cur_f_x = n_res[0]; double cur_f_y = n_res[1];
+		double cur_fp_x = n_res[2]; double cur_fp_y = n_res[3];
+		double cur_fpp_x = n_res[4]; double cur_fpp_y = n_res[5];
+
+		f_mag = std::hypot(cur_f_x, cur_f_y);
+
+		double fp_len_sq = cur_fp_x * cur_fp_x + cur_fp_y * cur_fp_y;
+		if (fp_len_sq < 1e-12) {
+			// Early exit if derivative is zero
+			break;
+		}
+
+		// fp * fp
+		double fp2_x = cur_fp_x * cur_fp_x - cur_fp_y * cur_fp_y;
+		double fp2_y = 2.0 * cur_fp_x * cur_fp_y;
+		// 2 * fp * fp
+		double term1_x = 2.0 * fp2_x;
+		double term1_y = 2.0 * fp2_y;
+
+		// f * fpp
+		double term2_x = cur_f_x * cur_fpp_x - cur_f_y * cur_fpp_y;
+		double term2_y = cur_f_x * cur_fpp_y + cur_f_y * cur_fpp_x;
+
+		// den = term1 - term2
+		double den_x = term1_x - term2_x;
+		double den_y = term1_y - term2_y;
+
+		double step_x = 0.0;
+		double step_y = 0.0;
+
+		if (std::hypot(den_x, den_y) < 1e-12) {
+			// step = f_val / f_prime
+			double d = cur_fp_x * cur_fp_x + cur_fp_y * cur_fp_y;
+			if (d > 0.0) {
+				step_x = (cur_f_x * cur_fp_x + cur_f_y * cur_fp_y) / d;
+				step_y = (cur_f_y * cur_fp_x - cur_f_x * cur_fp_y) / d;
+			}
+		} else {
+			// num = 2.0 * f * fp
+			double f_fp_x = cur_f_x * cur_fp_x - cur_f_y * cur_fp_y;
+			double f_fp_y = cur_f_x * cur_fp_y + cur_f_y * cur_fp_x;
+			double num_x = 2.0 * f_fp_x;
+			double num_y = 2.0 * f_fp_y;
+
+			// step = num / den
+			double d = den_x * den_x + den_y * den_y;
+			step_x = (num_x * den_x + num_y * den_y) / d;
+			step_y = (num_y * den_x - num_x * den_y) / d;
+		}
+
+		double step_len = std::hypot(step_x, step_y);
+		if (step_len > step_max) {
+			step_x = (step_x / step_len) * step_max;
+			step_y = (step_y / step_len) * step_max;
+		}
+
+		double next_x = refined_x - step_x * current_step_mult;
+		double next_y = refined_y - step_y * current_step_mult;
+
+		double z_dist = std::hypot(next_x - refined_x, next_y - refined_y);
+
+		if (f_mag < 1e-5 || z_dist < 1e-5) {
+			refined_x = next_x;
+			refined_y = next_y;
+			converged = true;
+			break;
+		}
+
+		if (f_mag < 0.001) {
+			current_step_mult *= 0.9;
+		} else if (f_mag < 0.01) {
+			current_step_mult *= 0.99;
+		}
+
+		refined_x = next_x;
+		refined_y = next_y;
+	}
+
+	if (converged || f_mag < 1e-2) {
+		PackedFloat64Array ret;
+		ret.push_back(refined_x);
+		ret.push_back(refined_y);
+		return ret;
+	}
+
+	return PackedFloat64Array();
+}

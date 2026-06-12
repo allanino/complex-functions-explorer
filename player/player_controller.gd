@@ -917,6 +917,14 @@ func _process_zero_detection(z_mid: Vector2, current_auto_walk_state: int):
 			proceed_to_refine = true
 
 	if proceed_to_refine:
+		var has_ext = ClassDB.class_exists("ComplexFunctions")
+		if Config.input_function_type == Config.ComplexFunc.IDENTITY and Config.function_type == Config.ComplexFunc.ZETA and has_ext:
+			var ext = ClassDB.instantiate("ComplexFunctions")
+			var res = ext.call("zeta_find_zero", true_z.x, true_z.y, Config.iterations, 0.6, 0.3)
+			if res.size() == 2:
+				call_deferred("_on_zero_detected", Vector2(res[0], res[1]), current_auto_walk_state)
+			return
+
 		# Refine zero location using numerical complex Newton-Raphson steps
 		var converged = false
 		var refined_z = DoubleVector2.new(true_z.x, true_z.y)
