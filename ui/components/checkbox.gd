@@ -46,7 +46,7 @@ func set_pressed_no_signal(pressed: bool):
 	_update_text_and_color(pressed)
 
 func _update_text_and_color(is_on: bool):
-	$Control/CheckBox.text = "On" if is_on else "Off"
+	$Control/CheckBox.text = "Enabled" if is_on else "Disabled"
 	if is_on:
 		$Control/CheckBox.remove_theme_color_override("font_color")
 		$Control/CheckBox.remove_theme_color_override("font_hover_color")
