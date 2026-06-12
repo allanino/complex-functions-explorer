@@ -52,6 +52,7 @@ const CLR_DIM = "#e7e4dc80" # ink_dim (50% alpha)
 const CLR_GOLD = "#c8a96e" # theme gold
 const CLR_CYAN = "#5dd8c8" # cyan
 const CLR_MAGENTA = "#d45fa0" # magenta
+const CLR_MAGENTA_DIM = "#d45fa0b3"
 
 # Wraps a numeric string in BBCode: dims a leading '-' sign, colors the rest.
 func _bb_re(value: String, color: String) -> String:
@@ -62,8 +63,8 @@ func _bb_re(value: String, color: String) -> String:
 # Formats an imaginary value as "± number i" with a dim operator separator.
 func _bb_im(im: String) -> String:
 	if im.begins_with("-"):
-		return "[color=%s] - [/color][color=%s]%s i[/color]" % [CLR_DIM, CLR_MAGENTA, im.substr(1)]
-	return "[color=%s] + [/color][color=%s]%s i[/color]" % [CLR_DIM, CLR_MAGENTA, im]
+		return "[color=%s] - [/color][color=%s]%s[/color][color=%s]𝑖[/color]" % [CLR_DIM, CLR_MAGENTA, im.substr(1), CLR_MAGENTA_DIM]
+	return "[color=%s] + [/color][color=%s]%s[/color][color=%s]𝑖[/color]" % [CLR_DIM, CLR_MAGENTA, im, CLR_MAGENTA_DIM]
 
 func update_arg_val(f: Vector2):
 	var angle_rad: float
