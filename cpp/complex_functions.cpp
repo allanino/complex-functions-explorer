@@ -43,6 +43,9 @@ const double LANCZOS_P[9] = {
 };
 
 const double SQRT_2PI = 2.5066282746310005;
+const double PI = 3.141592653589793;
+const double LOG_2 = 0.6931471805599453;
+const double LOG_PI = 1.1447298858494002;
 
 PackedFloat64Array ComplexFunctions::lanczos_gamma(double x, double y) {
 	std::complex<double> z(x, y);
@@ -76,9 +79,7 @@ PackedFloat64Array ComplexFunctions::lanczos_gamma(double x, double y) {
 }
 
 
-const double LOG_2 = 0.6931471805599453;
-const double PI = 3.141592653589793;
-const double LOG_PI = 1.1447298858494002;
+
 
 PackedFloat64Array ComplexFunctions::complex_mul(double ax, double ay, double bx, double by) {
 	std::complex<double> a(ax, ay);
