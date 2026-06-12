@@ -19,6 +19,9 @@ uniform int multivalued_n = 2;
 uniform int current_branch = 0;
 uniform float height_theta = 0.0;
 
+const float INV_TWO_PI = 0.15915494309189535;
+const float TWO_PI = 6.2831853071;
+
 struct ComplexFieldData {
     vec2 value;    // The actual complex f(x, y)
     vec2 dx;       // Partial derivative with respect to x
@@ -343,7 +346,10 @@ ComplexFieldData dirichlet_eta_with_derivatives(float x, float y, int iters) {
         float nf = float(n);
         float amp = pow(nf, -x);
         float log_n = log(nf);
-        float theta = -y * log_n;
+        float raw_theta = -y * log_n;
+        float raw_turns = raw_theta * INV_TWO_PI;
+        float bounded_turns = raw_turns - floor(raw_turns);
+        float theta = bounded_turns * TWO_PI;
         vec2 term = amp * vec2(cos(theta), sin(theta));
         eta += term;
         deta_dx -= log_n * term;
@@ -351,7 +357,10 @@ ComplexFieldData dirichlet_eta_with_derivatives(float x, float y, int iters) {
         float nf2 = float(n + 1);
         float amp2 = pow(nf2, -x);
         float log_n2 = log(nf2);
-        float theta2 = -y * log_n2;
+        float raw_theta2 = -y * log_n2;
+        float raw_turns2 = raw_theta2 * INV_TWO_PI;
+        float bounded_turns2 = raw_turns2 - floor(raw_turns2);
+        float theta2 = bounded_turns2 * TWO_PI;
         vec2 term2 = amp2 * vec2(cos(theta2), sin(theta2));
         eta -= term2;
         deta_dx += log_n2 * term2;
@@ -369,7 +378,10 @@ ComplexFieldData dirichlet_eta_with_derivatives(float x, float y, int iters) {
 
         float rem_amp = 0.5 * pow(next_n, -x);
         float rem_log_n = log(next_n);
-        float rem_theta = -y * rem_log_n;
+        float raw_rem_theta = -y * rem_log_n;
+        float raw_rem_turns = raw_rem_theta * INV_TWO_PI;
+        float bounded_rem_turns = raw_rem_turns - floor(raw_rem_turns);
+        float rem_theta = bounded_rem_turns * TWO_PI;
 
         float rem_sign = 1.0;
 
@@ -394,7 +406,10 @@ ComplexFieldData dirichlet_beta_with_derivatives(float x, float y, int iters) {
         float kf = 2.0 * float(n) + 1.0;
         float amp = pow(kf, -x);
         float log_k = log(kf);
-        float theta = -y * log_k;
+        float raw_theta = -y * log_k;
+        float raw_turns = raw_theta * INV_TWO_PI;
+        float bounded_turns = raw_turns - floor(raw_turns);
+        float theta = bounded_turns * TWO_PI;
         vec2 term = amp * vec2(cos(theta), sin(theta));
         beta += term;
         dbeta_dx -= log_k * term;
@@ -402,7 +417,10 @@ ComplexFieldData dirichlet_beta_with_derivatives(float x, float y, int iters) {
         float kf2 = 2.0 * float(n + 1) + 1.0;
         float amp2 = pow(kf2, -x);
         float log_k2 = log(kf2);
-        float theta2 = -y * log_k2;
+        float raw_theta2 = -y * log_k2;
+        float raw_turns2 = raw_theta2 * INV_TWO_PI;
+        float bounded_turns2 = raw_turns2 - floor(raw_turns2);
+        float theta2 = bounded_turns2 * TWO_PI;
         vec2 term2 = amp2 * vec2(cos(theta2), sin(theta2));
         beta -= term2;
         dbeta_dx += log_k2 * term2;
@@ -627,7 +645,10 @@ void compute_zeta_taylor_patch(float x, float y, int iters, out vec2 coeffs[16])
 		float nf = float(n);
 		float amp = pow(nf, -x);
 		float log_n = log(nf);
-		float theta = -y * log_n;
+		float raw_theta = -y * log_n;
+        float raw_turns = raw_theta * INV_TWO_PI;
+        float bounded_turns = raw_turns - floor(raw_turns);
+        float theta = bounded_turns * TWO_PI;
 
 		float sign_f = (n % 2 != 0) ? 1.0 : -1.0;
 		vec2 base = sign_f * amp * vec2(cos(theta), sin(theta));
@@ -1101,8 +1122,7 @@ ComplexFieldData eta_borwein_with_derivatives(float x, float y, int order) {
     vec2 sum_val = vec2(0.0);
     vec2 sum_dx = vec2(0.0);
 
-    const float INV_TWO_PI = 0.15915494309; 
-    const float TWO_PI = 6.28318530718;
+
 
     for (int k = 0; k < order; k++) {
         float w_k = -_expm1_polyfill(log_d[k] - log_d_n);
@@ -1111,8 +1131,10 @@ ComplexFieldData eta_borwein_with_derivatives(float x, float y, int order) {
         float logk = log(k_plus_1);
         float amp = exp(-x * logk);
         
-        float raw_turns = (-y * logk) * INV_TWO_PI;
-        float safe_theta = fract(raw_turns) * TWO_PI;
+        float raw_theta = -y * logk;
+        float raw_turns = raw_theta * INV_TWO_PI;
+        float bounded_turns = raw_turns - floor(raw_turns);
+        float safe_theta = bounded_turns * TWO_PI;
         vec2 pow_term = amp * vec2(cos(safe_theta), sin(safe_theta));
 
         if ((k & 1) != 0) {

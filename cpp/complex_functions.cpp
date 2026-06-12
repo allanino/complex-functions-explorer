@@ -9,6 +9,8 @@ void ComplexFunctions::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("dirichlet_eta_with_derivatives", "x", "y", "iters"), &ComplexFunctions::dirichlet_eta_with_derivatives);
 	ClassDB::bind_method(D_METHOD("zeta_with_derivatives", "x", "y", "iters"), &ComplexFunctions::zeta_with_derivatives);
+	ClassDB::bind_method(D_METHOD("eta_borwein_with_derivatives", "x", "y", "order"), &ComplexFunctions::eta_borwein_with_derivatives);
+	ClassDB::bind_method(D_METHOD("zeta_borwein_with_derivatives", "x", "y", "order"), &ComplexFunctions::zeta_borwein_with_derivatives);
 	ClassDB::bind_method(D_METHOD("lanczos_log_gamma_with_derivatives", "z_orig"), &ComplexFunctions::lanczos_log_gamma_with_derivatives);
 	ClassDB::bind_method(D_METHOD("complex_log_gamma_with_derivatives", "x", "y"), &ComplexFunctions::complex_log_gamma_with_derivatives);
 	ClassDB::bind_method(D_METHOD("log_zeta_continuation_with_derivatives", "x", "y", "iters"), &ComplexFunctions::log_zeta_continuation_with_derivatives);
@@ -28,6 +30,53 @@ ComplexFunctions::ComplexFunctions() {
 }
 
 ComplexFunctions::~ComplexFunctions() {
+}
+
+std::vector<double> ComplexFunctions::_get_borwein_weights(int order) {
+	if (order <= 0) return {};
+
+	{
+		std::lock_guard<std::mutex> lock(_borwein_mutex);
+		if (_borwein_cache.find(order) != _borwein_cache.end()) {
+			return _borwein_cache[order];
+		}
+	}
+
+	double n = (double)order;
+	std::vector<double> T(order + 1, 0.0);
+
+	for (int l = 1; l <= order; l++) {
+		double fl = (double)l;
+		T[l] = T[l - 1] + std::log(n - fl + 1.0) + std::log(n + fl - 1.0) - std::log(2.0 * fl - 1.0) - std::log(2.0 * fl) + std::log(4.0);
+	}
+
+	std::vector<double> log_d(order + 1, 0.0);
+	double current_max = T[0];
+	double current_sum_exp = 0.0;
+
+	for (int k = 0; k <= order; k++) {
+		if (T[k] > current_max) {
+			double diff = current_max - T[k];
+			current_sum_exp = current_sum_exp * std::exp(diff) + 1.0;
+			current_max = T[k];
+		} else {
+			current_sum_exp += std::exp(T[k] - current_max);
+		}
+		log_d[k] = current_max + std::log(current_sum_exp);
+	}
+
+	double log_d_n = log_d[order];
+	std::vector<double> w(order, 0.0);
+	for (int k = 0; k < order; k++) {
+		w[k] = - std::expm1(log_d[k] - log_d_n);
+	}
+
+	{
+		std::lock_guard<std::mutex> lock(_borwein_mutex);
+		_borwein_cache[order] = w;
+	}
+
+	return w;
 }
 
 const double LANCZOS_P[9] = {
@@ -230,6 +279,102 @@ PackedFloat64Array ComplexFunctions::dirichlet_eta_with_derivatives(double x, do
 	result[2] = deta_dx_x;   result[3] = deta_dx_y;   // [2, 3] -> First Derivative
 	result[4] = d2eta_dx2_x; result[5] = d2eta_dx2_y; // [4, 5] -> Second Derivative
 
+	return result;
+}
+
+PackedFloat64Array ComplexFunctions::eta_borwein_with_derivatives(double x, double y, int order) {
+	PackedFloat64Array result;
+	result.resize(6);
+
+	if (order <= 0) {
+		for (int i = 0; i < 6; i++) result[i] = 0.0;
+		return result;
+	}
+
+	std::vector<double> w = _get_borwein_weights(order);
+
+	double sum_val_x = 0.0, sum_val_y = 0.0;
+	double sum_dx_x = 0.0, sum_dx_y = 0.0;
+	double sum_d2x_x = 0.0, sum_d2x_y = 0.0;
+
+	const double TWO_PI = 2.0 * PI;
+
+	for (int k = 0; k < order; k++) {
+		double w_k = w[k];
+		double k_plus_1 = (double)(k + 1);
+		double logk = std::log(k_plus_1);
+		double amp = std::exp(-x * logk);
+
+		double raw_theta = -y * logk;
+		double safe_theta = std::fmod(raw_theta, TWO_PI);
+		if (safe_theta < 0) {
+			safe_theta += TWO_PI;
+		}
+
+		double pow_term_x = amp * std::cos(safe_theta);
+		double pow_term_y = amp * std::sin(safe_theta);
+
+		if (k & 1) { // if k is odd
+			pow_term_x = -pow_term_x;
+			pow_term_y = -pow_term_y;
+		}
+
+		double term_x = w_k * pow_term_x;
+		double term_y = w_k * pow_term_y;
+
+		double term_dx_x = -logk * term_x;
+		double term_dx_y = -logk * term_y;
+
+		double term_d2x_x = logk * logk * term_x;
+		double term_d2x_y = logk * logk * term_y;
+
+		sum_val_x += term_x;
+		sum_val_y += term_y;
+
+		sum_dx_x += term_dx_x;
+		sum_dx_y += term_dx_y;
+
+		sum_d2x_x += term_d2x_x;
+		sum_d2x_y += term_d2x_y;
+	}
+
+	result[0] = sum_val_x; result[1] = sum_val_y;
+	result[2] = sum_dx_x; result[3] = sum_dx_y;
+	result[4] = sum_d2x_x; result[5] = sum_d2x_y;
+
+	return result;
+}
+
+PackedFloat64Array ComplexFunctions::zeta_borwein_with_derivatives(double x, double y, int order) {
+	PackedFloat64Array eta_data = eta_borwein_with_derivatives(x, y, order);
+
+	std::complex<double> eta(eta_data[0], eta_data[1]);
+	std::complex<double> deta_dx(eta_data[2], eta_data[3]);
+	std::complex<double> d2eta_dx2(eta_data[4], eta_data[5]);
+
+	double amp2 = std::pow(2.0, 1.0 - x);
+	double theta2 = -y * LOG_2;
+	std::complex<double> two_term(amp2 * std::cos(theta2), amp2 * std::sin(theta2));
+	std::complex<double> denom(1.0 - two_term.real(), -two_term.imag());
+	std::complex<double> ddenom_dx(LOG_2 * two_term.real(), LOG_2 * two_term.imag());
+	std::complex<double> d2denom_dx2(-(LOG_2 * LOG_2) * two_term.real(), -(LOG_2 * LOG_2) * two_term.imag());
+
+	std::complex<double> val = eta / denom;
+	std::complex<double> denom_sqr = denom * denom;
+
+	std::complex<double> num_x = deta_dx * denom - eta * ddenom_dx;
+	std::complex<double> dx = num_x / denom_sqr;
+
+	std::complex<double> term1 = d2eta_dx2 * denom - eta * d2denom_dx2;
+	std::complex<double> term2 = 2.0 * ddenom_dx * num_x;
+	std::complex<double> term2_scaled = term2 / denom;
+
+	std::complex<double> d2x = (term1 - term2_scaled) / denom_sqr;
+
+	PackedFloat64Array result; result.resize(6);
+	result[0] = val.real(); result[1] = val.imag();
+	result[2] = dx.real(); result[3] = dx.imag();
+	result[4] = d2x.real(); result[5] = d2x.imag();
 	return result;
 }
 
