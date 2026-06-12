@@ -753,56 +753,8 @@ static func eta_borwein(x: float, y: float, order: int) -> Vector2:
 
 	return Vector2(sum_x, sum_y)
 
-static func dirichlet_eta_accelerated(x: float, y: float, iters: int) -> Vector2:
-	if iters <= 0: return Vector2.ZERO
-	var sum_outer_x = 0.0
-	var sum_outer_y = 0.0
-	for n in range(iters):
-		var inner_x = 0.0
-		var inner_y = 0.0
-		var correction_x = 0.0
-		var correction_y = 0.0
-		var log_binom = 0.0
-		for k in range(n + 1):
-			var k_plus_1 = float(k + 1)
-			if k > 0:
-				log_binom += log(float(n - k + 1)) - log(float(k))
-			var binom = exp(log_binom)
-			var logk = log(k_plus_1)
-			var amp = exp(-x * logk)
-			var theta = fmod(-y * logk, TAU)
-
-			var term_x = binom * amp * cos(theta)
-			var term_y = binom * amp * sin(theta)
-			if k & 1 != 0:
-				term_x = - term_x
-				term_y = - term_y
-
-			var y_term_x = term_x - correction_x
-			var t_x = inner_x + y_term_x
-			correction_x = (t_x - inner_x) - y_term_x
-			inner_x = t_x
-
-			var y_term_y = term_y - correction_y
-			var t_y = inner_y + y_term_y
-			correction_y = (t_y - inner_y) - y_term_y
-			inner_y = t_y
-
-		var scale = exp(-float(n + 1) * log(2.0))
-		sum_outer_x += inner_x * scale
-		sum_outer_y += inner_y * scale
-	return Vector2(sum_outer_x, sum_outer_y)
-
 static func zeta_borwein(x: float, y: float, order: int) -> Vector2:
 	var eta = eta_borwein(x, y, order)
-	var amp2 = pow(2.0, 1.0 - x)
-	var theta2 = -y * LOG_2
-	var two_term = amp2 * Vector2(cos(theta2), sin(theta2))
-	var denom = Vector2(1.0, 0.0) - two_term
-	return complex_div(eta, denom)
-
-static func zeta_accelerated(x: float, y: float, iters: int) -> Vector2:
-	var eta = dirichlet_eta_accelerated(x, y, iters)
 	var amp2 = pow(2.0, 1.0 - x)
 	var theta2 = -y * LOG_2
 	var two_term = amp2 * Vector2(cos(theta2), sin(theta2))
@@ -873,110 +825,8 @@ static func eta_borwein_with_derivatives(x: float, y: float, order: int) -> Arra
 
 	return [Vector2(sum_val_x, sum_val_y), Vector2(sum_dx_x, sum_dx_y), Vector2(sum_d2x_x, sum_d2x_y)]
 
-static func dirichlet_eta_accelerated_with_derivatives(x: float, y: float, iters: int) -> Array:
-	if iters <= 0: return [Vector2.ZERO, Vector2.ZERO, Vector2.ZERO]
-	var sum_outer = Vector2.ZERO
-	var sum_outer_dx = Vector2.ZERO
-	var sum_outer_d2x = Vector2.ZERO
-	for n in range(iters):
-		var inner_x = 0.0
-		var inner_y = 0.0
-		var inner_dx_x = 0.0
-		var inner_dx_y = 0.0
-		var inner_d2x_x = 0.0
-		var inner_d2x_y = 0.0
-
-		var correction_x = 0.0
-		var correction_y = 0.0
-		var correction_dx_x = 0.0
-		var correction_dx_y = 0.0
-		var correction_d2x_x = 0.0
-		var correction_d2x_y = 0.0
-
-		var log_binom = 0.0
-		for k in range(n + 1):
-			var k_plus_1 = float(k + 1)
-			if k > 0:
-				log_binom += log(float(n - k + 1)) - log(float(k))
-			var binom = exp(log_binom)
-			var logk = log(k_plus_1)
-			var amp = exp(-x * logk)
-			var theta = fmod(-y * logk, TAU)
-
-			var term_x = binom * amp * cos(theta)
-			var term_y = binom * amp * sin(theta)
-			if k & 1 != 0:
-				term_x = - term_x
-				term_y = - term_y
-
-			var term_dx_x = - logk * term_x
-			var term_dx_y = - logk * term_y
-			var term_d2x_x = logk * logk * term_x
-			var term_d2x_y = logk * logk * term_y
-
-			var y_term_x = term_x - correction_x
-			var t_x = inner_x + y_term_x
-			correction_x = (t_x - inner_x) - y_term_x
-			inner_x = t_x
-
-			var y_term_y = term_y - correction_y
-			var t_y = inner_y + y_term_y
-			correction_y = (t_y - inner_y) - y_term_y
-			inner_y = t_y
-
-			var y_term_dx_x = term_dx_x - correction_dx_x
-			var t_dx_x = inner_dx_x + y_term_dx_x
-			correction_dx_x = (t_dx_x - inner_dx_x) - y_term_dx_x
-			inner_dx_x = t_dx_x
-
-			var y_term_dx_y = term_dx_y - correction_dx_y
-			var t_dx_y = inner_dx_y + y_term_dx_y
-			correction_dx_y = (t_dx_y - inner_dx_y) - y_term_dx_y
-			inner_dx_y = t_dx_y
-
-			var y_term_d2x_x = term_d2x_x - correction_d2x_x
-			var t_d2x_x = inner_d2x_x + y_term_d2x_x
-			correction_d2x_x = (t_d2x_x - inner_d2x_x) - y_term_d2x_x
-			inner_d2x_x = t_d2x_x
-
-			var y_term_d2x_y = term_d2x_y - correction_d2x_y
-			var t_d2x_y = inner_d2x_y + y_term_d2x_y
-			correction_d2x_y = (t_d2x_y - inner_d2x_y) - y_term_d2x_y
-			inner_d2x_y = t_d2x_y
-
-		var scale = exp(-float(n + 1) * log(2.0))
-		sum_outer += Vector2(inner_x * scale, inner_y * scale)
-		sum_outer_dx += Vector2(inner_dx_x * scale, inner_dx_y * scale)
-		sum_outer_d2x += Vector2(inner_d2x_x * scale, inner_d2x_y * scale)
-	return [sum_outer, sum_outer_dx, sum_outer_d2x]
-
 static func zeta_borwein_with_derivatives(x: float, y: float, order: int) -> Array:
 	var eta_data = eta_borwein_with_derivatives(x, y, order)
-	var eta = eta_data[0]
-	var deta_dx = eta_data[1]
-	var d2eta_dx2 = eta_data[2]
-
-	var amp2 = pow(2.0, 1.0 - x)
-	var theta2 = -y * LOG_2
-	var two_term = amp2 * Vector2(cos(theta2), sin(theta2))
-	var denom = Vector2(1.0, 0.0) - two_term
-	var ddenom_dx = LOG_2 * two_term
-	var d2denom_dx2 = - (LOG_2 * LOG_2) * two_term
-
-	var val = complex_div(eta, denom)
-	var denom_sqr = complex_mul(denom, denom)
-	var num_x = complex_mul(deta_dx, denom) - complex_mul(eta, ddenom_dx)
-	var dx = complex_div(num_x, denom_sqr)
-
-	var term1 = complex_mul(d2eta_dx2, denom) - complex_mul(eta, d2denom_dx2)
-	var term2 = complex_mul(Vector2(2.0, 0.0), complex_mul(ddenom_dx, num_x))
-	var term2_scaled = complex_div(term2, denom)
-	var d2x = complex_div(term1 - term2_scaled, denom_sqr)
-
-	return [val, dx, d2x]
-
-static func zeta_accelerated_with_derivatives(x: float, y: float, iters: int) -> Array:
-	var eta_data = dirichlet_eta_accelerated_with_derivatives(x, y, iters)
 	var eta = eta_data[0]
 	var deta_dx = eta_data[1]
 	var d2eta_dx2 = eta_data[2]
@@ -1027,9 +877,7 @@ static func get_field_at(x: float, y: float, function_type: int, is_input: bool)
 		Config.ComplexFunc.MULTIVALUED_ASIN: return multivalued_asin(x, y)
 		Config.ComplexFunc.MULTIVALUED_ACOS: return multivalued_acos(x, y)
 		Config.ComplexFunc.ZETA_POWER_SERIES: return zeta_continuation_power_series(x, y)
-		Config.ComplexFunc.ETA_ACCELERATED: return dirichlet_eta_accelerated(x, y, Config.iterations)
 		Config.ComplexFunc.ETA_BORWEIN: return eta_borwein(x, y, Config.iterations)
-		Config.ComplexFunc.ZETA_ACCELERATED: return zeta_accelerated(x, y, Config.iterations)
 		Config.ComplexFunc.ZETA_BORWEIN: return zeta_borwein(x, y, Config.iterations)
 	return Vector2.ZERO
 
@@ -1070,20 +918,8 @@ static func newton_step(z: Vector2, step_size_mult: float, max_step: float = 1.0
 			f_prime = res[1]
 			f_second = res[2]
 			use_analytic = true
-		elif Config.function_type == Config.ComplexFunc.ETA_ACCELERATED:
-			var res = dirichlet_eta_accelerated_with_derivatives(z.x, z.y, Config.iterations * 2)
-			f_val = res[0]
-			f_prime = res[1]
-			f_second = res[2]
-			use_analytic = true
 		elif Config.function_type == Config.ComplexFunc.ETA_BORWEIN:
 			var res = eta_borwein_with_derivatives(z.x, z.y, Config.iterations * 2)
-			f_val = res[0]
-			f_prime = res[1]
-			f_second = res[2]
-			use_analytic = true
-		elif Config.function_type == Config.ComplexFunc.ZETA_ACCELERATED:
-			var res = zeta_accelerated_with_derivatives(z.x, z.y, Config.iterations * 2)
 			f_val = res[0]
 			f_prime = res[1]
 			f_second = res[2]
