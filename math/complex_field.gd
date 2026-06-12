@@ -121,11 +121,6 @@ static func complex_log_sin(x: float, y: float) -> Vector2:
 const LOG_2 = 0.6931471805599453
 const LOG_PI = 1.1447298858494002
 
-static func _expm1_polyfill(x: float) -> float:
-	if abs(x) < 1e-5:
-		return x + 0.5 * x * x
-	return exp(x) - 1.0
-
 static func dirichlet_eta(x: float, y: float, iterations: int) -> Vector2:
 	if x < -1.0: return Vector2(NAN, NAN)
 	if iterations <= 0: return Vector2.ZERO
@@ -706,27 +701,40 @@ static func zeta_continuation_with_derivatives(x: float, y: float, iters: int) -
 	var d2x = complex_mul(val, log_z[2] + complex_mul(log_z[1], log_z[1]))
 	return [val, dx, d2x]
 
+static func _expm1_polyfill(x: float) -> float:
+	if abs(x) < 1e-5:
+		return x + 0.5 * x * x
+	return exp(x) - 1.0
+
 static func eta_borwein(x: float, y: float, order: int) -> Vector2:
 	if order <= 0: return Vector2.ZERO
 
 	var n = float(order)
-
 	var T = []
 	T.resize(order + 1)
-	T[0] = -log(n)
-
+	T[0] = 0.0
 	for l in range(1, order + 1):
 		var fl = float(l)
-		T[l] = T[l - 1] + log(n - fl + 1.0) + log(n + fl - 1.0) - log(2.0 * fl - 1.0) - log(2.0 * fl)
+		T[l] = T[l - 1] + log(n - fl + 1.0) + log(n + fl - 1.0) - log(2.0 * fl - 1.0) - log(2.0 * fl) + log(4.0)
 
-	var ln_dn = T[order]
+	var log_d = []
+	log_d.resize(order + 1)
+	var current_max = T[0]
+	var current_sum_exp = 0.0
+	for k in range(order + 1):
+		if T[k] > current_max:
+			var diff = current_max - T[k]
+			current_sum_exp = current_sum_exp * exp(diff) + 1.0
+			current_max = T[k]
+		else:
+			current_sum_exp += exp(T[k] - current_max)
+		log_d[k] = current_max + log(current_sum_exp)
+
+	var log_d_n = log_d[order]
 	var sum_val = Vector2.ZERO
 
 	for k in range(order):
-		var ln_dk = T[k]
-		var delta_ln = ln_dk - ln_dn
-
-		var w_k = -_expm1_polyfill(delta_ln)
+		var w_k = -_expm1_polyfill(log_d[k] - log_d_n)
 
 		var k_plus_1 = float(k + 1)
 		var logk = log(k_plus_1)
@@ -737,7 +745,8 @@ static func eta_borwein(x: float, y: float, order: int) -> Vector2:
 		if k & 1 != 0:
 			pow_term = - pow_term
 
-		sum_val += w_k * pow_term
+		var term = w_k * pow_term
+		sum_val += term
 
 	return sum_val
 
@@ -786,25 +795,33 @@ static func eta_borwein_with_derivatives(x: float, y: float, order: int) -> Arra
 	if order <= 0: return [Vector2.ZERO, Vector2.ZERO, Vector2.ZERO]
 
 	var n = float(order)
-
 	var T = []
 	T.resize(order + 1)
-	T[0] = -log(n)
-
+	T[0] = 0.0
 	for l in range(1, order + 1):
 		var fl = float(l)
-		T[l] = T[l - 1] + log(n - fl + 1.0) + log(n + fl - 1.0) - log(2.0 * fl - 1.0) - log(2.0 * fl)
+		T[l] = T[l - 1] + log(n - fl + 1.0) + log(n + fl - 1.0) - log(2.0 * fl - 1.0) - log(2.0 * fl) + log(4.0)
 
-	var ln_dn = T[order]
+	var log_d = []
+	log_d.resize(order + 1)
+	var current_max = T[0]
+	var current_sum_exp = 0.0
+	for k in range(order + 1):
+		if T[k] > current_max:
+			var diff = current_max - T[k]
+			current_sum_exp = current_sum_exp * exp(diff) + 1.0
+			current_max = T[k]
+		else:
+			current_sum_exp += exp(T[k] - current_max)
+		log_d[k] = current_max + log(current_sum_exp)
+
+	var log_d_n = log_d[order]
 	var sum_val = Vector2.ZERO
 	var sum_dx = Vector2.ZERO
 	var sum_d2x = Vector2.ZERO
 
 	for k in range(order):
-		var ln_dk = T[k]
-		var delta_ln = ln_dk - ln_dn
-
-		var w_k = -_expm1_polyfill(delta_ln)
+		var w_k = -_expm1_polyfill(log_d[k] - log_d_n)
 
 		var k_plus_1 = float(k + 1)
 		var logk = log(k_plus_1)
