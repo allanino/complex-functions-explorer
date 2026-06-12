@@ -18,18 +18,12 @@ var current_cutoff: float = 20000.0
 # --- FPS GUARD ---
 var is_suppressed: bool = false
 
-# --- EFFECT REFS ---
-var panner_effect: AudioEffectPanner
-var lpf_effect: AudioEffectLowPassFilter
-
-var portal_sfx_player: AudioStreamPlayer
-@onready var player: Node3D = get_tree().get_first_node_in_group("player")
+# --- BUS INDICES ---
 var math_bus_index: int = -1
 var master_bus_index: int = -1
 
-# --- BUFFER DEBUG ---
-var buffer_min_available := 999999
-var buffer_max_available := 0
+var portal_sfx_player: AudioStreamPlayer
+@onready var player: Node3D = get_tree().get_first_node_in_group("player")
 
 func _ready():
 	Config.config_changed.connect(_on_config_changed)
@@ -38,12 +32,12 @@ func _ready():
 
 	var stream_player = _audio_stream_player
 
-	var stream = load("res://audio/assets/drone.wav") as AudioStreamWAV
+	var stream = load("res://audio/assets/drone.wav")
 	if stream:
-		stream.loop_mode = AudioStreamWAV.LOOP_FORWARD
 		stream_player.stream = stream
-
-	stream_player.play()
+		stream_player.volume_db = 0.0
+		stream_player.finished.connect(func(): if _audio_stream_player: _audio_stream_player.play())
+		stream_player.play()
 
 	# Small delay lets audio thread stabilize
 	await get_tree().process_frame
@@ -101,14 +95,14 @@ func setup_audio_bus_and_effects():
 			AudioServer.remove_bus_effect(bus_index, 0)
 
 	# Index 0: Panner
-	panner_effect = AudioEffectPanner.new()
-	AudioServer.add_bus_effect(bus_index, panner_effect)
+	var panner = AudioEffectPanner.new()
+	AudioServer.add_bus_effect(bus_index, panner)
 
-	# Index 1: Low Pass Filter
-	lpf_effect = AudioEffectLowPassFilter.new()
-	lpf_effect.cutoff_hz = 20000.0
-	lpf_effect.resonance = 0.2
-	AudioServer.add_bus_effect(bus_index, lpf_effect)
+	# Index 1: Low Pass Filter — start fully open
+	var lpf = AudioEffectLowPassFilter.new()
+	lpf.cutoff_hz = 20000.0
+	lpf.resonance = 0.2
+	AudioServer.add_bus_effect(bus_index, lpf)
 
 	_audio_stream_player.bus = bus_name
 	math_bus_index = bus_index
@@ -126,9 +120,12 @@ func _physics_process(delta):
 
 	# --- MAPPINGS ---
 
-	# 1. MAGNITUDE |f| -> Brightness (LPF Cutoff)
-	target_volume = clamp(0.20 - mag * 0.01, 0.0, 0.2)
-	target_cutoff = lerp(200.0, 20000.0, clamp(mag * 0.05, 0.0, 1.0))
+	# 1. MAGNITUDE |f| -> Volume + LPF brightness
+	#    Low mag  = open filter (bright), higher volume
+	#    High mag = closed filter (dark),  lower volume
+	target_volume = clamp(0.8 - mag * 0.05, 0.1, 0.8)
+	# Floor at 600 Hz to avoid extreme filtering that causes resonance ringing
+	target_cutoff = lerp(20000.0, 600.0, clamp(mag * 0.1, 0.0, 1.0))
 
 	# 2. PHASE arg(f) -> Pan
 	var arg = atan2(f.y, f.x)
@@ -139,21 +136,28 @@ func _physics_process(delta):
 	if not is_finite(target_cutoff): target_cutoff = 20000.0
 
 	# --- SMOOTHING ---
-	current_volume = lerp(current_volume, target_volume, delta * 20.0)
-	current_pan = lerp(current_pan, target_pan, delta * 16.0)
-	current_cutoff = lerp(current_cutoff, target_cutoff, delta * 16.0)
+	# Slow rates are key: fast LPF movement causes metallic zipper artifacts
+	current_volume = lerp(current_volume, target_volume, delta * 5.0)
+	current_pan = lerp(current_pan, target_pan, delta * 3.0)
+	current_cutoff = lerp(current_cutoff, target_cutoff, delta * 2.0)
 
 	# --- EFFECT MODULATION ---
-	if panner_effect:
-		panner_effect.pan = current_pan
-
-	if lpf_effect:
-		lpf_effect.cutoff_hz = current_cutoff
+	# Must fetch the LIVE effect instances from AudioServer each frame
+	# (add_bus_effect duplicates the object, stored refs are dead copies)
+	if math_bus_index != -1:
+		var effect_count = AudioServer.get_bus_effect_count(math_bus_index)
+		if effect_count > 0:
+			var live_panner = AudioServer.get_bus_effect(math_bus_index, 0)
+			if live_panner is AudioEffectPanner:
+				live_panner.pan = current_pan
+		if effect_count > 1:
+			var live_lpf = AudioServer.get_bus_effect(math_bus_index, 1)
+			if live_lpf is AudioEffectLowPassFilter:
+				live_lpf.cutoff_hz = current_cutoff
 
 	# Update stream volume
 	var drone_vol_scale = Config.drone_volume / 100.0
 	if _audio_stream_player:
-		# Add a slight boost so it's audible, base db for volume
 		var vol_db = linear_to_db(current_volume * drone_vol_scale)
 		_audio_stream_player.volume_db = vol_db
 
