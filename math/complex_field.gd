@@ -801,6 +801,15 @@ static func zeta_borwein(x: float, y: float, order: int) -> Vector2:
 	return complex_div(eta, denom)
 
 static func eta_borwein_with_derivatives(x: float, y: float, order: int) -> Array:
+	if ClassDB.class_exists("ComplexFunctions"):
+		var ext = ClassDB.instantiate("ComplexFunctions")
+		var result = ext.call("eta_borwein_with_derivatives", x, y, order)
+		return [
+			Vector2(result[0], result[1]),
+			Vector2(result[2], result[3]),
+			Vector2(result[4], result[5])
+		]
+
 	if order <= 0: return [Vector2.ZERO, Vector2.ZERO, Vector2.ZERO]
 
 	var w = _get_borwein_weights(order)
@@ -845,6 +854,15 @@ static func eta_borwein_with_derivatives(x: float, y: float, order: int) -> Arra
 	return [Vector2(sum_val_x, sum_val_y), Vector2(sum_dx_x, sum_dx_y), Vector2(sum_d2x_x, sum_d2x_y)]
 
 static func zeta_borwein_with_derivatives(x: float, y: float, order: int) -> Array:
+	if ClassDB.class_exists("ComplexFunctions"):
+		var ext = ClassDB.instantiate("ComplexFunctions")
+		var result = ext.call("zeta_borwein_with_derivatives", x, y, order)
+		return [
+			Vector2(result[0], result[1]),
+			Vector2(result[2], result[3]),
+			Vector2(result[4], result[5])
+		]
+
 	var eta_data = eta_borwein_with_derivatives(x, y, order)
 	var eta = eta_data[0]
 	var deta_dx = eta_data[1]
