@@ -1050,10 +1050,11 @@ ComplexFieldData multivalued_acos_with_derivatives(float x, float y, int branch_
 //-------------------------------------------------------------------------
 
 float _expm1_polyfill(float x) {
-    if (abs(x) < 1e-5) {
-        return x + 0.5 * x * x;
+    // If x is tiny, the Padé approximant matches exp(x) - 1 with immense precision
+    if (abs(x) < 1e-3f) {
+        return (2.0f * x) / (2.0f - x);
     }
-    return exp(x) - 1.0;
+    return exp(x) - 1.0f;
 }
 
 ComplexFieldData eta_borwein_with_derivatives(float x, float y, int order) {

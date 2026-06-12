@@ -702,8 +702,8 @@ static func zeta_continuation_with_derivatives(x: float, y: float, iters: int) -
 	return [val, dx, d2x]
 
 static func _expm1_polyfill(x: float) -> float:
-	if abs(x) < 1e-5:
-		return x + 0.5 * x * x
+	if abs(x) < 1e-6:
+		return (2.0 * x) / (2.0 - x)
 	return exp(x) - 1.0
 
 static func eta_borwein(x: float, y: float, order: int) -> Vector2:
@@ -735,7 +735,7 @@ static func eta_borwein(x: float, y: float, order: int) -> Vector2:
 	var sum_y = 0.0
 
 	for k in range(order):
-		var w_k = -_expm1_polyfill(log_d[k] - log_d_n)
+		var w_k = - _expm1_polyfill(log_d[k] - log_d_n)
 
 		var k_plus_1 = float(k + 1)
 		var logk = log(k_plus_1)
@@ -745,8 +745,8 @@ static func eta_borwein(x: float, y: float, order: int) -> Vector2:
 		var pow_term_x = amp * cos(theta)
 		var pow_term_y = amp * sin(theta)
 		if k & 1 != 0:
-			pow_term_x = -pow_term_x
-			pow_term_y = -pow_term_y
+			pow_term_x = - pow_term_x
+			pow_term_y = - pow_term_y
 
 		sum_x += w_k * pow_term_x
 		sum_y += w_k * pow_term_y
@@ -827,7 +827,7 @@ static func eta_borwein_with_derivatives(x: float, y: float, order: int) -> Arra
 	var sum_d2x_y = 0.0
 
 	for k in range(order):
-		var w_k = -_expm1_polyfill(log_d[k] - log_d_n)
+		var w_k = - _expm1_polyfill(log_d[k] - log_d_n)
 
 		var k_plus_1 = float(k + 1)
 		var logk = log(k_plus_1)
@@ -837,14 +837,14 @@ static func eta_borwein_with_derivatives(x: float, y: float, order: int) -> Arra
 		var pow_term_x = amp * cos(theta)
 		var pow_term_y = amp * sin(theta)
 		if k & 1 != 0:
-			pow_term_x = -pow_term_x
-			pow_term_y = -pow_term_y
+			pow_term_x = - pow_term_x
+			pow_term_y = - pow_term_y
 
 		var term_x = w_k * pow_term_x
 		var term_y = w_k * pow_term_y
 
-		var term_dx_x = -logk * term_x
-		var term_dx_y = -logk * term_y
+		var term_dx_x = - logk * term_x
+		var term_dx_y = - logk * term_y
 
 		var term_d2x_x = logk * logk * term_x
 		var term_d2x_y = logk * logk * term_y
