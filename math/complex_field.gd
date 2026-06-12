@@ -720,8 +720,11 @@ static func _expm1_polyfill(x: float) -> float:
 		return (2.0 * x) / (2.0 - x)
 	return exp(x) - 1.0
 
-static func eta_borwein(x: float, y: float, order: int) -> Vector2:
-	if order <= 0: return Vector2.ZERO
+static var _borwein_cache: Dictionary = {}
+
+static func _get_borwein_weights(order: int) -> Array:
+	if _borwein_cache.has(order):
+		return _borwein_cache[order]
 
 	var n = float(order)
 	var T = []
@@ -745,11 +748,23 @@ static func eta_borwein(x: float, y: float, order: int) -> Vector2:
 		log_d[k] = current_max + log(current_sum_exp)
 
 	var log_d_n = log_d[order]
+	var w = []
+	w.resize(order)
+	for k in range(order):
+		w[k] = - _expm1_polyfill(log_d[k] - log_d_n)
+
+	_borwein_cache[order] = w
+	return w
+
+static func eta_borwein(x: float, y: float, order: int) -> Vector2:
+	if order <= 0: return Vector2.ZERO
+
+	var w = _get_borwein_weights(order)
 	var sum_x = 0.0
 	var sum_y = 0.0
 
 	for k in range(order):
-		var w_k = - _expm1_polyfill(log_d[k] - log_d_n)
+		var w_k = w[k]
 
 		var k_plus_1 = float(k + 1)
 		var logk = log(k_plus_1)
@@ -778,28 +793,7 @@ static func zeta_borwein(x: float, y: float, order: int) -> Vector2:
 static func eta_borwein_with_derivatives(x: float, y: float, order: int) -> Array:
 	if order <= 0: return [Vector2.ZERO, Vector2.ZERO, Vector2.ZERO]
 
-	var n = float(order)
-	var T = []
-	T.resize(order + 1)
-	T[0] = 0.0
-	for l in range(1, order + 1):
-		var fl = float(l)
-		T[l] = T[l - 1] + log(n - fl + 1.0) + log(n + fl - 1.0) - log(2.0 * fl - 1.0) - log(2.0 * fl) + log(4.0)
-
-	var log_d = []
-	log_d.resize(order + 1)
-	var current_max = T[0]
-	var current_sum_exp = 0.0
-	for k in range(order + 1):
-		if T[k] > current_max:
-			var diff = current_max - T[k]
-			current_sum_exp = current_sum_exp * exp(diff) + 1.0
-			current_max = T[k]
-		else:
-			current_sum_exp += exp(T[k] - current_max)
-		log_d[k] = current_max + log(current_sum_exp)
-
-	var log_d_n = log_d[order]
+	var w = _get_borwein_weights(order)
 	var sum_val_x = 0.0
 	var sum_val_y = 0.0
 	var sum_dx_x = 0.0
@@ -808,7 +802,7 @@ static func eta_borwein_with_derivatives(x: float, y: float, order: int) -> Arra
 	var sum_d2x_y = 0.0
 
 	for k in range(order):
-		var w_k = - _expm1_polyfill(log_d[k] - log_d_n)
+		var w_k = w[k]
 
 		var k_plus_1 = float(k + 1)
 		var logk = log(k_plus_1)
