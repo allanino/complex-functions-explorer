@@ -968,7 +968,7 @@ func _process_zero_detection(z_mid: Vector2, current_auto_walk_state: int):
 			converged = true
 
 		if zeros_debug:
-			print("End       | z (%9.6f, %9.6f) | f (%9.6f, %9.6f) | len %10.6f | mult %6.2f | converged %s" % [refined_z.x, refined_z.y, f_val.x, f_val.y, f_mag, step_mult, converged])
+			print("End	   | z (%9.6f, %9.6f) | f (%9.6f, %9.6f) | len %10.6f | mult %6.2f | converged %s" % [refined_z.x, refined_z.y, f_val.x, f_val.y, f_mag, step_mult, converged])
 
 		if converged:
 			call_deferred("_on_zero_detected", true_z, current_auto_walk_state)
