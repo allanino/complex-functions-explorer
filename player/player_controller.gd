@@ -325,12 +325,16 @@ func _physics_process(delta):
 
 	if run_demo and not _demo_y_1000_reached and current_z.y >= 1000.0:
 		_demo_y_1000_reached = true
+		auto_walk_state = AutoWalkState.NONE
 		var tween = create_tween().set_process_mode(Tween.TWEEN_PROCESS_PHYSICS)
+		tween.tween_interval(2.0)
 		tween.tween_property(Config, "camera_height", 20.0, 5.0)
-		Config.movement_speed = 10.0
-		Config.speed_near_zeros = 100.0
-		Config.save_settings()
-		auto_walk_state = AutoWalkState.WALKING
+		tween.tween_callback(func():
+			Config.movement_speed = 10.0
+			Config.speed_near_zeros = 100.0
+			Config.save_settings()
+			auto_walk_state = AutoWalkState.WALKING
+		)
 
 	if auto_walk_state != AutoWalkState.NONE:
 		var manual_input = Input.get_vector("move_left", "move_right", "move_forward", "move_backward")
