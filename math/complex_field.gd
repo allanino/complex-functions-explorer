@@ -929,6 +929,154 @@ static func get_field(world_x: float, world_z: float) -> Vector2:
 
 	return get_field_at(w.x, w.y, Config.function_type, false)
 
+static func is_close_to_zero(z_mid: Vector2) -> Array:
+	var use_analytic = false
+	var kappa = 0.0
+
+	if Config.input_function_type == Config.ComplexFunc.IDENTITY:
+		var res = []
+		if Config.function_type == Config.ComplexFunc.ZETA:
+			res = zeta_with_derivatives(z_mid.x, z_mid.y, Config.iterations * 2)
+			use_analytic = true
+		elif Config.function_type == Config.ComplexFunc.ZETA_REFLECTION:
+			res = zeta_continuation_with_derivatives(z_mid.x, z_mid.y, Config.iterations * 2)
+			use_analytic = true
+		elif Config.function_type == Config.ComplexFunc.DIRICHLET_ETA:
+			res = dirichlet_eta_with_derivatives(z_mid.x, z_mid.y, Config.iterations * 2)
+			use_analytic = true
+
+		if use_analytic:
+			var f_val = res[0]
+			var f_prime = res[1]
+			var f_second = res[2]
+			var num = complex_mul(f_val, f_second).length()
+			var den = max(f_prime.length_squared(), 1e-12)
+			kappa = num / den
+
+	var true_z = z_mid
+	var proceed_to_refine = false
+
+	if use_analytic:
+		if kappa < 1.0:
+			proceed_to_refine = true
+		else:
+			return [false, z_mid, kappa]
+	else:
+		# 2. Sample nearby points to estimate the minima paraboloid
+		var h = 0.01
+		var p_center = Config.complex_to_world(z_mid.x, z_mid.y)
+		var m0 = get_field(p_center.x, p_center.y).length_squared()
+
+		var p_x_plus = Config.complex_to_world(z_mid.x + h, z_mid.y)
+		var m_x_plus = get_field(p_x_plus.x, p_x_plus.y).length_squared()
+
+		var p_x_minus = Config.complex_to_world(z_mid.x - h, z_mid.y)
+		var m_x_minus = get_field(p_x_minus.x, p_x_minus.y).length_squared()
+
+		var p_y_plus = Config.complex_to_world(z_mid.x, z_mid.y + h)
+		var m_y_plus = get_field(p_y_plus.x, p_y_plus.y).length_squared()
+
+		var p_y_minus = Config.complex_to_world(z_mid.x, z_mid.y - h)
+		var m_y_minus = get_field(p_y_minus.x, p_y_minus.y).length_squared()
+
+		var p_xy_plus = Config.complex_to_world(z_mid.x + h, z_mid.y + h)
+		var m_xy_plus = get_field(p_xy_plus.x, p_xy_plus.y).length_squared()
+
+		var p_x_minus_y = Config.complex_to_world(z_mid.x + h, z_mid.y - h)
+		var m_x_minus_y = get_field(p_x_minus_y.x, p_x_minus_y.y).length_squared()
+
+		var p_mx_y_plus = Config.complex_to_world(z_mid.x - h, z_mid.y + h)
+		var m_mx_y_plus = get_field(p_mx_y_plus.x, p_mx_y_plus.y).length_squared()
+
+		var p_mx_my = Config.complex_to_world(z_mid.x - h, z_mid.y - h)
+		var m_mx_my = get_field(p_mx_my.x, p_mx_my.y).length_squared()
+
+		# 3. Compute gradients and Hessian matrix elements
+		var gx = (m_x_plus - m_x_minus) / (2.0 * h)
+		var gy = (m_y_plus - m_y_minus) / (2.0 * h)
+
+		var hxx = (m_x_plus - 2.0 * m0 + m_x_minus) / (h * h)
+		var hyy = (m_y_plus - 2.0 * m0 + m_y_minus) / (h * h)
+		var hxy = (m_xy_plus - m_x_minus_y - m_mx_y_plus + m_mx_my) / (4.0 * h * h)
+
+		var det = hxx * hyy - hxy * hxy
+
+		# 4. Check if it forms a paraboloid (local minimum)
+		if det > 0.0 and hxx > 0.0:
+			var dx = (hxy * gy - hyy * gx) / det
+			var dy = (hxy * gx - hxx * gy) / det
+			true_z = z_mid + Vector2(dx, dy)
+			proceed_to_refine = true
+
+	return [proceed_to_refine, true_z, kappa]
+
+static func find_zero(true_z: Vector2, kappa: float = 0.0, debug: bool = false) -> Variant:
+	var has_ext = ClassDB.class_exists("ComplexFunctions")
+	if Config.input_function_type == Config.ComplexFunc.IDENTITY and Config.function_type == Config.ComplexFunc.ZETA_REFLECTION and has_ext:
+		var ext = ClassDB.instantiate("ComplexFunctions")
+		var res = ext.call("zeta_find_zero", true_z.x, true_z.y, Config.iterations, 0.6, 0.3)
+		if res.size() == 2:
+			return Vector2(res[0], res[1])
+		return true
+
+	# Refine zero location using numerical complex Newton-Raphson steps
+	var converged = false
+	var refined_z = DoubleVector2.new(true_z.x, true_z.y)
+	var step_mult = 0.6
+	var step_max = 0.3
+	var f_val: DoubleVector2 = DoubleVector2.new(1e9, 1e9)
+	var f_mag = 0.0
+
+	if debug:
+		print("\nStarting  | z (%9.6f, %9.6f) | f (%9.6f, %9.6f) | len %10.6f | mult %6.2f | kappa %.3f" % [refined_z.x, refined_z.y, f_val.x, f_val.y, f_mag, step_mult, kappa])
+	for step_idx in range(15):
+		var result = newton_step(refined_z, step_mult, step_max)
+		var next_z: DoubleVector2 = result[0]
+		f_val = result[1]
+		f_mag = f_val.length()
+
+		var z_dist = 0.0
+		if typeof(refined_z) == TYPE_VECTOR2:
+			z_dist = sqrt((next_z.x - refined_z.x) ** 2 + (next_z.y - refined_z.y) ** 2)
+		else:
+			z_dist = next_z.distance_to(refined_z)
+		if f_mag < 1e-5 or z_dist < 1e-5:
+			converged = true
+			break
+
+		if f_mag < 0.01:
+			step_mult *= 0.99
+
+		if f_mag < 0.001:
+			step_mult *= 0.9
+
+		refined_z = next_z
+
+		if debug:
+			print(
+				"Step %4d | z (%9.6f, %9.6f) | f (%9.6f, %9.6f) | len %10.6f | mult %6.2f"
+				% [
+					step_idx,
+					refined_z.x, refined_z.y,
+					f_val.x, f_val.y,
+					f_mag,
+					step_mult
+				]
+			)
+
+	true_z = refined_z.to_vector2()
+
+	if f_mag < 1e-2 && Config.function.get("is_dirichlect", false):
+		converged = true
+
+	if debug:
+		print("End	   | z (%9.6f, %9.6f) | f (%9.6f, %9.6f) | len %10.6f | mult %6.2f | converged %s" % [refined_z.x, refined_z.y, f_val.x, f_val.y, f_mag, step_mult, converged])
+
+	if converged:
+		return true_z
+
+	return false
+
 # Returns [next_z: Vector2, f_val: Vector2] so the caller can reuse f_val
 # without an extra get_field evaluation.
 static func newton_step(z_input: Variant, step_size_mult: float, max_step: float = 1.0) -> Array:
