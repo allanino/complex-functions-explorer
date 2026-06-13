@@ -929,6 +929,17 @@ static func get_field(world_x: float, world_z: float) -> Vector2:
 
 	return get_field_at(w.x, w.y, Config.function_type, false)
 
+static func find_zero(true_z: Vector2) -> Variant:
+	var has_ext = ClassDB.class_exists("ComplexFunctions")
+	if Config.input_function_type == Config.ComplexFunc.IDENTITY and Config.function_type == Config.ComplexFunc.ZETA_REFLECTION and has_ext:
+		var ext = ClassDB.instantiate("ComplexFunctions")
+		var res = ext.call("zeta_find_zero", true_z.x, true_z.y, Config.iterations, 0.6, 0.3)
+		if res.size() == 2:
+			return Vector2(res[0], res[1])
+		return true
+
+	return false
+
 # Returns [next_z: Vector2, f_val: Vector2] so the caller can reuse f_val
 # without an extra get_field evaluation.
 static func newton_step(z_input: Variant, step_size_mult: float, max_step: float = 1.0) -> Array:

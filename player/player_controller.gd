@@ -917,6 +917,13 @@ func _process_zero_detection(z_mid: Vector2, current_auto_walk_state: int):
 			proceed_to_refine = true
 
 	if proceed_to_refine:
+		var zero_res = ComplexField.find_zero(true_z)
+		if typeof(zero_res) == TYPE_VECTOR2:
+			call_deferred("_on_zero_detected", zero_res, current_auto_walk_state)
+			return
+		elif typeof(zero_res) == TYPE_BOOL and zero_res == true:
+			return
+
 		# Refine zero location using numerical complex Newton-Raphson steps
 		var converged = false
 		var refined_z = DoubleVector2.new(true_z.x, true_z.y)
