@@ -561,7 +561,7 @@ PackedFloat64Array ComplexFunctions::zeta_continuation_with_derivatives(double x
 }
 
 PackedFloat64Array ComplexFunctions::zeta_find_zero(double x, double y, int iters, double step_mult, double step_max) {
-	auto res = zeta_with_derivatives(x, y, iters * 2);
+	auto res = zeta_borwein_with_derivatives(x, y, iters * 2);
 	double f_val_x = res[0]; double f_val_y = res[1];
 	double f_prime_x = res[2]; double f_prime_y = res[3];
 	double f_second_x = res[4]; double f_second_y = res[5];
@@ -586,7 +586,7 @@ PackedFloat64Array ComplexFunctions::zeta_find_zero(double x, double y, int iter
 	double f_mag = 1e9;
 
 	for (int step_idx = 0; step_idx < 15; step_idx++) {
-		auto n_res = zeta_with_derivatives(refined_x, refined_y, iters * 2);
+		auto n_res = zeta_borwein_with_derivatives(refined_x, refined_y, iters * 2);
 		double cur_f_x = n_res[0]; double cur_f_y = n_res[1];
 		double cur_fp_x = n_res[2]; double cur_fp_y = n_res[3];
 		double cur_fpp_x = n_res[4]; double cur_fpp_y = n_res[5];
