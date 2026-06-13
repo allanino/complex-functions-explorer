@@ -841,10 +841,9 @@ func _process_zero_detection(z_mid: Vector2, current_auto_walk_state: int):
 	var check_res = ComplexField.is_close_to_zero(z_mid)
 	var proceed_to_refine = check_res[0]
 	var true_z = check_res[1]
-	var kappa = check_res[2]
 
 	if proceed_to_refine:
-		var zero_res = ComplexField.find_zero(true_z, kappa, zeros_debug)
+		var zero_res = ComplexField.find_zero(true_z, zeros_debug)
 		if typeof(zero_res) == TYPE_VECTOR2:
 			call_deferred("_on_zero_detected", zero_res, current_auto_walk_state)
 

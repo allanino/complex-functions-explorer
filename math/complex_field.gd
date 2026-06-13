@@ -960,7 +960,7 @@ static func is_close_to_zero(z_mid: Vector2) -> Array:
 		if kappa < 1.0:
 			proceed_to_refine = true
 		else:
-			return [false, z_mid, kappa]
+			return [false, z_mid]
 	else:
 		# 2. Sample nearby points to estimate the minima paraboloid
 		var h = 0.01
@@ -1008,13 +1008,13 @@ static func is_close_to_zero(z_mid: Vector2) -> Array:
 			true_z = z_mid + Vector2(dx, dy)
 			proceed_to_refine = true
 
-	return [proceed_to_refine, true_z, kappa]
+	return [proceed_to_refine, true_z]
 
-static func find_zero(true_z: Vector2, kappa: float = 0.0, debug: bool = false) -> Variant:
+static func find_zero(true_z: Vector2, debug: bool = false) -> Variant:
 	var has_ext = ClassDB.class_exists("ComplexFunctions")
 	if Config.input_function_type == Config.ComplexFunc.IDENTITY and Config.function_type == Config.ComplexFunc.ZETA_REFLECTION and has_ext:
 		var ext = ClassDB.instantiate("ComplexFunctions")
-		var res = ext.call("zeta_find_zero", true_z.x, true_z.y, Config.iterations, 0.6, 0.3)
+		var res = ext.call("zeta_find_zero", true_z.x, true_z.y, Config.iterations, 0.6, 0.3, debug)
 		if res.size() == 2:
 			return Vector2(res[0], res[1])
 		return true
@@ -1028,7 +1028,7 @@ static func find_zero(true_z: Vector2, kappa: float = 0.0, debug: bool = false) 
 	var f_mag = 0.0
 
 	if debug:
-		print("\nStarting  | z (%9.6f, %9.6f) | f (%9.6f, %9.6f) | len %10.6f | mult %6.2f | kappa %.3f" % [refined_z.x, refined_z.y, f_val.x, f_val.y, f_mag, step_mult, kappa])
+		print("\nStarting  | z (%9.6f, %9.6f) | f (%9.6f, %9.6f) | len %10.6f | mult %6.2f" % [refined_z.x, refined_z.y, f_val.x, f_val.y, f_mag, step_mult])
 	for step_idx in range(15):
 		var result = newton_step(refined_z, step_mult, step_max)
 		var next_z: DoubleVector2 = result[0]
