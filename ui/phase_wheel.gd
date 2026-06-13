@@ -37,6 +37,10 @@ func _apply_phase(f: Vector2) -> void:
 		var mat = color_rect.material as ShaderMaterial
 		mat.set_shader_parameter("current_f", f)
 		mat.set_shader_parameter("color_scheme", Config.color_scheme)
+		mat.set_shader_parameter("re_plus", Config.re_plus)
+		mat.set_shader_parameter("re_minus", Config.re_minus)
+		mat.set_shader_parameter("im_plus", Config.im_plus)
+		mat.set_shader_parameter("im_minus", Config.im_minus)
 		mat.set_shader_parameter("brightness", Config.terrain_brightness)
 		mat.set_shader_parameter("saturation", Config.terrain_saturation)
 		mat.set_shader_parameter("albedo", Config.terrain_albedo)
@@ -78,6 +82,18 @@ func _apply_phase(f: Vector2) -> void:
 	if Config.color_scheme == 2:
 		var v = 0.5 + 0.5 * cos(angle_rad)
 		hsv_color = Color(v, v, v) * brightness
+	elif Config.color_scheme == 3:
+		var c = cos(angle_rad)
+		var s = sin(angle_rad)
+		var w_re_plus = max(0.0, c)
+		var w_re_minus = max(0.0, -c)
+		var w_im_plus = max(0.0, s)
+		var w_im_minus = max(0.0, -s)
+
+		var norm = abs(c) + abs(s)
+
+		hsv_color = ((w_re_plus * Config.re_plus + w_re_minus * Config.re_minus +
+					 w_im_plus * Config.im_plus + w_im_minus * Config.im_minus) / norm) * brightness
 
 	var final_color = hsv_color * (Config.terrain_albedo + Config.terrain_emission) * 2.0
 	# Clamp to valid 0-1 range for UI text

@@ -32,6 +32,10 @@ func _sync_all_uniforms():
 		mat.set_shader_parameter("function_type", Config.function_type)
 		mat.set_shader_parameter("input_function_type", Config.input_function_type)
 		mat.set_shader_parameter("color_scheme", Config.color_scheme)
+		mat.set_shader_parameter("re_plus", Config.re_plus)
+		mat.set_shader_parameter("re_minus", Config.re_minus)
+		mat.set_shader_parameter("im_plus", Config.im_plus)
+		mat.set_shader_parameter("im_minus", Config.im_minus)
 		mat.set_shader_parameter("is_dirichlect", Config.function.get("is_dirichlect", false))
 		mat.set_shader_parameter("is_multivalued", Config.function.get("is_multivalued", false))
 		mat.set_shader_parameter("rational_num_coeffs", Config.rational_num_coeffs)
@@ -110,7 +114,7 @@ func _on_config_changed(key: String):
 	if not mat: return
 	if key == "show_hud_zeros":
 		_update_zeros_shader()
-	elif key in ["iterations", "zoom_factor", "function_type", "input_function_type", "color_scheme", "rational_num_coeffs", "rational_den_coeffs", "input_rational_num_coeffs", "input_rational_den_coeffs", "multivalued_n", "show_curves", "show_critical_stripe", "height_type", "height_a", "height_epsilon", "height_theta"]:
+	elif key in ["iterations", "zoom_factor", "function_type", "input_function_type", "color_scheme", "re_plus", "re_minus", "im_plus", "im_minus", "rational_num_coeffs", "rational_den_coeffs", "input_rational_num_coeffs", "input_rational_den_coeffs", "multivalued_n", "show_curves", "show_critical_stripe", "height_type", "height_a", "height_epsilon", "height_theta"]:
 		_sync_all_uniforms()
 
 func _on_state_changed(key: String):

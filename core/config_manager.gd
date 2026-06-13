@@ -183,6 +183,10 @@ const PRESET_KEYS = [
 	"show_flow",
 	"show_position_marker",
 	"color_scheme",
+	"re_plus",
+	"re_minus",
+	"im_plus",
+	"im_minus",
 	"freeze_time",
 	"day_duration",
 	"day_time",
@@ -331,6 +335,26 @@ var color_scheme: int = 0:
 		if color_scheme == v: return
 		color_scheme = v
 		config_changed.emit("color_scheme")
+@export var re_plus: Color = Color(1.0, 0.0, 0.0): # Default Red
+	set(v):
+		if re_plus == v: return
+		re_plus = v
+		config_changed.emit("re_plus")
+@export var re_minus: Color = Color(0.0, 1.0, 1.0): # Default Cyan
+	set(v):
+		if re_minus == v: return
+		re_minus = v
+		config_changed.emit("re_minus")
+@export var im_plus: Color = Color(0.0, 1.0, 0.0): # Default Green
+	set(v):
+		if im_plus == v: return
+		im_plus = v
+		config_changed.emit("im_plus")
+@export var im_minus: Color = Color(1.0, 1.0, 0.0): # Default Yellow
+	set(v):
+		if im_minus == v: return
+		im_minus = v
+		config_changed.emit("im_minus")
 var freeze_time: bool = false
 var day_duration: float = 60.0 # Seconds for a full cycle
 var day_time: float = 43200.0: # Current time in seconds (Noon = 12h = 43200s)
@@ -586,6 +610,10 @@ func save_settings():
 	config.set_value("rendering", "show_flow", show_flow)
 	config.set_value("rendering", "show_position_marker", show_position_marker)
 	config.set_value("rendering", "color_scheme", color_scheme)
+	config.set_value("rendering", "re_plus", re_plus)
+	config.set_value("rendering", "re_minus", re_minus)
+	config.set_value("rendering", "im_plus", im_plus)
+	config.set_value("rendering", "im_minus", im_minus)
 	config.set_value("rendering", "freeze_time", freeze_time)
 	config.set_value("rendering", "day_duration", day_duration)
 	config.set_value("rendering", "day_time", day_time)
@@ -664,6 +692,10 @@ func load_settings():
 	show_flow = config.get_value("rendering", "show_flow", show_flow)
 	show_position_marker = config.get_value("rendering", "show_position_marker", show_position_marker)
 	color_scheme = config.get_value("rendering", "color_scheme", color_scheme)
+	re_plus = config.get_value("rendering", "re_plus", re_plus)
+	re_minus = config.get_value("rendering", "re_minus", re_minus)
+	im_plus = config.get_value("rendering", "im_plus", im_plus)
+	im_minus = config.get_value("rendering", "im_minus", im_minus)
 	freeze_time = config.get_value("rendering", "freeze_time", freeze_time)
 	day_duration = config.get_value("rendering", "day_duration", day_duration)
 	day_time = config.get_value("rendering", "day_time", day_time)

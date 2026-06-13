@@ -24,6 +24,10 @@ uniform int newton_path_size;
 uniform vec4 newton_path_bbox; // x_min, x_max, y_min, y_max
 
 uniform int color_scheme = 0;
+uniform vec3 re_plus = vec3(1.0, 0.0, 0.0);
+uniform vec3 re_minus = vec3(0.0, 1.0, 1.0);
+uniform vec3 im_plus = vec3(0.0, 1.0, 0.0);
+uniform vec3 im_minus = vec3(1.0, 1.0, 0.0);
 uniform bool show_curves = true;
 uniform bool show_critical_stripe = true;
 uniform bool show_flow = false;
@@ -827,6 +831,29 @@ void fragment() {
             // Suppress the Moiré in grayscale by washing it towards a solid gray 0.5
             v = mix(v, 0.5, moire_suppression);
             base = vec3(v) * eff_bri;
+        } else if (color_scheme == 3) {
+            // Smoothly interpolate between the 4 colors
+            // Phase is in (-PI, PI].
+            // cos(phase) > 0 -> Re+, < 0 -> Re-
+            // sin(phase) > 0 -> Im+, < 0 -> Im-
+            float c = cos(phase);
+            float s = sin(phase);
+
+            // Weight components
+            float w_re_plus = max(0.0, c);
+            float w_re_minus = max(0.0, -c);
+            float w_im_plus = max(0.0, s);
+            float w_im_minus = max(0.0, -s);
+
+            float norm = abs(c) + abs(s);
+
+            // Apply moire suppression similarly to fade towards grey/average
+            vec3 custom_base = (w_re_plus * re_plus + w_re_minus * re_minus +
+                               w_im_plus * im_plus + w_im_minus * im_minus) / norm;
+
+            vec3 grey_avg = (re_plus + re_minus + im_plus + im_minus) / 4.0;
+            custom_base = mix(custom_base, grey_avg, moire_suppression * 0.5);
+            base = custom_base * eff_bri;
         }
 
         // Apply smooth decay for large heights, just like minimap

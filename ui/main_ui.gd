@@ -92,6 +92,18 @@ func update_arg_val(f: Vector2):
 	if Config.color_scheme == 2:
 		var v = 0.5 + 0.5 * cos(angle_rad)
 		hsv_color = Color(v, v, v) * brightness
+	elif Config.color_scheme == 3:
+		var c = cos(angle_rad)
+		var s = sin(angle_rad)
+		var w_re_plus = max(0.0, c)
+		var w_re_minus = max(0.0, -c)
+		var w_im_plus = max(0.0, s)
+		var w_im_minus = max(0.0, -s)
+
+		var norm = abs(c) + abs(s)
+
+		hsv_color = ((w_re_plus * Config.re_plus + w_re_minus * Config.re_minus +
+					 w_im_plus * Config.im_plus + w_im_minus * Config.im_minus) / norm) * brightness
 
 	var final_color = hsv_color * (Config.terrain_albedo + Config.terrain_emission) * 2.0
 	final_color.r = clamp(final_color.r, 0.0, 1.0)

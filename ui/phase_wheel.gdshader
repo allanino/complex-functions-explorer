@@ -2,6 +2,10 @@ shader_type canvas_item;
 
 uniform vec2 current_f; // Current value of f(x,z)
 uniform int color_scheme = 0;
+uniform vec3 re_plus = vec3(1.0, 0.0, 0.0);
+uniform vec3 re_minus = vec3(0.0, 1.0, 1.0);
+uniform vec3 im_plus = vec3(0.0, 1.0, 0.0);
+uniform vec3 im_minus = vec3(1.0, 1.0, 0.0);
 uniform float brightness : hint_range(0.0, 2.0) = 1.0;
 uniform float saturation : hint_range(0.3, 1.0) = 0.85;
 uniform float albedo : hint_range(0.0, 1.0) = 0.15;
@@ -62,6 +66,18 @@ void fragment() {
     if (color_scheme == 2) {
         float v = 0.5 + 0.5 * cos(phase);
         base = vec3(v) * brightness;
+    } else if (color_scheme == 3) {
+        float c = cos(phase);
+        float s = sin(phase);
+        float w_re_plus = max(0.0, c);
+        float w_re_minus = max(0.0, -c);
+        float w_im_plus = max(0.0, s);
+        float w_im_minus = max(0.0, -s);
+
+        float norm = abs(c) + abs(s);
+
+        base = ((w_re_plus * re_plus + w_re_minus * re_minus +
+                w_im_plus * im_plus + w_im_minus * im_minus) / norm) * brightness;
     }
     vec3 color_hsv = base * (albedo + emission) * 2.0;
 

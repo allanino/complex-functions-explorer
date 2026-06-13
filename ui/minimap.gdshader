@@ -5,6 +5,10 @@ shader_type canvas_item;
 uniform vec2 player_pos_world;
 uniform float view_radius = 20.0;
 uniform int color_scheme = 0;
+uniform vec3 re_plus = vec3(1.0, 0.0, 0.0);
+uniform vec3 re_minus = vec3(0.0, 1.0, 1.0);
+uniform vec3 im_plus = vec3(0.0, 1.0, 0.0);
+uniform vec3 im_minus = vec3(1.0, 1.0, 0.0);
 
 uniform bool show_curves = false;
 uniform bool show_critical_stripe = false;
@@ -138,6 +142,18 @@ void fragment() {
     if (color_scheme == 2) {
         float v = 0.5 + 0.5 * cos(phase);
         base_color = vec3(v);
+    } else if (color_scheme == 3) {
+        float c = cos(phase);
+        float s = sin(phase);
+        float w_re_plus = max(0.0, c);
+        float w_re_minus = max(0.0, -c);
+        float w_im_plus = max(0.0, s);
+        float w_im_minus = max(0.0, -s);
+
+        float norm = abs(c) + abs(s);
+
+        base_color = (w_re_plus * re_plus + w_re_minus * re_minus +
+                     w_im_plus * im_plus + w_im_minus * im_minus) / norm;
     }
 
 

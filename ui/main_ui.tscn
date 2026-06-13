@@ -1,7 +1,6 @@
 [gd_scene load_steps=20 format=3]
 
 [ext_resource type="Script" path="res://ui/main_ui.gd" id="1_script"]
-[ext_resource type="Shader" path="res://ui/hud_complex_plane.gdshader" id="2_shader"]
 [ext_resource type="PackedScene" path="res://ui/components/checkbox.tscn" id="3_checkbox"]
 [ext_resource type="PackedScene" path="res://ui/menu.tscn" id="4_menu"]
 [ext_resource type="Script" path="res://ui/components/tooltip_manager.gd" id="5_tooltip_manager"]
@@ -16,12 +15,6 @@
 [ext_resource type="PackedScene" path="res://ui/phase_wheel.tscn" id="11_phase_wheel"]
 [ext_resource type="Script" path="res://ui/components/hud_arrow.gd" id="12_hud_arrow"]
 
-
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_1"]
-shader = ExtResource("2_shader")
-shader_parameter/current_f = Vector2(0, 0)
-shader_parameter/scale = 2.0
 
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hud_panel"]
