@@ -37,6 +37,10 @@ Superimposed on the terrain are contour lines, or **curve levels**, which provid
 
 When a black curve and a white curve intersect at the base of the terrain, the point may correspond to a **zero** of the function, where both the real and imaginary parts vanish simultaneously.
 
+### Multivalued Functions & Portals
+
+The explorer features immersive portals that allow seamless navigation between branches of multivalued functions. When exploring functions with branch cuts (like the complex logarithm or roots), walking through these visual thresholds mathematically transports the terrain, enabling continuous exploration across multiple sheets of the Riemann surface.
+
 ### Supported Functions
 The explorer supports various standard complex functions, including trigonometric, exponential, and logarithmic functions. The centerpiece is the **Riemann zeta function** $\zeta(s)$.
 
