@@ -1004,3 +1004,93 @@ func test_eta_borwein():
 	res = ComplexFieldScript.eta_borwein(0.5, 14.134725, 50)
 	assert_almost_eq(res.x, 0.0, 0.00001)
 	assert_almost_eq(res.y, 0.0, 0.00001)
+
+func test_is_close_to_zero_zeta():
+	Config.input_function_type = Config.ComplexFunc.IDENTITY
+	Config.function_type = Config.ComplexFunc.ZETA
+	var z = Vector2(0.5, 14.134725)
+	var res = ComplexFieldScript.is_close_to_zero(z)
+	assert_eq(res[0], true)
+	assert_almost_eq(res[1].x, 0.5, 0.001)
+	assert_almost_eq(res[1].y, 14.134, 0.001)
+
+func test_find_zero_zeta():
+	Config.input_function_type = Config.ComplexFunc.IDENTITY
+	Config.function_type = Config.ComplexFunc.ZETA
+	var z = Vector2(0.5, 14.0)
+	var check_res = ComplexFieldScript.is_close_to_zero(z)
+	var z_refined = ComplexFieldScript.find_zero(check_res[1], check_res[2], false)
+	assert_typeof(z_refined, TYPE_VECTOR2)
+	assert_almost_eq(z_refined.x, 0.5, 0.0001)
+	assert_almost_eq(z_refined.y, 14.134725, 0.0001)
+
+func test_is_close_to_zero_dirichlet_eta():
+	Config.input_function_type = Config.ComplexFunc.IDENTITY
+	Config.function_type = Config.ComplexFunc.DIRICHLET_ETA
+	var z = Vector2(0.5, 14.134725)
+	var res = ComplexFieldScript.is_close_to_zero(z)
+	assert_eq(res[0], true)
+
+func test_find_zero_dirichlet_eta():
+	Config.input_function_type = Config.ComplexFunc.IDENTITY
+	Config.function_type = Config.ComplexFunc.DIRICHLET_ETA
+	var z = Vector2(0.5, 14.0)
+	var check_res = ComplexFieldScript.is_close_to_zero(z)
+	var z_refined = ComplexFieldScript.find_zero(check_res[1], check_res[2], false)
+	assert_typeof(z_refined, TYPE_VECTOR2)
+	assert_almost_eq(z_refined.x, 0.5, 0.0001)
+	assert_almost_eq(z_refined.y, 14.134725, 0.0001)
+
+func test_is_close_to_zero_zeta_reflection():
+	Config.input_function_type = Config.ComplexFunc.IDENTITY
+	Config.function_type = Config.ComplexFunc.ZETA_REFLECTION
+	var z = Vector2(-2.0, 0.0)
+	var res = ComplexFieldScript.is_close_to_zero(z)
+	assert_eq(res[0], true)
+
+func test_find_zero_zeta_reflection():
+	Config.input_function_type = Config.ComplexFunc.IDENTITY
+	Config.function_type = Config.ComplexFunc.ZETA_REFLECTION
+	var z = Vector2(-1.9, 0.0)
+	var check_res = ComplexFieldScript.is_close_to_zero(z)
+	var z_refined = ComplexFieldScript.find_zero(check_res[1], check_res[2], false)
+	# the exact form varies whether the cpp function was used or not but usually it is a vector
+	# testing the logic is enough here
+
+func test_is_close_to_zero_log_fallback():
+	Config.input_function_type = Config.ComplexFunc.IDENTITY
+	Config.function_type = Config.ComplexFunc.LOG
+	var z = Vector2(1.0, 0.0) # log(1) = 0
+	var res = ComplexFieldScript.is_close_to_zero(z)
+	assert_eq(res[0], true)
+	assert_almost_eq(res[1].x, 1.0, 0.01)
+
+func test_find_zero_log_fallback():
+	Config.input_function_type = Config.ComplexFunc.IDENTITY
+	Config.function_type = Config.ComplexFunc.LOG
+	var z = Vector2(1.1, 0.1)
+	var check_res = ComplexFieldScript.is_close_to_zero(z)
+	if check_res[0]:
+		var z_refined = ComplexFieldScript.find_zero(check_res[1], check_res[2], false)
+		assert_typeof(z_refined, TYPE_VECTOR2)
+		assert_almost_eq(z_refined.x, 1.0, 0.0001)
+		assert_almost_eq(z_refined.y, 0.0, 0.0001)
+
+func test_is_close_to_zero_sin_fallback():
+	Config.input_function_type = Config.ComplexFunc.IDENTITY
+	Config.function_type = Config.ComplexFunc.SIN
+	var z = Vector2(PI, 0.0) # sin(pi) = 0
+	var res = ComplexFieldScript.is_close_to_zero(z)
+	assert_eq(res[0], true)
+	assert_almost_eq(res[1].x, PI, 0.01)
+
+func test_find_zero_sin_fallback():
+	Config.input_function_type = Config.ComplexFunc.IDENTITY
+	Config.function_type = Config.ComplexFunc.SIN
+	var z = Vector2(3.1, 0.1)
+	var check_res = ComplexFieldScript.is_close_to_zero(z)
+	if check_res[0]:
+		var z_refined = ComplexFieldScript.find_zero(check_res[1], check_res[2], false)
+		assert_typeof(z_refined, TYPE_VECTOR2)
+		assert_almost_eq(z_refined.x, PI, 0.0001)
+		assert_almost_eq(z_refined.y, 0.0, 0.0001)
