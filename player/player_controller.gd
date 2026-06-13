@@ -332,7 +332,6 @@ func _physics_process(delta):
 		tween.tween_callback(func():
 			Config.movement_speed = 100.0
 			Config.speed_near_zeros = 100.0
-			Config.save_settings()
 			auto_walk_state = AutoWalkState.WALKING
 		)
 
