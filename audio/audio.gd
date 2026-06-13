@@ -247,11 +247,11 @@ func _physics_process(delta):
 			is_teleporting = false
 	else:
 		# Significantly increased interpolation weights for instantaneous response
-		current_volume = lerp(current_volume, target_volume, delta * 15.0)
-		current_frequency = lerp(current_frequency, target_frequency, delta * 20.0)
-		current_pulse_rate = lerp(current_pulse_rate, target_pulse_rate, delta * 15.0)
+		current_volume = lerp(current_volume, target_volume, delta * 10.0)
+		current_frequency = lerp(current_frequency, target_frequency, delta * 10.0)
+		current_pulse_rate = lerp(current_pulse_rate, target_pulse_rate, delta * 10.0)
 		current_pan = lerp(current_pan, target_pan, delta * 4.0)
-		current_harmonic_intensity = lerp(current_harmonic_intensity, target_harmonic_intensity, delta * 20.0)
+		current_harmonic_intensity = lerp(current_harmonic_intensity, target_harmonic_intensity, delta * 10.0)
 		current_fm_index = lerp(current_fm_index, target_fm_index, delta * 10.0)
 
 	# Final safety clamp
@@ -274,13 +274,13 @@ func _physics_process(delta):
 	if reverb_effect:
 		var target_rv = clamp(REVERB_AMOUNT + (proximity * 0.01), 0.0, 0.9)
 		if is_finite(target_rv):
-			current_reverb_wet = lerp(current_reverb_wet, target_rv, delta * 10.0)
+			current_reverb_wet = lerp(current_reverb_wet, target_rv, delta * 4.0)
 			reverb_effect.wet = current_reverb_wet
 
 	if lpf_effect:
 		var target_cut = lerp(600.0, 4500.0, clamp(mag * 0.05, 0.0, 1.0))
 		if is_finite(target_cut):
-			current_lpf_cutoff = lerp(current_lpf_cutoff, target_cut, delta * 10.0)
+			current_lpf_cutoff = lerp(current_lpf_cutoff, target_cut, delta * 4.0)
 			lpf_effect.cutoff_hz = clamp(current_lpf_cutoff, 100.0, 20000.0)
 
 	fill_buffer()
