@@ -11,3 +11,9 @@
 ## 2024-05-19 - Enforce Camera Height Boundary via target_y
 **Learning:** To properly restrict the camera from exceeding the world height limit without corrupting physical player position logic, the boundary check must evaluate `target_y` (terrain + base camera height + user offset) rather than just the raw `terrain_h`.
 **Action:** When implementing camera position constraints, mathematically clamp the variable components that contribute to the target offset (e.g., `height_offset`) instead of artifically altering physical world states (`terrain_h`).
+## 2025-02-12 - UI Process Suspension
+**Learning:** Heavy UI processing (like phase angle math and raymarching/shader setups) executing inside  for components that are hidden by the user wastes considerable CPU time. Components like  and  were continually checking values while hidden.
+**Action:** Use  to hook into  and dynamically apply . This disables the process loop completely when the element is turned off in settings.
+## 2025-02-12 - UI Process Suspension
+**Learning:** Heavy UI processing (like phase angle math and raymarching/shader setups) executing inside `_process` for components that are hidden by the user wastes considerable CPU time. Components like `phase_wheel.gd` and `minimap.gd` were continually checking values while hidden.
+**Action:** Use `_notification` to hook into `NOTIFICATION_VISIBILITY_CHANGED` and dynamically apply `set_process(is_visible_in_tree())`. This disables the process loop completely when the element is turned off in settings.
