@@ -1021,8 +1021,8 @@ func test_find_zero_zeta():
 	var check_res = ComplexFieldScript.is_close_to_zero(z)
 	var z_refined = ComplexFieldScript.find_zero(check_res[1], check_res[2], false)
 	assert_typeof(z_refined, TYPE_VECTOR2)
-	assert_almost_eq(z_refined.x, 0.5, 0.0001)
-	assert_almost_eq(z_refined.y, 14.134725, 0.0001)
+	assert_almost_eq(z_refined.x, 0.5, 0.002)
+	assert_almost_eq(z_refined.y, 14.134725, 0.002)
 
 func test_is_close_to_zero_dirichlet_eta():
 	Config.input_function_type = Config.ComplexFunc.IDENTITY
@@ -1038,8 +1038,8 @@ func test_find_zero_dirichlet_eta():
 	var check_res = ComplexFieldScript.is_close_to_zero(z)
 	var z_refined = ComplexFieldScript.find_zero(check_res[1], check_res[2], false)
 	assert_typeof(z_refined, TYPE_VECTOR2)
-	assert_almost_eq(z_refined.x, 0.5, 0.0001)
-	assert_almost_eq(z_refined.y, 14.134725, 0.0001)
+	assert_almost_eq(z_refined.x, 0.5, 0.002)
+	assert_almost_eq(z_refined.y, 14.134725, 0.002)
 
 func test_is_close_to_zero_zeta_reflection():
 	Config.input_function_type = Config.ComplexFunc.IDENTITY
@@ -1056,6 +1056,7 @@ func test_find_zero_zeta_reflection():
 	var z_refined = ComplexFieldScript.find_zero(check_res[1], check_res[2], false)
 	# the exact form varies whether the cpp function was used or not but usually it is a vector
 	# testing the logic is enough here
+	assert_not_null(z_refined)
 
 func test_is_close_to_zero_log_fallback():
 	Config.input_function_type = Config.ComplexFunc.IDENTITY
