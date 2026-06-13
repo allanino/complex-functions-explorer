@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complex Functions Explorer — Documentation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+    </script>
+    <style>
+        :root {
+            --bg: #090b10;
+            --panel: #10141d;
+            --panel2: #151b26;
+            --border: rgba(255, 255, 255, .08);
+            --accent: #4a90e2;
+            --text: #eef2f7;
+            --muted: #9ca8ba
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: Inter, sans-serif;
+            line-height: 1.7
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 260px minmax(0, 1fr);
+            min-height: 100vh
+        }
+
+        .sidebar {
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            padding: 32px;
+            background: #0d1118;
+            border-right: 1px solid var(--border)
+        }
+
+        .brand {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 8px
+        }
+
+        .muted {
+            color: var(--muted)
+        }
+
+        .sidebar a {
+            display: block;
+            color: #c7d1df;
+            text-decoration: none;
+            padding: 10px 0
+        }
+
+        .main {
+            padding: 56px;
+            width: 100%;
+        }
+
+        .hero {
+            margin-bottom: 48px
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin: 0 0 8px
+        }
+
+        h2 {
+            margin-top: 64px;
+            color: var(--accent);
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 10px
+        }
+
+        h3 {
+            margin-top: 36px
+        }
+
+        .math-block,
+        pre {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 22px
+        }
+
+        ul {
+            padding-left: 1.4rem
+        }
+
+        li {
+            margin: .8rem 0
+        }
+
+        img {
+            max-width: 100%;
+            border-radius: 18px;
+            border: 1px solid var(--border)
+        }
+
+        footer {
+            margin-top: 80px;
+            color: var(--muted)
+        }
+
+        @media(max-width:900px) {
+            .layout {
+                grid-template-columns: 1fr
+            }
+
+            .sidebar {
+                position: relative;
+                height: auto
+            }
+
+            .main {
+                padding: 28px
+            }
+        }
+
+        .domain-images {
+            display: flex;
+            justify-content: center;
+            gap: 4.0rem;
+            margin-top: 2.5rem;
+            flex-wrap: wrap;
+        }
+
+        .domain-image {
+            flex: 1 1 240px;
+            max-width: 320px;
+        }
+
+        .domain-image img {
+            width: 100%;
+            height: auto;
+
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+
+            box-shadow:
+                0 10px 40px rgba(0, 0, 0, .45),
+                0 0 30px rgba(255, 255, 255, .03);
+        }
+
+        @media (max-width: 700px) {
+            .domain-images {
+                flex-direction: column;
+                align-items: center;
+                gap: 1.0rem;
+            }
+
+            .domain-image {
+                width: 100%;
+                max-width: 250px;
+            }
+        }
+
+        .hero-image-container {
+            margin: 50px 0 70px 0;
+            display: flex;
+            justify-content: center;
+        }
+
+        .hero-image-container img {
+            width: 100%;
+            max-width: 800px;
+            height: auto;
+            border-radius: 28px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow:
+                0 20px 60px rgba(0, 0, 0, 0.55),
+                0 0 40px rgba(255, 255, 255, 0.03);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="layout">
+        <aside class="sidebar">
+            <div class="brand">Complex Functions Explorer</div>
+            <div class="muted">Documentation</div>
+            <nav>
+                <a href="#curve-levels">Curve Levels</a>
+                <a href="#functions">Functions</a>
+                <a href="#options">Options</a>
+            </nav>
+        </aside>
+        <main class="main">
+            <header class="hero">
+                <h1>Documentation</h1>
+                <p class="muted">Technical notes, mathematical background and rendering details.</p>
+            </header>
+
+            <div class="content">
+                <div class="container">
+
+                    <section id="curve-levels">
+                        <h2>Curve Levels</h2>
+                        <p>
+                            Superimposed on the terrain are contour lines, or <strong>curve levels</strong>, which
+                            provide a
+                            geometric reference for the values of the function. These curves make it possible to trace
+                            how the
+                            real and imaginary components evolve across the complex plane.
+                        </p>
+
+                        <div class="domain-section">
+                            <div class="domain-text">
+                                <ul>
+                                    <li>
+                                        <strong>Black Curves (Real Part):</strong>
+                                        These correspond to level sets where the real part of the function,
+                                        \( \operatorname{Re}(f(s)) \), takes integer values. They reveal the underlying
+                                        structure of the function’s real transformation.
+                                    </li>
+
+                                    <li>
+                                        <strong>White Curves (Imaginary Part):</strong>
+                                        These correspond to level sets where the imaginary part,
+                                        \( \operatorname{Im}(f(s)) \), takes integer values. Together with the black
+                                        curves,
+                                        they form a curvilinear grid that reflects the conformal character of the
+                                        mapping.
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div class="domain-images">
+                                <div class="domain-image">
+                                    <img src="images/curve_levels.png" alt="Example of curve levels">
+                                </div>
+                            </div>
+                        </div>
+
+                        <p>
+                            When a black curve and a white curve intersect at the base of the terrain, the point may
+                            correspond
+                            to a <strong>zero</strong> of the function, where both the real and imaginary parts vanish
+                            simultaneously.
+                        </p>
+                    </section>
+
+                    <section id="functions">
+                        <h2>Functions</h2>
+                        <p>
+                            The explorer supports various standard complex functions, including trigonometric,
+                            exponential, and
+                            logarithmic functions. However, the centerpiece of the project is the <strong>Riemann zeta
+                                function</strong> \( \zeta(s) \).
+                        </p>
+
+                        <h3>The Riemann zeta function</h3>
+
+                        <p>
+                            Defined as \( \zeta(s) = \sum_{n=1}^\infty n^{-s} \) for \( \operatorname{Re}(s) > 1 \), it
+                            is
+                            analytically continued to the rest of the complex plane. Our implementation uses the
+                            <strong>Dirichlet eta representation</strong> for numerical stability when \(
+                            \operatorname{Re}(s) >
+                            0.5 \):
+                        </p>
+
+                        <div class="math-block">
+                            \[ \zeta(s) = \frac{1}{1 - 2^{1-s}} \sum_{n=1}^\infty \frac{(-1)^{n-1}}{n^s} \]
+                        </div>
+
+                        <p>
+                            For \( \operatorname{Re}(s) \le 0.5 \), the explorer utilizes the <strong>reflection
+                                formula</strong> to achieve analytical continuation to the entire complex plane:
+                        </p>
+                        <div class="math-block">
+                            \[ \zeta(s) = 2^s \pi^{s-1} \sin\left(\frac{\pi s}{2}\right) \Gamma(1-s) \zeta(1-s) \]
+                        </div>
+                        <p>
+                            In this calculation, the term \( \zeta(1-s) \) is evaluated using the Dirichlet Eta
+                            representation,
+                            since for \( \operatorname{Re}(s) \le 0.5 \), the reflected point \( 1-s \) has a real part
+                            greater
+                            than or equal to \( 0.5 \). This allows evaluation across the critical strip and beyond.
+                        </p>
+
+                        <div class="math-block" style="border-left: 4px solid var(--accent-color);">
+                            <p><strong>Note on Precision:</strong> Calculations are performed in GPU shaders using
+                                <code>float32</code> arithmetic.
+                                This introduces numerical limitations and potential artifacts as the magnitude of the
+                                imaginary
+                                part \( |t| \) increases,
+                                due to the rapid oscillation and large intermediate values of the functions involved.
+                                These
+                                effects are especially pronounced in the \( \sin \) and \( \Gamma \) terms
+                                of the reflection formula, both of which can grow rapidly in magnitude.
+                            </p>
+                        </div>
+
+                        <h3>The Dirichlet beta function</h3>
+                        <p>
+                            The explorer implements the <strong>Dirichlet beta function</strong> \( \beta(s) \) using
+                            its series
+                            representation:
+                        </p>
+                        <div class="math-block">
+                            \[ \beta(s) = \sum_{n=0}^\infty \frac{(-1)^n}{(2n+1)^s} \]
+                        </div>
+                        <p>
+                            Similar to the eta function, this series converges for \( \operatorname{Re}(s) > 0 \).
+                        </p>
+
+                        <h3>The Gamma function</h3>
+                        <p>
+                            The Gamma function \( \Gamma(z) \) is implemented using the <strong>Lanczos
+                                approximation</strong>
+                            (\( g=7, N=9 \)):
+                        </p>
+                        <div class="math-block">
+                            \[ \Gamma(z) \approx \sqrt{2\pi} (z+g-0.5)^{z-0.5} e^{-(z+g-0.5)} A_g(z-1) \]
+                            <p>where \( A_g(z) \) is the partial fraction expansion:</p>
+                            \[ A_g(z) = p_0 + \sum_{n=1}^8 \frac{p_n}{z+n} \]
+                        </div>
+                        <p>using the following coefficients:</p>
+                        <ul>
+                            <li>\( p_0 = 0.99999999999980993 \)</li>
+                            <li>\( p_1 = 676.5203681218851 \)</li>
+                            <li>\( p_2 = -1259.1392167224028 \)</li>
+                            <li>\( p_3 = 771.32342877765313 \)</li>
+                            <li>\( p_4 = -176.61502916214059 \)</li>
+                            <li>\( p_5 = 12.507343278686905 \)</li>
+                            <li>\( p_6 = -0.13857109526572012 \)</li>
+                            <li>\( p_7 = 9.9843695780195716 \times 10^{-6} \)</li>
+                            <li>\( p_8 = 1.5056327351493116 \times 10^{-7} \)</li>
+                        </ul>
+
+                        <div class="math-block" style="border-left: 4px solid var(--accent-color);">
+                            <div class="domain-section">
+                                <div class="domain-text">
+                                    <p>
+                                        <strong>Numerical Singularities:</strong>
+                                        Regions where the function evaluation produces
+                                        <code>NaN</code> or infinite values are rendered as a dark terrain
+                                        covered with green grid-like squares reminiscent of <em>The Matrix</em>.
+                                        These regions typically arise near overflow conditions, or severe floating-point
+                                        instability in the GPU shaders.
+                                        Rather than hiding such failures, the visualization exposes them directly
+                                        as part of the numerical structure of the computation.
+                                    </p>
+                                </div>
+
+                                <div class="domain-images">
+                                    <div class="domain-image">
+                                        <img src="images/overflow.png" alt="Example of overflow">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h3>The Mandelbrot function</h3>
+                        <p>
+                            The explorer visualizes the <strong>Mandelbrot function</strong> by computing the sequence
+                            \(
+                            z_{n+1} = z_n^2 + c \) recursively,
+                            starting at \( z_0 = 0 \), where \( c \) represents the position in the complex plane.
+                            The <code>iterations</code> parameter controls the maximum depth of the recursion.
+                        </p>
+
+
+                        <div class="hero-image-container">
+                            <img src="images/mandelbrot.png" alt="Mandelbrot">
+                        </div>
+
+                        <div class="math-block" style="border-left: 4px solid var(--accent-color);">
+                            <strong>Using the Zoom Factor:</strong> The `Zoom Factor` controls the scale of the visible
+                            region
+                            in the complex plane.
+                            Larger zoom values progressively magnify smaller portions of the function,
+                            revealing increasingly intricate structures and fine details that are not visible at larger
+                            scales.
+                            As the zoom increases, the explorer rescales the domain coordinates before evaluating the
+                            function.
+                            This effectively allows navigation through smaller regions of the complex plane while
+                            preserving the
+                            same rendering pipeline.
+                            In the Mandelbrot visualization, deep zooms expose self-similar formations, filamentary
+                            boundaries,
+                            and highly complex recursive structures characteristic of fractal geometry.
+                        </div>
+                    </section>
+
+                    <section id="options">
+                        <h2>Options</h2>
+                        <p>
+                            Pressing the <strong>Esc</strong> key opens the settings menu, providing several ways to
+                            customize
+                            your experience:
+                        </p>
+                        <ul>
+                            <li><strong>Function:</strong> Select complex functions (Zeta, Gamma, Dedekind Eta, etc.),
+                                choose
+                                height mapping (Logarithmic or Absolute), and configure parameters like iterations or
+                                rational
+                                expressions.</li>
+                            <li><strong>Environment:</strong> Customize visual themes (Color Scheme), toggle level
+                                curves and
+                                the critical stripe, and control the time of day (<strong>Freeze time</strong> toggle)
+                                with
+                                precise duration and time settings.</li>
+                            <li><strong>Graphics:</strong> Fine-tune rendering quality, including terrain detail,
+                                antialiasing
+                                modes (MSAA, FXAA, SMAA), view distance, and shadows.</li>
+                            <li><strong>Navigation:</strong> Set precise coordinates (Real/Imaginary), adjust movement
+                                speed and
+                                camera height, and toggle automatic walking along the critical line.</li>
+                            <li><strong>HUD:</strong> Customize on-screen information, such as the complex plane
+                                overlay,
+                                navigation data, and zeta zero detection panels.</li>
+                            <li><strong>Audio:</strong> Manage volume levels for the background music and the
+                                terrain-responsive
+                                topographic drone.</li>
+                        </ul>
+                    </section>
+
+                    <footer>
+                        <p>&copy; 2026 Complex Functions Explorer. Built with Godot Engine.</p>
+                    </footer>
+                </div>
+            </div>
+
+        </main>
+    </div>
+</body>
+
+</html>
