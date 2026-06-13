@@ -309,7 +309,8 @@ func _update_monitor_label():
 			lod_counts.fill(0)
 
 			for chunk in world_manager.chunks.values():
-				var lod = chunk.get_meta("lod_level", 0)
+				var lod_val = chunk.get_instance_shader_parameter("lod_level")
+				var lod = lod_val if lod_val != null else 0
 				if lod >= 0 and lod < num_lods:
 					lod_counts[lod] += 1
 
