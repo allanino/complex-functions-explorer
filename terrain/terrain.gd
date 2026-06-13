@@ -109,7 +109,7 @@ func _update_all_chunks_lod(force: bool = false):
 		var chunk = chunks[coord]
 		var desired_lod = _get_lod_level(coord, player_chunk_coord)
 		if force or _chunk_lods.get(coord, -1) != desired_lod:
-			_update_chunk_lod(chunk, desired_lod, coord)
+			_update_chunk_lod(chunk, desired_lod, coord, force)
 
 	_flush_dirty_neighbors()
 
@@ -312,9 +312,9 @@ func _load_chunk(coord: Vector2i):
 		Vector3(chunk_size + chunk_leeway, 1400, chunk_size + chunk_leeway)
 	)
 
-func _update_chunk_lod(chunk: MeshInstance3D, lod: int, coord: Vector2i):
+func _update_chunk_lod(chunk: MeshInstance3D, lod: int, coord: Vector2i, force: bool = false):
 	var old_lod = _chunk_lods.get(coord, -1)
-	if old_lod == lod:
+	if not force and old_lod == lod:
 		return
 
 	var subdivisions = LOD_SUBS[lod]
