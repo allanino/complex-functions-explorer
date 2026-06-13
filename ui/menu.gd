@@ -1230,4 +1230,5 @@ func _on_game_state_changed(key: String):
 
 func _process(delta: float):
 	if is_instance_valid(loading_spinner) and loading_spinner.visible:
+		loading_spinner.pivot_offset = loading_spinner.size / 2.0
 		loading_spinner.rotation += delta * 5.0
