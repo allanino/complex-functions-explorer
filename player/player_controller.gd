@@ -46,6 +46,7 @@ var last_valid_terrain_height: float = 0.0
 var is_detached_interactive: bool = false
 var is_menu_open: bool = false
 var last_newton_idx: int = 0
+var _last_checked_y_hundreds: int = -1
 
 # Zero detection history
 var mag_history: Array[float] = [1.0, 1.0, 1.0]
@@ -89,6 +90,9 @@ func teleport_to_world_pos(target_pos: Vector3) -> void:
 
 	global_position = target_pos
 
+	var complex_pos = Config.world_to_complex(global_position.x, global_position.z)
+	_check_zeta_continuity(complex_pos.y)
+
 func _ready():
 	add_to_group("player")
 
@@ -99,6 +103,7 @@ func _ready():
 	var complex_pos = Config.world_to_complex(global_position.x, global_position.z)
 	last_t = complex_pos.y
 	last_z = complex_pos
+	_last_checked_y_hundreds = int(last_t / 100.0)
 	
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	current_f = ComplexField.get_field(global_position.x, global_position.z)
@@ -774,6 +779,11 @@ func _process(_delta):
 
 	last_z = frame_z
 
+	var current_hundreds = int(frame_z.y / 100.0)
+	if current_hundreds != _last_checked_y_hundreds:
+		_check_zeta_continuity(frame_z.y)
+		_last_checked_y_hundreds = current_hundreds
+
 	if Config.show_curves and Config.show_curves_labels:
 		if re_label.visible:
 			re_label.global_position = re_label.global_position.lerp(_re_label_target_pos, _delta * 10.0)
@@ -785,6 +795,15 @@ func _process(_delta):
 		if im_label:
 			im_label.visible = false
 
+
+func _check_zeta_continuity(y: float) -> void:
+	if Config.function_type == Config.ComplexFunc.ZETA:
+		var z1 = ComplexField.zeta(0.499, y)
+		var z2 = ComplexField.zeta(0.501, y)
+		if z1.distance_to(z2) > 0.005:
+			GameState.unstable_zeta_computation = true
+		else:
+			GameState.unstable_zeta_computation = false
 
 func start_newton_walk():
 	if auto_walk_state == AutoWalkState.NONE:

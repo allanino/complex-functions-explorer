@@ -297,3 +297,24 @@ func test_start_newton_walk():
 	assert_eq(GameState.newton_path.size(), 0)
 
 	Config.function_type = original_function_type
+
+func test_zeta_continuity_check():
+	var player = player_scene.instantiate()
+	add_child_autoqfree(player)
+
+	var original_function_type = Config.function_type
+	Config.function_type = Config.ComplexFunc.ZETA
+
+	# Test continuity with stable iterations
+	Config.iterations = 1000
+	GameState.unstable_zeta_computation = true
+	player._check_zeta_continuity(100.0)
+	assert_false(GameState.unstable_zeta_computation)
+
+	# Test continuity with unstable iterations
+	Config.iterations = 10
+	GameState.unstable_zeta_computation = false
+	player._check_zeta_continuity(200.0)
+	assert_true(GameState.unstable_zeta_computation)
+
+	Config.function_type = original_function_type

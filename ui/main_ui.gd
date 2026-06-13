@@ -42,6 +42,7 @@ var portal_flash: ColorRect
 
 var _height_protection_timer: float = 0.0
 var _out_of_bounds_timer: float = 0.0
+var _unstable_zeta_timer: float = 0.0
 
 # New UI Node Paths
 var current_scale = 2.0
@@ -125,6 +126,12 @@ func _process(delta: float) -> void:
 		_out_of_bounds_timer -= delta
 		if _out_of_bounds_timer <= 0.0:
 			GameState.out_of_bounds_teleport_active = false
+			needs_update = true
+
+	if _unstable_zeta_timer > 0.0:
+		_unstable_zeta_timer -= delta
+		if _unstable_zeta_timer <= 0.0:
+			GameState.unstable_zeta_computation = false
 			needs_update = true
 
 	if needs_update:
@@ -261,11 +268,13 @@ func _on_monitor_timer_timeout():
 		_update_monitor_label()
 
 func _on_game_state_changed(key: String):
-	if key in ["performance_protection_active", "height_protection_active", "out_of_bounds_teleport_active", "found_off_critical_line", "missed_zeta_zero"]:
+	if key in ["performance_protection_active", "height_protection_active", "out_of_bounds_teleport_active", "found_off_critical_line", "missed_zeta_zero", "unstable_zeta_computation"]:
 		if key == "height_protection_active" and GameState.height_protection_active:
 			_height_protection_timer = 5.0
 		if key == "out_of_bounds_teleport_active" and GameState.out_of_bounds_teleport_active:
 			_out_of_bounds_timer = 5.0
+		if key == "unstable_zeta_computation" and GameState.unstable_zeta_computation:
+			_unstable_zeta_timer = 5.0
 		_update_monitor_label()
 	elif key in ["visited_zeros", "total_zeros_found"]:
 		_update_zeros_list()
@@ -275,7 +284,8 @@ func _on_game_state_changed(key: String):
 func _update_monitor_label():
 	var show_height_protection = GameState.height_protection_active and _height_protection_timer > 0.0
 	var show_out_of_bounds = GameState.out_of_bounds_teleport_active and _out_of_bounds_timer > 0.0
-	monitor_panel.visible = Config.show_hud_monitor_fps or show_hud_chunks or GameState.performance_protection_active or show_height_protection or show_out_of_bounds or GameState.found_off_critical_line or GameState.missed_zeta_zero
+	var show_unstable_zeta = GameState.unstable_zeta_computation and _unstable_zeta_timer > 0.0
+	monitor_panel.visible = Config.show_hud_monitor_fps or show_hud_chunks or GameState.performance_protection_active or show_height_protection or show_out_of_bounds or show_unstable_zeta or GameState.found_off_critical_line or GameState.missed_zeta_zero
 	if monitor_panel.visible and monitor_rt_label:
 		var bbcode = ""
 
@@ -297,6 +307,9 @@ func _update_monitor_label():
 
 		if GameState.missed_zeta_zero:
 			bbcode += "[color=#ffcc00][font_size=14]Zeta zeros diverging from Riemann-von Mangoldt.[/font_size][/color]\n"
+
+		if show_unstable_zeta:
+			bbcode += "[color=#ffcc00][font_size=14]Zeta computation is unstable at current iterations.[/font_size][/color]\n"
 
 		if Config.show_hud_monitor_fps:
 			bbcode += "[color=#ffffff]%d[/color] [color=#e8e4dc73][font_size=15]FPS[/font_size][/color]\n" % Engine.get_frames_per_second()
