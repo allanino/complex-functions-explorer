@@ -631,7 +631,7 @@ func demo_actions():
 	Config.freeze_time = false
 	Config.show_critical_stripe = 0
 	Config.show_hud_zeros = false
-	Config.show_hud_monitor_fps = true
+	Config.show_hud_monitor_fps = false
 	Config.shadows_enabled = false
 	Config.show_curves = true
 	Config.show_curves_labels = false
@@ -653,7 +653,7 @@ func demo_actions():
 	var tween = create_tween().set_process_mode(Tween.TWEEN_PROCESS_PHYSICS)
 
 	# Wait a moment before start
-	tween.tween_interval(2.0)
+	tween.tween_interval(4.0)
 
 	var tween_duration = 5.0
 
@@ -689,7 +689,7 @@ func demo_actions():
 	tween.tween_property(self , "rotation:y", 0.0, tween_duration * 0.5)
 	tween.parallel().tween_property(camera, "rotation:x", -PI / 8.0, tween_duration * 0.5)
 
-	tween.tween_interval(0.5)
+	tween.tween_interval(1.0)
 
 	tween.tween_callback(self._start_auto_walk_from_demo)
 
