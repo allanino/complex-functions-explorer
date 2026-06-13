@@ -6,8 +6,15 @@ extends Node3D
 @export var chunk_size: float = 16.0
 
 var chunks = {}
+var chunk_pool = []
+var MAX_POOL = 300
 var _chunk_lods = {}
 var _dirty_neighbor_coords = {}
+
+var active_chunks: int = 0
+var pooled_chunks: int = 0
+var instantiated_chunks: int = 0
+var reused_chunks: int = 0
 var chunk_leeway = 0.01
 var LOD_SUBS = [] # This will be set in code
 var _lod_mesh_cache = {}
@@ -288,9 +295,20 @@ func _update_neighbor_lod_uniforms(coord: Vector2i):
 	chunk.set_instance_shader_parameter("neighbor_lods", Vector4i(left_lod, right_lod, top_lod, bottom_lod))
 
 func _load_chunk(coord: Vector2i):
-	var chunk = terrain_chunk_scene.instantiate()
-	add_child(chunk)
+	var chunk
+	if chunk_pool.is_empty():
+		chunk = terrain_chunk_scene.instantiate()
+		add_child(chunk)
+		instantiated_chunks += 1
+	else:
+		chunk = chunk_pool.pop_back()
+		reused_chunks += 1
+
 	chunk.visible = !GameState.performance_protection_active
+	chunk.process_mode = Node.PROCESS_MODE_INHERIT
+
+	active_chunks = chunks.size() + 1
+	pooled_chunks = chunk_pool.size()
 
 	chunk.material_override = terrain_material
 
@@ -341,9 +359,21 @@ func _update_chunk_lod(chunk: MeshInstance3D, lod: int, coord: Vector2i):
 
 func _unload_chunk(coord: Vector2i):
 	var chunk = chunks[coord]
-	chunk.queue_free()
+
 	chunks.erase(coord)
 	_chunk_lods.erase(coord)
+
+	chunk.visible = false
+	chunk.process_mode = Node.PROCESS_MODE_DISABLED
+
+	if chunk_pool.size() < MAX_POOL:
+		chunk_pool.push_back(chunk)
+	else:
+		chunk.queue_free()
+
+	active_chunks = chunks.size()
+	pooled_chunks = chunk_pool.size()
+
 	_dirty_neighbor_coords[Vector2i(coord.x - 1, coord.y)] = true
 	_dirty_neighbor_coords[Vector2i(coord.x + 1, coord.y)] = true
 	_dirty_neighbor_coords[Vector2i(coord.x, coord.y - 1)] = true
