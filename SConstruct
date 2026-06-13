@@ -4,9 +4,9 @@ from SCons.Script import *
 
 env = SConscript("godot-cpp/SConstruct")
 
-env.Append(CPPPATH=["cpp"])
+env.Append(CPPPATH=["math/cpp"])
 
-sources = Glob("cpp/*.cpp")
+sources = Glob("math/cpp/*.cpp")
 
 if env["platform"] == "macos":
     library = env.SharedLibrary(
