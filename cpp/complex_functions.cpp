@@ -9,6 +9,7 @@ void ComplexFunctions::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("lanczos_gamma", "x", "y"), &ComplexFunctions::lanczos_gamma);
 
 	ClassDB::bind_method(D_METHOD("dirichlet_eta_with_derivatives", "x", "y", "iters"), &ComplexFunctions::dirichlet_eta_with_derivatives);
+	ClassDB::bind_method(D_METHOD("eta_find_zero", "x", "y", "iters", "step_mult", "step_max", "debug"), &ComplexFunctions::eta_find_zero);
 	ClassDB::bind_method(D_METHOD("zeta_find_zero", "x", "y", "iters", "step_mult", "step_max", "debug"), &ComplexFunctions::zeta_find_zero);
 	ClassDB::bind_method(D_METHOD("zeta_with_derivatives", "x", "y", "iters"), &ComplexFunctions::zeta_with_derivatives);
 	ClassDB::bind_method(D_METHOD("eta_borwein_with_derivatives", "x", "y", "order"), &ComplexFunctions::eta_borwein_with_derivatives);
@@ -561,8 +562,8 @@ PackedFloat64Array ComplexFunctions::zeta_continuation_with_derivatives(double x
 	return result;
 }
 
-PackedFloat64Array ComplexFunctions::zeta_find_zero(double x, double y, int iters, double step_mult, double step_max, bool debug) {
-	auto res = zeta_borwein_with_derivatives(x, y, iters * 2);
+PackedFloat64Array ComplexFunctions::_find_zero_core(double x, double y, int iters, double step_mult, double step_max, bool debug, DerivativeFunc func) {
+	auto res = (this->*func)(x, y, iters * 2);
 	double f_val_x = res[0]; double f_val_y = res[1];
 	double f_prime_x = res[2]; double f_prime_y = res[3];
 	double f_second_x = res[4]; double f_second_y = res[5];
@@ -589,11 +590,11 @@ PackedFloat64Array ComplexFunctions::zeta_find_zero(double x, double y, int iter
 	double f_mag = std::hypot(f_val_x, f_val_y);
 
 	if (debug) {
-		godot::UtilityFunctions::print(godot::vformat("\nStarting  | z (%9.6f, %9.6f) | f (%9.6f, %9.6f) | len %10.6f | mult %6.2f", refined_x, refined_y, cur_f_x, cur_f_y, f_mag, current_step_mult));
+		godot::UtilityFunctions::print(godot::vformat("\nStart C++ | z (%9.6f, %9.6f) | f (%9.6f, %9.6f) | len %10.6f | mult %6.2f", refined_x, refined_y, cur_f_x, cur_f_y, f_mag, current_step_mult));
 	}
 
 	for (int step_idx = 0; step_idx < 15; step_idx++) {
-		auto n_res = zeta_borwein_with_derivatives(refined_x, refined_y, iters * 2);
+		auto n_res = (this->*func)(refined_x, refined_y, iters * 2);
 		cur_f_x = n_res[0]; cur_f_y = n_res[1];
 		double cur_fp_x = n_res[2]; double cur_fp_y = n_res[3];
 		double cur_fpp_x = n_res[4]; double cur_fpp_y = n_res[5];
@@ -688,6 +689,14 @@ PackedFloat64Array ComplexFunctions::zeta_find_zero(double x, double y, int iter
 	}
 
 	return PackedFloat64Array();
+}
+
+PackedFloat64Array ComplexFunctions::eta_find_zero(double x, double y, int iters, double step_mult, double step_max, bool debug) {
+	return _find_zero_core(x, y, iters, step_mult, step_max, debug, &ComplexFunctions::eta_borwein_with_derivatives);
+}
+
+PackedFloat64Array ComplexFunctions::zeta_find_zero(double x, double y, int iters, double step_mult, double step_max, bool debug) {
+	return _find_zero_core(x, y, iters, step_mult, step_max, debug, &ComplexFunctions::zeta_borwein_with_derivatives);
 }
 
 } // namespace godot
