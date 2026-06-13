@@ -215,6 +215,102 @@ shadow_offset = Vector2(0, 4)
 color = Color(0.91, 0.89, 0.86, 0.12)
 thickness = 1
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_preset_btn_normal_gold"]
+content_margin_left = 15.0
+content_margin_top = 8.0
+content_margin_right = 15.0
+content_margin_bottom = 8.0
+bg_color = Color(0.784314, 0.662745, 0.431373, 0.1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.784314, 0.662745, 0.431373, 0.3)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_preset_btn_hover_gold"]
+content_margin_left = 15.0
+content_margin_top = 8.0
+content_margin_right = 15.0
+content_margin_bottom = 8.0
+bg_color = Color(0.784314, 0.662745, 0.431373, 0.2)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.784314, 0.662745, 0.431373, 0.6)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_preset_btn_pressed_gold"]
+content_margin_left = 15.0
+content_margin_top = 8.0
+content_margin_right = 15.0
+content_margin_bottom = 8.0
+bg_color = Color(0.784314, 0.662745, 0.431373, 0.35)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.784314, 0.662745, 0.431373, 0.8)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_update_btn_normal_gold"]
+content_margin_left = 40.0
+content_margin_top = 12.0
+content_margin_right = 40.0
+content_margin_bottom = 12.0
+bg_color = Color(0.784314, 0.662745, 0.431373, 0.1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.784314, 0.662745, 0.431373, 0.4)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_update_btn_hover_gold"]
+content_margin_left = 40.0
+content_margin_top = 12.0
+content_margin_right = 40.0
+content_margin_bottom = 12.0
+bg_color = Color(0.784314, 0.662745, 0.431373, 0.2)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.784314, 0.662745, 0.431373, 0.8)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_update_btn_pressed_gold"]
+content_margin_left = 40.0
+content_margin_top = 12.0
+content_margin_right = 40.0
+content_margin_bottom = 12.0
+bg_color = Color(0.784314, 0.662745, 0.431373, 0.35)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.784314, 0.662745, 0.431373, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
 [node name="MenuOverlay" type="ColorRect" unique_id=324048888]
 theme = ExtResource("theme_tres")
 script = ExtResource("1_menu_script")
@@ -312,6 +408,10 @@ text = "Delete"
 [node name="PresetNewButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TopPresetHBox" unique_id=99990005]
 unique_name_in_owner = true
 theme_type_variation = &"PresetNewButton"
+theme_override_styles/focus = SubResource("StyleBoxFlat_preset_btn_normal_gold")
+theme_override_styles/hover = SubResource("StyleBoxFlat_preset_btn_hover_gold")
+theme_override_styles/normal = SubResource("StyleBoxFlat_preset_btn_normal_gold")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_preset_btn_pressed_gold")
 layout_mode = 2
 text = "+ New"
 
@@ -995,6 +1095,10 @@ text = "Close"
 [node name="ApplyButton" type="Button" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/ButtonsHBox" unique_id=1101590507]
 unique_name_in_owner = true
 theme_type_variation = &"UpdateViewButton"
+theme_override_styles/focus = SubResource("StyleBoxFlat_update_btn_normal_gold")
+theme_override_styles/hover = SubResource("StyleBoxFlat_update_btn_hover_gold")
+theme_override_styles/normal = SubResource("StyleBoxFlat_update_btn_normal_gold")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_update_btn_pressed_gold")
 layout_mode = 2
 size_flags_horizontal = 4
 text = "Update View"
