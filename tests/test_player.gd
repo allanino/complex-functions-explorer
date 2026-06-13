@@ -259,3 +259,41 @@ func test_player_zoom_scaling():
 	Config.zoom_factor = original_zoom_factor
 	Config.zoom_damping = original_zoom_damping
 	GameState.effective_zoom = original_ez
+
+func test_start_newton_walk():
+	var player = player_scene.instantiate()
+	var main_ui = ui_scene.instantiate()
+	add_child_autoqfree(player)
+	add_child_autoqfree(main_ui)
+
+	player.set("main_ui", main_ui)
+	main_ui.player = player
+
+	var original_function_type = Config.function_type
+	Config.function_type = Config.ComplexFunc.IDENTITY
+
+	player.global_position = Vector3(10.0, 0.0, 10.0)
+	player.auto_walk_state = player.AutoWalkState.NONE
+
+	GameState.newton_path.clear()
+
+	player.start_newton_walk()
+
+	assert_eq(player.auto_walk_state, player.AutoWalkState.NEWTON_WALK)
+	assert_true(Config.show_hud_zeros)
+	assert_false(player.newton_converged)
+	assert_gt(GameState.newton_path.size(), 1)
+
+	# The identity function f(z) = z has root at 0. Newton step goes exactly to 0 in one step.
+	var final_z = GameState.newton_path[GameState.newton_path.size() - 1]
+	assert_almost_eq(final_z.x, 0.0, 0.001)
+	assert_almost_eq(final_z.y, 0.0, 0.001)
+
+	# Verify it does nothing if not in NONE state
+	player.auto_walk_state = player.AutoWalkState.WALKING
+	GameState.newton_path.clear()
+	player.start_newton_walk()
+	assert_eq(player.auto_walk_state, player.AutoWalkState.WALKING)
+	assert_eq(GameState.newton_path.size(), 0)
+
+	Config.function_type = original_function_type
