@@ -9,5 +9,3 @@ linux.debug.x86_64 = "res://bin/libcomplex_functions.linux.template_debug.x86_64
 linux.release.x86_64 = "res://bin/libcomplex_functions.linux.template_release.x86_64.so"
 windows.debug.x86_64 = "res://bin/libcomplex_functions.windows.template_debug.x86_64.dll"
 windows.release.x86_64 = "res://bin/libcomplex_functions.windows.template_release.x86_64.dll"
-macos.debug = "res://bin/libcomplex_functions.macos.template_debug.framework"
-macos.release = "res://bin/libcomplex_functions.macos.template_release.framework"
