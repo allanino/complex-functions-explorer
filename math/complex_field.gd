@@ -805,9 +805,9 @@ static func eta_borwein_with_derivatives(x: float, y: float, order: int) -> Arra
 		var ext = ClassDB.instantiate("ComplexFunctions")
 		var result = ext.call("eta_borwein_with_derivatives", x, y, order)
 		return [
-			Vector2(result[0], result[1]),
-			Vector2(result[2], result[3]),
-			Vector2(result[4], result[5])
+			DoubleVector2.new(result[0], result[1]),
+			DoubleVector2.new(result[2], result[3]),
+			DoubleVector2.new(result[4], result[5])
 		]
 
 	if order <= 0: return [DoubleVector2.new(0, 0), DoubleVector2.new(0, 0), DoubleVector2.new(0, 0)]
