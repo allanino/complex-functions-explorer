@@ -36,6 +36,10 @@ var target_fm_index: float = 0.0
 var current_fm_index: float = 0.0
 var pulse_presence: float = 0.0
 
+var current_pitch_scale: float = 1.0
+var current_reverb_wet: float = REVERB_AMOUNT
+var current_lpf_cutoff: float = 800.0
+
 # --- STARTUP ENVELOPE ---
 var startup_time := 0.0
 var startup_duration := 5.0
@@ -225,24 +229,29 @@ func _physics_process(delta):
 
 	# --- EFFECT MODULATION ---
 	if pitch_shift_effect:
-		var ps = 1.0 + current_harmonic_intensity * 0.02
+		var target_ps = 1.0 + current_harmonic_intensity * 0.02
 
-		if abs(ps - 1.0) < PITCH_DEADZONE:
-			ps = 1.0
+		if abs(target_ps - 1.0) < PITCH_DEADZONE:
+			target_ps = 1.0
 
-		ps = clamp(ps, 0.5, 2.0)
+		target_ps = clamp(target_ps, 0.5, 2.0)
+		current_pitch_scale = lerp(current_pitch_scale, target_ps, delta * 15.0)
 
-		if abs(ps - last_pitch) > 0.002:
-			pitch_shift_effect.pitch_scale = ps
-			last_pitch = ps
+		if abs(current_pitch_scale - last_pitch) > 0.001:
+			pitch_shift_effect.pitch_scale = current_pitch_scale
+			last_pitch = current_pitch_scale
 
 	if reverb_effect:
-		var rv = clamp(REVERB_AMOUNT + (proximity * 0.01), 0.0, 0.9)
-		if is_finite(rv): reverb_effect.wet = rv
+		var target_rv = clamp(REVERB_AMOUNT + (proximity * 0.01), 0.0, 0.9)
+		if is_finite(target_rv):
+			current_reverb_wet = lerp(current_reverb_wet, target_rv, delta * 10.0)
+			reverb_effect.wet = current_reverb_wet
 
 	if lpf_effect:
-		var cut = lerp(600.0, 4500.0, clamp(mag * 0.05, 0.0, 1.0))
-		if is_finite(cut): lpf_effect.cutoff_hz = clamp(cut, 100.0, 20000.0)
+		var target_cut = lerp(600.0, 4500.0, clamp(mag * 0.05, 0.0, 1.0))
+		if is_finite(target_cut):
+			current_lpf_cutoff = lerp(current_lpf_cutoff, target_cut, delta * 10.0)
+			lpf_effect.cutoff_hz = clamp(current_lpf_cutoff, 100.0, 20000.0)
 
 	fill_buffer()
 
