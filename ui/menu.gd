@@ -869,7 +869,10 @@ func _on_re_text_submitted(new_text: String):
 	if is_finite(re) and player:
 		var current_complex = Config.world_to_complex(player.global_position.x, player.global_position.z)
 		var target_x = Config.complex_to_world(re, current_complex.y).x
+		GameState.performance_protection_active = true
+		await get_tree().process_frame
 		player.teleport_to_world_pos(Vector3(target_x, player.global_position.y, player.global_position.z))
+		GameState.performance_protection_active = false
 
 func _on_im_text_submitted(new_text: String):
 	if not new_text.is_valid_float():
@@ -880,7 +883,10 @@ func _on_im_text_submitted(new_text: String):
 	if is_finite(im) and player:
 		var current_complex = Config.world_to_complex(player.global_position.x, player.global_position.z)
 		var target_z = Config.complex_to_world(current_complex.x, im).y
+		GameState.performance_protection_active = true
+		await get_tree().process_frame
 		player.teleport_to_world_pos(Vector3(player.global_position.x, player.global_position.y, target_z))
+		GameState.performance_protection_active = false
 
 func _on_height_a_text_submitted(new_text: String):
 	if not new_text.is_valid_float():
