@@ -1012,9 +1012,14 @@ static func is_close_to_zero(z_mid: Vector2) -> Array:
 
 static func find_zero(true_z: Vector2, debug: bool = false) -> Variant:
 	var has_ext = ClassDB.class_exists("ComplexFunctions")
-	if Config.input_function_type == Config.ComplexFunc.IDENTITY and Config.function_type == Config.ComplexFunc.ZETA_REFLECTION and has_ext:
+	if Config.input_function_type == Config.ComplexFunc.IDENTITY and (Config.function_type == Config.ComplexFunc.ZETA_REFLECTION or Config.function_type == Config.ComplexFunc.DIRICHLET_ETA) and has_ext:
 		var ext = ClassDB.instantiate("ComplexFunctions")
-		var res = ext.call("zeta_find_zero", true_z.x, true_z.y, Config.iterations, 0.6, 0.3, debug)
+		var res = []
+		if Config.function_type == Config.ComplexFunc.ZETA_REFLECTION:
+			res = ext.call("zeta_find_zero", true_z.x, true_z.y, Config.iterations, 0.6, 0.3, debug)
+		elif Config.function_type == Config.ComplexFunc.DIRICHLET_ETA:
+			res = ext.call("eta_find_zero", true_z.x, true_z.y, Config.iterations, 0.6, 0.3, debug)
+
 		if res.size() == 2:
 			return Vector2(res[0], res[1])
 		return true
