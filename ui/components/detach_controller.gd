@@ -55,7 +55,7 @@ func detach_slider_control(source_slider: HSlider, source_value_label: Label, ti
 	main_ui.menu_overlay.emit_signal("detach_started")
 
 func _process(delta):
-	if is_playing and detach_slider:
+	if is_playing:
 		var range_val = detach_slider.max_value - detach_slider.min_value
 		if range_val > 0.0:
 			var speed = range_val / 5.0

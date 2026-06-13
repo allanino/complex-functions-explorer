@@ -24,7 +24,7 @@ func _on_resized():
 		custom_minimum_size.y = size.x
 
 func _sync_all_uniforms():
-	if map_rect and map_rect.material:
+	if map_rect.material:
 		var mat = map_rect.material as ShaderMaterial
 		mat.set_shader_parameter("view_radius", view_radius)
 		mat.set_shader_parameter("iterations", Config.iterations)
@@ -83,7 +83,7 @@ func _sync_all_uniforms():
 
 
 func _update_zeros_shader():
-	if not map_rect or not map_rect.material: return
+	if not map_rect.material: return
 	var mat = map_rect.material as ShaderMaterial
 	mat.set_shader_parameter("show_hud_zeros", Config.show_hud_zeros)
 	if Config.show_hud_zeros:
