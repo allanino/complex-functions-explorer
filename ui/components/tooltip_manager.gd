@@ -74,6 +74,8 @@ var _pending_tooltip_key: String = ""
 func _ready():
 	tooltip_timer.timeout.connect(_on_tooltip_timer_timeout)
 	_setup_tooltips()
+	# Performance: Default _process to false to avoid _update_tooltip_position checks every frame while invisible
+	set_process(false)
 
 func _setup_tooltips():
 	var tabs = tab_container.get_children()
@@ -98,6 +100,7 @@ func _on_tooltip_mouse_entered(key: String):
 func _on_tooltip_mouse_exited():
 	tooltip_timer.stop()
 	tooltip.visible = false
+	set_process(false)
 	_pending_tooltip_key = ""
 
 func _any_dropdown_popup() -> bool:
@@ -120,6 +123,7 @@ func _on_tooltip_timer_timeout():
 			tooltip_label.text = tooltip_label.text.replace("Shortcut: ", "\n\n[font_size=12][color=#e8e4dc80]Shortcut: ") + "[/color][/font_size]"
 		tooltip.modulate.a = 0.0
 		tooltip.visible = true
+		set_process(true)
 		await get_tree().process_frame
 		if not is_inside_tree() or not tooltip:
 			return
@@ -139,4 +143,5 @@ func _process(_delta):
 func hide_tooltip():
 	tooltip_timer.stop()
 	tooltip.visible = false
+	set_process(false)
 	_pending_tooltip_key = ""

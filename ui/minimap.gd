@@ -18,6 +18,13 @@ func _ready():
 	Config.config_changed.connect(_on_config_changed)
 	GameState.state_changed.connect(_on_state_changed)
 	_sync_all_uniforms()
+	# Performance: Only calculate camera FOV overlay in _process when Minimap is visible
+	set_process(is_visible_in_tree())
+
+func _notification(what):
+	if what == NOTIFICATION_VISIBILITY_CHANGED:
+		# Performance: Dynamically disable/enable _process to save CPU cycles when hidden
+		set_process(is_visible_in_tree())
 
 func _on_resized():
 	if custom_minimum_size.y != size.x:

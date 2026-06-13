@@ -16,10 +16,30 @@ var crazy_angle := 0.0
 func _ready():
 	Config.config_changed.connect(_on_config_changed)
 	_update_formula_label()
+	_update_material_config()
+	# Performance: Only run _process loop when PhaseWheel is visible in the UI
+	set_process(is_visible_in_tree())
+
+func _notification(what):
+	if what == NOTIFICATION_VISIBILITY_CHANGED:
+		# Performance: Dynamically disable/enable _process to save CPU cycles when hidden
+		set_process(is_visible_in_tree())
 
 func _on_config_changed(key: String):
 	if key == "function_type":
 		_update_formula_label()
+	elif key in ["color_scheme", "terrain_brightness", "terrain_saturation", "terrain_albedo", "terrain_emission"]:
+		_update_material_config()
+
+func _update_material_config():
+	# Performance: Extracted static shader uniform assignments out of _process to prevent redundant GPU calls every frame
+	if color_rect.material:
+		var mat = color_rect.material as ShaderMaterial
+		mat.set_shader_parameter("color_scheme", Config.color_scheme)
+		mat.set_shader_parameter("brightness", Config.terrain_brightness)
+		mat.set_shader_parameter("saturation", Config.terrain_saturation)
+		mat.set_shader_parameter("albedo", Config.terrain_albedo)
+		mat.set_shader_parameter("emission", Config.terrain_emission)
 
 func _update_formula_label():
 	var symbol = Config.function.get("symbol", "f")
@@ -36,11 +56,6 @@ func _apply_phase(f: Vector2) -> void:
 	if color_rect.material:
 		var mat = color_rect.material as ShaderMaterial
 		mat.set_shader_parameter("current_f", f)
-		mat.set_shader_parameter("color_scheme", Config.color_scheme)
-		mat.set_shader_parameter("brightness", Config.terrain_brightness)
-		mat.set_shader_parameter("saturation", Config.terrain_saturation)
-		mat.set_shader_parameter("albedo", Config.terrain_albedo)
-		mat.set_shader_parameter("emission", Config.terrain_emission)
 
 	var angle_rad: float
 
