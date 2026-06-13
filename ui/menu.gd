@@ -619,6 +619,10 @@ func _on_freeze_time_toggled(pressed: bool):
 
 
 func _on_set_pos_pressed(_toggle_menu: bool = true):
+	var audio = get_node_or_null("/root/Main/Audio")
+	if audio and audio.has_method("trigger_teleport_fade"):
+		audio.trigger_teleport_fade()
+
 	GameState.performance_protection_active = false
 	var re = float(re_input.text) if re_input.text.is_valid_float() else 0.5
 	var im = float(im_input.text) if im_input.text.is_valid_float() else 0.0

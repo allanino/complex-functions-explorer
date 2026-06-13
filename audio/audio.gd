@@ -247,11 +247,11 @@ func _physics_process(delta):
 			is_teleporting = false
 	else:
 		# Significantly increased interpolation weights for instantaneous response
-		current_volume = lerp(current_volume, target_volume, delta * 20.0)
-		current_frequency = lerp(current_frequency, target_frequency, delta * 30.0)
-		current_pulse_rate = lerp(current_pulse_rate, target_pulse_rate, delta * 5.0)
-		current_pan = lerp(current_pan, target_pan, delta * 16.0)
-		current_harmonic_intensity = lerp(current_harmonic_intensity, target_harmonic_intensity, delta * 24.0)
+		current_volume = lerp(current_volume, target_volume, delta * 15.0)
+		current_frequency = lerp(current_frequency, target_frequency, delta * 20.0)
+		current_pulse_rate = lerp(current_pulse_rate, target_pulse_rate, delta * 15.0)
+		current_pan = lerp(current_pan, target_pan, delta * 4.0)
+		current_harmonic_intensity = lerp(current_harmonic_intensity, target_harmonic_intensity, delta * 20.0)
 		current_fm_index = lerp(current_fm_index, target_fm_index, delta * 10.0)
 
 	# Final safety clamp
@@ -429,3 +429,6 @@ func _exit_tree():
 func trigger_teleport_fade() -> void:
 	teleport_fade = 0.0
 	is_teleporting = true
+	if reverb_effect:
+		reverb_effect.wet = 0.0
+		current_reverb_wet = 0.0
