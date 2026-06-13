@@ -1033,7 +1033,7 @@ static func find_zero(true_z: Vector2, debug: bool = false) -> Variant:
 	var f_mag = 0.0
 
 	if debug:
-		print("\nStarting  | z (%9.6f, %9.6f) | f (%9.6f, %9.6f) | len %10.6f | mult %6.2f" % [refined_z.x, refined_z.y, f_val.x, f_val.y, f_mag, step_mult])
+		print("\nStart GD  | z (%9.6f, %9.6f) | f (%9.6f, %9.6f) | len %10.6f | mult %6.2f" % [refined_z.x, refined_z.y, f_val.x, f_val.y, f_mag, step_mult])
 	for step_idx in range(15):
 		var result = newton_step(refined_z, step_mult, step_max)
 		var next_z: DoubleVector2 = result[0]

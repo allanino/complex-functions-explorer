@@ -590,7 +590,7 @@ PackedFloat64Array ComplexFunctions::_find_zero_core(double x, double y, int ite
 	double f_mag = std::hypot(f_val_x, f_val_y);
 
 	if (debug) {
-		godot::UtilityFunctions::print(godot::vformat("\nStarting  | z (%9.6f, %9.6f) | f (%9.6f, %9.6f) | len %10.6f | mult %6.2f", refined_x, refined_y, cur_f_x, cur_f_y, f_mag, current_step_mult));
+		godot::UtilityFunctions::print(godot::vformat("\nStart C++ | z (%9.6f, %9.6f) | f (%9.6f, %9.6f) | len %10.6f | mult %6.2f", refined_x, refined_y, cur_f_x, cur_f_y, f_mag, current_step_mult));
 	}
 
 	for (int step_idx = 0; step_idx < 15; step_idx++) {
