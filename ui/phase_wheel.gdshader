@@ -77,15 +77,8 @@ void fragment() {
 
     float track_core = smoothstep(ring_half_width + aa, ring_half_width - aa, track_dist);
 
-    // Base composition is a transparent background + colored glowing ring
-    vec3 color = vec3(0.0);
-    float alpha = 0.0;
-
     // Add colored ring. The color depends on the phase at that point on the ring.
     vec3 ring_color = color_hsv;
-
-    color = mix(color, ring_color * 1.15, track_core); // Make the core bright
-    alpha = max(alpha, pow(track_core, 1.4));
 
     // Calculate arrow mask (deferred compositing so it renders on top of ticks)
     float arrow_mask = 0.0;
@@ -181,13 +174,21 @@ void fragment() {
         }
     }
 
-    // Composite: ticks first, then arrow on top
+    // Base composition starts with transparent background
+    vec3 color = vec3(0.0);
+    float alpha = 0.0;
+
+    // Composite: ticks first, then color wheel on top of ticks, then arrow/bead
     vec3 brighter_gold = vec3(1.0, 0.84, 0.3);
     vec3 darker_gold = vec3(0.784, 0.663, 0.431);
     color = mix(color, darker_gold, best_minor);
     alpha = max(alpha, best_minor);
     color = mix(color, brighter_gold, best_cardinal);
     alpha = max(alpha, best_cardinal);
+
+    // Overlay the color wheel (glowing track ring)
+    color = mix(color, ring_color * 1.15, track_core); // Make the core bright
+    alpha = max(alpha, pow(track_core, 1.4));
 
     // Overlay dark outline for the bead with reduced opacity (contrast outline)
     float bead_opacity = 0.8; // reduce opacity of the bead a little
