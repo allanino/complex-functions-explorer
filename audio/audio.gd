@@ -40,6 +40,12 @@ var current_pitch_scale: float = 1.0
 var current_reverb_wet: float = REVERB_AMOUNT
 var current_lpf_cutoff: float = 800.0
 
+# --- TELEPORT FADE STATE ---
+var last_audio_player_pos := Vector3.ZERO
+var has_last_pos := false
+var teleport_fade: float = 1.0
+var is_teleporting: bool = false
+
 # --- STARTUP ENVELOPE ---
 var startup_time := 0.0
 var startup_duration := 5.0
@@ -175,6 +181,16 @@ func _physics_process(delta):
 			playback = stream_player.get_stream_playback()
 		if playback == null: return
 
+	# --- TELEPORT DETECTION ---
+	if player:
+		var player_pos = player.global_position
+		if not has_last_pos:
+			last_audio_player_pos = player_pos
+			has_last_pos = true
+		elif last_audio_player_pos.distance_to(player_pos) > 10.0 * GameState.effective_zoom:
+			trigger_teleport_fade()
+		last_audio_player_pos = player_pos
+
 	# Sample complex field
 	var f = player.current_f
 
@@ -216,13 +232,27 @@ func _physics_process(delta):
 	if not is_finite(target_pan): target_pan = 0.0
 
 	# --- SMOOTHING ---
-	# Significantly increased interpolation weights for instantaneous response
-	current_volume = lerp(current_volume, target_volume, delta * 20.0)
-	current_frequency = lerp(current_frequency, target_frequency, delta * 30.0)
-	current_pulse_rate = lerp(current_pulse_rate, target_pulse_rate, delta * 5.0)
-	current_pan = lerp(current_pan, target_pan, delta * 16.0)
-	current_harmonic_intensity = lerp(current_harmonic_intensity, target_harmonic_intensity, delta * 24.0)
-	current_fm_index = lerp(current_fm_index, target_fm_index, delta * 10.0)
+	if is_teleporting:
+		# Snap parameters instantly to avoid slow sweep sound artifacts during teleport
+		current_volume = target_volume
+		current_frequency = target_frequency
+		current_pulse_rate = target_pulse_rate
+		current_pan = target_pan
+		current_harmonic_intensity = target_harmonic_intensity
+		current_fm_index = target_fm_index
+		
+		# Teleport fade recovery
+		teleport_fade = move_toward(teleport_fade, 1.0, delta * 3.0)
+		if teleport_fade >= 1.0:
+			is_teleporting = false
+	else:
+		# Significantly increased interpolation weights for instantaneous response
+		current_volume = lerp(current_volume, target_volume, delta * 20.0)
+		current_frequency = lerp(current_frequency, target_frequency, delta * 30.0)
+		current_pulse_rate = lerp(current_pulse_rate, target_pulse_rate, delta * 5.0)
+		current_pan = lerp(current_pan, target_pan, delta * 16.0)
+		current_harmonic_intensity = lerp(current_harmonic_intensity, target_harmonic_intensity, delta * 24.0)
+		current_fm_index = lerp(current_fm_index, target_fm_index, delta * 10.0)
 
 	# Final safety clamp
 	current_frequency = max(0.8, current_frequency)
@@ -325,7 +355,7 @@ func fill_buffer():
 		sample *= lerp(1.0, pulse_wave, audio_pulse_presence)
 
 		var drone_vol_scale = Config.drone_volume / 100.0
-		var frame = Vector2.ONE * sample * current_volume * drone_vol_scale * startup_gain
+		var frame = Vector2.ONE * sample * current_volume * drone_vol_scale * startup_gain * teleport_fade
 
 		# Apply Stereo Panning
 		var pan_l = clamp(1.0 - current_pan, 0.0, 1.0)
@@ -395,3 +425,7 @@ func _exit_tree():
 		_audio_stream_player.stop()
 	if _background_music_player and _background_music_player.playing:
 		_background_music_player.stop()
+
+func trigger_teleport_fade() -> void:
+	teleport_fade = 0.0
+	is_teleporting = true
