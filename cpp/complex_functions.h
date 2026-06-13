@@ -24,6 +24,8 @@ public:
 
 	PackedFloat64Array dirichlet_eta_with_derivatives(double x, double y, int iters);
 	PackedFloat64Array zeta_with_derivatives(double x, double y, int iters);
+	PackedFloat64Array zeta_find_zero(double x, double y, int iters, double step_mult, double step_max);
+
 	PackedFloat64Array eta_borwein_with_derivatives(double x, double y, int order);
 	PackedFloat64Array zeta_borwein_with_derivatives(double x, double y, int order);
 	PackedFloat64Array lanczos_log_gamma_with_derivatives(double x, double y);

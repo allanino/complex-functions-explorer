@@ -28,6 +28,8 @@ func _bb_im(im: String) -> String:
 	return "[color=%s] + [/color][color=%s]%s[/color][color=%s]i[/color]" % [CLR_DIM, CLR_MAGENTA, im, CLR_MAGENTA_DIM]
 
 func set_active(val: bool):
+	if is_active == val:
+		return
 	is_active = val
 	var style = get_theme_stylebox("panel").duplicate() as StyleBoxFlat
 	if is_active:

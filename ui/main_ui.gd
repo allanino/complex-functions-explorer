@@ -355,10 +355,10 @@ func _update_zeros_list():
 	var children = zeros_list_label.get_children()
 	var child_idx = 0
 
+	var is_dirichlet = f_data.get("is_dirichlect", false)
+
 	for i in range(current_size - 1, max(-1, current_size - 101), -1):
 		var zero = GameState.visited_zeros[i]
-		var re_str = _format_float_3(zero[0])
-		var im_str = _format_float_3(zero[1])
 
 		var item
 		if child_idx < children.size():
@@ -370,7 +370,20 @@ func _update_zeros_list():
 			item.clicked.connect(_on_zero_item_clicked)
 
 		item.zero_index = i
-		item.set_values(re_str, im_str, f_data.get("is_dirichlect", false))
+
+		var needs_update = false
+		if not item.has_meta("cached_zero") or item.get_meta("cached_zero") != zero:
+			needs_update = true
+		elif not item.has_meta("is_dirichlet") or item.get_meta("is_dirichlet") != is_dirichlet:
+			needs_update = true
+
+		if needs_update:
+			var re_str = _format_float_3(zero[0])
+			var im_str = _format_float_3(zero[1])
+			item.set_values(re_str, im_str, is_dirichlet)
+			item.set_meta("cached_zero", zero)
+			item.set_meta("is_dirichlet", is_dirichlet)
+
 		_rescale_card(item, actual_hud_scale)
 		item.is_active = (i == GameState.accented_zero_index)
 

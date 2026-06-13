@@ -20,9 +20,12 @@ func _ready():
 	detach_slider.value_changed.connect(_on_detach_slider_changed)
 	exit_detach_button.pressed.connect(_on_exit_detach_pressed)
 	play_button.pressed.connect(_on_play_pressed)
+	# Performance: Default _process to false to avoid running empty loops when slider is not animating
+	set_process(false)
 
 func detach_slider_control(source_slider: HSlider, source_value_label: Label, title: String):
 	is_playing = false
+	set_process(false)
 	play_button.text = "▶"
 	play_direction = 1.0
 	playback_value = source_slider.value
@@ -55,7 +58,7 @@ func detach_slider_control(source_slider: HSlider, source_value_label: Label, ti
 	main_ui.menu_overlay.emit_signal("detach_started")
 
 func _process(delta):
-	if is_playing and detach_slider:
+	if is_playing:
 		var range_val = detach_slider.max_value - detach_slider.min_value
 		if range_val > 0.0:
 			var speed = range_val / 5.0
@@ -70,6 +73,7 @@ func _process(delta):
 
 func _on_play_pressed():
 	is_playing = !is_playing
+	set_process(is_playing)
 	if is_playing:
 		play_button.text = "■"
 		playback_value = detach_slider.value
@@ -87,6 +91,7 @@ func _on_detach_slider_changed(value: float):
 
 func _on_exit_detach_pressed():
 	is_playing = false
+	set_process(false)
 	play_button.text = "▶"
 
 	# Avoid accidental morph blending when returning from a detached slider
