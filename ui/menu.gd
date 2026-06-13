@@ -80,6 +80,7 @@ signal update_hud_layout_signal()
 @onready var new_preset_dialog = %NewPresetDialog
 @onready var delete_preset_dialog = %DeletePresetDialog
 @onready var apply_button = %ApplyButton
+@onready var loading_spinner = %LoadingSpinner
 @onready var close_button = %CloseButton
 @onready var quit_button = %QuitButton
 @onready var quit_dialog = %QuitDialog
@@ -132,6 +133,7 @@ var _initial_preset: String
 var _initial_edited_presets: Dictionary
 
 func _ready():
+	GameState.state_changed.connect(_on_game_state_changed)
 	tab_buttons = [
 		func_tab_button,
 		env_tab_button,
@@ -1219,3 +1221,13 @@ static func _create_scaled_grabber_texture(color: Color, _size: int, center: Vec
 
 	tex.gradient = grad
 	return tex
+
+
+func _on_game_state_changed(key: String):
+	if key == "performance_protection_active":
+		if is_instance_valid(loading_spinner):
+			loading_spinner.visible = GameState.performance_protection_active
+
+func _process(delta: float):
+	if is_instance_valid(loading_spinner) and loading_spinner.visible:
+		loading_spinner.rotation += delta * 5.0

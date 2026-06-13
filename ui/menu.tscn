@@ -1,6 +1,7 @@
 [gd_scene format=3]
 
 [ext_resource type="PackedScene" path="res://ui/components/slider.tscn" id="1"]
+[ext_resource type="Texture2D" path="res://ui/assets/loader.svg" id="loader_svg"]
 [ext_resource type="PackedScene" path="res://ui/components/checkbox.tscn" id="3_checkbox"]
 [ext_resource type="PackedScene" path="res://ui/components/dropdown.tscn" id="DropdownScene"]
 [ext_resource type="PackedScene" path="res://ui/components/text_input.tscn" id="TextInputScene"]
@@ -1102,6 +1103,14 @@ theme_override_styles/pressed = SubResource("StyleBoxFlat_update_btn_pressed_gol
 layout_mode = 2
 size_flags_horizontal = 4
 text = "Update View"
+
+[node name="LoadingSpinner" type="TextureRect" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/ButtonsHBox" unique_id=99991234]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+texture = ExtResource("loader_svg")
+stretch_mode = 3
+pivot_offset = Vector2(12, 12)
 
 [node name="NewPresetDialog" type="PanelContainer" parent="CenterContainer" unique_id=99991000]
 unique_name_in_owner = true
