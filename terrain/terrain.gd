@@ -123,7 +123,7 @@ func _update_lod_subs():
 		0: # High
 			LOD_SUBS = [255, 255, 127, 127, 127, 63, 31]
 		1: # Medium
-			LOD_SUBS = [127, 63, 31, 15, 7, 3, 1]
+			LOD_SUBS = [127, 63, 31, 15, 7, 3, 3]
 		2: # Low
 			LOD_SUBS = [63, 31, 15, 7, 3, 1, 1]
 
@@ -140,7 +140,7 @@ func _get_lod_level(coord: Vector2i, player_coord: Vector2i) -> int:
 		return 2
 	elif dist <= 16:
 		return 3
-	elif dist <= 24:
+	elif dist <= 32:
 		return 4
 	elif dist <= 48:
 		return 5
