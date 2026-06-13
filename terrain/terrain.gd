@@ -183,7 +183,7 @@ func _update_all_terrain_material_uniforms():
 		"multivalued_n", "self_illumination", "fog_density",
 		"terrain_brightness", "terrain_saturation", "terrain_albedo",
 		"terrain_emission", "terrain_metallic", "terrain_roughness",
-		"terrain_surface_texture",
+		"terrain_surface_texture", "re_minus", "re_plus", "im_minus", "im_plus",
 		"performance_protection_active", "current_branch", "morph_value",
 		"real_level_curves_highlighted", "imag_level_curves_highlighted",
 		"newton_path"
