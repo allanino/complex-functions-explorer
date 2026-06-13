@@ -24,6 +24,7 @@ public:
 
 	PackedFloat64Array dirichlet_eta_with_derivatives(double x, double y, int iters);
 	PackedFloat64Array zeta_with_derivatives(double x, double y, int iters);
+	PackedFloat64Array eta_find_zero(double x, double y, int iters, double step_mult, double step_max, bool debug);
 	PackedFloat64Array zeta_find_zero(double x, double y, int iters, double step_mult, double step_max, bool debug);
 
 	PackedFloat64Array eta_borwein_with_derivatives(double x, double y, int order);
@@ -46,6 +47,9 @@ private:
 	std::mutex _borwein_mutex;
 
 	std::vector<double> _get_borwein_weights(int order);
+
+	using DerivativeFunc = PackedFloat64Array (ComplexFunctions::*)(double, double, int);
+	PackedFloat64Array _find_zero_core(double x, double y, int iters, double step_mult, double step_max, bool debug, DerivativeFunc func);
 
 };
 
