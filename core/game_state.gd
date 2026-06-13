@@ -18,6 +18,11 @@ var accented_zero_index: int = -1:
 		state_changed.emit("accented_zero_index")
 
 var rvm_start_t: float = 0.0
+var loading: bool = false:
+	set(v):
+		if loading == v: return
+		loading = v
+		state_changed.emit("loading")
 var performance_protection_active: bool = false:
 	set(v):
 		if performance_protection_active == v: return
