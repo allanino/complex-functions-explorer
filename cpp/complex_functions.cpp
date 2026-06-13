@@ -560,8 +560,6 @@ PackedFloat64Array ComplexFunctions::zeta_continuation_with_derivatives(double x
 	return result;
 }
 
-} // namespace godot
-
 PackedFloat64Array ComplexFunctions::zeta_find_zero(double x, double y, int iters, double step_mult, double step_max) {
 	auto res = zeta_with_derivatives(x, y, iters * 2);
 	double f_val_x = res[0]; double f_val_y = res[1];
@@ -676,3 +674,5 @@ PackedFloat64Array ComplexFunctions::zeta_find_zero(double x, double y, int iter
 
 	return PackedFloat64Array();
 }
+
+} // namespace godot

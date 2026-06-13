@@ -931,7 +931,7 @@ static func get_field(world_x: float, world_z: float) -> Vector2:
 
 static func find_zero(true_z: Vector2) -> Variant:
 	var has_ext = ClassDB.class_exists("ComplexFunctions")
-	if Config.input_function_type == Config.ComplexFunc.IDENTITY and Config.function_type == Config.ComplexFunc.ZETA and has_ext:
+	if Config.input_function_type == Config.ComplexFunc.IDENTITY and Config.function_type == Config.ComplexFunc.ZETA_REFLECTION and has_ext:
 		var ext = ClassDB.instantiate("ComplexFunctions")
 		var res = ext.call("zeta_find_zero", true_z.x, true_z.y, Config.iterations, 0.6, 0.3)
 		if res.size() == 2:
