@@ -12,6 +12,7 @@ uniform float level_curve_thickness = 0.1;
 uniform float level_curve_frequency = 10.0;
 
 uniform float morph = 1.0;
+uniform int morph_style = 1;
 uniform float max_world_height = 1000.0;
 
 uniform float real_level_curves_highlighted[10];
@@ -87,9 +88,20 @@ void fragment() {
     ComplexFieldData fd = get_field_with_derivatives(world_pos.x, world_pos.y, current_branch);
     vec2 f = fd.value;
 
-    float blend = 0.5 - 0.5 * cos(PI * morph);
     vec2 z_id = vec2(0.1 * world_pos.x, -0.1 * world_pos.y) / zoom_factor;
-    vec2 field_val = mix(z_id, f, blend);
+    float blend = 1.0;
+    vec2 field_val = f;
+    if (morph_style == 0) {
+        blend = 1.0;
+        field_val = f;
+    } else if (morph_style == 1) {
+        blend = 0.5 - 0.5 * cos(PI * morph);
+        field_val = mix(z_id, f, blend);
+    } else if (morph_style == 2) {
+        blend = 0.5 - 0.5 * cos(PI * morph);
+        vec2 exp_val = complex_exp(((f - z_id) * blend).x, ((f - z_id) * blend).y);
+        field_val = complex_mul(z_id, exp_val);
+    }
 
     // We try to simulate here the implementation in the terrain shader with float limitations
     vec2 f_dir;
@@ -103,8 +115,8 @@ void fragment() {
     if (length(f_dir) > 1e-12) {
         phase = atan(f_dir.y, f_dir.x);
     } else {
-        float ry = round(f.y * 1e20) / 1e20;
-        float rx = round(f.x * 1e20) / 1e20;
+        float ry = round(field_val.y * 1e20) / 1e20;
+        float rx = round(field_val.x * 1e20) / 1e20;
         if (rx == 0.0 && ry == 0.0) {
             phase = 0.0;
         } else {
@@ -166,15 +178,15 @@ void fragment() {
     if (show_curves) {
         float fmag = length(f);
         if (fmag > 1e-6) {
-            float raw_w_re = fwidth(f.x);
-            float raw_w_im = fwidth(f.y);
+            float raw_w_re = fwidth(field_val.x);
+            float raw_w_im = fwidth(field_val.y);
 
             float max_density_threshold = 0.2;
 
-            float d_re = abs(f.x - round(f.x));
+            float d_re = abs(field_val.x - round(field_val.x));
             bool is_real_highlighted = false;
             for (int i = 0; i < 10; i++) {
-                if (abs(round(f.x) - real_level_curves_highlighted[i]) < 0.1) {
+                if (abs(round(field_val.x) - real_level_curves_highlighted[i]) < 0.1) {
                     is_real_highlighted = true;
                     break;
                 }
@@ -182,7 +194,7 @@ void fragment() {
 
             bool is_imag_highlighted = false;
             for (int i = 0; i < 10; i++) {
-                if (abs(round(f.y) - imag_level_curves_highlighted[i]) < 0.1) {
+                if (abs(round(field_val.y) - imag_level_curves_highlighted[i]) < 0.1) {
                     is_imag_highlighted = true;
                     break;
                 }
@@ -190,15 +202,15 @@ void fragment() {
 
             float line_re =
                 curveAA(
-                    f.x,
-                    fwidth(f.x),
+                    field_val.x,
+                    fwidth(field_val.x),
                     is_real_highlighted
                 );
 
             float line_im =
                 curveAA(
-                    f.y,
-                    fwidth(f.y),
+                    field_val.y,
+                    fwidth(field_val.y),
                     is_imag_highlighted
                 );
 base_color *=

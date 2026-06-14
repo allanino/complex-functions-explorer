@@ -77,7 +77,7 @@ signal update_hud_layout_signal()
 @onready var surface_texture_slider = %SurfaceTextureContainer
 @onready var morph_slider = %MorphSliderContainer
 @onready var morph_style_container = %MorphStyleContainer
-@onready var morph_style_dropdown = %MorphStyleContainer.get_node("OptionButton")
+@onready var morph_style_dropdown = %MorphStyleContainer.get_option_button()
 @export var preset_controller: Node
 @onready var new_preset_dialog = %NewPresetDialog
 @onready var delete_preset_dialog = %DeletePresetDialog
@@ -274,6 +274,11 @@ func _ready():
 	color_scheme_button.add_item("Cyan real line (flipped)")
 	color_scheme_button.add_item("Red real line (standard)")
 	color_scheme_button.add_item("Grayscale")
+
+	morph_style_dropdown.clear()
+	morph_style_dropdown.add_item("Disabled")
+	morph_style_dropdown.add_item("Linear")
+	morph_style_dropdown.add_item("Exponential")
 
 	emit_signal("apply_aa_signal")
 	_disable_sliders_focus(self )

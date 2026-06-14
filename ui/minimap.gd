@@ -53,6 +53,7 @@ func _sync_all_uniforms():
 		mat.set_shader_parameter("zeta_patch_centers", ComplexField.get_shader_patch_centers())
 		mat.set_shader_parameter("zeta_patch_coeffs", ComplexField.get_shader_patch_coeffs())
 		mat.set_shader_parameter("morph", GameState.morph_value)
+		mat.set_shader_parameter("morph_style", Config.morph_style)
 		mat.set_shader_parameter("height_type", Config.height_type)
 		mat.set_shader_parameter("height_a", Config.height_a)
 		mat.set_shader_parameter("height_epsilon", Config.height_epsilon)
@@ -123,11 +124,12 @@ func _on_config_changed(key: String):
 func _on_state_changed(key: String):
 	var mat = map_rect.material as ShaderMaterial
 	if not mat: return
-	if key == "current_branch" or key == "effective_zoom" or key == "morph_value":
+	if key == "current_branch" or key == "effective_zoom" or key == "morph_value" or key == "morph_style":
 		mat.set_shader_parameter("current_branch", GameState.current_branch)
 		mat.set_shader_parameter("show_curves", Config.show_curves)
 		mat.set_shader_parameter("show_critical_stripe", Config.show_critical_stripe)
 		mat.set_shader_parameter("morph", GameState.morph_value)
+		mat.set_shader_parameter("morph_style", Config.morph_style)
 		if key == "effective_zoom":
 			mat.set_shader_parameter("zoom_factor", GameState.effective_zoom)
 
