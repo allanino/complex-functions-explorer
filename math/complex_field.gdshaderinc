@@ -733,6 +733,75 @@ vec2 zeta_continuation_power_series(float x, float y, int iters) {
 	return res.value;
 }
 
+
+ComplexFieldData log_eta_continuation_with_derivatives(float x, float y, int iters) {
+    if (x >= 0.5) {
+        ComplexFieldData e_data = dirichlet_eta_with_derivatives(x, y, iters);
+        ComplexFieldData res;
+        res.value = complex_log(e_data.value.x, e_data.value.y);
+        res.dx = complex_div(e_data.dx, e_data.value);
+        res.dy = vec2(-res.dx.y, res.dx.x);
+        return res;
+    }
+
+    vec2 s = vec2(x, y);
+    vec2 s1 = vec2(1.0 - x, -y);
+
+    vec2 log_sum = complex_mul(s, vec2(LOG_2, 0.0)) + complex_mul(s - vec2(1.0, 0.0), vec2(LOG_PI, 0.0));
+    vec2 ratio = vec2(LOG_2 + LOG_PI, 0.0);
+
+    vec2 pi_s_2 = (PI * 0.5) * s;
+    log_sum += complex_log_sin(pi_s_2.x, pi_s_2.y);
+    ratio += (PI * 0.5) * complex_cot(pi_s_2.x, pi_s_2.y);
+
+    ComplexFieldData lg_data = complex_log_gamma_with_derivatives(s1.x, s1.y);
+    log_sum += lg_data.value;
+    ratio -= lg_data.dx;
+
+    ComplexFieldData ref_data = dirichlet_eta_with_derivatives(s1.x, s1.y, iters);
+    log_sum += complex_log(ref_data.value.x, ref_data.value.y);
+    ratio -= complex_div(ref_data.dx, ref_data.value);
+
+    float amp1 = pow(2.0, x);
+    float theta1 = y * LOG_2;
+    vec2 term1 = amp1 * vec2(cos(theta1), sin(theta1));
+    vec2 denom1 = vec2(1.0, 0.0) - term1;
+    vec2 log_denom1 = complex_log(denom1.x, denom1.y);
+    vec2 ddenom1_dx = -LOG_2 * term1;
+    vec2 ratio_denom1 = complex_div(ddenom1_dx, denom1);
+
+    float amp2 = pow(2.0, 1.0 - x);
+    float theta2 = -y * LOG_2;
+    vec2 term2 = amp2 * vec2(cos(theta2), sin(theta2));
+    vec2 denom2 = vec2(1.0, 0.0) - term2;
+    vec2 log_denom2 = complex_log(denom2.x, denom2.y);
+    vec2 ddenom2_dx = LOG_2 * term2;
+    vec2 ratio_denom2 = complex_div(ddenom2_dx, denom2);
+
+    log_sum += log_denom2 - log_denom1;
+    ratio += ratio_denom2 - ratio_denom1;
+
+    ComplexFieldData res;
+    res.value = log_sum;
+    res.dx = ratio;
+    res.dy = vec2(-res.dx.y, res.dx.x);
+
+    return res;
+}
+
+ComplexFieldData eta_continuation_with_derivatives(float x, float y, int iters) {
+    if (x >= 0.5) {
+        return dirichlet_eta_with_derivatives(x, y, iters);
+    }
+
+    ComplexFieldData log_e = log_eta_continuation_with_derivatives(x, y, iters);
+    ComplexFieldData res;
+    res.value = complex_exp(log_e.value.x, log_e.value.y);
+    res.dx = complex_mul(res.value, log_e.dx);
+    res.dy = vec2(-res.dx.y, res.dx.x);
+    return res;
+}
+
 ComplexFieldData zeta_continuation_with_derivatives(float x, float y, int iters) {
     ComplexFieldData log_z = log_zeta_continuation_with_derivatives(x, y, iters);
     ComplexFieldData res;
@@ -1179,32 +1248,33 @@ ComplexFieldData evaluate_function_with_derivatives(float x, float y, int func_t
     if (func_type == 0) return zeta_with_derivatives(x, y, iters);
     if (func_type == 1) return zeta_continuation_with_derivatives(x, y, iters);
     if (func_type == 2) return dirichlet_eta_with_derivatives(x, y, iters);
-    if (func_type == 3) return dirichlet_beta_with_derivatives(x, y, iters);
-    if (func_type == 4) return complex_gamma_with_derivatives(x, y);
-    if (func_type == 5) return complex_log_gamma_with_derivatives(x, y);
-    if (func_type == 6) return dedekind_eta_with_derivatives(x, y, iters);
-    if (func_type == 7) return mandelbrot_with_derivatives(x, y, iters);
-    if (func_type == 8) return complex_sin_with_derivatives(x, y);
-    if (func_type == 9) return complex_cos_with_derivatives(x, y);
-    if (func_type == 10) return complex_tan_with_derivatives(x, y);
-    if (func_type == 11) return complex_cot_with_derivatives(x, y);
-    if (func_type == 12) return complex_exp_with_derivatives(x, y);
-    if (func_type == 13) return complex_log_with_derivatives(x, y);
-    if (func_type == 14) return identity_with_derivatives(x, y);
-    if (func_type == 15) {
+    if (func_type == 3) return eta_continuation_with_derivatives(x, y, iters);
+    if (func_type == 4) return dirichlet_beta_with_derivatives(x, y, iters);
+    if (func_type == 5) return complex_gamma_with_derivatives(x, y);
+    if (func_type == 6) return complex_log_gamma_with_derivatives(x, y);
+    if (func_type == 7) return dedekind_eta_with_derivatives(x, y, iters);
+    if (func_type == 8) return mandelbrot_with_derivatives(x, y, iters);
+    if (func_type == 9) return complex_sin_with_derivatives(x, y);
+    if (func_type == 10) return complex_cos_with_derivatives(x, y);
+    if (func_type == 11) return complex_tan_with_derivatives(x, y);
+    if (func_type == 12) return complex_cot_with_derivatives(x, y);
+    if (func_type == 13) return complex_exp_with_derivatives(x, y);
+    if (func_type == 14) return complex_log_with_derivatives(x, y);
+    if (func_type == 15) return identity_with_derivatives(x, y);
+    if (func_type == 16) {
         if (is_input) {
             return get_rational_with_derivatives(x, y, input_rational_num_coeffs, input_rational_den_coeffs);
         } else {
             return get_rational_with_derivatives(x, y, rational_num_coeffs, rational_den_coeffs);
         }
     }
-    if (func_type == 16) return multivalued_z_pow_inv_n_with_derivatives(x, y, multivalued_n, b_offset, true);
-    if (func_type == 17) return multivalued_log_with_derivatives(x, y, b_offset, true);
-    if (func_type == 18) return multivalued_asin_with_derivatives(x, y, b_offset);
-    if (func_type == 19) return multivalued_acos_with_derivatives(x, y, b_offset);
-    if (func_type == 20) return zeta_continuation_power_series_with_derivatives(x, y, iters);
-    if (func_type == 21) return eta_borwein_with_derivatives(x, y, iters);
-    if (func_type == 22) return zeta_borwein_with_derivatives(x, y, iters);
+    if (func_type == 17) return multivalued_z_pow_inv_n_with_derivatives(x, y, multivalued_n, b_offset, true);
+    if (func_type == 18) return multivalued_log_with_derivatives(x, y, b_offset, true);
+    if (func_type == 19) return multivalued_asin_with_derivatives(x, y, b_offset);
+    if (func_type == 20) return multivalued_acos_with_derivatives(x, y, b_offset);
+    if (func_type == 21) return zeta_continuation_power_series_with_derivatives(x, y, iters);
+    if (func_type == 22) return eta_borwein_with_derivatives(x, y, iters);
+    if (func_type == 23) return zeta_borwein_with_derivatives(x, y, iters);
     ComplexFieldData res;
     res.value = vec2(0.0);
     res.dx = vec2(0.0);
