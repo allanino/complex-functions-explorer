@@ -218,7 +218,7 @@ var iterations: int = 500:
 		iterations = v
 		config_changed.emit("iterations")
 var function_iterations: Dictionary = {}
-var function_type: int = 1:
+var function_type: int = ComplexFunc.ZETA_REFLECTION:
 	set(value):
 		function_iterations[function_type] = iterations
 		function_type = value
@@ -229,7 +229,7 @@ var function_type: int = 1:
 		elif function.has("iters_range"):
 			iterations = int(function["iters_range"][3])
 var function: Dictionary = {}
-var input_function_type: int = 14
+var input_function_type: int = ComplexFunc.IDENTITY
 
 var height_type: int = 0:
 	set(v):
