@@ -1236,10 +1236,15 @@ static func newton_step(z_input: Variant, step_size_mult: float, max_step: float
 			f_second = DoubleVector2.new(res[2].x, res[2].y)
 			use_analytic = true
 		elif Config.function_type == Config.ComplexFunc.ZETA_REFLECTION:
-			var res = zeta_borwein_with_derivatives(z.x, z.y, Config.iterations)
-			f_val = res[0]
-			f_prime = res[1]
-			f_second = res[2]
+			var res = []
+			if z.x < 0.0:
+				res = zeta_continuation_with_derivatives(z.x, z.y, Config.iterations * 2)
+			else:
+				res = zeta_borwein_with_derivatives(z.x, z.y, Config.iterations)
+
+			f_val = res[0] if res[0] is DoubleVector2 else DoubleVector2.new(res[0].x, res[0].y)
+			f_prime = res[1] if res[1] is DoubleVector2 else DoubleVector2.new(res[1].x, res[1].y)
+			f_second = res[2] if res[2] is DoubleVector2 else DoubleVector2.new(res[2].x, res[2].y)
 			use_analytic = true
 		elif Config.function_type == Config.ComplexFunc.DIRICHLET_ETA_REFLECTION:
 			var res = eta_continuation_with_derivatives(z.x, z.y, Config.iterations)

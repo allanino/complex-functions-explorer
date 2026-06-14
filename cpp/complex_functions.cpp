@@ -807,7 +807,11 @@ PackedFloat64Array ComplexFunctions::eta_find_zero(double x, double y, int iters
 }
 
 PackedFloat64Array ComplexFunctions::zeta_find_zero(double x, double y, int iters, double step_mult, double step_max, bool debug) {
-	return _find_zero_core(x, y, iters, step_mult, step_max, debug, &ComplexFunctions::zeta_borwein_with_derivatives);
+	if (x < 0.0) {
+		return _find_zero_core(x, y, iters, step_mult, step_max, debug, &ComplexFunctions::zeta_continuation_with_derivatives);
+	} else {
+		return _find_zero_core(x, y, iters, step_mult, step_max, debug, &ComplexFunctions::zeta_borwein_with_derivatives);
+	}
 }
 
 } // namespace godot

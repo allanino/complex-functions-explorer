@@ -43,8 +43,6 @@ var is_resetting_height = false
 var last_t = 0.0
 var last_z: Vector2 = Vector2(0.0, 0.0)
 var last_valid_terrain_height: float = 0.0
-var is_detached_interactive: bool = false
-var is_menu_open: bool = false
 var last_newton_idx: int = 0
 
 # Zero detection history
@@ -150,13 +148,6 @@ func _ready():
 	if run_demo:
 		demo_actions()
 
-	if main_ui and main_ui.has_node("%MenuOverlay"):
-		var menu = main_ui.get_node("%MenuOverlay")
-		menu.menu_opened.connect(func(): is_menu_open = true)
-		menu.menu_closed.connect(func(): is_menu_open = false)
-		menu.detach_started.connect(func(): is_detached_interactive = true)
-		menu.detach_finished.connect(func(): is_detached_interactive = false)
-
 func _unhandled_input(event):
 	if event.is_action_pressed("ui_cancel"):
 		if main_ui:
@@ -170,7 +161,7 @@ func _unhandled_input(event):
 		return
 	
 
-	if is_detached_interactive or is_menu_open:
+	if GameState.is_detached_interactive or GameState.is_menu_open:
 		return
 
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
@@ -307,7 +298,7 @@ func _physics_process(delta):
 	var scaled_camera_height = Config.camera_height * zoom_height_scale
 	var scaled_movement_speed = Config.movement_speed * zoom_speed_scale
 
-	if is_detached_interactive or is_menu_open:
+	if GameState.is_detached_interactive or GameState.is_menu_open:
 		velocity = Vector3.ZERO
 		var target_y_menu = get_terrain_height(global_position.x, global_position.z) + scaled_camera_height + height_offset
 		camera.position = Vector3(0.0, target_y_menu, 0.0) + transform.basis.inverse() * camera_push_offset
@@ -325,16 +316,10 @@ func _physics_process(delta):
 
 	if run_demo and not _demo_y_10000_reached and current_z.y >= 10000.0:
 		_demo_y_10000_reached = true
-		auto_walk_state = AutoWalkState.NONE
 		var tween = create_tween().set_process_mode(Tween.TWEEN_PROCESS_PHYSICS)
-		tween.tween_interval(2.0)
-		tween.tween_property(Config, "camera_height", 20.0, 5.0)
-		tween.tween_callback(func():
-			Config.movement_speed = 100.0
-			Config.speed_near_zeros = 100.0
-			Config.save_settings()
-			auto_walk_state = AutoWalkState.WALKING
-		)
+		tween.tween_property(Config, "speed_near_zeros", 100.0, 1.0)
+		tween.tween_property(Config, "camera_height", 16.0, 3.0)
+		tween.tween_property(Config, "movement_speed", 150.0, 3.0)
 
 	if auto_walk_state != AutoWalkState.NONE:
 		var manual_input = Input.get_vector("move_left", "move_right", "move_forward", "move_backward")

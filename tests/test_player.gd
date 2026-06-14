@@ -9,6 +9,11 @@ func before_all():
 	Config.zoom_factor = 1.0
 	Config.zoom_damping = 0.5
 
+func before_each():
+	super.before_each()
+	GameState.is_menu_open = false
+	GameState.is_detached_interactive = false
+
 func test_player_loads_and_physics_process_runs():
 	var player = player_scene.instantiate()
 	player.set("run_demo", false)
@@ -43,7 +48,7 @@ func test_player_movement_disabled_when_menu_open():
 	
 	# Open menu
 	main_ui.menu_overlay.visible = true
-	player.is_menu_open = true
+	GameState.is_menu_open = true
 	player.velocity = Vector3(10, 0, 10)
 	
 	# Run physics process
@@ -65,7 +70,7 @@ func test_detached_slider_esc_toggle():
 	# Enter detached mode
 	main_ui.detach_controller.visible = true
 	main_ui.detach_controller.interaction_active = true
-	player.is_detached_interactive = true
+	GameState.is_detached_interactive = true
 	
 	# 1. While in Interaction mode, movement should be disabled
 	player.velocity = Vector3(10, 0, 10)
@@ -74,7 +79,6 @@ func test_detached_slider_esc_toggle():
 	
 	# 2. Toggle to Movement mode via ESC simulation
 	main_ui.toggle_menu()
-	player.is_detached_interactive = not player.is_detached_interactive
 	
 	assert_false(main_ui.detach_controller.interaction_active)
 	
@@ -85,7 +89,6 @@ func test_detached_slider_esc_toggle():
 	
 	# 4. Toggle back to Interaction mode
 	main_ui.toggle_menu()
-	player.is_detached_interactive = not player.is_detached_interactive
 	assert_true(main_ui.detach_controller.interaction_active)
 	
 	# 5. Verify movement is disabled again
@@ -237,8 +240,8 @@ func test_player_zoom_scaling():
 	Config.zoom_damping = 0.5
 	GameState.effective_zoom = 1.0
 
-	player.is_menu_open = false
-	player.is_detached_interactive = false
+	GameState.is_menu_open = false
+	GameState.is_detached_interactive = false
 	player.global_position = Vector3(10.0, 0.0, 10.0)
 	player._physics_process(0.016)
 
