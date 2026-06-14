@@ -97,6 +97,7 @@ func _on_exit_detach_pressed():
 	# Avoid accidental morph blending when returning from a detached slider
 	if "morph_slider" in main_ui:
 		main_ui.morph_slider.value = 1.0
+		Config.morph_style = Config.MorphStyle.DISABLED
 
 	interaction_active = false
 	visible = false
