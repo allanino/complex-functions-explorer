@@ -47,6 +47,7 @@ static var FUNCTIONS = {
 		"has_von_mangoldt": true,
 		"iters_range": [100.0, 10000.0, 100.0, 100.0],
 		"hidden": true,
+		"initial_pos": Vector3(10.0, 0.0, 10.0),
 	},
 	"ZETA_BORWEIN": {
 		"name": "Riemann Zeta (Borwein)",
@@ -63,7 +64,7 @@ static var FUNCTIONS = {
 		"has_von_mangoldt": true,
 		"iters_range": [100.0, 10000.0, 100.0, 100.0],
 		"initial_pos": Vector3(5.0, 0.0, 0.0),
-		"hidden": false,
+		"hidden": true,
 	},
 	"DIRICHLET_ETA_CONTINUATION": {
 		"name": "Dirichlet Eta",
