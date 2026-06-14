@@ -782,7 +782,6 @@ func _process(_delta):
 
 
 func _check_zeta_stability(y: float) -> void:
-	print("Checking for unstable at y = ", abs(y), " with iterations ", Config.iterations)
 	# For each y range, we set the minimum demanded iterations
 	var stable_bounds = {
 		[0.0, 100.0]: 100,
