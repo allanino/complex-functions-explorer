@@ -1171,12 +1171,12 @@ static func get_height_from_field(f: Vector2, z_id: Vector2 = Vector2.ZERO) -> f
 	var blend = log(1.0 + 8.0 * s) / log(9.0)
 
 	var field_val = f
-	if Config.morph_style == ConfigManager.MorphStyle.DISABLED:
+	if Config.morph_style == Config.MorphStyle.DISABLED:
 		blend = 1.0
-	elif Config.morph_style == ConfigManager.MorphStyle.LINEAR:
+	elif Config.morph_style == Config.MorphStyle.LINEAR:
 		field_val = z_id.lerp(f, blend)
-	elif Config.morph_style == ConfigManager.MorphStyle.EXPONENTIAL:
-		var exp_val = complex_exp((f - z_id) * blend)
+	elif Config.morph_style == Config.MorphStyle.EXPONENTIAL:
+		var exp_val = complex_exp((f.x - z_id.x) * blend, (f.y - z_id.y) * blend)
 		field_val = complex_mul(z_id, exp_val)
 
 	var h: float

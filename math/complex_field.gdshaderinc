@@ -1271,7 +1271,7 @@ vec2 get_complex_height_derivatives(vec2 fz, vec2 field_val, vec2 z_id, vec2 df_
         dg_dx = (1.0 - blend) * dz_dx + blend * df_dx;
         dg_dy = (1.0 - blend) * dz_dy + blend * df_dy;
     } else if (morph_style == 2) {
-        vec2 exp_val = complex_exp(blend * (fz - z_id));
+        vec2 exp_val = complex_exp(((fz - z_id) * blend).x, ((fz - z_id) * blend).y);
         dg_dx = complex_mul(exp_val, dz_dx) + complex_mul(field_val, blend * (df_dx - dz_dx));
         dg_dy = complex_mul(exp_val, dz_dy) + complex_mul(field_val, blend * (df_dy - dz_dy));
     } else {

@@ -134,6 +134,7 @@ var _initial_preset: String
 var _initial_edited_presets: Dictionary
 
 func _ready():
+	_update_morph_style_ui()
 	tab_buttons = [
 		func_tab_button,
 		env_tab_button,
@@ -1233,4 +1234,4 @@ func _on_config_changed(key: String):
 
 func _update_morph_style_ui():
 	morph_style_dropdown.selected = Config.morph_style
-	morph_slider.visible = Config.morph_style != ConfigManager.MorphStyle.DISABLED
+	morph_slider.visible = Config.morph_style != Config.MorphStyle.DISABLED

@@ -752,7 +752,7 @@ void vertex() {
                 field_val = mix(z_id, fz, blend);
             } else if (morph_style == 2) {
                 blend = 0.5 - 0.5 * cos(PI * morph);
-                vec2 exp_val = complex_exp(blend * (fz - z_id));
+                vec2 exp_val = complex_exp(((fz - z_id) * blend).x, ((fz - z_id) * blend).y);
                 field_val = complex_mul(z_id, exp_val);
             }
 
