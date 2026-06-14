@@ -18,6 +18,18 @@ var portal_membrane_left: MeshInstance3D
 
 func _ready():
 	_setup_portal_frame()
+	Config.config_changed.connect(_on_config_changed)
+	_update_portal_state()
+
+func _on_config_changed(key: String):
+	if key == "function_type":
+		_update_portal_state()
+
+func _update_portal_state():
+	var is_portal_mode = Config.function.get("is_multivalued", false)
+	visible = is_portal_mode
+	# Performance: Disable _process when not in a multivalued function to save CPU cycles
+	set_process(is_portal_mode)
 
 func _setup_portal_frame():
 	portal_frame = Node3D.new()
@@ -110,66 +122,63 @@ func _process(_delta):
 	var chunk_size = world_manager.chunk_size
 	var terrain_material = world_manager.terrain_material
 
-	var is_portal_mode = Config.function.get("is_multivalued", false)
-	visible = is_portal_mode
 	if portal_frame_left:
 		portal_frame_left.visible = false
 
-	if is_portal_mode:
-		var zoom = GameState.effective_zoom
-		var cam_h = player.global_position.y
-		var p_height = max(50.0 * zoom, cam_h + 50.0 * zoom)
-		var p_min_height = min(-50.0 * zoom, cam_h - 50.0 * zoom)
+	var zoom = GameState.effective_zoom
+	var cam_h = player.global_position.y
+	var p_height = max(50.0 * zoom, cam_h + 50.0 * zoom)
+	var p_min_height = min(-50.0 * zoom, cam_h - 50.0 * zoom)
 
-		var is_asin_acos = Config.function_type == Config.ComplexFunc.MULTIVALUED_ASIN or Config.function_type == Config.ComplexFunc.MULTIVALUED_ACOS
+	var is_asin_acos = Config.function_type == Config.ComplexFunc.MULTIVALUED_ASIN or Config.function_type == Config.ComplexFunc.MULTIVALUED_ACOS
 
-		var player_x = player.global_position.x
-		var p_width = max(100.0 * zoom, abs(player_x) + float(Config.view_distance + 1) * chunk_size)
+	var player_x = player.global_position.x
+	var p_width = max(100.0 * zoom, abs(player_x) + float(Config.view_distance + 1) * chunk_size)
 
-		portal_frame.scale = Vector3.ONE # We handle scaling manually on bars
+	portal_frame.scale = Vector3.ONE # We handle scaling manually on bars
 
-		if is_asin_acos:
-			var offset_x = 10.0 * zoom
-			portal_frame.position = Vector3(offset_x, 0.0, 0.0)
-			portal_ground_bar.scale = Vector3(p_width, zoom, zoom)
-			portal_ground_bar.position = Vector3(p_width * 0.5, p_min_height, 0.0)
-			portal_vert_bar.scale = Vector3(zoom, p_height - p_min_height, zoom)
-			portal_vert_bar.position = Vector3(0.0, (p_height + p_min_height) * 0.5, 0.0)
-			portal_top_bar.scale = Vector3(p_width, zoom, zoom)
-			portal_top_bar.position = Vector3(p_width * 0.5, p_height, 0.0)
-			portal_end_bar.scale = Vector3(zoom, p_height - p_min_height, zoom)
-			portal_end_bar.position = Vector3(p_width, (p_height + p_min_height) * 0.5, 0.0)
-			portal_membrane.scale = Vector3(p_width, p_height - p_min_height, 1.0)
-			portal_membrane.position = Vector3(p_width * 0.5, (p_height + p_min_height) * 0.5, 0.0)
+	if is_asin_acos:
+		var offset_x = 10.0 * zoom
+		portal_frame.position = Vector3(offset_x, 0.0, 0.0)
+		portal_ground_bar.scale = Vector3(p_width, zoom, zoom)
+		portal_ground_bar.position = Vector3(p_width * 0.5, p_min_height, 0.0)
+		portal_vert_bar.scale = Vector3(zoom, p_height - p_min_height, zoom)
+		portal_vert_bar.position = Vector3(0.0, (p_height + p_min_height) * 0.5, 0.0)
+		portal_top_bar.scale = Vector3(p_width, zoom, zoom)
+		portal_top_bar.position = Vector3(p_width * 0.5, p_height, 0.0)
+		portal_end_bar.scale = Vector3(zoom, p_height - p_min_height, zoom)
+		portal_end_bar.position = Vector3(p_width, (p_height + p_min_height) * 0.5, 0.0)
+		portal_membrane.scale = Vector3(p_width, p_height - p_min_height, 1.0)
+		portal_membrane.position = Vector3(p_width * 0.5, (p_height + p_min_height) * 0.5, 0.0)
 
-			if portal_frame_left:
-				portal_frame_left.visible = true
-				portal_frame_left.scale = Vector3.ONE
-				portal_frame_left.position = Vector3(-offset_x, 0.0, 0.0)
-				portal_ground_bar_left.scale = Vector3(p_width, zoom, zoom)
-				portal_ground_bar_left.position = Vector3(-p_width * 0.5, p_min_height, 0.0)
-				portal_vert_bar_left.scale = Vector3(zoom, p_height - p_min_height, zoom)
-				portal_vert_bar_left.position = Vector3(0.0, (p_height + p_min_height) * 0.5, 0.0)
-				portal_top_bar_left.scale = Vector3(p_width, zoom, zoom)
-				portal_top_bar_left.position = Vector3(-p_width * 0.5, p_height, 0.0)
-				portal_end_bar_left.scale = Vector3(zoom, p_height - p_min_height, zoom)
-				portal_end_bar_left.position = Vector3(-p_width, (p_height + p_min_height) * 0.5, 0.0)
-				portal_membrane_left.scale = Vector3(p_width, p_height - p_min_height, 1.0)
-				portal_membrane_left.position = Vector3(-p_width * 0.5, (p_height + p_min_height) * 0.5, 0.0)
-		else:
-			portal_frame.position = Vector3(0.0, 0.0, 0.0)
-			portal_ground_bar.scale = Vector3(p_width, zoom, zoom)
-			portal_ground_bar.position = Vector3(-p_width * 0.5, p_min_height, 0.0)
-			portal_vert_bar.scale = Vector3(zoom, p_height - p_min_height, zoom)
-			portal_vert_bar.position = Vector3(0.0, (p_height + p_min_height) * 0.5, 0.0)
-			portal_top_bar.scale = Vector3(p_width, zoom, zoom)
-			portal_top_bar.position = Vector3(-p_width * 0.5, p_height, 0.0)
-			portal_end_bar.scale = Vector3(zoom, p_height - p_min_height, zoom)
-			portal_end_bar.position = Vector3(-p_width, (p_height + p_min_height) * 0.5, 0.0)
-			portal_membrane.scale = Vector3(p_width, p_height - p_min_height, 1.0)
-			portal_membrane.position = Vector3(-p_width * 0.5, (p_height + p_min_height) * 0.5, 0.0)
+		if portal_frame_left:
+			portal_frame_left.visible = true
+			portal_frame_left.scale = Vector3.ONE
+			portal_frame_left.position = Vector3(-offset_x, 0.0, 0.0)
+			portal_ground_bar_left.scale = Vector3(p_width, zoom, zoom)
+			portal_ground_bar_left.position = Vector3(-p_width * 0.5, p_min_height, 0.0)
+			portal_vert_bar_left.scale = Vector3(zoom, p_height - p_min_height, zoom)
+			portal_vert_bar_left.position = Vector3(0.0, (p_height + p_min_height) * 0.5, 0.0)
+			portal_top_bar_left.scale = Vector3(p_width, zoom, zoom)
+			portal_top_bar_left.position = Vector3(-p_width * 0.5, p_height, 0.0)
+			portal_end_bar_left.scale = Vector3(zoom, p_height - p_min_height, zoom)
+			portal_end_bar_left.position = Vector3(-p_width, (p_height + p_min_height) * 0.5, 0.0)
+			portal_membrane_left.scale = Vector3(p_width, p_height - p_min_height, 1.0)
+			portal_membrane_left.position = Vector3(-p_width * 0.5, (p_height + p_min_height) * 0.5, 0.0)
+	else:
+		portal_frame.position = Vector3(0.0, 0.0, 0.0)
+		portal_ground_bar.scale = Vector3(p_width, zoom, zoom)
+		portal_ground_bar.position = Vector3(-p_width * 0.5, p_min_height, 0.0)
+		portal_vert_bar.scale = Vector3(zoom, p_height - p_min_height, zoom)
+		portal_vert_bar.position = Vector3(0.0, (p_height + p_min_height) * 0.5, 0.0)
+		portal_top_bar.scale = Vector3(p_width, zoom, zoom)
+		portal_top_bar.position = Vector3(-p_width * 0.5, p_height, 0.0)
+		portal_end_bar.scale = Vector3(zoom, p_height - p_min_height, zoom)
+		portal_end_bar.position = Vector3(-p_width, (p_height + p_min_height) * 0.5, 0.0)
+		portal_membrane.scale = Vector3(p_width, p_height - p_min_height, 1.0)
+		portal_membrane.position = Vector3(-p_width * 0.5, (p_height + p_min_height) * 0.5, 0.0)
 
-		if terrain_material:
-			terrain_material.set_shader_parameter("portal_height", p_height)
-			terrain_material.set_shader_parameter("portal_width", p_width)
-			terrain_material.set_shader_parameter("portal_min_height", p_min_height)
+	if terrain_material:
+		terrain_material.set_shader_parameter("portal_height", p_height)
+		terrain_material.set_shader_parameter("portal_width", p_width)
+		terrain_material.set_shader_parameter("portal_min_height", p_min_height)
