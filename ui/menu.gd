@@ -584,6 +584,13 @@ func _on_func_selected(f_type: int):
 	branch_k_slider.visible = is_multivalued
 	_update_branch_k_slider_range()
 
+	if is_multivalued:
+		input_button.disabled = true
+		input_button.select(input_button.get_item_index(Config.ComplexFunc.IDENTITY))
+		_on_input_selected(Config.ComplexFunc.IDENTITY)
+	else:
+		input_button.disabled = false
+
 	var re = float(re_input.text) if re_input.text.is_valid_float() else 0.5
 	var im = float(im_input.text) if im_input.text.is_valid_float() else 0.0
 	if not is_finite(re): re = 0.5
