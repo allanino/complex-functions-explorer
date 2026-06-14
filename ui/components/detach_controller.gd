@@ -11,6 +11,7 @@ extends PanelContainer
 var active_detached_slider: HSlider = null
 var active_detached_value: Label = null
 var interaction_active: bool = true
+var is_detaching: bool = false
 
 var is_playing: bool = false
 var play_direction: float = 1.0
@@ -52,7 +53,9 @@ func detach_slider_control(source_slider: HSlider, source_value_label: Label, ti
 	active_detached_value = source_value_label
 	interaction_active = true
 
+	is_detaching = true
 	main_ui.toggle_menu(true)
+	is_detaching = false
 	visible = true
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	GameState.is_detached_interactive = true
@@ -97,6 +100,7 @@ func _on_exit_detach_pressed():
 	# Avoid accidental morph blending when returning from a detached slider
 	if "morph_slider" in main_ui:
 		main_ui.morph_slider.value = 1.0
+		Config.morph_style = Config.MorphStyle.DISABLED
 
 	interaction_active = false
 	visible = false

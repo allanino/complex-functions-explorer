@@ -5,6 +5,8 @@ signal config_changed(key: String)
 
 var save_path = "user://settings.cfg"
 
+enum MorphStyle { DISABLED, LINEAR, EXPONENTIAL }
+
 const FUNCTIONS_ENUM_PATH = "res://math/functions_enum.gdshaderinc"
 static var ComplexFunc = {}
 
@@ -264,6 +266,11 @@ var height_theta: float = 0.0:
 		if height_theta == v: return
 		height_theta = v
 		config_changed.emit("height_theta")
+var morph_style: int = MorphStyle.LINEAR:
+	set(v):
+		if morph_style == v: return
+		morph_style = v
+		config_changed.emit("morph_style")
 var rational_num_coeffs: PackedVector2Array = PackedVector2Array([Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)]):
 	set(v):
 		if rational_num_coeffs == v: return
@@ -587,6 +594,7 @@ func save_settings():
 	config.set_value("field", "multivalued_n", multivalued_n)
 	config.set_value("field", "zoom_factor", zoom_factor)
 	config.set_value("field", "zoom_damping", zoom_damping)
+	config.set_value("field", "morph_style", morph_style)
 
 	config.set_value("rendering", "terrain_detail", terrain_detail)
 	config.set_value("rendering", "antialiasing_mode", antialiasing_mode)
@@ -665,6 +673,7 @@ func load_settings():
 	multivalued_n = config.get_value("field", "multivalued_n", multivalued_n)
 	zoom_factor = config.get_value("field", "zoom_factor", zoom_factor)
 	zoom_damping = config.get_value("field", "zoom_damping", zoom_damping)
+	morph_style = config.get_value("field", "morph_style", morph_style)
 
 	terrain_detail = config.get_value("rendering", "terrain_detail", terrain_detail)
 	antialiasing_mode = config.get_value("rendering", "antialiasing_mode", antialiasing_mode)
