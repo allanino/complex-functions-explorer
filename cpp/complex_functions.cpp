@@ -18,6 +18,8 @@ void ComplexFunctions::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("complex_log_gamma_with_derivatives", "x", "y"), &ComplexFunctions::complex_log_gamma_with_derivatives);
 	ClassDB::bind_method(D_METHOD("log_zeta_continuation_with_derivatives", "x", "y", "iters"), &ComplexFunctions::log_zeta_continuation_with_derivatives);
 	ClassDB::bind_method(D_METHOD("zeta_continuation_with_derivatives", "x", "y", "iters"), &ComplexFunctions::zeta_continuation_with_derivatives);
+	ClassDB::bind_method(D_METHOD("log_eta_continuation_with_derivatives", "x", "y", "iters"), &ComplexFunctions::log_eta_continuation_with_derivatives);
+	ClassDB::bind_method(D_METHOD("eta_continuation_with_derivatives", "x", "y", "iters"), &ComplexFunctions::eta_continuation_with_derivatives);
 
 	ClassDB::bind_method(D_METHOD("complex_mul", "ax", "ay", "bx", "by"), &ComplexFunctions::complex_mul);
 	ClassDB::bind_method(D_METHOD("complex_div", "ax", "ay", "bx", "by"), &ComplexFunctions::complex_div);
@@ -554,6 +556,111 @@ PackedFloat64Array ComplexFunctions::zeta_continuation_with_derivatives(double x
 	std::complex<double> val = std::exp(log_z_0);
 	std::complex<double> dx = val * log_z_1;
 	std::complex<double> d2x = val * (log_z_2 + log_z_1 * log_z_1);
+
+	PackedFloat64Array result; result.resize(6);
+	result[0] = val.real(); result[1] = val.imag();
+	result[2] = dx.real(); result[3] = dx.imag();
+	result[4] = d2x.real(); result[5] = d2x.imag();
+	return result;
+}
+
+
+PackedFloat64Array ComplexFunctions::log_eta_continuation_with_derivatives(double x, double y, int iters) {
+	if (x >= 0.5) {
+		PackedFloat64Array e_data = dirichlet_eta_with_derivatives(x, y, iters);
+		std::complex<double> e_val(e_data[0], e_data[1]);
+		std::complex<double> e_dx(e_data[2], e_data[3]);
+		std::complex<double> e_d2x(e_data[4], e_data[5]);
+
+		std::complex<double> val = std::log(e_val);
+		std::complex<double> dx = e_dx / e_val;
+		std::complex<double> dx2 = (e_d2x * e_val - e_dx * e_dx) / (e_val * e_val);
+
+		PackedFloat64Array result; result.resize(6);
+		result[0] = val.real(); result[1] = val.imag();
+		result[2] = dx.real(); result[3] = dx.imag();
+		result[4] = dx2.real(); result[5] = dx2.imag();
+		return result;
+	}
+
+	std::complex<double> s(x, y);
+
+	std::complex<double> log_sum = s * LOG_2 + (s - 1.0) * LOG_PI;
+	std::complex<double> ratio(LOG_2 + LOG_PI, 0.0);
+	std::complex<double> d2_ratio(0.0, 0.0);
+
+	PackedFloat64Array cls_data = complex_log_sin((PI * 0.5) * x, (PI * 0.5) * y);
+	std::complex<double> cls(cls_data[0], cls_data[1]);
+	log_sum += cls;
+
+	PackedFloat64Array cot_pi_s_2_data = complex_cot((PI * 0.5) * x, (PI * 0.5) * y);
+	std::complex<double> cot_pi_s_2(cot_pi_s_2_data[0], cot_pi_s_2_data[1]);
+
+	ratio += (PI * 0.5) * cot_pi_s_2;
+
+	std::complex<double> cot_pi_s_2_sq = cot_pi_s_2 * cot_pi_s_2;
+	std::complex<double> csc_pi_s_2_sq = 1.0 + cot_pi_s_2_sq;
+	d2_ratio -= (PI * PI * 0.25) * csc_pi_s_2_sq;
+
+	PackedFloat64Array lg_data = complex_log_gamma_with_derivatives(1.0 - x, -y);
+	std::complex<double> lg_val(lg_data[0], lg_data[1]);
+	std::complex<double> lg_dx(lg_data[2], lg_data[3]);
+	std::complex<double> lg_d2x(lg_data[4], lg_data[5]);
+	log_sum += lg_val;
+	ratio -= lg_dx;
+	d2_ratio += lg_d2x;
+
+	PackedFloat64Array ref_data = dirichlet_eta_with_derivatives(1.0 - x, -y, iters);
+	std::complex<double> ref_val(ref_data[0], ref_data[1]);
+	std::complex<double> ref_dx(ref_data[2], ref_data[3]);
+	std::complex<double> ref_d2x(ref_data[4], ref_data[5]);
+
+	log_sum += std::log(ref_val);
+	std::complex<double> e_ratio = ref_dx / ref_val;
+	ratio -= e_ratio;
+	d2_ratio += (ref_d2x * ref_val - ref_dx * ref_dx) / (ref_val * ref_val);
+
+	double amp1 = std::pow(2.0, x);
+	double theta1 = y * LOG_2;
+	std::complex<double> term1(amp1 * std::cos(theta1), amp1 * std::sin(theta1));
+	std::complex<double> denom1 = 1.0 - term1;
+	std::complex<double> ddenom1_dx = -LOG_2 * term1;
+	std::complex<double> d2denom1_dx2 = -(LOG_2 * LOG_2) * term1;
+	std::complex<double> ratio_denom1 = ddenom1_dx / denom1;
+
+	double amp2 = std::pow(2.0, 1.0 - x);
+	double theta2 = -y * LOG_2;
+	std::complex<double> term2(amp2 * std::cos(theta2), amp2 * std::sin(theta2));
+	std::complex<double> denom2 = 1.0 - term2;
+	std::complex<double> ddenom2_dx = LOG_2 * term2;
+	std::complex<double> d2denom2_dx2 = -(LOG_2 * LOG_2) * term2;
+	std::complex<double> ratio_denom2 = ddenom2_dx / denom2;
+
+	log_sum += std::log(denom2) - std::log(denom1);
+	ratio += ratio_denom2 - ratio_denom1;
+	d2_ratio += (d2denom2_dx2 * denom2 - ddenom2_dx * ddenom2_dx) / (denom2 * denom2);
+	d2_ratio -= (d2denom1_dx2 * denom1 - ddenom1_dx * ddenom1_dx) / (denom1 * denom1);
+
+	PackedFloat64Array result; result.resize(6);
+	result[0] = log_sum.real(); result[1] = log_sum.imag();
+	result[2] = ratio.real(); result[3] = ratio.imag();
+	result[4] = d2_ratio.real(); result[5] = d2_ratio.imag();
+	return result;
+}
+
+PackedFloat64Array ComplexFunctions::eta_continuation_with_derivatives(double x, double y, int iters) {
+	if (x >= 0.5) {
+		return dirichlet_eta_with_derivatives(x, y, iters);
+	}
+
+	PackedFloat64Array log_e_data = log_eta_continuation_with_derivatives(x, y, iters);
+	std::complex<double> log_e_0(log_e_data[0], log_e_data[1]);
+	std::complex<double> log_e_1(log_e_data[2], log_e_data[3]);
+	std::complex<double> log_e_2(log_e_data[4], log_e_data[5]);
+
+	std::complex<double> val = std::exp(log_e_0);
+	std::complex<double> dx = val * log_e_1;
+	std::complex<double> d2x = val * (log_e_2 + log_e_1 * log_e_1);
 
 	PackedFloat64Array result; result.resize(6);
 	result[0] = val.real(); result[1] = val.imag();

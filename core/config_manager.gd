@@ -32,6 +32,7 @@ enum ComplexFunc {
 
 	# Not exposed in UI
 	MULTIVALUED_RSVD3,
+	ETA_REFLECTION,
 }
 
 const FUNCTIONS = {
