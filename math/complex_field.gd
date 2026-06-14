@@ -1273,9 +1273,7 @@ static func find_zero(true_z: Vector2, debug: bool = false) -> Variant:
 		var res = []
 		if Config.function_type == Config.ComplexFunc.ZETA_REFLECTION:
 			res = ext.call("zeta_find_zero", true_z.x, true_z.y, Config.iterations, 0.6, 0.3, debug)
-		elif Config.function_type == Config.ComplexFunc.DIRICHLET_ETA_REFLECTION:
-			res = ext.call("eta_find_zero", true_z.x, true_z.y, Config.iterations, 0.6, 0.3, debug)
-		elif Config.function_type == Config.ComplexFunc.DIRICHLET_ETA:
+		elif Config.function_type == Config.ComplexFunc.DIRICHLET_ETA_REFLECTION or Config.function_type == Config.ComplexFunc.DIRICHLET_ETA:
 			res = ext.call("eta_find_zero", true_z.x, true_z.y, Config.iterations, 0.6, 0.3, debug)
 		elif Config.function_type == Config.ComplexFunc.DIRICHLET_BETA_REFLECTION:
 			res = ext.call("beta_find_zero", true_z.x, true_z.y, Config.iterations, 0.6, 0.3, debug)
@@ -1388,6 +1386,12 @@ static func newton_step(z_input: Variant, step_size_mult: float, max_step: float
 			use_analytic = true
 		elif Config.function_type == Config.ComplexFunc.DIRICHLET_ETA:
 			var res = dirichlet_eta_with_derivatives(z.x, z.y, Config.iterations * 2)
+			f_val = DoubleVector2.new(res[0].x, res[0].y)
+			f_prime = DoubleVector2.new(res[1].x, res[1].y)
+			f_second = DoubleVector2.new(res[2].x, res[2].y)
+			use_analytic = true
+		elif Config.function_type == Config.ComplexFunc.DIRICHLET_BETA:
+			var res = dirichlet_beta_with_derivatives(z.x, z.y, Config.iterations * 2)
 			f_val = DoubleVector2.new(res[0].x, res[0].y)
 			f_prime = DoubleVector2.new(res[1].x, res[1].y)
 			f_second = DoubleVector2.new(res[2].x, res[2].y)
