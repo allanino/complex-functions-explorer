@@ -9,6 +9,7 @@ enum ComplexFunc {
 	ZETA,
 	ZETA_REFLECTION,
 	DIRICHLET_ETA,
+	DIRICHLET_ETA_REFLECTION,
 	DIRICHLET_BETA,
 	GAMMA,
 	LOG_GAMMA,
@@ -29,9 +30,6 @@ enum ComplexFunc {
 	ZETA_POWER_SERIES,
 	ETA_BORWEIN,
 	ZETA_BORWEIN,
-
-	# Not exposed in UI
-	MULTIVALUED_RSVD3,
 }
 
 const FUNCTIONS = {
@@ -54,8 +52,17 @@ const FUNCTIONS = {
 		"initial_pos": Vector3(5.0, 0.0, 0.0),
 	},
 	ComplexFunc.DIRICHLET_ETA: {
+		"name": "Dirichlet Eta ",
+		"symbol": "η",
+		"is_dirichlect": true,
+		"has_von_mangoldt": true,
+		"iters_range": [100.0, 10000.0, 100.0, 100.0],
+		"initial_pos": Vector3(5.0, 0.0, 0.0),
+		"hidden": true,
+	},
+	ComplexFunc.DIRICHLET_ETA_REFLECTION: {
 		"name": "Dirichlet Eta",
-		"symbol": "η (σ > 0)",
+		"symbol": "η",
 		"is_dirichlect": true,
 		"has_von_mangoldt": true,
 		"iters_range": [100.0, 10000.0, 100.0, 100.0],

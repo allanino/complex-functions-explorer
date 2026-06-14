@@ -24,6 +24,7 @@ var performance_protection_active: bool = false:
 		performance_protection_active = v
 		state_changed.emit("performance_protection_active")
 var is_menu_open: bool = false
+var is_detached_interactive: bool = false
 var height_protection_active: bool = false:
 	set(v):
 		if height_protection_active == v: return
@@ -39,6 +40,11 @@ var missed_zeta_zero: bool = false:
 		if missed_zeta_zero == v: return
 		missed_zeta_zero = v
 		state_changed.emit("missed_zeta_zero")
+var unstable_zeta_computation: bool = false:
+	set(v):
+		if unstable_zeta_computation == v: return
+		unstable_zeta_computation = v
+		state_changed.emit("unstable_zeta_computation")
 var found_off_critical_line: bool = false:
 	set(v):
 		if found_off_critical_line == v: return
