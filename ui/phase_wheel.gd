@@ -50,6 +50,8 @@ func _update_formula_label():
 	formula_label.text = "arg(" + symbol + ")"
 
 func update_data(f: Vector2) -> void:
+	if not is_finite(f.x) or not is_finite(f.y):
+		return
 	target_f = f
 
 func _apply_phase(f: Vector2) -> void:
@@ -104,6 +106,10 @@ func _apply_phase(f: Vector2) -> void:
 	angle_label.add_theme_color_override("font_color", final_color)
 
 func _process(delta: float) -> void:
+	if not is_finite(display_f.x) or not is_finite(display_f.y):
+		display_f = Vector2.RIGHT
+		crazy_angle = 0.0
+
 	var mag = target_f.length()
 
 	# Enter chaos mode near zero
