@@ -619,6 +619,7 @@ func test_get_height_from_field():
 	var orig_height_epsilon = Config.height_epsilon
 	var orig_morph_value = GameState.morph_value
 	var orig_effective_zoom = GameState.effective_zoom
+	var orig_morph_style = Config.morph_style
 
 	# Test 1: Non-finite inputs
 	var res1 = ComplexFieldScript.get_height_from_field(Vector2(INF, 0))
@@ -633,6 +634,7 @@ func test_get_height_from_field():
 	Config.height_epsilon = 1.0
 	GameState.morph_value = 1.0
 	GameState.effective_zoom = 1.0
+	Config.morph_style = Config.MorphStyle.LINEAR
 	var f3 = Vector2(3, 4) # mag = 5
 	# log(1.0 + 5) = log(6) ~ 1.791759 * 3.0 = 5.375278
 	var expected_log = 3.0 * log(6.0)
@@ -711,6 +713,7 @@ func test_get_height_from_field():
 	Config.height_epsilon = orig_height_epsilon
 	GameState.morph_value = orig_morph_value
 	GameState.effective_zoom = orig_effective_zoom
+	Config.morph_style = orig_morph_style
 
 func test_get_height():
 	var orig_perf = GameState.performance_protection_active
