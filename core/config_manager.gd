@@ -240,7 +240,11 @@ var function_type: int = ComplexFunc.ZETA_REFLECTION:
 		elif function.has("iters_range"):
 			iterations = int(function["iters_range"][3])
 var function: Dictionary = {}
-var input_function_type: int = ComplexFunc.IDENTITY
+var input_function_type: int = ComplexFunc.IDENTITY:
+	set(value):
+		if input_function_type == value: return
+		input_function_type = value
+		config_changed.emit("input_function_type")
 
 var height_type: int = 0:
 	set(v):
