@@ -104,6 +104,13 @@ func _apply_phase(f: Vector2) -> void:
 	angle_label.add_theme_color_override("font_color", final_color)
 
 func _process(delta: float) -> void:
+	if not is_finite(target_f.x) or not is_finite(target_f.y):
+		var spin_speed = TAU * CRAZY_SPIN
+		crazy_angle += spin_speed * delta
+		display_f = Vector2.from_angle(crazy_angle)
+		_apply_phase(display_f)
+		return
+
 	var mag = target_f.length()
 
 	# Enter chaos mode near zero
