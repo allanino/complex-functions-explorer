@@ -91,7 +91,7 @@ func teleport_to_world_pos(target_pos: Vector3) -> void:
 	global_position = target_pos
 
 	var complex_pos = Config.world_to_complex(global_position.x, global_position.z)
-	_check_zeta_continuity(complex_pos.y)
+	_check_zeta_stability(complex_pos.y)
 
 func _ready():
 	add_to_group("player")
@@ -781,7 +781,7 @@ func _process(_delta):
 
 	var current_hundreds = int(frame_z.y / 100.0)
 	if current_hundreds != _last_checked_y_hundreds:
-		_check_zeta_continuity(frame_z.y)
+		_check_zeta_stability(frame_z.y)
 		_last_checked_y_hundreds = current_hundreds
 
 	if Config.show_curves and Config.show_curves_labels:
@@ -796,14 +796,41 @@ func _process(_delta):
 			im_label.visible = false
 
 
-func _check_zeta_continuity(y: float) -> void:
-	if Config.function_type == Config.ComplexFunc.ZETA:
-		var z1 = ComplexField.zeta(0.499, y)
-		var z2 = ComplexField.zeta(0.501, y)
-		if z1.distance_to(z2) > 0.005:
+func _check_zeta_stability(y: float) -> void:
+	print("Checking for unstable at y = ", abs(y), " with iterations ", Config.iterations)
+	# For each y range, we set the minimum demanded iterations
+	var stable_bounds = {
+		[0.0, 100.0]: 100,
+		[100.0, 200.0]: 200,
+		[200.0, 500.0]: 400,
+		[500.0, 1000.0]: 1000,
+		[1000.0, 2000.0]: 1500,
+		[2000.0, 3000.0]: 2000,
+		[3000.0, 4000.0]: 3000,
+		[4000.0, 7000.0]: 4000,
+		[7000.0, 10000.0]: 6000,
+		[10000.0, 15000.0]: 7000,
+		[15000.0, 20000.0]: 9000,
+		[20000.0, 25000.0]: 10000
+	}
+	if Config.function.get("is_dirichlect", false):
+		# 30000 is about where the GPU float32 starts to give
+		# wrong results even with 10000 iterations
+		if abs(y) > 30000:
 			GameState.unstable_zeta_computation = true
 		else:
-			GameState.unstable_zeta_computation = false
+			# We find the allowed range for this y
+			for y_range in stable_bounds.keys():
+				var y_low = y_range[0]
+				var y_high = y_range[1]
+				if abs(y) >= y_low and abs(y) < y_high:
+					var min_iters = stable_bounds[y_range]
+					# Now check if we have at least min_iters
+					if Config.iterations < min_iters:
+						GameState.unstable_zeta_computation = true
+					else:
+						GameState.unstable_zeta_computation = false
+					break
 
 func start_newton_walk():
 	if auto_walk_state == AutoWalkState.NONE:

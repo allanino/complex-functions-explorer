@@ -298,37 +298,35 @@ func test_start_newton_walk():
 
 	Config.function_type = original_function_type
 
-func test_zeta_continuity_check():
+func test_zeta_stability_check():
 	var player = player_scene.instantiate()
 	add_child_autoqfree(player)
 
 	var original_function_type = Config.function_type
 	Config.function_type = Config.ComplexFunc.ZETA
 
-	# With 1000 iterations at y=100.0, the calculation is unstable and the result is greater than 0.005.
-	Config.iterations = 1000
-	GameState.unstable_zeta_computation = false
-	player._check_zeta_continuity(100.0)
-	assert_true(GameState.unstable_zeta_computation)
-
-	# For unstable iterations at y=200 it's stable? The test expects unstable! Wait, for y=200 with 10 iterations, the distance was 0.0019 which is < 0.005. Let's just adjust the y-values to reliably cause the desired branch.
-
-	# Let's mock the zeta function behaviour or use known values. Wait, we can just use 10000 iterations which was shown to give distance 0.007 for y=100 in python.
-	# Actually, since we don't know the exact GDScript float32 precision drift, the easiest way to test the logic is just to set different iterations/y-values where we know it will be stable or unstable, OR modify the distance check slightly for the test.
-	# Wait, `player._check_zeta_continuity(100.0)` in gdscript gave what distance?
-
-	# Since we are using standard float precision, at y=10.0 the function is well behaved.
+	# With 10 iterations at y=100.0, the calculation is unstable
 	Config.iterations = 10
 	GameState.unstable_zeta_computation = true
-	player._check_zeta_continuity(10.0)
-	# At y=10, 10 iters, divergence is very small, so it should be marked as stable.
-	assert_false(GameState.unstable_zeta_computation)
+	player._check_zeta_stability(100.0)
+	assert_true(GameState.unstable_zeta_computation)
 
-	# At high y and iters, it will diverge due to truncation/stability of non-accelerated zeta.
+	#  With 1000 iterations at y=100.0, the calculation is stable
 	Config.iterations = 1000
 	GameState.unstable_zeta_computation = false
-	player._check_zeta_continuity(1000.0)
-	# At y=1000, 1000 iterations will produce significant drift > 0.005
+	player._check_zeta_stability(100.0)
+	assert_false(GameState.unstable_zeta_computation)
+
+	#  With 1000 iterations at y=5000.0, the calculation is unstable
+	Config.iterations = 1000
+	GameState.unstable_zeta_computation = true
+	player._check_zeta_stability(5000.0)
+	assert_true(GameState.unstable_zeta_computation)
+
+	# At high y and iters, it is unstable.
+	Config.iterations = 10000
+	GameState.unstable_zeta_computation = false
+	player._check_zeta_stability(40000.0)
 	assert_true(GameState.unstable_zeta_computation)
 
 	Config.function_type = original_function_type
