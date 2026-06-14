@@ -300,3 +300,36 @@ func test_start_newton_walk():
 	assert_eq(GameState.newton_path.size(), 0)
 
 	Config.function_type = original_function_type
+
+func test_zeta_stability_check():
+	var player = player_scene.instantiate()
+	add_child_autoqfree(player)
+
+	var original_function_type = Config.function_type
+	Config.function_type = Config.ComplexFunc.ZETA
+
+	# With 10 iterations at y=100.0, the calculation is unstable
+	Config.iterations = 10
+	GameState.unstable_zeta_computation = true
+	player._check_zeta_stability(100.0)
+	assert_true(GameState.unstable_zeta_computation)
+
+	#  With 1000 iterations at y=100.0, the calculation is stable
+	Config.iterations = 1000
+	GameState.unstable_zeta_computation = false
+	player._check_zeta_stability(100.0)
+	assert_false(GameState.unstable_zeta_computation)
+
+	#  With 1000 iterations at y=5000.0, the calculation is unstable
+	Config.iterations = 1000
+	GameState.unstable_zeta_computation = true
+	player._check_zeta_stability(5000.0)
+	assert_true(GameState.unstable_zeta_computation)
+
+	# At high y and iters, it is unstable.
+	Config.iterations = 10000
+	GameState.unstable_zeta_computation = false
+	player._check_zeta_stability(40000.0)
+	assert_true(GameState.unstable_zeta_computation)
+
+	Config.function_type = original_function_type

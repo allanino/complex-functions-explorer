@@ -44,6 +44,7 @@ var last_t = 0.0
 var last_z: Vector2 = Vector2(0.0, 0.0)
 var last_valid_terrain_height: float = 0.0
 var last_newton_idx: int = 0
+var _last_checked_y_hundreds: int = -1
 
 # Zero detection history
 var mag_history: Array[float] = [1.0, 1.0, 1.0]
@@ -87,6 +88,9 @@ func teleport_to_world_pos(target_pos: Vector3) -> void:
 
 	global_position = target_pos
 
+	var complex_pos = Config.world_to_complex(global_position.x, global_position.z)
+	_check_zeta_stability(complex_pos.y)
+
 func _ready():
 	add_to_group("player")
 
@@ -97,6 +101,7 @@ func _ready():
 	var complex_pos = Config.world_to_complex(global_position.x, global_position.z)
 	last_t = complex_pos.y
 	last_z = complex_pos
+	_last_checked_y_hundreds = int(last_t / 100.0)
 	
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	current_f = ComplexField.get_field(global_position.x, global_position.z)
@@ -759,6 +764,11 @@ func _process(_delta):
 
 	last_z = frame_z
 
+	var current_hundreds = int(frame_z.y / 100.0)
+	if current_hundreds != _last_checked_y_hundreds:
+		_check_zeta_stability(frame_z.y)
+		_last_checked_y_hundreds = current_hundreds
+
 	if Config.show_curves and Config.show_curves_labels:
 		if re_label.visible:
 			re_label.global_position = re_label.global_position.lerp(_re_label_target_pos, _delta * 10.0)
@@ -770,6 +780,42 @@ func _process(_delta):
 		if im_label:
 			im_label.visible = false
 
+
+func _check_zeta_stability(y: float) -> void:
+	print("Checking for unstable at y = ", abs(y), " with iterations ", Config.iterations)
+	# For each y range, we set the minimum demanded iterations
+	var stable_bounds = {
+		[0.0, 100.0]: 100,
+		[100.0, 200.0]: 200,
+		[200.0, 500.0]: 400,
+		[500.0, 1000.0]: 1000,
+		[1000.0, 2000.0]: 1500,
+		[2000.0, 3000.0]: 2000,
+		[3000.0, 4000.0]: 3000,
+		[4000.0, 7000.0]: 4000,
+		[7000.0, 10000.0]: 6000,
+		[10000.0, 15000.0]: 7000,
+		[15000.0, 20000.0]: 9000,
+		[20000.0, 25000.0]: 10000
+	}
+	if Config.function.get("is_dirichlect", false):
+		# 30000 is about where the GPU float32 starts to give
+		# wrong results even with 10000 iterations
+		if abs(y) > 30000:
+			GameState.unstable_zeta_computation = true
+		else:
+			# We find the allowed range for this y
+			for y_range in stable_bounds.keys():
+				var y_low = y_range[0]
+				var y_high = y_range[1]
+				if abs(y) >= y_low and abs(y) < y_high:
+					var min_iters = stable_bounds[y_range]
+					# Now check if we have at least min_iters
+					if Config.iterations < min_iters:
+						GameState.unstable_zeta_computation = true
+					else:
+						GameState.unstable_zeta_computation = false
+					break
 
 func start_newton_walk():
 	if auto_walk_state == AutoWalkState.NONE:

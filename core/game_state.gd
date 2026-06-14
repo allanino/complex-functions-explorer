@@ -40,6 +40,11 @@ var missed_zeta_zero: bool = false:
 		if missed_zeta_zero == v: return
 		missed_zeta_zero = v
 		state_changed.emit("missed_zeta_zero")
+var unstable_zeta_computation: bool = false:
+	set(v):
+		if unstable_zeta_computation == v: return
+		unstable_zeta_computation = v
+		state_changed.emit("unstable_zeta_computation")
 var found_off_critical_line: bool = false:
 	set(v):
 		if found_off_critical_line == v: return
