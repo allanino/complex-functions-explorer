@@ -821,7 +821,7 @@ func start_newton_walk():
 		auto_walk_state = AutoWalkState.NEWTON_WALK
 		var complex_pos = Config.world_to_complex(global_position.x, global_position.z)
 
-		newton_target_z = ComplexField.newton_step(complex_pos, 2.0)[0].to_vector2()
+		newton_target_z = ComplexField.newton_step(complex_pos, 2.0)[0]
 		last_newton_idx = 1
 
 		newton_wait_timer = 0.1
@@ -855,7 +855,7 @@ func start_newton_walk():
 			# Cycle detection: check if we are jumping back and forth
 			loop_detected = false
 			for j in range(max(0, path.size() - 4), path.size()):
-				if path[j].distance_to(next_z.to_vector2()) < 1e-3:
+				if path[j].distance_to(next_z) < 1e-3:
 					loop_detected = true
 					break
 
@@ -868,7 +868,7 @@ func start_newton_walk():
 				if step_mult < 1.0:
 					step_mult = min(1.0, step_mult * 1.5)
 
-			path.append(next_z.to_vector2())
+			path.append(next_z)
 			min_x = min(min_x, next_z.x)
 			max_x = max(max_x, next_z.x)
 			min_y = min(min_y, next_z.y)

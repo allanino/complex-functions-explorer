@@ -1327,7 +1327,7 @@ static func find_zero(true_z: Vector2, debug: bool = false) -> Variant:
 				]
 			)
 
-	true_z = refined_z.to_vector2()
+	true_z = refined_z
 
 	if f_mag < 1e-2 && Config.function.get("is_dirichlect", false):
 		converged = true
