@@ -540,6 +540,14 @@ func _on_func_item_selected(index):
 func _on_input_item_selected(index: int):
 	_on_input_selected(input_button.get_item_id(index))
 
+func _input(event):
+	if event is InputEventKey and event.pressed and event.keycode == KEY_P and event.ctrl_pressed:
+		var target_index = func_button.get_item_index(Config.last_function_type)
+		if target_index >= 0:
+			func_button.select(target_index)
+			_on_func_item_selected(target_index)
+			get_viewport().set_input_as_handled()
+
 func _on_input_selected(f_type: int):
 	Config.input_function_type = f_type
 	var f_data = Config.FUNCTIONS.get(f_type, {})
