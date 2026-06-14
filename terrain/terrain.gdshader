@@ -866,7 +866,7 @@ void fragment() {
         }
 
         float core_critical = 0.0;
-        if (show_critical_stripe && is_dirichlect) {
+        if (show_critical_stripe && is_dirichlet) {
             compute_critical_stripe_highlight(world_pos, v_normal, final_emission, core_critical);
             ALBEDO = mix(ALBEDO, vec3(1.0, 0.655, 0.0), core_critical);
         }

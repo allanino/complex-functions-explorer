@@ -39,7 +39,7 @@ func _sync_all_uniforms():
 		mat.set_shader_parameter("function_type", Config.function_type)
 		mat.set_shader_parameter("input_function_type", Config.input_function_type)
 		mat.set_shader_parameter("color_scheme", Config.color_scheme)
-		mat.set_shader_parameter("is_dirichlect", Config.function.get("is_dirichlect", false))
+		mat.set_shader_parameter("is_dirichlet", Config.function.get("is_dirichlet", false))
 		mat.set_shader_parameter("is_multivalued", Config.function.get("is_multivalued", false))
 		mat.set_shader_parameter("rational_num_coeffs", Config.rational_num_coeffs)
 		mat.set_shader_parameter("rational_den_coeffs", Config.rational_den_coeffs)

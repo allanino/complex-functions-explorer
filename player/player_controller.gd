@@ -83,7 +83,7 @@ func teleport_to_world_pos(target_pos: Vector3) -> void:
 		target_pos = get_initial_position()
 
 		# Apply initial rotation if needed when resetting
-		if not Config.function.get("is_dirichlect", false) and not Config.function.has("initial_pos"):
+		if not Config.function.get("is_dirichlet", false) and not Config.function.has("initial_pos"):
 			rotation.y = - PI / 2.0
 
 	global_position = target_pos
@@ -95,7 +95,7 @@ func _ready():
 	add_to_group("player")
 
 	global_position = get_initial_position()
-	if not Config.function.get("is_dirichlect", false) and not Config.function.has("initial_pos"):
+	if not Config.function.get("is_dirichlet", false) and not Config.function.has("initial_pos"):
 		rotation.y = - PI / 2.0
 
 	var complex_pos = Config.world_to_complex(global_position.x, global_position.z)
@@ -228,7 +228,7 @@ func _unhandled_input(event):
 			Config.save_settings()
 		elif event.keycode == KEY_C:
 			var f_data = Config.function
-			if not f_data.get("is_dirichlect", false):
+			if not f_data.get("is_dirichlet", false):
 				return
 
 			if auto_walk_state == AutoWalkState.NONE:
@@ -249,7 +249,7 @@ func _unhandled_input(event):
 				auto_walk_state = AutoWalkState.NONE
 		elif event.keycode == KEY_R:
 			global_position = get_initial_position()
-			if not Config.function.get("is_dirichlect", false) and not Config.function.has("initial_pos"):
+			if not Config.function.get("is_dirichlet", false) and not Config.function.has("initial_pos"):
 				rotation.y = - PI / 2.0
 			else:
 				rotation.y = 0.0
@@ -797,7 +797,7 @@ func _check_zeta_stability(y: float) -> void:
 		[15000.0, 20000.0]: 9000,
 		[20000.0, 25000.0]: 10000
 	}
-	if Config.function.get("is_dirichlect", false):
+	if Config.function.get("is_dirichlet", false):
 		# 30000 is about where the GPU float32 starts to give
 		# wrong results even with 10000 iterations
 		if abs(y) > 30000:

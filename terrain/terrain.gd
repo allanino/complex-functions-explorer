@@ -207,7 +207,7 @@ func _update_terrain_material_uniforms(key: String):
 		var f_data = Config.function
 		terrain_material.set_shader_parameter("function_type", Config.function_type)
 		terrain_material.set_shader_parameter("input_function_type", Config.input_function_type)
-		terrain_material.set_shader_parameter("is_dirichlect", f_data.get("is_dirichlect", false))
+		terrain_material.set_shader_parameter("is_dirichlet", f_data.get("is_dirichlet", false))
 		terrain_material.set_shader_parameter("is_multivalued", f_data.get("is_multivalued", false))
 		return
 

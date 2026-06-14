@@ -394,7 +394,7 @@ func _update_zeros_list():
 	var children = zeros_list_label.get_children()
 	var child_idx = 0
 
-	var is_dirichlet = f_data.get("is_dirichlect", false)
+	var is_dirichlet = f_data.get("is_dirichlet", false)
 
 	for i in range(current_size - 1, max(-1, current_size - 101), -1):
 		var zero = GameState.visited_zeros[i]

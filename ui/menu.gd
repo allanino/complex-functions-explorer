@@ -564,7 +564,7 @@ func _on_func_selected(f_type: int):
 	Config.function_type = f_type
 	var f_data = Config.function
 
-	var is_dirichlect = f_data.get("is_dirichlect", false)
+	var is_dirichlet = f_data.get("is_dirichlet", false)
 	var iters_range = f_data.get("iters_range", {})
 	var has_iters = !iters_range.is_empty()
 	var is_rational = f_data.get("is_rational", false)
@@ -588,9 +588,9 @@ func _on_func_selected(f_type: int):
 		_on_func_rational_text_submitted(func_rational_input.text)
 	multivalued_slider.visible = is_multivalued_n
 	iter_slider.visible = has_iters
-	critical_checkbox.visible = is_dirichlect
-	auto_walk_checkbox.visible = is_dirichlect
-	rvm_checkbox.visible = is_dirichlect
+	critical_checkbox.visible = is_dirichlet
+	auto_walk_checkbox.visible = is_dirichlet
+	rvm_checkbox.visible = is_dirichlet
 
 	var is_multivalued = f_data.get("is_multivalued", false)
 	branch_k_slider.visible = is_multivalued
@@ -712,7 +712,7 @@ func _on_set_pos_pressed(_toggle_menu: bool = true):
 			player.teleport_to_world_pos(Vector3(target_pos.x, player.global_position.y, target_pos.y))
 
 		var f_data = Config.function
-		if f_data.get("is_dirichlect", false):
+		if f_data.get("is_dirichlet", false):
 			GameState.rvm_start_t = abs(Config.world_to_complex(0.0, player.global_position.z).y)
 
 		# Update auto-walk state

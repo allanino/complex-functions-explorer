@@ -277,7 +277,7 @@ base_color *=
         }
     }
 
-    if (show_critical_stripe && is_dirichlect) {
+    if (show_critical_stripe && is_dirichlet) {
         vec2 complex_pos = world_to_complex(world_pos.x, world_pos.y);
         if (complex_pos.x >= 0.0 && complex_pos.x <= 1.0) {
             base_color = mix(base_color, vec3(1.0), 0.15); // highlight
