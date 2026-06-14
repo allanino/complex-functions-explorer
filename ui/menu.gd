@@ -277,7 +277,9 @@ func _ready():
 	morph_style_dropdown.clear()
 	morph_style_dropdown.add_item("Disabled")
 	morph_style_dropdown.add_item("Linear")
-	morph_style_dropdown.add_item("Exponential")
+
+	# TODO: Implement better exponential morph style
+	#morph_style_dropdown.add_item("Exponential")
 
 	emit_signal("apply_aa_signal")
 	_disable_sliders_focus(self )
