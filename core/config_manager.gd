@@ -60,15 +60,16 @@ static var FUNCTIONS = {
 	"DIRICHLET_BETA": {
 		"name": "Dirichlet Beta",
 		"symbol": "β (σ > 0)",
+		"hidden": true,
 		"is_dirichlect": true,
 		"has_von_mangoldt": true,
 		"iters_range": [100.0, 10000.0, 100.0, 100.0],
 		"initial_pos": Vector3(5.0, 0.0, 0.0),
 	},
 	"DIRICHLET_BETA_REFLECTION": {
-		"name": "Dirichlet Beta (Analytic Continuation)",
+		"name": "Dirichlet Beta",
 		"symbol": "β (Analytic Continuation)",
-		"hidden": true,
+		"hidden": false,
 		"is_dirichlect": true,
 		"has_von_mangoldt": true,
 		"iters_range": [100.0, 10000.0, 100.0, 100.0],
