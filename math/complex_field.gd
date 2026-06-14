@@ -391,17 +391,23 @@ static func compute_zeta_taylor_patch(x: float, y: float, iters: int) -> Array:
 		eta_coeffs.append(Vector2.ZERO)
 
 	for n in range(max_terms):
-		var inner_sums = []
+		var inner_sums_x = PackedFloat64Array()
+		var inner_sums_y = PackedFloat64Array()
+		inner_sums_x.resize(K + 1)
+		inner_sums_y.resize(K + 1)
 		for k in range(K + 1):
-			inner_sums.append(Vector2.ZERO)
+			inner_sums_x[k] = 0.0
+			inner_sums_y[k] = 0.0
 
 		var binom = 1.0
 		for k in range(n + 1):
-			var base_term: Vector2
+			var base_term_x: float = 0.0
+			var base_term_y: float = 0.0
 			var log_k1: float = 0.0
 
 			if k == 0:
-				base_term = Vector2(float(binom), 0.0)
+				base_term_x = float(binom)
+				base_term_y = 0.0
 				log_k1 = 0.0
 			else:
 				var k1 = float(k + 1)
@@ -409,21 +415,27 @@ static func compute_zeta_taylor_patch(x: float, y: float, iters: int) -> Array:
 				var raw_theta = -y * log(k1)
 				var theta = fposmod(raw_theta, TAU)
 				var sign_k = 1.0 if k % 2 == 0 else -1.0
-				base_term = sign_k * float(binom) * amp * Vector2(cos(theta), sin(theta))
+				base_term_x = sign_k * float(binom) * amp * cos(theta)
+				base_term_y = sign_k * float(binom) * amp * sin(theta)
 				log_k1 = log(k1)
 
-			inner_sums[0] += base_term
+			inner_sums_x[0] += base_term_x
+			inner_sums_y[0] += base_term_y
 
-			var current_term = base_term
+			var current_term_x = base_term_x
+			var current_term_y = base_term_y
 			for m in range(1, K + 1):
-				current_term *= -log_k1
-				inner_sums[m] += current_term
+				current_term_x *= -log_k1
+				current_term_y *= -log_k1
+				inner_sums_x[m] += current_term_x
+				inner_sums_y[m] += current_term_y
 
 			binom = binom * (n - k) / (k + 1)
 
 		var div_pow2 = pow(2.0, float(n + 1))
 		for m in range(K + 1):
-			eta_coeffs[m] += (inner_sums[m] / div_pow2) / fact[m]
+			var v = Vector2(inner_sums_x[m] / div_pow2 / fact[m], inner_sums_y[m] / div_pow2 / fact[m])
+			eta_coeffs[m] += v
 
 	var d_coeffs = []
 	var base_d = 2.0 * pow(2.0, -x) * Vector2(cos(-y * LOG_2), sin(-y * LOG_2))
