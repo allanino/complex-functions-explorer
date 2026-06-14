@@ -756,8 +756,8 @@ void vertex() {
                 field_val = complex_mul(z_id, exp_val);
             }
 
-            if (length(fz) > 0.0) {
-                v_f_dir = normalize(fz);
+            if (length(field_val) > 0.0) {
+                v_f_dir = normalize(field_val);
             } else {
                 v_f_dir = vec2(0.0);
             }
