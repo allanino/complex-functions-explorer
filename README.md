@@ -37,25 +37,6 @@ Built with the **Godot Engine**, the project leverages modern rendering and audi
 *   **Spatial Audio:** A topographic drone responds to terrain height and phase, providing an auditory dimension to the mathematical exploration.
 *   **Dynamic World:** Features a dynamic day/night cycle with customizable duration, a static time mode, and adjustable sunrise direction.
 
-## Options
-Pressing the **Esc** key opens the settings menu, providing several ways to customize your experience:
-
-*   **Function:** Select complex functions (Zeta, Gamma, Dedekind Eta, etc.), choose height mapping (Logarithmic or Absolute), and configure parameters like iterations or rational expressions.
-*   **Environment:** Customize visual themes (Color Scheme), toggle level curves and the critical stripe, and control the time of day (**Freeze time** toggle) with precise duration and time settings.
-*   **Graphics:** Fine-tune rendering quality, including terrain detail, antialiasing modes (MSAA, FXAA, SMAA), view distance, and shadows.
-*   **Navigation:** Set precise coordinates (Real/Imaginary), adjust movement speed and camera height, and toggle automatic walking along the critical line.
-*   **HUD:** Customize on-screen information, such as the complex plane overlay, navigation data, and zeta zero detection panels.
-*   **Audio:** Manage volume levels for the background music and the terrain-responsive topographic drone.
-
-## Controls
-
-*   **Movement:** `W`, `A`, `S`, `D` keys.
-*   **Elevation:** `Space` (Double-press to reset height).
-*   **Sprint:** Hold `Shift`.
-*   **Slow Walk:** Hold `Ctrl`.
-*   **Menu:** `Esc` to toggle settings.
-*   **Automatic Walking:** `Ctrl + C` (when viewing the Zeta function) to walk along the critical line.
-
 ## Development
 
 ### Building the GDExtension (C++)

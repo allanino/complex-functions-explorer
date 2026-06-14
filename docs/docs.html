@@ -197,9 +197,8 @@
             <div class="brand">Complex Functions Explorer</div>
             <div class="muted">Documentation</div>
             <nav>
-                <a href="#curve-levels">Curve Levels</a>
+                <a href="#controls">Controls</a>
                 <a href="#functions">Functions</a>
-                <a href="#options">Options</a>
             </nav>
         </aside>
         <main class="main">
@@ -210,51 +209,33 @@
 
             <div class="content">
                 <div class="container">
-
-                    <section id="curve-levels">
-                        <h2>Curve Levels</h2>
-                        <p>
-                            Superimposed on the terrain are contour lines, or <strong>curve levels</strong>, which
-                            provide a
-                            geometric reference for the values of the function. These curves make it possible to trace
-                            how the
-                            real and imaginary components evolve across the complex plane.
-                        </p>
-
-                        <div class="domain-section">
-                            <div class="domain-text">
-                                <ul>
-                                    <li>
-                                        <strong>Black Curves (Real Part):</strong>
-                                        These correspond to level sets where the real part of the function,
-                                        \( \operatorname{Re}(f(s)) \), takes integer values. They reveal the underlying
-                                        structure of the function’s real transformation.
-                                    </li>
-
-                                    <li>
-                                        <strong>White Curves (Imaginary Part):</strong>
-                                        These correspond to level sets where the imaginary part,
-                                        \( \operatorname{Im}(f(s)) \), takes integer values. Together with the black
-                                        curves,
-                                        they form a curvilinear grid that reflects the conformal character of the
-                                        mapping.
-                                    </li>
-                                </ul>
-                            </div>
-
-                            <div class="domain-images">
-                                <div class="domain-image">
-                                    <img src="images/curve_levels.png" alt="Example of curve levels">
-                                </div>
-                            </div>
-                        </div>
-
-                        <p>
-                            When a black curve and a white curve intersect at the base of the terrain, the point may
-                            correspond
-                            to a <strong>zero</strong> of the function, where both the real and imaginary parts vanish
-                            simultaneously.
-                        </p>
+                    <section id="controls">
+                        <h2>Controls</h2>
+                        <ul>
+                            <li>
+                                <strong>Movement:</strong> `W`, `A`, `S`, `D` keys.
+                            </li>
+                            <li>
+                                <strong>Elevation:</strong> `Space` (Double-press to reset height).
+                            </li>
+                            <li>
+                                <strong>Sprint:</strong> Hold `Shift`.
+                            </li>
+                            <li>
+                                <strong>Slow Walk:</strong> Hold `Ctrl`.
+                            </li>
+                            <li>
+                                <strong>Menu:</strong> `Esc` to toggle settings.
+                            </li>
+                            <li>
+                                <strong>Critical Walking:</strong> `Ctrl + C` (when viewing the Zeta function) to walk
+                                along the critical line.
+                            </li>
+                            <li>
+                                <strong>Newton Walking:</strong> `Ctrl + Z` to walk to a zero in the context of the
+                                current function.
+                            </li>
+                        </ul>
                     </section>
 
                     <section id="functions">
@@ -311,9 +292,12 @@
 
                         <h4>Borwein's Algorithm</h4>
                         <p>
-                            To efficiently and accurately compute the Riemann zeta function, we also utilize <strong>Borwein's algorithm</strong>.
-                            This method provides an accelerated approximation for the Zeta function, ensuring rapid convergence and numerical stability.
-                            We specifically use it in our zeros finder to refine the positions of potential zero candidates, achieving high precision in locating the non-trivial zeros on the critical line.
+                            To efficiently and accurately compute the Riemann zeta function, we also utilize
+                            <strong>Borwein's algorithm</strong>.
+                            This method provides an accelerated approximation for the Zeta function, ensuring rapid
+                            convergence and numerical stability.
+                            We specifically use it in our zeros finder to refine the positions of potential zero
+                            candidates, achieving high precision in locating the non-trivial zeros on the critical line.
                         </p>
 
                         <h3>The Dirichlet beta function</h3>
@@ -408,41 +392,8 @@
                         </div>
                     </section>
 
-                    <section id="options">
-                        <h2>Options</h2>
-                        <p>
-                            Pressing the <strong>Esc</strong> key opens the settings menu, providing several ways to
-                            customize
-                            your experience:
-                        </p>
-                        <ul>
-                            <li><strong>Function:</strong> Select complex functions (Zeta, Gamma, Dedekind Eta, etc.),
-                                choose
-                                height mapping (Logarithmic or Absolute), and configure parameters like iterations or
-                                rational
-                                expressions.</li>
-                            <li><strong>Environment:</strong> Customize visual themes (Color Scheme), toggle level
-                                curves and
-                                the critical stripe, and control the time of day (<strong>Freeze time</strong> toggle)
-                                with
-                                precise duration and time settings.</li>
-                            <li><strong>Graphics:</strong> Fine-tune rendering quality, including terrain detail,
-                                antialiasing
-                                modes (MSAA, FXAA, SMAA), view distance, and shadows.</li>
-                            <li><strong>Navigation:</strong> Set precise coordinates (Real/Imaginary), adjust movement
-                                speed and
-                                camera height, and toggle automatic walking along the critical line.</li>
-                            <li><strong>HUD:</strong> Customize on-screen information, such as the complex plane
-                                overlay,
-                                navigation data, and zeta zero detection panels.</li>
-                            <li><strong>Audio:</strong> Manage volume levels for the background music and the
-                                terrain-responsive
-                                topographic drone.</li>
-                        </ul>
-                    </section>
-
                     <footer>
-                        <p>&copy; 2026 Complex Functions Explorer. Built with Godot Engine.</p>
+                        <p>Complex Functions Explorer • Built with Godot • Open Source • © 2026.</p>
                     </footer>
                 </div>
             </div>
