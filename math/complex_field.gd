@@ -837,6 +837,62 @@ static func eta_continuation_with_derivatives(x: float, y: float, iters: int) ->
 	return [val, dx, d2x]
 
 
+static func dirichlet_beta_with_derivatives(x: float, y: float, iters: int) -> Array:
+	if ClassDB.class_exists("ComplexFunctions"):
+		var ext = ClassDB.instantiate("ComplexFunctions")
+		var res = ext.call("dirichlet_beta_with_derivatives", x, y, iters)
+		return [Vector2(res[0], res[1]), Vector2(res[2], res[3]), Vector2(res[4], res[5])]
+
+	if x < -1.0:
+		return [Vector2(NAN, NAN), Vector2(NAN, NAN), Vector2(NAN, NAN)]
+
+	var beta_x = 0.0
+	var beta_y = 0.0
+	var dbeta_dx_x = 0.0
+	var dbeta_dx_y = 0.0
+	var d2beta_dx2_x = 0.0
+	var d2beta_dx2_y = 0.0
+
+	for n in range(0, iters, 2):
+		var kf = 2.0 * float(n) + 1.0
+		var amp = pow(kf, -x)
+		var log_k = log(kf)
+		var raw_theta = -y * log_k
+		var theta = fposmod(raw_theta, TAU)
+		var term_x = amp * cos(theta)
+		var term_y = amp * sin(theta)
+
+		beta_x += term_x
+		beta_y += term_y
+
+		dbeta_dx_x -= log_k * term_x
+		dbeta_dx_y -= log_k * term_y
+
+		d2beta_dx2_x += (log_k * log_k) * term_x
+		d2beta_dx2_y += (log_k * log_k) * term_y
+
+		var kf2 = 2.0 * float(n + 1) + 1.0
+		var amp2 = pow(kf2, -x)
+		var log_k2 = log(kf2)
+		var raw_theta2 = -y * log_k2
+		var theta2 = fposmod(raw_theta2, TAU)
+		var term2_x = amp2 * cos(theta2)
+		var term2_y = amp2 * sin(theta2)
+
+		beta_x -= term2_x
+		beta_y -= term2_y
+
+		dbeta_dx_x += log_k2 * term2_x
+		dbeta_dx_y += log_k2 * term2_y
+
+		d2beta_dx2_x -= (log_k2 * log_k2) * term2_x
+		d2beta_dx2_y -= (log_k2 * log_k2) * term2_y
+
+		if amp < 1e-4 or amp2 < 1e-4 or amp > 1e4 or amp2 > 1e4: break
+
+	return [Vector2(beta_x, beta_y), Vector2(dbeta_dx_x, dbeta_dx_y), Vector2(d2beta_dx2_x, d2beta_dx2_y)]
+
+
 static func log_beta_continuation_with_derivatives(x: float, y: float, iters: int) -> Array:
 	if ClassDB.class_exists("ComplexFunctions"):
 		var ext = ClassDB.instantiate("ComplexFunctions")
