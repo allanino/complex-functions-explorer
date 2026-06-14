@@ -176,7 +176,7 @@ int calculate_branch_offset(vec3 world_v_pos, vec3 cam_pos, out bool in_portal) 
         float px = cam_pos.x + r * (world_v_pos.x - cam_pos.x);
         float py = cam_pos.y + r * (world_v_pos.y - cam_pos.y);
 
-        if (function_type == 18 || function_type == 19) {
+        if (function_type == MULTIVALUED_ASIN || function_type == MULTIVALUED_ACOS) {
             float threshold = 10.0 * zoom_factor;
             if ((px >= threshold && px < threshold + portal_width) ||
                 (px <= -threshold && px > -threshold - portal_width)) {
@@ -191,7 +191,7 @@ int calculate_branch_offset(vec3 world_v_pos, vec3 cam_pos, out bool in_portal) 
         }
 
         if (in_portal) {
-            if (function_type == 18 || function_type == 19) { // ASIN or ACOS
+            if (function_type == MULTIVALUED_ASIN || function_type == MULTIVALUED_ACOS) { // ASIN or ACOS
                 bool is_even = (current_branch % 2 == 0);
                 if (px >= 0.0) {
                     branch_offset = is_even ? 1 : -1;
@@ -329,7 +329,7 @@ void compute_multivalued_highlight(vec3 w_pos, inout vec3 final_emission) {
     float dist_to_cut = abs(w_pos.z);
     bool in_cut = false;
 
-    if (function_type == 18 || function_type == 19) {
+    if (function_type == MULTIVALUED_ASIN || function_type == MULTIVALUED_ACOS) {
         float threshold = 10.0 * zoom_factor;
         if ((w_pos.x >= threshold && w_pos.x < threshold + portal_width) ||
             (w_pos.x <= -threshold && w_pos.x > -threshold - portal_width)) {
