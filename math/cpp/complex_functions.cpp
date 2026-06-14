@@ -209,7 +209,7 @@ PackedFloat64Array ComplexFunctions::dirichlet_eta_with_derivatives(double x, do
 	// Safety allocation size: 3 complex numbers * 2 components (Real, Imag) = 6 slots
 	result.resize(6);
 
-	if (x < -1.0) {
+	if (x <= 1e-3) {
 		result[0] = NAN; result[1] = NAN; // eta
 		result[2] = NAN; result[3] = NAN; // deta_dx
 		result[4] = NAN; result[5] = NAN; // d2eta_dx2
@@ -259,7 +259,7 @@ PackedFloat64Array ComplexFunctions::dirichlet_eta_with_derivatives(double x, do
 
 		actual_iters = n + 1;
 
-	   if (amp < 1e-4 || amp2 < 1e-4 || amp > 1e4 || amp2 > 1e4) {
+	   if (amp < 1e-4 || amp2 < 1e-4) {
 			break;
 		}
 	}
@@ -813,7 +813,7 @@ PackedFloat64Array ComplexFunctions::dirichlet_beta_with_derivatives(double x, d
 	PackedFloat64Array result;
 	result.resize(6);
 
-	if (x < -1.0) {
+	if (x <= 1e-3) {
 		result[0] = NAN; result[1] = NAN;
 		result[2] = NAN; result[3] = NAN;
 		result[4] = NAN; result[5] = NAN;
@@ -857,7 +857,7 @@ PackedFloat64Array ComplexFunctions::dirichlet_beta_with_derivatives(double x, d
 		d2beta_dx2_x -= (log_k2 * log_k2) * term2_x;
 		d2beta_dx2_y -= (log_k2 * log_k2) * term2_y;
 
-		if (amp < 1e-6 || amp2 < 1e-6 || amp > 1e6 || amp2 > 1e6) break;
+		if (amp < 1e-4 || amp2 < 1e-4) break;
 	}
 
 	result[0] = beta_x; result[1] = beta_y;

@@ -2,13 +2,13 @@ extends Node
 
 const PRESETS = {
 	"Default": {
-		"terrain_detail": 1,
-		"antialiasing_mode": 1,
+		"terrain_detail": 0,
+		"antialiasing_mode": 0,
 		"show_curves": true,
 		"show_curves_labels": false,
 		"show_critical_stripe": false,
 		"show_position_marker": false,
-		"view_distance": 15,
+		"view_distance": 10,
 		"show_flow": false,
 		"color_scheme": 0,
 		"freeze_time": false,
@@ -44,8 +44,8 @@ const PRESETS = {
 		"drone_volume": 100.0
 	},
 	"Mysterious": {
-		"terrain_detail": 1,
-		"antialiasing_mode": 1,
+		"terrain_detail": 0,
+		"antialiasing_mode": 0,
 		"show_curves": false,
 		"show_curves_labels": false,
 		"show_critical_stripe": false,

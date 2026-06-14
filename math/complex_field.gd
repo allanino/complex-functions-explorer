@@ -129,7 +129,7 @@ const LOG_2 = 0.6931471805599453
 const LOG_PI = 1.1447298858494002
 
 static func dirichlet_eta(x: float, y: float, iterations: int) -> Vector2:
-	if x < -1.0: return Vector2(NAN, NAN)
+	if x <= 1e-3: return Vector2(NAN, NAN)
 	if iterations <= 0: return Vector2.ZERO
 	var eta = Vector2.ZERO
 	var actual_iters = 0
@@ -149,7 +149,7 @@ static func dirichlet_eta(x: float, y: float, iterations: int) -> Vector2:
 
 		actual_iters = n + 1
 
-		if (amp < 1e-4 || amp2 < 1e-4 || amp > 1e4 || amp2 > 1e4): break
+		if (amp < 1e-4 || amp2 < 1e-4): break
 
 	if actual_iters > 0 and x >= 0.5:
 		var next_n = float(actual_iters + 1)
@@ -162,7 +162,7 @@ static func dirichlet_eta(x: float, y: float, iterations: int) -> Vector2:
 	return eta
 
 static func dirichlet_beta(x: float, y: float, iterations: int) -> Vector2:
-	if x < -1.0: return Vector2(NAN, NAN)
+	if x <= 1e-3: return Vector2(NAN, NAN)
 	if iterations <= 0: return Vector2.ZERO
 	var beta = Vector2.ZERO
 	for n in range(0, iterations, 2):
@@ -178,7 +178,7 @@ static func dirichlet_beta(x: float, y: float, iterations: int) -> Vector2:
 		var theta2 = fposmod(raw_theta2, TAU)
 		beta -= amp2 * Vector2(cos(theta2), sin(theta2))
 
-		if (amp < 1e-4 || amp2 < 1e-4 || amp > 1e4 || amp2 > 1e4): break
+		if (amp < 1e-4 || amp2 < 1e-4): break
 	return beta
 
 static func zeta(x: float, y: float) -> Vector2:
@@ -572,7 +572,7 @@ static func dirichlet_eta_with_derivatives(x: float, y: float, iters: int) -> Ar
 		var ext = ClassDB.instantiate("ComplexFunctions")
 		var res = ext.call("dirichlet_eta_with_derivatives", x, y, iters)
 		return [Vector2(res[0], res[1]), Vector2(res[2], res[3]), Vector2(res[4], res[5])]
-	if x < -1.0: return [Vector2(NAN, NAN), Vector2(NAN, NAN), Vector2(NAN, NAN)]
+	if x <= 1e-3: return [Vector2(NAN, NAN), Vector2(NAN, NAN), Vector2(NAN, NAN)]
 	var eta = Vector2.ZERO
 	var deta_dx = Vector2.ZERO
 	var d2eta_dx2 = Vector2.ZERO
@@ -600,7 +600,7 @@ static func dirichlet_eta_with_derivatives(x: float, y: float, iters: int) -> Ar
 
 		actual_iters = n + 1
 
-		if amp < 1e-4 or amp2 < 1e-4 or amp > 1e4 or amp2 > 1e4:
+		if amp < 1e-4 or amp2 < 1e-4:
 			break
 
 	if actual_iters > 0 and x >= 0.5:
@@ -843,7 +843,7 @@ static func dirichlet_beta_with_derivatives(x: float, y: float, iters: int) -> A
 		var res = ext.call("dirichlet_beta_with_derivatives", x, y, iters)
 		return [Vector2(res[0], res[1]), Vector2(res[2], res[3]), Vector2(res[4], res[5])]
 
-	if x < -1.0:
+	if x <= 1e-3:
 		return [Vector2(NAN, NAN), Vector2(NAN, NAN), Vector2(NAN, NAN)]
 
 	var beta_x = 0.0
@@ -888,7 +888,7 @@ static func dirichlet_beta_with_derivatives(x: float, y: float, iters: int) -> A
 		d2beta_dx2_x -= (log_k2 * log_k2) * term2_x
 		d2beta_dx2_y -= (log_k2 * log_k2) * term2_y
 
-		if amp < 1e-4 or amp2 < 1e-4 or amp > 1e4 or amp2 > 1e4: break
+		if amp < 1e-4 or amp2 < 1e-4: break
 
 	return [Vector2(beta_x, beta_y), Vector2(dbeta_dx_x, dbeta_dx_y), Vector2(d2beta_dx2_x, d2beta_dx2_y)]
 

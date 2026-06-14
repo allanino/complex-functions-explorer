@@ -339,7 +339,7 @@ vec2 complex_log_sin(float x, float y) {
 //-------------------------------------------------------------------------
 
 ComplexFieldData dirichlet_eta_with_derivatives(float x, float y, int iters) {
-    if (x < -1.0) { return ComplexFieldData(vec2(uintBitsToFloat(0x7FC00000u)), vec2(uintBitsToFloat(0x7FC00000u)), vec2(uintBitsToFloat(0x7FC00000u))); }
+    if (x <= 1e-3) { return ComplexFieldData(vec2(uintBitsToFloat(0x7FC00000u)), vec2(uintBitsToFloat(0x7FC00000u)), vec2(uintBitsToFloat(0x7FC00000u))); }
     vec2 eta = vec2(0.0);
     vec2 deta_dx = vec2(0.0);
     int actual_iters = 0;
@@ -371,7 +371,7 @@ ComplexFieldData dirichlet_eta_with_derivatives(float x, float y, int iters) {
         // We are basically clamping the flat planice x > 1 restricting amp < 1e-4
         // and also preventing overflow when x is very negative by clamping amp > 1e4
         // This improves performance greatly on the acutally interesting region around the critical strip
-        if (amp < 1e-4 || amp2 < 1e-4 || amp > 1e4 || amp2 > 1e4) break;
+        if (amp < 1e-4 || amp2 < 1e-4) break;
     }
 
     if (actual_iters > 0 && x >= 0.5) {
@@ -400,7 +400,7 @@ ComplexFieldData dirichlet_eta_with_derivatives(float x, float y, int iters) {
 }
 
 ComplexFieldData dirichlet_beta_with_derivatives(float x, float y, int iters) {
-    if (x < -1.0) { return ComplexFieldData(vec2(uintBitsToFloat(0x7FC00000u)), vec2(uintBitsToFloat(0x7FC00000u)), vec2(uintBitsToFloat(0x7FC00000u))); }
+    if (x <= 1e-3) { return ComplexFieldData(vec2(uintBitsToFloat(0x7FC00000u)), vec2(uintBitsToFloat(0x7FC00000u)), vec2(uintBitsToFloat(0x7FC00000u))); }
     vec2 beta = vec2(0.0);
     vec2 dbeta_dx = vec2(0.0);
     for (int n = 0; n < iters; n += 2) {
@@ -426,7 +426,7 @@ ComplexFieldData dirichlet_beta_with_derivatives(float x, float y, int iters) {
         beta -= term2;
         dbeta_dx += log_k2 * term2;
 
-       if (amp < 1e-4 || amp2 < 1e-4 || amp > 1e4 || amp2 > 1e4) break;
+       if (amp < 1e-4 || amp2 < 1e-4) break;
     }
     ComplexFieldData result;
     result.value = beta;

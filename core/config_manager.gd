@@ -23,8 +23,8 @@ static func _load_shader_enums(path: String) -> void:
 
 static var FUNCTIONS = {
 	"ZETA": {
-		"name": "Zeta",
-		"symbol": "ζ (σ > 0)",
+		"name": "Riemann Zeta (σ > 0)",
+		"symbol": "ζ",
 		"hidden": true,
 		"is_dirichlet": true,
 		"has_von_mangoldt": true,
@@ -33,7 +33,7 @@ static var FUNCTIONS = {
 		"initial_pos": Vector3(5.0, 0.0, 0.0),
 	},
 	"ZETA_CONTINUATION": {
-		"name": "Zeta",
+		"name": "Riemann Zeta",
 		"symbol": "ζ",
 		"is_dirichlet": true,
 		"has_von_mangoldt": true,
@@ -41,15 +41,15 @@ static var FUNCTIONS = {
 		"initial_pos": Vector3(5.0, 0.0, 0.0),
 	},
 	"ZETA_POWER_SERIES": {
-		"name": "Zeta (power series)",
+		"name": "Riemann Zeta (power series)",
 		"symbol": "ζ",
 		"is_dirichlet": true,
 		"has_von_mangoldt": true,
 		"iters_range": [100.0, 10000.0, 100.0, 100.0],
-		"hidden": false,
+		"hidden": true,
 	},
 	"ZETA_BORWEIN": {
-		"name": "Zeta Borwein",
+		"name": "Riemann Zeta (Borwein)",
 		"symbol": "ζ",
 		"is_dirichlet": true,
 		"has_von_mangoldt": true,
@@ -63,7 +63,7 @@ static var FUNCTIONS = {
 		"has_von_mangoldt": true,
 		"iters_range": [100.0, 10000.0, 100.0, 100.0],
 		"initial_pos": Vector3(5.0, 0.0, 0.0),
-		"hidden": true,
+		"hidden": false,
 	},
 	"DIRICHLET_ETA_CONTINUATION": {
 		"name": "Dirichlet Eta",
@@ -74,7 +74,7 @@ static var FUNCTIONS = {
 		"initial_pos": Vector3(5.0, 0.0, 0.0),
 	},
 	"DIRICHLET_ETA_BORWEIN": {
-		"name": "Eta Borwein",
+		"name": "Dirichlet Eta (Borwein)",
 		"symbol": "η",
 		"is_dirichlet": true,
 		"has_von_mangoldt": true,
@@ -83,8 +83,8 @@ static var FUNCTIONS = {
 	},
 
 	"DIRICHLET_BETA": {
-		"name": "Dirichlet Beta",
-		"symbol": "β (σ > 0)",
+		"name": "Dirichlet Beta (σ > 0)",
+		"symbol": "β",
 		"hidden": true,
 		"is_dirichlet": true,
 		"has_von_mangoldt": true,
@@ -93,7 +93,7 @@ static var FUNCTIONS = {
 	},
 	"DIRICHLET_BETA_CONTINUATION": {
 		"name": "Dirichlet Beta",
-		"symbol": "β (Analytic Continuation)",
+		"symbol": "β",
 		"hidden": false,
 		"is_dirichlet": true,
 		"has_von_mangoldt": true,
