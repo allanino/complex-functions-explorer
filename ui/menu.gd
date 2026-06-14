@@ -545,7 +545,10 @@ func _input(event):
 		var target_index = func_button.get_item_index(Config.last_function_type)
 		if target_index >= 0:
 			func_button.select(target_index)
+			var was_syncing = _syncing_ui
+			_syncing_ui = true
 			_on_func_item_selected(target_index)
+			_syncing_ui = was_syncing
 			get_viewport().set_input_as_handled()
 
 func _on_input_selected(f_type: int):
