@@ -1176,7 +1176,8 @@ func toggle_menu(applied: bool = false):
 
 	else:
 		emit_signal("menu_closed")
-		Config.morph_style = Config.MorphStyle.DISABLED
+		if not detach_controller.visible and not detach_controller.is_detaching:
+			Config.morph_style = Config.MorphStyle.DISABLED
 		tooltip_manager.hide_tooltip()
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 		if not applied:
