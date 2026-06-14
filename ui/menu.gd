@@ -621,6 +621,10 @@ func _on_freeze_time_toggled(pressed: bool):
 
 
 func _on_set_pos_pressed(_toggle_menu: bool = true):
+	GameState.loading = true
+	await get_tree().process_frame
+	await get_tree().process_frame
+
 	var audio = get_node_or_null("/root/Main/Audio")
 	if audio and audio.has_method("trigger_teleport_fade"):
 		audio.trigger_teleport_fade()
@@ -721,6 +725,8 @@ func _on_set_pos_pressed(_toggle_menu: bool = true):
 	preset_controller.update_preset_button_text()
 	if _toggle_menu:
 		toggle_menu(true)
+
+	GameState.loading = false
 
 
 func _sync_ui_to_config():
@@ -871,6 +877,7 @@ func _on_re_text_submitted(new_text: String):
 		var target_x = Config.complex_to_world(re, current_complex.y).x
 		GameState.loading = true
 		await get_tree().process_frame
+		await get_tree().process_frame
 		player.teleport_to_world_pos(Vector3(target_x, player.global_position.y, player.global_position.z))
 		GameState.loading = false
 
@@ -884,6 +891,7 @@ func _on_im_text_submitted(new_text: String):
 		var current_complex = Config.world_to_complex(player.global_position.x, player.global_position.z)
 		var target_z = Config.complex_to_world(current_complex.x, im).y
 		GameState.loading = true
+		await get_tree().process_frame
 		await get_tree().process_frame
 		player.teleport_to_world_pos(Vector3(player.global_position.x, player.global_position.y, target_z))
 		GameState.loading = false
