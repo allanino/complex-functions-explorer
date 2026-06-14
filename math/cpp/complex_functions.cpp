@@ -770,7 +770,7 @@ PackedFloat64Array ComplexFunctions::_find_zero_core(double x, double y, int ite
 
 		double z_dist = std::hypot(next_x - refined_x, next_y - refined_y);
 
-		if (f_mag < 1e-5 || z_dist < 1e-5) {
+		if (f_mag < 1e-5 || z_dist < 1e-4) {
 			refined_x = next_x;
 			refined_y = next_y;
 			converged = true;

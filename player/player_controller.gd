@@ -2,7 +2,7 @@ extends CharacterBody3D
 
 var enable_joystick: bool = false
 @export var run_demo: bool = false
-var _demo_y_10000_reached: bool = false
+var _demo_y_final_reached: bool = false
 @export var zeros_debug: bool = true
 
 const MOUSE_SENSITIVITY = 0.002
@@ -319,12 +319,12 @@ func _physics_process(delta):
 		current_f = ComplexField.get_field(global_position.x, global_position.z)
 	current_mag = current_f.length()
 
-	if run_demo and not _demo_y_10000_reached and current_z.y >= 10000.0:
-		_demo_y_10000_reached = true
+	if run_demo and not _demo_y_final_reached and current_z.y >= 6000.0:
+		_demo_y_final_reached = true
 		var tween = create_tween().set_process_mode(Tween.TWEEN_PROCESS_PHYSICS)
-		tween.tween_property(Config, "speed_near_zeros", 100.0, 1.0)
+		tween.tween_property(Config, "speed_near_zeros", 100.0, 3.0)
 		tween.tween_property(Config, "camera_height", 16.0, 3.0)
-		tween.tween_property(Config, "movement_speed", 150.0, 3.0)
+		tween.tween_property(Config, "movement_speed", 100.0, 3.0)
 
 	if auto_walk_state != AutoWalkState.NONE:
 		var manual_input = Input.get_vector("move_left", "move_right", "move_forward", "move_backward")
@@ -341,7 +341,7 @@ func _physics_process(delta):
 		current_speed = scaled_movement_speed * speed_factor
 
 	if auto_walk_state != AutoWalkState.NONE:
-		if not _demo_y_10000_reached:
+		if not _demo_y_final_reached:
 			current_speed = min(current_speed, 50.0)
 		else:
 			current_speed = min(current_speed, 100.0)
@@ -790,9 +790,9 @@ func _check_zeta_stability(y: float) -> void:
 		[500.0, 1000.0]: 1000,
 		[1000.0, 2000.0]: 1500,
 		[2000.0, 3000.0]: 2000,
-		[3000.0, 4000.0]: 3000,
-		[4000.0, 7000.0]: 4000,
-		[7000.0, 11000.0]: 5000,
+		[3000.0, 7000.0]: 3000,
+		[7000.0, 9000.0]: 4000,
+		[9000.0, 11000.0]: 5000,
 		[11000.0, 15000.0]: 6000,
 		[15000.0, 20000.0]: 8000,
 		[20000.0, 25000.0]: 10000

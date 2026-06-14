@@ -1284,11 +1284,11 @@ static func find_zero(true_z: Vector2, debug: bool = false) -> Variant:
 		var ext = ClassDB.instantiate("ComplexFunctions")
 		var res = []
 		if Config.function_type == Config.ComplexFunc.ZETA_CONTINUATION:
-			res = ext.call("zeta_find_zero", true_z.x, true_z.y, Config.iterations, 0.6, 0.3, debug)
+			res = ext.call("zeta_find_zero", true_z.x, true_z.y, int(Config.iterations * 0.6), 0.6, 0.3, debug)
 		elif Config.function_type == Config.ComplexFunc.DIRICHLET_ETA_CONTINUATION or Config.function_type == Config.ComplexFunc.DIRICHLET_ETA:
-			res = ext.call("eta_find_zero", true_z.x, true_z.y, Config.iterations, 0.6, 0.3, debug)
+			res = ext.call("eta_find_zero", true_z.x, true_z.y, int(Config.iterations * 0.6), 0.6, 0.3, debug)
 		elif Config.function_type == Config.ComplexFunc.DIRICHLET_BETA_CONTINUATION:
-			res = ext.call("beta_find_zero", true_z.x, true_z.y, Config.iterations, 0.6, 0.3, debug)
+			res = ext.call("beta_find_zero", true_z.x, true_z.y, int(Config.iterations * 0.6), 0.6, 0.3, debug)
 
 		if res.size() == 2:
 			return Vector2(res[0], res[1])
@@ -1315,7 +1315,7 @@ static func find_zero(true_z: Vector2, debug: bool = false) -> Variant:
 			z_dist = sqrt((next_z.x - refined_z.x) ** 2 + (next_z.y - refined_z.y) ** 2)
 		else:
 			z_dist = next_z.distance_to(refined_z)
-		if f_mag < 1e-5 or z_dist < 1e-5:
+		if f_mag < 1e-5 or z_dist < 1e-4:
 			converged = true
 			break
 
