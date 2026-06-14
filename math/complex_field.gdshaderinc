@@ -803,6 +803,57 @@ ComplexFieldData eta_continuation_with_derivatives(float x, float y, int iters) 
     return res;
 }
 
+
+ComplexFieldData log_beta_continuation_with_derivatives(float x, float y, int iters) {
+    if (x >= 0.5) {
+        ComplexFieldData b_data = dirichlet_beta_with_derivatives(x, y, iters);
+        ComplexFieldData res;
+        res.value = complex_log(b_data.value.x, b_data.value.y);
+        res.dx = complex_div(b_data.dx, b_data.value);
+        res.dy = vec2(-res.dx.y, res.dx.x);
+        return res;
+    }
+
+    vec2 s = vec2(x, y);
+    vec2 s1 = vec2(1.0 - x, -y);
+
+    float log_pi_2 = log(PI / 2.0);
+    vec2 log_sum = complex_mul(s - vec2(1.0, 0.0), vec2(log_pi_2, 0.0));
+    vec2 ratio = vec2(log_pi_2, 0.0);
+
+    vec2 cls_val = complex_log_sin((PI * 0.5) * (1.0 - x), -(PI * 0.5) * y);
+    log_sum += cls_val;
+
+    vec2 cot_pi_s1_2 = complex_cot((PI * 0.5) * (1.0 - x), -(PI * 0.5) * y);
+    ratio -= (PI * 0.5) * cot_pi_s1_2;
+
+    ComplexFieldData lg_data = complex_log_gamma_with_derivatives(s1.x, s1.y);
+    log_sum += lg_data.value;
+    ratio -= lg_data.dx;
+
+    ComplexFieldData ref_data = dirichlet_beta_with_derivatives(s1.x, s1.y, iters);
+    log_sum += complex_log(ref_data.value.x, ref_data.value.y);
+    ratio -= complex_div(ref_data.dx, ref_data.value);
+
+    ComplexFieldData res;
+    res.value = log_sum;
+    res.dx = ratio;
+    res.dy = vec2(-res.dx.y, res.dx.x);
+    return res;
+}
+
+ComplexFieldData beta_continuation_with_derivatives(float x, float y, int iters) {
+    if (x >= 0.5) {
+        return dirichlet_beta_with_derivatives(x, y, iters);
+    }
+    ComplexFieldData log_b = log_beta_continuation_with_derivatives(x, y, iters);
+    ComplexFieldData res;
+    res.value = complex_exp(log_b.value.x, log_b.value.y);
+    res.dx = complex_mul(res.value, log_b.dx);
+    res.dy = vec2(-res.dx.y, res.dx.x);
+    return res;
+}
+
 ComplexFieldData zeta_continuation_with_derivatives(float x, float y, int iters) {
     ComplexFieldData log_z = log_zeta_continuation_with_derivatives(x, y, iters);
     ComplexFieldData res;
@@ -1251,6 +1302,7 @@ ComplexFieldData evaluate_function_with_derivatives(float x, float y, int func_t
     if (func_type == DIRICHLET_ETA) return dirichlet_eta_with_derivatives(x, y, iters);
     if (func_type == DIRICHLET_ETA_REFLECTION) return eta_continuation_with_derivatives(x, y, iters);
     if (func_type == DIRICHLET_BETA) return dirichlet_beta_with_derivatives(x, y, iters);
+    if (func_type == DIRICHLET_BETA_REFLECTION) return beta_continuation_with_derivatives(x, y, iters);
     if (func_type == GAMMA) return complex_gamma_with_derivatives(x, y);
     if (func_type == LOG_GAMMA) return complex_log_gamma_with_derivatives(x, y);
     if (func_type == DEDEKIND_ETA) return dedekind_eta_with_derivatives(x, y, iters);

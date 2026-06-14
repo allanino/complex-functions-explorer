@@ -836,6 +836,75 @@ static func eta_continuation_with_derivatives(x: float, y: float, iters: int) ->
 	var d2x = complex_mul(val, log_e[2] + complex_mul(log_e[1], log_e[1]))
 	return [val, dx, d2x]
 
+
+static func log_beta_continuation_with_derivatives(x: float, y: float, iters: int) -> Array:
+	if ClassDB.class_exists("ComplexFunctions"):
+		var ext = ClassDB.instantiate("ComplexFunctions")
+		var res = ext.call("log_beta_continuation_with_derivatives", x, y, iters)
+		return [Vector2(res[0], res[1]), Vector2(res[2], res[3]), Vector2(res[4], res[5])]
+	if x >= 0.5:
+		var b_data = dirichlet_beta_with_derivatives(x, y, iters)
+		var b_val = b_data[0]
+		var b_dx = b_data[1]
+		var b_d2x = b_data[2]
+		var val = complex_log(b_val.x, b_val.y)
+		var dx = complex_div(b_dx, b_val)
+		var dx2 = complex_div(complex_mul(b_d2x, b_val) - complex_mul(b_dx, b_dx), complex_mul(b_val, b_val))
+		return [val, dx, dx2]
+
+	var s = Vector2(x, y)
+	var s1 = Vector2(1.0 - x, -y)
+
+	var log_pi_2 = log(PI / 2.0)
+	var log_sum = complex_mul(s - Vector2(1.0, 0.0), Vector2(log_pi_2, 0.0))
+	var ratio = Vector2(log_pi_2, 0.0)
+	var d2_ratio = Vector2.ZERO
+
+	var cls_val = complex_log_sin((PI * 0.5) * (1.0 - x), -(PI * 0.5) * y)
+	log_sum += cls_val
+
+	var cot_pi_s1_2 = complex_cot((PI * 0.5) * (1.0 - x), -(PI * 0.5) * y)
+	ratio -= (PI * 0.5) * cot_pi_s1_2
+
+	var cot_pi_s1_2_sq = complex_mul(cot_pi_s1_2, cot_pi_s1_2)
+	var csc_pi_s1_2_sq = Vector2(1.0, 0.0) + cot_pi_s1_2_sq
+	d2_ratio -= (PI * PI * 0.25) * csc_pi_s1_2_sq
+
+	var lg_data = complex_log_gamma_with_derivatives(s1.x, s1.y)
+	log_sum += lg_data[0]
+	ratio -= lg_data[1]
+	d2_ratio += lg_data[2]
+
+	var ref_data = dirichlet_beta_with_derivatives(s1.x, s1.y, iters)
+	var ref_val = ref_data[0]
+	var ref_dx = ref_data[1]
+	var ref_d2x = ref_data[2]
+
+	log_sum += complex_log(ref_val.x, ref_val.y)
+	var b_ratio = complex_div(ref_dx, ref_val)
+	ratio -= b_ratio
+	d2_ratio += complex_div(complex_mul(ref_d2x, ref_val) - complex_mul(ref_dx, ref_dx), complex_mul(ref_val, ref_val))
+
+	return [log_sum, ratio, d2_ratio]
+
+static func beta_continuation_with_derivatives(x: float, y: float, iters: int) -> Array:
+	if ClassDB.class_exists("ComplexFunctions"):
+		var ext = ClassDB.instantiate("ComplexFunctions")
+		var res = ext.call("beta_continuation_with_derivatives", x, y, iters)
+		return [Vector2(res[0], res[1]), Vector2(res[2], res[3]), Vector2(res[4], res[5])]
+	if x >= 0.5:
+		return dirichlet_beta_with_derivatives(x, y, iters)
+
+	var log_b = log_beta_continuation_with_derivatives(x, y, iters)
+	var val = complex_exp(log_b[0].x, log_b[0].y)
+	var dx = complex_mul(val, log_b[1])
+	var d2x = complex_mul(val, log_b[2] + complex_mul(log_b[1], log_b[1]))
+	return [val, dx, d2x]
+
+static func beta_continuation(x: float, y: float) -> Vector2:
+	var log_val = log_beta_continuation_with_derivatives(x, y, Config.iterations)[0]
+	return complex_exp(log_val.x, log_val.y)
+
 static func zeta_continuation_with_derivatives(x: float, y: float, iters: int) -> Array:
 	if ClassDB.class_exists("ComplexFunctions"):
 		var ext = ClassDB.instantiate("ComplexFunctions")
@@ -1021,6 +1090,7 @@ static func get_field_at(x: float, y: float, function_type: int, is_input: bool)
 		Config.ComplexFunc.DIRICHLET_ETA_REFLECTION: return eta_continuation(x, y)
 		Config.ComplexFunc.DIRICHLET_ETA: return dirichlet_eta(x, y, Config.iterations)
 		Config.ComplexFunc.DIRICHLET_BETA: return dirichlet_beta(x, y, Config.iterations)
+		Config.ComplexFunc.DIRICHLET_BETA_REFLECTION: return beta_continuation(x, y)
 		Config.ComplexFunc.GAMMA: return complex_gamma(x, y)
 		Config.ComplexFunc.LOG_GAMMA: return complex_log_gamma(x, y)
 		Config.ComplexFunc.DEDEKIND_ETA: return dedekind_eta(x, y)
@@ -1142,7 +1212,7 @@ static func is_close_to_zero(z_mid: Vector2) -> Array:
 
 static func find_zero(true_z: Vector2, debug: bool = false) -> Variant:
 	var has_ext = ClassDB.class_exists("ComplexFunctions")
-	if Config.input_function_type == Config.ComplexFunc.IDENTITY and (Config.function_type == Config.ComplexFunc.ZETA_REFLECTION or Config.function_type == Config.ComplexFunc.DIRICHLET_ETA_REFLECTION or Config.function_type == Config.ComplexFunc.DIRICHLET_ETA) and has_ext:
+	if Config.input_function_type == Config.ComplexFunc.IDENTITY and (Config.function_type == Config.ComplexFunc.ZETA_REFLECTION or Config.function_type == Config.ComplexFunc.DIRICHLET_ETA_REFLECTION or Config.function_type == Config.ComplexFunc.DIRICHLET_ETA or Config.function_type == Config.ComplexFunc.DIRICHLET_BETA_REFLECTION) and has_ext:
 		var ext = ClassDB.instantiate("ComplexFunctions")
 		var res = []
 		if Config.function_type == Config.ComplexFunc.ZETA_REFLECTION:
@@ -1151,6 +1221,8 @@ static func find_zero(true_z: Vector2, debug: bool = false) -> Variant:
 			res = ext.call("eta_find_zero", true_z.x, true_z.y, Config.iterations, 0.6, 0.3, debug)
 		elif Config.function_type == Config.ComplexFunc.DIRICHLET_ETA:
 			res = ext.call("eta_find_zero", true_z.x, true_z.y, Config.iterations, 0.6, 0.3, debug)
+		elif Config.function_type == Config.ComplexFunc.DIRICHLET_BETA_REFLECTION:
+			res = ext.call("beta_find_zero", true_z.x, true_z.y, Config.iterations, 0.6, 0.3, debug)
 
 		if res.size() == 2:
 			return Vector2(res[0], res[1])
@@ -1248,6 +1320,12 @@ static func newton_step(z_input: Variant, step_size_mult: float, max_step: float
 			use_analytic = true
 		elif Config.function_type == Config.ComplexFunc.DIRICHLET_ETA_REFLECTION:
 			var res = eta_continuation_with_derivatives(z.x, z.y, Config.iterations)
+			f_val = res[0]
+			f_prime = res[1]
+			f_second = res[2]
+			use_analytic = true
+		elif Config.function_type == Config.ComplexFunc.DIRICHLET_BETA_REFLECTION:
+			var res = beta_continuation_with_derivatives(z.x, z.y, Config.iterations)
 			f_val = res[0]
 			f_prime = res[1]
 			f_second = res[2]

@@ -20,6 +20,9 @@ void ComplexFunctions::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("zeta_continuation_with_derivatives", "x", "y", "iters"), &ComplexFunctions::zeta_continuation_with_derivatives);
 	ClassDB::bind_method(D_METHOD("log_eta_continuation_with_derivatives", "x", "y", "iters"), &ComplexFunctions::log_eta_continuation_with_derivatives);
 	ClassDB::bind_method(D_METHOD("eta_continuation_with_derivatives", "x", "y", "iters"), &ComplexFunctions::eta_continuation_with_derivatives);
+	ClassDB::bind_method(D_METHOD("log_beta_continuation_with_derivatives", "x", "y", "iters"), &ComplexFunctions::log_beta_continuation_with_derivatives);
+	ClassDB::bind_method(D_METHOD("beta_continuation_with_derivatives", "x", "y", "iters"), &ComplexFunctions::beta_continuation_with_derivatives);
+	ClassDB::bind_method(D_METHOD("beta_find_zero", "x", "y", "iters", "step_mult", "step_max", "debug"), &ComplexFunctions::beta_find_zero);
 
 	ClassDB::bind_method(D_METHOD("complex_mul", "ax", "ay", "bx", "by"), &ComplexFunctions::complex_mul);
 	ClassDB::bind_method(D_METHOD("complex_div", "ax", "ay", "bx", "by"), &ComplexFunctions::complex_div);
@@ -805,6 +808,163 @@ PackedFloat64Array ComplexFunctions::eta_find_zero(double x, double y, int iters
 		return _find_zero_core(x, y, iters, step_mult, step_max, debug, &ComplexFunctions::eta_borwein_with_derivatives);
 	}
 }
+
+PackedFloat64Array ComplexFunctions::dirichlet_beta_with_derivatives(double x, double y, int iters) {
+	PackedFloat64Array result;
+	result.resize(6);
+
+	if (x < -1.0) {
+		result[0] = NAN; result[1] = NAN;
+		result[2] = NAN; result[3] = NAN;
+		result[4] = NAN; result[5] = NAN;
+		return result;
+	}
+
+	double beta_x = 0.0, beta_y = 0.0;
+	double dbeta_dx_x = 0.0, dbeta_dx_y = 0.0;
+	double d2beta_dx2_x = 0.0, d2beta_dx2_y = 0.0;
+
+	for (int n = 0; n < iters; n += 2) {
+		double kf = 2.0 * (double)n + 1.0;
+		double amp = std::pow(kf, -x);
+		double log_k = std::log(kf);
+		double theta = -y * log_k;
+		double term_x = amp * std::cos(theta);
+		double term_y = amp * std::sin(theta);
+
+		beta_x += term_x;
+		beta_y += term_y;
+
+		dbeta_dx_x -= log_k * term_x;
+		dbeta_dx_y -= log_k * term_y;
+
+		d2beta_dx2_x += (log_k * log_k) * term_x;
+		d2beta_dx2_y += (log_k * log_k) * term_y;
+
+		double kf2 = 2.0 * (double)(n + 1) + 1.0;
+		double amp2 = std::pow(kf2, -x);
+		double log_k2 = std::log(kf2);
+		double theta2 = -y * log_k2;
+		double term2_x = amp2 * std::cos(theta2);
+		double term2_y = amp2 * std::sin(theta2);
+
+		beta_x -= term2_x;
+		beta_y -= term2_y;
+
+		dbeta_dx_x += log_k2 * term2_x;
+		dbeta_dx_y += log_k2 * term2_y;
+
+		d2beta_dx2_x -= (log_k2 * log_k2) * term2_x;
+		d2beta_dx2_y -= (log_k2 * log_k2) * term2_y;
+
+		if (amp < 1e-6 || amp2 < 1e-6 || amp > 1e6 || amp2 > 1e6) break;
+	}
+
+	result[0] = beta_x; result[1] = beta_y;
+	result[2] = dbeta_dx_x; result[3] = dbeta_dx_y;
+	result[4] = d2beta_dx2_x; result[5] = d2beta_dx2_y;
+	return result;
+}
+
+
+PackedFloat64Array ComplexFunctions::log_beta_continuation_with_derivatives(double x, double y, int iters) {
+	if (x >= 0.5) {
+		PackedFloat64Array b_data = dirichlet_beta_with_derivatives(x, y, iters);
+		std::complex<double> b_val(b_data[0], b_data[1]);
+		std::complex<double> b_dx(b_data[2], b_data[3]);
+		std::complex<double> b_d2x(b_data[4], b_data[5]);
+
+		std::complex<double> val = std::log(b_val);
+		std::complex<double> dx = b_dx / b_val;
+		std::complex<double> dx2 = (b_d2x * b_val - b_dx * b_dx) / (b_val * b_val);
+
+		PackedFloat64Array result; result.resize(6);
+		result[0] = val.real(); result[1] = val.imag();
+		result[2] = dx.real(); result[3] = dx.imag();
+		result[4] = dx2.real(); result[5] = dx2.imag();
+		return result;
+	}
+
+	std::complex<double> s(x, y);
+
+	// log_sum = (s-1) * log(pi/2) + log(cos(pi/2 * s)) + log Gamma(1-s) + log beta(1-s)
+	// For log(cos(pi/2 * s)):
+	// cos(z) = sin(pi/2 - z)
+	// pi/2 - pi/2 * s = pi/2 * (1 - s)
+	// So log(cos(pi/2 * s)) = log(sin(pi/2 * (1 - s)))
+	// We can reuse complex_log_sin.
+
+	double log_pi_2 = std::log(PI / 2.0);
+	std::complex<double> log_sum = (s - 1.0) * log_pi_2;
+	std::complex<double> ratio(log_pi_2, 0.0);
+	std::complex<double> d2_ratio(0.0, 0.0);
+
+	PackedFloat64Array cls_data = complex_log_sin((PI * 0.5) * (1.0 - x), -(PI * 0.5) * y);
+	std::complex<double> cls(cls_data[0], cls_data[1]);
+	log_sum += cls;
+
+	// d/ds log(cos(pi/2 * s)) = -pi/2 * tan(pi/2 * s)
+	// Wait, d/ds [ log(sin(pi/2 * (1 - s))) ] = log_sin_prime(pi/2 * (1 - s)) * (-pi/2)
+	// Since log_sin_prime(z) = cot(z), this is -pi/2 * cot(pi/2 * (1 - s)) = -pi/2 * tan(pi/2 * s)
+	PackedFloat64Array cot_pi_s1_2_data = complex_cot((PI * 0.5) * (1.0 - x), -(PI * 0.5) * y);
+	std::complex<double> cot_pi_s1_2(cot_pi_s1_2_data[0], cot_pi_s1_2_data[1]);
+	ratio -= (PI * 0.5) * cot_pi_s1_2;
+
+	// d2/ds2 log(cos(pi/2 * s)) = d/ds [ -pi/2 * cot(pi/2 * (1 - s)) ] = -pi/2 * (-csc^2(pi/2 * (1 - s))) * (-pi/2) = -(pi/2)^2 * csc^2(pi/2 * (1 - s))
+	std::complex<double> cot_pi_s1_2_sq = cot_pi_s1_2 * cot_pi_s1_2;
+	std::complex<double> csc_pi_s1_2_sq = 1.0 + cot_pi_s1_2_sq;
+	d2_ratio -= (PI * PI * 0.25) * csc_pi_s1_2_sq;
+
+	PackedFloat64Array lg_data = complex_log_gamma_with_derivatives(1.0 - x, -y);
+	std::complex<double> lg_val(lg_data[0], lg_data[1]);
+	std::complex<double> lg_dx(lg_data[2], lg_data[3]);
+	std::complex<double> lg_d2x(lg_data[4], lg_data[5]);
+	log_sum += lg_val;
+	ratio -= lg_dx;
+	d2_ratio += lg_d2x;
+
+	PackedFloat64Array ref_data = dirichlet_beta_with_derivatives(1.0 - x, -y, iters);
+	std::complex<double> ref_val(ref_data[0], ref_data[1]);
+	std::complex<double> ref_dx(ref_data[2], ref_data[3]);
+	std::complex<double> ref_d2x(ref_data[4], ref_data[5]);
+
+	log_sum += std::log(ref_val);
+	std::complex<double> b_ratio = ref_dx / ref_val;
+	ratio -= b_ratio;
+	d2_ratio += (ref_d2x * ref_val - ref_dx * ref_dx) / (ref_val * ref_val);
+
+	PackedFloat64Array result; result.resize(6);
+	result[0] = log_sum.real(); result[1] = log_sum.imag();
+	result[2] = ratio.real(); result[3] = ratio.imag();
+	result[4] = d2_ratio.real(); result[5] = d2_ratio.imag();
+	return result;
+}
+
+PackedFloat64Array ComplexFunctions::beta_continuation_with_derivatives(double x, double y, int iters) {
+	if (x >= 0.5) {
+		return dirichlet_beta_with_derivatives(x, y, iters);
+	}
+
+	PackedFloat64Array log_b_data = log_beta_continuation_with_derivatives(x, y, iters);
+	std::complex<double> log_b_0(log_b_data[0], log_b_data[1]);
+	std::complex<double> log_b_1(log_b_data[2], log_b_data[3]);
+	std::complex<double> log_b_2(log_b_data[4], log_b_data[5]);
+
+	std::complex<double> val = std::exp(log_b_0);
+	std::complex<double> dx = val * log_b_1;
+	std::complex<double> d2x = val * (log_b_2 + log_b_1 * log_b_1);
+
+	PackedFloat64Array result; result.resize(6);
+	result[0] = val.real(); result[1] = val.imag();
+	result[2] = dx.real(); result[3] = dx.imag();
+	result[4] = d2x.real(); result[5] = d2x.imag();
+	return result;
+}
+
+PackedFloat64Array ComplexFunctions::beta_find_zero(double x, double y, int iters, double step_mult, double step_max, bool debug) {
+	return _find_zero_core(x, y, iters, step_mult, step_max, debug, &ComplexFunctions::beta_continuation_with_derivatives);
+}
+
 
 PackedFloat64Array ComplexFunctions::zeta_find_zero(double x, double y, int iters, double step_mult, double step_max, bool debug) {
 	if (x < 0.0) {
