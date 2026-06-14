@@ -2,8 +2,8 @@
 class_name ComplexField
 
 const PATCH_MAX_K = 20
-const PATCH_RADIUS = 0.2
-const PATCH_THRESHOLD = 1.0
+const PATCH_RADIUS = 0.8
+const PATCH_THRESHOLD = 0.5
 static var zeta_patches: Array = []
 
 #-------------------------------------------------------------------------
