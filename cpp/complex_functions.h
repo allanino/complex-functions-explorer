@@ -33,6 +33,8 @@ public:
 	PackedFloat64Array complex_log_gamma_with_derivatives(double x, double y);
 	PackedFloat64Array log_zeta_continuation_with_derivatives(double x, double y, int iters);
 	PackedFloat64Array zeta_continuation_with_derivatives(double x, double y, int iters);
+	PackedFloat64Array log_eta_continuation_with_derivatives(double x, double y, int iters);
+	PackedFloat64Array eta_continuation_with_derivatives(double x, double y, int iters);
 
 	PackedFloat64Array complex_mul(double ax, double ay, double bx, double by);
 	PackedFloat64Array complex_div(double ax, double ay, double bx, double by);

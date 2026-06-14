@@ -250,6 +250,45 @@ static func log_zeta_continuation(x: float, y: float) -> Vector2:
 	return log_sum
 
 
+static func log_eta_continuation(x: float, y: float) -> Vector2:
+	if x >= 0.5:
+		var e = dirichlet_eta(x, y, Config.iterations)
+		return complex_log(e.x, e.y)
+
+	var s = Vector2(x, y)
+	var s1 = Vector2(1.0 - x, -y)
+
+	var log_sum = (complex_mul(s, Vector2(LOG_2, 0.0))
+				+ complex_mul(s - Vector2(1.0, 0.0), Vector2(LOG_PI, 0.0)))
+
+	var pi_s_2 = (PI * 0.5) * s
+	log_sum += complex_log_sin(pi_s_2.x, pi_s_2.y)
+
+	log_sum += complex_log_gamma(s1.x, s1.y)
+
+	var eta_part = dirichlet_eta(s1.x, s1.y, Config.iterations)
+	log_sum += complex_log(eta_part.x, eta_part.y)
+
+	var amp1 = pow(2.0, x)
+	var theta1 = y * LOG_2
+	var term1 = amp1 * Vector2(cos(theta1), sin(theta1))
+	var denom1 = Vector2(1.0, 0.0) - term1
+	var log_denom1 = complex_log(denom1.x, denom1.y)
+
+	var amp2 = pow(2.0, 1.0 - x)
+	var theta2 = -y * LOG_2
+	var term2 = amp2 * Vector2(cos(theta2), sin(theta2))
+	var denom2 = Vector2(1.0, 0.0) - term2
+	var log_denom2 = complex_log(denom2.x, denom2.y)
+
+	log_sum += log_denom2 - log_denom1
+
+	return log_sum
+
+static func eta_continuation(x: float, y: float) -> Vector2:
+	var log_val = log_eta_continuation(x, y)
+	return complex_exp(log_val.x, log_val.y)
+
 static func zeta_continuation(x: float, y: float) -> Vector2:
 	var log_val = log_zeta_continuation(x, y)
 	return complex_exp(log_val.x, log_val.y)
@@ -710,6 +749,93 @@ static func log_zeta_continuation_with_derivatives(x: float, y: float, iters: in
 
 	return [log_sum, ratio, d2_ratio]
 
+
+static func log_eta_continuation_with_derivatives(x: float, y: float, iters: int) -> Array:
+	if ClassDB.class_exists("ComplexFunctions"):
+		var ext = ClassDB.instantiate("ComplexFunctions")
+		var res = ext.call("log_eta_continuation_with_derivatives", x, y, iters)
+		return [Vector2(res[0], res[1]), Vector2(res[2], res[3]), Vector2(res[4], res[5])]
+	if x >= 0.5:
+		var eta_data = dirichlet_eta_with_derivatives(x, y, iters)
+		var e_val = eta_data[0]
+		var e_dx = eta_data[1]
+		var e_d2x = eta_data[2]
+		var val = complex_log(e_val.x, e_val.y)
+		var dx = complex_div(e_dx, e_val)
+		var dx2 = complex_div(complex_mul(e_d2x, e_val) - complex_mul(e_dx, e_dx), complex_mul(e_val, e_val))
+		return [val, dx, dx2]
+
+	var s = Vector2(x, y)
+	var s1 = Vector2(1.0 - x, -y)
+
+	var log_sum = complex_mul(s, Vector2(LOG_2, 0.0)) + complex_mul(s - Vector2(1.0, 0.0), Vector2(LOG_PI, 0.0))
+	var ratio = Vector2(LOG_2 + LOG_PI, 0.0)
+	var d2_ratio = Vector2.ZERO
+
+	var pi_s_2 = (PI * 0.5) * s
+
+	log_sum += complex_log_sin(pi_s_2.x, pi_s_2.y)
+	var cot_pi_s_2 = complex_cot(pi_s_2.x, pi_s_2.y)
+	ratio += (PI * 0.5) * cot_pi_s_2
+
+	var cot_pi_s_2_sq = complex_mul(cot_pi_s_2, cot_pi_s_2)
+	var csc_pi_s_2_sq = Vector2(1.0, 0.0) + cot_pi_s_2_sq
+	d2_ratio -= (PI * PI * 0.25) * csc_pi_s_2_sq
+
+	var lg_data = complex_log_gamma_with_derivatives(s1.x, s1.y)
+	log_sum += lg_data[0]
+	ratio -= lg_data[1]
+	d2_ratio += lg_data[2]
+
+	var reflected_data = dirichlet_eta_with_derivatives(s1.x, s1.y, iters)
+	var reflected_val = reflected_data[0]
+	var reflected_dx = reflected_data[1]
+	var reflected_d2x = reflected_data[2]
+
+	log_sum += complex_log(reflected_val.x, reflected_val.y)
+	var e_ratio = complex_div(reflected_dx, reflected_val)
+	ratio -= e_ratio
+	d2_ratio += complex_div(complex_mul(reflected_d2x, reflected_val) - complex_mul(reflected_dx, reflected_dx), complex_mul(reflected_val, reflected_val))
+
+	var amp1 = pow(2.0, x)
+	var theta1 = y * LOG_2
+	var term1 = amp1 * Vector2(cos(theta1), sin(theta1))
+	var denom1 = Vector2(1.0, 0.0) - term1
+	var log_denom1 = complex_log(denom1.x, denom1.y)
+	var ddenom1_dx = - LOG_2 * term1
+	var d2denom1_dx2 = - (LOG_2 * LOG_2) * term1
+	var ratio_denom1 = complex_div(ddenom1_dx, denom1)
+
+	var amp2 = pow(2.0, 1.0 - x)
+	var theta2 = -y * LOG_2
+	var term2 = amp2 * Vector2(cos(theta2), sin(theta2))
+	var denom2 = Vector2(1.0, 0.0) - term2
+	var log_denom2 = complex_log(denom2.x, denom2.y)
+	var ddenom2_dx = LOG_2 * term2
+	var d2denom2_dx2 = - (LOG_2 * LOG_2) * term2
+	var ratio_denom2 = complex_div(ddenom2_dx, denom2)
+
+	log_sum += log_denom2 - log_denom1
+	ratio += ratio_denom2 - ratio_denom1
+	d2_ratio += complex_div(complex_mul(d2denom2_dx2, denom2) - complex_mul(ddenom2_dx, ddenom2_dx), complex_mul(denom2, denom2))
+	d2_ratio -= complex_div(complex_mul(d2denom1_dx2, denom1) - complex_mul(ddenom1_dx, ddenom1_dx), complex_mul(denom1, denom1))
+
+	return [log_sum, ratio, d2_ratio]
+
+static func eta_continuation_with_derivatives(x: float, y: float, iters: int) -> Array:
+	if ClassDB.class_exists("ComplexFunctions"):
+		var ext = ClassDB.instantiate("ComplexFunctions")
+		var res = ext.call("eta_continuation_with_derivatives", x, y, iters)
+		return [Vector2(res[0], res[1]), Vector2(res[2], res[3]), Vector2(res[4], res[5])]
+	if x >= 0.5:
+		return dirichlet_eta_with_derivatives(x, y, iters)
+
+	var log_e = log_eta_continuation_with_derivatives(x, y, iters)
+	var val = complex_exp(log_e[0].x, log_e[0].y)
+	var dx = complex_mul(val, log_e[1])
+	var d2x = complex_mul(val, log_e[2] + complex_mul(log_e[1], log_e[1]))
+	return [val, dx, d2x]
+
 static func zeta_continuation_with_derivatives(x: float, y: float, iters: int) -> Array:
 	if ClassDB.class_exists("ComplexFunctions"):
 		var ext = ClassDB.instantiate("ComplexFunctions")
@@ -892,6 +1018,7 @@ static func get_field_at(x: float, y: float, function_type: int, is_input: bool)
 	match function_type:
 		Config.ComplexFunc.ZETA: return zeta(x, y)
 		Config.ComplexFunc.ZETA_REFLECTION: return zeta_continuation(x, y)
+		Config.ComplexFunc.DIRICHLET_ETA_REFLECTION: return eta_continuation(x, y)
 		Config.ComplexFunc.DIRICHLET_ETA: return dirichlet_eta(x, y, Config.iterations)
 		Config.ComplexFunc.DIRICHLET_BETA: return dirichlet_beta(x, y, Config.iterations)
 		Config.ComplexFunc.GAMMA: return complex_gamma(x, y)
@@ -940,6 +1067,9 @@ static func is_close_to_zero(z_mid: Vector2) -> Array:
 			use_analytic = true
 		elif Config.function_type == Config.ComplexFunc.ZETA_REFLECTION:
 			res = zeta_continuation_with_derivatives(z_mid.x, z_mid.y, Config.iterations * 2)
+			use_analytic = true
+		elif Config.function_type == Config.ComplexFunc.DIRICHLET_ETA_REFLECTION:
+			res = eta_continuation_with_derivatives(z_mid.x, z_mid.y, Config.iterations * 2)
 			use_analytic = true
 		elif Config.function_type == Config.ComplexFunc.DIRICHLET_ETA:
 			res = dirichlet_eta_with_derivatives(z_mid.x, z_mid.y, Config.iterations * 2)
@@ -1012,11 +1142,13 @@ static func is_close_to_zero(z_mid: Vector2) -> Array:
 
 static func find_zero(true_z: Vector2, debug: bool = false) -> Variant:
 	var has_ext = ClassDB.class_exists("ComplexFunctions")
-	if Config.input_function_type == Config.ComplexFunc.IDENTITY and (Config.function_type == Config.ComplexFunc.ZETA_REFLECTION or Config.function_type == Config.ComplexFunc.DIRICHLET_ETA) and has_ext:
+	if Config.input_function_type == Config.ComplexFunc.IDENTITY and (Config.function_type == Config.ComplexFunc.ZETA_REFLECTION or Config.function_type == Config.ComplexFunc.DIRICHLET_ETA_REFLECTION or Config.function_type == Config.ComplexFunc.DIRICHLET_ETA) and has_ext:
 		var ext = ClassDB.instantiate("ComplexFunctions")
 		var res = []
 		if Config.function_type == Config.ComplexFunc.ZETA_REFLECTION:
 			res = ext.call("zeta_find_zero", true_z.x, true_z.y, Config.iterations, 0.6, 0.3, debug)
+		elif Config.function_type == Config.ComplexFunc.DIRICHLET_ETA_REFLECTION:
+			res = ext.call("eta_find_zero", true_z.x, true_z.y, Config.iterations, 0.6, 0.3, debug)
 		elif Config.function_type == Config.ComplexFunc.DIRICHLET_ETA:
 			res = ext.call("eta_find_zero", true_z.x, true_z.y, Config.iterations, 0.6, 0.3, debug)
 
@@ -1104,7 +1236,18 @@ static func newton_step(z_input: Variant, step_size_mult: float, max_step: float
 			f_second = DoubleVector2.new(res[2].x, res[2].y)
 			use_analytic = true
 		elif Config.function_type == Config.ComplexFunc.ZETA_REFLECTION:
-			var res = zeta_borwein_with_derivatives(z.x, z.y, Config.iterations)
+			var res = []
+			if z.x < 0.0:
+				res = zeta_continuation_with_derivatives(z.x, z.y, Config.iterations * 2)
+			else:
+				res = zeta_borwein_with_derivatives(z.x, z.y, Config.iterations)
+
+			f_val = res[0] if res[0] is DoubleVector2 else DoubleVector2.new(res[0].x, res[0].y)
+			f_prime = res[1] if res[1] is DoubleVector2 else DoubleVector2.new(res[1].x, res[1].y)
+			f_second = res[2] if res[2] is DoubleVector2 else DoubleVector2.new(res[2].x, res[2].y)
+			use_analytic = true
+		elif Config.function_type == Config.ComplexFunc.DIRICHLET_ETA_REFLECTION:
+			var res = eta_continuation_with_derivatives(z.x, z.y, Config.iterations)
 			f_val = res[0]
 			f_prime = res[1]
 			f_second = res[2]
