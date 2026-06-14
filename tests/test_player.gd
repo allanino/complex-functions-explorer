@@ -9,6 +9,11 @@ func before_all():
 	Config.zoom_factor = 1.0
 	Config.zoom_damping = 0.5
 
+func before_each():
+	super.before_each()
+	GameState.is_menu_open = false
+	GameState.is_detached_interactive = false
+
 func test_player_loads_and_physics_process_runs():
 	var player = player_scene.instantiate()
 	player.set("run_demo", false)
