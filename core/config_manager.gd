@@ -32,7 +32,7 @@ static var FUNCTIONS = {
 		"iters_range": [100.0, 10000.0, 100.0, 100.0],
 		"initial_pos": Vector3(5.0, 0.0, 0.0),
 	},
-	"ZETA_REFLECTION": {
+	"ZETA_CONTINUATION": {
 		"name": "Zeta",
 		"symbol": "ζ",
 		"is_dirichlet": true,
@@ -65,7 +65,7 @@ static var FUNCTIONS = {
 		"initial_pos": Vector3(5.0, 0.0, 0.0),
 		"hidden": true,
 	},
-	"DIRICHLET_ETA_REFLECTION": {
+	"DIRICHLET_ETA_CONTINUATION": {
 		"name": "Dirichlet Eta",
 		"symbol": "η",
 		"is_dirichlet": true,
@@ -91,7 +91,7 @@ static var FUNCTIONS = {
 		"iters_range": [100.0, 10000.0, 100.0, 100.0],
 		"initial_pos": Vector3(5.0, 0.0, 0.0),
 	},
-	"DIRICHLET_BETA_REFLECTION": {
+	"DIRICHLET_BETA_CONTINUATION": {
 		"name": "Dirichlet Beta",
 		"symbol": "β (Analytic Continuation)",
 		"hidden": false,
@@ -238,8 +238,8 @@ var iterations: int = 500:
 		iterations = v
 		config_changed.emit("iterations")
 var function_iterations: Dictionary = {}
-var last_function_type: int = ComplexFunc.ZETA_REFLECTION
-var function_type: int = ComplexFunc.ZETA_REFLECTION:
+var last_function_type: int = ComplexFunc.ZETA_CONTINUATION
+var function_type: int = ComplexFunc.ZETA_CONTINUATION:
 	set(value):
 		if function_type != value:
 			last_function_type = function_type

@@ -92,7 +92,7 @@ func test_get_rvm_n():
 	assert_eq(main_ui_instance._get_rvm_n(0.05), 0.0)
 
 	# Test Zeta function
-	Config.function_type = Config.ComplexFunc.ZETA_REFLECTION
+	Config.function_type = Config.ComplexFunc.ZETA_CONTINUATION
 	var T_zeta = 14.134725
 	var rvm_zeta = main_ui_instance._get_rvm_n(T_zeta)
 	var expected_zeta = (T_zeta / (2.0 * PI)) * (log(T_zeta / (2.0 * PI)) - 1.0) + 7.0 / 8.0
@@ -319,5 +319,5 @@ func test_branch_k_slider_ranges():
 	assert_eq(main_ui_instance.menu_overlay.branch_k_slider.max_value, 5.0)
 	
 	# Test non-multivalued function (hidden)
-	main_ui_instance.menu_overlay._on_func_selected(Config.ComplexFunc.ZETA_REFLECTION)
+	main_ui_instance.menu_overlay._on_func_selected(Config.ComplexFunc.ZETA_CONTINUATION)
 	assert_false(main_ui_instance.menu_overlay.branch_k_slider.visible)

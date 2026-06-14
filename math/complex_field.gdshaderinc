@@ -1298,11 +1298,11 @@ ComplexFieldData zeta_borwein_with_derivatives(float x, float y, int order) {
 
 ComplexFieldData evaluate_function_with_derivatives(float x, float y, int func_type, int iters, int b_offset, bool is_input) {
     if (func_type == ZETA) return zeta_with_derivatives(x, y, iters);
-    if (func_type == ZETA_REFLECTION) return zeta_continuation_with_derivatives(x, y, iters);
+    if (func_type == ZETA_CONTINUATION) return zeta_continuation_with_derivatives(x, y, iters);
     if (func_type == DIRICHLET_ETA) return dirichlet_eta_with_derivatives(x, y, iters);
-    if (func_type == DIRICHLET_ETA_REFLECTION) return eta_continuation_with_derivatives(x, y, iters);
+    if (func_type == DIRICHLET_ETA_CONTINUATION) return eta_continuation_with_derivatives(x, y, iters);
     if (func_type == DIRICHLET_BETA) return dirichlet_beta_with_derivatives(x, y, iters);
-    if (func_type == DIRICHLET_BETA_REFLECTION) return beta_continuation_with_derivatives(x, y, iters);
+    if (func_type == DIRICHLET_BETA_CONTINUATION) return beta_continuation_with_derivatives(x, y, iters);
     if (func_type == GAMMA) return complex_gamma_with_derivatives(x, y);
     if (func_type == LOG_GAMMA) return complex_log_gamma_with_derivatives(x, y);
     if (func_type == DEDEKIND_ETA) return dedekind_eta_with_derivatives(x, y, iters);

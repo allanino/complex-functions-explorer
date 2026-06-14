@@ -719,7 +719,7 @@ func test_get_height():
 	var orig_type = Config.height_type
 	var orig_morph = GameState.morph_value
 
-	Config.set("function_type", Config.ComplexFunc.ZETA_REFLECTION)
+	Config.set("function_type", Config.ComplexFunc.ZETA_CONTINUATION)
 	Config.iterations = 2000
 	GameState.effective_zoom = 1.0
 	Config.height_type = 0 # linear height
@@ -921,7 +921,7 @@ func test_get_field_at():
 	var res_zeta = ComplexFieldScript.get_field_at(x, y, Config.ComplexFunc.ZETA, false)
 	assert_eq(res_zeta, ComplexFieldScript.zeta(x, y))
 
-	var res_zeta_refl = ComplexFieldScript.get_field_at(x, y, Config.ComplexFunc.ZETA_REFLECTION, false)
+	var res_zeta_refl = ComplexFieldScript.get_field_at(x, y, Config.ComplexFunc.ZETA_CONTINUATION, false)
 	assert_eq(res_zeta_refl, ComplexFieldScript.zeta_continuation(x, y))
 
 	var res_gamma = ComplexFieldScript.get_field_at(x, y, Config.ComplexFunc.GAMMA, false)
@@ -1043,14 +1043,14 @@ func test_find_zero_dirichlet_eta():
 
 func test_is_close_to_zero_zeta_reflection():
 	Config.input_function_type = Config.ComplexFunc.IDENTITY
-	Config.function_type = Config.ComplexFunc.ZETA_REFLECTION
+	Config.function_type = Config.ComplexFunc.ZETA_CONTINUATION
 	var z = Vector2(-2.0, 0.0)
 	var res = ComplexFieldScript.is_close_to_zero(z)
 	assert_eq(res[0], true)
 
 func test_find_zero_zeta_reflection():
 	Config.input_function_type = Config.ComplexFunc.IDENTITY
-	Config.function_type = Config.ComplexFunc.ZETA_REFLECTION
+	Config.function_type = Config.ComplexFunc.ZETA_CONTINUATION
 	var z = Vector2(-1.9, 0.0)
 	var check_res = ComplexFieldScript.is_close_to_zero(z)
 	var z_refined = ComplexFieldScript.find_zero(check_res[1], false)

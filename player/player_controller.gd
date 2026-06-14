@@ -632,7 +632,7 @@ func _physics_process(delta):
 	move_and_slide()
 
 func demo_actions():
-	Config.function_type = Config.ComplexFunc.ZETA_REFLECTION
+	Config.function_type = Config.ComplexFunc.ZETA_CONTINUATION
 	Config.day_time = 15060
 	Config.day_duration = 600.0
 	Config.freeze_time = false
