@@ -24,6 +24,7 @@ var performance_protection_active: bool = false:
 		performance_protection_active = v
 		state_changed.emit("performance_protection_active")
 var is_menu_open: bool = false
+var is_detached_interactive: bool = false
 var height_protection_active: bool = false:
 	set(v):
 		if height_protection_active == v: return

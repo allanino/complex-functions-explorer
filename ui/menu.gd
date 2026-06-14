@@ -3,10 +3,6 @@ extends Control
 var SLIDER_BINDINGS: Dictionary = {}
 
 signal apply_aa_signal()
-signal menu_opened()
-signal menu_closed()
-signal detach_started()
-signal detach_finished()
 signal update_hud_layout_signal()
 
 @export var player: Node3D
@@ -1105,10 +1101,10 @@ func toggle_menu(applied: bool = false):
 		detach_controller.interaction_active = !detach_controller.interaction_active
 		if detach_controller.interaction_active:
 			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-			emit_signal("detach_started")
+			GameState.is_detached_interactive = true
 		else:
 			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
-			emit_signal("detach_finished")
+			GameState.is_detached_interactive = false
 		return
 
 	main_menu_panel.scale = Vector2.ONE
@@ -1118,7 +1114,6 @@ func toggle_menu(applied: bool = false):
 	GameState.is_menu_open = visible
 
 	if visible:
-		emit_signal("menu_opened")
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 		_initial_master_volume = Config.master_volume
 		_initial_bg_music_volume = Config.bg_music_volume
@@ -1165,7 +1160,6 @@ func toggle_menu(applied: bool = false):
 		preset_controller.update_preset_button_text()
 
 	else:
-		emit_signal("menu_closed")
 		tooltip_manager.hide_tooltip()
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 		if not applied:
