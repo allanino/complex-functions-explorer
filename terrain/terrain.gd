@@ -356,7 +356,7 @@ func _on_config_changed(key: String):
 			_update_lod_subs()
 			_lod_mesh_cache.clear()
 			_update_all_chunks_lod(true)
-		if key == "view_distance" or key == "terrain_detail" or key == "function_type":
+		if key == "view_distance" or key == "terrain_detail" or key == "function_type" or key == "input_function_type":
 			if player:
 				_update_chunks(floor(player.global_position.x / chunk_size), floor(player.global_position.z / chunk_size))
 
