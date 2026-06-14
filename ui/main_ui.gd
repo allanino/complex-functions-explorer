@@ -2,6 +2,7 @@ extends CanvasLayer
 const ZERO_LIST_ITEM_SCENE = preload("res://ui/components/zero_list_item.tscn")
 const NEON_FONT = preload("res://ui/theme/font_neon.tres")
 @export var player: Node3D
+@export var polynomial_debug: bool = false
 @onready var hud_columns = %MainUIColumns
 @onready var hud_stack_left = %MainUIStackLeft
 @onready var hud_stack_right = %MainUIStackRight
@@ -26,6 +27,9 @@ const NEON_FONT = preload("res://ui/theme/font_neon.tres")
 @onready var zeros_scroll = %ZerosScroll
 @onready var menu_overlay = %MenuOverlay
 var portal_flash: ColorRect
+
+var polynomial_debug_str: String = ""
+
 @onready var tooltip_manager = %TooltipManager
 @onready var detach_controller = %DetachOverlay
 @onready var preset_controller = %PresetController
@@ -264,7 +268,10 @@ func _on_values_timer_timeout():
 
 
 func _on_monitor_timer_timeout():
-	if Config.show_hud_monitor_fps or show_hud_chunks:
+	if polynomial_debug:
+		_update_polynomial_debug_str()
+
+	if Config.show_hud_monitor_fps or show_hud_chunks or polynomial_debug:
 		_update_monitor_label()
 
 func _on_game_state_changed(key: String):
@@ -280,14 +287,44 @@ func _on_game_state_changed(key: String):
 		_update_zeros_list()
 	elif key == "current_branch":
 		phase_branch_val.text = str(GameState.current_branch)
+	elif key == "zeta_patches":
+		_update_polynomial_debug_str()
+		_update_monitor_label()
+
+func _update_polynomial_debug_str():
+	if not polynomial_debug or not player or Config.function_type != Config.ComplexFunc.ZETA_POWER_SERIES or ComplexField.zeta_patches.is_empty():
+		polynomial_debug_str = ""
+		return
+
+	var frame_z = Config.world_to_complex(player.global_position.x, player.global_position.z)
+	var closest_patch = null
+	var min_dist = 1e9
+
+	for patch in ComplexField.zeta_patches:
+		var dist = (frame_z - patch["center"]).length()
+		if dist < min_dist:
+			min_dist = dist
+			closest_patch = patch
+
+	if closest_patch:
+		var coeffs: Array = closest_patch["coeffs"]
+		var new_str = ""
+		for k in range(coeffs.size()):
+			new_str += "%d: %.1f\n" % [k, coeffs[k].length()]
+		polynomial_debug_str = new_str.strip_edges()
+	else:
+		polynomial_debug_str = ""
 
 func _update_monitor_label():
 	var show_height_protection = GameState.height_protection_active and _height_protection_timer > 0.0
 	var show_out_of_bounds = GameState.out_of_bounds_teleport_active and _out_of_bounds_timer > 0.0
 	var show_unstable_zeta = GameState.unstable_zeta_computation and _unstable_zeta_timer > 0.0
-	monitor_panel.visible = Config.show_hud_monitor_fps or show_hud_chunks or GameState.performance_protection_active or show_height_protection or show_out_of_bounds or show_unstable_zeta or GameState.found_off_critical_line or GameState.missed_zeta_zero
+	monitor_panel.visible = Config.show_hud_monitor_fps or show_hud_chunks or GameState.performance_protection_active or show_height_protection or show_out_of_bounds or show_unstable_zeta or GameState.found_off_critical_line or GameState.missed_zeta_zero or polynomial_debug
 	if monitor_panel.visible and monitor_rt_label:
 		var bbcode = ""
+
+		if polynomial_debug and polynomial_debug_str != "":
+			bbcode += "[color=#e8e4dc73][font_size=14]%s[/font_size][/color]\n" % polynomial_debug_str
 
 		if GameState.performance_protection_active:
 			bbcode += "[color=#ffcc00][font_size=14]Performance protection activated, adjust settings.[/font_size][/color]\n"
