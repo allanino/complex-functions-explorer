@@ -43,9 +43,8 @@ var is_resetting_height = false
 var last_t = 0.0
 var last_z: Vector2 = Vector2(0.0, 0.0)
 var last_valid_terrain_height: float = 0.0
-var is_detached_interactive: bool = false
-var is_menu_open: bool = false
 var last_newton_idx: int = 0
+var _last_checked_y_hundreds: int = -1
 
 # Zero detection history
 var mag_history: Array[float] = [1.0, 1.0, 1.0]
@@ -89,6 +88,9 @@ func teleport_to_world_pos(target_pos: Vector3) -> void:
 
 	global_position = target_pos
 
+	var complex_pos = Config.world_to_complex(global_position.x, global_position.z)
+	_check_zeta_stability(complex_pos.y)
+
 func _ready():
 	add_to_group("player")
 
@@ -99,6 +101,7 @@ func _ready():
 	var complex_pos = Config.world_to_complex(global_position.x, global_position.z)
 	last_t = complex_pos.y
 	last_z = complex_pos
+	_last_checked_y_hundreds = int(last_t / 100.0)
 	
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	current_f = ComplexField.get_field(global_position.x, global_position.z)
@@ -150,13 +153,6 @@ func _ready():
 	if run_demo:
 		demo_actions()
 
-	if main_ui and main_ui.has_node("%MenuOverlay"):
-		var menu = main_ui.get_node("%MenuOverlay")
-		menu.menu_opened.connect(func(): is_menu_open = true)
-		menu.menu_closed.connect(func(): is_menu_open = false)
-		menu.detach_started.connect(func(): is_detached_interactive = true)
-		menu.detach_finished.connect(func(): is_detached_interactive = false)
-
 func _unhandled_input(event):
 	if event.is_action_pressed("ui_cancel"):
 		if main_ui:
@@ -170,7 +166,7 @@ func _unhandled_input(event):
 		return
 	
 
-	if is_detached_interactive or is_menu_open:
+	if GameState.is_detached_interactive or GameState.is_menu_open:
 		return
 
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
@@ -307,7 +303,7 @@ func _physics_process(delta):
 	var scaled_camera_height = Config.camera_height * zoom_height_scale
 	var scaled_movement_speed = Config.movement_speed * zoom_speed_scale
 
-	if is_detached_interactive or is_menu_open:
+	if GameState.is_detached_interactive or GameState.is_menu_open:
 		velocity = Vector3.ZERO
 		var target_y_menu = get_terrain_height(global_position.x, global_position.z) + scaled_camera_height + height_offset
 		camera.position = Vector3(0.0, target_y_menu, 0.0) + transform.basis.inverse() * camera_push_offset
@@ -325,16 +321,10 @@ func _physics_process(delta):
 
 	if run_demo and not _demo_y_10000_reached and current_z.y >= 10000.0:
 		_demo_y_10000_reached = true
-		auto_walk_state = AutoWalkState.NONE
 		var tween = create_tween().set_process_mode(Tween.TWEEN_PROCESS_PHYSICS)
-		tween.tween_interval(2.0)
-		tween.tween_property(Config, "camera_height", 20.0, 5.0)
-		tween.tween_callback(func():
-			Config.movement_speed = 100.0
-			Config.speed_near_zeros = 100.0
-			Config.save_settings()
-			auto_walk_state = AutoWalkState.WALKING
-		)
+		tween.tween_property(Config, "speed_near_zeros", 100.0, 1.0)
+		tween.tween_property(Config, "camera_height", 16.0, 3.0)
+		tween.tween_property(Config, "movement_speed", 150.0, 3.0)
 
 	if auto_walk_state != AutoWalkState.NONE:
 		var manual_input = Input.get_vector("move_left", "move_right", "move_forward", "move_backward")
@@ -774,6 +764,11 @@ func _process(_delta):
 
 	last_z = frame_z
 
+	var current_hundreds = int(frame_z.y / 100.0)
+	if current_hundreds != _last_checked_y_hundreds:
+		_check_zeta_stability(frame_z.y)
+		_last_checked_y_hundreds = current_hundreds
+
 	if Config.show_curves and Config.show_curves_labels:
 		if re_label.visible:
 			re_label.global_position = re_label.global_position.lerp(_re_label_target_pos, _delta * 10.0)
@@ -785,6 +780,41 @@ func _process(_delta):
 		if im_label:
 			im_label.visible = false
 
+
+func _check_zeta_stability(y: float) -> void:
+	# For each y range, we set the minimum demanded iterations
+	var stable_bounds = {
+		[0.0, 100.0]: 100,
+		[100.0, 200.0]: 200,
+		[200.0, 500.0]: 400,
+		[500.0, 1000.0]: 1000,
+		[1000.0, 2000.0]: 1500,
+		[2000.0, 3000.0]: 2000,
+		[3000.0, 4000.0]: 3000,
+		[4000.0, 7000.0]: 4000,
+		[7000.0, 10000.0]: 6000,
+		[10000.0, 15000.0]: 7000,
+		[15000.0, 20000.0]: 9000,
+		[20000.0, 25000.0]: 10000
+	}
+	if Config.function.get("is_dirichlect", false):
+		# 30000 is about where the GPU float32 starts to give
+		# wrong results even with 10000 iterations
+		if abs(y) > 30000:
+			GameState.unstable_zeta_computation = true
+		else:
+			# We find the allowed range for this y
+			for y_range in stable_bounds.keys():
+				var y_low = y_range[0]
+				var y_high = y_range[1]
+				if abs(y) >= y_low and abs(y) < y_high:
+					var min_iters = stable_bounds[y_range]
+					# Now check if we have at least min_iters
+					if Config.iterations < min_iters:
+						GameState.unstable_zeta_computation = true
+					else:
+						GameState.unstable_zeta_computation = false
+					break
 
 func start_newton_walk():
 	if auto_walk_state == AutoWalkState.NONE:

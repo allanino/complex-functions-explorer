@@ -58,7 +58,7 @@ func detach_slider_control(source_slider: HSlider, source_value_label: Label, ti
 	is_detaching = false
 	visible = true
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-	main_ui.menu_overlay.emit_signal("detach_started")
+	GameState.is_detached_interactive = true
 
 func _process(delta):
 	if is_playing:
@@ -104,5 +104,5 @@ func _on_exit_detach_pressed():
 
 	interaction_active = false
 	visible = false
-	main_ui.menu_overlay.emit_signal("detach_finished")
+	GameState.is_detached_interactive = false
 	main_ui.toggle_menu()

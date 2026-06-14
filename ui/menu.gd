@@ -3,10 +3,6 @@ extends Control
 var SLIDER_BINDINGS: Dictionary = {}
 
 signal apply_aa_signal()
-signal menu_opened()
-signal menu_closed()
-signal detach_started()
-signal detach_finished()
 signal update_hud_layout_signal()
 
 @export var player: Node3D
@@ -600,6 +596,13 @@ func _on_func_selected(f_type: int):
 	branch_k_slider.visible = is_multivalued
 	_update_branch_k_slider_range()
 
+	if is_multivalued:
+		input_button.disabled = true
+		input_button.select(input_button.get_item_index(Config.ComplexFunc.IDENTITY))
+		_on_input_selected(Config.ComplexFunc.IDENTITY)
+	else:
+		input_button.disabled = false
+
 	var re = float(re_input.text) if re_input.text.is_valid_float() else 0.5
 	var im = float(im_input.text) if im_input.text.is_valid_float() else 0.0
 	if not is_finite(re): re = 0.5
@@ -1117,10 +1120,10 @@ func toggle_menu(applied: bool = false):
 		detach_controller.interaction_active = !detach_controller.interaction_active
 		if detach_controller.interaction_active:
 			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-			emit_signal("detach_started")
+			GameState.is_detached_interactive = true
 		else:
 			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
-			emit_signal("detach_finished")
+			GameState.is_detached_interactive = false
 		return
 
 	main_menu_panel.scale = Vector2.ONE
@@ -1130,7 +1133,6 @@ func toggle_menu(applied: bool = false):
 	GameState.is_menu_open = visible
 
 	if visible:
-		emit_signal("menu_opened")
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 		_initial_master_volume = Config.master_volume
 		_initial_bg_music_volume = Config.bg_music_volume
@@ -1177,7 +1179,6 @@ func toggle_menu(applied: bool = false):
 		preset_controller.update_preset_button_text()
 
 	else:
-		emit_signal("menu_closed")
 		if not detach_controller.visible and not detach_controller.is_detaching:
 			Config.morph_style = Config.MorphStyle.DISABLED
 		tooltip_manager.hide_tooltip()
