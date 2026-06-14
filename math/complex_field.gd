@@ -250,7 +250,6 @@ static func log_zeta_continuation(x: float, y: float) -> Vector2:
 	return log_sum
 
 
-
 static func log_eta_continuation(x: float, y: float) -> Vector2:
 	if x >= 0.5:
 		var e = dirichlet_eta(x, y, Config.iterations)
@@ -803,8 +802,8 @@ static func log_eta_continuation_with_derivatives(x: float, y: float, iters: int
 	var term1 = amp1 * Vector2(cos(theta1), sin(theta1))
 	var denom1 = Vector2(1.0, 0.0) - term1
 	var log_denom1 = complex_log(denom1.x, denom1.y)
-	var ddenom1_dx = -LOG_2 * term1
-	var d2denom1_dx2 = -(LOG_2 * LOG_2) * term1
+	var ddenom1_dx = - LOG_2 * term1
+	var d2denom1_dx2 = - (LOG_2 * LOG_2) * term1
 	var ratio_denom1 = complex_div(ddenom1_dx, denom1)
 
 	var amp2 = pow(2.0, 1.0 - x)
@@ -813,7 +812,7 @@ static func log_eta_continuation_with_derivatives(x: float, y: float, iters: int
 	var denom2 = Vector2(1.0, 0.0) - term2
 	var log_denom2 = complex_log(denom2.x, denom2.y)
 	var ddenom2_dx = LOG_2 * term2
-	var d2denom2_dx2 = -(LOG_2 * LOG_2) * term2
+	var d2denom2_dx2 = - (LOG_2 * LOG_2) * term2
 	var ratio_denom2 = complex_div(ddenom2_dx, denom2)
 
 	log_sum += log_denom2 - log_denom1
@@ -1019,7 +1018,7 @@ static func get_field_at(x: float, y: float, function_type: int, is_input: bool)
 	match function_type:
 		Config.ComplexFunc.ZETA: return zeta(x, y)
 		Config.ComplexFunc.ZETA_REFLECTION: return zeta_continuation(x, y)
-		Config.ComplexFunc.ETA_REFLECTION: return eta_continuation(x, y)
+		Config.ComplexFunc.DIRICHLET_ETA_REFLECTION: return eta_continuation(x, y)
 		Config.ComplexFunc.DIRICHLET_ETA: return dirichlet_eta(x, y, Config.iterations)
 		Config.ComplexFunc.DIRICHLET_BETA: return dirichlet_beta(x, y, Config.iterations)
 		Config.ComplexFunc.GAMMA: return complex_gamma(x, y)
@@ -1069,7 +1068,7 @@ static func is_close_to_zero(z_mid: Vector2) -> Array:
 		elif Config.function_type == Config.ComplexFunc.ZETA_REFLECTION:
 			res = zeta_continuation_with_derivatives(z_mid.x, z_mid.y, Config.iterations * 2)
 			use_analytic = true
-		elif Config.function_type == Config.ComplexFunc.ETA_REFLECTION:
+		elif Config.function_type == Config.ComplexFunc.DIRICHLET_ETA_REFLECTION:
 			res = eta_continuation_with_derivatives(z_mid.x, z_mid.y, Config.iterations * 2)
 			use_analytic = true
 		elif Config.function_type == Config.ComplexFunc.DIRICHLET_ETA:
@@ -1143,12 +1142,12 @@ static func is_close_to_zero(z_mid: Vector2) -> Array:
 
 static func find_zero(true_z: Vector2, debug: bool = false) -> Variant:
 	var has_ext = ClassDB.class_exists("ComplexFunctions")
-	if Config.input_function_type == Config.ComplexFunc.IDENTITY and (Config.function_type == Config.ComplexFunc.ZETA_REFLECTION or Config.function_type == Config.ComplexFunc.ETA_REFLECTION or Config.function_type == Config.ComplexFunc.DIRICHLET_ETA) and has_ext:
+	if Config.input_function_type == Config.ComplexFunc.IDENTITY and (Config.function_type == Config.ComplexFunc.ZETA_REFLECTION or Config.function_type == Config.ComplexFunc.DIRICHLET_ETA_REFLECTION or Config.function_type == Config.ComplexFunc.DIRICHLET_ETA) and has_ext:
 		var ext = ClassDB.instantiate("ComplexFunctions")
 		var res = []
 		if Config.function_type == Config.ComplexFunc.ZETA_REFLECTION:
 			res = ext.call("zeta_find_zero", true_z.x, true_z.y, Config.iterations, 0.6, 0.3, debug)
-		elif Config.function_type == Config.ComplexFunc.ETA_REFLECTION:
+		elif Config.function_type == Config.ComplexFunc.DIRICHLET_ETA_REFLECTION:
 			res = ext.call("eta_find_zero", true_z.x, true_z.y, Config.iterations, 0.6, 0.3, debug)
 		elif Config.function_type == Config.ComplexFunc.DIRICHLET_ETA:
 			res = ext.call("eta_find_zero", true_z.x, true_z.y, Config.iterations, 0.6, 0.3, debug)
@@ -1242,7 +1241,7 @@ static func newton_step(z_input: Variant, step_size_mult: float, max_step: float
 			f_prime = res[1]
 			f_second = res[2]
 			use_analytic = true
-		elif Config.function_type == Config.ComplexFunc.ETA_REFLECTION:
+		elif Config.function_type == Config.ComplexFunc.DIRICHLET_ETA_REFLECTION:
 			var res = eta_continuation_with_derivatives(z.x, z.y, Config.iterations)
 			f_val = res[0]
 			f_prime = res[1]
