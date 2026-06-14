@@ -1374,15 +1374,15 @@ static func newton_step(z_input: Variant, step_size_mult: float, max_step: float
 			use_analytic = true
 		elif Config.function_type == Config.ComplexFunc.DIRICHLET_ETA_REFLECTION:
 			var res = eta_continuation_with_derivatives(z.x, z.y, Config.iterations)
-			f_val = res[0]
-			f_prime = res[1]
-			f_second = res[2]
+			f_val = DoubleVector2.new(res[0].x, res[0].y)
+			f_prime = DoubleVector2.new(res[1].x, res[1].y)
+			f_second = DoubleVector2.new(res[2].x, res[2].y)
 			use_analytic = true
 		elif Config.function_type == Config.ComplexFunc.DIRICHLET_BETA_REFLECTION:
 			var res = beta_continuation_with_derivatives(z.x, z.y, Config.iterations)
-			f_val = res[0]
-			f_prime = res[1]
-			f_second = res[2]
+			f_val = DoubleVector2.new(res[0].x, res[0].y)
+			f_prime = DoubleVector2.new(res[1].x, res[1].y)
+			f_second = DoubleVector2.new(res[2].x, res[2].y)
 			use_analytic = true
 		elif Config.function_type == Config.ComplexFunc.DIRICHLET_ETA:
 			var res = dirichlet_eta_with_derivatives(z.x, z.y, Config.iterations * 2)
