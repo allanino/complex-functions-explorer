@@ -916,10 +916,10 @@ static func log_beta_continuation_with_derivatives(x: float, y: float, iters: in
 	var ratio = Vector2(log_pi_2, 0.0)
 	var d2_ratio = Vector2.ZERO
 
-	var cls_val = complex_log_sin((PI * 0.5) * (1.0 - x), -(PI * 0.5) * y)
+	var cls_val = complex_log_sin((PI * 0.5) * (1.0 - x), - (PI * 0.5) * y)
 	log_sum += cls_val
 
-	var cot_pi_s1_2 = complex_cot((PI * 0.5) * (1.0 - x), -(PI * 0.5) * y)
+	var cot_pi_s1_2 = complex_cot((PI * 0.5) * (1.0 - x), - (PI * 0.5) * y)
 	ratio -= (PI * 0.5) * cot_pi_s1_2
 
 	var cot_pi_s1_2_sq = complex_mul(cot_pi_s1_2, cot_pi_s1_2)
