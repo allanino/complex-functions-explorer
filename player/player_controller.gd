@@ -4,7 +4,6 @@ var enable_joystick: bool = false
 @export var run_demo: bool = false
 var _demo_y_10000_reached: bool = false
 @export var zeros_debug: bool = true
-@export var polynomial_debug: bool = false
 
 const MOUSE_SENSITIVITY = 0.002
 const DOUBLE_PRESS_TIME = 0.3
@@ -31,9 +30,6 @@ var newton_converged: bool = false
 var re_label: Label3D
 var im_label: Label3D
 var _curve_label_update_timer = 0.1
-
-var _last_polynomial_debug_state: bool = false
-var _last_polynomial_debug_center: Vector2 = Vector2.INF
 const CURVE_LABEL_UPDATE_INTERVAL = 0.1
 var _re_label_target_pos: Vector3 = Vector3.ZERO
 var _im_label_target_pos: Vector3 = Vector3.ZERO
@@ -726,17 +722,6 @@ func _start_auto_walk_from_demo():
 
 func _process(_delta):
 	var frame_z = Config.world_to_complex(global_position.x, global_position.z)
-
-	if polynomial_debug and Config.function_type == Config.ComplexFunc.ZETA_POWER_SERIES:
-		var current_patch = ComplexField._get_or_create_patch(frame_z, Config.iterations)
-		if not _last_polynomial_debug_state or _last_polynomial_debug_center.distance_to(current_patch["center"]) > 0.001:
-			_last_polynomial_debug_state = true
-			_last_polynomial_debug_center = current_patch["center"]
-			var coeffs: Array = current_patch["coeffs"]
-			for k in range(coeffs.size()):
-				print("%d: %.1f" % [k, coeffs[k].length()])
-	else:
-		_last_polynomial_debug_state = false
 
 	# If player teleported (e.g. reset, demo actions, or function change),
 	# bypass crossing detection to prevent false branch jumping.

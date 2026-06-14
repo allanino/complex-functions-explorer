@@ -2,6 +2,7 @@ extends CanvasLayer
 const ZERO_LIST_ITEM_SCENE = preload("res://ui/components/zero_list_item.tscn")
 const NEON_FONT = preload("res://ui/theme/font_neon.tres")
 @export var player: Node3D
+@export var polynomial_debug: bool = false
 @onready var hud_columns = %MainUIColumns
 @onready var hud_stack_left = %MainUIStackLeft
 @onready var hud_stack_right = %MainUIStackRight
@@ -26,6 +27,11 @@ const NEON_FONT = preload("res://ui/theme/font_neon.tres")
 @onready var zeros_scroll = %ZerosScroll
 @onready var menu_overlay = %MenuOverlay
 var portal_flash: ColorRect
+
+var _last_polynomial_debug_state: bool = false
+var _last_polynomial_debug_center: Vector2 = Vector2.INF
+var polynomial_debug_str: String = ""
+
 @onready var tooltip_manager = %TooltipManager
 @onready var detach_controller = %DetachOverlay
 @onready var preset_controller = %PresetController
@@ -125,6 +131,25 @@ func _process(delta: float) -> void:
 		_out_of_bounds_timer -= delta
 		if _out_of_bounds_timer <= 0.0:
 			GameState.out_of_bounds_teleport_active = false
+			needs_update = true
+
+	if polynomial_debug and player and Config.function_type == Config.ComplexFunc.ZETA_POWER_SERIES:
+		var frame_z = Config.world_to_complex(player.global_position.x, player.global_position.z)
+		var current_patch = ComplexField._get_or_create_patch(frame_z, Config.iterations)
+		if not _last_polynomial_debug_state or _last_polynomial_debug_center.distance_to(current_patch["center"]) > 0.001:
+			_last_polynomial_debug_state = true
+			_last_polynomial_debug_center = current_patch["center"]
+			var coeffs: Array = current_patch["coeffs"]
+
+			var new_str = ""
+			for k in range(coeffs.size()):
+				new_str += "%d: %.1f\n" % [k, coeffs[k].length()]
+			polynomial_debug_str = new_str.strip_edges()
+			needs_update = true
+	else:
+		if _last_polynomial_debug_state or polynomial_debug_str != "":
+			_last_polynomial_debug_state = false
+			polynomial_debug_str = ""
 			needs_update = true
 
 	if needs_update:
@@ -275,9 +300,12 @@ func _on_game_state_changed(key: String):
 func _update_monitor_label():
 	var show_height_protection = GameState.height_protection_active and _height_protection_timer > 0.0
 	var show_out_of_bounds = GameState.out_of_bounds_teleport_active and _out_of_bounds_timer > 0.0
-	monitor_panel.visible = Config.show_hud_monitor_fps or show_hud_chunks or GameState.performance_protection_active or show_height_protection or show_out_of_bounds or GameState.found_off_critical_line or GameState.missed_zeta_zero
+	monitor_panel.visible = Config.show_hud_monitor_fps or show_hud_chunks or GameState.performance_protection_active or show_height_protection or show_out_of_bounds or GameState.found_off_critical_line or GameState.missed_zeta_zero or polynomial_debug
 	if monitor_panel.visible and monitor_rt_label:
 		var bbcode = ""
+
+		if polynomial_debug and polynomial_debug_str != "":
+			bbcode += "[color=#e8e4dc73][font_size=14]%s[/font_size][/color]\n" % polynomial_debug_str
 
 		if GameState.performance_protection_active:
 			bbcode += "[color=#ffcc00][font_size=14]Performance protection activated, adjust settings.[/font_size][/color]\n"
