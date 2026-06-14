@@ -1159,25 +1159,33 @@ static func newton_step(z_input: Variant, step_size_mult: float, max_step: float
 		step = step.normalized().mul(max_step)
 	return [z.sub(step.mul(step_size_mult)), f_val]
 
-static func get_height_from_field(f: Vector2) -> float:
+static func get_height_from_field(f: Vector2, z_id: Vector2 = Vector2.ZERO) -> float:
 	if not is_finite(f.x) or not is_finite(f.y): return NAN
 	var mag = f.length()
 	if not is_finite(mag): return NAN
 	
 	mag = clamp(mag, -1e5, 1e5)
 
-	var h: float
-	if Config.height_type == 0: h = mag
-	elif Config.height_type == 1: h = Config.height_a * log(Config.height_epsilon + mag)
-	elif Config.height_type == 2: h = f.y
-	elif Config.height_type == 3: h = f.x
-	elif Config.height_type == 4: h = f.x * cos(Config.height_theta) + f.y * sin(Config.height_theta)
-	elif Config.height_type == 5: h = 0.0
-
-
 	# Match shader morphing blend factor (usually 1.0)
 	var s = 0.5 - 0.5 * cos(PI * GameState.morph_value)
 	var blend = log(1.0 + 8.0 * s) / log(9.0)
+
+	var field_val = f
+	if Config.morph_style == ConfigManager.MorphStyle.DISABLED:
+		blend = 1.0
+	elif Config.morph_style == ConfigManager.MorphStyle.LINEAR:
+		field_val = z_id.lerp(f, blend)
+	elif Config.morph_style == ConfigManager.MorphStyle.EXPONENTIAL:
+		var exp_val = complex_exp((f - z_id) * blend)
+		field_val = complex_mul(z_id, exp_val)
+
+	var h: float
+	if Config.height_type == 0: h = mag
+	elif Config.height_type == 1: h = Config.height_a * log(Config.height_epsilon + mag)
+	elif Config.height_type == 2: h = field_val.y
+	elif Config.height_type == 3: h = field_val.x
+	elif Config.height_type == 4: h = field_val.x * cos(Config.height_theta) + field_val.y * sin(Config.height_theta)
+	elif Config.height_type == 5: h = 0.0
 	h = clamp(h, -1e5, 1e5)
 	h *= blend * GameState.effective_zoom
 
@@ -1188,4 +1196,4 @@ static func get_height(x: float, z: float) -> float:
 		return 0.0
 
 	var f = get_field(x, z)
-	return get_height_from_field(f)
+	return get_height_from_field(f, Vector2(0.1 * x, -0.1 * z))

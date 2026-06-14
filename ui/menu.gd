@@ -76,6 +76,8 @@ signal update_hud_layout_signal()
 @onready var roughness_slider = %RoughnessContainer
 @onready var surface_texture_slider = %SurfaceTextureContainer
 @onready var morph_slider = %MorphSliderContainer
+@onready var morph_style_container = %MorphStyleContainer
+@onready var morph_style_dropdown = %MorphStyleContainer.get_node("OptionButton")
 @export var preset_controller: Node
 @onready var new_preset_dialog = %NewPresetDialog
 @onready var delete_preset_dialog = %DeletePresetDialog
@@ -277,7 +279,9 @@ func _ready():
 
 	iter_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Iterations"))
 	height_theta_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Parameter θ"))
-	morph_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Terrain Morph"))
+	morph_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Morph Transition"))
+	Config.config_changed.connect(_on_config_changed)
+	morph_style_dropdown.item_selected.connect(_on_morph_style_selected)
 	multivalued_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Branches (n)"))
 	branch_k_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Branch number"))
 	day_duration_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Day Duration"))
@@ -1219,3 +1223,14 @@ static func _create_scaled_grabber_texture(color: Color, _size: int, center: Vec
 
 	tex.gradient = grad
 	return tex
+
+func _on_morph_style_selected(index: int):
+	Config.morph_style = index
+
+func _on_config_changed(key: String):
+	if key == "morph_style":
+		_update_morph_style_ui()
+
+func _update_morph_style_ui():
+	morph_style_dropdown.selected = Config.morph_style
+	morph_slider.visible = Config.morph_style != ConfigManager.MorphStyle.DISABLED

@@ -37,6 +37,7 @@ uniform float metallic : hint_range(0.0, 1.0) = 0.7;
 uniform float roughness : hint_range(0.0, 1.0) = 0.1;
 uniform float surface_texture : hint_range(0.0, 1.0) = 0.0;
 uniform float morph : hint_range(0.0, 1.0) = 1.0;
+uniform int morph_style = 1;
 uniform float portal_height = 50.0;
 uniform float portal_width = 100.0;
 uniform float portal_min_height = -50.0;
@@ -736,17 +737,24 @@ void vertex() {
         } else {
             v_nan = 0.0;
 
-            // Blend parameter in [0, 1]
-            float blend = 0.5 - 0.5 * cos(PI * morph);
-
             // Original function value f(z)
             vec2 fz = final_fd.value;
 
             // Identity map
             vec2 z_id = vec2(0.1 * world_v_pos.x, -0.1 * world_v_pos.z);
 
-            // Blended map:
-            field_val = mix(z_id, fz, blend);
+            float blend = 1.0;
+            if (morph_style == 0) {
+                blend = 1.0;
+                field_val = fz;
+            } else if (morph_style == 1) {
+                blend = 0.5 - 0.5 * cos(PI * morph);
+                field_val = mix(z_id, fz, blend);
+            } else if (morph_style == 2) {
+                blend = 0.5 - 0.5 * cos(PI * morph);
+                vec2 exp_val = complex_exp(blend * (fz - z_id));
+                field_val = complex_mul(z_id, exp_val);
+            }
 
             if (length(fz) > 0.0) {
                 v_f_dir = normalize(fz);
@@ -762,7 +770,7 @@ void vertex() {
 
             local_pos = vec3(snap_v.x, snap_v.y + h, snap_v.z);
 
-            vec2 dh_d_world = get_complex_height_derivatives(fz, field_val, final_fd.dx, final_fd.dy, blend, h_clamped);
+            vec2 dh_d_world = get_complex_height_derivatives(fz, field_val, z_id, final_fd.dx, final_fd.dy, blend, h_clamped, morph_style);
             float dh_dx = dh_d_world.x;
             float dh_dz = dh_d_world.y;
 

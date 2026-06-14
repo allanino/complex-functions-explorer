@@ -1257,12 +1257,27 @@ float get_complex_height(vec2 fz, vec2 field_val, out bool h_clamped) {
     return h;
 }
 
-vec2 get_complex_height_derivatives(vec2 fz, vec2 field_val, vec2 df_dx, vec2 df_dy, float blend, bool h_clamped) {
+vec2 get_complex_height_derivatives(vec2 fz, vec2 field_val, vec2 z_id, vec2 df_dx, vec2 df_dy, float blend, bool h_clamped, int morph_style) {
     vec2 dz_dx = vec2(1.0, 0.0);
     vec2 dz_dy = vec2(0.0, 1.0);
 
-    vec2 dg_dx = (1.0 - blend) * dz_dx + blend * df_dx;
-    vec2 dg_dy = (1.0 - blend) * dz_dy + blend * df_dy;
+    vec2 dg_dx;
+    vec2 dg_dy;
+
+    if (morph_style == 0) {
+        dg_dx = df_dx;
+        dg_dy = df_dy;
+    } else if (morph_style == 1) {
+        dg_dx = (1.0 - blend) * dz_dx + blend * df_dx;
+        dg_dy = (1.0 - blend) * dz_dy + blend * df_dy;
+    } else if (morph_style == 2) {
+        vec2 exp_val = complex_exp(blend * (fz - z_id));
+        dg_dx = complex_mul(exp_val, dz_dx) + complex_mul(field_val, blend * (df_dx - dz_dx));
+        dg_dy = complex_mul(exp_val, dz_dy) + complex_mul(field_val, blend * (df_dy - dz_dy));
+    } else {
+        dg_dx = df_dx;
+        dg_dy = df_dy;
+    }
 
     float dx_d_wx = 0.1;
     float dy_d_wx = 0.0;
