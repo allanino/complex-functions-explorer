@@ -5,37 +5,24 @@ signal config_changed(key: String)
 
 var save_path = "user://settings.cfg"
 
-enum ComplexFunc {
-	ZETA,
-	ZETA_REFLECTION,
-	DIRICHLET_ETA,
-	DIRICHLET_BETA,
-	GAMMA,
-	LOG_GAMMA,
-	DEDEKIND_ETA,
-	MANDELBROT,
-	SIN,
-	COS,
-	TAN,
-	COT,
-	EXP,
-	LOG,
-	IDENTITY,
-	RATIONAL,
-	MULTIVALUED_Z_POW,
-	MULTIVALUED_LOG,
-	MULTIVALUED_ASIN,
-	MULTIVALUED_ACOS,
-	ZETA_POWER_SERIES,
-	ETA_BORWEIN,
-	ZETA_BORWEIN,
+const FUNCTIONS_ENUM_PATH = "res://math/functions_enum.gdshaderinc"
+static var ComplexFunc = {}
 
-	# Not exposed in UI
-	MULTIVALUED_RSVD3,
-}
+static func _load_shader_enums(path: String) -> void:
+	var file = FileAccess.open(path, FileAccess.READ)
+	if file:
+		while not file.eof_reached():
+			var line = file.get_line().strip_edges()
+			if line.begins_with("#define"):
+				var parts = line.split(" ", false)
+				if parts.size() >= 3:
+					ComplexFunc[parts[1]] = int(parts[2])
 
-const FUNCTIONS = {
-	ComplexFunc.ZETA: {
+
+
+
+static var FUNCTIONS = {
+	"ZETA": {
 		"name": "Zeta",
 		"symbol": "ζ (σ > 0)",
 		"hidden": true,
@@ -45,7 +32,7 @@ const FUNCTIONS = {
 		"iters_range": [100.0, 10000.0, 100.0, 100.0],
 		"initial_pos": Vector3(5.0, 0.0, 0.0),
 	},
-	ComplexFunc.ZETA_REFLECTION: {
+	"ZETA_REFLECTION": {
 		"name": "Zeta",
 		"symbol": "ζ",
 		"is_dirichlect": true,
@@ -53,7 +40,7 @@ const FUNCTIONS = {
 		"iters_range": [100.0, 10000.0, 100.0, 100.0],
 		"initial_pos": Vector3(5.0, 0.0, 0.0),
 	},
-	ComplexFunc.DIRICHLET_ETA: {
+	"DIRICHLET_ETA": {
 		"name": "Dirichlet Eta",
 		"symbol": "η (σ > 0)",
 		"is_dirichlect": true,
@@ -61,7 +48,7 @@ const FUNCTIONS = {
 		"iters_range": [100.0, 10000.0, 100.0, 100.0],
 		"initial_pos": Vector3(5.0, 0.0, 0.0),
 	},
-	ComplexFunc.DIRICHLET_BETA: {
+	"DIRICHLET_BETA": {
 		"name": "Dirichlet Beta",
 		"symbol": "β (σ > 0)",
 		"is_dirichlect": true,
@@ -69,83 +56,83 @@ const FUNCTIONS = {
 		"iters_range": [100.0, 10000.0, 100.0, 100.0],
 		"initial_pos": Vector3(5.0, 0.0, 0.0),
 	},
-	ComplexFunc.GAMMA: {
+	"GAMMA": {
 		"name": "Gamma",
 		"symbol": "Γ",
 		"initial_pos": Vector3(30.0, 0.0, 0.0),
 	},
-	ComplexFunc.LOG_GAMMA: {
+	"LOG_GAMMA": {
 		"name": "Log Gamma",
 		"symbol": "f",
 	},
-	ComplexFunc.DEDEKIND_ETA: {
+	"DEDEKIND_ETA": {
 		"name": "Dedekind Eta",
 		"symbol": "η",
 		"iters_range": [1.0, 20.0, 1.0, 10.0],
 		"initial_pos": Vector3(10.0, 0.0, 0.0),
 	},
-	ComplexFunc.MANDELBROT: {
+	"MANDELBROT": {
 		"name": "Mandelbrot",
 		"symbol": "f",
 		"iters_range": [100.0, 5000.0, 100.0, 500.0],
 	},
-	ComplexFunc.SIN: {
+	"SIN": {
 		"name": "Sin",
 		"symbol": "f",
 	},
-	ComplexFunc.COS: {
+	"COS": {
 		"name": "Cos",
 		"symbol": "f",
 	},
-	ComplexFunc.TAN: {
+	"TAN": {
 		"name": "Tan",
 		"symbol": "f",
 	},
-	ComplexFunc.COT: {
+	"COT": {
 		"name": "Cot",
 		"symbol": "f",
 		"initial_pos": Vector3(10.0, 0.0, 0.0),
 	},
-	ComplexFunc.EXP: {
+	"EXP": {
 		"name": "Exp",
 		"symbol": "f",
 	},
-	ComplexFunc.LOG: {
+	"LOG": {
 		"name": "Log",
 		"symbol": "f",
 	},
-	ComplexFunc.IDENTITY: {
+	"IDENTITY": {
 		"name": "Identity",
 		"symbol": "f",
 	},
-	ComplexFunc.RATIONAL: {
+	"RATIONAL": {
 		"name": "Rational",
 		"symbol": "f",
 		"is_rational": true,
 	},
-	ComplexFunc.MULTIVALUED_Z_POW: {
+	"MULTIVALUED_Z_POW": {
 		"name": "Multivalued z^(1/n)",
 		"symbol": "f",
 		"is_multivalued": true,
 	},
-	ComplexFunc.MULTIVALUED_LOG: {
+	"MULTIVALUED_LOG": {
 		"name": "Multivalued Log",
 		"symbol": "f",
 		"is_multivalued": true,
 		"initial_pos": Vector3(10.0, 0.0, 0.0),
 	},
-	ComplexFunc.MULTIVALUED_ASIN: {
+	"MULTIVALUED_ASIN": {
 		"name": "Multivalued arcsin",
 		"symbol": "f",
 		"is_multivalued": true,
 		"initial_pos": Vector3(5.0, 0.0, 0.0),
 	},
-	ComplexFunc.MULTIVALUED_ACOS: {
+	"MULTIVALUED_ACOS": {
 		"name": "Multivalued arccos",
 		"symbol": "f",
 		"is_multivalued": true,
 	},
-	ComplexFunc.ZETA_POWER_SERIES: {
+	"ZETA_POWER_SERIES": {
 		"name": "Zeta (power series)",
 		"symbol": "ζ",
 		"is_dirichlect": true,
@@ -153,7 +140,7 @@ const FUNCTIONS = {
 		"iters_range": [100.0, 10000.0, 100.0, 100.0],
 		"hidden": true,
 	},
-	ComplexFunc.ETA_BORWEIN: {
+	"ETA_BORWEIN": {
 		"name": "Eta Borwein",
 		"symbol": "η",
 		"is_dirichlect": true,
@@ -161,7 +148,7 @@ const FUNCTIONS = {
 		"iters_range": [10.0, 200.0, 10.0, 50.0],
 		"hidden": true,
 	},
-	ComplexFunc.ZETA_BORWEIN: {
+	"ZETA_BORWEIN": {
 		"name": "Zeta Borwein",
 		"symbol": "ζ",
 		"is_dirichlect": true,
@@ -231,7 +218,7 @@ var iterations: int = 500:
 		iterations = v
 		config_changed.emit("iterations")
 var function_iterations: Dictionary = {}
-var function_type: int = ComplexFunc.ZETA_REFLECTION:
+var function_type: int = 1:
 	set(value):
 		function_iterations[function_type] = iterations
 		function_type = value
@@ -241,8 +228,8 @@ var function_type: int = ComplexFunc.ZETA_REFLECTION:
 			iterations = function_iterations[function_type]
 		elif function.has("iters_range"):
 			iterations = int(function["iters_range"][3])
-var function: Dictionary = FUNCTIONS[ComplexFunc.ZETA_REFLECTION]
-var input_function_type: int = ComplexFunc.IDENTITY
+var function: Dictionary = {}
+var input_function_type: int = 14
 
 var height_type: int = 0:
 	set(v):
@@ -552,10 +539,21 @@ func restore_preset(preset_name: String):
 				set(key, preset[key])
 			preset_applied.emit()
 
+
+static func _static_init() -> void:
+	_load_shader_enums(FUNCTIONS_ENUM_PATH)
+	var new_funcs = {}
+	for key in FUNCTIONS.keys():
+		new_funcs[ComplexFunc[key]] = FUNCTIONS[key]
+	FUNCTIONS = new_funcs
+
+
+func _init() -> void:
+	function = FUNCTIONS.get(function_type, {})
+
 func _ready():
 	load_settings()
 	apply_zoom_immediate()
-	function = FUNCTIONS.get(function_type, {})
 
 func save_settings():
 	var config = ConfigFile.new()

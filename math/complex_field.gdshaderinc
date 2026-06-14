@@ -1,3 +1,4 @@
+#include "functions_enum.gdshaderinc"
 // Shared field and height functions for shaders
 
 uniform int iterations = 120;
@@ -1176,35 +1177,35 @@ ComplexFieldData zeta_borwein_with_derivatives(float x, float y, int order) {
 
 
 ComplexFieldData evaluate_function_with_derivatives(float x, float y, int func_type, int iters, int b_offset, bool is_input) {
-    if (func_type == 0) return zeta_with_derivatives(x, y, iters);
-    if (func_type == 1) return zeta_continuation_with_derivatives(x, y, iters);
-    if (func_type == 2) return dirichlet_eta_with_derivatives(x, y, iters);
-    if (func_type == 3) return dirichlet_beta_with_derivatives(x, y, iters);
-    if (func_type == 4) return complex_gamma_with_derivatives(x, y);
-    if (func_type == 5) return complex_log_gamma_with_derivatives(x, y);
-    if (func_type == 6) return dedekind_eta_with_derivatives(x, y, iters);
-    if (func_type == 7) return mandelbrot_with_derivatives(x, y, iters);
-    if (func_type == 8) return complex_sin_with_derivatives(x, y);
-    if (func_type == 9) return complex_cos_with_derivatives(x, y);
-    if (func_type == 10) return complex_tan_with_derivatives(x, y);
-    if (func_type == 11) return complex_cot_with_derivatives(x, y);
-    if (func_type == 12) return complex_exp_with_derivatives(x, y);
-    if (func_type == 13) return complex_log_with_derivatives(x, y);
-    if (func_type == 14) return identity_with_derivatives(x, y);
-    if (func_type == 15) {
+    if (func_type == ZETA) return zeta_with_derivatives(x, y, iters);
+    if (func_type == ZETA_REFLECTION) return zeta_continuation_with_derivatives(x, y, iters);
+    if (func_type == DIRICHLET_ETA) return dirichlet_eta_with_derivatives(x, y, iters);
+    if (func_type == DIRICHLET_BETA) return dirichlet_beta_with_derivatives(x, y, iters);
+    if (func_type == GAMMA) return complex_gamma_with_derivatives(x, y);
+    if (func_type == LOG_GAMMA) return complex_log_gamma_with_derivatives(x, y);
+    if (func_type == DEDEKIND_ETA) return dedekind_eta_with_derivatives(x, y, iters);
+    if (func_type == MANDELBROT) return mandelbrot_with_derivatives(x, y, iters);
+    if (func_type == SIN) return complex_sin_with_derivatives(x, y);
+    if (func_type == COS) return complex_cos_with_derivatives(x, y);
+    if (func_type == TAN) return complex_tan_with_derivatives(x, y);
+    if (func_type == COT) return complex_cot_with_derivatives(x, y);
+    if (func_type == EXP) return complex_exp_with_derivatives(x, y);
+    if (func_type == LOG) return complex_log_with_derivatives(x, y);
+    if (func_type == IDENTITY) return identity_with_derivatives(x, y);
+    if (func_type == RATIONAL) {
         if (is_input) {
             return get_rational_with_derivatives(x, y, input_rational_num_coeffs, input_rational_den_coeffs);
         } else {
             return get_rational_with_derivatives(x, y, rational_num_coeffs, rational_den_coeffs);
         }
     }
-    if (func_type == 16) return multivalued_z_pow_inv_n_with_derivatives(x, y, multivalued_n, b_offset, true);
-    if (func_type == 17) return multivalued_log_with_derivatives(x, y, b_offset, true);
-    if (func_type == 18) return multivalued_asin_with_derivatives(x, y, b_offset);
-    if (func_type == 19) return multivalued_acos_with_derivatives(x, y, b_offset);
-    if (func_type == 20) return zeta_continuation_power_series_with_derivatives(x, y, iters);
-    if (func_type == 21) return eta_borwein_with_derivatives(x, y, iters);
-    if (func_type == 22) return zeta_borwein_with_derivatives(x, y, iters);
+    if (func_type == MULTIVALUED_Z_POW) return multivalued_z_pow_inv_n_with_derivatives(x, y, multivalued_n, b_offset, true);
+    if (func_type == MULTIVALUED_LOG) return multivalued_log_with_derivatives(x, y, b_offset, true);
+    if (func_type == MULTIVALUED_ASIN) return multivalued_asin_with_derivatives(x, y, b_offset);
+    if (func_type == MULTIVALUED_ACOS) return multivalued_acos_with_derivatives(x, y, b_offset);
+    if (func_type == ZETA_POWER_SERIES) return zeta_continuation_power_series_with_derivatives(x, y, iters);
+    if (func_type == ETA_BORWEIN) return eta_borwein_with_derivatives(x, y, iters);
+    if (func_type == ZETA_BORWEIN) return zeta_borwein_with_derivatives(x, y, iters);
     ComplexFieldData res;
     res.value = vec2(0.0);
     res.dx = vec2(0.0);
