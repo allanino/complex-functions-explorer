@@ -23,9 +23,11 @@ public:
 	PackedFloat64Array lanczos_gamma(double x, double y);
 
 	PackedFloat64Array dirichlet_eta_with_derivatives(double x, double y, int iters);
+	PackedFloat64Array dirichlet_beta_with_derivatives(double x, double y, int iters);
 	PackedFloat64Array zeta_with_derivatives(double x, double y, int iters);
 	PackedFloat64Array eta_find_zero(double x, double y, int iters, double step_mult, double step_max, bool debug);
 	PackedFloat64Array zeta_find_zero(double x, double y, int iters, double step_mult, double step_max, bool debug);
+	PackedFloat64Array beta_find_zero(double x, double y, int iters, double step_mult, double step_max, bool debug);
 
 	PackedFloat64Array eta_borwein_with_derivatives(double x, double y, int order);
 	PackedFloat64Array zeta_borwein_with_derivatives(double x, double y, int order);
@@ -35,6 +37,8 @@ public:
 	PackedFloat64Array zeta_continuation_with_derivatives(double x, double y, int iters);
 	PackedFloat64Array log_eta_continuation_with_derivatives(double x, double y, int iters);
 	PackedFloat64Array eta_continuation_with_derivatives(double x, double y, int iters);
+	PackedFloat64Array log_beta_continuation_with_derivatives(double x, double y, int iters);
+	PackedFloat64Array beta_continuation_with_derivatives(double x, double y, int iters);
 
 	PackedFloat64Array complex_mul(double ax, double ay, double bx, double by);
 	PackedFloat64Array complex_div(double ax, double ay, double bx, double by);
