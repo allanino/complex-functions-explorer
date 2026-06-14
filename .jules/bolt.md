@@ -17,3 +17,6 @@
 ## 2025-02-12 - UI Process Suspension
 **Learning:** Heavy UI processing (like phase angle math and raymarching/shader setups) executing inside `_process` for components that are hidden by the user wastes considerable CPU time. Components like `phase_wheel.gd` and `minimap.gd` were continually checking values while hidden.
 **Action:** Use `_notification` to hook into `NOTIFICATION_VISIBILITY_CHANGED` and dynamically apply `set_process(is_visible_in_tree())`. This disables the process loop completely when the element is turned off in settings.
+## 2025-02-12 - Prevent portal math calculations when not in portal mode
+**Learning:** `terrain/portal/portal.gd` evaluated mathematical scaling factors and config variables (`is_multivalued`) in `_process` for every single frame across the lifetime of the game, even for functions where portals are completely disabled.
+**Action:** Use `set_process(false)` and bind to `Config.config_changed` to only enable the `_process` block when a multivalued function is actively selected.
