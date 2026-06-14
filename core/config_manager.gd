@@ -5,7 +5,7 @@ signal config_changed(key: String)
 
 var save_path = "user://settings.cfg"
 
-enum MorphStyle { DISABLED, LINEAR, EXPONENTIAL }
+enum MorphStyle {DISABLED, LINEAR, EXPONENTIAL}
 
 const FUNCTIONS_ENUM_PATH = "res://math/functions_enum.gdshaderinc"
 static var ComplexFunc = {}
@@ -19,8 +19,6 @@ static func _load_shader_enums(path: String) -> void:
 				var parts = line.split(" ", false)
 				if parts.size() >= 3:
 					ComplexFunc[parts[1]] = int(parts[2])
-
-
 
 
 static var FUNCTIONS = {
@@ -42,6 +40,22 @@ static var FUNCTIONS = {
 		"iters_range": [100.0, 10000.0, 100.0, 100.0],
 		"initial_pos": Vector3(5.0, 0.0, 0.0),
 	},
+	"ZETA_POWER_SERIES": {
+		"name": "Zeta (power series)",
+		"symbol": "ζ",
+		"is_dirichlect": true,
+		"has_von_mangoldt": true,
+		"iters_range": [100.0, 10000.0, 100.0, 100.0],
+		"hidden": false,
+	},
+	"ZETA_BORWEIN": {
+		"name": "Zeta Borwein",
+		"symbol": "ζ",
+		"is_dirichlect": true,
+		"has_von_mangoldt": true,
+		"iters_range": [10.0, 200.0, 10.0, 50.0],
+		"hidden": true,
+	},
 	"DIRICHLET_ETA": {
 		"name": "Dirichlet Eta (σ > 0)",
 		"symbol": "η",
@@ -59,6 +73,15 @@ static var FUNCTIONS = {
 		"iters_range": [100.0, 10000.0, 100.0, 100.0],
 		"initial_pos": Vector3(5.0, 0.0, 0.0),
 	},
+	"DIRICHLET_ETA_BORWEIN": {
+		"name": "Eta Borwein",
+		"symbol": "η",
+		"is_dirichlect": true,
+		"has_von_mangoldt": true,
+		"iters_range": [10.0, 200.0, 10.0, 50.0],
+		"hidden": true,
+	},
+
 	"DIRICHLET_BETA": {
 		"name": "Dirichlet Beta",
 		"symbol": "β (σ > 0)",
@@ -153,30 +176,6 @@ static var FUNCTIONS = {
 		"symbol": "f",
 		"is_multivalued": true,
 	},
-	"ZETA_POWER_SERIES": {
-		"name": "Zeta (power series)",
-		"symbol": "ζ",
-		"is_dirichlect": true,
-		"has_von_mangoldt": true,
-		"iters_range": [100.0, 10000.0, 100.0, 100.0],
-		"hidden": true,
-	},
-	"ETA_BORWEIN": {
-		"name": "Eta Borwein",
-		"symbol": "η",
-		"is_dirichlect": true,
-		"has_von_mangoldt": true,
-		"iters_range": [10.0, 200.0, 10.0, 50.0],
-		"hidden": true,
-	},
-	"ZETA_BORWEIN": {
-		"name": "Zeta Borwein",
-		"symbol": "ζ",
-		"is_dirichlect": true,
-		"has_von_mangoldt": true,
-		"iters_range": [10.0, 200.0, 10.0, 50.0],
-		"hidden": true,
-		},
 }
 
 # Field parameters

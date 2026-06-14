@@ -1326,7 +1326,7 @@ ComplexFieldData evaluate_function_with_derivatives(float x, float y, int func_t
     if (func_type == MULTIVALUED_ASIN) return multivalued_asin_with_derivatives(x, y, b_offset);
     if (func_type == MULTIVALUED_ACOS) return multivalued_acos_with_derivatives(x, y, b_offset);
     if (func_type == ZETA_POWER_SERIES) return zeta_continuation_power_series_with_derivatives(x, y, iters);
-    if (func_type == ETA_BORWEIN) return eta_borwein_with_derivatives(x, y, iters);
+    if (func_type == DIRICHLET_ETA_BORWEIN) return eta_borwein_with_derivatives(x, y, iters);
     if (func_type == ZETA_BORWEIN) return zeta_borwein_with_derivatives(x, y, iters);
     ComplexFieldData res;
     res.value = vec2(0.0);

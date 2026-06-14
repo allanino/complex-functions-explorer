@@ -1168,7 +1168,7 @@ static func get_field_at(x: float, y: float, function_type: int, is_input: bool)
 		Config.ComplexFunc.MULTIVALUED_ASIN: return multivalued_asin(x, y)
 		Config.ComplexFunc.MULTIVALUED_ACOS: return multivalued_acos(x, y)
 		Config.ComplexFunc.ZETA_POWER_SERIES: return zeta_continuation_power_series(x, y)
-		Config.ComplexFunc.ETA_BORWEIN: return eta_borwein(x, y, Config.iterations)
+		Config.ComplexFunc.DIRICHLET_ETA_BORWEIN: return eta_borwein(x, y, Config.iterations)
 		Config.ComplexFunc.ZETA_BORWEIN: return zeta_borwein(x, y, Config.iterations)
 	return Vector2.ZERO
 
@@ -1396,7 +1396,7 @@ static func newton_step(z_input: Variant, step_size_mult: float, max_step: float
 			f_prime = DoubleVector2.new(res[1].x, res[1].y)
 			f_second = DoubleVector2.new(res[2].x, res[2].y)
 			use_analytic = true
-		elif Config.function_type == Config.ComplexFunc.ETA_BORWEIN:
+		elif Config.function_type == Config.ComplexFunc.DIRICHLET_ETA_BORWEIN:
 			var res = eta_borwein_with_derivatives(z.x, z.y, Config.iterations * 2)
 			f_val = res[0]
 			f_prime = res[1]
