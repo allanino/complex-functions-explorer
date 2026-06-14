@@ -308,9 +308,9 @@ func _update_polynomial_debug_str():
 
 	if closest_patch:
 		var coeffs: Array = closest_patch["coeffs"]
-		var new_str = ""
+		var new_str = "Patch center = (%.5f, %.5f)\n" % [closest_patch["center"].x, closest_patch["center"].y]
 		for k in range(coeffs.size()):
-			new_str += "%d: %.1f\n" % [k, coeffs[k].length()]
+			new_str += "%d: %.5f\n" % [k, coeffs[k].length()]
 		polynomial_debug_str = new_str.strip_edges()
 	else:
 		polynomial_debug_str = ""
