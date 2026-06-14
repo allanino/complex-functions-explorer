@@ -846,8 +846,8 @@ func start_newton_walk():
 				break
 
 			var result = ComplexField.newton_step(_current_z, step_mult)
-			var next_z: DoubleVector2 = result[0]
-			var f_val: DoubleVector2 = result[1]
+			var next_z: Vector2 = result[0]
+			var f_val: Vector2 = result[1]
 	
 			if f_val.length() < 1e-6:
 				break
