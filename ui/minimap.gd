@@ -118,13 +118,13 @@ func _on_config_changed(key: String):
 	if not mat: return
 	if key == "show_hud_zeros":
 		_update_zeros_shader()
-	elif key in ["iterations", "zoom_factor", "function_type", "input_function_type", "color_scheme", "rational_num_coeffs", "rational_den_coeffs", "input_rational_num_coeffs", "input_rational_den_coeffs", "multivalued_n", "show_curves", "show_critical_stripe", "height_type", "height_a", "height_epsilon", "height_theta"]:
+	elif key in ["iterations", "zoom_factor", "function_type", "input_function_type", "color_scheme", "rational_num_coeffs", "rational_den_coeffs", "input_rational_num_coeffs", "input_rational_den_coeffs", "multivalued_n", "show_curves", "show_critical_stripe", "height_type", "height_a", "height_epsilon", "height_theta", "morph_style"]:
 		_sync_all_uniforms()
 
 func _on_state_changed(key: String):
 	var mat = map_rect.material as ShaderMaterial
 	if not mat: return
-	if key == "current_branch" or key == "effective_zoom" or key == "morph_value" or key == "morph_style":
+	if key == "current_branch" or key == "effective_zoom" or key == "morph_value":
 		mat.set_shader_parameter("current_branch", GameState.current_branch)
 		mat.set_shader_parameter("show_curves", Config.show_curves)
 		mat.set_shader_parameter("show_critical_stripe", Config.show_critical_stripe)

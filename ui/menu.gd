@@ -134,7 +134,6 @@ var _initial_preset: String
 var _initial_edited_presets: Dictionary
 
 func _ready():
-	_update_morph_style_ui()
 	tab_buttons = [
 		func_tab_button,
 		env_tab_button,
@@ -318,6 +317,7 @@ func _ready():
 			_menu_scale_dragging = false
 			_rescale_menu(Config.menu_scale)
 		)
+	_update_morph_style_ui()
 
 
 func _init_slider_bindings():
@@ -501,7 +501,7 @@ func _init_slider_bindings():
 		morph_slider: {
 			"config_target": GameState, "config_key": "morph_value",
 			"to_config": func(v): return v,
-			"from_config": func(_c): return 1.0,
+			"from_config": func(c): return c,
 			"format": func(v): return "%.2f" % v
 		}
 	}
