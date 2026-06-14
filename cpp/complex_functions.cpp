@@ -799,7 +799,11 @@ PackedFloat64Array ComplexFunctions::_find_zero_core(double x, double y, int ite
 }
 
 PackedFloat64Array ComplexFunctions::eta_find_zero(double x, double y, int iters, double step_mult, double step_max, bool debug) {
-	return _find_zero_core(x, y, iters, step_mult, step_max, debug, &ComplexFunctions::eta_borwein_with_derivatives);
+	if (x < 0.0) {
+		return _find_zero_core(x, y, iters, step_mult, step_max, debug, &ComplexFunctions::eta_continuation_with_derivatives);
+	} else {
+		return _find_zero_core(x, y, iters, step_mult, step_max, debug, &ComplexFunctions::eta_borwein_with_derivatives);
+	}
 }
 
 PackedFloat64Array ComplexFunctions::zeta_find_zero(double x, double y, int iters, double step_mult, double step_max, bool debug) {
