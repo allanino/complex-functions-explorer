@@ -259,8 +259,8 @@ func test_zeta_with_derivatives():
 
 	# Value should match the pure zeta function
 	var val_pure = ComplexFieldScript.zeta(x1, y1)
-	assert_almost_eq(res[0].x, val_pure.x, 0.001)
-	assert_almost_eq(res[0].y, val_pure.y, 0.001)
+	assert_almost_eq(res[0].x, val_pure.x, 0.0001)
+	assert_almost_eq(res[0].y, val_pure.y, 0.0001)
 
 	# Value should be close to 0 (since it's a zero)
 	assert_almost_eq(res[0].x, 0.0, 0.015)
