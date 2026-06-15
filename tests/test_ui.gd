@@ -321,3 +321,24 @@ func test_branch_k_slider_ranges():
 	# Test non-multivalued function (hidden)
 	main_ui_instance.menu_overlay._on_func_selected(Config.ComplexFunc.ZETA_CONTINUATION)
 	assert_false(main_ui_instance.menu_overlay.branch_k_slider.visible)
+
+func test_line_edit_dead_key_circumflex_handling():
+	var text_input = main_ui_instance.menu_overlay.func_rational_container
+	var line_edit = main_ui_instance.menu_overlay.func_rational_input
+	assert_not_null(line_edit)
+	
+	line_edit.text = "z"
+	line_edit.caret_column = 1
+	
+	var event = InputEventKey.new()
+	event.pressed = true
+	event.unicode = 94 # '^'
+	
+	line_edit.gui_input.emit(event)
+	
+	assert_eq(line_edit.text, "z^")
+	assert_eq(line_edit.caret_column, 2)
+	
+	# Verify that the _process method runs without throwing
+	text_input._process(0.016)
+
