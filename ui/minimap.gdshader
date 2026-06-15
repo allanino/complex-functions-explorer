@@ -148,8 +148,8 @@ void fragment() {
         );
     float moire_suppression = smoothstep(0.5, 5.0, phase_screen_change);
 
-    float eff_sat = mix(saturation, 0.0, moire_suppression * 0.8);
-    float eff_bri = mix(brightness, brightness * 0.5, moire_suppression * 0.5);
+    float eff_sat = mix(saturation * 0.9, 0.0, moire_suppression * 0.8);
+    float eff_bri = mix(brightness * 0.7, brightness * 0.3, moire_suppression * 0.5);
 
     vec3 base_color = hsv2rgb(vec3(hue, eff_sat, eff_bri));
     if (color_scheme == 2) {
