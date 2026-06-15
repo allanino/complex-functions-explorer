@@ -1132,6 +1132,11 @@ func _on_title_gui_input(event: InputEvent):
 			var i_idx = input_button.get_item_index(current_submitted_input)
 			if i_idx >= 0: input_button.select(i_idx)
 
+			if GameState.show_hidden_options:
+				title_label.add_theme_color_override("font_color", Color(0.784314, 0.662745, 0.431373))
+			else:
+				title_label.add_theme_color_override("font_color", Color(0.909804, 0.894118, 0.862745))
+
 			_title_clicks = 0
 
 func _on_tab_button_pressed(index: int):
