@@ -197,6 +197,7 @@ static var FUNCTIONS = {
 const PRESET_KEYS = [
 	"terrain_detail",
 	"antialiasing_mode",
+	"rendering_scale",
 	"show_curves",
 	"show_curves_labels",
 	"show_critical_stripe",
@@ -330,6 +331,11 @@ var terrain_detail: int = 1:
 		terrain_detail = v
 		config_changed.emit("terrain_detail")
 var antialiasing_mode: int = 1
+var rendering_scale: float = 1.0:
+	set(v):
+		if rendering_scale == v: return
+		rendering_scale = v
+		config_changed.emit("rendering_scale")
 var show_curves: bool = true:
 	set(v):
 		if show_curves == v: return
@@ -621,6 +627,7 @@ func save_settings():
 
 	config.set_value("rendering", "terrain_detail", terrain_detail)
 	config.set_value("rendering", "antialiasing_mode", antialiasing_mode)
+	config.set_value("rendering", "rendering_scale", rendering_scale)
 	config.set_value("rendering", "show_curves", show_curves)
 	config.set_value("rendering", "show_curves_labels", show_curves_labels)
 	config.set_value("rendering", "show_critical_stripe", show_critical_stripe)
@@ -700,6 +707,7 @@ func load_settings():
 
 	terrain_detail = config.get_value("rendering", "terrain_detail", terrain_detail)
 	antialiasing_mode = config.get_value("rendering", "antialiasing_mode", antialiasing_mode)
+	rendering_scale = config.get_value("rendering", "rendering_scale", rendering_scale)
 	show_curves = config.get_value("rendering", "show_curves", show_curves)
 	show_curves_labels = config.get_value("rendering", "show_curves_labels", show_curves_labels)
 	show_critical_stripe = config.get_value("rendering", "show_critical_stripe", show_critical_stripe)

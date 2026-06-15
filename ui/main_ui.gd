@@ -149,6 +149,7 @@ func _ready():
 	# Performance: Start with _process disabled since no timers are active initially
 	set_process(false)
 
+	get_viewport().scaling_3d_scale = Config.rendering_scale
 	Config.config_changed.connect(_on_config_changed)
 	_update_function_labels()
 
@@ -685,6 +686,8 @@ func _zoom_to_slider(zoom: float) -> float:
 	return (log(zoom) - log(min_zoom)) / b
 
 func _on_config_changed(key: String):
+	if key == "rendering_scale":
+		get_viewport().scaling_3d_scale = Config.rendering_scale
 	if key == "function_type":
 		_update_zeros_list()
 		_setup_branch_data()
