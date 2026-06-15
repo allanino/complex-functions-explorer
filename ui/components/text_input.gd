@@ -22,6 +22,14 @@ func _ready():
 	$Label.text = text
 	$LineEdit.text = input_text
 	$LineEdit.placeholder_text = placeholder_text
+	$LineEdit.gui_input.connect(_on_line_edit_gui_input)
 
 func get_line_edit() -> LineEdit:
 	return $LineEdit
+
+func _on_line_edit_gui_input(event: InputEvent):
+	if event is InputEventKey and event.pressed:
+		if event.keycode == KEY_DEAD_CIRCUMFLEX or event.unicode == 94:
+			get_viewport().set_input_as_handled()
+			$LineEdit.insert_text_at_caret("^")
+			$LineEdit.text_changed.emit($LineEdit.text)
