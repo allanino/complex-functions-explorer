@@ -313,6 +313,7 @@ func _ready():
 	metallic_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Metallic"))
 	roughness_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Roughness"))
 	surface_texture_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "SurfaceTexture"))
+	rendering_scale_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Rendering Scale"))
 	view_distance_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "View Distance"))
 
 	main_menu_panel.scale = Vector2.ONE
