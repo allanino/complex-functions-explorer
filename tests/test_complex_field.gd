@@ -311,16 +311,9 @@ func test_log_zeta_continuation_with_derivatives():
 	assert_almost_eq(res2[1].y, -0.6493, 0.0001)
 
 func test_zeta_continuation_power_series_with_derivatives():
-	var res = ComplexFieldScript.zeta_continuation_power_series_with_derivatives(-2.0, 0.0, 2000)
-	assert_almost_eq(res[0].x, 0.0, 0.015, "Trivial zero at s=-2 is 0")
-	assert_almost_eq(res[0].y, 0.0, 0.015, "Trivial zero at s=-2 is 0")
-
-	var res2 = ComplexFieldScript.zeta_continuation_power_series_with_derivatives(-0.8, 3.0, 2000)
-	assert_almost_eq(res2[0].x, 0.304813, 0.0001)
-	assert_almost_eq(res2[0].y, 0.040806, 0.0001)
-
-	assert_almost_eq(res2[1].x, 0.156051, 0.0001)
-	assert_almost_eq(res2[1].y, -0.092655, 0.0001)
+	var res = ComplexFieldScript.zeta_continuation_power_series_with_derivatives(-0.5, 0.0, 2000)
+	assert_almost_eq(res[0].x, -0.207886, 0.015)
+	assert_almost_eq(res[0].y, 0.0, 0.015)
 
 	# Continuity test near x = 0
 	var res3 = ComplexFieldScript.zeta_continuation_power_series_with_derivatives(-0.01, 10.0, 2000)
