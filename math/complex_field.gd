@@ -1384,6 +1384,25 @@ static func newton_step(z_input: Variant, step_size_mult: float, max_step: float
 			f_prime = res[1] if res[1] is DoubleVector2 else DoubleVector2.new(res[1].x, res[1].y)
 			f_second = res[2] if res[2] is DoubleVector2 else DoubleVector2.new(res[2].x, res[2].y)
 			use_analytic = true
+		elif Config.function_type == Config.ComplexFunc.LOG:
+			var p_ref = Config.complex_to_world(z.x, z.y)
+			var v = get_field(p_ref.x, p_ref.y)
+			f_val = DoubleVector2.new(v.x, v.y)
+			var z_c = Vector2(z.x, z.y)
+			var f_prime_c = complex_div(Vector2(1.0, 0.0), z_c)
+			var f_second_c = complex_mul(complex_div(Vector2(-1.0, 0.0), z_c), complex_div(Vector2(1.0, 0.0), z_c))
+			f_prime = DoubleVector2.new(f_prime_c.x, f_prime_c.y)
+			f_second = DoubleVector2.new(f_second_c.x, f_second_c.y)
+			use_analytic = true
+		elif Config.function_type == Config.ComplexFunc.SIN:
+			var p_ref = Config.complex_to_world(z.x, z.y)
+			var v = get_field(p_ref.x, p_ref.y)
+			f_val = DoubleVector2.new(v.x, v.y)
+			var f_prime_c = complex_cos(z.x, z.y)
+			var f_second_c = Vector2(-v.x, -v.y)
+			f_prime = DoubleVector2.new(f_prime_c.x, f_prime_c.y)
+			f_second = DoubleVector2.new(f_second_c.x, f_second_c.y)
+			use_analytic = true
 		elif Config.function_type == Config.ComplexFunc.DIRICHLET_ETA_CONTINUATION:
 			var res = eta_continuation_with_derivatives(z.x, z.y, Config.iterations)
 			f_val = DoubleVector2.new(res[0].x, res[0].y)

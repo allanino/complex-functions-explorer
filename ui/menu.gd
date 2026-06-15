@@ -614,10 +614,8 @@ func _on_func_selected(f_type: int):
 	else:
 		input_button.disabled = false
 
-	var re = float(re_input.text) if re_input.text.is_valid_float() else 0.5
-	var im = float(im_input.text) if im_input.text.is_valid_float() else 0.0
-	if not is_finite(re): re = 0.5
-	if not is_finite(im): im = 0.0
+	var re = _parse_float_input(re_input, 0.5)
+	var im = _parse_float_input(im_input, 0.0)
 	
 	if player and not _syncing_ui:
 		var target_pos = Config.complex_to_world(re, im)
@@ -650,15 +648,11 @@ func _on_set_pos_pressed(_toggle_menu: bool = true):
 		audio.trigger_teleport_fade()
 
 	GameState.performance_protection_active = false
-	var re = float(re_input.text) if re_input.text.is_valid_float() else 0.5
-	var im = float(im_input.text) if im_input.text.is_valid_float() else 0.0
-	if not is_finite(re): re = 0.5
-	if not is_finite(im): im = 0.0
+	var re = _parse_float_input(re_input, 0.5)
+	var im = _parse_float_input(im_input, 0.0)
 
-	var h_a = float(height_a_input.text) if height_a_input.text.is_valid_float() else 3.0
-	if not is_finite(h_a): h_a = 3.0
-	var h_eps = float(height_eps_input.text) if height_eps_input.text.is_valid_float() else 1.0
-	if not is_finite(h_eps): h_eps = 1.0
+	var h_a = _parse_float_input(height_a_input, 3.0)
+	var h_eps = _parse_float_input(height_eps_input, 1.0)
 
 	if !hud_zeros_checkbox.button_pressed:
 		GameState.visited_zeros.clear()
@@ -884,45 +878,45 @@ func _on_hud_monitor_fps_toggled(pressed: bool):
 func _on_color_scheme_selected(index: int):
 	Config.color_scheme = index
 
-func _on_re_text_submitted(new_text: String):
-	if not new_text.is_valid_float():
-		new_text = "0.0"
-		re_input.text = new_text
+func _parse_float_input(input_node: LineEdit, default_value: float) -> float:
+	var text = input_node.text
+	if not text.is_valid_float():
+		var default_str = "0.0" if default_value == 0.0 else str(default_value)
+		# Try to keep decimal point for 3.0, 1.0 etc if it's an integer
+		if default_value == round(default_value):
+			default_str = "%.1f" % default_value
+		input_node.text = default_str
+		return default_value
+	var val = float(text)
+	if not is_finite(val):
+		var default_str = "0.0" if default_value == 0.0 else str(default_value)
+		if default_value == round(default_value):
+			default_str = "%.1f" % default_value
+		input_node.text = default_str
+		return default_value
+	return val
 
-	var re = float(new_text)
-	if is_finite(re) and player:
+func _on_re_text_submitted(_new_text: String):
+	var re = _parse_float_input(re_input, 0.0)
+	if player:
 		var current_complex = Config.world_to_complex(player.global_position.x, player.global_position.z)
 		var target_x = Config.complex_to_world(re, current_complex.y).x
 		player.teleport_to_world_pos(Vector3(target_x, player.global_position.y, player.global_position.z))
 
-func _on_im_text_submitted(new_text: String):
-	if not new_text.is_valid_float():
-		new_text = "0.0"
-		im_input.text = new_text
-
-	var im = float(new_text)
-	if is_finite(im) and player:
+func _on_im_text_submitted(_new_text: String):
+	var im = _parse_float_input(im_input, 0.0)
+	if player:
 		var current_complex = Config.world_to_complex(player.global_position.x, player.global_position.z)
 		var target_z = Config.complex_to_world(current_complex.x, im).y
 		player.teleport_to_world_pos(Vector3(player.global_position.x, player.global_position.y, target_z))
 
-func _on_height_a_text_submitted(new_text: String):
-	if not new_text.is_valid_float():
-		new_text = "3.0"
-		height_a_input.text = new_text
+func _on_height_a_text_submitted(_new_text: String):
+	var h_a = _parse_float_input(height_a_input, 3.0)
+	Config.height_a = h_a
 
-	var h_a = float(new_text)
-	if is_finite(h_a):
-		Config.height_a = h_a
-
-func _on_height_eps_text_submitted(new_text: String):
-	if not new_text.is_valid_float():
-		new_text = "1.0"
-		height_eps_input.text = new_text
-
-	var h_eps = float(new_text)
-	if is_finite(h_eps):
-		Config.height_epsilon = h_eps
+func _on_height_eps_text_submitted(_new_text: String):
+	var h_eps = _parse_float_input(height_eps_input, 1.0)
+	Config.height_epsilon = h_eps
 
 func _on_func_rational_text_submitted(new_text: String):
 	if Config.function_type == Config.ComplexFunc.RATIONAL:
