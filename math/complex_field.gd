@@ -151,7 +151,7 @@ static func dirichlet_eta(x: float, y: float, iterations: int) -> Vector2:
 
 		if (amp < 1e-4 || amp2 < 1e-4): break
 
-	if actual_iters > 0 and x >= 1.0:
+	if actual_iters > 0 and x >= 0.5:
 		var next_n = float(actual_iters + 1)
 		var rem_amp = 0.5 * pow(next_n, -x)
 		var raw_rem_theta = -y * log(next_n)
@@ -229,7 +229,7 @@ static func complex_gamma(x: float, y: float) -> Vector2:
 	return lanczos_gamma(Vector2(x, y))
 
 static func log_zeta_continuation(x: float, y: float) -> Vector2:
-	if x >= 1.0:
+	if x >= 0.5:
 		var z = zeta(x, y)
 		return complex_log(z.x, z.y)
 
@@ -251,7 +251,7 @@ static func log_zeta_continuation(x: float, y: float) -> Vector2:
 
 
 static func log_eta_continuation(x: float, y: float) -> Vector2:
-	if x >= 1.0:
+	if x >= 0.5:
 		var e = dirichlet_eta(x, y, Config.iterations)
 		return complex_log(e.x, e.y)
 
@@ -390,34 +390,61 @@ static func compute_eta_taylor_patch(x: float, y: float, iters: int) -> Array:
 	for k in range(K + 1):
 		eta_coeffs.append(Vector2.ZERO)
 
-	for n in range(1, max_terms + 1):
-		var sign_n = 1.0 if n % 2 != 0 else -1.0
-		var amp = pow(float(n), -x)
-		var raw_theta = -y * log(float(n))
-		var theta = fposmod(raw_theta, TAU)
+	for n in range(max_terms):
+		var inner_sums_x = PackedFloat64Array()
+		var inner_sums_y = PackedFloat64Array()
+		inner_sums_x.resize(K + 1)
+		inner_sums_y.resize(K + 1)
+		for k in range(K + 1):
+			inner_sums_x[k] = 0.0
+			inner_sums_y[k] = 0.0
 
-		var base_term_x = sign_n * amp * cos(theta)
-		var base_term_y = sign_n * amp * sin(theta)
-		var log_n = log(float(n)) if n > 1 else 0.0
+		var binom = 1.0
+		for k in range(n + 1):
+			var base_term_x: float = 0.0
+			var base_term_y: float = 0.0
+			var log_k1: float = 0.0
 
-		var current_term_x = base_term_x
-		var current_term_y = base_term_y
+			if k == 0:
+				base_term_x = float(binom)
+				base_term_y = 0.0
+				log_k1 = 0.0
+			else:
+				var k1 = float(k + 1)
+				var amp = pow(k1, -x)
+				var raw_theta = -y * log(k1)
+				var theta = fposmod(raw_theta, TAU)
+				var sign_k = 1.0 if k % 2 == 0 else -1.0
+				base_term_x = sign_k * float(binom) * amp * cos(theta)
+				base_term_y = sign_k * float(binom) * amp * sin(theta)
+				log_k1 = log(k1)
 
-		eta_coeffs[0] += Vector2(current_term_x / fact[0], current_term_y / fact[0])
+			inner_sums_x[0] += base_term_x
+			inner_sums_y[0] += base_term_y
 
-		for m in range(1, K + 1):
-			current_term_x *= -log_n
-			current_term_y *= -log_n
-			eta_coeffs[m] += Vector2(current_term_x / fact[m], current_term_y / fact[m])
+			var current_term_x = base_term_x
+			var current_term_y = base_term_y
+			for m in range(1, K + 1):
+				current_term_x *= -log_k1
+				current_term_y *= -log_k1
+				inner_sums_x[m] += current_term_x
+				inner_sums_y[m] += current_term_y
+
+			binom = binom * (n - k) / (k + 1)
+
+		var div_pow2 = pow(2.0, float(n + 1))
+		for m in range(K + 1):
+			var v = Vector2(inner_sums_x[m] / div_pow2 / fact[m], inner_sums_y[m] / div_pow2 / fact[m])
+			eta_coeffs[m] += v
 
 	return eta_coeffs
 
 const PATCH_MIN_SPACING = PATCH_RADIUS * 0.25
 
 static func _get_or_create_patch(z: Vector2, iters: int) -> Dictionary:
-	# 1. If no patches exist, seed the initial patch on the safe domain boundary (x >= 1.0)
+	# 1. If no patches exist, seed the initial patch on the safe domain boundary (x >= 0.5)
 	if eta_patches.is_empty():
-		var start_x = max(z.x, 1.0)
+		var start_x = max(z.x, 0.5)
 		var start_z = Vector2(start_x, z.y)
 		var coeffs = compute_eta_taylor_patch(start_z.x, start_z.y, iters)
 		var p = {
@@ -572,7 +599,7 @@ static func dirichlet_eta_with_derivatives(x: float, y: float, iters: int) -> Ar
 		if amp < 1e-4 or amp2 < 1e-4:
 			break
 
-	if actual_iters > 0 and x >= 1.0:
+	if actual_iters > 0 and x >= 0.5:
 		var next_n = float(actual_iters + 1)
 		var rem_amp = 0.5 * pow(next_n, -x)
 		var rem_log_n = log(next_n)
@@ -675,7 +702,7 @@ static func log_zeta_continuation_with_derivatives(x: float, y: float, iters: in
 		var ext = ClassDB.instantiate("ComplexFunctions")
 		var res = ext.call("log_zeta_continuation_with_derivatives", x, y, iters)
 		return [Vector2(res[0], res[1]), Vector2(res[2], res[3]), Vector2(res[4], res[5])]
-	if x >= 1.0:
+	if x >= 0.5:
 		var zeta_data = zeta_with_derivatives(x, y, iters)
 		var z_val = zeta_data[0]
 		var z_dx = zeta_data[1]
@@ -724,7 +751,7 @@ static func log_eta_continuation_with_derivatives(x: float, y: float, iters: int
 		var ext = ClassDB.instantiate("ComplexFunctions")
 		var res = ext.call("log_eta_continuation_with_derivatives", x, y, iters)
 		return [Vector2(res[0], res[1]), Vector2(res[2], res[3]), Vector2(res[4], res[5])]
-	if x >= 1.0:
+	if x >= 0.5:
 		var eta_data = dirichlet_eta_with_derivatives(x, y, iters)
 		var e_val = eta_data[0]
 		var e_dx = eta_data[1]
@@ -796,7 +823,7 @@ static func eta_continuation_with_derivatives(x: float, y: float, iters: int) ->
 		var ext = ClassDB.instantiate("ComplexFunctions")
 		var res = ext.call("eta_continuation_with_derivatives", x, y, iters)
 		return [Vector2(res[0], res[1]), Vector2(res[2], res[3]), Vector2(res[4], res[5])]
-	if x >= 1.0:
+	if x >= 0.5:
 		return dirichlet_eta_with_derivatives(x, y, iters)
 
 	var log_e = log_eta_continuation_with_derivatives(x, y, iters)
@@ -867,7 +894,7 @@ static func log_beta_continuation_with_derivatives(x: float, y: float, iters: in
 		var ext = ClassDB.instantiate("ComplexFunctions")
 		var res = ext.call("log_beta_continuation_with_derivatives", x, y, iters)
 		return [Vector2(res[0], res[1]), Vector2(res[2], res[3]), Vector2(res[4], res[5])]
-	if x >= 1.0:
+	if x >= 0.5:
 		var b_data = dirichlet_beta_with_derivatives(x, y, iters)
 		var b_val = b_data[0]
 		var b_dx = b_data[1]
@@ -917,7 +944,7 @@ static func beta_continuation_with_derivatives(x: float, y: float, iters: int) -
 		var ext = ClassDB.instantiate("ComplexFunctions")
 		var res = ext.call("beta_continuation_with_derivatives", x, y, iters)
 		return [Vector2(res[0], res[1]), Vector2(res[2], res[3]), Vector2(res[4], res[5])]
-	if x >= 1.0:
+	if x >= 0.5:
 		return dirichlet_beta_with_derivatives(x, y, iters)
 
 	var log_b = log_beta_continuation_with_derivatives(x, y, iters)
@@ -935,7 +962,7 @@ static func zeta_continuation_with_derivatives(x: float, y: float, iters: int) -
 		var ext = ClassDB.instantiate("ComplexFunctions")
 		var res = ext.call("zeta_continuation_with_derivatives", x, y, iters)
 		return [Vector2(res[0], res[1]), Vector2(res[2], res[3]), Vector2(res[4], res[5])]
-	if x >= 1.0:
+	if x >= 0.5:
 		return zeta_with_derivatives(x, y, iters)
 
 	var log_z = log_zeta_continuation_with_derivatives(x, y, iters)
@@ -1136,7 +1163,7 @@ static func get_field_at(x: float, y: float, function_type: int, is_input: bool)
 		Config.ComplexFunc.MULTIVALUED_LOG: return multivalued_log(x, y, -99999, true)
 		Config.ComplexFunc.MULTIVALUED_ASIN: return multivalued_asin(x, y)
 		Config.ComplexFunc.MULTIVALUED_ACOS: return multivalued_acos(x, y)
-		Config.ComplexFunc.ETA_POWER_SERIES: return eta_continuation_power_series(x, y)
+		Config.ComplexFunc.ZETA_POWER_SERIES: return eta_continuation_power_series(x, y)
 		Config.ComplexFunc.DIRICHLET_ETA_BORWEIN: return eta_borwein(x, y, Config.iterations)
 		Config.ComplexFunc.ZETA_BORWEIN: return zeta_borwein(x, y, Config.iterations)
 	return Vector2.ZERO

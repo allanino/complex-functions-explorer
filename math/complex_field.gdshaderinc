@@ -660,7 +660,26 @@ void compute_eta_taylor_patch(float x, float y, int iters, out vec2 coeffs[16]) 
 			coeffs[k] += term;
 		}
 	}
+
+	vec2 d_coeffs[16];
+	vec2 base_d = 2.0 * pow(2.0, -x) * vec2(cos(-y * LOG_2), sin(-y * LOG_2));
+	vec2 d_term = base_d;
+	d_coeffs[0] = vec2(1.0, 0.0) - d_term;
+	for (int k = 1; k <= PATCH_MAX_K; k++) {
+		d_term = d_term * (-LOG_2 / float(k));
+		d_coeffs[k] = -d_term;
+	}
+
+	for (int k = 0; k <= PATCH_MAX_K; k++) {
+		vec2 sum_val = coeffs[k];
+		for (int j = 0; j < k; j++) {
+			sum_val -= complex_mul(coeffs[j], d_coeffs[k - j]);
+		}
+		coeffs[k] = complex_div(sum_val, d_coeffs[0]);
+	}
 }
+
+ComplexFieldData eta_borwein_with_derivatives(float x, float y, int order);
 
 ComplexFieldData eta_continuation_power_series_with_derivatives(float x, float y, int iters) {
 	if (x >= 1.0) {
