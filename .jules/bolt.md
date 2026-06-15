@@ -20,3 +20,6 @@
 ## 2025-02-12 - Prevent portal math calculations when not in portal mode
 **Learning:** `terrain/portal/portal.gd` evaluated mathematical scaling factors and config variables (`is_multivalued`) in `_process` for every single frame across the lifetime of the game, even for functions where portals are completely disabled.
 **Action:** Use `set_process(false)` and bind to `Config.config_changed` to only enable the `_process` block when a multivalued function is actively selected.
+## 2025-03-01 - Suspend MainUI _process when inactive
+**Learning:** In Godot, leaving `_process` running with conditional early returns based on timers (e.g., `_height_protection_timer`) still consumes CPU cycles for script execution and variable checking every frame.
+**Action:** Use `set_process(false)` by default for UI components that only need `_process` during temporary state changes. Explicitly call `set_process(true)` when the event triggers the timer, and disable it again once the timers expire.

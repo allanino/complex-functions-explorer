@@ -141,7 +141,14 @@ func _process(delta: float) -> void:
 	if needs_update:
 		_update_monitor_label()
 
+	# Performance: Suspend _process when no timers are active
+	if _height_protection_timer <= 0.0 and _out_of_bounds_timer <= 0.0 and _unstable_zeta_timer <= 0.0:
+		set_process(false)
+
 func _ready():
+	# Performance: Start with _process disabled since no timers are active initially
+	set_process(false)
+
 	Config.config_changed.connect(_on_config_changed)
 	_update_function_labels()
 
@@ -278,10 +285,13 @@ func _on_game_state_changed(key: String):
 	if key in ["performance_protection_active", "height_protection_active", "out_of_bounds_teleport_active", "found_off_critical_line", "missed_zeta_zero", "unstable_zeta_computation"]:
 		if key == "height_protection_active" and GameState.height_protection_active:
 			_height_protection_timer = 5.0
+			set_process(true)
 		if key == "out_of_bounds_teleport_active" and GameState.out_of_bounds_teleport_active:
 			_out_of_bounds_timer = 5.0
+			set_process(true)
 		if key == "unstable_zeta_computation" and GameState.unstable_zeta_computation:
 			_unstable_zeta_timer = 5.0
+			set_process(true)
 		_update_monitor_label()
 	elif key in ["visited_zeros", "total_zeros_found"]:
 		_update_zeros_list()
