@@ -525,6 +525,33 @@ static func _get_or_create_patch(z: Vector2, iters: int) -> Dictionary:
 
 	return {} # Unreachable statement kept for compiler peace of mind
 
+static func zeta_power_series(x: float, y: float) -> Vector2:
+	var eta = eta_continuation_power_series(x, y)
+	var amp2 = pow(2.0, 1.0 - x)
+	var theta2 = -y * LOG_2
+	var two_term = amp2 * Vector2(cos(theta2), sin(theta2))
+	var denom = Vector2(1.0, 0.0) - two_term
+	return complex_div(eta, denom)
+
+static func zeta_power_series_with_derivatives(x: float, y: float, iters: int) -> Array:
+	var eta_data = eta_continuation_power_series_with_derivatives(x, y, iters)
+	var eta = eta_data[0]
+	var deta_dx = eta_data[1]
+
+	var amp2 = pow(2.0, 1.0 - x)
+	var theta2 = -y * LOG_2
+	var two_term = amp2 * Vector2(cos(theta2), sin(theta2))
+	var denom = Vector2(1.0, 0.0) - two_term
+	var ddenom_dx = LOG_2 * two_term
+
+	var val = complex_div(eta, denom)
+	var denom_sqr = complex_mul(denom, denom)
+	var num_x = complex_mul(deta_dx, denom) - complex_mul(eta, ddenom_dx)
+	var dx = complex_div(num_x, denom_sqr)
+
+
+	return [val, dx, Vector2.ZERO]
+
 static func eta_continuation_power_series(x: float, y: float) -> Vector2:
 	if x >= 0.3:
 		return dirichlet_eta(x, y, Config.iterations)
@@ -1171,6 +1198,7 @@ static func get_field_at(x: float, y: float, function_type: int, is_input: bool)
 	match function_type:
 		Config.ComplexFunc.ZETA: return zeta(x, y)
 		Config.ComplexFunc.ZETA_CONTINUATION: return zeta_continuation(x, y)
+		Config.ComplexFunc.ZETA_POWER_SERIES: return zeta_power_series(x, y)
 		Config.ComplexFunc.DIRICHLET_ETA_CONTINUATION: return eta_continuation(x, y)
 		Config.ComplexFunc.DIRICHLET_ETA: return dirichlet_eta(x, y, Config.iterations)
 		Config.ComplexFunc.DIRICHLET_BETA: return dirichlet_beta(x, y, Config.iterations)
@@ -1221,6 +1249,9 @@ static func is_close_to_zero(z_mid: Vector2) -> Array:
 			use_analytic = true
 		elif Config.function_type == Config.ComplexFunc.ZETA_CONTINUATION:
 			res = zeta_continuation_with_derivatives(z_mid.x, z_mid.y, Config.iterations * 2)
+			use_analytic = true
+		elif Config.function_type == Config.ComplexFunc.ZETA_POWER_SERIES:
+			res = zeta_power_series_with_derivatives(z_mid.x, z_mid.y, Config.iterations * 2)
 			use_analytic = true
 		elif Config.function_type == Config.ComplexFunc.DIRICHLET_ETA_CONTINUATION:
 			res = eta_continuation_with_derivatives(z_mid.x, z_mid.y, Config.iterations * 2)
@@ -1297,6 +1328,7 @@ static func is_close_to_zero(z_mid: Vector2) -> Array:
 static func function_has_cpp_find_zero() -> bool:
 	return Config.input_function_type == Config.ComplexFunc.IDENTITY and (
 		Config.function_type == Config.ComplexFunc.ZETA_CONTINUATION or
+		Config.function_type == Config.ComplexFunc.ZETA_POWER_SERIES or
 		Config.function_type == Config.ComplexFunc.DIRICHLET_ETA_CONTINUATION or
 		Config.function_type == Config.ComplexFunc.DIRICHLET_ETA or
 		Config.function_type == Config.ComplexFunc.DIRICHLET_BETA_CONTINUATION
@@ -1305,6 +1337,7 @@ static func function_has_cpp_find_zero() -> bool:
 static func function_has_second_derivatives() -> bool:
 	return Config.input_function_type == Config.ComplexFunc.IDENTITY and (
 		Config.function_type == Config.ComplexFunc.ZETA_CONTINUATION or
+		Config.function_type == Config.ComplexFunc.ZETA_POWER_SERIES or
 		Config.function_type == Config.ComplexFunc.DIRICHLET_ETA_CONTINUATION or
 		Config.function_type == Config.ComplexFunc.DIRICHLET_ETA or
 		Config.function_type == Config.ComplexFunc.DIRICHLET_BETA_CONTINUATION
@@ -1319,6 +1352,8 @@ static func find_zero(true_z: Vector2, debug: bool = false) -> Variant:
 		var ext = ClassDB.instantiate("ComplexFunctions")
 		var res = []
 		if Config.function_type == Config.ComplexFunc.ZETA_CONTINUATION:
+			res = ext.call("zeta_find_zero", true_z.x, true_z.y, int(Config.iterations * 0.6), 0.6, 0.3, debug)
+		elif Config.function_type == Config.ComplexFunc.ZETA_POWER_SERIES:
 			res = ext.call("zeta_find_zero", true_z.x, true_z.y, int(Config.iterations * 0.6), 0.6, 0.3, debug)
 		elif Config.function_type == Config.ComplexFunc.DIRICHLET_ETA_CONTINUATION or Config.function_type == Config.ComplexFunc.DIRICHLET_ETA:
 			res = ext.call("eta_find_zero", true_z.x, true_z.y, int(Config.iterations * 0.6), 0.6, 0.3, debug)
@@ -1423,6 +1458,12 @@ static func newton_step(z_input: Variant, step_size_mult: float, max_step: float
 			f_val = res[0] if res[0] is DoubleVector2 else DoubleVector2.new(res[0].x, res[0].y)
 			f_prime = res[1] if res[1] is DoubleVector2 else DoubleVector2.new(res[1].x, res[1].y)
 			f_second = res[2] if res[2] is DoubleVector2 else DoubleVector2.new(res[2].x, res[2].y)
+			use_analytic = true
+		elif Config.function_type == Config.ComplexFunc.ZETA_POWER_SERIES:
+			var res = zeta_power_series_with_derivatives(z.x, z.y, Config.iterations * 2)
+			f_val = DoubleVector2.new(res[0].x, res[0].y)
+			f_prime = DoubleVector2.new(res[1].x, res[1].y)
+			f_second = DoubleVector2.new(res[2].x, res[2].y)
 			use_analytic = true
 		elif Config.function_type == Config.ComplexFunc.LOG:
 			var p_ref = Config.complex_to_world(z.x, z.y)
