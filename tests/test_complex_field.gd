@@ -779,9 +779,9 @@ func test_newton_step():
 	assert_almost_eq(f1_val.x, expected_f1_val.x, 0.001)
 	assert_almost_eq(f1_val.y, expected_f1_val.y, 0.001)
 
-	# Case 2: Numerical path (e.g. SIN)
+	# Case 2: Numerical path (e.g. COS)
 	Config.input_function_type = Config.ComplexFunc.IDENTITY
-	Config.function_type = Config.ComplexFunc.SIN
+	Config.function_type = Config.ComplexFunc.COS
 
 	var z2 = Vector2(PI / 4.0, 0.0)
 	var res2 = ComplexFieldScript.newton_step(z2, 1.0)
@@ -805,13 +805,13 @@ func test_newton_step():
 	assert_almost_eq(f2_val.y, expected_f2_val.y, 0.001)
 
 	# Case 3: Small gradient / flat field (f_prime.length_squared() < 1e-12)
-	# sin'(z) = cos(z). If z = pi/2, cos(z) = 0.
+	# cos'(z) = -sin(z). If z = 0, sin(z) = 0.
 	# Using analytical path instead to ensure small gradient check.
-	# sin(pi/2) = 1, cos(pi/2) = 0.
-	# numerical derivation for sin(pi/2) might not yield exactly 0 due to 1e-5 offset.
+	# cos(0) = 1, sin(0) = 0.
+	# numerical derivation for cos(0) might not yield exactly 0 due to 1e-5 offset.
 	# Let's test a point where f_prime numerical is identically zero or very small.
 	# Or let's test using numerical derivation but at the top of a peak.
-	var z3 = Vector2(PI / 2.0, 0.0)
+	var z3 = Vector2(0.0, 0.0)
 	var res3 = ComplexFieldScript.newton_step(z3, 1.0)
 	var z3_next = res3[0]
 	var f3_val = res3[1]
@@ -836,9 +836,9 @@ func test_newton_step():
 	assert_almost_eq(f3_val.y, expected_f3_val.y, 0.001)
 
 	# Case 4: Step length > max_step
-	# sin(z) / cos(z) = tan(z). If z is 1.50, tan(1.50) is ~14.1, which is > max_step.
+	# cos(z) / -sin(z) = -cot(z). If z is 0.05, cot(0.05) is ~20, which is > max_step.
 	# We use 1.50 instead of 1.57 to ensure f_prime is not truncated to 0 due to float32 precision.
-	var z4 = Vector2(1.50, 0.0)
+	var z4 = Vector2(0.05, 0.0)
 	var max_step = 2.0
 	var res4 = ComplexFieldScript.newton_step(z4, 1.0, max_step)
 	var z4_next = res4[0]
