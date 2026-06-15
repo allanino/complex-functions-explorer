@@ -239,11 +239,8 @@ var iterations: int = 500:
 		iterations = v
 		config_changed.emit("iterations")
 var function_iterations: Dictionary = {}
-var last_function_type: int = ComplexFunc.ZETA_CONTINUATION
 var function_type: int = ComplexFunc.ZETA_CONTINUATION:
 	set(value):
-		if function_type != value:
-			last_function_type = function_type
 		function_iterations[function_type] = iterations
 		function_type = value
 		function = FUNCTIONS.get(function_type, {})

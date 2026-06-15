@@ -130,6 +130,11 @@ var _initial_preset: String
 var _initial_edited_presets: Dictionary
 
 func _ready():
+	current_submitted_func = Config.function_type
+	current_submitted_input = Config.input_function_type
+	last_submitted_func = Config.function_type
+	last_submitted_input = Config.input_function_type
+
 	tab_buttons = [
 		func_tab_button,
 		env_tab_button,
@@ -525,6 +530,12 @@ func _on_generic_slider_changed(slider: Control, value: float):
 		binding["on_changed"].call(value)
 
 var _menu_scale_dragging: bool = false
+
+var current_submitted_func: int = -1
+var current_submitted_input: int = -1
+var last_submitted_func: int = -1
+var last_submitted_input: int = -1
+
 var _syncing_ui: bool = false
 
 func _disable_sliders_focus(node: Node):
@@ -554,13 +565,27 @@ func _on_input_item_selected(index: int):
 
 func _input(event):
 	if event is InputEventKey and event.pressed and event.keycode == KEY_P and event.ctrl_pressed:
-		var target_index = func_button.get_item_index(Config.last_function_type)
-		if target_index >= 0:
-			func_button.select(target_index)
+		var target_func = last_submitted_func if current_submitted_func == Config.function_type else current_submitted_func
+		var target_input = last_submitted_input if current_submitted_input == Config.input_function_type else current_submitted_input
+
+		var func_index = func_button.get_item_index(target_func)
+		var input_index = input_button.get_item_index(target_input)
+
+		if func_index >= 0:
+			func_button.select(func_index)
 			var was_syncing = _syncing_ui
 			_syncing_ui = true
-			_on_func_item_selected(target_index)
+			_on_func_item_selected(func_index)
 			_syncing_ui = was_syncing
+		if input_index >= 0:
+			input_button.select(input_index)
+			var was_syncing = _syncing_ui
+			_syncing_ui = true
+			_on_input_item_selected(input_index)
+			_syncing_ui = was_syncing
+
+		if func_index >= 0 or input_index >= 0:
+			_on_set_pos_pressed(false)
 			get_viewport().set_input_as_handled()
 
 func _on_input_selected(f_type: int):
@@ -694,8 +719,17 @@ func _on_set_pos_pressed(_toggle_menu: bool = true):
 	Config.show_hud_monitor_fps = hud_monitor_fps_checkbox.button_pressed
 	Config.show_flow = flow_checkbox.button_pressed
 	Config.show_position_marker = position_marker_checkbox.button_pressed
-	Config.function_type = func_button.get_item_id(func_button.selected)
-	Config.input_function_type = input_button.get_item_id(input_button.selected)
+
+	var new_func = func_button.get_item_id(func_button.selected)
+	var new_input = input_button.get_item_id(input_button.selected)
+	if new_func != current_submitted_func or new_input != current_submitted_input:
+		last_submitted_func = current_submitted_func
+		last_submitted_input = current_submitted_input
+		current_submitted_func = new_func
+		current_submitted_input = new_input
+
+	Config.function_type = new_func
+	Config.input_function_type = new_input
 	Config.height_type = height_button.selected
 
 	emit_signal('apply_aa_signal')
