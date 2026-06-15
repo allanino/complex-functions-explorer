@@ -149,6 +149,7 @@ func _ready():
 	# Performance: Start with _process disabled since no timers are active initially
 	set_process(false)
 
+	get_viewport().scaling_3d_scale = Config.rendering_scale
 	Config.config_changed.connect(_on_config_changed)
 	_update_function_labels()
 
