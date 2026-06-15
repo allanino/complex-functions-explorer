@@ -1077,8 +1077,8 @@ func test_find_zero_log_fallback():
 	if check_res[0]:
 		var z_refined = ComplexFieldScript.find_zero(check_res[1], false)
 		assert_typeof(z_refined, TYPE_VECTOR2)
-		assert_almost_eq(z_refined.x, 1.0, 0.001)
-		assert_almost_eq(z_refined.y, 0.0, 0.001)
+		assert_almost_eq(z_refined.x, 1.0, 0.0001)
+		assert_almost_eq(z_refined.y, 0.0, 0.0001)
 
 func test_is_close_to_zero_sin_fallback():
 	Config.input_function_type = Config.ComplexFunc.IDENTITY
@@ -1096,5 +1096,5 @@ func test_find_zero_sin_fallback():
 	if check_res[0]:
 		var z_refined = ComplexFieldScript.find_zero(check_res[1], false)
 		assert_typeof(z_refined, TYPE_VECTOR2)
-		assert_almost_eq(z_refined.x, PI, 0.001)
-		assert_almost_eq(z_refined.y, 0.0, 0.001)
+		assert_almost_eq(z_refined.x, PI, 0.0001)
+		assert_almost_eq(z_refined.y, 0.0, 0.0001)
