@@ -2,6 +2,13 @@ extends BaseTest
 
 const ComplexFieldScript = preload("res://math/complex_field.gd")
 
+func test_conjugate():
+	var res = ComplexFieldScript.get_field_at(3.0, 4.0, Config.ComplexFunc.CONJUGATE, false)
+	assert_eq(res, Vector2(3.0, -4.0))
+
+	res = ComplexFieldScript.get_field_at(-2.5, -5.5, Config.ComplexFunc.CONJUGATE, false)
+	assert_eq(res, Vector2(-2.5, 5.5))
+
 func test_complex_mul():
 	var z1 = Vector2(1, 2)
 	var z2 = Vector2(3, 4)
@@ -158,7 +165,7 @@ func test_complex_gamma():
 	var res = ComplexFieldScript.complex_gamma(1, 0)
 	assert_almost_eq(res.x, 1.0, 0.0001)
 	assert_almost_eq(res.y, 0.0, 0.0001)
-	
+
 	var res2 = ComplexFieldScript.complex_gamma(-2, -1)
 	assert_almost_eq(res2.x, 0.133910, 0.0001)
 	assert_almost_eq(res2.y, 0.0962865, 0.0001)
@@ -247,7 +254,7 @@ func test_zeta():
 	var res = ComplexFieldScript.zeta(0.5, 14.134725)
 	assert_almost_eq(res.x, 0.0, 0.015)
 	assert_almost_eq(res.y, 0.0, 0.015)
-	
+
 func test_zeta_with_derivatives():
 	# Test at first non-trivial zero (same as test_zeta)
 	var x1 = 0.5
@@ -290,7 +297,7 @@ func test_zeta_continuation():
 	var res = ComplexFieldScript.zeta_continuation(0.5, 14.134725)
 	assert_almost_eq(res.x, 0.0, 0.015)
 	assert_almost_eq(res.y, 0.0, 0.015)
-	
+
 	var res2 = ComplexFieldScript.zeta_continuation(-2.0, 3.0)
 	assert_almost_eq(res2.x, 0.132971, 0.015)
 	assert_almost_eq(res2.y, 0.123053, 0.015)

@@ -1214,6 +1214,7 @@ static func get_field_at(x: float, y: float, function_type: int, is_input: bool)
 		Config.ComplexFunc.EXP: return complex_exp(x, y)
 		Config.ComplexFunc.LOG: return complex_log(x, y)
 		Config.ComplexFunc.IDENTITY: return Vector2(x, y)
+		Config.ComplexFunc.CONJUGATE: return Vector2(x, -y)
 		Config.ComplexFunc.RATIONAL:
 			if is_input:
 				return get_rational(x, y, Config.input_rational_num_coeffs, Config.input_rational_den_coeffs)
