@@ -40,11 +40,11 @@ static var FUNCTIONS = {
 		"iters_range": [100.0, 10000.0, 100.0, 100.0],
 		"initial_pos": Vector3(5.0, 0.0, 0.0),
 	},
-	"ZETA_POWER_SERIES": {
-		"name": "Riemann Zeta (power series)",
-		"symbol": "ζ",
+	"ETA_POWER_SERIES": {
+		"name": "Dirichlet Eta (power series)",
+		"symbol": "η",
 		"is_dirichlet": true,
-		"has_von_mangoldt": true,
+		"has_von_mangoldt": false,
 		"iters_range": [100.0, 10000.0, 100.0, 100.0],
 		"hidden": true,
 		"initial_pos": Vector3(10.0, 0.0, 10.0),

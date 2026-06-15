@@ -170,9 +170,9 @@ func _apply_performance_protection(active: bool):
 
 func _update_all_terrain_material_uniforms():
 	if terrain_material:
-		terrain_material.set_shader_parameter("zeta_patch_count", min(64, ComplexField.zeta_patches.size()))
-		terrain_material.set_shader_parameter("zeta_patch_centers", ComplexField.get_shader_patch_centers())
-		terrain_material.set_shader_parameter("zeta_patch_coeffs", ComplexField.get_shader_patch_coeffs())
+		terrain_material.set_shader_parameter("eta_patch_count", min(64, ComplexField.eta_patches.size()))
+		terrain_material.set_shader_parameter("eta_patch_centers", ComplexField.get_shader_patch_centers())
+		terrain_material.set_shader_parameter("eta_patch_coeffs", ComplexField.get_shader_patch_coeffs())
 	var init_keys = [
 		"function_type",
 		"iterations", "show_curves", "show_critical_stripe", "show_flow",
@@ -364,8 +364,8 @@ func _on_config_changed(key: String):
 func _on_state_changed(key: String):
 	if key in ["current_branch", "morph_value", "newton_path", "newton_path_bbox", "real_level_curves_highlighted", "imag_level_curves_highlighted", "effective_zoom"]:
 		_update_terrain_material_uniforms(key)
-	elif key == "zeta_patches":
+	elif key == "eta_patches":
 		if terrain_material:
-			terrain_material.set_shader_parameter("zeta_patch_count", min(64, ComplexField.zeta_patches.size()))
-			terrain_material.set_shader_parameter("zeta_patch_centers", ComplexField.get_shader_patch_centers())
-			terrain_material.set_shader_parameter("zeta_patch_coeffs", ComplexField.get_shader_patch_coeffs())
+			terrain_material.set_shader_parameter("eta_patch_count", min(64, ComplexField.eta_patches.size()))
+			terrain_material.set_shader_parameter("eta_patch_centers", ComplexField.get_shader_patch_centers())
+			terrain_material.set_shader_parameter("eta_patch_coeffs", ComplexField.get_shader_patch_coeffs())

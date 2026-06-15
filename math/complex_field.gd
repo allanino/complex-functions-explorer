@@ -1,10 +1,10 @@
 # Shared field and height functions for GDScript
 class_name ComplexField
 
-const PATCH_MAX_K = 20
-const PATCH_RADIUS = 0.8
-const PATCH_THRESHOLD = 0.5
-static var zeta_patches: Array = []
+const PATCH_MAX_K = 30
+const PATCH_RADIUS = 2.0
+const PATCH_THRESHOLD = 1.0
+static var eta_patches: Array = []
 
 #-------------------------------------------------------------------------
 # Complex Arithmetic
@@ -355,17 +355,17 @@ static func get_rational(x: float, y: float, num_coeffs: PackedVector2Array, den
 
 static func get_shader_patch_centers() -> PackedVector2Array:
 	var centers = PackedVector2Array()
-	var start_idx = max(0, zeta_patches.size() - 64)
-	for i in range(start_idx, zeta_patches.size()):
-		centers.append(zeta_patches[i]["center"])
+	var start_idx = max(0, eta_patches.size() - 64)
+	for i in range(start_idx, eta_patches.size()):
+		centers.append(eta_patches[i]["center"])
 	return centers
 
 static func get_shader_patch_coeffs() -> PackedVector2Array:
 	var coeffs = PackedVector2Array()
-	var start_idx = max(0, zeta_patches.size() - 64)
-	for i in range(start_idx, zeta_patches.size()):
+	var start_idx = max(0, eta_patches.size() - 64)
+	for i in range(start_idx, eta_patches.size()):
 		for k in range(16):
-			coeffs.append(zeta_patches[i]["coeffs"][k])
+			coeffs.append(eta_patches[i]["coeffs"][k])
 	return coeffs
 
 static func evaluate_power_series(center: Vector2, coeffs: Array, z: Vector2) -> Vector2:
@@ -377,7 +377,7 @@ static func evaluate_power_series(center: Vector2, coeffs: Array, z: Vector2) ->
 		dz_k = complex_mul(dz_k, dz)
 	return res
 
-static func compute_zeta_taylor_patch(x: float, y: float, iters: int) -> Array:
+static func compute_eta_taylor_patch(x: float, y: float, iters: int) -> Array:
 	var K = PATCH_MAX_K
 	var max_terms = min(80, iters)
 
@@ -437,47 +437,62 @@ static func compute_zeta_taylor_patch(x: float, y: float, iters: int) -> Array:
 			var v = Vector2(inner_sums_x[m] / div_pow2 / fact[m], inner_sums_y[m] / div_pow2 / fact[m])
 			eta_coeffs[m] += v
 
-	var d_coeffs = []
-	var base_d = 2.0 * pow(2.0, -x) * Vector2(cos(-y * LOG_2), sin(-y * LOG_2))
-	d_coeffs.append(Vector2(1.0, 0.0) - base_d)
-
-	var d_term = base_d
-	for k in range(1, K + 1):
-		d_term *= -LOG_2
-		d_coeffs.append(-d_term / fact[k])
-
-	var zeta_coeffs = []
-	for k in range(K + 1):
-		var sum_val = eta_coeffs[k]
-		for j in range(k):
-			sum_val -= complex_mul(zeta_coeffs[j], d_coeffs[k - j])
-		zeta_coeffs.append(complex_div(sum_val, d_coeffs[0]))
-
-	return zeta_coeffs
+	return eta_coeffs
 
 const PATCH_MIN_SPACING = PATCH_RADIUS * 0.25
 
+
+static func shift_taylor_patch(old_coeffs: Array, old_center: Vector2, new_center: Vector2) -> Array:
+	var K = PATCH_MAX_K
+	var new_coeffs = []
+	for k in range(K + 1):
+		new_coeffs.append(Vector2.ZERO)
+
+	var dz = new_center - old_center
+
+	# Precompute dz powers
+	var dz_pow = []
+	var current_dz = Vector2(1.0, 0.0)
+	for k in range(K + 1):
+		dz_pow.append(current_dz)
+		current_dz = complex_mul(current_dz, dz)
+
+	for m in range(K + 1):
+		var sum_val = Vector2.ZERO
+		for k in range(m, K + 1):
+			# Calculate binomial coefficient: k! / (m! * (k-m)!)
+			var binom = 1.0
+			for i in range(1, m + 1):
+				binom = binom * float(k - m + i) / float(i)
+
+			var term = complex_mul(old_coeffs[k], dz_pow[k - m])
+			term = term * binom
+			sum_val += term
+		new_coeffs[m] = sum_val
+
+	return new_coeffs
+
 static func _get_or_create_patch(z: Vector2, iters: int) -> Dictionary:
-	# 1. If no patches exist, seed the initial patch on the safe domain boundary (x >= 0.5)
-	if zeta_patches.is_empty():
-		var start_x = max(z.x, 0.5)
+	# 1. If no patches exist, seed the initial patch on the safe domain boundary (x >= 1.0)
+	if eta_patches.is_empty():
+		var start_x = z.x
 		var start_z = Vector2(start_x, z.y)
-		var coeffs = compute_zeta_taylor_patch(start_z.x, start_z.y, iters)
+		var coeffs = compute_eta_taylor_patch(start_z.x, start_z.y, iters)
 		var p = {
 			"center": start_z,
 			"coeffs": coeffs,
 			"radius": PATCH_RADIUS
 		}
-		zeta_patches.append(p)
+		eta_patches.append(p)
 		if GameState and GameState.has_signal("state_changed"):
-			GameState.call_deferred("emit_signal", "state_changed", "zeta_patches")
+			GameState.call_deferred("emit_signal", "state_changed", "eta_patches")
 
 	# 2. Iterate pathfinding / stepping until we reach a patch containing target `z`
 	while true:
 		var closest_patch = null
 		var min_dist = 1e9
 
-		for patch in zeta_patches:
+		for patch in eta_patches:
 			var dist = (z - patch["center"]).length()
 			if dist < min_dist:
 				min_dist = dist
@@ -496,30 +511,31 @@ static func _get_or_create_patch(z: Vector2, iters: int) -> Dictionary:
 		if new_center.x < -20.0: # Prevent walking into deep computation trivial zeros unguided
 			new_center.x = -20.0
 
-		# Create the new connected patch chain link
-		var new_coeffs = compute_zeta_taylor_patch(new_center.x, new_center.y, iters)
+		# Create the new connected patch chain link via true analytic continuation from the closest patch
+		var new_coeffs = shift_taylor_patch(closest_patch["coeffs"], closest_patch["center"], new_center)
 		var new_patch = {
 			"center": new_center,
 			"coeffs": new_coeffs,
 			"radius": PATCH_RADIUS
 		}
-		zeta_patches.append(new_patch)
+		eta_patches.append(new_patch)
 
 		if GameState and GameState.has_signal("state_changed"):
-			GameState.call_deferred("emit_signal", "state_changed", "zeta_patches")
+			GameState.call_deferred("emit_signal", "state_changed", "eta_patches")
 
 	return {} # Unreachable statement kept for compiler peace of mind
 
-static func zeta_continuation_power_series(x: float, y: float) -> Vector2:
-	if x >= 0.5:
-		return zeta(x, y)
+static func eta_continuation_power_series(x: float, y: float) -> Vector2:
+	if x >= 0.3:
+		return dirichlet_eta(x, y, Config.iterations)
 	var z = Vector2(x, y)
 	var patch = _get_or_create_patch(z, Config.iterations)
 	return evaluate_power_series(patch["center"], patch["coeffs"], z)
 
-static func zeta_continuation_power_series_with_derivatives(x: float, y: float, iters: int) -> Array:
-	if x >= 0.5:
-		return zeta_with_derivatives(x, y, iters)
+static func eta_continuation_power_series_with_derivatives(x: float, y: float, iters: int) -> Array:
+	if x >= 0.3:
+		return dirichlet_eta_with_derivatives(x, y, iters)
+
 	var z = Vector2(x, y)
 	var patch = _get_or_create_patch(z, iters)
 	var val = evaluate_power_series(patch["center"], patch["coeffs"], z)
@@ -1179,7 +1195,7 @@ static func get_field_at(x: float, y: float, function_type: int, is_input: bool)
 		Config.ComplexFunc.MULTIVALUED_LOG: return multivalued_log(x, y, -99999, true)
 		Config.ComplexFunc.MULTIVALUED_ASIN: return multivalued_asin(x, y)
 		Config.ComplexFunc.MULTIVALUED_ACOS: return multivalued_acos(x, y)
-		Config.ComplexFunc.ZETA_POWER_SERIES: return zeta_continuation_power_series(x, y)
+		Config.ComplexFunc.ETA_POWER_SERIES: return eta_continuation_power_series(x, y)
 		Config.ComplexFunc.DIRICHLET_ETA_BORWEIN: return eta_borwein(x, y, Config.iterations)
 		Config.ComplexFunc.ZETA_BORWEIN: return zeta_borwein(x, y, Config.iterations)
 	return Vector2.ZERO
