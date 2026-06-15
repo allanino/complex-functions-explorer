@@ -79,6 +79,26 @@ static func parse_poly(text: String) -> PackedVector2Array:
 			if degree_str == "": degree = 1
 			elif degree_str.begins_with("^"):
 				degree = int(degree_str.substr(1))
+			else:
+				var is_all_super = true
+				var super_val = 0
+				for j in range(degree_str.length()):
+					var ch = degree_str[j]
+					if ch == "⁰": super_val = super_val * 10 + 0
+					elif ch == "¹": super_val = super_val * 10 + 1
+					elif ch == "²": super_val = super_val * 10 + 2
+					elif ch == "³": super_val = super_val * 10 + 3
+					elif ch == "⁴": super_val = super_val * 10 + 4
+					elif ch == "⁵": super_val = super_val * 10 + 5
+					elif ch == "⁶": super_val = super_val * 10 + 6
+					elif ch == "⁷": super_val = super_val * 10 + 7
+					elif ch == "⁸": super_val = super_val * 10 + 8
+					elif ch == "⁹": super_val = super_val * 10 + 9
+					else:
+						is_all_super = false
+						break
+				if is_all_super and degree_str.length() > 0:
+					degree = super_val
 		else:
 			var coeff_str = term
 			var _sign = 1.0
