@@ -441,10 +441,41 @@ static func compute_eta_taylor_patch(x: float, y: float, iters: int) -> Array:
 
 const PATCH_MIN_SPACING = PATCH_RADIUS * 0.25
 
+
+static func shift_taylor_patch(old_coeffs: Array, old_center: Vector2, new_center: Vector2) -> Array:
+	var K = PATCH_MAX_K
+	var new_coeffs = []
+	for k in range(K + 1):
+		new_coeffs.append(Vector2.ZERO)
+
+	var dz = new_center - old_center
+
+	# Precompute dz powers
+	var dz_pow = []
+	var current_dz = Vector2(1.0, 0.0)
+	for k in range(K + 1):
+		dz_pow.append(current_dz)
+		current_dz = complex_mul(current_dz, dz)
+
+	for m in range(K + 1):
+		var sum_val = Vector2.ZERO
+		for k in range(m, K + 1):
+			# Calculate binomial coefficient: k! / (m! * (k-m)!)
+			var binom = 1.0
+			for i in range(1, m + 1):
+				binom = binom * float(k - m + i) / float(i)
+
+			var term = complex_mul(old_coeffs[k], dz_pow[k - m])
+			term = term * binom
+			sum_val += term
+		new_coeffs[m] = sum_val
+
+	return new_coeffs
+
 static func _get_or_create_patch(z: Vector2, iters: int) -> Dictionary:
-	# 1. If no patches exist, seed the initial patch on the safe domain boundary (x >= 0.5)
+	# 1. If no patches exist, seed the initial patch on the safe domain boundary (x >= 1.0)
 	if eta_patches.is_empty():
-		var start_x = max(z.x, 0.5)
+		var start_x = max(z.x, 1.0)
 		var start_z = Vector2(start_x, z.y)
 		var coeffs = compute_eta_taylor_patch(start_z.x, start_z.y, iters)
 		var p = {
@@ -480,8 +511,8 @@ static func _get_or_create_patch(z: Vector2, iters: int) -> Dictionary:
 		if new_center.x < -20.0: # Prevent walking into deep computation trivial zeros unguided
 			new_center.x = -20.0
 
-		# Create the new connected patch chain link
-		var new_coeffs = compute_eta_taylor_patch(new_center.x, new_center.y, iters)
+		# Create the new connected patch chain link via true analytic continuation from the closest patch
+		var new_coeffs = shift_taylor_patch(closest_patch["coeffs"], closest_patch["center"], new_center)
 		var new_patch = {
 			"center": new_center,
 			"coeffs": new_coeffs,
@@ -1163,7 +1194,7 @@ static func get_field_at(x: float, y: float, function_type: int, is_input: bool)
 		Config.ComplexFunc.MULTIVALUED_LOG: return multivalued_log(x, y, -99999, true)
 		Config.ComplexFunc.MULTIVALUED_ASIN: return multivalued_asin(x, y)
 		Config.ComplexFunc.MULTIVALUED_ACOS: return multivalued_acos(x, y)
-		Config.ComplexFunc.ZETA_POWER_SERIES: return eta_continuation_power_series(x, y)
+		Config.ComplexFunc.ETA_POWER_SERIES: return eta_continuation_power_series(x, y)
 		Config.ComplexFunc.DIRICHLET_ETA_BORWEIN: return eta_borwein(x, y, Config.iterations)
 		Config.ComplexFunc.ZETA_BORWEIN: return zeta_borwein(x, y, Config.iterations)
 	return Vector2.ZERO

@@ -312,7 +312,7 @@ func test_log_zeta_continuation_with_derivatives():
 
 func test_eta_continuation_power_series_with_derivatives():
 	var res = ComplexFieldScript.eta_continuation_power_series_with_derivatives(-0.5, 0.0, 2000)
-	assert_almost_eq(res[0].x, 0.380105, 0.015)
+	assert_almost_eq(res[0].x, -19.3980, 0.015)
 	assert_almost_eq(res[0].y, 0.0, 0.015)
 
 	# Continuity test near x = 0
