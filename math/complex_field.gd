@@ -1331,7 +1331,7 @@ static func find_zero(true_z: Vector2, debug: bool = false) -> Variant:
 			z_dist = sqrt((next_z.x - refined_z.x) ** 2 + (next_z.y - refined_z.y) ** 2)
 		else:
 			z_dist = next_z.distance_to(refined_z)
-		if f_mag < 1e-5 or z_dist < 1e-4:
+		if f_mag < 1e-5 or z_dist < 1e-5:
 			converged = true
 			break
 
