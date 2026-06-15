@@ -302,7 +302,7 @@ func _on_game_state_changed(key: String):
 		_update_monitor_label()
 
 func _update_polynomial_debug_str():
-	if not polynomial_debug or not player or Config.function_type != Config.ComplexFunc.ETA_POWER_SERIES or ComplexField.eta_patches.is_empty():
+	if not polynomial_debug or not player or Config.function_type != Config.ComplexFunc.DIRICHLET_ETA_POWER_SERIES or ComplexField.eta_patches.is_empty():
 		polynomial_debug_str = ""
 		return
 

@@ -40,15 +40,6 @@ static var FUNCTIONS = {
 		"iters_range": [100.0, 10000.0, 100.0, 100.0],
 		"initial_pos": Vector3(5.0, 0.0, 0.0),
 	},
-	"ETA_POWER_SERIES": {
-		"name": "Dirichlet Eta (power series)",
-		"symbol": "η",
-		"is_dirichlet": true,
-		"has_von_mangoldt": false,
-		"iters_range": [100.0, 10000.0, 100.0, 100.0],
-		"hidden": true,
-		"initial_pos": Vector3(10.0, 0.0, 10.0),
-	},
 	"ZETA_BORWEIN": {
 		"name": "Riemann Zeta (Borwein)",
 		"symbol": "ζ",
@@ -73,6 +64,15 @@ static var FUNCTIONS = {
 		"has_von_mangoldt": true,
 		"iters_range": [100.0, 10000.0, 100.0, 100.0],
 		"initial_pos": Vector3(5.0, 0.0, 0.0),
+	},
+	"DIRICHLET_ETA_POWER_SERIES": {
+		"name": "Dirichlet Eta (power series)",
+		"symbol": "η",
+		"is_dirichlet": true,
+		"has_von_mangoldt": false,
+		"iters_range": [100.0, 10000.0, 100.0, 100.0],
+		"hidden": false,
+		"initial_pos": Vector3(10.0, 0.0, 10.0),
 	},
 	"DIRICHLET_ETA_BORWEIN": {
 		"name": "Dirichlet Eta (Borwein)",

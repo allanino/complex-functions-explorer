@@ -1195,7 +1195,7 @@ static func get_field_at(x: float, y: float, function_type: int, is_input: bool)
 		Config.ComplexFunc.MULTIVALUED_LOG: return multivalued_log(x, y, -99999, true)
 		Config.ComplexFunc.MULTIVALUED_ASIN: return multivalued_asin(x, y)
 		Config.ComplexFunc.MULTIVALUED_ACOS: return multivalued_acos(x, y)
-		Config.ComplexFunc.ETA_POWER_SERIES: return eta_continuation_power_series(x, y)
+		Config.ComplexFunc.DIRICHLET_ETA_POWER_SERIES: return eta_continuation_power_series(x, y)
 		Config.ComplexFunc.DIRICHLET_ETA_BORWEIN: return eta_borwein(x, y, Config.iterations)
 		Config.ComplexFunc.ZETA_BORWEIN: return zeta_borwein(x, y, Config.iterations)
 	return Vector2.ZERO
