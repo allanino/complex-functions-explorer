@@ -216,7 +216,7 @@ corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hud_panel"]
-bg_color = Color(0.015686, 0.031372, 0.070588, 0.8)
+bg_color = Color(0.015686, 0.031372, 0.070588, 0.9)
 border_width_left = 1
 border_width_top = 1
 border_width_right = 1
