@@ -326,10 +326,15 @@ func _update_polynomial_debug_str():
 		polynomial_debug_str = ""
 
 func _update_monitor_label():
-	var show_height_protection = GameState.height_protection_active and _height_protection_timer > 0.0
-	var show_out_of_bounds = GameState.out_of_bounds_teleport_active and _out_of_bounds_timer > 0.0
-	var show_unstable_zeta = GameState.unstable_zeta_computation and _unstable_zeta_timer > 0.0
+	var show_height_protection = _height_protection_timer > 0.0
+	var show_out_of_bounds = _out_of_bounds_timer > 0.0
+	var show_unstable_zeta = _unstable_zeta_timer > 0.0
+
+	var old_visible = monitor_panel.visible
 	monitor_panel.visible = Config.show_hud_monitor_fps or show_hud_chunks or GameState.performance_protection_active or show_height_protection or show_out_of_bounds or show_unstable_zeta or GameState.found_off_critical_line or GameState.missed_zeta_zero or polynomial_debug
+
+	if old_visible != monitor_panel.visible:
+		_update_hud_layout()
 	if monitor_panel.visible and monitor_rt_label:
 		var bbcode = ""
 
