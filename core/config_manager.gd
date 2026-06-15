@@ -40,6 +40,15 @@ static var FUNCTIONS = {
 		"iters_range": [100.0, 10000.0, 100.0, 100.0],
 		"initial_pos": Vector3(5.0, 0.0, 0.0),
 	},
+	"ZETA_POWER_SERIES": {
+		"name": "Riemann Zeta (power series)",
+		"symbol": "ζ",
+		"is_dirichlet": true,
+		"has_von_mangoldt": false,
+		"iters_range": [100.0, 10000.0, 100.0, 100.0],
+		"initial_pos": Vector3(10.0, 0.0, 10.0),
+		"hidden": true,
+	},
 	"ZETA_BORWEIN": {
 		"name": "Riemann Zeta (Borwein)",
 		"symbol": "ζ",

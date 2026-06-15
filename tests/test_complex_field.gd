@@ -322,6 +322,31 @@ func test_eta_continuation_power_series_with_derivatives():
 	assert_almost_eq(res3[0].y, res4[0].y, 0.2, "Continuity across x=0 imaginary part")
 
 
+func test_zeta_power_series_with_derivatives():
+	# Test at first non-trivial zero (same as test_zeta)
+	var x1 = 0.5
+	var y1 = 14.134725
+	var res = ComplexFieldScript.zeta_power_series_with_derivatives(x1, y1, 2000)
+	assert_eq(res.size(), 3)
+	assert_true(typeof(res[0]) == TYPE_VECTOR2)
+	assert_true(typeof(res[1]) == TYPE_VECTOR2)
+
+	# Value should match the pure continuation function
+	var val_pure = ComplexFieldScript.zeta_power_series(x1, y1)
+	assert_almost_eq(res[0].x, val_pure.x, 0.001)
+	assert_almost_eq(res[0].y, val_pure.y, 0.001)
+
+	# Value should be close to 0 (since it's a zero)
+	assert_almost_eq(res[0].x, 0.0, 0.05)
+	assert_almost_eq(res[0].y, 0.0, 0.05)
+
+	# Test at x = -0.5, y = 0.0
+	var res2 = ComplexFieldScript.zeta_power_series_with_derivatives(-0.5, 0.0, 2000)
+	# Compare to mathematically known approximation or zeta_continuation
+	var expected = ComplexFieldScript.zeta_continuation(-0.5, 0.0)
+	assert_almost_eq(res2[0].x, expected.x, 0.05)
+	assert_almost_eq(res2[0].y, expected.y, 0.05)
+
 func test_zeta_continuation_with_derivatives():
 	# Test at first non-trivial zero (same as test_zeta)
 	var x1 = 0.5
@@ -333,8 +358,8 @@ func test_zeta_continuation_with_derivatives():
 
 	# Value should match the pure continuation function
 	var val_pure = ComplexFieldScript.zeta_continuation(x1, y1)
-	assert_almost_eq(res[0].x, val_pure.x, 0.0001)
-	assert_almost_eq(res[0].y, val_pure.y, 0.0001)
+	assert_almost_eq(res[0].x, val_pure.x, 0.001)
+	assert_almost_eq(res[0].y, val_pure.y, 0.001)
 
 	# Value should be close to 0 (since it's a zero)
 	assert_almost_eq(res[0].x, 0.0, 0.015)

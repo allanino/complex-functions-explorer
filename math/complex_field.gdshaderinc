@@ -1268,6 +1268,26 @@ ComplexFieldData eta_continuation_power_series_with_derivatives(float x, float y
 	return res;
 }
 
+ComplexFieldData zeta_power_series_with_derivatives(float x, float y, int iters) {
+    ComplexFieldData eta_data = eta_continuation_power_series_with_derivatives(x, y, iters);
+    vec2 eta = eta_data.value;
+    vec2 deta_dx = eta_data.dx;
+
+    float amp2 = pow(2.0, 1.0 - x);
+    float theta2 = -y * LOG_2;
+    vec2 two_term = amp2 * vec2(cos(theta2), sin(theta2));
+    vec2 denom = vec2(1.0, 0.0) - two_term;
+    vec2 ddenom_dx = LOG_2 * two_term;
+
+    ComplexFieldData result;
+    result.value = complex_div(eta, denom);
+    vec2 denom_sqr = complex_mul(denom, denom);
+    vec2 num_x = complex_mul(deta_dx, denom) - complex_mul(eta, ddenom_dx);
+    result.dx = complex_div(num_x, denom_sqr);
+    result.dy = vec2(-result.dx.y, result.dx.x);
+    return result;
+}
+
 vec2 eta_continuation_power_series(float x, float y, int iters) {
 	ComplexFieldData res = eta_continuation_power_series_with_derivatives(x, y, iters);
 	return res.value;
@@ -1276,6 +1296,7 @@ vec2 eta_continuation_power_series(float x, float y, int iters) {
 ComplexFieldData evaluate_function_with_derivatives(float x, float y, int func_type, int iters, int b_offset, bool is_input) {
     if (func_type == ZETA) return zeta_with_derivatives(x, y, iters);
     if (func_type == ZETA_CONTINUATION) return zeta_continuation_with_derivatives(x, y, iters);
+    if (func_type == ZETA_POWER_SERIES) return zeta_power_series_with_derivatives(x, y, iters);
     if (func_type == DIRICHLET_ETA) return dirichlet_eta_with_derivatives(x, y, iters);
     if (func_type == DIRICHLET_ETA_CONTINUATION) return eta_continuation_with_derivatives(x, y, iters);
     if (func_type == DIRICHLET_BETA) return dirichlet_beta_with_derivatives(x, y, iters);
