@@ -33,6 +33,14 @@ const float SQRT_2PI = 2.5066282746310005;
 const float LOG_PI = 1.1447298858494002;
 const float LOG_2 = 0.6931471805599453;
 
+uniform int eta_patch_count = 0;
+uniform vec2 eta_patch_centers[64];
+uniform vec2 eta_patch_coeffs[1024]; // 64 * 16
+
+const int PATCH_MAX_K = 15;
+const float PATCH_RADIUS = 2.0;
+const float PATCH_THRESHOLD = 1.5;
+
 //-------------------------------------------------------------------------
 // Complex Arithmetic
 //-------------------------------------------------------------------------
@@ -615,111 +623,6 @@ ComplexFieldData log_zeta_continuation_with_derivatives(float x, float y, int it
     return res;
 }
 
-
-
-uniform int eta_patch_count = 0;
-uniform vec2 eta_patch_centers[64];
-uniform vec2 eta_patch_coeffs[1024]; // 64 * 16
-
-const int PATCH_MAX_K = 15;
-const float PATCH_RADIUS = 2.0;
-const float PATCH_THRESHOLD = 0.65;
-
-vec2 evaluate_power_series(vec2 center, vec2 coeffs[16], vec2 z) {
-	vec2 res = vec2(0.0);
-	vec2 dz = z - center;
-	vec2 dz_k = vec2(1.0, 0.0);
-	for (int k = 0; k <= PATCH_MAX_K; k++) {
-		res += complex_mul(coeffs[k], dz_k);
-		dz_k = complex_mul(dz_k, dz);
-	}
-	return res;
-}
-
-void compute_eta_taylor_patch(float x, float y, int iters, out vec2 coeffs[16]) {
-	for (int k = 0; k <= PATCH_MAX_K; k++) {
-		coeffs[k] = vec2(0.0);
-	}
-
-	for (int n = 1; n <= iters; n++) {
-		float nf = float(n);
-		float amp = pow(nf, -x);
-		float log_n = log(nf);
-		float raw_theta = -y * log_n;
-        float raw_turns = raw_theta * INV_TWO_PI;
-        float bounded_turns = raw_turns - floor(raw_turns);
-        float theta = bounded_turns * TWO_PI;
-
-		float sign_f = (n % 2 != 0) ? 1.0 : -1.0;
-		vec2 base = sign_f * amp * vec2(cos(theta), sin(theta));
-
-		vec2 term = base;
-		coeffs[0] += term;
-		for (int k = 1; k <= PATCH_MAX_K; k++) {
-			term = term * (-log_n / float(k));
-			coeffs[k] += term;
-		}
-	}
-
-}
-
-ComplexFieldData eta_borwein_with_derivatives(float x, float y, int order);
-
-ComplexFieldData eta_continuation_power_series_with_derivatives(float x, float y, int iters) {
-	if (x >= 1.0) {
-		return eta_borwein_with_derivatives(x, y, iters);
-	}
-
-	vec2 z = vec2(x, y);
-	int closest_idx = -1;
-	float min_dist = 1e9;
-
-	for (int i = 0; i < eta_patch_count; i++) {
-		float dist = length(z - eta_patch_centers[i]);
-		if (dist < min_dist) {
-			min_dist = dist;
-			closest_idx = i;
-		}
-	}
-
-	if (closest_idx == -1 || min_dist > PATCH_RADIUS * PATCH_THRESHOLD) {
-		ComplexFieldData nan_res;
-		nan_res.value = vec2(0.0 / 0.0);
-		nan_res.dx = vec2(0.0 / 0.0);
-		nan_res.dy = vec2(0.0 / 0.0);
-		return nan_res;
-	}
-
-	vec2 curr_center = eta_patch_centers[closest_idx];
-	vec2 curr_coeffs[16];
-	for (int k = 0; k <= PATCH_MAX_K; k++) {
-		curr_coeffs[k] = eta_patch_coeffs[closest_idx * 16 + k];
-	}
-
-	ComplexFieldData res;
-	res.value = evaluate_power_series(curr_center, curr_coeffs, z);
-
-	vec2 res_prime = vec2(0.0);
-	vec2 dz = z - curr_center;
-	vec2 dz_k = vec2(1.0, 0.0);
-	for (int k = 1; k <= PATCH_MAX_K; k++) {
-		vec2 coeff_scaled = curr_coeffs[k] * float(k);
-		res_prime += complex_mul(coeff_scaled, dz_k);
-		dz_k = complex_mul(dz_k, dz);
-	}
-
-	res.dx = res_prime;
-	res.dy = vec2(-res.dx.y, res.dx.x);
-	return res;
-}
-
-
-vec2 eta_continuation_power_series(float x, float y, int iters) {
-	ComplexFieldData res = eta_continuation_power_series_with_derivatives(x, y, iters);
-	return res.value;
-}
-
-
 ComplexFieldData log_eta_continuation_with_derivatives(float x, float y, int iters) {
     if (x >= 0.5) {
         ComplexFieldData e_data = dirichlet_eta_with_derivatives(x, y, iters);
@@ -1260,7 +1163,6 @@ ComplexFieldData eta_borwein_with_derivatives(float x, float y, int order) {
     return res;
 }
 
-
 ComplexFieldData zeta_borwein_with_derivatives(float x, float y, int order) {
     ComplexFieldData eta_data = eta_borwein_with_derivatives(x, y, order);
     vec2 eta = eta_data.value;
@@ -1280,6 +1182,96 @@ ComplexFieldData zeta_borwein_with_derivatives(float x, float y, int order) {
     return result;
 }
 
+vec2 evaluate_power_series(vec2 center, vec2 coeffs[16], vec2 z) {
+	vec2 res = vec2(0.0);
+	vec2 dz = z - center;
+	vec2 dz_k = vec2(1.0, 0.0);
+	for (int k = 0; k <= PATCH_MAX_K; k++) {
+		res += complex_mul(coeffs[k], dz_k);
+		dz_k = complex_mul(dz_k, dz);
+	}
+	return res;
+}
+
+void compute_eta_taylor_patch(float x, float y, int iters, out vec2 coeffs[16]) {
+	for (int k = 0; k <= PATCH_MAX_K; k++) {
+		coeffs[k] = vec2(0.0);
+	}
+
+	for (int n = 1; n <= iters; n++) {
+		float nf = float(n);
+		float amp = pow(nf, -x);
+		float log_n = log(nf);
+		float raw_theta = -y * log_n;
+        float raw_turns = raw_theta * INV_TWO_PI;
+        float bounded_turns = raw_turns - floor(raw_turns);
+        float theta = bounded_turns * TWO_PI;
+
+		float sign_f = (n % 2 != 0) ? 1.0 : -1.0;
+		vec2 base = sign_f * amp * vec2(cos(theta), sin(theta));
+
+		vec2 term = base;
+		coeffs[0] += term;
+		for (int k = 1; k <= PATCH_MAX_K; k++) {
+			term = term * (-log_n / float(k));
+			coeffs[k] += term;
+		}
+	}
+
+}
+
+ComplexFieldData eta_continuation_power_series_with_derivatives(float x, float y, int iters) {
+	if (x >= 0.3) {
+		return dirichlet_eta_with_derivatives(x, y, iters);
+	}
+
+	vec2 z = vec2(x, y);
+	int closest_idx = -1;
+	float min_dist = 1e9;
+
+	for (int i = 0; i < eta_patch_count; i++) {
+		float dist = length(z - eta_patch_centers[i]);
+		if (dist < min_dist) {
+			min_dist = dist;
+			closest_idx = i;
+		}
+	}
+
+	if (closest_idx == -1 || min_dist > PATCH_RADIUS * PATCH_THRESHOLD) {
+		ComplexFieldData nan_res;
+		nan_res.value = vec2(0.0 / 0.0);
+		nan_res.dx = vec2(0.0 / 0.0);
+		nan_res.dy = vec2(0.0 / 0.0);
+		return nan_res;
+	}
+
+	vec2 curr_center = eta_patch_centers[closest_idx];
+	vec2 curr_coeffs[16];
+	for (int k = 0; k <= PATCH_MAX_K; k++) {
+		curr_coeffs[k] = eta_patch_coeffs[closest_idx * 16 + k];
+	}
+
+	ComplexFieldData res;
+	res.value = evaluate_power_series(curr_center, curr_coeffs, z);
+
+	vec2 res_prime = vec2(0.0);
+	vec2 dz = z - curr_center;
+	vec2 dz_k = vec2(1.0, 0.0);
+	for (int k = 1; k <= PATCH_MAX_K; k++) {
+		vec2 coeff_scaled = curr_coeffs[k] * float(k);
+		res_prime += complex_mul(coeff_scaled, dz_k);
+		dz_k = complex_mul(dz_k, dz);
+	}
+
+	res.dx = res_prime;
+	res.dy = vec2(-res.dx.y, res.dx.x);
+	return res;
+}
+
+vec2 eta_continuation_power_series(float x, float y, int iters) {
+	ComplexFieldData res = eta_continuation_power_series_with_derivatives(x, y, iters);
+	return res.value;
+}
 
 ComplexFieldData evaluate_function_with_derivatives(float x, float y, int func_type, int iters, int b_offset, bool is_input) {
     if (func_type == ZETA) return zeta_with_derivatives(x, y, iters);

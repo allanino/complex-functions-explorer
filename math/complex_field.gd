@@ -1,9 +1,9 @@
 # Shared field and height functions for GDScript
 class_name ComplexField
 
-const PATCH_MAX_K = 20
-const PATCH_RADIUS = 0.8
-const PATCH_THRESHOLD = 0.5
+const PATCH_MAX_K = 30
+const PATCH_RADIUS = 2.0
+const PATCH_THRESHOLD = 1.0
 static var eta_patches: Array = []
 
 #-------------------------------------------------------------------------
@@ -475,7 +475,7 @@ static func shift_taylor_patch(old_coeffs: Array, old_center: Vector2, new_cente
 static func _get_or_create_patch(z: Vector2, iters: int) -> Dictionary:
 	# 1. If no patches exist, seed the initial patch on the safe domain boundary (x >= 1.0)
 	if eta_patches.is_empty():
-		var start_x = max(z.x, 1.0)
+		var start_x = z.x
 		var start_z = Vector2(start_x, z.y)
 		var coeffs = compute_eta_taylor_patch(start_z.x, start_z.y, iters)
 		var p = {
@@ -526,15 +526,16 @@ static func _get_or_create_patch(z: Vector2, iters: int) -> Dictionary:
 	return {} # Unreachable statement kept for compiler peace of mind
 
 static func eta_continuation_power_series(x: float, y: float) -> Vector2:
-	if x >= 1.0:
-		return eta_borwein(x, y, Config.iterations)
+	if x >= 0.3:
+		return dirichlet_eta(x, y, Config.iterations)
 	var z = Vector2(x, y)
 	var patch = _get_or_create_patch(z, Config.iterations)
 	return evaluate_power_series(patch["center"], patch["coeffs"], z)
 
 static func eta_continuation_power_series_with_derivatives(x: float, y: float, iters: int) -> Array:
-	if x >= 1.0:
-		return eta_borwein_with_derivatives(x, y, iters)
+	if x >= 0.3:
+		return dirichlet_eta_with_derivatives(x, y, iters)
+
 	var z = Vector2(x, y)
 	var patch = _get_or_create_patch(z, iters)
 	var val = evaluate_power_series(patch["center"], patch["coeffs"], z)
