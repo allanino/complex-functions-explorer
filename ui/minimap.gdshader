@@ -5,6 +5,8 @@ shader_type canvas_item;
 uniform vec2 player_pos_world;
 uniform float view_radius = 20.0;
 uniform int color_scheme = 0;
+uniform float brightness = 1.0;
+uniform float saturation = 0.85;
 
 uniform bool show_curves = false;
 uniform bool show_critical_stripe = false;
@@ -146,10 +148,14 @@ void fragment() {
         );
     float moire_suppression = smoothstep(0.5, 5.0, phase_screen_change);
 
-    vec3 base_color = hsv2rgb(vec3(hue, 0.85, 1.0));
+    float eff_sat = mix(saturation, 0.0, moire_suppression * 0.8);
+    float eff_bri = mix(brightness, brightness * 0.5, moire_suppression * 0.5);
+
+    vec3 base_color = hsv2rgb(vec3(hue, eff_sat, eff_bri));
     if (color_scheme == 2) {
         float v = 0.5 + 0.5 * cos(phase);
-        base_color = vec3(v);
+        v = mix(v, 0.5, moire_suppression);
+        base_color = vec3(v) * eff_bri;
     }
 
 

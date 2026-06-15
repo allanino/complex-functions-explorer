@@ -58,6 +58,8 @@ func _sync_all_uniforms():
 		mat.set_shader_parameter("height_a", Config.height_a)
 		mat.set_shader_parameter("height_epsilon", Config.height_epsilon)
 		mat.set_shader_parameter("height_theta", Config.height_theta)
+		mat.set_shader_parameter("brightness", Config.terrain_brightness)
+		mat.set_shader_parameter("saturation", Config.terrain_saturation)
 
 		mat.set_shader_parameter("max_world_height", GameState.MAX_WORLD_HEIGHT)
 
@@ -118,7 +120,7 @@ func _on_config_changed(key: String):
 	if not mat: return
 	if key == "show_hud_zeros":
 		_update_zeros_shader()
-	elif key in ["iterations", "zoom_factor", "function_type", "input_function_type", "color_scheme", "rational_num_coeffs", "rational_den_coeffs", "input_rational_num_coeffs", "input_rational_den_coeffs", "multivalued_n", "show_curves", "show_critical_stripe", "height_type", "height_a", "height_epsilon", "height_theta", "morph_style"]:
+	elif key in ["iterations", "zoom_factor", "function_type", "input_function_type", "color_scheme", "rational_num_coeffs", "rational_den_coeffs", "input_rational_num_coeffs", "input_rational_den_coeffs", "multivalued_n", "show_curves", "show_critical_stripe", "height_type", "height_a", "height_epsilon", "height_theta", "morph_style", "terrain_brightness", "terrain_saturation"]:
 		_sync_all_uniforms()
 
 func _on_state_changed(key: String):
