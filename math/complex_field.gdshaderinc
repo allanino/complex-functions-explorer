@@ -909,6 +909,14 @@ ComplexFieldData identity_with_derivatives(float x, float y) {
     return res;
 }
 
+ComplexFieldData conjugate_with_derivatives(float x, float y) {
+    ComplexFieldData res;
+    res.value = vec2(x, -y);
+    res.dx = vec2(1.0, 0.0);
+    res.dy = vec2(0.0, -1.0);
+    return res;
+}
+
 vec2 evaluate_poly(float x, float y, vec2 coeffs[10]) {
     vec2 z = vec2(x, y);
     vec2 res = vec2(0.0);
@@ -1312,6 +1320,7 @@ ComplexFieldData evaluate_function_with_derivatives(float x, float y, int func_t
     if (func_type == EXP) return complex_exp_with_derivatives(x, y);
     if (func_type == LOG) return complex_log_with_derivatives(x, y);
     if (func_type == IDENTITY) return identity_with_derivatives(x, y);
+    if (func_type == CONJUGATE) return conjugate_with_derivatives(x, y);
     if (func_type == RATIONAL) {
         if (is_input) {
             return get_rational_with_derivatives(x, y, input_rational_num_coeffs, input_rational_den_coeffs);

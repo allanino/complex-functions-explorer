@@ -159,6 +159,10 @@ static var FUNCTIONS = {
 		"name": "Identity",
 		"symbol": "f",
 	},
+	"CONJUGATE": {
+		"name": "Conjugate",
+		"symbol": "f",
+	},
 	"RATIONAL": {
 		"name": "Rational",
 		"symbol": "f",
