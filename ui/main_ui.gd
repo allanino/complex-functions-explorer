@@ -58,6 +58,7 @@ const CLR_GOLD = "#c8a96e" # theme gold
 const CLR_CYAN = "#63d2c3" # cyan (10% less saturated)
 const CLR_MAGENTA = "#ce659f" # magenta (10% less saturated)
 const CLR_MAGENTA_DIM = "#ce659fb3"
+const CLR_RED = "#d65c5c" # less saturated red
 
 # Wraps a numeric string in BBCode: dims a leading '-' sign, colors the rest.
 func _bb_re(value: String, color: String) -> String:
@@ -240,7 +241,7 @@ func _on_values_timer_timeout():
 
 			rvm_n_label.text = "[color=gray]N(t) ≈ [/color][color=#c8a96e]%.2f[/color]" % rvm_val
 			if GameState.missed_zeta_zero:
-				rvm_delta_label.text = "[right]Δ = %s[color=red]%.2f[/color][/right]" % [delta_sign, delta_val]
+				rvm_delta_label.text = "[right]Δ = %s[color=%s]%.2f[/color][/right]" % [delta_sign, CLR_RED, delta_val]
 			else:
 				rvm_delta_label.text = "[right]Δ = %s[color=#E8E4DC80]%.2f[/color][/right]" % [delta_sign, delta_val]
 
