@@ -28,7 +28,7 @@ var _dead_key_active: bool = false
 
 func _on_line_edit_gui_input(event: InputEvent):
 	if event is InputEventKey and event.pressed:
-		var is_dead_circumflex = (event.keycode == KEY_DEAD_CIRCUMFLEX)
+		var is_dead_circumflex = (event.keycode == 4194419) # KEY_DEAD_CIRCUMFLEX
 
 		if _dead_key_active:
 			if event.keycode in [KEY_SHIFT, KEY_CTRL, KEY_ALT, KEY_META, KEY_CAPSLOCK]:
