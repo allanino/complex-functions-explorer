@@ -267,7 +267,6 @@ func _ready():
 	rendering_scale_slider.get_slider().min_value = 0.1
 	rendering_scale_slider.get_slider().max_value = 2.0
 	rendering_scale_slider.get_slider().step = 0.05
-	rendering_scale_slider.tooltip_text = "Adjusts the 3D rendering resolution scale. Lower values increase performance but reduce image quality."
 
 	aa_button.clear()
 	aa_button.add_item("Disabled (fastest)")

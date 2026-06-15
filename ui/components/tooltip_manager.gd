@@ -20,6 +20,7 @@ const DESCRIPTIONS = {
 	"Zero Walking": "Automatically find a path towards a zero using the Newton-Raphson method. Shortcut: CTRL + Z",
 	"Terrain Details": "Quality and subdivision level of the procedurally generated terrain meshes.",
 	"Antialiasing": "Choose a technique to reduce jagged edges in the 3D view.",
+	"Rendering Scale": "Adjusts the 3D rendering resolution scale. Lower values increase performance but reduce image quality.",
 	"Branches (n)": "Number of branches for the multivalued function z^(1/n).",
 	"Morph Time": "Duration of the smooth transition between branches.",
 	"Color Scheme": "Select the color mapping for the complex plane of the target function.",
