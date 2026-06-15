@@ -1294,9 +1294,28 @@ static func is_close_to_zero(z_mid: Vector2) -> Array:
 
 	return [proceed_to_refine, true_z]
 
+static func function_has_cpp_find_zero() -> bool:
+	return Config.input_function_type == Config.ComplexFunc.IDENTITY and (
+		Config.function_type == Config.ComplexFunc.ZETA_CONTINUATION or
+		Config.function_type == Config.ComplexFunc.DIRICHLET_ETA_CONTINUATION or
+		Config.function_type == Config.ComplexFunc.DIRICHLET_ETA or
+		Config.function_type == Config.ComplexFunc.DIRICHLET_BETA_CONTINUATION
+	)
+
+static func function_has_second_derivatives() -> bool:
+	return Config.input_function_type == Config.ComplexFunc.IDENTITY and (
+		Config.function_type == Config.ComplexFunc.ZETA_CONTINUATION or
+		Config.function_type == Config.ComplexFunc.DIRICHLET_ETA_CONTINUATION or
+		Config.function_type == Config.ComplexFunc.DIRICHLET_ETA or
+		Config.function_type == Config.ComplexFunc.DIRICHLET_BETA_CONTINUATION
+	)
+
+
 static func find_zero(true_z: Vector2, debug: bool = false) -> Variant:
 	var has_ext = ClassDB.class_exists("ComplexFunctions")
-	if Config.input_function_type == Config.ComplexFunc.IDENTITY and (Config.function_type == Config.ComplexFunc.ZETA_CONTINUATION or Config.function_type == Config.ComplexFunc.DIRICHLET_ETA_CONTINUATION or Config.function_type == Config.ComplexFunc.DIRICHLET_ETA or Config.function_type == Config.ComplexFunc.DIRICHLET_BETA_CONTINUATION) and has_ext:
+	var has_cpp = function_has_cpp_find_zero()
+
+	if has_cpp and has_ext:
 		var ext = ClassDB.instantiate("ComplexFunctions")
 		var res = []
 		if Config.function_type == Config.ComplexFunc.ZETA_CONTINUATION:
@@ -1310,6 +1329,8 @@ static func find_zero(true_z: Vector2, debug: bool = false) -> Variant:
 			return Vector2(res[0], res[1])
 		return true
 
+	var has_second_derivatives = function_has_second_derivatives()
+
 	# Refine zero location using numerical complex Newton-Raphson steps
 	var converged = false
 	var refined_z = DoubleVector2.new(true_z.x, true_z.y)
@@ -1317,6 +1338,9 @@ static func find_zero(true_z: Vector2, debug: bool = false) -> Variant:
 	var step_max = 0.3
 	var f_val: DoubleVector2 = DoubleVector2.new(1e9, 1e9)
 	var f_mag = 0.0
+
+	const MAG_MIN = 1e-5
+	var ZERO_DIST_MIN = 1e-5 if not has_second_derivatives else 1e-4
 
 	if debug:
 		print("\nStart GD  | z (%9.6f, %9.6f) | f (%9.6f, %9.6f) | len %10.6f | mult %6.2f" % [refined_z.x, refined_z.y, f_val.x, f_val.y, f_mag, step_mult])
@@ -1331,7 +1355,7 @@ static func find_zero(true_z: Vector2, debug: bool = false) -> Variant:
 			z_dist = sqrt((next_z.x - refined_z.x) ** 2 + (next_z.y - refined_z.y) ** 2)
 		else:
 			z_dist = next_z.distance_to(refined_z)
-		if f_mag < 1e-5 or z_dist < 1e-5:
+		if f_mag < MAG_MIN or z_dist < ZERO_DIST_MIN:
 			converged = true
 			break
 
