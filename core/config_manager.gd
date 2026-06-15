@@ -80,7 +80,7 @@ static var FUNCTIONS = {
 		"is_dirichlet": true,
 		"has_von_mangoldt": false,
 		"iters_range": [100.0, 10000.0, 100.0, 100.0],
-		"hidden": false,
+		"hidden": true,
 		"initial_pos": Vector3(10.0, 0.0, 10.0),
 	},
 	"DIRICHLET_ETA_BORWEIN": {
