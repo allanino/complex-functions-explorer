@@ -310,14 +310,14 @@ func test_log_zeta_continuation_with_derivatives():
 	assert_almost_eq(res2[1].x, 0.3974, 0.0001)
 	assert_almost_eq(res2[1].y, -0.6493, 0.0001)
 
-func test_zeta_continuation_power_series_with_derivatives():
-	var res = ComplexFieldScript.zeta_continuation_power_series_with_derivatives(-0.5, 0.0, 2000)
-	assert_almost_eq(res[0].x, 2.245649, 0.015)
+func test_eta_continuation_power_series_with_derivatives():
+	var res = ComplexFieldScript.eta_continuation_power_series_with_derivatives(-0.5, 0.0, 2000)
+	assert_almost_eq(res[0].x, -21.9833, 0.015)
 	assert_almost_eq(res[0].y, 0.0, 0.015)
 
 	# Continuity test near x = 0
-	var res3 = ComplexFieldScript.zeta_continuation_power_series_with_derivatives(-0.01, 10.0, 2000)
-	var res4 = ComplexFieldScript.zeta_continuation_power_series_with_derivatives(0.01, 10.0, 2000)
+	var res3 = ComplexFieldScript.eta_continuation_power_series_with_derivatives(-0.01, 10.0, 2000)
+	var res4 = ComplexFieldScript.eta_continuation_power_series_with_derivatives(0.01, 10.0, 2000)
 	assert_almost_eq(res3[0].x, res4[0].x, 0.2, "Continuity across x=0 real part")
 	assert_almost_eq(res3[0].y, res4[0].y, 0.2, "Continuity across x=0 imaginary part")
 
@@ -1072,8 +1072,8 @@ func test_find_zero_log_fallback():
 		if typeof(z_refined) == TYPE_ARRAY and z_refined.size() == 2:
 			z_refined = z_refined[1]
 		assert_typeof(z_refined, TYPE_VECTOR2)
-		assert_almost_eq(z_refined.x, 1.0, 0.01)
-		assert_almost_eq(z_refined.y, 0.0, 0.01)
+		assert_almost_eq(z_refined.x, 1.0, 0.0001)
+		assert_almost_eq(z_refined.y, 0.0, 0.0001)
 
 func test_is_close_to_zero_sin_fallback():
 	Config.input_function_type = Config.ComplexFunc.IDENTITY
@@ -1093,5 +1093,5 @@ func test_find_zero_sin_fallback():
 		if typeof(z_refined) == TYPE_ARRAY and z_refined.size() == 2:
 			z_refined = z_refined[1]
 		assert_typeof(z_refined, TYPE_VECTOR2)
-		assert_almost_eq(z_refined.x, PI, 0.01)
-		assert_almost_eq(z_refined.y, 0.0, 0.01)
+		assert_almost_eq(z_refined.x, PI, 0.0001)
+		assert_almost_eq(z_refined.y, 0.0, 0.0001)

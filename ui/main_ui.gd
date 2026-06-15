@@ -287,12 +287,12 @@ func _on_game_state_changed(key: String):
 		_update_zeros_list()
 	elif key == "current_branch":
 		phase_branch_val.text = str(GameState.current_branch)
-	elif key == "zeta_patches":
+	elif key == "eta_patches":
 		_update_polynomial_debug_str()
 		_update_monitor_label()
 
 func _update_polynomial_debug_str():
-	if not polynomial_debug or not player or Config.function_type != Config.ComplexFunc.ZETA_POWER_SERIES or ComplexField.zeta_patches.is_empty():
+	if not polynomial_debug or not player or Config.function_type != Config.ComplexFunc.ETA_POWER_SERIES or ComplexField.eta_patches.is_empty():
 		polynomial_debug_str = ""
 		return
 
@@ -300,7 +300,7 @@ func _update_polynomial_debug_str():
 	var closest_patch = null
 	var min_dist = 1e9
 
-	for patch in ComplexField.zeta_patches:
+	for patch in ComplexField.eta_patches:
 		var dist = (frame_z - patch["center"]).length()
 		if dist < min_dist:
 			min_dist = dist
