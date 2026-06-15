@@ -10,6 +10,7 @@ signal update_hud_layout_signal()
 
 @onready var main_menu_panel = $CenterContainer/MainMenuPanel
 @onready var tab_container = %TabContainer
+@onready var title_label = %TitleLabel
 @onready var func_button = %FuncContainer.get_option_button()
 @onready var input_button = %InputContainer.get_option_button()
 @onready var height_button = %HeightContainer.get_option_button()
@@ -131,7 +132,13 @@ var _initial_shadows_enabled: bool
 var _initial_preset: String
 var _initial_edited_presets: Dictionary
 
+var _title_clicks: int = 0
+var _title_click_timer: float = 0.0
+
 func _ready():
+	if title_label:
+		title_label.gui_input.connect(_on_title_gui_input)
+
 	current_submitted_func = Config.function_type
 	current_submitted_input = Config.input_function_type
 	last_submitted_func = Config.function_type
@@ -564,7 +571,7 @@ func _populate_function_dropdown(button: OptionButton, exclude_multivalued: bool
 	sorted_keys.sort()
 	for f_key in sorted_keys:
 		var f_data = Config.FUNCTIONS.get(f_key, {})
-		if f_data.get("hidden", false):
+		if f_data.get("hidden", false) and not GameState.show_hidden_options:
 			continue
 		if exclude_multivalued and f_data.get("is_multivalued", false):
 			continue
@@ -654,7 +661,7 @@ func _on_func_selected(f_type: int):
 
 	var re = _parse_float_input(re_input, 0.5)
 	var im = _parse_float_input(im_input, 0.0)
-	
+
 	if player and not _syncing_ui:
 		var target_pos = Config.complex_to_world(re, im)
 		player.teleport_to_world_pos(Vector3(target_pos.x, 0, target_pos.y))
@@ -1117,6 +1124,33 @@ func _rescale_menu(_scale: float):
 			if child is Control:
 				stack.push_back(child)
 
+
+func _process(delta: float):
+	if _title_clicks > 0:
+		_title_click_timer -= delta
+		if _title_click_timer <= 0.0:
+			_title_clicks = 0
+
+func _on_title_gui_input(event: InputEvent):
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+		_title_clicks += 1
+		_title_click_timer = 1.0 # 1 second window to do the 3 clicks
+		if _title_clicks >= 3:
+			GameState.show_hidden_options = !GameState.show_hidden_options
+			_populate_function_dropdown(func_button, false)
+			_populate_function_dropdown(input_button, true)
+
+			var f_idx = func_button.get_item_index(current_submitted_func)
+			if f_idx >= 0: func_button.select(f_idx)
+			var i_idx = input_button.get_item_index(current_submitted_input)
+			if i_idx >= 0: input_button.select(i_idx)
+
+			if GameState.show_hidden_options:
+				title_label.add_theme_color_override("font_color", Color(0.784314, 0.662745, 0.431373))
+			else:
+				title_label.add_theme_color_override("font_color", Color(0.909804, 0.894118, 0.862745))
+
+			_title_clicks = 0
 
 func _on_tab_button_pressed(index: int):
 	tab_container.current_tab = index

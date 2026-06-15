@@ -242,7 +242,7 @@ func test_menu_scale():
 	assert_eq(main_ui_instance.menu_overlay.main_menu_panel.custom_minimum_size, base_panel_min_size * target_menu_scale)
 	
 	# Verify font size override was applied
-	var title_label = main_ui_instance.menu_overlay.main_menu_panel.get_node("MarginContainer/ContentVBox/TitleHBox/TitleLabel")
+	var title_label = main_ui_instance.menu_overlay.main_menu_panel.get_node("%TitleLabel")
 	assert_not_null(title_label)
 	var base_font_size = title_label.get_meta("base_font_size")
 	assert_eq(title_label.get_theme_font_size("font_size"), int(round(base_font_size * target_menu_scale)))

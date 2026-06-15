@@ -76,6 +76,12 @@ var current_branch: int = 0:
 		current_branch = v
 		state_changed.emit("current_branch") # Session state for Portals mode
 
+var show_hidden_options: bool = false:
+	set(v):
+		if show_hidden_options == v: return
+		show_hidden_options = v
+		state_changed.emit("show_hidden_options")
+
 var real_level_curves_highlighted: Array[float] = []:
 	set(v):
 		real_level_curves_highlighted = v
