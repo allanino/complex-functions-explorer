@@ -849,6 +849,11 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "Antialiasing"
 
+[node name="RenderingScaleContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/GRAPHICS/Margin/VBox" unique_id=3141592653 instance=ExtResource("1")]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Rendering Scale"
+
 [node name="ViewDistanceContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/GRAPHICS/Margin/VBox" unique_id=74672234 instance=ExtResource("1")]
 unique_name_in_owner = true
 layout_mode = 2

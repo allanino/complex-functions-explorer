@@ -4,6 +4,7 @@ const PRESETS = {
 	"Default": {
 		"terrain_detail": 0,
 		"antialiasing_mode": 0,
+		"rendering_scale": 1.0,
 		"show_curves": true,
 		"show_curves_labels": false,
 		"show_critical_stripe": false,
@@ -46,6 +47,7 @@ const PRESETS = {
 	"Mysterious": {
 		"terrain_detail": 0,
 		"antialiasing_mode": 0,
+		"rendering_scale": 1.0,
 		"show_curves": false,
 		"show_curves_labels": false,
 		"show_critical_stripe": false,

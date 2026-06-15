@@ -36,6 +36,7 @@ signal update_hud_layout_signal()
 @onready var zero_walk_checkbox = %ZeroWalkCheckbox
 @onready var terrain_detail_button = %TerrainDetailContainer.get_option_button()
 @onready var aa_button = %AAContainer.get_option_button()
+@onready var rendering_scale_slider = %RenderingScaleContainer
 @onready var color_scheme_button = %ColorSchemeContainer.get_option_button()
 @onready var view_distance_slider = %ViewDistanceContainer
 @onready var curves_checkbox = %CurvesCheckbox
@@ -124,6 +125,7 @@ var _initial_fog_density: float
 var _initial_morph_value: float
 var _initial_terrain_detail: int
 var _initial_antialiasing_mode: int
+var _initial_rendering_scale: float
 var _initial_view_distance: int
 var _initial_shadows_enabled: bool
 var _initial_preset: String
@@ -262,6 +264,11 @@ func _ready():
 	terrain_detail_button.add_item("Medium")
 	terrain_detail_button.add_item("Low")
 
+	rendering_scale_slider.get_slider().min_value = 0.1
+	rendering_scale_slider.get_slider().max_value = 2.0
+	rendering_scale_slider.get_slider().step = 0.05
+	rendering_scale_slider.tooltip_text = "Adjusts the 3D rendering resolution scale. Lower values increase performance but reduce image quality."
+
 	aa_button.clear()
 	aa_button.add_item("Disabled (fastest)")
 	aa_button.add_item("MSAA 3D x2 (average)")
@@ -325,6 +332,12 @@ func _ready():
 
 func _init_slider_bindings():
 	var bindings = {
+		rendering_scale_slider: {
+			"config_key": "rendering_scale",
+			"to_config": func(v): return v,
+			"from_config": func(c): return c,
+			"format": func(v): return "%.2f" % v
+		},
 		camera_height_slider: {
 			"config_key": "camera_height",
 			"to_config": func(v): return v,
@@ -1197,6 +1210,7 @@ func toggle_menu(applied: bool = false):
 		_initial_morph_value = 1.0
 		_initial_terrain_detail = Config.terrain_detail
 		_initial_antialiasing_mode = Config.antialiasing_mode
+		_initial_rendering_scale = Config.rendering_scale
 		_initial_view_distance = Config.view_distance
 		_initial_shadows_enabled = Config.shadows_enabled
 		_initial_preset = Config.current_preset
@@ -1249,6 +1263,7 @@ func toggle_menu(applied: bool = false):
 			GameState.morph_value = _initial_morph_value
 			Config.terrain_detail = _initial_terrain_detail
 			Config.antialiasing_mode = _initial_antialiasing_mode
+			Config.rendering_scale = _initial_rendering_scale
 			Config.view_distance = _initial_view_distance
 			Config.shadows_enabled = _initial_shadows_enabled
 			Config.current_preset = _initial_preset

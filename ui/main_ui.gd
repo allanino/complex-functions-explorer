@@ -680,6 +680,8 @@ func _zoom_to_slider(zoom: float) -> float:
 	return (log(zoom) - log(min_zoom)) / b
 
 func _on_config_changed(key: String):
+	if key == "rendering_scale":
+		get_viewport().scaling_3d_scale = Config.rendering_scale
 	if key == "function_type":
 		_update_zeros_list()
 		_setup_branch_data()
