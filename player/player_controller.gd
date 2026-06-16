@@ -260,8 +260,6 @@ func _unhandled_input(event):
 			GameState.current_branch = 0
 			current_f = ComplexField.get_field(global_position.x, global_position.z)
 			current_mag = current_f.length()
-			
-			pass
 
 func get_terrain_height(x: float, z: float, field_val: Vector2 = Vector2.INF) -> float:
 	if field_val != Vector2.INF:
@@ -759,8 +757,6 @@ func _process(_delta):
 			# Play the screen-space flash transition effect
 			if main_ui and main_ui.has_method("play_portal_flash"):
 				main_ui.play_portal_flash()
-
-			pass
 
 	last_z = frame_z
 
