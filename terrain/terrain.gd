@@ -183,7 +183,7 @@ func _update_all_terrain_material_uniforms():
 		"multivalued_n", "self_illumination", "fog_density",
 		"terrain_brightness", "terrain_saturation", "terrain_albedo",
 		"terrain_emission", "terrain_metallic", "terrain_roughness",
-		"terrain_surface_texture", "terrain_ao", "terrain_rim", "terrain_rim_tint", "terrain_rim", "terrain_rim_tint", "morph_style",
+		"terrain_surface_texture", "terrain_ao", "terrain_rim", "terrain_rim_tint", "morph_style",
 		"performance_protection_active", "current_branch", "morph_value",
 		"real_level_curves_highlighted", "imag_level_curves_highlighted",
 		"newton_path"
@@ -253,7 +253,7 @@ func _update_terrain_material_uniforms(key: String):
 	var mapped_key = key
 	if key.begins_with("terrain_"):
 		mapped_key = key.replace("terrain_", "")
-	if mapped_key in ["iterations", "show_curves", "show_critical_stripe", "show_flow", "show_position_marker", "color_scheme", "height_type", "height_a", "height_epsilon", "height_theta", "zoom_factor", "rational_num_coeffs", "rational_den_coeffs", "input_rational_num_coeffs", "input_rational_den_coeffs", "multivalued_n", "self_illumination", "fog_density", "brightness", "saturation", "albedo", "emission", "metallic", "roughness", "surface_texture", "ao", "morph_style"]:
+	if mapped_key in ["iterations", "show_curves", "show_critical_stripe", "show_flow", "show_position_marker", "color_scheme", "height_type", "height_a", "height_epsilon", "height_theta", "zoom_factor", "rational_num_coeffs", "rational_den_coeffs", "input_rational_num_coeffs", "input_rational_den_coeffs", "multivalued_n", "self_illumination", "fog_density", "brightness", "saturation", "albedo", "emission", "metallic", "roughness", "surface_texture", "ao", "rim", "rim_tint", "morph_style"]:
 		terrain_material.set_shader_parameter(mapped_key, Config.get(key))
 		return
 	if key in ["performance_protection_active", "current_branch", "morph_value", "effective_zoom"]:
@@ -351,7 +351,7 @@ func _unload_chunk(coord: Vector2i):
 	_dirty_neighbor_coords[Vector2i(coord.x, coord.y + 1)] = true
 
 func _on_config_changed(key: String):
-	if key in ["iterations", "terrain_detail", "view_distance", "show_curves", "show_critical_stripe", "show_flow", "show_position_marker", "color_scheme", "function_type", "input_function_type", "height_type", "height_a", "height_epsilon", "height_theta", "rational_num_coeffs", "rational_den_coeffs", "input_rational_num_coeffs", "input_rational_den_coeffs", "multivalued_n", "self_illumination", "terrain_brightness", "terrain_saturation", "terrain_albedo", "terrain_emission", "terrain_metallic", "terrain_roughness", "terrain_surface_texture", "terrain_ao", "terrain_rim", "terrain_rim_tint", "terrain_rim", "terrain_rim_tint", "morph_style", "morph_value", "fog_density", "morph_style"]:
+	if key in ["iterations", "terrain_detail", "view_distance", "show_curves", "show_critical_stripe", "show_flow", "show_position_marker", "color_scheme", "function_type", "input_function_type", "height_type", "height_a", "height_epsilon", "height_theta", "rational_num_coeffs", "rational_den_coeffs", "input_rational_num_coeffs", "input_rational_den_coeffs", "multivalued_n", "self_illumination", "terrain_brightness", "terrain_saturation", "terrain_albedo", "terrain_emission", "terrain_metallic", "terrain_roughness", "terrain_surface_texture", "terrain_ao", "terrain_rim", "terrain_rim_tint", "morph_style", "morph_value", "fog_density", "morph_style"]:
 		_update_terrain_material_uniforms(key)
 		if key == "terrain_detail":
 			_update_lod_subs()
