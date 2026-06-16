@@ -419,7 +419,7 @@ var terrain_surface_texture: float = 0.0:
 		if terrain_surface_texture == v: return
 		terrain_surface_texture = v
 		config_changed.emit("terrain_surface_texture")
-var terrain_ao: float = 0.0:
+var terrain_ao: float = 1.0:
 	set(v):
 		if terrain_ao == v: return
 		terrain_ao = v
