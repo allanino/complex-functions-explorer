@@ -65,24 +65,19 @@ func _sync_all_uniforms():
 
 		_update_zeros_shader()
 
-		var real_shaded = PackedFloat32Array()
-		for val in GameState.real_level_curves_highlighted:
-			real_shaded.append(val)
+		var real_shaded = PackedFloat32Array(GameState.real_level_curves_highlighted)
 		while real_shaded.size() < 10:
 			real_shaded.append(99999.0)
 		mat.set_shader_parameter("real_level_curves_highlighted", real_shaded)
 
-		var imag_shaded = PackedFloat32Array()
-		for val in GameState.imag_level_curves_highlighted:
-			imag_shaded.append(val)
+		var imag_shaded = PackedFloat32Array(GameState.imag_level_curves_highlighted)
 		while imag_shaded.size() < 10:
 			imag_shaded.append(99999.0)
 		mat.set_shader_parameter("imag_level_curves_highlighted", imag_shaded)
 
 		var newton_path = PackedVector2Array()
 		if GameState.newton_path.size() > 0:
-			for val in GameState.newton_path:
-				newton_path.append(val)
+			newton_path = PackedVector2Array(GameState.newton_path)
 		var newton_path_size = newton_path.size()
 		while newton_path.size() < 50:
 			newton_path.append(Vector2.ZERO)
@@ -97,9 +92,7 @@ func _update_zeros_shader():
 	var mat = map_rect.material as ShaderMaterial
 	mat.set_shader_parameter("show_hud_zeros", Config.show_hud_zeros)
 	if Config.show_hud_zeros:
-		var visited = PackedVector2Array()
-		for val in GameState.visited_zeros:
-			visited.append(val)
+		var visited = PackedVector2Array(GameState.visited_zeros)
 		var v_size = min(visited.size(), 10)
 		var shader_accented_index = GameState.accented_zero_index
 		if visited.size() > 10:
@@ -141,17 +134,13 @@ func _on_state_changed(key: String):
 		mat.set_shader_parameter("eta_patch_coeffs", ComplexField.get_shader_patch_coeffs())
 
 	if key == "real_level_curves_highlighted":
-		var real_shaded = PackedFloat32Array()
-		for val in GameState.real_level_curves_highlighted:
-			real_shaded.append(val)
+		var real_shaded = PackedFloat32Array(GameState.real_level_curves_highlighted)
 		while real_shaded.size() < 10:
 			real_shaded.append(99999.0)
 		mat.set_shader_parameter("real_level_curves_highlighted", real_shaded)
 
 	if key == "imag_level_curves_highlighted":
-		var imag_shaded = PackedFloat32Array()
-		for val in GameState.imag_level_curves_highlighted:
-			imag_shaded.append(val)
+		var imag_shaded = PackedFloat32Array(GameState.imag_level_curves_highlighted)
 		while imag_shaded.size() < 10:
 			imag_shaded.append(99999.0)
 		mat.set_shader_parameter("imag_level_curves_highlighted", imag_shaded)
@@ -164,9 +153,7 @@ func _on_state_changed(key: String):
 
 	if key == "newton_path":
 		if GameState.newton_path.size() > 0:
-			var newton_path = PackedVector2Array()
-			for val in GameState.newton_path:
-				newton_path.append(val)
+			var newton_path = PackedVector2Array(GameState.newton_path)
 			var newton_path_size = newton_path.size()
 			while newton_path.size() < 50:
 				newton_path.append(Vector2.ZERO)
