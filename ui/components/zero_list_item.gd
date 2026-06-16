@@ -11,9 +11,9 @@ var is_active: bool = false: set = set_active
 # Theme color constants (BBCode hex)
 const CLR_DIM = "#e7e4dc80" # ink_dim (50% alpha)
 const CLR_GOLD = "#c8a96e" # theme gold
-const CLR_CYAN = "#5dd8c8" # cyan
-const CLR_MAGENTA = "#d45fa0" # magenta
-const CLR_MAGENTA_DIM = "#d45fa0b3"
+const CLR_CYAN = "#93ffff" # cyan
+const CLR_MAGENTA = "#ff93ff" # magenta
+const CLR_MAGENTA_DIM = "#ff93ffb3"
 
 # Wraps a numeric string in BBCode: dims a leading '-' sign, colors the rest.
 func _bb_re(value: String, color: String) -> String:

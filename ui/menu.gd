@@ -164,7 +164,7 @@ func _ready():
 	active_tab_style.content_margin_top = 10.0
 	active_tab_style.content_margin_right = 10.0
 	active_tab_style.content_margin_bottom = 10.0
-	active_tab_style.bg_color = Color(0.3647, 0.847, 0.7843, 0.06)
+	active_tab_style.bg_color = Color(0.575, 1, 1, 0.06)
 	active_tab_style.border_width_left = 2
 	active_tab_style.border_width_top = 0
 	active_tab_style.border_width_right = 0
@@ -195,7 +195,7 @@ func _ready():
 	hover_active_tab_style.content_margin_top = 10.0
 	hover_active_tab_style.content_margin_right = 10.0
 	hover_active_tab_style.content_margin_bottom = 10.0
-	hover_active_tab_style.bg_color = Color(0.3647, 0.847, 0.7843, 0.1)
+	hover_active_tab_style.bg_color = Color(0.575, 1, 1, 0.1)
 	hover_active_tab_style.border_width_left = 2
 	hover_active_tab_style.border_width_top = 0
 	hover_active_tab_style.border_width_right = 0
