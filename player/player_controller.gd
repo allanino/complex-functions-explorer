@@ -144,17 +144,24 @@ func _ready():
 
 	enable_joystick = DisplayServer.has_feature(DisplayServer.FEATURE_TOUCHSCREEN) and not OS.has_feature("pc")
 
-	mobile_controls.visible = enable_joystick
-	var settings_btn = mobile_controls.get_node("SettingsButton")
-	if not settings_btn.pressed.is_connected(main_ui.toggle_menu.bind(false)):
-		settings_btn.pressed.connect(main_ui.toggle_menu.bind(false))
+	if mobile_controls:
+		mobile_controls.visible = enable_joystick
+		var settings_btn = mobile_controls.get_node("SettingsButton")
+		if not settings_btn.pressed.is_connected(main_ui.toggle_menu.bind(false)):
+			settings_btn.pressed.connect(main_ui.toggle_menu.bind(false))
 
 	if run_demo:
 		demo_actions()
 
 func _unhandled_input(event):
 	if event.is_action_pressed("ui_cancel"):
-		main_ui.toggle_menu()
+		if main_ui:
+			main_ui.toggle_menu()
+		else:
+			if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+				Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+			else:
+				Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 		return
 	
 
@@ -749,7 +756,7 @@ func _process(_delta):
 
 
 			# Play the screen-space flash transition effect
-			if main_ui.has_method("play_portal_flash"):
+			if main_ui and main_ui.has_method("play_portal_flash"):
 				main_ui.play_portal_flash()
 
 			pass
