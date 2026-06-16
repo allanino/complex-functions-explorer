@@ -162,10 +162,10 @@ func _apply_performance_protection(active: bool):
 	if terrain_material:
 		terrain_material.set_shader_parameter("performance_protection_active", active)
 
-	if environment_node and environment_node.has_method("set_performance_protection"):
+	if environment_node.has_method("set_performance_protection"):
 		environment_node.set_performance_protection(active)
 
-	if audio and audio.has_method("set_performance_protection"):
+	if audio.has_method("set_performance_protection"):
 		audio.set_performance_protection(active)
 
 func _update_all_terrain_material_uniforms():

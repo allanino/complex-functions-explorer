@@ -158,7 +158,6 @@ func _unhandled_input(event):
 		if main_ui:
 			main_ui.toggle_menu()
 		else:
-			# Fallback if MainUI is not found
 			if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 				Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 			else:
@@ -750,7 +749,7 @@ func _process(_delta):
 					branch_changed = true
 
 		if branch_changed:
-			if audio_system and audio_system.has_method("play_portal_crossing"):
+			if audio_system.has_method("play_portal_crossing"):
 				audio_system.play_portal_crossing()
 
 
