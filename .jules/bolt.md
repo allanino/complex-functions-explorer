@@ -23,3 +23,6 @@
 ## 2025-03-01 - Suspend MainUI _process when inactive
 **Learning:** In Godot, leaving `_process` running with conditional early returns based on timers (e.g., `_height_protection_timer`) still consumes CPU cycles for script execution and variable checking every frame.
 **Action:** Use `set_process(false)` by default for UI components that only need `_process` during temporary state changes. Explicitly call `set_process(true)` when the event triggers the timer, and disable it again once the timers expire.
+## 2025-03-01 - Suspend UI Menu _process when idle
+**Learning:** The `ui/menu.gd` script used its `_process(delta)` loop entirely for decrementing a click timer (`_title_click_timer`). Because Godot calls `_process` every frame, this wasted CPU cycles when no title clicks were active (which is >99.9% of the time).
+**Action:** Suspend the script's processing via `set_process(false)` in `_ready()` and immediately after the timer expires. Only call `set_process(true)` when a user registers the first click.

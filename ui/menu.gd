@@ -136,6 +136,9 @@ var _title_clicks: int = 0
 var _title_click_timer: float = 0.0
 
 func _ready():
+	# Performance: Start with _process disabled since no timers are active initially
+	set_process(false)
+
 	if title_label:
 		title_label.gui_input.connect(_on_title_gui_input)
 
@@ -1130,10 +1133,16 @@ func _process(delta: float):
 		_title_click_timer -= delta
 		if _title_click_timer <= 0.0:
 			_title_clicks = 0
+			# Performance: Suspend _process when the title click timer expires
+			set_process(false)
 
 func _on_title_gui_input(event: InputEvent):
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
 		_title_clicks += 1
+
+		if _title_clicks == 1:
+			set_process(true)
+
 		_title_click_timer = 1.0 # 1 second window to do the 3 clicks
 		if _title_clicks >= 3:
 			GameState.show_hidden_options = !GameState.show_hidden_options
