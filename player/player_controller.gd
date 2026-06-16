@@ -12,13 +12,15 @@ const CRITICAL_LINE_COMPLEX_X = 0.5
 const ZEROS_DETECTION_EPS = 0.5
 const ZEROS_DETECTION_START_RECORDING = 0.5
 
-enum AutoWalkState {NONE, MOVING_TO_LINE, WALKING, NEWTON_WALK}
+enum AutoWalkState { NONE, MOVING_TO_LINE, WALKING, NEWTON_WALK }
 
 var rotation_x = 0.0
 var camera_input_dir: Vector2 = Vector2.ZERO
-var auto_walk_state = AutoWalkState.NONE: set = _set_auto_walk_state
+var auto_walk_state = AutoWalkState.NONE:
+	set = _set_auto_walk_state
 var newton_target_z: Vector2 = Vector2.ZERO
 var newton_wait_timer: float = 0.0
+
 
 func _set_auto_walk_state(value):
 	auto_walk_state = value
@@ -26,6 +28,8 @@ func _set_auto_walk_state(value):
 		GameState.found_off_critical_line = false
 		GameState.found_off_critical_line_val = Vector2.ZERO
 		GameState.missed_zeta_zero = false
+
+
 var newton_converged: bool = false
 var re_label: Label3D
 var im_label: Label3D
@@ -71,10 +75,12 @@ var _predicted_next_f := Vector2.INF
 @onready var world_manager = get_node_or_null("/root/Main/WorldManager")
 @onready var audio_system = get_node_or_null("/root/Main/Audio")
 
+
 func get_initial_position() -> Vector3:
 	if Config.function.has("initial_pos"):
 		return Config.function["initial_pos"]
 	return Vector3(0.0, 0.0, 0.0)
+
 
 func teleport_to_world_pos(target_pos: Vector3) -> void:
 	var terrain_h = get_terrain_height(target_pos.x, target_pos.z)
@@ -83,33 +89,37 @@ func teleport_to_world_pos(target_pos: Vector3) -> void:
 		target_pos = get_initial_position()
 
 		# Apply initial rotation if needed when resetting
-		if not Config.function.get("is_dirichlet", false) and not Config.function.has("initial_pos"):
-			rotation.y = - PI / 2.0
+		if (
+			not Config.function.get("is_dirichlet", false)
+			and not Config.function.has("initial_pos")
+		):
+			rotation.y = -PI / 2.0
 
 	global_position = target_pos
 
 	var complex_pos = Config.world_to_complex(global_position.x, global_position.z)
 	_check_zeta_stability(complex_pos.y)
 
+
 func _ready():
 	add_to_group("player")
 
 	global_position = get_initial_position()
 	if not Config.function.get("is_dirichlet", false) and not Config.function.has("initial_pos"):
-		rotation.y = - PI / 2.0
+		rotation.y = -PI / 2.0
 
 	var complex_pos = Config.world_to_complex(global_position.x, global_position.z)
 	last_t = complex_pos.y
 	last_z = complex_pos
 	_last_checked_y_hundreds = int(last_t / 100.0)
-	
+
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	current_f = ComplexField.get_field(global_position.x, global_position.z)
 	current_mag = current_f.length()
-	
+
 	last_player_pos = global_position
 	last_terrain_h = ComplexField.get_height_from_field(current_f)
-	
+
 	re_label = Label3D.new()
 	re_label.text = "Re"
 	re_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
@@ -142,7 +152,9 @@ func _ready():
 	im_label.visible = false
 	add_child(im_label)
 
-	enable_joystick = DisplayServer.has_feature(DisplayServer.FEATURE_TOUCHSCREEN) and not OS.has_feature("pc")
+	enable_joystick = (
+		DisplayServer.has_feature(DisplayServer.FEATURE_TOUCHSCREEN) and not OS.has_feature("pc")
+	)
 
 	if mobile_controls:
 		mobile_controls.visible = enable_joystick
@@ -152,6 +164,7 @@ func _ready():
 
 	if run_demo:
 		demo_actions()
+
 
 func _unhandled_input(event):
 	if event.is_action_pressed("ui_cancel"):
@@ -163,7 +176,6 @@ func _unhandled_input(event):
 			else:
 				Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 		return
-	
 
 	if GameState.is_detached_interactive or GameState.is_menu_open:
 		return
@@ -209,7 +221,6 @@ func _unhandled_input(event):
 			if Config.show_curves:
 				GameState.real_level_curves_highlighted = []
 				GameState.imag_level_curves_highlighted = []
-					
 
 	if event is InputEventKey and event.pressed and event.keycode == KEY_SPACE and not event.echo:
 		var current_time = Time.get_ticks_msec() / 1000.0
@@ -248,8 +259,11 @@ func _unhandled_input(event):
 				auto_walk_state = AutoWalkState.NONE
 		elif event.keycode == KEY_R:
 			global_position = get_initial_position()
-			if not Config.function.get("is_dirichlet", false) and not Config.function.has("initial_pos"):
-				rotation.y = - PI / 2.0
+			if (
+				not Config.function.get("is_dirichlet", false)
+				and not Config.function.has("initial_pos")
+			):
+				rotation.y = -PI / 2.0
 			else:
 				rotation.y = 0.0
 			velocity = Vector3.ZERO
@@ -260,10 +274,12 @@ func _unhandled_input(event):
 			current_f = ComplexField.get_field(global_position.x, global_position.z)
 			current_mag = current_f.length()
 
+
 func get_terrain_height(x: float, z: float, field_val: Vector2 = Vector2.INF) -> float:
 	if field_val != Vector2.INF:
 		return ComplexField.get_height_from_field(field_val)
 	return ComplexField.get_height(x, z)
+
 
 func _physics_process(delta):
 	if camera_input_dir != Vector2.ZERO:
@@ -285,7 +301,9 @@ func _physics_process(delta):
 
 	# Smooth zoom interpolation
 	var old_ez = GameState.effective_zoom
-	GameState.effective_zoom = lerp(GameState.effective_zoom, float(Config.zoom_factor), delta * 8.0)
+	GameState.effective_zoom = lerp(
+		GameState.effective_zoom, float(Config.zoom_factor), delta * 8.0
+	)
 	if abs(GameState.effective_zoom - Config.zoom_factor) < 0.001:
 		GameState.effective_zoom = float(Config.zoom_factor)
 
@@ -302,8 +320,14 @@ func _physics_process(delta):
 
 	if GameState.is_detached_interactive or GameState.is_menu_open:
 		velocity = Vector3.ZERO
-		var target_y_menu = get_terrain_height(global_position.x, global_position.z) + scaled_camera_height + height_offset
-		camera.position = Vector3(0.0, target_y_menu, 0.0) + transform.basis.inverse() * camera_push_offset
+		var target_y_menu = (
+			get_terrain_height(global_position.x, global_position.z)
+			+ scaled_camera_height
+			+ height_offset
+		)
+		camera.position = (
+			Vector3(0.0, target_y_menu, 0.0) + transform.basis.inverse() * camera_push_offset
+		)
 		return
 
 	# Cache current field value and mathematical coordinates for reuse
@@ -324,7 +348,9 @@ func _physics_process(delta):
 		tween.tween_property(Config, "movement_speed", 100.0, 3.0)
 
 	if auto_walk_state != AutoWalkState.NONE:
-		var manual_input = Input.get_vector("move_left", "move_right", "move_forward", "move_backward")
+		var manual_input = Input.get_vector(
+			"move_left", "move_right", "move_forward", "move_backward"
+		)
 		if manual_input != Vector2.ZERO or Input.is_key_pressed(KEY_SPACE):
 			auto_walk_state = AutoWalkState.NONE
 
@@ -367,7 +393,6 @@ func _physics_process(delta):
 	var input_dir = Input.get_vector("move_left", "move_right", "move_forward", "move_backward")
 	var direction = (transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
 
-
 	if auto_walk_state == AutoWalkState.MOVING_TO_LINE:
 		var target_world_pos = Config.complex_to_world(CRITICAL_LINE_COMPLEX_X, 0.0)
 		var target_x = target_world_pos.x
@@ -376,7 +401,7 @@ func _physics_process(delta):
 		if global_position.x > Config.complex_to_world(1.0, 0.0).x:
 			target_yaw = PI / 2
 		elif global_position.x < 0.0:
-			target_yaw = - PI / 2
+			target_yaw = -PI / 2
 
 		rotation.y = lerp_angle(rotation.y, target_yaw, 5.0 * delta)
 
@@ -440,7 +465,9 @@ func _physics_process(delta):
 					last_newton_idx += 1
 					if last_newton_idx < path.size():
 						newton_target_z = path[last_newton_idx]
-						var next_world = Config.complex_to_world(newton_target_z.x, newton_target_z.y)
+						var next_world = Config.complex_to_world(
+							newton_target_z.x, newton_target_z.y
+						)
 						target_pos2d = Vector2(next_world.x, next_world.y)
 						var target_dir2d = (target_pos2d - current_pos2d).normalized()
 						direction = Vector3(target_dir2d.x, 0, target_dir2d.y)
@@ -449,17 +476,26 @@ func _physics_process(delta):
 					newton_wait_timer = 0.0
 
 	if direction != Vector3.ZERO:
-		if auto_walk_state != AutoWalkState.MOVING_TO_LINE and auto_walk_state != AutoWalkState.WALKING:
+		if (
+			auto_walk_state != AutoWalkState.MOVING_TO_LINE
+			and auto_walk_state != AutoWalkState.WALKING
+		):
 			velocity.x = direction.x * current_speed
 		velocity.z = direction.z * current_speed
 	else:
-		if auto_walk_state != AutoWalkState.MOVING_TO_LINE and auto_walk_state != AutoWalkState.WALKING and auto_walk_state != AutoWalkState.NEWTON_WALK:
+		if (
+			auto_walk_state != AutoWalkState.MOVING_TO_LINE
+			and auto_walk_state != AutoWalkState.WALKING
+			and auto_walk_state != AutoWalkState.NEWTON_WALK
+		):
 			velocity.x = move_toward(velocity.x, 0, current_speed)
 			velocity.z = move_toward(velocity.z, 0, current_speed)
 
 	# Predict player's position based on velocity and check its height
 	var predicted_pos = global_position + velocity * delta
-	var is_field_valid = is_finite(current_f.x) and is_finite(current_f.y) and is_finite(current_mag)
+	var is_field_valid = (
+		is_finite(current_f.x) and is_finite(current_f.y) and is_finite(current_mag)
+	)
 
 	if not is_field_valid:
 		velocity.x = 0.0
@@ -490,31 +526,35 @@ func _physics_process(delta):
 
 		# Ensure height_offset stays bounded by GameState.MAX_WORLD_HEIGHT impeding further offset
 		var max_allowed_offset = GameState.MAX_WORLD_HEIGHT - terrain_h - scaled_camera_height
-		var min_allowed_offset = - GameState.MAX_WORLD_HEIGHT - terrain_h - scaled_camera_height
+		var min_allowed_offset = -GameState.MAX_WORLD_HEIGHT - terrain_h - scaled_camera_height
 
 		if target_y > GameState.MAX_WORLD_HEIGHT:
 			height_offset = min(height_offset, max_allowed_offset)
 		elif target_y < -GameState.MAX_WORLD_HEIGHT:
 			height_offset = max(height_offset, min_allowed_offset)
 
-		target_y = clamp(terrain_h + scaled_camera_height + height_offset, -GameState.MAX_WORLD_HEIGHT, GameState.MAX_WORLD_HEIGHT)
+		target_y = clamp(
+			terrain_h + scaled_camera_height + height_offset,
+			-GameState.MAX_WORLD_HEIGHT,
+			GameState.MAX_WORLD_HEIGHT
+		)
 	else:
 		GameState.height_protection_active = false
 
 	# Estimate slope and push camera away from rising walls
 	var target_offset = camera_push_offset
 	var d_pos = global_position - last_player_pos
-	d_pos.y = 0.0 # Only care about horizontal movement
-	
-	if d_pos.length_squared() > 100.0: # Teleport detected
+	d_pos.y = 0.0  # Only care about horizontal movement
+
+	if d_pos.length_squared() > 100.0:  # Teleport detected
 		camera_push_offset = Vector3.ZERO
 		target_offset = Vector3.ZERO
 	elif d_pos.length_squared() > 1e-4:
 		var delta_h = terrain_h - last_terrain_h
 		var slope = delta_h / d_pos.length()
-		if abs(slope) > 2.0: # On a steep slope (uphill or downhill)
+		if abs(slope) > 2.0:  # On a steep slope (uphill or downhill)
 			# Always push the camera downhill (opposite to the rising slope)
-			var push_dir = - d_pos.normalized() * sign(slope)
+			var push_dir = -d_pos.normalized() * sign(slope)
 			target_offset = push_dir
 		else:
 			# On flat ground, decay to zero
@@ -522,7 +562,7 @@ func _physics_process(delta):
 
 	# Smoothly interpolate the offset to prevent camera jitter
 	camera_push_offset = camera_push_offset.lerp(target_offset, delta * 6.0)
-	
+
 	last_player_pos = global_position
 	last_terrain_h = terrain_h
 
@@ -535,7 +575,7 @@ func _physics_process(delta):
 			_curve_label_update_timer = 0.0
 
 			# Find the closest real and imaginary integer curves in the direction we are facing
-			var cam_dir = - camera.global_transform.basis.z
+			var cam_dir = -camera.global_transform.basis.z
 			var step_size = Config.complex_to_world(0.1, 0.0).x
 			var max_steps = 30
 			var re_found = false
@@ -617,7 +657,6 @@ func _physics_process(delta):
 		mag_history.push_back(current_mag)
 		mag_history.pop_front()
 
-
 		# 1. First, find a basic local minimum using the 3 center points
 		if mag_history[0] > mag_history[1] and mag_history[1] < mag_history[2]:
 			if mag_history[1] < ZEROS_DETECTION_EPS:
@@ -627,6 +666,7 @@ func _physics_process(delta):
 				WorkerThreadPool.add_task(_process_zero_detection.bind(z_mid, state))
 
 	move_and_slide()
+
 
 func demo_actions():
 	Config.function_type = Config.ComplexFunc.ZETA_CONTINUATION
@@ -641,7 +681,6 @@ func demo_actions():
 	Config.show_curves_labels = false
 	Config.show_position_marker = false
 
-
 	auto_walk_state = AutoWalkState.NONE
 	is_resetting_height = false
 
@@ -649,7 +688,7 @@ func demo_actions():
 	global_position.x = start_pos.x
 	global_position.z = start_pos.y
 
-	rotation.y = - PI / 2.0
+	rotation.y = -PI / 2.0
 	rotation_x = 0.0
 	camera.rotation.x = rotation_x
 	height_offset = 0.0
@@ -662,19 +701,21 @@ func demo_actions():
 	var tween_duration = 5.0
 
 	# Phase 1: go up to 50.0 while camera slowly turns downwards
-	tween.tween_property(self , "height_offset", 50.0 * GameState.effective_zoom, tween_duration)
+	tween.tween_property(self, "height_offset", 50.0 * GameState.effective_zoom, tween_duration)
 	tween.parallel().tween_property(camera, "rotation:x", -PI / 2.0, tween_duration)
 
 	# Phase 2: rotate CCW while tilting upwards to face zeta wall towards -x
-	tween.tween_property(self , "rotation:y", PI / 2.0, tween_duration)
+	tween.tween_property(self, "rotation:y", PI / 2.0, tween_duration)
 	tween.parallel().tween_property(camera, "rotation:x", 0.0, tween_duration)
 
 	# Phase 3: height decrease to 3.5 while rotating towards +x
-	tween.tween_property(self , "height_offset", 3.5 * GameState.effective_zoom, tween_duration)
+	tween.tween_property(self, "height_offset", 3.5 * GameState.effective_zoom, tween_duration)
 
 	# Phase 4: walk backwards to see the trivial zero at (-2, 0)
 	tween.tween_property(camera, "rotation:x", -PI / 2.0, tween_duration * 0.6)
-	tween.parallel().tween_property(self , "global_position:x", Config.complex_to_world(-2.0, 0.0).x, tween_duration * 0.6)
+	tween.parallel().tween_property(
+		self, "global_position:x", Config.complex_to_world(-2.0, 0.0).x, tween_duration * 0.6
+	)
 
 	# Wait a moment to contemplate the trivial zero
 	tween.tween_interval(2.0)
@@ -682,20 +723,25 @@ func demo_actions():
 	# Phase 5: rotate towards the pole and walk slightly to its side
 	# Math coordinates (1, 1) -> x = 10.0 * ez, z = -10.0 * ez
 	tween.tween_property(camera, "rotation:x", PI / 8.0, tween_duration)
-	tween.parallel().tween_property(self , "rotation:y", -PI / 2.0, tween_duration)
+	tween.parallel().tween_property(self, "rotation:y", -PI / 2.0, tween_duration)
 
-	tween.tween_property(self , "global_position:x", Config.complex_to_world(0.5, 0.0).x, tween_duration)
-	tween.parallel().tween_property(self , "global_position:z", Config.complex_to_world(0.0, 1.0).y, tween_duration)
+	tween.tween_property(
+		self, "global_position:x", Config.complex_to_world(0.5, 0.0).x, tween_duration
+	)
+	tween.parallel().tween_property(
+		self, "global_position:z", Config.complex_to_world(0.0, 1.0).y, tween_duration
+	)
 
 	tween.parallel().tween_property(camera, "rotation:x", -PI / 8.0, tween_duration)
 
 	# Phase 6: rotate back to horizontal and start auto-walk
-	tween.tween_property(self , "rotation:y", 0.0, tween_duration * 0.5)
+	tween.tween_property(self, "rotation:y", 0.0, tween_duration * 0.5)
 	tween.parallel().tween_property(camera, "rotation:x", -PI / 8.0, tween_duration * 0.5)
 
 	tween.tween_interval(1.0)
 
 	tween.tween_callback(self._start_auto_walk_from_demo)
+
 
 func _start_auto_walk_from_demo():
 	auto_walk_state = AutoWalkState.MOVING_TO_LINE
@@ -707,6 +753,11 @@ func _start_auto_walk_from_demo():
 	Config.show_critical_stripe = true
 	GameState.rvm_start_t = abs(Config.world_to_complex(0.0, global_position.z).y)
 
+	var demo_tween = create_tween()
+	demo_tween.tween_interval(0.5)
+	demo_tween.tween_callback(self._show_demo_labels)
+
+
 func _process(_delta):
 	var frame_z = Config.world_to_complex(global_position.x, global_position.z)
 
@@ -717,15 +768,18 @@ func _process(_delta):
 
 	if Config.function.get("is_multivalued", false):
 		var branch_changed = false
-		if Config.function_type == Config.ComplexFunc.MULTIVALUED_ASIN or Config.function_type == Config.ComplexFunc.MULTIVALUED_ACOS:
+		if (
+			Config.function_type == Config.ComplexFunc.MULTIVALUED_ASIN
+			or Config.function_type == Config.ComplexFunc.MULTIVALUED_ACOS
+		):
 			# Portals at x >= 1.0 and x <= -1.0
-			if (last_z.y < 0.0 and frame_z.y >= 0.0) or (last_z.y > 0.0 and frame_z.y <= 0.0): # crossing the real axis
+			if (last_z.y < 0.0 and frame_z.y >= 0.0) or (last_z.y > 0.0 and frame_z.y <= 0.0):  # crossing the real axis
 				if frame_z.x >= 1.0:
-					var is_even = (GameState.current_branch % 2 == 0)
+					var is_even = GameState.current_branch % 2 == 0
 					GameState.current_branch += 1 if is_even else -1
 					branch_changed = true
 				elif frame_z.x <= -1.0:
-					var is_even = (GameState.current_branch % 2 == 0)
+					var is_even = GameState.current_branch % 2 == 0
 					GameState.current_branch += -1 if is_even else 1
 					branch_changed = true
 		else:
@@ -737,7 +791,10 @@ func _process(_delta):
 					if Config.function_type == Config.ComplexFunc.MULTIVALUED_LOG:
 						GameState.current_branch -= 1
 					else:
-						GameState.current_branch = (GameState.current_branch + Config.multivalued_n - 1) % Config.multivalued_n
+						GameState.current_branch = (
+							(GameState.current_branch + Config.multivalued_n - 1)
+							% Config.multivalued_n
+						)
 					branch_changed = true
 				elif last_z.y > 0.0 and frame_z.y <= 0.0:
 					# Crossed from +t to -t (clockwise around origin)
@@ -745,13 +802,14 @@ func _process(_delta):
 					if Config.function_type == Config.ComplexFunc.MULTIVALUED_LOG:
 						GameState.current_branch += 1
 					else:
-						GameState.current_branch = (GameState.current_branch + 1) % Config.multivalued_n
+						GameState.current_branch = (
+							(GameState.current_branch + 1) % Config.multivalued_n
+						)
 					branch_changed = true
 
 		if branch_changed:
 			if audio_system.has_method("play_portal_crossing"):
 				audio_system.play_portal_crossing()
-
 
 			# Play the screen-space flash transition effect
 			if main_ui and main_ui.has_method("play_portal_flash"):
@@ -766,9 +824,13 @@ func _process(_delta):
 
 	if Config.show_curves and Config.show_curves_labels:
 		if re_label.visible:
-			re_label.global_position = re_label.global_position.lerp(_re_label_target_pos, _delta * 10.0)
+			re_label.global_position = re_label.global_position.lerp(
+				_re_label_target_pos, _delta * 10.0
+			)
 		if im_label.visible:
-			im_label.global_position = im_label.global_position.lerp(_im_label_target_pos, _delta * 10.0)
+			im_label.global_position = im_label.global_position.lerp(
+				_im_label_target_pos, _delta * 10.0
+			)
 	else:
 		if re_label:
 			re_label.visible = false
@@ -811,6 +873,7 @@ func _check_zeta_stability(y: float) -> void:
 						GameState.unstable_zeta_computation = false
 					break
 
+
 func start_newton_walk():
 	if auto_walk_state == AutoWalkState.NONE:
 		auto_walk_state = AutoWalkState.NEWTON_WALK
@@ -843,7 +906,7 @@ func start_newton_walk():
 			var result = ComplexField.newton_step(_current_z, step_mult)
 			var next_z: DoubleVector2 = result[0]
 			var f_val: DoubleVector2 = result[1]
-	
+
 			if f_val.length() < 1e-6:
 				break
 
@@ -879,6 +942,7 @@ func start_newton_walk():
 		GameState.newton_path = path
 		GameState.newton_path_bbox = Vector4(min_x, max_x, min_y, max_y)
 
+
 func _process_zero_detection(z_mid: Vector2, current_auto_walk_state: int):
 	var check_res = ComplexField.is_close_to_zero(z_mid)
 	var proceed_to_refine = check_res[0]
@@ -889,11 +953,15 @@ func _process_zero_detection(z_mid: Vector2, current_auto_walk_state: int):
 		if typeof(zero_res) == TYPE_VECTOR2:
 			call_deferred("_on_zero_detected", zero_res, current_auto_walk_state)
 
+
 func _on_zero_detected(true_z: Vector2, current_auto_walk_state: int):
 	if true_z.distance_to(last_detected_z) > 0.001:
 		GameState.total_zeros_found += 1
 		GameState.visited_zeros.push_back(true_z)
-		if current_auto_walk_state == AutoWalkState.MOVING_TO_LINE or current_auto_walk_state == AutoWalkState.WALKING:
+		if (
+			current_auto_walk_state == AutoWalkState.MOVING_TO_LINE
+			or current_auto_walk_state == AutoWalkState.WALKING
+		):
 			if snappedf(true_z.x, 0.001) != 0.500:
 				if not GameState.found_off_critical_line:
 					GameState.found_off_critical_line_val = true_z
@@ -902,3 +970,62 @@ func _on_zero_detected(true_z: Vector2, current_auto_walk_state: int):
 			GameState.visited_zeros.pop_front()
 		GameState.state_changed.emit("visited_zeros")
 		last_detected_z = true_z
+
+
+func _show_demo_labels():
+	if not run_demo:
+		return
+
+	var spawn_z = global_position.z - 200.0 * GameState.effective_zoom
+	var spawn_world_z = spawn_z
+
+	var points = [
+		{"re": 0.0, "text": "0", "color": Color.CYAN},
+		{"re": 0.5, "text": "1/2", "color": Color(1.0, 0.84, 0.0)},  # Gold
+		{"re": 1.0, "text": "1", "color": Color.CYAN}
+	]
+
+	for p in points:
+		var prefix_label = Label3D.new()
+		prefix_label.text = "s = "
+		prefix_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		prefix_label.no_depth_test = true
+		prefix_label.fixed_size = true
+		prefix_label.font = load("res://ui/theme/font_neon.tres")
+		prefix_label.pixel_size = 0.000625
+		prefix_label.font_size = 192
+		prefix_label.outline_size = 8
+		prefix_label.modulate = Color(0.5, 0.5, 0.5)  # dim grey
+		prefix_label.outline_modulate = Color(0.0, 0.0, 0.0, 1.0)
+		prefix_label.outline_render_priority = -1
+		prefix_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+
+		var value_label = Label3D.new()
+		value_label.text = p.text
+		value_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		value_label.no_depth_test = true
+		value_label.fixed_size = true
+		value_label.font = load("res://ui/theme/font_neon.tres")
+		value_label.pixel_size = 0.000625
+		value_label.font_size = 192
+		value_label.outline_size = 8
+		value_label.modulate = p.color
+		value_label.outline_modulate = Color(0.0, 0.0, 0.0, 1.0)
+		value_label.outline_render_priority = -1
+		value_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+
+		var spawn_world_x = Config.complex_to_world(p.re, 0.0).x
+		var f_val = ComplexField.get_field(spawn_world_x, spawn_world_z)
+		var h = get_terrain_height(spawn_world_x, spawn_world_z, f_val)
+
+		var offset = 0.05 * GameState.effective_zoom
+		prefix_label.global_position = Vector3(
+			spawn_world_x - offset, h + 2.0 * GameState.effective_zoom, spawn_world_z
+		)
+		value_label.global_position = Vector3(
+			spawn_world_x + offset, h + 2.0 * GameState.effective_zoom, spawn_world_z
+		)
+
+		# Since player rotates, better to parent them to world_manager or self's parent
+		get_parent().add_child(prefix_label)
+		get_parent().add_child(value_label)
