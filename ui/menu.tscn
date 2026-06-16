@@ -758,6 +758,13 @@ text = "Surface Texture"
 value_text = "0%"
 show_detach_button = true
 
+[node name="AOContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/TERRAIN/Margin/VBox" unique_id=720981336 instance=ExtResource("1")]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Ambient Occlusion"
+value_text = "0%"
+show_detach_button = true
+
 [node name="VISUALIZATION" type="ScrollContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer" unique_id=801626419]
 visible = false
 layout_mode = 2

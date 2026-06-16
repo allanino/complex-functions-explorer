@@ -37,12 +37,15 @@ uniform float emission : hint_range(0.0, 1.0) = 0.1;
 uniform float metallic : hint_range(0.0, 1.0) = 0.7;
 uniform float roughness : hint_range(0.0, 1.0) = 0.1;
 uniform float surface_texture : hint_range(0.0, 1.0) = 0.0;
+uniform float ao : hint_range(0.0, 1.0) = 1.0;
 uniform float morph : hint_range(0.0, 1.0) = 1.0;
 uniform int morph_style = 1;
 uniform float portal_height = 50.0;
 uniform float portal_width = 100.0;
 uniform float portal_min_height = -50.0;
 uniform float specular_intensity : hint_range(0.0, 1.0) = 0.1;
+uniform float rim_intensity : hint_range(0.0, 1.0) = 1.0;
+uniform float rim_tint_intensity : hint_range(0.0, 1.0) = 0.8;
 uniform float max_world_height = 1000.0;
 
 uniform float self_illumination = 0.0;
@@ -894,5 +897,9 @@ void fragment() {
         ROUGHNESS = mix(clamp(roughness + roughness_variation, 0.0, 1.0), 0.1, core_critical);
         METALLIC = mix(metallic, 0.8, core_critical);
         SPECULAR = specular_intensity;
+        AO = ao;
+        AO_LIGHT_AFFECT = 0.0;
+        RIM = rim_intensity;
+        RIM_TINT = rim_tint_intensity;
     }
 }
