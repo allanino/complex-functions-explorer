@@ -55,9 +55,9 @@ const BASE_HUD_PANEL_SIZE: float = 240.0
 # Theme color constants (BBCode hex)
 const CLR_DIM = "#e7e4dc80" # ink_dim (50% alpha)
 const CLR_GOLD = "#c8a96e" # theme gold
-const CLR_CYAN = "#63d2c3" # cyan (10% less saturated)
-const CLR_MAGENTA = "#ce659f" # magenta (10% less saturated)
-const CLR_MAGENTA_DIM = "#ce659fb3"
+const CLR_CYAN = "#5dd8c8" # cyan
+const CLR_MAGENTA = "#d45fa0" # magenta
+const CLR_MAGENTA_DIM = "#d45fa0b3"
 const CLR_RED = "#d65c5c" # less saturated red
 
 # Wraps a numeric string in BBCode: dims a leading '-' sign, colors the rest.
@@ -241,7 +241,7 @@ func _on_values_timer_timeout():
 
 			rvm_n_label.text = "[color=gray]N(t) ≈ [/color][color=#c8a96e]%.2f[/color]" % rvm_val
 			if GameState.missed_zeta_zero:
-				rvm_delta_label.text = "[right]Δ = %s[color=%s]%.2f[/color][/right]" % [delta_sign, CLR_RED, delta_val]
+				rvm_delta_label.text = "[right]Δ = %s[color=red]%.2f[/color][/right]" % [delta_sign, delta_val]
 			else:
 				rvm_delta_label.text = "[right]Δ = %s[color=#E8E4DC80]%.2f[/color][/right]" % [delta_sign, delta_val]
 
@@ -368,7 +368,7 @@ func _update_monitor_label():
 		if Config.show_hud_monitor_fps:
 			bbcode += "[color=#ffffff]%d[/color] [color=#e8e4dc73][font_size=15]FPS[/font_size][/color]\n" % Engine.get_frames_per_second()
 
-		if show_hud_chunks:
+		if show_hud_chunks and world_manager:
 			var chunks_text = "[color=#e8e4dc73][font_size=15]Chunks[/font_size][/color]"
 			var num_lods = world_manager.LOD_SUBS.size()
 			var lod_counts = []
