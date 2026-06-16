@@ -164,12 +164,12 @@ func _ready():
 	active_tab_style.content_margin_top = 10.0
 	active_tab_style.content_margin_right = 10.0
 	active_tab_style.content_margin_bottom = 10.0
-	active_tab_style.bg_color = Color(0.575, 1, 1, 0.06)
+	active_tab_style.bg_color = Color(ThemeColors.real.r, ThemeColors.real.g, ThemeColors.real.b, 0.06)
 	active_tab_style.border_width_left = 2
 	active_tab_style.border_width_top = 0
 	active_tab_style.border_width_right = 0
 	active_tab_style.border_width_bottom = 0
-	active_tab_style.border_color = Color(0.784314, 0.662745, 0.431373, 1.0)
+	active_tab_style.border_color = ThemeColors.gold
 
 	inactive_tab_style = StyleBoxFlat.new()
 	inactive_tab_style.content_margin_left = 19.0
@@ -195,12 +195,12 @@ func _ready():
 	hover_active_tab_style.content_margin_top = 10.0
 	hover_active_tab_style.content_margin_right = 10.0
 	hover_active_tab_style.content_margin_bottom = 10.0
-	hover_active_tab_style.bg_color = Color(0.575, 1, 1, 0.1)
+	hover_active_tab_style.bg_color = Color(ThemeColors.real.r, ThemeColors.real.g, ThemeColors.real.b, 0.1)
 	hover_active_tab_style.border_width_left = 2
 	hover_active_tab_style.border_width_top = 0
 	hover_active_tab_style.border_width_right = 0
 	hover_active_tab_style.border_width_bottom = 0
-	hover_active_tab_style.border_color = Color(0.784314, 0.662745, 0.431373, 1.0)
+	hover_active_tab_style.border_color = ThemeColors.gold
 
 	for i in range(tab_buttons.size()):
 		var btn = tab_buttons[i]
@@ -217,8 +217,8 @@ func _ready():
 
 	re_input.text_submitted.connect(_on_re_text_submitted)
 	im_input.text_submitted.connect(_on_im_text_submitted)
-	re_input.theme_type_variation = &"ValueCyanLineEdit"
-	im_input.theme_type_variation = &"ValueMagentaLineEdit"
+	re_input.theme_type_variation = &"ValueRealLineEdit"
+	im_input.theme_type_variation = &"ValueImaginaryLineEdit"
 	height_a_input.text_submitted.connect(_on_height_a_text_submitted)
 	height_eps_input.text_submitted.connect(_on_height_eps_text_submitted)
 	func_rational_input.text_submitted.connect(_on_func_rational_text_submitted)
@@ -1070,7 +1070,7 @@ func _rescale_menu(_scale: float):
 				var inner_radius = 6.0 * scale_factor
 				var outer_radius = 6.5 * scale_factor
 
-				var normal_color = Color(0.784314, 0.662745, 0.431373, 1.0)
+				var normal_color = ThemeColors.gold
 				var hover_color = normal_color.lightened(0.2)
 				var pressed_color = normal_color.darkened(0.2)
 
@@ -1155,7 +1155,7 @@ func _on_title_gui_input(event: InputEvent):
 			if i_idx >= 0: input_button.select(i_idx)
 
 			if GameState.show_hidden_options:
-				title_label.add_theme_color_override("font_color", Color(0.784314, 0.662745, 0.431373))
+				title_label.add_theme_color_override("font_color", ThemeColors.gold)
 			else:
 				title_label.add_theme_color_override("font_color", Color(0.909804, 0.894118, 0.862745))
 
@@ -1173,10 +1173,10 @@ func _update_tab_buttons_styling():
 		if i == tab_container.current_tab:
 			btn.add_theme_stylebox_override("normal", active_tab_style)
 			btn.add_theme_stylebox_override("hover", hover_active_tab_style)
-			btn.add_theme_color_override("font_color", Color(0.784314, 0.662745, 0.431373))
-			btn.add_theme_color_override("font_hover_color", Color(0.784314, 0.662745, 0.431373))
-			btn.add_theme_color_override("font_pressed_color", Color(0.784314, 0.662745, 0.431373))
-			btn.add_theme_color_override("font_focus_color", Color(0.784314, 0.662745, 0.431373))
+			btn.add_theme_color_override("font_color", ThemeColors.gold)
+			btn.add_theme_color_override("font_hover_color", ThemeColors.gold)
+			btn.add_theme_color_override("font_pressed_color", ThemeColors.gold)
+			btn.add_theme_color_override("font_focus_color", ThemeColors.gold)
 		else:
 			btn.add_theme_stylebox_override("normal", inactive_tab_style)
 			btn.add_theme_stylebox_override("hover", hover_tab_style)

@@ -8,24 +8,17 @@ var zero_index: int = -1
 
 var is_active: bool = false: set = set_active
 
-# Theme color constants (BBCode hex)
-const CLR_DIM = "#e7e4dc80" # ink_dim (50% alpha)
-const CLR_GOLD = "#c8a96e" # theme gold
-const CLR_CYAN = "#93ffff" # cyan
-const CLR_MAGENTA = "#ff93ff" # magenta
-const CLR_MAGENTA_DIM = "#ff93ffb3"
-
 # Wraps a numeric string in BBCode: dims a leading '-' sign, colors the rest.
 func _bb_re(value: String, color: String) -> String:
 	if value.begins_with("-"):
-		return "[color=%s]-[/color][color=%s]%s[/color]" % [CLR_DIM, color, value.substr(1)]
+		return "[color=%s]-[/color][color=%s]%s[/color]" % [ThemeColors.CLR_DIM, color, value.substr(1)]
 	return "[color=%s]%s[/color]" % [color, value]
 
 # Formats an imaginary value as "± number i" with a dim operator separator.
 func _bb_im(im: String) -> String:
 	if im.begins_with("-"):
-		return "[color=%s] - [/color][color=%s]%s[/color][color=%s]i[/color]" % [CLR_DIM, CLR_MAGENTA, im.substr(1), CLR_MAGENTA_DIM]
-	return "[color=%s] + [/color][color=%s]%s[/color][color=%s]i[/color]" % [CLR_DIM, CLR_MAGENTA, im, CLR_MAGENTA_DIM]
+		return "[color=%s] - [/color][color=%s]%s[/color][color=%s]i[/color]" % [ThemeColors.CLR_DIM, ThemeColors.CLR_IMAGINARY, im.substr(1), ThemeColors.CLR_IMAGINARY_DIM]
+	return "[color=%s] + [/color][color=%s]%s[/color][color=%s]i[/color]" % [ThemeColors.CLR_DIM, ThemeColors.CLR_IMAGINARY, im, ThemeColors.CLR_IMAGINARY_DIM]
 
 func set_active(val: bool):
 	if is_active == val:
@@ -42,9 +35,9 @@ func set_active(val: bool):
 
 func set_values(re: String, im: String, is_dirichlet: bool):
 	if is_dirichlet and re == "0.500":
-		real_label.text = "[color=%s]1/2[/color]" % CLR_GOLD
+		real_label.text = "[color=%s]1/2[/color]" % ThemeColors.CLR_GOLD
 	else:
-		real_label.text = _bb_re(re, CLR_CYAN)
+		real_label.text = _bb_re(re, ThemeColors.CLR_REAL)
 	imag_label.text = _bb_im(im)
 
 func _gui_input(event):

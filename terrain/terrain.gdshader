@@ -310,7 +310,11 @@ void compute_curves_highlight(vec2 f, float raw_w_re, float raw_w_im, inout vec3
     float density_im = smoothstep(max_density_threshold, max_density_threshold * 0.7, raw_w_im);
     line_im *= density_im;
 
-    base *= 1.0 + line_im * (is_imag_highlighted ? 0.8 : 0.3);
+    if (is_imag_highlighted) {
+        base *= 1.0 - line_im * 0.8;
+    } else {
+        base *= 1.0 + line_im * 0.15;
+    }
     if (is_imag_highlighted) {
         highlight_im_glow = line_im;
     }
@@ -849,8 +853,8 @@ void fragment() {
         ALBEDO = base * albedo;
         vec3 final_emission = base * emission;
         if (show_curves) {
-            final_emission += vec3(0.0, 0.6, 1.0) * highlight_re_glow * 0.8;
-            final_emission += vec3(1.0, 0.0, 0.549) * highlight_im_glow * 0.8;
+            final_emission += vec3(0.0, 1.0, 1.0) * highlight_re_glow * 0.8;
+            final_emission += vec3(0.6, 0.2, 1.0) * highlight_im_glow * 0.8;
         }
 
         if (is_multivalued) {

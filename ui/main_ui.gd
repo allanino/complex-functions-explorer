@@ -52,25 +52,18 @@ var _unstable_zeta_timer: float = 0.0
 var current_scale = 2.0
 const BASE_HUD_PANEL_SIZE: float = 240.0
 
-# Theme color constants (BBCode hex)
-const CLR_DIM = "#e7e4dc80" # ink_dim (50% alpha)
-const CLR_GOLD = "#c8a96e" # theme gold
-const CLR_CYAN = "#93ffff" # cyan
-const CLR_MAGENTA = "#ff93ff" # magenta
-const CLR_MAGENTA_DIM = "#ff93ffb3"
-const CLR_RED = "#d65c5c" # less saturated red
 
 # Wraps a numeric string in BBCode: dims a leading '-' sign, colors the rest.
 func _bb_re(value: String, color: String) -> String:
 	if value.begins_with("-"):
-		return "[color=%s]-[/color][color=%s]%s[/color]" % [CLR_DIM, color, value.substr(1)]
+		return "[color=%s]-[/color][color=%s]%s[/color]" % [ThemeColors.CLR_DIM, color, value.substr(1)]
 	return "[color=%s]%s[/color]" % [color, value]
 
 # Formats an imaginary value as "± number i" with a dim operator separator.
 func _bb_im(im: String) -> String:
 	if im.begins_with("-"):
-		return "[color=%s] - [/color][color=%s]%s[/color][color=%s]i[/color]" % [CLR_DIM, CLR_MAGENTA, im.substr(1), CLR_MAGENTA_DIM]
-	return "[color=%s] + [/color][color=%s]%s[/color][color=%s]i[/color]" % [CLR_DIM, CLR_MAGENTA, im, CLR_MAGENTA_DIM]
+		return "[color=%s] - [/color][color=%s]%s[/color][color=%s]i[/color]" % [ThemeColors.CLR_DIM, ThemeColors.CLR_IMAGINARY, im.substr(1), ThemeColors.CLR_IMAGINARY_DIM]
+	return "[color=%s] + [/color][color=%s]%s[/color][color=%s]i[/color]" % [ThemeColors.CLR_DIM, ThemeColors.CLR_IMAGINARY, im, ThemeColors.CLR_IMAGINARY_DIM]
 
 func update_arg_val(f: Vector2):
 	var angle_rad: float
@@ -270,8 +263,8 @@ func _on_values_timer_timeout():
 	var domain_re = _format_float_3(val_re)
 	var domain_im = _format_float_3(val_im)
 
-	target_val.text = _bb_re(target_re, CLR_CYAN) + _bb_im(target_im)
-	domain_val.text = _bb_re(domain_re, CLR_CYAN) + _bb_im(domain_im)
+	target_val.text = _bb_re(target_re, ThemeColors.CLR_REAL) + _bb_im(target_im)
+	domain_val.text = _bb_re(domain_re, ThemeColors.CLR_REAL) + _bb_im(domain_im)
 
 	phase_abs_val.text = _format_float_3(f.length())
 
@@ -356,7 +349,7 @@ func _update_monitor_label():
 			var off_z = GameState.found_off_critical_line_val
 			var re_str = _format_float_3(off_z.x)
 			var im_str = _format_float_3(off_z.y)
-			var zero_str = _bb_re(re_str, CLR_CYAN) + _bb_im(im_str)
+			var zero_str = _bb_re(re_str, ThemeColors.CLR_REAL) + _bb_im(im_str)
 			bbcode += "[color=#ffcc00][font_size=14]Zero found off critical line (" + zero_str + "[color=#ffcc00]). Increase zeta iterations.[/color][/font_size]\n"
 
 		if GameState.missed_zeta_zero:

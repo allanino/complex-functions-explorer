@@ -119,7 +119,7 @@ func _ready():
 	re_label.pixel_size = 0.000625
 	re_label.font_size = 192
 	re_label.outline_size = 8
-	re_label.modulate = Color(0.3647, 0.847, 0.7843, 1)
+	re_label.modulate = ThemeColors.real
 	re_label.outline_modulate = Color(0.0, 0.0, 0.0, 1.0)
 	re_label.outline_render_priority = -1
 	re_label.top_level = true
@@ -135,8 +135,8 @@ func _ready():
 	im_label.pixel_size = 0.000625
 	im_label.font_size = 192
 	im_label.outline_size = 8
-	im_label.modulate = Color(0.8313, 0.3725, 0.6274, 1)
-	im_label.outline_modulate = Color(1.0, 1.0, 1.0, 1.0)
+	im_label.modulate = ThemeColors.imaginary
+	im_label.outline_modulate = Color(0.0, 0.0, 0.0, 1.0)
 	im_label.outline_render_priority = -1
 	im_label.top_level = true
 	im_label.visible = false

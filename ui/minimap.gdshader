@@ -207,15 +207,17 @@ void fragment() {
                     fwidth(field_val.y),
                     is_imag_highlighted
                 );
-base_color *=
-    1.0 -
-    line_re *
-    (is_real_highlighted ? 0.35 : 0.08);
+            if (is_real_highlighted) {
+                base_color = mix(base_color, vec3(0.0, 1.0, 1.0), line_re * 0.9);
+            } else {
+                base_color *= 1.0 - line_re * 0.08;
+            }
 
-base_color *=
-    1.0 +
-    line_im *
-    (is_imag_highlighted ? 0.35 : 0.08);
+            if (is_imag_highlighted) {
+                base_color = mix(base_color, vec3(0.7875, 0.575, 1.0), line_im * 0.9);
+            } else {
+                base_color *= 1.0 + line_im * 0.05;
+            }
         }
     }
 
