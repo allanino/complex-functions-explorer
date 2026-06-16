@@ -26,3 +26,6 @@
 ## 2025-03-01 - Suspend UI Menu _process when idle
 **Learning:** The `ui/menu.gd` script used its `_process(delta)` loop entirely for decrementing a click timer (`_title_click_timer`). Because Godot calls `_process` every frame, this wasted CPU cycles when no title clicks were active (which is >99.9% of the time).
 **Action:** Suspend the script's processing via `set_process(false)` in `_ready()` and immediately after the timer expires. Only call `set_process(true)` when a user registers the first click.
+## 2025-03-02 - Optimize GDScript Array Copying
+**Learning:** Copying GDScript arrays (like `Array[float]` or `Array[Vector2]`) into typed `Packed*Array` using `for val in array: packed.append(val)` incurs significant performance overhead due to the GDScript loop interpreter executing per-element.
+**Action:** Always instantiate typed `Packed*Array` using their direct constructors (e.g., `PackedFloat32Array(source_array)`) or `append_array()` to bypass the interpreter and execute the copy natively in Godot's C++ backend.
