@@ -382,5 +382,5 @@ void fragment() {
         }
     }
 
-    COLOR = vec4(base_color * 0.75, 1.0);
+    COLOR = vec4(base_color * 0.65, 1.0);
 }

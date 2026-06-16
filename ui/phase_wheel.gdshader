@@ -47,7 +47,7 @@ void fragment() {
     if (color_scheme == 1) {
         hue = fract(hue + 0.5);
     }
-    vec3 base = hsv2rgb(vec3(hue, saturation, brightness));
+    vec3 base = hsv2rgb(vec3(hue, saturation * 0.8, brightness * 0.8));
     if (color_scheme == 2) {
         float v = 0.5 + 0.5 * cos(phase);
         base = vec3(v) * brightness;
