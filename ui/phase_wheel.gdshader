@@ -1,25 +1,14 @@
 shader_type canvas_item;
 
+#include "res://math/glsl/color_utils.gdshaderinc"
+#include "res://math/glsl/sdf_utils.gdshaderinc"
+
 uniform vec2 current_f; // Current value of f(x,z)
 uniform int color_scheme = 0;
 uniform float brightness : hint_range(0.0, 2.0) = 1.0;
 uniform float saturation : hint_range(0.3, 1.0) = 0.85;
 uniform float albedo : hint_range(0.0, 1.0) = 0.15;
 uniform float emission : hint_range(0.0, 1.0) = 0.1;
-
-// Helper function to convert HSV to RGB
-vec3 hsv2rgb(vec3 c) {
-    vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
-    vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
-    return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
-}
-
-// Distance to a line segment
-float sdSegment(vec2 p, vec2 a, vec2 b) {
-    vec2 pa = p - a, ba = b - a;
-    float h = clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0);
-    return length(pa - ba * h);
-}
 
 float sdTriangle(vec2 p, vec2 p0, vec2 p1, vec2 p2)
 {
