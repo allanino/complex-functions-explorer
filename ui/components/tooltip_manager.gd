@@ -55,7 +55,9 @@ const DESCRIPTIONS = {
 	"Albedo": "Base reflectivity of the terrain material.",
 	"Emission": "Intensity of the self-illumination of the terrain.",
 	"Metallic": "Adjust how metallic the terrain surface appears.",
-	"Roughness": "Control the surface smoothness; lower values are glossier."
+	"Roughness": "Control the surface smoothness; lower values are glossier.",
+	"Surface Texture": "Adds surface detail to the terrain.  Higher values add more detail.",
+	"Ambient Occlusion": "Controls how much ambient light reaches the surface, enhancing depth and subtle shadowing."
 }
 
 @onready var tooltip = $Tooltip

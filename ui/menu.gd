@@ -324,7 +324,7 @@ func _ready():
 	metallic_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Metallic"))
 	roughness_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Roughness"))
 	surface_texture_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "SurfaceTexture"))
-	ao_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "AO"))
+	ao_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Ambient Occlusion"))
 	rendering_scale_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Rendering Scale"))
 	view_distance_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "View Distance"))
 
