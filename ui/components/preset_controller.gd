@@ -18,6 +18,7 @@ extends Node
 @onready var delete_preset_confirm = %MenuOverlay/%DeletePresetConfirm
 @onready var delete_message_label = %MenuOverlay/%DeleteMessageLabel
 
+
 func _ready():
 	_populate_preset_button()
 	preset_button.item_selected.connect(_on_preset_selected)
@@ -39,6 +40,7 @@ func _ready():
 	_connect_preset_dirtiers()
 	update_preset_button_text()
 
+
 func _on_preset_update_pressed():
 	var preset_name = Config.current_preset.trim_suffix("*")
 	if preset_name in ["Default", "Mysterious"]:
@@ -50,6 +52,7 @@ func _on_preset_update_pressed():
 		Config.current_preset = preset_name
 		update_preset_button_text()
 
+
 func _on_preset_delete_pressed():
 	var preset_name = Config.current_preset.trim_suffix("*")
 	if preset_name in ["Default", "Mysterious"]:
@@ -57,8 +60,10 @@ func _on_preset_delete_pressed():
 	delete_message_label.text = "Are you sure you want to delete the\npreset '" + preset_name + "'?"
 	delete_preset_dialog.visible = true
 
+
 func _on_delete_preset_cancel_pressed():
 	delete_preset_dialog.visible = false
+
 
 func _on_delete_preset_confirm_pressed():
 	var preset_name = Config.current_preset.trim_suffix("*")
@@ -75,13 +80,16 @@ func _on_delete_preset_confirm_pressed():
 			update_preset_button_text()
 	delete_preset_dialog.visible = false
 
+
 func _on_preset_new_pressed():
 	new_preset_dialog.visible = true
 	new_preset_input.text = ""
 	new_preset_input.grab_focus()
 
+
 func _on_new_preset_cancel_pressed():
 	new_preset_dialog.visible = false
+
 
 func _on_new_preset_save_pressed():
 	var preset_name = new_preset_input.text.strip_edges()
@@ -90,6 +98,7 @@ func _on_new_preset_save_pressed():
 		_populate_preset_button()
 		Config.apply_preset(preset_name)
 	new_preset_dialog.visible = false
+
 
 func _populate_preset_button():
 	var built_in_keys = Config.PRESET_DEFAULTS.PRESETS.keys()
@@ -101,18 +110,22 @@ func _populate_preset_button():
 		if built_in_keys.has(p_name):
 			preset_button.add_item(p_name)
 
+
 func _on_preset_selected(index: int):
 	var preset_name = preset_button.get_item_text(index).trim_suffix("*")
 	Config.apply_preset(preset_name)
+
 
 func _on_preset_applied():
 	main_ui.menu_overlay._sync_ui_to_config()
 	update_preset_button_text()
 
+
 func _on_preset_restore_pressed():
 	var preset_name = Config.current_preset.trim_suffix("*")
 	Config.restore_preset(preset_name)
 	main_ui.menu_overlay._on_set_pos_pressed(false)
+
 
 func _connect_preset_dirtiers():
 	var on_changed = func(_val = null):
@@ -121,29 +134,63 @@ func _connect_preset_dirtiers():
 
 	# Connect sliders
 	for slider in [
-		main_ui.menu_overlay.iter_slider, main_ui.menu_overlay.zero_proximity_nav_slider, main_ui.menu_overlay.zoom_slider, main_ui.menu_overlay.zero_speed_slider,
-		main_ui.menu_overlay.view_distance_slider, main_ui.menu_overlay.day_duration_slider, main_ui.menu_overlay.day_time_slider, main_ui.menu_overlay.sunrise_slider,
-		main_ui.menu_overlay.sky_luminosity_slider, main_ui.menu_overlay.sun_luminosity_slider, main_ui.menu_overlay.self_illumination_slider,
-		main_ui.menu_overlay.fog_density_slider, main_ui.menu_overlay.hud_scale_slider, main_ui.menu_overlay.master_volume_slider, main_ui.menu_overlay.bg_music_slider,
-		main_ui.menu_overlay.drone_slider, main_ui.menu_overlay.brightness_slider, main_ui.menu_overlay.saturation_slider, main_ui.menu_overlay.albedo_slider,
-		main_ui.menu_overlay.emission_slider, main_ui.menu_overlay.metallic_slider, main_ui.menu_overlay.roughness_slider, main_ui.menu_overlay.surface_texture_slider, main_ui.menu_overlay.ao_slider, main_ui.menu_overlay.rim_slider, main_ui.menu_overlay.rim_tint_slider,
-		main_ui.menu_overlay.multivalued_slider, main_ui.menu_overlay.camera_height_slider, main_ui.menu_overlay.speed_slider
+		main_ui.menu_overlay.iter_slider,
+		main_ui.menu_overlay.zero_proximity_nav_slider,
+		main_ui.menu_overlay.zoom_slider,
+		main_ui.menu_overlay.zero_speed_slider,
+		main_ui.menu_overlay.view_distance_slider,
+		main_ui.menu_overlay.day_duration_slider,
+		main_ui.menu_overlay.day_time_slider,
+		main_ui.menu_overlay.sunrise_slider,
+		main_ui.menu_overlay.sky_luminosity_slider,
+		main_ui.menu_overlay.sun_luminosity_slider,
+		main_ui.menu_overlay.self_illumination_slider,
+		main_ui.menu_overlay.fog_density_slider,
+		main_ui.menu_overlay.hud_scale_slider,
+		main_ui.menu_overlay.master_volume_slider,
+		main_ui.menu_overlay.bg_music_slider,
+		main_ui.menu_overlay.drone_slider,
+		main_ui.menu_overlay.brightness_slider,
+		main_ui.menu_overlay.saturation_slider,
+		main_ui.menu_overlay.albedo_slider,
+		main_ui.menu_overlay.emission_slider,
+		main_ui.menu_overlay.metallic_slider,
+		main_ui.menu_overlay.roughness_slider,
+		main_ui.menu_overlay.ao_slider,
+		main_ui.menu_overlay.rim_slider,
+		main_ui.menu_overlay.rim_tint_slider,
+		main_ui.menu_overlay.multivalued_slider,
+		main_ui.menu_overlay.camera_height_slider,
+		main_ui.menu_overlay.speed_slider
 	]:
 		if slider and slider.has_signal("value_changed"):
 			slider.value_changed.connect(on_changed)
 
 	# Connect checkboxes
 	for cb in [
-		main_ui.menu_overlay.curves_checkbox, main_ui.menu_overlay.critical_checkbox, main_ui.menu_overlay.flow_checkbox, main_ui.menu_overlay.hud_phase_wheel_checkbox,
-		main_ui.menu_overlay.hud_position_checkbox, main_ui.menu_overlay.hud_zeros_checkbox, main_ui.menu_overlay.rvm_checkbox,
-		main_ui.menu_overlay.hud_monitor_fps_checkbox, main_ui.menu_overlay.shadows_checkbox,
-		main_ui.menu_overlay.auto_walk_checkbox, main_ui.menu_overlay.freeze_time_checkbox
+		main_ui.menu_overlay.curves_checkbox,
+		main_ui.menu_overlay.critical_checkbox,
+		main_ui.menu_overlay.flow_checkbox,
+		main_ui.menu_overlay.hud_phase_wheel_checkbox,
+		main_ui.menu_overlay.hud_position_checkbox,
+		main_ui.menu_overlay.hud_zeros_checkbox,
+		main_ui.menu_overlay.rvm_checkbox,
+		main_ui.menu_overlay.hud_monitor_fps_checkbox,
+		main_ui.menu_overlay.shadows_checkbox,
+		main_ui.menu_overlay.auto_walk_checkbox,
+		main_ui.menu_overlay.freeze_time_checkbox
 	]:
 		if cb and cb.has_signal("toggled"):
 			cb.toggled.connect(on_changed)
 
 	# Connect buttons/option buttons
-	for ob in [main_ui.menu_overlay.func_button, main_ui.menu_overlay.height_button, main_ui.menu_overlay.terrain_detail_button, main_ui.menu_overlay.aa_button, main_ui.menu_overlay.color_scheme_button]:
+	for ob in [
+		main_ui.menu_overlay.func_button,
+		main_ui.menu_overlay.height_button,
+		main_ui.menu_overlay.terrain_detail_button,
+		main_ui.menu_overlay.aa_button,
+		main_ui.menu_overlay.color_scheme_button
+	]:
 		if ob and ob.has_signal("item_selected"):
 			ob.item_selected.connect(on_changed)
 
@@ -151,6 +198,7 @@ func _connect_preset_dirtiers():
 	for le in [main_ui.menu_overlay.height_a_input, main_ui.menu_overlay.height_eps_input]:
 		if le and le.has_signal("text_submitted"):
 			le.text_submitted.connect(on_changed)
+
 
 func update_preset_button_text():
 	var preset_name = Config.current_preset.trim_suffix("*")

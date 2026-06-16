@@ -1,7 +1,8 @@
 extends Node
 
 const PRESETS = {
-	"Default": {
+	"Default":
+	{
 		"terrain_detail": 0,
 		"antialiasing_mode": 0,
 		"rendering_scale": 1.0,
@@ -26,7 +27,6 @@ const PRESETS = {
 		"terrain_emission": 0.1,
 		"terrain_metallic": 0.5,
 		"terrain_roughness": 0.5,
-		"terrain_surface_texture": 0.0,
 		"terrain_rim": 0.0,
 		"terrain_rim_tint": 0.0,
 		"fog_density": 0.0,
@@ -46,7 +46,8 @@ const PRESETS = {
 		"bg_music_volume": 50.0,
 		"drone_volume": 100.0
 	},
-	"Mysterious": {
+	"Mysterious":
+	{
 		"terrain_detail": 0,
 		"antialiasing_mode": 0,
 		"rendering_scale": 1.0,
@@ -71,7 +72,6 @@ const PRESETS = {
 		"terrain_emission": 0.1,
 		"terrain_metallic": 1.0,
 		"terrain_roughness": 0.1,
-		"terrain_surface_texture": 0.0,
 		"terrain_rim": 0.0,
 		"terrain_rim_tint": 0.0,
 		"fog_density": 0.8,

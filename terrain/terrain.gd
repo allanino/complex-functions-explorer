@@ -9,7 +9,7 @@ var chunks = {}
 var _chunk_lods = {}
 var _dirty_neighbor_coords = {}
 var chunk_leeway = 0.01
-var LOD_SUBS = [] # This will be set in code
+var LOD_SUBS = []  # This will be set in code
 var _lod_mesh_cache = {}
 var _last_player_chunk = Vector2i(9999, 9999)
 var _last_view_distance: int = -1
@@ -20,6 +20,7 @@ var _last_lod_player_chunk = Vector2i(9999, 9999)
 @onready var environment_node = get_node("../Environment")
 @onready var audio = get_node_or_null("../Audio")
 
+
 func _ready():
 	Config.config_changed.connect(_on_config_changed)
 	GameState.state_changed.connect(_on_state_changed)
@@ -27,6 +28,7 @@ func _ready():
 	_update_all_terrain_material_uniforms()
 	# Uncomment this to debug the mesh wireframe
 	# get_viewport().debug_draw = Viewport.DEBUG_DRAW_WIREFRAME
+
 
 func _process(delta):
 	if not player:
@@ -60,7 +62,6 @@ func _process(delta):
 	if player_chunk_x != _last_player_chunk.x or player_chunk_z != _last_player_chunk.y:
 		_update_chunks(player_chunk_x, player_chunk_z)
 
-
 	var current = Vector2i(player_chunk_x, player_chunk_z)
 
 	if current != _last_lod_player_chunk:
@@ -75,7 +76,9 @@ func _update_chunks(p_x: int, p_z: int):
 	var old_max_z = _last_player_chunk.y + _last_view_distance
 
 	var is_first_update = chunks.is_empty()
-	var view_distance_changed = _last_view_distance != -1 and _last_view_distance != Config.view_distance
+	var view_distance_changed = (
+		_last_view_distance != -1 and _last_view_distance != Config.view_distance
+	)
 
 	_last_player_chunk = Vector2i(p_x, p_z)
 	_last_view_distance = Config.view_distance
@@ -85,7 +88,14 @@ func _update_chunks(p_x: int, p_z: int):
 		for z in range(p_z - Config.view_distance, p_z + Config.view_distance + 1):
 			# Optimization: skip chunks that were already within the previous view distance bounds.
 			# This drastically reduces redundant dictionary lookups when the player moves by a small amount.
-			if not is_first_update and not view_distance_changed and x >= old_min_x and x <= old_max_x and z >= old_min_z and z <= old_max_z:
+			if (
+				not is_first_update
+				and not view_distance_changed
+				and x >= old_min_x
+				and x <= old_max_x
+				and z >= old_min_z
+				and z <= old_max_z
+			):
 				continue
 
 			var chunk_coord = Vector2i(x, z)
@@ -95,13 +105,17 @@ func _update_chunks(p_x: int, p_z: int):
 	# Unload distant chunks
 	var chunks_to_remove = []
 	for chunk_coord in chunks:
-		if abs(chunk_coord.x - p_x) > Config.view_distance or abs(chunk_coord.y - p_z) > Config.view_distance:
+		if (
+			abs(chunk_coord.x - p_x) > Config.view_distance
+			or abs(chunk_coord.y - p_z) > Config.view_distance
+		):
 			chunks_to_remove.append(chunk_coord)
 
 	for chunk_coord in chunks_to_remove:
 		_unload_chunk(chunk_coord)
 
 	_flush_dirty_neighbors()
+
 
 func _update_all_chunks_lod(force: bool = false):
 	var player_chunk_coord = _last_player_chunk
@@ -113,19 +127,22 @@ func _update_all_chunks_lod(force: bool = false):
 
 	_flush_dirty_neighbors()
 
+
 func _flush_dirty_neighbors():
 	for coord in _dirty_neighbor_coords.keys():
 		_update_neighbor_lod_uniforms(coord)
 	_dirty_neighbor_coords.clear()
 
+
 func _update_lod_subs():
 	match Config.terrain_detail:
-		0: # High
+		0:  # High
 			LOD_SUBS = [255, 255, 127, 127, 127, 63, 31]
-		1: # Medium
+		1:  # Medium
 			LOD_SUBS = [127, 63, 31, 15, 7, 3, 3]
-		2: # Low
+		2:  # Low
 			LOD_SUBS = [63, 31, 15, 7, 3, 1, 1]
+
 
 func _get_lod_level(coord: Vector2i, player_coord: Vector2i) -> int:
 	var dx = abs(coord.x - player_coord.x)
@@ -147,12 +164,14 @@ func _get_lod_level(coord: Vector2i, player_coord: Vector2i) -> int:
 	else:
 		return 6
 
+
 func _create_lod_mesh(size: float, subdivisions: int) -> Mesh:
 	var plane = PlaneMesh.new()
 	plane.size = Vector2(size, size)
 	plane.subdivide_width = subdivisions
 	plane.subdivide_depth = subdivisions
 	return plane
+
 
 func _apply_performance_protection(active: bool):
 	_shaders_stopped = active
@@ -168,24 +187,54 @@ func _apply_performance_protection(active: bool):
 	if audio.has_method("set_performance_protection"):
 		audio.set_performance_protection(active)
 
+
 func _update_all_terrain_material_uniforms():
 	if terrain_material:
-		terrain_material.set_shader_parameter("eta_patch_count", min(64, ComplexField.eta_patches.size()))
-		terrain_material.set_shader_parameter("eta_patch_centers", ComplexField.get_shader_patch_centers())
-		terrain_material.set_shader_parameter("eta_patch_coeffs", ComplexField.get_shader_patch_coeffs())
+		terrain_material.set_shader_parameter(
+			"eta_patch_count", min(64, ComplexField.eta_patches.size())
+		)
+		terrain_material.set_shader_parameter(
+			"eta_patch_centers", ComplexField.get_shader_patch_centers()
+		)
+		terrain_material.set_shader_parameter(
+			"eta_patch_coeffs", ComplexField.get_shader_patch_coeffs()
+		)
 	var init_keys = [
 		"function_type",
-		"iterations", "show_curves", "show_critical_stripe", "show_flow",
-		"show_position_marker", "color_scheme", "input_function_type",
-		"height_type", "height_a", "height_epsilon", "height_theta",
-		"zoom_factor", "rational_num_coeffs", "rational_den_coeffs",
-		"input_rational_num_coeffs", "input_rational_den_coeffs",
-		"multivalued_n", "self_illumination", "fog_density",
-		"terrain_brightness", "terrain_saturation", "terrain_albedo",
-		"terrain_emission", "terrain_metallic", "terrain_roughness",
-		"terrain_surface_texture", "terrain_ao", "terrain_rim", "terrain_rim_tint", "morph_style",
-		"performance_protection_active", "current_branch", "morph_value",
-		"real_level_curves_highlighted", "imag_level_curves_highlighted",
+		"iterations",
+		"show_curves",
+		"show_critical_stripe",
+		"show_flow",
+		"show_position_marker",
+		"color_scheme",
+		"input_function_type",
+		"height_type",
+		"height_a",
+		"height_epsilon",
+		"height_theta",
+		"zoom_factor",
+		"rational_num_coeffs",
+		"rational_den_coeffs",
+		"input_rational_num_coeffs",
+		"input_rational_den_coeffs",
+		"multivalued_n",
+		"self_illumination",
+		"fog_density",
+		"terrain_brightness",
+		"terrain_saturation",
+		"terrain_albedo",
+		"terrain_emission",
+		"terrain_metallic",
+		"terrain_roughness",
+		"terrain_ao",
+		"terrain_rim",
+		"terrain_rim_tint",
+		"morph_style",
+		"performance_protection_active",
+		"current_branch",
+		"morph_value",
+		"real_level_curves_highlighted",
+		"imag_level_curves_highlighted",
 		"newton_path"
 	]
 	terrain_material.set_shader_parameter("max_world_height", GameState.MAX_WORLD_HEIGHT)
@@ -229,7 +278,6 @@ func _update_terrain_material_uniforms(key: String):
 		terrain_material.set_shader_parameter("imag_level_curves_highlighted", imag_shaded)
 		return
 
-
 	if key == "newton_path_bbox":
 		terrain_material.set_shader_parameter("newton_path_bbox", GameState.newton_path_bbox)
 		return
@@ -253,7 +301,39 @@ func _update_terrain_material_uniforms(key: String):
 	var mapped_key = key
 	if key.begins_with("terrain_"):
 		mapped_key = key.replace("terrain_", "")
-	if mapped_key in ["iterations", "show_curves", "show_critical_stripe", "show_flow", "show_position_marker", "color_scheme", "height_type", "height_a", "height_epsilon", "height_theta", "zoom_factor", "rational_num_coeffs", "rational_den_coeffs", "input_rational_num_coeffs", "input_rational_den_coeffs", "multivalued_n", "self_illumination", "fog_density", "brightness", "saturation", "albedo", "emission", "metallic", "roughness", "surface_texture", "ao", "rim", "rim_tint", "morph_style"]:
+	if (
+		mapped_key
+		in [
+			"iterations",
+			"show_curves",
+			"show_critical_stripe",
+			"show_flow",
+			"show_position_marker",
+			"color_scheme",
+			"height_type",
+			"height_a",
+			"height_epsilon",
+			"height_theta",
+			"zoom_factor",
+			"rational_num_coeffs",
+			"rational_den_coeffs",
+			"input_rational_num_coeffs",
+			"input_rational_den_coeffs",
+			"multivalued_n",
+			"self_illumination",
+			"fog_density",
+			"brightness",
+			"saturation",
+			"albedo",
+			"emission",
+			"metallic",
+			"roughness",
+			"ao",
+			"rim",
+			"rim_tint",
+			"morph_style"
+		]
+	):
 		terrain_material.set_shader_parameter(mapped_key, Config.get(key))
 		return
 	if key in ["performance_protection_active", "current_branch", "morph_value", "effective_zoom"]:
@@ -273,7 +353,8 @@ func _update_chunk_uniforms(chunk: MeshInstance3D, coord: Vector2i):
 
 func _update_neighbor_lod_uniforms(coord: Vector2i):
 	var chunk = chunks.get(coord)
-	if not chunk: return
+	if not chunk:
+		return
 
 	var lod = _chunk_lods.get(coord, 0)
 	var left_coord = Vector2i(coord.x - 1, coord.y)
@@ -286,7 +367,10 @@ func _update_neighbor_lod_uniforms(coord: Vector2i):
 	var top_lod = _chunk_lods.get(top_coord, lod)
 	var bottom_lod = _chunk_lods.get(bottom_coord, lod)
 
-	chunk.set_instance_shader_parameter("neighbor_lods", Vector4i(left_lod, right_lod, top_lod, bottom_lod))
+	chunk.set_instance_shader_parameter(
+		"neighbor_lods", Vector4i(left_lod, right_lod, top_lod, bottom_lod)
+	)
+
 
 func _load_chunk(coord: Vector2i):
 	var chunk = terrain_chunk_scene.instantiate()
@@ -296,22 +380,23 @@ func _load_chunk(coord: Vector2i):
 	chunk.material_override = terrain_material
 
 	var player_pos = player.global_position
-	var player_chunk_coord = Vector2i(floor(player_pos.x / chunk_size), floor(player_pos.z / chunk_size))
+	var player_chunk_coord = Vector2i(
+		floor(player_pos.x / chunk_size), floor(player_pos.z / chunk_size)
+	)
 	var lod = _get_lod_level(coord, player_chunk_coord)
 
 	chunks[coord] = chunk
 	_update_chunk_lod(chunk, lod, coord)
 
 	chunk.global_position = Vector3(
-		coord.x * chunk_size + chunk_size * 0.5,
-		0,
-		coord.y * chunk_size + chunk_size * 0.5
+		coord.x * chunk_size + chunk_size * 0.5, 0, coord.y * chunk_size + chunk_size * 0.5
 	)
 
 	chunk.custom_aabb = AABB(
-		Vector3(- (chunk_size + chunk_leeway) * 0.5, -50, - (chunk_size + chunk_leeway) * 0.5),
+		Vector3(-(chunk_size + chunk_leeway) * 0.5, -50, -(chunk_size + chunk_leeway) * 0.5),
 		Vector3(chunk_size + chunk_leeway, 1400, chunk_size + chunk_leeway)
 	)
+
 
 func _update_chunk_lod(chunk: MeshInstance3D, lod: int, coord: Vector2i, force: bool = false):
 	var old_lod = _chunk_lods.get(coord, -1)
@@ -340,6 +425,7 @@ func _update_chunk_lod(chunk: MeshInstance3D, lod: int, coord: Vector2i, force: 
 	_dirty_neighbor_coords[Vector2i(coord.x, coord.y - 1)] = true
 	_dirty_neighbor_coords[Vector2i(coord.x, coord.y + 1)] = true
 
+
 func _unload_chunk(coord: Vector2i):
 	var chunk = chunks[coord]
 	chunk.queue_free()
@@ -350,8 +436,46 @@ func _unload_chunk(coord: Vector2i):
 	_dirty_neighbor_coords[Vector2i(coord.x, coord.y - 1)] = true
 	_dirty_neighbor_coords[Vector2i(coord.x, coord.y + 1)] = true
 
+
 func _on_config_changed(key: String):
-	if key in ["iterations", "terrain_detail", "view_distance", "show_curves", "show_critical_stripe", "show_flow", "show_position_marker", "color_scheme", "function_type", "input_function_type", "height_type", "height_a", "height_epsilon", "height_theta", "rational_num_coeffs", "rational_den_coeffs", "input_rational_num_coeffs", "input_rational_den_coeffs", "multivalued_n", "self_illumination", "terrain_brightness", "terrain_saturation", "terrain_albedo", "terrain_emission", "terrain_metallic", "terrain_roughness", "terrain_surface_texture", "terrain_ao", "terrain_rim", "terrain_rim_tint", "morph_style", "morph_value", "fog_density", "morph_style"]:
+	if (
+		key
+		in [
+			"iterations",
+			"terrain_detail",
+			"view_distance",
+			"show_curves",
+			"show_critical_stripe",
+			"show_flow",
+			"show_position_marker",
+			"color_scheme",
+			"function_type",
+			"input_function_type",
+			"height_type",
+			"height_a",
+			"height_epsilon",
+			"height_theta",
+			"rational_num_coeffs",
+			"rational_den_coeffs",
+			"input_rational_num_coeffs",
+			"input_rational_den_coeffs",
+			"multivalued_n",
+			"self_illumination",
+			"terrain_brightness",
+			"terrain_saturation",
+			"terrain_albedo",
+			"terrain_emission",
+			"terrain_metallic",
+			"terrain_roughness",
+			"terrain_ao",
+			"terrain_rim",
+			"terrain_rim_tint",
+			"morph_style",
+			"morph_value",
+			"fog_density",
+			"morph_style"
+		]
+	):
 		_update_terrain_material_uniforms(key)
 		if key == "terrain_detail":
 			_update_lod_subs()
@@ -359,13 +483,34 @@ func _on_config_changed(key: String):
 			_update_all_chunks_lod(true)
 		if key in ["view_distance", "terrain_detail", "function_type", "input_function_type"]:
 			if player:
-				_update_chunks(floor(player.global_position.x / chunk_size), floor(player.global_position.z / chunk_size))
+				_update_chunks(
+					floor(player.global_position.x / chunk_size),
+					floor(player.global_position.z / chunk_size)
+				)
+
 
 func _on_state_changed(key: String):
-	if key in ["current_branch", "morph_value", "newton_path", "newton_path_bbox", "real_level_curves_highlighted", "imag_level_curves_highlighted", "effective_zoom"]:
+	if (
+		key
+		in [
+			"current_branch",
+			"morph_value",
+			"newton_path",
+			"newton_path_bbox",
+			"real_level_curves_highlighted",
+			"imag_level_curves_highlighted",
+			"effective_zoom"
+		]
+	):
 		_update_terrain_material_uniforms(key)
 	elif key == "eta_patches":
 		if terrain_material:
-			terrain_material.set_shader_parameter("eta_patch_count", min(64, ComplexField.eta_patches.size()))
-			terrain_material.set_shader_parameter("eta_patch_centers", ComplexField.get_shader_patch_centers())
-			terrain_material.set_shader_parameter("eta_patch_coeffs", ComplexField.get_shader_patch_coeffs())
+			terrain_material.set_shader_parameter(
+				"eta_patch_count", min(64, ComplexField.eta_patches.size())
+			)
+			terrain_material.set_shader_parameter(
+				"eta_patch_centers", ComplexField.get_shader_patch_centers()
+			)
+			terrain_material.set_shader_parameter(
+				"eta_patch_coeffs", ComplexField.get_shader_patch_coeffs()
+			)

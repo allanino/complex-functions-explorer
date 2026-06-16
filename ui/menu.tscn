@@ -751,12 +751,6 @@ value = 10.0
 value_text = "10%"
 show_detach_button = true
 
-[node name="SurfaceTextureContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/TERRAIN/Margin/VBox" unique_id=720981335 instance=ExtResource("1")]
-unique_name_in_owner = true
-layout_mode = 2
-text = "Surface Texture"
-value_text = "0%"
-show_detach_button = true
 
 [node name="RimContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/TERRAIN/Margin/VBox" instance=ExtResource("1")]
 unique_name_in_owner = true

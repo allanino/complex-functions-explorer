@@ -36,7 +36,6 @@ uniform float albedo : hint_range(0.0, 1.0) = 0.15;
 uniform float emission : hint_range(0.0, 1.0) = 0.1;
 uniform float metallic : hint_range(0.0, 1.0) = 0.7;
 uniform float roughness : hint_range(0.0, 1.0) = 0.1;
-uniform float surface_texture : hint_range(0.0, 1.0) = 0.0;
 uniform float ao : hint_range(0.0, 1.0) = 1.0;
 uniform float morph : hint_range(0.0, 1.0) = 1.0;
 uniform int morph_style = 1;
@@ -519,43 +518,6 @@ void compute_flow_effect(vec3 w_pos, vec3 nrm, vec3 camera_position_world, inout
 }
 
 
-void compute_surface_texture_effect(vec3 w_pos, vec3 camera_position_world, inout vec3 nrm, out float roughness_variation) {
-    roughness_variation = 0.0;
-    vec3 scaled_world_pos = w_pos /  zoom_factor;
-
-    float dist_to_camera = length(scaled_world_pos - camera_position_world);
-    // Fade the texture effect beyond 50 units, reaching 0 at 100 units
-    float fade = 1.0 - smoothstep(20.0, 100.0, dist_to_camera);
-    fade = mix(0.15, 1.0, fade);
-
-    if (fade > 0.001) {
-        // High frequency for fine texture
-        float freq = mix(2.0, 10.0, fade);
-        vec3 noise_pos = scaled_world_pos * freq;
-        float noise_val = fbm3(noise_pos);
-
-        // Approximate tangent and bitangent based on the normal
-        vec3 t = normalize(cross(nrm, vec3(0.0, 1.0, 0.0)));
-        if (length(t) < 0.1) {
-            t = normalize(cross(nrm, vec3(1.0, 0.0, 0.0)));
-        }
-        vec3 b = normalize(cross(nrm, t));
-
-        // Derive normal perturbation by sampling nearby points
-        float eps = 0.05;
-        float nx = fbm3(noise_pos + t * eps) - noise_val;
-        float nz = fbm3(noise_pos + b * eps) - noise_val;
-
-        vec3 perturbed = normalize(
-            nrm + vec3(nx, 0.0, nz) * surface_texture * fade * 2.0
-        );
-
-        nrm = perturbed;
-
-        // Remap noise_val from [0, 1] to [-0.5, 0.5] for roughness
-        roughness_variation = (noise_val - 0.5) * surface_texture * fade * 0.2;
-    }
-}
 
 
 void compute_self_illumination_effect(vec3 w_pos, vec3 camera_position_world, vec3 out_albedo, inout vec3 final_emission) {
@@ -874,10 +836,6 @@ void fragment() {
             compute_flow_effect(world_pos, v_normal, CAMERA_POSITION_WORLD, ALBEDO, final_emission);
         }
 
-        float roughness_variation = 0.0;
-        if (surface_texture > 0.0) {
-            compute_surface_texture_effect(world_pos, CAMERA_POSITION_WORLD, NORMAL, roughness_variation);
-        }
 
         if (self_illumination > 0.0 && !performance_protection_active) {
             compute_self_illumination_effect(world_pos, CAMERA_POSITION_WORLD, ALBEDO, final_emission);
@@ -894,7 +852,7 @@ void fragment() {
 
         EMISSION = final_emission;
 
-        ROUGHNESS = mix(clamp(roughness + roughness_variation, 0.0, 1.0), 0.1, core_critical);
+        ROUGHNESS = mix(clamp(roughness, 0.0, 1.0), 0.1, core_critical);
         METALLIC = mix(metallic, 0.8, core_critical);
         SPECULAR = specular_intensity;
         AO = ao;
