@@ -900,3 +900,9 @@ void fragment() {
         SPECULAR = specular_intensity;
     }
 }
+
+void light() {
+    float wrap = 0.3;
+    float diff = clamp((dot(NORMAL, LIGHT) + wrap) / (1.0 + wrap), 0.0, 1.0);
+    DIFFUSE_LIGHT += diff * ATTENUATION * LIGHT_COLOR;
+}
