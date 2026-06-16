@@ -1,6 +1,7 @@
 shader_type canvas_item;
 
 #include "res://math/complex_field.gdshaderinc"
+#include "res://math/glsl/color_utils.gdshaderinc"
 
 uniform vec2 player_pos_world;
 uniform float view_radius = 20.0;
@@ -33,13 +34,6 @@ float sdLine(vec2 p, vec2 a, vec2 b) {
     vec2 pa = p - a, ba = b - a;
     float h = clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0);
     return length(pa - ba * h);
-}
-
-// Helper function to convert HSV to RGB
-vec3 hsv2rgb(vec3 c) {
-    vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
-    vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
-    return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
 }
 
 vec2 world_to_complex(float x, float y) {

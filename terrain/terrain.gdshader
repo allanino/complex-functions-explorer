@@ -2,6 +2,7 @@ shader_type spatial;
 render_mode cull_disabled;
 
 #include "res://math/complex_field.gdshaderinc"
+#include "res://math/glsl/color_utils.gdshaderinc"
 
 varying vec3 world_pos;
 varying vec3 v_normal;
@@ -47,15 +48,6 @@ uniform float max_world_height = 1000.0;
 uniform float self_illumination = 0.0;
 uniform float fog_density = 0.0;
 uniform vec3 player_position_world = vec3(0.0);
-
-
-
-// Helper function to convert HSV to RGB
-vec3 hsv2rgb(vec3 c) {
-    vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
-    vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
-    return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
-}
 
 float matrix_hash(vec2 p) {
     return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
