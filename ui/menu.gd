@@ -2,8 +2,8 @@ extends Control
 
 var SLIDER_BINDINGS: Dictionary = {}
 
-signal apply_aa_signal()
-signal update_hud_layout_signal()
+signal apply_aa_signal
+signal update_hud_layout_signal
 
 @export var player: Node3D
 @export var world_manager: Node
@@ -74,6 +74,8 @@ signal update_hud_layout_signal()
 @onready var roughness_slider = %RoughnessContainer
 @onready var surface_texture_slider = %SurfaceTextureContainer
 @onready var ao_slider = %AOContainer
+@onready var rim_intensity_slider = %RimIntensityContainer
+@onready var rim_tint_intensity_slider = %RimTintIntensityContainer
 @onready var morph_slider = %MorphSliderContainer
 @onready var morph_style_container = %MorphStyleContainer
 @onready var morph_style_dropdown = %MorphStyleContainer.get_option_button()
@@ -116,6 +118,8 @@ var _initial_terrain_metallic: float
 var _initial_terrain_roughness: float
 var _initial_terrain_surface_texture: float
 var _initial_terrain_ao: float
+var _initial_terrain_rim_intensity: float
+var _initial_terrain_rim_tint_intensity: float
 var _initial_menu_scale: float
 var _initial_hud_scale: float
 var _initial_sky_luminosity: float
@@ -136,6 +140,7 @@ var _initial_edited_presets: Dictionary
 
 var _title_clicks: int = 0
 var _title_click_timer: float = 0.0
+
 
 func _ready():
 	# Performance: Start with _process disabled since no timers are active initially
@@ -166,7 +171,9 @@ func _ready():
 	active_tab_style.content_margin_top = 10.0
 	active_tab_style.content_margin_right = 10.0
 	active_tab_style.content_margin_bottom = 10.0
-	active_tab_style.bg_color = Color(ThemeColors.real.r, ThemeColors.real.g, ThemeColors.real.b, 0.06)
+	active_tab_style.bg_color = Color(
+		ThemeColors.real.r, ThemeColors.real.g, ThemeColors.real.b, 0.06
+	)
 	active_tab_style.border_width_left = 2
 	active_tab_style.border_width_top = 0
 	active_tab_style.border_width_right = 0
@@ -197,7 +204,9 @@ func _ready():
 	hover_active_tab_style.content_margin_top = 10.0
 	hover_active_tab_style.content_margin_right = 10.0
 	hover_active_tab_style.content_margin_bottom = 10.0
-	hover_active_tab_style.bg_color = Color(ThemeColors.real.r, ThemeColors.real.g, ThemeColors.real.b, 0.1)
+	hover_active_tab_style.bg_color = Color(
+		ThemeColors.real.r, ThemeColors.real.g, ThemeColors.real.b, 0.1
+	)
 	hover_active_tab_style.border_width_left = 2
 	hover_active_tab_style.border_width_top = 0
 	hover_active_tab_style.border_width_right = 0
@@ -301,240 +310,337 @@ func _ready():
 	#morph_style_dropdown.add_item("Exponential")
 
 	emit_signal("apply_aa_signal")
-	_disable_sliders_focus(self )
+	_disable_sliders_focus(self)
 
-	iter_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Iterations"))
-	height_theta_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Parameter θ"))
-	morph_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Morph Transition"))
+	iter_slider.detach_requested.connect(
+		func(s, v): detach_controller.detach_slider_control(s, v, "Iterations")
+	)
+	height_theta_slider.detach_requested.connect(
+		func(s, v): detach_controller.detach_slider_control(s, v, "Parameter θ")
+	)
+	morph_slider.detach_requested.connect(
+		func(s, v): detach_controller.detach_slider_control(s, v, "Morph Transition")
+	)
 	Config.config_changed.connect(_on_config_changed)
 	morph_style_dropdown.item_selected.connect(_on_morph_style_selected)
-	multivalued_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Branches (n)"))
-	branch_k_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Branch number"))
-	day_duration_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Day Duration"))
-	day_time_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Time of day"))
-	sunrise_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Sunrise Direction"))
-	sky_luminosity_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Sky Luminosity"))
-	sun_luminosity_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Sun Luminosity"))
-	self_illumination_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Self-Illumination"))
-	fog_density_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Fog Density"))
-	brightness_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Brightness"))
-	saturation_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Saturation"))
-	albedo_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Albedo"))
-	emission_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Emission"))
-	metallic_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Metallic"))
-	roughness_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Roughness"))
-	surface_texture_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "SurfaceTexture"))
-	ao_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Ambient Occlusion"))
-	rendering_scale_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Rendering Scale"))
-	view_distance_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "View Distance"))
+	multivalued_slider.detach_requested.connect(
+		func(s, v): detach_controller.detach_slider_control(s, v, "Branches (n)")
+	)
+	branch_k_slider.detach_requested.connect(
+		func(s, v): detach_controller.detach_slider_control(s, v, "Branch number")
+	)
+	day_duration_slider.detach_requested.connect(
+		func(s, v): detach_controller.detach_slider_control(s, v, "Day Duration")
+	)
+	day_time_slider.detach_requested.connect(
+		func(s, v): detach_controller.detach_slider_control(s, v, "Time of day")
+	)
+	sunrise_slider.detach_requested.connect(
+		func(s, v): detach_controller.detach_slider_control(s, v, "Sunrise Direction")
+	)
+	sky_luminosity_slider.detach_requested.connect(
+		func(s, v): detach_controller.detach_slider_control(s, v, "Sky Luminosity")
+	)
+	sun_luminosity_slider.detach_requested.connect(
+		func(s, v): detach_controller.detach_slider_control(s, v, "Sun Luminosity")
+	)
+	self_illumination_slider.detach_requested.connect(
+		func(s, v): detach_controller.detach_slider_control(s, v, "Self-Illumination")
+	)
+	fog_density_slider.detach_requested.connect(
+		func(s, v): detach_controller.detach_slider_control(s, v, "Fog Density")
+	)
+	brightness_slider.detach_requested.connect(
+		func(s, v): detach_controller.detach_slider_control(s, v, "Brightness")
+	)
+	saturation_slider.detach_requested.connect(
+		func(s, v): detach_controller.detach_slider_control(s, v, "Saturation")
+	)
+	albedo_slider.detach_requested.connect(
+		func(s, v): detach_controller.detach_slider_control(s, v, "Albedo")
+	)
+	emission_slider.detach_requested.connect(
+		func(s, v): detach_controller.detach_slider_control(s, v, "Emission")
+	)
+	metallic_slider.detach_requested.connect(
+		func(s, v): detach_controller.detach_slider_control(s, v, "Metallic")
+	)
+	roughness_slider.detach_requested.connect(
+		func(s, v): detach_controller.detach_slider_control(s, v, "Roughness")
+	)
+	surface_texture_slider.detach_requested.connect(
+		func(s, v): detach_controller.detach_slider_control(s, v, "SurfaceTexture")
+	)
+	ao_slider.detach_requested.connect(
+		func(s, v): detach_controller.detach_slider_control(s, v, "Ambient Occlusion")
+	)
+	rim_intensity_slider.detach_requested.connect(
+		func(s, v): detach_controller.detach_slider_control(s, v, "Rim")
+	)
+	rim_tint_intensity_slider.detach_requested.connect(
+		func(s, v): detach_controller.detach_slider_control(s, v, "Rim Tint")
+	)
+	rendering_scale_slider.detach_requested.connect(
+		func(s, v): detach_controller.detach_slider_control(s, v, "Rendering Scale")
+	)
+	view_distance_slider.detach_requested.connect(
+		func(s, v): detach_controller.detach_slider_control(s, v, "View Distance")
+	)
 
 	main_menu_panel.scale = Vector2.ONE
 	_rescale_menu(Config.menu_scale)
 
 	var menu_scale_hslider = menu_scale_slider.get_slider()
 	if menu_scale_hslider:
-		menu_scale_hslider.drag_started.connect(func():
-			_menu_scale_dragging = true
-		)
-		menu_scale_hslider.drag_ended.connect(func(_value_changed: bool):
-			_menu_scale_dragging = false
-			_rescale_menu(Config.menu_scale)
+		menu_scale_hslider.drag_started.connect(func(): _menu_scale_dragging = true)
+		menu_scale_hslider.drag_ended.connect(
+			func(_value_changed: bool):
+				_menu_scale_dragging = false
+				_rescale_menu(Config.menu_scale)
 		)
 	_update_morph_style_ui()
 
 
 func _init_slider_bindings():
 	var bindings = {
-		rendering_scale_slider: {
+		rendering_scale_slider:
+		{
 			"config_key": "rendering_scale",
 			"to_config": func(v): return v,
 			"from_config": func(c): return c,
 			"format": func(v): return "%.2f" % v
 		},
-		camera_height_slider: {
+		camera_height_slider:
+		{
 			"config_key": "camera_height",
 			"to_config": func(v): return v,
 			"from_config": func(c): return c,
 			"format": func(v): return "%.1f" % v
 		},
-		speed_slider: {
+		speed_slider:
+		{
 			"config_key": "movement_speed",
 			"to_config": func(v): return v * 10.0,
 			"from_config": func(c): return c * 0.1,
 			"format": func(v): return "%.1f" % v
 		},
-		master_volume_slider: {
+		master_volume_slider:
+		{
 			"config_key": "master_volume",
 			"to_config": func(v): return v,
 			"from_config": func(c): return c,
 			"format": func(v): return str(int(round(v))) + "%"
 		},
-		bg_music_slider: {
+		bg_music_slider:
+		{
 			"config_key": "bg_music_volume",
 			"to_config": func(v): return v,
 			"from_config": func(c): return c,
 			"format": func(v): return str(int(round(v))) + "%"
 		},
-		drone_slider: {
+		drone_slider:
+		{
 			"config_key": "drone_volume",
 			"to_config": func(v): return v,
 			"from_config": func(c): return c,
 			"format": func(v): return str(int(round(v))) + "%"
 		},
-		zero_proximity_nav_slider: {
+		zero_proximity_nav_slider:
+		{
 			"config_key": "zero_proximity_nav",
 			"to_config": func(v): return v,
 			"from_config": func(c): return c,
 			"format": func(v): return "%.2f" % v
 		},
-		zoom_slider: {
+		zoom_slider:
+		{
 			"config_key": "zoom_factor",
 			"to_config": func(v): return _slider_to_zoom(v),
 			"from_config": func(c): return _zoom_to_slider(c),
 			"format": func(v): return "x%.2f" % _slider_to_zoom(v)
 		},
-		zero_speed_slider: {
+		zero_speed_slider:
+		{
 			"config_key": "speed_near_zeros",
 			"to_config": func(v): return v,
 			"from_config": func(c): return c,
 			"format": func(v): return str(int(round(v))) + "%"
 		},
-		view_distance_slider: {
+		view_distance_slider:
+		{
 			"config_key": "view_distance",
 			"to_config": func(v): return int(round(v)),
 			"from_config": func(c): return c,
 			"format": func(v): return str(int(round(v)))
 		},
-		day_duration_slider: {
+		day_duration_slider:
+		{
 			"config_key": "day_duration",
 			"to_config": func(v): return v,
 			"from_config": func(c): return c,
 			"format": func(v): return _format_time(v)
 		},
-		day_time_slider: {
+		day_time_slider:
+		{
 			"config_key": "day_time",
 			"to_config": func(v): return v,
 			"from_config": func(c): return c,
 			"format": func(v): return _format_time(v)
 		},
-		sunrise_slider: {
+		sunrise_slider:
+		{
 			"config_key": "sunrise_direction",
 			"to_config": func(v): return v,
 			"from_config": func(c): return c,
 			"format": func(v): return str(int(round(v))) + "°"
 		},
-		sky_luminosity_slider: {
+		sky_luminosity_slider:
+		{
 			"config_key": "sky_luminosity",
 			"to_config": func(v): return v / 100.0,
 			"from_config": func(c): return c * 100.0,
 			"format": func(v): return str(int(round(v))) + "%"
 		},
-		sun_luminosity_slider: {
+		sun_luminosity_slider:
+		{
 			"config_key": "sun_luminosity",
 			"to_config": func(v): return v / 100.0,
 			"from_config": func(c): return c * 100.0,
 			"format": func(v): return str(int(round(v))) + "%"
 		},
-		self_illumination_slider: {
+		self_illumination_slider:
+		{
 			"config_key": "self_illumination",
 			"to_config": func(v): return v / 100.0,
 			"from_config": func(c): return c * 100.0,
 			"format": func(v): return str(int(round(v))) + "%"
 		},
-		fog_density_slider: {
+		fog_density_slider:
+		{
 			"config_key": "fog_density",
 			"to_config": func(v): return v / 100.0,
 			"from_config": func(c): return c * 100.0,
 			"format": func(v): return "%.1f%%" % v
 		},
-		menu_scale_slider: {
+		menu_scale_slider:
+		{
 			"config_key": "menu_scale",
 			"to_config": func(v): return v / 100.0,
 			"from_config": func(c): return c * 100.0,
 			"format": func(v): return str(int(round(v))) + "%",
-			"on_changed": func(_v): emit_signal('update_hud_layout_signal')
+			"on_changed": func(_v): emit_signal("update_hud_layout_signal")
 		},
-		hud_scale_slider: {
+		hud_scale_slider:
+		{
 			"config_key": "hud_scale",
 			"to_config": func(v): return v / 100.0,
 			"from_config": func(c): return c * 100.0,
 			"format": func(v): return str(int(round(v))) + "%"
 		},
-		iter_slider: {
+		iter_slider:
+		{
 			"config_key": "iterations",
 			"to_config": func(v): return int(round(v)),
 			"from_config": func(c): return c,
 			"format": func(v): return str(int(round(v)))
 		},
-		height_theta_slider: {
+		height_theta_slider:
+		{
 			"config_key": "height_theta",
 			"to_config": func(v): return v,
 			"from_config": func(c): return c,
 			"format": func(v): return "%.2f rad" % v
 		},
-		multivalued_slider: {
+		multivalued_slider:
+		{
 			"config_key": "multivalued_n",
 			"to_config": func(v): return int(round(v)),
 			"from_config": func(c): return c,
 			"format": func(v): return str(int(round(v))),
 			"on_changed": func(_v): _update_branch_k_slider_range()
 		},
-		branch_k_slider: {
-			"config_target": GameState, "config_key": "current_branch",
+		branch_k_slider:
+		{
+			"config_target": GameState,
+			"config_key": "current_branch",
 			"to_config": func(v): return int(round(v)),
 			"from_config": func(c): return c,
 			"format": func(v): return str(int(round(v)))
 		},
-		brightness_slider: {
+		brightness_slider:
+		{
 			"config_key": "terrain_brightness",
 			"to_config": func(v): return v / 50.0,
 			"from_config": func(c): return c * 50.0,
 			"format": func(v): return str(int(round(v))) + "%"
 		},
-		saturation_slider: {
+		saturation_slider:
+		{
 			"config_key": "terrain_saturation",
 			"to_config": func(v): return v / 100.0,
 			"from_config": func(c): return c * 100.0,
 			"format": func(v): return str(int(round(v))) + "%"
 		},
-		ao_slider: {
+		ao_slider:
+		{
 			"config_key": "terrain_ao",
 			"to_config": func(v): return v / 100.0,
 			"from_config": func(c): return c * 100.0,
 			"format": func(v): return str(int(round(v))) + "%"
 		},
-		albedo_slider: {
+		rim_intensity_slider:
+		{
+			"config_key": "terrain_rim_intensity",
+			"to_config": func(v): return v / 100.0,
+			"from_config": func(c): return c * 100.0,
+			"format": func(v): return str(int(round(v))) + "%"
+		},
+		rim_tint_intensity_slider:
+		{
+			"config_key": "terrain_rim_tint_intensity",
+			"to_config": func(v): return v / 100.0,
+			"from_config": func(c): return c * 100.0,
+			"format": func(v): return str(int(round(v))) + "%"
+		},
+		albedo_slider:
+		{
 			"config_key": "terrain_albedo",
 			"to_config": func(v): return v / 100.0,
 			"from_config": func(c): return c * 100.0,
 			"format": func(v): return str(int(round(v))) + "%"
 		},
-		emission_slider: {
+		emission_slider:
+		{
 			"config_key": "terrain_emission",
 			"to_config": func(v): return v / 100.0,
 			"from_config": func(c): return c * 100.0,
 			"format": func(v): return str(int(round(v))) + "%"
 		},
-		metallic_slider: {
+		metallic_slider:
+		{
 			"config_key": "terrain_metallic",
 			"to_config": func(v): return v / 100.0,
 			"from_config": func(c): return c * 100.0,
 			"format": func(v): return str(int(round(v))) + "%"
 		},
-		roughness_slider: {
+		roughness_slider:
+		{
 			"config_key": "terrain_roughness",
 			"to_config": func(v): return v / 100.0,
 			"from_config": func(c): return c * 100.0,
 			"format": func(v): return str(int(round(v))) + "%"
 		},
-		surface_texture_slider: {
+		surface_texture_slider:
+		{
 			"config_key": "terrain_surface_texture",
 			"to_config": func(v): return v / 100.0,
 			"from_config": func(c): return c * 100.0,
 			"format": func(v): return str(int(round(v))) + "%"
 		},
-		morph_slider: {
-			"config_target": GameState, "config_key": "morph_value",
+		morph_slider:
+		{
+			"config_target": GameState,
+			"config_key": "morph_value",
 			"to_config": func(v): return v,
 			"from_config": func(c): return c,
 			"format": func(v): return "%.2f" % v
@@ -543,6 +649,7 @@ func _init_slider_bindings():
 	for slider in bindings:
 		if slider != null:
 			SLIDER_BINDINGS[slider] = bindings[slider]
+
 
 func _on_generic_slider_changed(slider: Control, value: float):
 	if _syncing_ui:
@@ -561,6 +668,7 @@ func _on_generic_slider_changed(slider: Control, value: float):
 	if binding.has("on_changed"):
 		binding["on_changed"].call(value)
 
+
 var _menu_scale_dragging: bool = false
 
 var current_submitted_func: int = -1
@@ -569,6 +677,7 @@ var last_submitted_func: int = -1
 var last_submitted_input: int = -1
 
 var _syncing_ui: bool = false
+
 
 func _disable_sliders_focus(node: Node):
 	if node is HSlider:
@@ -589,16 +698,27 @@ func _populate_function_dropdown(button: OptionButton, exclude_multivalued: bool
 			continue
 		button.add_item(f_data.get("name", "Unknown"), f_key)
 
+
 func _on_func_item_selected(index):
 	_on_func_selected(func_button.get_item_id(index))
+
 
 func _on_input_item_selected(index: int):
 	_on_input_selected(input_button.get_item_id(index))
 
+
 func _input(event):
 	if event is InputEventKey and event.pressed and event.keycode == KEY_P and event.ctrl_pressed:
-		var target_func = last_submitted_func if current_submitted_func == Config.function_type else current_submitted_func
-		var target_input = last_submitted_input if current_submitted_input == Config.input_function_type else current_submitted_input
+		var target_func = (
+			last_submitted_func
+			if current_submitted_func == Config.function_type
+			else current_submitted_func
+		)
+		var target_input = (
+			last_submitted_input
+			if current_submitted_input == Config.input_function_type
+			else current_submitted_input
+		)
 
 		var func_index = func_button.get_item_index(target_func)
 		var input_index = input_button.get_item_index(target_input)
@@ -620,6 +740,7 @@ func _input(event):
 			_on_set_pos_pressed(false)
 			get_viewport().set_input_as_handled()
 
+
 func _on_input_selected(f_type: int):
 	Config.input_function_type = f_type
 	var f_data = Config.FUNCTIONS.get(f_type, {})
@@ -627,6 +748,7 @@ func _on_input_selected(f_type: int):
 	input_rational_container.visible = is_rational
 	if is_rational:
 		_on_input_rational_text_submitted(input_rational_input.text)
+
 
 func _on_func_selected(f_type: int):
 	Config.function_type = f_type
@@ -678,6 +800,7 @@ func _on_func_selected(f_type: int):
 		var target_pos = Config.complex_to_world(re, im)
 		player.teleport_to_world_pos(Vector3(target_pos.x, 0, target_pos.y))
 
+
 func _update_branch_k_slider_range():
 	if Config.function_type == Config.ComplexFunc.MULTIVALUED_Z_POW:
 		branch_k_slider.min_value = 0
@@ -686,14 +809,18 @@ func _update_branch_k_slider_range():
 		branch_k_slider.min_value = -5
 		branch_k_slider.max_value = 5
 	# Clamp value to new range
-	branch_k_slider.value = clamp(branch_k_slider.value, branch_k_slider.min_value, branch_k_slider.max_value)
+	branch_k_slider.value = clamp(
+		branch_k_slider.value, branch_k_slider.min_value, branch_k_slider.max_value
+	)
+
 
 func _on_height_selected(index):
 	Config.height_type = index
-	var is_log = (index == 1)
+	var is_log = index == 1
 	height_a_container.visible = is_log
 	height_eps_container.visible = is_log
 	height_theta_slider.visible = (index == 4)
+
 
 func _on_freeze_time_toggled(pressed: bool):
 	Config.freeze_time = pressed
@@ -758,7 +885,7 @@ func _on_set_pos_pressed(_toggle_menu: bool = true):
 	Config.input_function_type = new_input
 	Config.height_type = height_button.selected
 
-	emit_signal('apply_aa_signal')
+	emit_signal("apply_aa_signal")
 
 	if Config.function_type == Config.ComplexFunc.RATIONAL:
 		var coeffs = _parse_rational_expression(func_rational_input.text)
@@ -771,7 +898,7 @@ func _on_set_pos_pressed(_toggle_menu: bool = true):
 		Config.input_rational_den_coeffs = coeffs[1]
 
 	Config.save_settings()
-	emit_signal('update_hud_layout_signal')
+	emit_signal("update_hud_layout_signal")
 	preset_controller.update_preset_button_text()
 
 	GameState.visited_zeros.clear()
@@ -780,7 +907,9 @@ func _on_set_pos_pressed(_toggle_menu: bool = true):
 	if player:
 		if is_finite(re) and is_finite(im) and player:
 			var target_pos = Config.complex_to_world(re, im)
-			player.teleport_to_world_pos(Vector3(target_pos.x, player.global_position.y, target_pos.y))
+			player.teleport_to_world_pos(
+				Vector3(target_pos.x, player.global_position.y, target_pos.y)
+			)
 
 		var f_data = Config.function
 		if f_data.get("is_dirichlet", false):
@@ -788,19 +917,25 @@ func _on_set_pos_pressed(_toggle_menu: bool = true):
 
 		# Update auto-walk state
 		if auto_walk_checkbox.button_pressed:
-			if player.auto_walk_state == 0 or player.auto_walk_state == 3: # NONE or NEWTON_WALK
-				player.auto_walk_state = 1 # MOVING_TO_LINE
-				GameState.rvm_start_t = abs(Config.world_to_complex(0.0, player.global_position.z).y)
+			if player.auto_walk_state == 0 or player.auto_walk_state == 3:  # NONE or NEWTON_WALK
+				player.auto_walk_state = 1  # MOVING_TO_LINE
+				GameState.rvm_start_t = abs(
+					Config.world_to_complex(0.0, player.global_position.z).y
+				)
 				if "last_detected_t" in player:
 					player.last_detected_t = -1.0
 		elif zero_walk_checkbox.button_pressed:
-			if player.auto_walk_state == 0 or player.auto_walk_state == 1 or player.auto_walk_state == 2:
-				player.auto_walk_state = 0 # Reset state before starting newton walk
+			if (
+				player.auto_walk_state == 0
+				or player.auto_walk_state == 1
+				or player.auto_walk_state == 2
+			):
+				player.auto_walk_state = 0  # Reset state before starting newton walk
 				player.start_newton_walk()
 		else:
-			player.auto_walk_state = 0 # NONE
+			player.auto_walk_state = 0  # NONE
 
-	emit_signal('update_hud_layout_signal')
+	emit_signal("update_hud_layout_signal")
 
 	preset_controller.update_preset_button_text()
 	if _toggle_menu:
@@ -850,7 +985,9 @@ func _sync_ui_to_config():
 	hud_monitor_fps_checkbox.button_pressed = Config.show_hud_monitor_fps
 
 	if player:
-		auto_walk_checkbox.button_pressed = (player.auto_walk_state == 1 or player.auto_walk_state == 2)
+		auto_walk_checkbox.button_pressed = (
+			player.auto_walk_state == 1 or player.auto_walk_state == 2
+		)
 		zero_walk_checkbox.button_pressed = (player.auto_walk_state == 3)
 
 	flow_checkbox.button_pressed = Config.show_flow
@@ -869,6 +1006,7 @@ func _sync_ui_to_config():
 	main_menu_panel.scale = Vector2.ONE
 	_rescale_menu(Config.menu_scale)
 
+
 func _on_quit_pressed():
 	if Config.is_preset_dirty():
 		var preset_name = Config.current_preset.trim_suffix("*")
@@ -882,67 +1020,86 @@ func _on_quit_pressed():
 
 	quit_dialog.visible = true
 
+
 func _on_quit_cancel_pressed():
 	quit_dialog.visible = false
+
 
 func _on_quit_save_and_quit_pressed():
 	Config.update_preset(Config.current_preset.trim_suffix("*"))
 	get_tree().quit()
 
+
 func _on_quit_confirm_pressed():
 	get_tree().quit()
+
 
 func _on_terrain_detail_selected(index: int):
 	Config.terrain_detail = index
 
+
 func _on_aa_selected(index: int):
 	Config.antialiasing_mode = index
-	emit_signal('apply_aa_signal')
+	emit_signal("apply_aa_signal")
+
 
 func _on_shadows_toggled(pressed: bool):
 	Config.shadows_enabled = pressed
 
+
 func _on_curves_toggled(pressed: bool):
 	Config.show_curves = pressed
+
 
 func _on_curves_labels_toggled(pressed: bool):
 	Config.show_curves_labels = pressed
 
+
 func _on_critical_toggled(pressed: bool):
 	Config.show_critical_stripe = pressed
+
 
 func _on_flow_toggled(pressed: bool):
 	Config.show_flow = pressed
 
+
 func _on_position_marker_toggled(pressed: bool):
 	Config.show_position_marker = pressed
+
 
 func _on_minimap_toggled(pressed: bool):
 	Config.show_minimap = pressed
 
+
 func _on_hud_phase_wheel_toggled(pressed: bool):
 	Config.show_hud_phase_wheel = pressed
+
 
 func _on_hud_navigation_toggled(pressed: bool):
 	Config.show_hud_navigation = pressed
 	hud_phase_wheel_checkbox.visible = pressed
-	emit_signal('update_hud_layout_signal')
+	emit_signal("update_hud_layout_signal")
+
 
 func _on_hud_zeros_toggled(pressed: bool):
 	Config.show_hud_zeros = pressed
 	if not pressed:
 		GameState.visited_zeros.clear()
 		GameState.total_zeros_found = 0
-		emit_signal('update_hud_layout_signal')
+		emit_signal("update_hud_layout_signal")
+
 
 func _on_rvm_toggled(pressed: bool):
 	Config.show_rvm = pressed
 
+
 func _on_hud_monitor_fps_toggled(pressed: bool):
 	Config.show_hud_monitor_fps = pressed
 
+
 func _on_color_scheme_selected(index: int):
 	Config.color_scheme = index
+
 
 func _parse_float_input(input_node: LineEdit, default_value: float) -> float:
 	var text = input_node.text
@@ -962,27 +1119,40 @@ func _parse_float_input(input_node: LineEdit, default_value: float) -> float:
 		return default_value
 	return val
 
+
 func _on_re_text_submitted(_new_text: String):
 	var re = _parse_float_input(re_input, 0.0)
 	if player:
-		var current_complex = Config.world_to_complex(player.global_position.x, player.global_position.z)
+		var current_complex = Config.world_to_complex(
+			player.global_position.x, player.global_position.z
+		)
 		var target_x = Config.complex_to_world(re, current_complex.y).x
-		player.teleport_to_world_pos(Vector3(target_x, player.global_position.y, player.global_position.z))
+		player.teleport_to_world_pos(
+			Vector3(target_x, player.global_position.y, player.global_position.z)
+		)
+
 
 func _on_im_text_submitted(_new_text: String):
 	var im = _parse_float_input(im_input, 0.0)
 	if player:
-		var current_complex = Config.world_to_complex(player.global_position.x, player.global_position.z)
+		var current_complex = Config.world_to_complex(
+			player.global_position.x, player.global_position.z
+		)
 		var target_z = Config.complex_to_world(current_complex.x, im).y
-		player.teleport_to_world_pos(Vector3(player.global_position.x, player.global_position.y, target_z))
+		player.teleport_to_world_pos(
+			Vector3(player.global_position.x, player.global_position.y, target_z)
+		)
+
 
 func _on_height_a_text_submitted(_new_text: String):
 	var h_a = _parse_float_input(height_a_input, 3.0)
 	Config.height_a = h_a
 
+
 func _on_height_eps_text_submitted(_new_text: String):
 	var h_eps = _parse_float_input(height_eps_input, 1.0)
 	Config.height_epsilon = h_eps
+
 
 func _on_func_rational_text_submitted(new_text: String):
 	if Config.function_type == Config.ComplexFunc.RATIONAL:
@@ -990,11 +1160,13 @@ func _on_func_rational_text_submitted(new_text: String):
 		Config.rational_num_coeffs = coeffs[0]
 		Config.rational_den_coeffs = coeffs[1]
 
+
 func _on_input_rational_text_submitted(new_text: String):
 	if Config.input_function_type == Config.ComplexFunc.RATIONAL:
 		var coeffs = _parse_rational_expression(new_text)
 		Config.input_rational_num_coeffs = coeffs[0]
 		Config.input_rational_den_coeffs = coeffs[1]
+
 
 func _parse_rational_expression(text: String) -> Array:
 	var expr = text.replace(" ", "")
@@ -1013,14 +1185,32 @@ func _parse_rational_expression(text: String) -> Array:
 		den_coeffs = FormulaParser.parse_poly(den_str)
 	else:
 		num_coeffs = FormulaParser.parse_poly(expr)
-		den_coeffs = PackedVector2Array([Vector2(1, 0), Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO, Vector2.ZERO])
+		den_coeffs = PackedVector2Array(
+			[
+				Vector2(1, 0),
+				Vector2.ZERO,
+				Vector2.ZERO,
+				Vector2.ZERO,
+				Vector2.ZERO,
+				Vector2.ZERO,
+				Vector2.ZERO,
+				Vector2.ZERO,
+				Vector2.ZERO,
+				Vector2.ZERO
+			]
+		)
 	return [num_coeffs, den_coeffs]
 
+
 func _rescale_menu(_scale: float):
-	if main_menu_panel == null: return
+	if main_menu_panel == null:
+		return
 
 	# We use meta to check if we already applied this scale to avoid redundant traversals
-	if main_menu_panel.has_meta("last_applied_menu_scale") and main_menu_panel.get_meta("last_applied_menu_scale") == _scale:
+	if (
+		main_menu_panel.has_meta("last_applied_menu_scale")
+		and main_menu_panel.get_meta("last_applied_menu_scale") == _scale
+	):
 		return
 	main_menu_panel.set_meta("last_applied_menu_scale", _scale)
 
@@ -1043,7 +1233,9 @@ func _rescale_menu(_scale: float):
 
 			if not node.has_meta("base_font_size"):
 				node.set_meta("base_font_size", node.get_theme_font_size(font_size_key))
-			node.add_theme_font_size_override(font_size_key, int(round(node.get_meta("base_font_size") * actual_scale)))
+			node.add_theme_font_size_override(
+				font_size_key, int(round(node.get_meta("base_font_size") * actual_scale))
+			)
 
 		# 2. Scale Layout Parameters on Controls
 		if node is Control:
@@ -1058,13 +1250,17 @@ func _rescale_menu(_scale: float):
 				for margin in ["margin_left", "margin_top", "margin_right", "margin_bottom"]:
 					if not node.has_meta("base_" + margin):
 						node.set_meta("base_" + margin, node.get_theme_constant(margin))
-					node.add_theme_constant_override(margin, int(round(node.get_meta("base_" + margin) * actual_scale)))
+					node.add_theme_constant_override(
+						margin, int(round(node.get_meta("base_" + margin) * actual_scale))
+					)
 
 			# Scale separations for BoxContainers
 			elif node is BoxContainer:
 				if not node.has_meta("base_separation"):
 					node.set_meta("base_separation", node.get_theme_constant("separation"))
-				node.add_theme_constant_override("separation", int(round(node.get_meta("base_separation") * actual_scale)))
+				node.add_theme_constant_override(
+					"separation", int(round(node.get_meta("base_separation") * actual_scale))
+				)
 
 		# Scale Sliders and ScrollBars
 		if node is HSlider or node is VScrollBar or node is HScrollBar:
@@ -1083,9 +1279,15 @@ func _rescale_menu(_scale: float):
 				var hover_color = normal_color.lightened(0.2)
 				var pressed_color = normal_color.darkened(0.2)
 
-				var tex_normal = _create_scaled_grabber_texture(normal_color, grabber_size, center, inner_radius, outer_radius)
-				var tex_hover = _create_scaled_grabber_texture(hover_color, grabber_size, center, inner_radius, outer_radius)
-				var tex_pressed = _create_scaled_grabber_texture(pressed_color, grabber_size, center, inner_radius, outer_radius)
+				var tex_normal = _create_scaled_grabber_texture(
+					normal_color, grabber_size, center, inner_radius, outer_radius
+				)
+				var tex_hover = _create_scaled_grabber_texture(
+					hover_color, grabber_size, center, inner_radius, outer_radius
+				)
+				var tex_pressed = _create_scaled_grabber_texture(
+					pressed_color, grabber_size, center, inner_radius, outer_radius
+				)
 
 				node.add_theme_icon_override("grabber", tex_normal)
 				node.add_theme_icon_override("grabber_highlight", tex_hover)
@@ -1097,12 +1299,21 @@ func _rescale_menu(_scale: float):
 					var base_style = node.get_theme_stylebox(style_name)
 					if base_style and base_style is StyleBoxFlat:
 						if not node.has_meta("base_style_" + style_name + "_top"):
-							node.set_meta("base_style_" + style_name + "_top", base_style.content_margin_top)
-							node.set_meta("base_style_" + style_name + "_bottom", base_style.content_margin_bottom)
+							node.set_meta(
+								"base_style_" + style_name + "_top", base_style.content_margin_top
+							)
+							node.set_meta(
+								"base_style_" + style_name + "_bottom",
+								base_style.content_margin_bottom
+							)
 
 						var dup = base_style.duplicate()
-						dup.content_margin_top = node.get_meta("base_style_" + style_name + "_top") * scale_factor
-						dup.content_margin_bottom = node.get_meta("base_style_" + style_name + "_bottom") * scale_factor
+						dup.content_margin_top = (
+							node.get_meta("base_style_" + style_name + "_top") * scale_factor
+						)
+						dup.content_margin_bottom = (
+							node.get_meta("base_style_" + style_name + "_bottom") * scale_factor
+						)
 						node.add_theme_stylebox_override(style_name, dup)
 
 			if node is VScrollBar:
@@ -1110,12 +1321,21 @@ func _rescale_menu(_scale: float):
 					var base_style = node.get_theme_stylebox(style_name)
 					if base_style and base_style is StyleBoxFlat:
 						if not node.has_meta("base_style_" + style_name + "_left"):
-							node.set_meta("base_style_" + style_name + "_left", base_style.content_margin_left)
-							node.set_meta("base_style_" + style_name + "_right", base_style.content_margin_right)
+							node.set_meta(
+								"base_style_" + style_name + "_left", base_style.content_margin_left
+							)
+							node.set_meta(
+								"base_style_" + style_name + "_right",
+								base_style.content_margin_right
+							)
 
 						var dup = base_style.duplicate()
-						dup.content_margin_left = node.get_meta("base_style_" + style_name + "_left") * scale_factor
-						dup.content_margin_right = node.get_meta("base_style_" + style_name + "_right") * scale_factor
+						dup.content_margin_left = (
+							node.get_meta("base_style_" + style_name + "_left") * scale_factor
+						)
+						dup.content_margin_right = (
+							node.get_meta("base_style_" + style_name + "_right") * scale_factor
+						)
 						node.add_theme_stylebox_override(style_name, dup)
 
 			if node is HScrollBar:
@@ -1123,12 +1343,21 @@ func _rescale_menu(_scale: float):
 					var base_style = node.get_theme_stylebox(style_name)
 					if base_style and base_style is StyleBoxFlat:
 						if not node.has_meta("base_style_" + style_name + "_top"):
-							node.set_meta("base_style_" + style_name + "_top", base_style.content_margin_top)
-							node.set_meta("base_style_" + style_name + "_bottom", base_style.content_margin_bottom)
+							node.set_meta(
+								"base_style_" + style_name + "_top", base_style.content_margin_top
+							)
+							node.set_meta(
+								"base_style_" + style_name + "_bottom",
+								base_style.content_margin_bottom
+							)
 
 						var dup = base_style.duplicate()
-						dup.content_margin_top = node.get_meta("base_style_" + style_name + "_top") * scale_factor
-						dup.content_margin_bottom = node.get_meta("base_style_" + style_name + "_bottom") * scale_factor
+						dup.content_margin_top = (
+							node.get_meta("base_style_" + style_name + "_top") * scale_factor
+						)
+						dup.content_margin_bottom = (
+							node.get_meta("base_style_" + style_name + "_bottom") * scale_factor
+						)
 						node.add_theme_stylebox_override(style_name, dup)
 
 		# Traverse children
@@ -1145,6 +1374,7 @@ func _process(delta: float):
 			# Performance: Suspend _process when the title click timer expires
 			set_process(false)
 
+
 func _on_title_gui_input(event: InputEvent):
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
 		_title_clicks += 1
@@ -1152,33 +1382,41 @@ func _on_title_gui_input(event: InputEvent):
 		if _title_clicks == 1:
 			set_process(true)
 
-		_title_click_timer = 1.0 # 1 second window to do the 3 clicks
+		_title_click_timer = 1.0  # 1 second window to do the 3 clicks
 		if _title_clicks >= 3:
 			GameState.show_hidden_options = !GameState.show_hidden_options
 			_populate_function_dropdown(func_button, false)
 			_populate_function_dropdown(input_button, true)
 
 			var f_idx = func_button.get_item_index(current_submitted_func)
-			if f_idx >= 0: func_button.select(f_idx)
+			if f_idx >= 0:
+				func_button.select(f_idx)
 			var i_idx = input_button.get_item_index(current_submitted_input)
-			if i_idx >= 0: input_button.select(i_idx)
+			if i_idx >= 0:
+				input_button.select(i_idx)
 
 			if GameState.show_hidden_options:
 				title_label.add_theme_color_override("font_color", ThemeColors.gold)
 			else:
-				title_label.add_theme_color_override("font_color", Color(0.909804, 0.894118, 0.862745))
+				title_label.add_theme_color_override(
+					"font_color", Color(0.909804, 0.894118, 0.862745)
+				)
 
 			_title_clicks = 0
+
 
 func _on_tab_button_pressed(index: int):
 	tab_container.current_tab = index
 	_update_tab_buttons_styling()
 
+
 func _update_tab_buttons_styling():
-	if tab_buttons.is_empty(): return
+	if tab_buttons.is_empty():
+		return
 	for i in range(tab_buttons.size()):
 		var btn = tab_buttons[i]
-		if not btn: continue
+		if not btn:
+			continue
 		if i == tab_container.current_tab:
 			btn.add_theme_stylebox_override("normal", active_tab_style)
 			btn.add_theme_stylebox_override("hover", hover_active_tab_style)
@@ -1190,9 +1428,15 @@ func _update_tab_buttons_styling():
 			btn.add_theme_stylebox_override("normal", inactive_tab_style)
 			btn.add_theme_stylebox_override("hover", hover_tab_style)
 			btn.add_theme_color_override("font_color", Color(0.909804, 0.894118, 0.862745, 0.5))
-			btn.add_theme_color_override("font_hover_color", Color(0.909804, 0.894118, 0.862745, 1.0))
-			btn.add_theme_color_override("font_pressed_color", Color(0.909804, 0.894118, 0.862745, 0.3))
-			btn.add_theme_color_override("font_focus_color", Color(0.909804, 0.894118, 0.862745, 0.5))
+			btn.add_theme_color_override(
+				"font_hover_color", Color(0.909804, 0.894118, 0.862745, 1.0)
+			)
+			btn.add_theme_color_override(
+				"font_pressed_color", Color(0.909804, 0.894118, 0.862745, 0.3)
+			)
+			btn.add_theme_color_override(
+				"font_focus_color", Color(0.909804, 0.894118, 0.862745, 0.5)
+			)
 
 
 func _format_time(total_seconds: float) -> String:
@@ -1218,6 +1462,7 @@ func _zoom_to_slider(zoom: float) -> float:
 
 func _format_float_3(val: float) -> String:
 	return "%.3f" % snappedf(val, 0.001)
+
 
 func toggle_menu(applied: bool = false):
 	if detach_controller.visible:
@@ -1251,6 +1496,8 @@ func toggle_menu(applied: bool = false):
 		_initial_terrain_roughness = Config.terrain_roughness
 		_initial_terrain_surface_texture = Config.terrain_surface_texture
 		_initial_terrain_ao = Config.terrain_ao
+		_initial_terrain_rim_intensity = Config.terrain_rim_intensity
+		_initial_terrain_rim_tint_intensity = Config.terrain_rim_tint_intensity
 		_initial_menu_scale = Config.menu_scale
 		_initial_hud_scale = Config.hud_scale
 		_initial_sky_luminosity = Config.sky_luminosity
@@ -1274,11 +1521,15 @@ func toggle_menu(applied: bool = false):
 		freeze_time_checkbox.button_pressed = Config.freeze_time
 
 		if player:
-			var complex_pos = Config.world_to_complex(player.global_position.x, player.global_position.z)
+			var complex_pos = Config.world_to_complex(
+				player.global_position.x, player.global_position.z
+			)
 			var re_val = complex_pos.x
 			var im_val = complex_pos.y
-			if not is_finite(re_val): re_val = 0.5
-			if not is_finite(im_val): im_val = 0.0
+			if not is_finite(re_val):
+				re_val = 0.5
+			if not is_finite(im_val):
+				im_val = 0.0
 			re_input.text = _format_float_3(re_val)
 			im_input.text = _format_float_3(im_val)
 
@@ -1303,6 +1554,8 @@ func toggle_menu(applied: bool = false):
 			Config.terrain_roughness = _initial_terrain_roughness
 			Config.terrain_surface_texture = _initial_terrain_surface_texture
 			Config.terrain_ao = _initial_terrain_ao
+			Config.terrain_rim_intensity = _initial_terrain_rim_intensity
+			Config.terrain_rim_tint_intensity = _initial_terrain_rim_tint_intensity
 			if Config.menu_scale != _initial_menu_scale:
 				Config.menu_scale = _initial_menu_scale
 			if Config.hud_scale != _initial_hud_scale:
@@ -1323,10 +1576,12 @@ func toggle_menu(applied: bool = false):
 			Config.current_preset = _initial_preset
 			Config._edited_presets = _initial_edited_presets
 
-			emit_signal('apply_aa_signal')
+			emit_signal("apply_aa_signal")
 
 
-static func _create_scaled_grabber_texture(color: Color, _size: int, center: Vector2, inner_radius: float, outer_radius: float) -> Texture2D:
+static func _create_scaled_grabber_texture(
+	color: Color, _size: int, center: Vector2, inner_radius: float, outer_radius: float
+) -> Texture2D:
 	var tex = GradientTexture2D.new()
 	tex.width = _size
 	tex.height = _size
@@ -1343,12 +1598,15 @@ static func _create_scaled_grabber_texture(color: Color, _size: int, center: Vec
 	tex.gradient = grad
 	return tex
 
+
 func _on_morph_style_selected(index: int):
 	Config.morph_style = index
+
 
 func _on_config_changed(key: String):
 	if key == "morph_style":
 		_update_morph_style_ui()
+
 
 func _update_morph_style_ui():
 	morph_style_dropdown.selected = Config.morph_style
