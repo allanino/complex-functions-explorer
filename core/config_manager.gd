@@ -221,6 +221,8 @@ const PRESET_KEYS = [
 	"terrain_roughness",
 	"terrain_surface_texture",
 	"terrain_ao",
+	"terrain_rim",
+	"terrain_rim_tint",
 	"fog_density",
 	"movement_speed",
 	"speed_near_zeros",
@@ -424,6 +426,16 @@ var terrain_ao: float = 1.0:
 		if terrain_ao == v: return
 		terrain_ao = v
 		config_changed.emit("terrain_ao")
+var terrain_rim: float = 0.0:
+	set(v):
+		if terrain_rim == v: return
+		terrain_rim = v
+		config_changed.emit("terrain_rim")
+var terrain_rim_tint: float = 0.0:
+	set(v):
+		if terrain_rim_tint == v: return
+		terrain_rim_tint = v
+		config_changed.emit("terrain_rim_tint")
 var fog_density: float = 0.4:
 	set(v):
 		if fog_density == v: return
@@ -657,6 +669,8 @@ func save_settings():
 	config.set_value("rendering", "terrain_roughness", terrain_roughness)
 	config.set_value("rendering", "terrain_surface_texture", terrain_surface_texture)
 	config.set_value("rendering", "terrain_ao", terrain_ao)
+	config.set_value("rendering", "terrain_rim", terrain_rim)
+	config.set_value("rendering", "terrain_rim_tint", terrain_rim_tint)
 	config.set_value("rendering", "fog_density", fog_density)
 	config.set_value("session", "current_preset", current_preset)
 	config.set_value("session", "custom_presets", PRESETS)
@@ -738,6 +752,8 @@ func load_settings():
 	terrain_roughness = config.get_value("rendering", "terrain_roughness", terrain_roughness)
 	terrain_surface_texture = config.get_value("rendering", "terrain_surface_texture", terrain_surface_texture)
 	terrain_ao = config.get_value("rendering", "terrain_ao", terrain_ao)
+	terrain_rim = config.get_value("rendering", "terrain_rim", terrain_rim)
+	terrain_rim_tint = config.get_value("rendering", "terrain_rim_tint", terrain_rim_tint)
 	fog_density = config.get_value("rendering", "fog_density", fog_density)
 	current_preset = config.get_value("session", "current_preset", "Default")
 	# Only restore custom (non-built-in) presets; built-ins always come from preset_defaults.gd

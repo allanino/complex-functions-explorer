@@ -22,20 +22,20 @@ func _ready():
 	_populate_preset_button()
 	preset_button.item_selected.connect(_on_preset_selected)
 	Config.preset_applied.connect(_on_preset_applied)
-	
+
 	preset_update_button.pressed.connect(_on_preset_update_pressed)
 	preset_delete_button.pressed.connect(_on_preset_delete_pressed)
 	preset_new_button.pressed.connect(_on_preset_new_pressed)
 	preset_restore_button.pressed.connect(_on_preset_restore_pressed)
-	
+
 	new_preset_save.pressed.connect(_on_new_preset_save_pressed)
 	new_preset_cancel.pressed.connect(_on_new_preset_cancel_pressed)
 	delete_preset_cancel.pressed.connect(_on_delete_preset_cancel_pressed)
 	delete_preset_confirm.pressed.connect(_on_delete_preset_confirm_pressed)
-	
+
 	if not main_ui.is_node_ready():
 		await main_ui.ready
-	
+
 	_connect_preset_dirtiers()
 	update_preset_button_text()
 
@@ -64,9 +64,9 @@ func _on_delete_preset_confirm_pressed():
 	var preset_name = Config.current_preset.trim_suffix("*")
 	if Config.PRESETS.has(preset_name):
 		Config.delete_preset(preset_name)
-		
+
 		_populate_preset_button()
-		
+
 		if Config.PRESETS.size() > 0:
 			var new_preset = Config.PRESETS.keys()[0]
 			Config.apply_preset(new_preset)
@@ -126,7 +126,7 @@ func _connect_preset_dirtiers():
 		main_ui.menu_overlay.sky_luminosity_slider, main_ui.menu_overlay.sun_luminosity_slider, main_ui.menu_overlay.self_illumination_slider,
 		main_ui.menu_overlay.fog_density_slider, main_ui.menu_overlay.hud_scale_slider, main_ui.menu_overlay.master_volume_slider, main_ui.menu_overlay.bg_music_slider,
 		main_ui.menu_overlay.drone_slider, main_ui.menu_overlay.brightness_slider, main_ui.menu_overlay.saturation_slider, main_ui.menu_overlay.albedo_slider,
-		main_ui.menu_overlay.emission_slider, main_ui.menu_overlay.metallic_slider, main_ui.menu_overlay.roughness_slider, main_ui.menu_overlay.surface_texture_slider, main_ui.menu_overlay.ao_slider,
+		main_ui.menu_overlay.emission_slider, main_ui.menu_overlay.metallic_slider, main_ui.menu_overlay.roughness_slider, main_ui.menu_overlay.surface_texture_slider, main_ui.menu_overlay.ao_slider, main_ui.menu_overlay.rim_slider, main_ui.menu_overlay.rim_tint_slider,
 		main_ui.menu_overlay.multivalued_slider, main_ui.menu_overlay.camera_height_slider, main_ui.menu_overlay.speed_slider
 	]:
 		if slider and slider.has_signal("value_changed"):

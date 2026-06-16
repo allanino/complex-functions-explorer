@@ -74,6 +74,8 @@ signal update_hud_layout_signal()
 @onready var roughness_slider = %RoughnessContainer
 @onready var surface_texture_slider = %SurfaceTextureContainer
 @onready var ao_slider = %AOContainer
+@onready var rim_slider = %RimContainer
+@onready var rim_tint_slider = %RimTintContainer
 @onready var morph_slider = %MorphSliderContainer
 @onready var morph_style_container = %MorphStyleContainer
 @onready var morph_style_dropdown = %MorphStyleContainer.get_option_button()
@@ -116,6 +118,8 @@ var _initial_terrain_metallic: float
 var _initial_terrain_roughness: float
 var _initial_terrain_surface_texture: float
 var _initial_terrain_ao: float
+var _initial_terrain_rim: float
+var _initial_terrain_rim_tint: float
 var _initial_menu_scale: float
 var _initial_hud_scale: float
 var _initial_sky_luminosity: float
@@ -325,6 +329,8 @@ func _ready():
 	roughness_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Roughness"))
 	surface_texture_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "SurfaceTexture"))
 	ao_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Ambient Occlusion"))
+	rim_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Rim"))
+	rim_tint_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Rim Tint"))
 	rendering_scale_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Rendering Scale"))
 	view_distance_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "View Distance"))
 
@@ -499,6 +505,18 @@ func _init_slider_bindings():
 		},
 		ao_slider: {
 			"config_key": "terrain_ao",
+			"to_config": func(v): return v / 100.0,
+			"from_config": func(c): return c * 100.0,
+			"format": func(v): return str(int(round(v))) + "%"
+		},
+		rim_slider: {
+			"config_key": "terrain_rim",
+			"to_config": func(v): return v / 100.0,
+			"from_config": func(c): return c * 100.0,
+			"format": func(v): return str(int(round(v))) + "%"
+		},
+		rim_tint_slider: {
+			"config_key": "terrain_rim_tint",
 			"to_config": func(v): return v / 100.0,
 			"from_config": func(c): return c * 100.0,
 			"format": func(v): return str(int(round(v))) + "%"
@@ -1251,6 +1269,8 @@ func toggle_menu(applied: bool = false):
 		_initial_terrain_roughness = Config.terrain_roughness
 		_initial_terrain_surface_texture = Config.terrain_surface_texture
 		_initial_terrain_ao = Config.terrain_ao
+		_initial_terrain_rim = Config.terrain_rim
+		_initial_terrain_rim_tint = Config.terrain_rim_tint
 		_initial_menu_scale = Config.menu_scale
 		_initial_hud_scale = Config.hud_scale
 		_initial_sky_luminosity = Config.sky_luminosity
@@ -1303,6 +1323,8 @@ func toggle_menu(applied: bool = false):
 			Config.terrain_roughness = _initial_terrain_roughness
 			Config.terrain_surface_texture = _initial_terrain_surface_texture
 			Config.terrain_ao = _initial_terrain_ao
+			Config.terrain_rim = _initial_terrain_rim
+			Config.terrain_rim_tint = _initial_terrain_rim_tint
 			if Config.menu_scale != _initial_menu_scale:
 				Config.menu_scale = _initial_menu_scale
 			if Config.hud_scale != _initial_hud_scale:
