@@ -44,6 +44,8 @@ uniform float portal_height = 50.0;
 uniform float portal_width = 100.0;
 uniform float portal_min_height = -50.0;
 uniform float specular_intensity : hint_range(0.0, 1.0) = 0.1;
+uniform float rim_intensity : hint_range(0.0, 1.0) = 1.0;
+uniform float rim_tint_intensity : hint_range(0.0, 1.0) = 0.3;
 uniform float max_world_height = 1000.0;
 
 uniform float self_illumination = 0.0;
@@ -897,5 +899,7 @@ void fragment() {
         SPECULAR = specular_intensity;
         AO = ao;
         AO_LIGHT_AFFECT = 0.0;
+        RIM = rim_intensity;
+        RIM_TINT = rim_tint_intensity;
     }
 }
