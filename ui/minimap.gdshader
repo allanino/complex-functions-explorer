@@ -140,7 +140,7 @@ void fragment() {
         );
     float moire_suppression = smoothstep(0.5, 5.0, phase_screen_change);
 
-    vec3 base_color = hsv2rgb(vec3(hue, 0.85, 1.0));
+    vec3 base_color = hsv2rgb(vec3(hue, 0.8, 0.9));
     if (color_scheme == 2) {
         float v = 0.5 + 0.5 * cos(phase);
         base_color = vec3(v);

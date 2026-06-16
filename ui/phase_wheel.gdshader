@@ -5,8 +5,8 @@ shader_type canvas_item;
 
 uniform vec2 current_f; // Current value of f(x,z)
 uniform int color_scheme = 0;
-uniform float brightness : hint_range(0.0, 2.0) = 1.0;
-uniform float saturation : hint_range(0.3, 1.0) = 0.85;
+uniform float brightness : hint_range(0.0, 2.0) = 0.9;
+uniform float saturation : hint_range(0.3, 1.0) = 0.8;
 uniform float albedo : hint_range(0.0, 1.0) = 0.15;
 uniform float emission : hint_range(0.0, 1.0) = 0.1;
 
