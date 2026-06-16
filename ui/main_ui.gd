@@ -368,7 +368,7 @@ func _update_monitor_label():
 		if Config.show_hud_monitor_fps:
 			bbcode += "[color=#ffffff]%d[/color] [color=#e8e4dc73][font_size=15]FPS[/font_size][/color]\n" % Engine.get_frames_per_second()
 
-		if show_hud_chunks and world_manager:
+		if show_hud_chunks:
 			var chunks_text = "[color=#e8e4dc73][font_size=15]Chunks[/font_size][/color]"
 			var num_lods = world_manager.LOD_SUBS.size()
 			var lod_counts = []
