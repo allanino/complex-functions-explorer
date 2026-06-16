@@ -57,7 +57,9 @@ const DESCRIPTIONS = {
 	"Metallic": "Adjust how metallic the terrain surface appears.",
 	"Roughness": "Control the surface smoothness; lower values are glossier.",
 	"Surface Texture": "Adds surface detail to the terrain.  Higher values add more detail.",
-	"Ambient Occlusion": "Controls how much ambient light reaches the surface, enhancing depth and subtle shadowing."
+	"Ambient Occlusion": "Controls how much ambient light reaches the surface, enhancing depth and subtle shadowing.",
+	"Rim": "Highlights the edges of the terrain, enhancing its shape and giving it a luminous, grazing-angle glow.",
+	"Rim Tint": "Blends the rim light color with the underlying terrain color. Lower values use a pure white rim, while higher values tint the rim using the albedo."
 }
 
 @onready var tooltip = $Tooltip

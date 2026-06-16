@@ -2,13 +2,13 @@ extends Node
 
 signal config_changed(key: String)
 
+
 var save_path = "user://settings.cfg"
 
-enum MorphStyle { DISABLED, LINEAR, EXPONENTIAL }
+enum MorphStyle {DISABLED, LINEAR, EXPONENTIAL}
 
 const FUNCTIONS_ENUM_PATH = "res://math/functions_enum.gdshaderinc"
 static var ComplexFunc = {}
-
 
 static func _load_shader_enums(path: String) -> void:
 	var file = FileAccess.open(path, FileAccess.READ)
@@ -22,8 +22,7 @@ static func _load_shader_enums(path: String) -> void:
 
 
 static var FUNCTIONS = {
-	"ZETA":
-	{
+	"ZETA": {
 		"name": "Riemann Zeta (σ > 0)",
 		"symbol": "ζ",
 		"hidden": true,
@@ -33,8 +32,7 @@ static var FUNCTIONS = {
 		"iters_range": [100.0, 10000.0, 100.0, 100.0],
 		"initial_pos": Vector3(5.0, 0.0, 0.0),
 	},
-	"ZETA_CONTINUATION":
-	{
+	"ZETA_CONTINUATION": {
 		"name": "Riemann Zeta",
 		"symbol": "ζ",
 		"is_dirichlet": true,
@@ -42,8 +40,7 @@ static var FUNCTIONS = {
 		"iters_range": [100.0, 10000.0, 100.0, 100.0],
 		"initial_pos": Vector3(5.0, 0.0, 0.0),
 	},
-	"ZETA_POWER_SERIES":
-	{
+	"ZETA_POWER_SERIES": {
 		"name": "Riemann Zeta (power series)",
 		"symbol": "ζ",
 		"is_dirichlet": true,
@@ -52,8 +49,7 @@ static var FUNCTIONS = {
 		"initial_pos": Vector3(10.0, 0.0, 10.0),
 		"hidden": true,
 	},
-	"ZETA_BORWEIN":
-	{
+	"ZETA_BORWEIN": {
 		"name": "Riemann Zeta (Borwein)",
 		"symbol": "ζ",
 		"is_dirichlet": true,
@@ -61,8 +57,7 @@ static var FUNCTIONS = {
 		"iters_range": [10.0, 200.0, 10.0, 50.0],
 		"hidden": true,
 	},
-	"DIRICHLET_ETA":
-	{
+	"DIRICHLET_ETA": {
 		"name": "Dirichlet Eta (σ > 0)",
 		"symbol": "η",
 		"is_dirichlet": true,
@@ -71,8 +66,7 @@ static var FUNCTIONS = {
 		"initial_pos": Vector3(5.0, 0.0, 0.0),
 		"hidden": true,
 	},
-	"DIRICHLET_ETA_CONTINUATION":
-	{
+	"DIRICHLET_ETA_CONTINUATION": {
 		"name": "Dirichlet Eta",
 		"symbol": "η",
 		"is_dirichlet": true,
@@ -80,8 +74,7 @@ static var FUNCTIONS = {
 		"iters_range": [100.0, 10000.0, 100.0, 100.0],
 		"initial_pos": Vector3(5.0, 0.0, 0.0),
 	},
-	"DIRICHLET_ETA_POWER_SERIES":
-	{
+	"DIRICHLET_ETA_POWER_SERIES": {
 		"name": "Dirichlet Eta (power series)",
 		"symbol": "η",
 		"is_dirichlet": true,
@@ -90,8 +83,7 @@ static var FUNCTIONS = {
 		"hidden": true,
 		"initial_pos": Vector3(10.0, 0.0, 10.0),
 	},
-	"DIRICHLET_ETA_BORWEIN":
-	{
+	"DIRICHLET_ETA_BORWEIN": {
 		"name": "Dirichlet Eta (Borwein)",
 		"symbol": "η",
 		"is_dirichlet": true,
@@ -99,8 +91,8 @@ static var FUNCTIONS = {
 		"iters_range": [10.0, 200.0, 10.0, 50.0],
 		"hidden": true,
 	},
-	"DIRICHLET_BETA":
-	{
+
+	"DIRICHLET_BETA": {
 		"name": "Dirichlet Beta (σ > 0)",
 		"symbol": "β",
 		"hidden": true,
@@ -109,8 +101,7 @@ static var FUNCTIONS = {
 		"iters_range": [100.0, 10000.0, 100.0, 100.0],
 		"initial_pos": Vector3(5.0, 0.0, 0.0),
 	},
-	"DIRICHLET_BETA_CONTINUATION":
-	{
+	"DIRICHLET_BETA_CONTINUATION": {
 		"name": "Dirichlet Beta",
 		"symbol": "β",
 		"hidden": false,
@@ -119,99 +110,82 @@ static var FUNCTIONS = {
 		"iters_range": [100.0, 10000.0, 100.0, 100.0],
 		"initial_pos": Vector3(5.0, 0.0, 0.0),
 	},
-	"GAMMA":
-	{
+	"GAMMA": {
 		"name": "Gamma",
 		"symbol": "Γ",
 		"initial_pos": Vector3(30.0, 0.0, 0.0),
 	},
-	"LOG_GAMMA":
-	{
+	"LOG_GAMMA": {
 		"name": "Log Gamma",
 		"symbol": "f",
 	},
-	"DEDEKIND_ETA":
-	{
+	"DEDEKIND_ETA": {
 		"name": "Dedekind Eta",
 		"symbol": "η",
 		"iters_range": [1.0, 20.0, 1.0, 10.0],
 		"initial_pos": Vector3(10.0, 0.0, 0.0),
 	},
-	"MANDELBROT":
-	{
+	"MANDELBROT": {
 		"name": "Mandelbrot",
 		"symbol": "f",
 		"iters_range": [100.0, 5000.0, 100.0, 500.0],
 	},
-	"SIN":
-	{
+	"SIN": {
 		"name": "Sin",
 		"symbol": "f",
 	},
-	"COS":
-	{
+	"COS": {
 		"name": "Cos",
 		"symbol": "f",
 	},
-	"TAN":
-	{
+	"TAN": {
 		"name": "Tan",
 		"symbol": "f",
 	},
-	"COT":
-	{
+	"COT": {
 		"name": "Cot",
 		"symbol": "f",
 		"initial_pos": Vector3(10.0, 0.0, 0.0),
 	},
-	"EXP":
-	{
+	"EXP": {
 		"name": "Exp",
 		"symbol": "f",
 	},
-	"LOG":
-	{
+	"LOG": {
 		"name": "Log",
 		"symbol": "f",
 	},
-	"IDENTITY":
-	{
+	"IDENTITY": {
 		"name": "Identity",
 		"symbol": "f",
 	},
-	"CONJUGATE":
-	{
+	"CONJUGATE": {
 		"name": "Conjugate",
 		"symbol": "f",
 	},
-	"RATIONAL":
-	{
+	"RATIONAL": {
 		"name": "Rational",
 		"symbol": "f",
 		"is_rational": true,
 	},
-	"MULTIVALUED_Z_POW":
-	{
+	"MULTIVALUED_Z_POW": {
 		"name": "Multivalued z^(1/n)",
 		"symbol": "f",
 		"is_multivalued": true,
 	},
-	"MULTIVALUED_LOG":
-	{
+	"MULTIVALUED_LOG": {
 		"name": "Multivalued Log",
 		"symbol": "f",
 		"is_multivalued": true,
 		"initial_pos": Vector3(10.0, 0.0, 0.0),
 	},
-	"MULTIVALUED_ASIN":
-	{
+	"MULTIVALUED_ASIN": {
 		"name": "Multivalued arcsin",
 		"symbol": "f",
 		"is_multivalued": true,
 		"initial_pos": Vector3(5.0, 0.0, 0.0),
 	},
-	"MULTIVALUED_ACOS":
-	{
+	"MULTIVALUED_ACOS": {
 		"name": "Multivalued arccos",
 		"symbol": "f",
 		"is_multivalued": true,
@@ -247,8 +221,8 @@ const PRESET_KEYS = [
 	"terrain_roughness",
 	"terrain_surface_texture",
 	"terrain_ao",
-	"terrain_rim_intensity",
-	"terrain_rim_tint_intensity",
+	"terrain_rim",
+	"terrain_rim_tint",
 	"fog_density",
 	"movement_speed",
 	"speed_near_zeros",
@@ -278,8 +252,7 @@ signal preset_applied
 # Field parameters
 var iterations: int = 500:
 	set(v):
-		if iterations == v:
-			return
+		if iterations == v: return
 		iterations = v
 		config_changed.emit("iterations")
 var function_iterations: Dictionary = {}
@@ -296,121 +269,58 @@ var function_type: int = ComplexFunc.ZETA_CONTINUATION:
 var function: Dictionary = {}
 var input_function_type: int = ComplexFunc.IDENTITY:
 	set(value):
-		if input_function_type == value:
-			return
+		if input_function_type == value: return
 		input_function_type = value
 		config_changed.emit("input_function_type")
 
 var height_type: int = 0:
 	set(v):
-		if height_type == v:
-			return
+		if height_type == v: return
 		height_type = v
 		config_changed.emit("height_type")
 var height_a: float = 3.0:
 	set(v):
-		if height_a == v:
-			return
+		if height_a == v: return
 		height_a = v
 		config_changed.emit("height_a")
 var height_epsilon: float = 1.0:
 	set(v):
-		if height_epsilon == v:
-			return
+		if height_epsilon == v: return
 		height_epsilon = v
 		config_changed.emit("height_epsilon")
 var height_theta: float = 0.0:
 	set(v):
-		if height_theta == v:
-			return
+		if height_theta == v: return
 		height_theta = v
 		config_changed.emit("height_theta")
 var morph_style: int = MorphStyle.LINEAR:
 	set(v):
-		if morph_style == v:
-			return
+		if morph_style == v: return
 		morph_style = v
 		config_changed.emit("morph_style")
-var rational_num_coeffs: PackedVector2Array = PackedVector2Array(
-	[
-		Vector2(0, 0),
-		Vector2(0, 0),
-		Vector2(0, 0),
-		Vector2(0, 0),
-		Vector2(0, 0),
-		Vector2(0, 0),
-		Vector2(0, 0),
-		Vector2(0, 0),
-		Vector2(0, 0),
-		Vector2(0, 0)
-	]
-):
+var rational_num_coeffs: PackedVector2Array = PackedVector2Array([Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)]):
 	set(v):
-		if rational_num_coeffs == v:
-			return
+		if rational_num_coeffs == v: return
 		rational_num_coeffs = v
 		config_changed.emit("rational_num_coeffs")
-var rational_den_coeffs: PackedVector2Array = PackedVector2Array(
-	[
-		Vector2(1, 0),
-		Vector2(0, 0),
-		Vector2(0, 0),
-		Vector2(0, 0),
-		Vector2(0, 0),
-		Vector2(0, 0),
-		Vector2(0, 0),
-		Vector2(0, 0),
-		Vector2(0, 0),
-		Vector2(0, 0)
-	]
-):
+var rational_den_coeffs: PackedVector2Array = PackedVector2Array([Vector2(1, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)]):
 	set(v):
-		if rational_den_coeffs == v:
-			return
+		if rational_den_coeffs == v: return
 		rational_den_coeffs = v
 		config_changed.emit("rational_den_coeffs")
-var input_rational_num_coeffs: PackedVector2Array = PackedVector2Array(
-	[
-		Vector2(0, 0),
-		Vector2(0, 0),
-		Vector2(0, 0),
-		Vector2(0, 0),
-		Vector2(0, 0),
-		Vector2(0, 0),
-		Vector2(0, 0),
-		Vector2(0, 0),
-		Vector2(0, 0),
-		Vector2(0, 0)
-	]
-):
+var input_rational_num_coeffs: PackedVector2Array = PackedVector2Array([Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)]):
 	set(v):
-		if input_rational_num_coeffs == v:
-			return
+		if input_rational_num_coeffs == v: return
 		input_rational_num_coeffs = v
 		config_changed.emit("input_rational_num_coeffs")
-var input_rational_den_coeffs: PackedVector2Array = PackedVector2Array(
-	[
-		Vector2(1, 0),
-		Vector2(0, 0),
-		Vector2(0, 0),
-		Vector2(0, 0),
-		Vector2(0, 0),
-		Vector2(0, 0),
-		Vector2(0, 0),
-		Vector2(0, 0),
-		Vector2(0, 0),
-		Vector2(0, 0)
-	]
-):
+var input_rational_den_coeffs: PackedVector2Array = PackedVector2Array([Vector2(1, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)]):
 	set(v):
-		if input_rational_den_coeffs == v:
-			return
+		if input_rational_den_coeffs == v: return
 		input_rational_den_coeffs = v
 		config_changed.emit("input_rational_den_coeffs")
 var multivalued_n: int = 2:
 	set(v):
-		if multivalued_n == v:
-			return
+		if multivalued_n == v: return
 		multivalued_n = v
 		config_changed.emit("multivalued_n")
 var zoom_factor: float = 1.0:
@@ -420,60 +330,51 @@ var zoom_damping: float = 0.5
 # Rendering parameters
 var terrain_detail: int = 1:
 	set(v):
-		if terrain_detail == v:
-			return
+		if terrain_detail == v: return
 		terrain_detail = v
 		config_changed.emit("terrain_detail")
 var antialiasing_mode: int = 1
 var rendering_scale: float = 1.0:
 	set(v):
-		if rendering_scale == v:
-			return
+		if rendering_scale == v: return
 		rendering_scale = v
 		config_changed.emit("rendering_scale")
 var show_curves: bool = true:
 	set(v):
-		if show_curves == v:
-			return
+		if show_curves == v: return
 		show_curves = v
 		config_changed.emit("show_curves")
 var show_curves_labels: bool = false
 var show_critical_stripe: bool = true:
 	set(v):
-		if show_critical_stripe == v:
-			return
+		if show_critical_stripe == v: return
 		show_critical_stripe = v
 		config_changed.emit("show_critical_stripe")
 var view_distance: int = 7:
 	set(v):
-		if view_distance == v:
-			return
+		if view_distance == v: return
 		view_distance = v
 		config_changed.emit("view_distance")
 var show_flow: bool = false:
 	set(v):
-		if show_flow == v:
-			return
+		if show_flow == v: return
 		show_flow = v
 		config_changed.emit("show_flow")
 var show_position_marker: bool = true:
 	set(v):
-		if show_position_marker == v:
-			return
+		if show_position_marker == v: return
 		show_position_marker = v
 		config_changed.emit("show_position_marker")
 var color_scheme: int = 0:
 	set(v):
-		if color_scheme == v:
-			return
+		if color_scheme == v: return
 		color_scheme = v
 		config_changed.emit("color_scheme")
 var freeze_time: bool = false
-var day_duration: float = 60.0  # Seconds for a full cycle
-var day_time: float = 43200.0:  # Current time in seconds (Noon = 12h = 43200s)
+var day_duration: float = 60.0 # Seconds for a full cycle
+var day_time: float = 43200.0: # Current time in seconds (Noon = 12h = 43200s)
 	set(v):
-		if day_time == v:
-			return
+		if day_time == v: return
 		day_time = v
 		config_changed.emit("day_time")
 var sunrise_direction: float = 0.0
@@ -481,77 +382,63 @@ var sky_luminosity: float = 1.0
 var sun_luminosity: float = 1.0
 var self_illumination: float = 0.0:
 	set(v):
-		if self_illumination == v:
-			return
+		if self_illumination == v: return
 		self_illumination = v
 		config_changed.emit("self_illumination")
 var shadows_enabled: bool = false
 var terrain_brightness: float = 1.0:
 	set(v):
-		if terrain_brightness == v:
-			return
+		if terrain_brightness == v: return
 		terrain_brightness = v
 		config_changed.emit("terrain_brightness")
 var terrain_saturation: float = 0.85:
 	set(v):
-		if terrain_saturation == v:
-			return
+		if terrain_saturation == v: return
 		terrain_saturation = v
 		config_changed.emit("terrain_saturation")
 var terrain_albedo: float = 0.15:
 	set(v):
-		if terrain_albedo == v:
-			return
+		if terrain_albedo == v: return
 		terrain_albedo = v
 		config_changed.emit("terrain_albedo")
 var terrain_emission: float = 0.1:
 	set(v):
-		if terrain_emission == v:
-			return
+		if terrain_emission == v: return
 		terrain_emission = v
 		config_changed.emit("terrain_emission")
 var terrain_metallic: float = 0.7:
 	set(v):
-		if terrain_metallic == v:
-			return
+		if terrain_metallic == v: return
 		terrain_metallic = v
 		config_changed.emit("terrain_metallic")
 var terrain_roughness: float = 0.1:
 	set(v):
-		if terrain_roughness == v:
-			return
+		if terrain_roughness == v: return
 		terrain_roughness = v
 		config_changed.emit("terrain_roughness")
 var terrain_surface_texture: float = 0.0:
 	set(v):
-		if terrain_surface_texture == v:
-			return
+		if terrain_surface_texture == v: return
 		terrain_surface_texture = v
 		config_changed.emit("terrain_surface_texture")
 var terrain_ao: float = 1.0:
 	set(v):
-		if terrain_ao == v:
-			return
+		if terrain_ao == v: return
 		terrain_ao = v
 		config_changed.emit("terrain_ao")
-
-var terrain_rim_intensity: float = 0.0:
+var terrain_rim: float = 0.0:
 	set(v):
-		if terrain_rim_intensity == v:
-			return
-		terrain_rim_intensity = v
-		config_changed.emit("terrain_rim_intensity")
-
-var terrain_rim_tint_intensity: float = 0.0:
+		if terrain_rim == v: return
+		terrain_rim = v
+		config_changed.emit("terrain_rim")
+var terrain_rim_tint: float = 0.0:
 	set(v):
-		if terrain_rim_tint_intensity == v:
-			return
-		terrain_rim_tint_intensity = v
-		config_changed.emit("terrain_rim_tint_intensity")
+		if terrain_rim_tint == v: return
+		terrain_rim_tint = v
+		config_changed.emit("terrain_rim_tint")
 var fog_density: float = 0.4:
 	set(v):
-		if fog_density == v:
-			return
+		if fog_density == v: return
 		fog_density = v
 		config_changed.emit("fog_density")
 
@@ -561,41 +448,36 @@ var speed_near_zeros: float = 100.0
 var camera_height: float = 1.8
 var zero_proximity_nav: float = 0.5
 
+
 # UI parameters
 var show_minimap: bool = true:
 	set(v):
-		if show_minimap == v:
-			return
+		if show_minimap == v: return
 		show_minimap = v
 		config_changed.emit("show_minimap")
 var show_hud_phase_wheel: bool = true:
 	set(v):
-		if show_hud_phase_wheel == v:
-			return
+		if show_hud_phase_wheel == v: return
 		show_hud_phase_wheel = v
 		config_changed.emit("show_hud_phase_wheel")
 var show_hud_navigation: bool = true:
 	set(v):
-		if show_hud_navigation == v:
-			return
+		if show_hud_navigation == v: return
 		show_hud_navigation = v
 		config_changed.emit("show_hud_navigation")
 var show_hud_zeros: bool = true:
 	set(v):
-		if show_hud_zeros == v:
-			return
+		if show_hud_zeros == v: return
 		show_hud_zeros = v
 		config_changed.emit("show_hud_zeros")
 var show_rvm: bool = true:
 	set(v):
-		if show_rvm == v:
-			return
+		if show_rvm == v: return
 		show_rvm = v
 		config_changed.emit("show_rvm")
 var show_hud_monitor_fps: bool = false:
 	set(v):
-		if show_hud_monitor_fps == v:
-			return
+		if show_hud_monitor_fps == v: return
 		show_hud_monitor_fps = v
 		config_changed.emit("show_hud_monitor_fps")
 
@@ -605,20 +487,17 @@ var menu_scale: float = 1.0
 # Audio parameters
 var master_volume: float = 100.0:
 	set(v):
-		if master_volume == v:
-			return
+		if master_volume == v: return
 		master_volume = v
 		config_changed.emit("master_volume")
 var bg_music_volume: float = 100.0:
 	set(v):
-		if bg_music_volume == v:
-			return
+		if bg_music_volume == v: return
 		bg_music_volume = v
 		config_changed.emit("bg_music_volume")
 var drone_volume: float = 100.0:
 	set(v):
-		if drone_volume == v:
-			return
+		if drone_volume == v: return
 		drone_volume = v
 		config_changed.emit("drone_volume")
 
@@ -630,23 +509,15 @@ func _set_zoom_factor(value: float):
 	zoom_factor = nv
 	config_changed.emit("zoom_factor")
 
-
 func apply_zoom_immediate():
 	GameState.effective_zoom = float(zoom_factor)
 
-
 func world_to_complex(world_x: float, world_z: float) -> Vector2:
-	return Vector2(
-		world_x * 0.1 / GameState.effective_zoom, -world_z * 0.1 / GameState.effective_zoom
-	)
+	return Vector2(world_x * 0.1 / GameState.effective_zoom, -world_z * 0.1 / GameState.effective_zoom)
 
-
-# Converts 2D complex plane coordinates (Re, Im) to 3D world coordinates (x, z).
-# Accounts for zoom.
+# Converts 2D complex plane coordinates (Re, Im) to 3D world coordinates (x, z), accounting for zoom.
 func complex_to_world(complex_x: float, complex_y: float) -> Vector2:
-	return Vector2(
-		complex_x * 10.0 * GameState.effective_zoom, -complex_y * 10.0 * GameState.effective_zoom
-	)
+	return Vector2(complex_x * 10.0 * GameState.effective_zoom, -complex_y * 10.0 * GameState.effective_zoom)
 
 
 func _snapshot_current() -> Dictionary:
@@ -654,7 +525,6 @@ func _snapshot_current() -> Dictionary:
 	for key in PRESET_KEYS:
 		snapshot[key] = get(key)
 	return snapshot
-
 
 func apply_preset(preset_name: String):
 	# Save current preset's state only when switching away to a different preset
@@ -668,7 +538,6 @@ func apply_preset(preset_name: String):
 			set(key, target_preset[key])
 		current_preset = preset_name
 		preset_applied.emit()
-
 
 func is_preset_dirty() -> bool:
 	var clean_name = current_preset.trim_suffix("*")
@@ -687,7 +556,6 @@ func is_preset_dirty() -> bool:
 			elif val1 != val2:
 				return true
 	return false
-
 
 func is_preset_dirty_by_name(preset_name: String) -> bool:
 	if preset_name == current_preset.trim_suffix("*"):
@@ -711,7 +579,6 @@ func is_preset_dirty_by_name(preset_name: String) -> bool:
 				return true
 	return false
 
-
 func update_preset(preset_name: String):
 	var preset_data = {}
 	for key in PRESET_KEYS:
@@ -722,14 +589,12 @@ func update_preset(preset_name: String):
 	current_preset = preset_name
 	save_settings()
 
-
 func delete_preset(preset_name: String):
 	if PRESETS.has(preset_name):
 		PRESETS.erase(preset_name)
 		if _edited_presets.has(preset_name):
 			_edited_presets.erase(preset_name)
 		save_settings()
-
 
 func restore_preset(preset_name: String):
 	if _edited_presets.has(preset_name):
@@ -753,11 +618,9 @@ static func _static_init() -> void:
 func _init() -> void:
 	function = FUNCTIONS.get(function_type, {})
 
-
 func _ready():
 	load_settings()
 	apply_zoom_immediate()
-
 
 func save_settings():
 	var config = ConfigFile.new()
@@ -806,8 +669,8 @@ func save_settings():
 	config.set_value("rendering", "terrain_roughness", terrain_roughness)
 	config.set_value("rendering", "terrain_surface_texture", terrain_surface_texture)
 	config.set_value("rendering", "terrain_ao", terrain_ao)
-	config.set_value("rendering", "terrain_rim_intensity", terrain_rim_intensity)
-	config.set_value("rendering", "terrain_rim_tint_intensity", terrain_rim_tint_intensity)
+	config.set_value("rendering", "terrain_rim", terrain_rim)
+	config.set_value("rendering", "terrain_rim_tint", terrain_rim_tint)
 	config.set_value("rendering", "fog_density", fog_density)
 	config.set_value("session", "current_preset", current_preset)
 	config.set_value("session", "custom_presets", PRESETS)
@@ -831,7 +694,6 @@ func save_settings():
 	config.set_value("audio", "drone_volume", drone_volume)
 
 	config.save(save_path)
-
 
 func load_settings():
 	var config = ConfigFile.new()
@@ -857,12 +719,8 @@ func load_settings():
 	height_theta = config.get_value("field", "height_theta", height_theta)
 	rational_num_coeffs = config.get_value("field", "rational_num_coeffs", rational_num_coeffs)
 	rational_den_coeffs = config.get_value("field", "rational_den_coeffs", rational_den_coeffs)
-	input_rational_num_coeffs = config.get_value(
-		"field", "input_rational_num_coeffs", input_rational_num_coeffs
-	)
-	input_rational_den_coeffs = config.get_value(
-		"field", "input_rational_den_coeffs", input_rational_den_coeffs
-	)
+	input_rational_num_coeffs = config.get_value("field", "input_rational_num_coeffs", input_rational_num_coeffs)
+	input_rational_den_coeffs = config.get_value("field", "input_rational_den_coeffs", input_rational_den_coeffs)
 	multivalued_n = config.get_value("field", "multivalued_n", multivalued_n)
 	zoom_factor = config.get_value("field", "zoom_factor", zoom_factor)
 	zoom_damping = config.get_value("field", "zoom_damping", zoom_damping)
@@ -873,14 +731,10 @@ func load_settings():
 	rendering_scale = config.get_value("rendering", "rendering_scale", rendering_scale)
 	show_curves = config.get_value("rendering", "show_curves", show_curves)
 	show_curves_labels = config.get_value("rendering", "show_curves_labels", show_curves_labels)
-	show_critical_stripe = config.get_value(
-		"rendering", "show_critical_stripe", show_critical_stripe
-	)
+	show_critical_stripe = config.get_value("rendering", "show_critical_stripe", show_critical_stripe)
 	view_distance = config.get_value("rendering", "view_distance", view_distance)
 	show_flow = config.get_value("rendering", "show_flow", show_flow)
-	show_position_marker = config.get_value(
-		"rendering", "show_position_marker", show_position_marker
-	)
+	show_position_marker = config.get_value("rendering", "show_position_marker", show_position_marker)
 	color_scheme = config.get_value("rendering", "color_scheme", color_scheme)
 	freeze_time = config.get_value("rendering", "freeze_time", freeze_time)
 	day_duration = config.get_value("rendering", "day_duration", day_duration)
@@ -896,16 +750,10 @@ func load_settings():
 	terrain_emission = config.get_value("rendering", "terrain_emission", terrain_emission)
 	terrain_metallic = config.get_value("rendering", "terrain_metallic", terrain_metallic)
 	terrain_roughness = config.get_value("rendering", "terrain_roughness", terrain_roughness)
-	terrain_surface_texture = config.get_value(
-		"rendering", "terrain_surface_texture", terrain_surface_texture
-	)
+	terrain_surface_texture = config.get_value("rendering", "terrain_surface_texture", terrain_surface_texture)
 	terrain_ao = config.get_value("rendering", "terrain_ao", terrain_ao)
-	terrain_rim_intensity = config.get_value(
-		"rendering", "terrain_rim_intensity", terrain_rim_intensity
-	)
-	terrain_rim_tint_intensity = config.get_value(
-		"rendering", "terrain_rim_tint_intensity", terrain_rim_tint_intensity
-	)
+	terrain_rim = config.get_value("rendering", "terrain_rim", terrain_rim)
+	terrain_rim_tint = config.get_value("rendering", "terrain_rim_tint", terrain_rim_tint)
 	fog_density = config.get_value("rendering", "fog_density", fog_density)
 	current_preset = config.get_value("session", "current_preset", "Default")
 	# Only restore custom (non-built-in) presets; built-ins always come from preset_defaults.gd

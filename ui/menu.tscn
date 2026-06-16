@@ -758,7 +758,7 @@ text = "Surface Texture"
 value_text = "0%"
 show_detach_button = true
 
-[node name="RimIntensityContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/TERRAIN/Margin/VBox" instance=ExtResource("1")]
+[node name="RimContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/TERRAIN/Margin/VBox" instance=ExtResource("1")]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Rim"
@@ -766,7 +766,7 @@ value = 0.0
 value_text = "0%"
 show_detach_button = true
 
-[node name="RimTintIntensityContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/TERRAIN/Margin/VBox" instance=ExtResource("1")]
+[node name="RimTintContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/TERRAIN/Margin/VBox" instance=ExtResource("1")]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Rim Tint"
