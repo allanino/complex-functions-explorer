@@ -808,12 +808,6 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "Curves Labels"
 
-[node name="CriticalCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/VISUALIZATION/Margin/VBox" unique_id=972397465 instance=ExtResource("3_checkbox")]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-text = "Critical Stripe"
-
 [node name="FlowCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/VISUALIZATION/Margin/VBox" unique_id=178055245 instance=ExtResource("3_checkbox")]
 unique_name_in_owner = true
 layout_mode = 2
@@ -971,6 +965,12 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Zeros detection"
+
+[node name="CriticalCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/ZEROS/Margin/VBox" unique_id=972397465 instance=ExtResource("3_checkbox")]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Critical Stripe"
 
 [node name="RvmCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/ZEROS/Margin/VBox" unique_id=1539341105 instance=ExtResource("3_checkbox")]
 unique_name_in_owner = true
