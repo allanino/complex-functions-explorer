@@ -72,7 +72,6 @@ signal update_hud_layout_signal()
 @onready var emission_slider = %EmissionContainer
 @onready var metallic_slider = %MetallicContainer
 @onready var roughness_slider = %RoughnessContainer
-@onready var surface_texture_slider = %SurfaceTextureContainer
 @onready var ao_slider = %AOContainer
 @onready var rim_slider = %RimContainer
 @onready var rim_tint_slider = %RimTintContainer
@@ -116,7 +115,6 @@ var _initial_terrain_albedo: float
 var _initial_terrain_emission: float
 var _initial_terrain_metallic: float
 var _initial_terrain_roughness: float
-var _initial_terrain_surface_texture: float
 var _initial_terrain_ao: float
 var _initial_terrain_rim: float
 var _initial_terrain_rim_tint: float
@@ -327,7 +325,6 @@ func _ready():
 	emission_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Emission"))
 	metallic_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Metallic"))
 	roughness_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Roughness"))
-	surface_texture_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "SurfaceTexture"))
 	ao_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Ambient Occlusion"))
 	rim_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Rim"))
 	rim_tint_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Rim Tint"))
@@ -541,12 +538,6 @@ func _init_slider_bindings():
 		},
 		roughness_slider: {
 			"config_key": "terrain_roughness",
-			"to_config": func(v): return v / 100.0,
-			"from_config": func(c): return c * 100.0,
-			"format": func(v): return str(int(round(v))) + "%"
-		},
-		surface_texture_slider: {
-			"config_key": "terrain_surface_texture",
 			"to_config": func(v): return v / 100.0,
 			"from_config": func(c): return c * 100.0,
 			"format": func(v): return str(int(round(v))) + "%"
@@ -1267,7 +1258,6 @@ func toggle_menu(applied: bool = false):
 		_initial_terrain_emission = Config.terrain_emission
 		_initial_terrain_metallic = Config.terrain_metallic
 		_initial_terrain_roughness = Config.terrain_roughness
-		_initial_terrain_surface_texture = Config.terrain_surface_texture
 		_initial_terrain_ao = Config.terrain_ao
 		_initial_terrain_rim = Config.terrain_rim
 		_initial_terrain_rim_tint = Config.terrain_rim_tint
@@ -1321,7 +1311,6 @@ func toggle_menu(applied: bool = false):
 			Config.terrain_emission = _initial_terrain_emission
 			Config.terrain_metallic = _initial_terrain_metallic
 			Config.terrain_roughness = _initial_terrain_roughness
-			Config.terrain_surface_texture = _initial_terrain_surface_texture
 			Config.terrain_ao = _initial_terrain_ao
 			Config.terrain_rim = _initial_terrain_rim
 			Config.terrain_rim_tint = _initial_terrain_rim_tint

@@ -126,7 +126,7 @@ func _connect_preset_dirtiers():
 		main_ui.menu_overlay.sky_luminosity_slider, main_ui.menu_overlay.sun_luminosity_slider, main_ui.menu_overlay.self_illumination_slider,
 		main_ui.menu_overlay.fog_density_slider, main_ui.menu_overlay.hud_scale_slider, main_ui.menu_overlay.master_volume_slider, main_ui.menu_overlay.bg_music_slider,
 		main_ui.menu_overlay.drone_slider, main_ui.menu_overlay.brightness_slider, main_ui.menu_overlay.saturation_slider, main_ui.menu_overlay.albedo_slider,
-		main_ui.menu_overlay.emission_slider, main_ui.menu_overlay.metallic_slider, main_ui.menu_overlay.roughness_slider, main_ui.menu_overlay.surface_texture_slider, main_ui.menu_overlay.ao_slider, main_ui.menu_overlay.rim_slider, main_ui.menu_overlay.rim_tint_slider,
+		main_ui.menu_overlay.emission_slider, main_ui.menu_overlay.metallic_slider, main_ui.menu_overlay.roughness_slider, main_ui.menu_overlay.ao_slider, main_ui.menu_overlay.rim_slider, main_ui.menu_overlay.rim_tint_slider,
 		main_ui.menu_overlay.multivalued_slider, main_ui.menu_overlay.camera_height_slider, main_ui.menu_overlay.speed_slider
 	]:
 		if slider and slider.has_signal("value_changed"):
