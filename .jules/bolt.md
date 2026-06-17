@@ -29,3 +29,7 @@
 ## 2025-03-02 - Optimize GDScript Array Copying
 **Learning:** Copying GDScript arrays (like `Array[float]` or `Array[Vector2]`) into typed `Packed*Array` using `for val in array: packed.append(val)` incurs significant performance overhead due to the GDScript loop interpreter executing per-element.
 **Action:** Always instantiate typed `Packed*Array` using their direct constructors (e.g., `PackedFloat32Array(source_array)`) or `append_array()` to bypass the interpreter and execute the copy natively in Godot's C++ backend.
+
+## 2025-03-02 - Optimize LineEdit IME process checking
+**Learning:** In `ui/components/text_input.gd`, `_process` ran every frame checking `has_ime_text()` and calling `$LineEdit`, wasting CPU cycles. Since IME checking is only needed while the input is actively being used, the process loop can be suspended entirely when the user is not focused on the text field.
+**Action:** Cache the LineEdit node with `@onready`, initialize with `set_process(false)`, and toggle `set_process(true/false)` by hooking into the LineEdit's `focus_entered` and `focus_exited` signals.
