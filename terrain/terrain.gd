@@ -17,6 +17,19 @@ var slow_frame_counter: int = 0
 var _shaders_stopped: bool = false
 var _last_lod_player_chunk = Vector2i(9999, 9999)
 
+# Work queues for spreading the load across multiple frames
+var _chunks_to_load: Array[Vector2i] = []
+var _queued_chunks_to_load = {}
+var _chunks_to_unload: Array[Vector2i] = []
+var _queued_chunks_to_unload = {}
+var _lod_updates_pending: Array[Vector2i] = []
+var _queued_lod_updates = {}
+var _loaded_chunk_list: Array[Vector2i] = []
+var _lod_check_index: int = 0
+var _sorted_view_offsets: Array[Vector2i] = []
+
+const FRAME_TIME_BUDGET_MS = 4.0
+
 @onready var environment_node = get_node("../Environment")
 @onready var audio = get_node_or_null("../Audio")
 
@@ -24,9 +37,20 @@ func _ready():
 	Config.config_changed.connect(_on_config_changed)
 	GameState.state_changed.connect(_on_state_changed)
 	_update_lod_subs()
+	_update_view_offsets()
 	_update_all_terrain_material_uniforms()
 	# Uncomment this to debug the mesh wireframe
 	# get_viewport().debug_draw = Viewport.DEBUG_DRAW_WIREFRAME
+
+func _update_view_offsets():
+	_sorted_view_offsets.clear()
+	var d = Config.view_distance
+	for x in range(-d, d + 1):
+		for z in range(-d, d + 1):
+			_sorted_view_offsets.append(Vector2i(x, z))
+	_sorted_view_offsets.sort_custom(func(a, b):
+		return max(abs(a.x), abs(a.y)) < max(abs(b.x), abs(b.y))
+	)
 
 func _process(delta):
 	if not player:
@@ -67,8 +91,10 @@ func _process(delta):
 		_update_all_chunks_lod()
 		_last_lod_player_chunk = current
 
+	_process_work_queues()
 
-func _update_chunks(p_x: int, p_z: int):
+
+func _update_chunks(p_x: int, p_z: int, force: bool = false):
 	var old_min_x = _last_player_chunk.x - _last_view_distance
 	var old_max_x = _last_player_chunk.x + _last_view_distance
 	var old_min_z = _last_player_chunk.y - _last_view_distance
@@ -80,38 +106,131 @@ func _update_chunks(p_x: int, p_z: int):
 	_last_player_chunk = Vector2i(p_x, p_z)
 	_last_view_distance = Config.view_distance
 
-	# Load new chunks
-	for x in range(p_x - Config.view_distance, p_x + Config.view_distance + 1):
-		for z in range(p_z - Config.view_distance, p_z + Config.view_distance + 1):
-			# Optimization: skip chunks that were already within the previous view distance bounds.
-			# This drastically reduces redundant dictionary lookups when the player moves by a small amount.
-			if not is_first_update and not view_distance_changed and x >= old_min_x and x <= old_max_x and z >= old_min_z and z <= old_max_z:
-				continue
+	if force:
+		_chunks_to_load.clear()
+		_queued_chunks_to_load.clear()
+		_chunks_to_unload.clear()
+		_queued_chunks_to_unload.clear()
+		_lod_updates_pending.clear()
+		_queued_lod_updates.clear()
 
-			var chunk_coord = Vector2i(x, z)
+		# Load all immediate
+		for offset in _sorted_view_offsets:
+			var chunk_coord = Vector2i(p_x + offset.x, p_z + offset.y)
 			if not chunks.has(chunk_coord):
 				_load_chunk(chunk_coord)
 
-	# Unload distant chunks
-	var chunks_to_remove = []
+		# Unload all immediate
+		var chunks_to_remove = []
+		for chunk_coord in chunks:
+			if abs(chunk_coord.x - p_x) > Config.view_distance or abs(chunk_coord.y - p_z) > Config.view_distance:
+				chunks_to_remove.append(chunk_coord)
+		for chunk_coord in chunks_to_remove:
+			_unload_chunk(chunk_coord)
+
+		_flush_dirty_neighbors()
+		_update_all_chunks_lod(true)
+		return
+
+	# Clean up queued loads that are now out of view distance
+	var i = _chunks_to_load.size() - 1
+	while i >= 0:
+		var coord = _chunks_to_load[i]
+		if abs(coord.x - p_x) > Config.view_distance or abs(coord.y - p_z) > Config.view_distance:
+			_queued_chunks_to_load.erase(coord)
+			_chunks_to_load.remove_at(i)
+		i -= 1
+
+	# Add new chunks to load queue
+	for offset in _sorted_view_offsets:
+		var x = p_x + offset.x
+		var z = p_z + offset.y
+		if not is_first_update and not view_distance_changed and x >= old_min_x and x <= old_max_x and z >= old_min_z and z <= old_max_z:
+			continue
+
+		var chunk_coord = Vector2i(x, z)
+		if not chunks.has(chunk_coord) and not _queued_chunks_to_load.has(chunk_coord):
+			_chunks_to_load.append(chunk_coord)
+			_queued_chunks_to_load[chunk_coord] = true
+
+	# Queue unloads for distant chunks
 	for chunk_coord in chunks:
 		if abs(chunk_coord.x - p_x) > Config.view_distance or abs(chunk_coord.y - p_z) > Config.view_distance:
-			chunks_to_remove.append(chunk_coord)
+			if not _queued_chunks_to_unload.has(chunk_coord):
+				_chunks_to_unload.append(chunk_coord)
+				_queued_chunks_to_unload[chunk_coord] = true
 
-	for chunk_coord in chunks_to_remove:
-		_unload_chunk(chunk_coord)
-
-	_flush_dirty_neighbors()
 
 func _update_all_chunks_lod(force: bool = false):
 	var player_chunk_coord = _last_player_chunk
-	for coord in chunks:
-		var chunk = chunks[coord]
-		var desired_lod = _get_lod_level(coord, player_chunk_coord)
-		if force or _chunk_lods.get(coord, -1) != desired_lod:
-			_update_chunk_lod(chunk, desired_lod, coord, force)
+	if force:
+		for coord in chunks:
+			var chunk = chunks[coord]
+			var desired_lod = _get_lod_level(coord, player_chunk_coord)
+			_update_chunk_lod(chunk, desired_lod, coord, true)
+		_flush_dirty_neighbors()
+		return
 
-	_flush_dirty_neighbors()
+
+func _process_work_queues():
+	var start_time = Time.get_ticks_usec()
+	var budget_usec = int(FRAME_TIME_BUDGET_MS * 1000.0)
+	
+	# Background LOD scanner (distributed check)
+	if not _loaded_chunk_list.is_empty():
+		var checks_this_frame = min(30, _loaded_chunk_list.size())
+		for k in range(checks_this_frame):
+			if _lod_check_index >= _loaded_chunk_list.size():
+				_lod_check_index = 0
+			var coord = _loaded_chunk_list[_lod_check_index]
+			_lod_check_index += 1
+			
+			var desired_lod = _get_lod_level(coord, _last_player_chunk)
+			if _chunk_lods.get(coord, -1) != desired_lod:
+				if not _queued_lod_updates.has(coord):
+					_lod_updates_pending.append(coord)
+					_queued_lod_updates[coord] = true
+	
+	# Process unloads first (fast, frees memory)
+	while not _chunks_to_unload.is_empty():
+		var coord = _chunks_to_unload.pop_front()
+		_queued_chunks_to_unload.erase(coord)
+		if chunks.has(coord):
+			_unload_chunk(coord)
+		
+		if Time.get_ticks_usec() - start_time >= budget_usec:
+			_flush_dirty_neighbors()
+			return
+
+	# Process loads next (heavy)
+	while not _chunks_to_load.is_empty():
+		var coord = _chunks_to_load.pop_front()
+		_queued_chunks_to_load.erase(coord)
+		if not chunks.has(coord):
+			_load_chunk(coord)
+		
+		if Time.get_ticks_usec() - start_time >= budget_usec:
+			_flush_dirty_neighbors()
+			return
+
+	# Process LOD updates
+	var lod_updated_any = false
+	while not _lod_updates_pending.is_empty():
+		var coord = _lod_updates_pending.pop_front()
+		_queued_lod_updates.erase(coord)
+		if chunks.has(coord):
+			var chunk = chunks[coord]
+			var desired_lod = _get_lod_level(coord, _last_player_chunk)
+			_update_chunk_lod(chunk, desired_lod, coord)
+			lod_updated_any = true
+		
+		if Time.get_ticks_usec() - start_time >= budget_usec:
+			_flush_dirty_neighbors()
+			return
+
+	if lod_updated_any or not _dirty_neighbor_coords.is_empty():
+		_flush_dirty_neighbors()
+
 
 func _flush_dirty_neighbors():
 	for coord in _dirty_neighbor_coords.keys():
@@ -300,6 +419,7 @@ func _load_chunk(coord: Vector2i):
 	var lod = _get_lod_level(coord, player_chunk_coord)
 
 	chunks[coord] = chunk
+	_loaded_chunk_list.append(coord)
 	_update_chunk_lod(chunk, lod, coord)
 
 	chunk.global_position = Vector3(
@@ -344,6 +464,7 @@ func _unload_chunk(coord: Vector2i):
 	var chunk = chunks[coord]
 	chunk.queue_free()
 	chunks.erase(coord)
+	_loaded_chunk_list.erase(coord)
 	_chunk_lods.erase(coord)
 	_dirty_neighbor_coords[Vector2i(coord.x - 1, coord.y)] = true
 	_dirty_neighbor_coords[Vector2i(coord.x + 1, coord.y)] = true
@@ -358,8 +479,10 @@ func _on_config_changed(key: String):
 			_lod_mesh_cache.clear()
 			_update_all_chunks_lod(true)
 		if key in ["view_distance", "terrain_detail", "function_type", "input_function_type"]:
+			if key == "view_distance":
+				_update_view_offsets()
 			if player:
-				_update_chunks(floor(player.global_position.x / chunk_size), floor(player.global_position.z / chunk_size))
+				_update_chunks(floor(player.global_position.x / chunk_size), floor(player.global_position.z / chunk_size), true)
 
 func _on_state_changed(key: String):
 	if key in ["current_branch", "morph_value", "newton_path", "newton_path_bbox", "real_level_curves_highlighted", "imag_level_curves_highlighted", "effective_zoom"]:
