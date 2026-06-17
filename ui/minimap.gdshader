@@ -314,7 +314,7 @@ void fragment() {
         float acc_r_glow = acc_r_total + 0.20 * scale;
 
         float pulse = 0.5 + 0.5 * sin(TIME * 5.0);
-        float fast_pulse = 0.5 + 0.5 * sin(TIME * 15.0);
+        float fast_pulse = 0.5 + 0.5 * sin(TIME * 8.0);
 
         vec3 bright_gold = vec3(1.0, 0.84, 0.3); // Bright gold
         vec3 dark_gold = vec3(0.5, 0.35, 0.05);   // Darker gold tone
@@ -333,11 +333,9 @@ void fragment() {
             float border_val = clamp(total_val - core_val, 0.0, 1.0);
             float glow_val = (1.0 - smoothstep(r_total - aa, r_glow + aa, d_center)) * (1.0 - total_val);
 
-            if (core_val > 0.0 || border_val > 0.0 || glow_val > 0.0) {
-                base_color = mix(base_color, bright_gold, glow_val * pulse * 0.7);
+            if (core_val > 0.0 || border_val > 0.0) {
                 base_color = mix(base_color, dark_gold, clamp(border_val, 0.0, 1.0));
-                vec3 pulsed_core_color = bright_gold * (1.0 + 0.25 * pulse);
-                base_color = mix(base_color, pulsed_core_color, clamp(core_val, 0.0, 1.0));
+                base_color = mix(base_color, bright_gold * 1.25, clamp(core_val, 0.0, 1.0));
             }
         }
 
@@ -356,7 +354,7 @@ void fragment() {
             if (core_val > 0.0 || border_val > 0.0 || glow_val > 0.0) {
                 base_color = mix(base_color, bright_gold, glow_val * fast_pulse * 0.7);
                 base_color = mix(base_color, dark_gold, clamp(border_val, 0.0, 1.0));
-                vec3 pulsed_core_color = bright_gold * (1.0 + 0.25 * fast_pulse);
+                vec3 pulsed_core_color = bright_gold * 1.25 * (1.0 + 0.20 * fast_pulse);
                 base_color = mix(base_color, pulsed_core_color, clamp(core_val, 0.0, 1.0));
             }
         }
