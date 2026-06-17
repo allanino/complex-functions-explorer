@@ -13,3 +13,7 @@ Action: Always prefer `@onready var` to cache UI elements and remove defensive n
 Learning: While defensive `if node:` existence checks can be safely removed for static nodes guaranteed to be ready, the initial `get_node_or_null` must sometimes be preserved (instead of `get_node` or `%`) if unit tests manually instantiate and inject these nodes into the scene tree out-of-order. This prevents strict paths from crashing during test execution.
 
 Action: Remove redundant `if` checks for statically defined components before accessing their methods, but check test instantiation patterns before strictly enforcing `get_node()` over `get_node_or_null()`.
+
+## 4 - [Extracting duplicated Callable variables into local closures]
+Learning: Massive dictionaries config (like UI bindings) often repeat anonymous Lambda closures identically, leading to bloated files and harder updates.
+Action: Extract identically defined `func(x): return ...` patterns into locally scoped `var` properties (e.g. `var to_pct = func(v): return v / 100.0`) and reference those variables instead to reduce size and improve consistency.
