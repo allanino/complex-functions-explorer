@@ -18,6 +18,7 @@ Check the [web page](https://allanino.github.io/complex-functions-explorer/) and
 * Explore complex functions in real time as immersive 3D landscapes.
 * Visualize function values using color for phase and terrain height for magnitude.
 * Navigate the complex plane freely with smooth first-person camera controls.
+* No bounding boxes — the landscape unfolds as you travel.
 * Discover zeros, poles, and critical structures.
 * Explore the Riemann zeta function and its hidden geometry.
 * Use the minimap to orient yourself across the complex plane.
