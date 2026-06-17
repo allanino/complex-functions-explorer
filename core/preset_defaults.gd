@@ -1,8 +1,7 @@
 extends Node
 
 const PRESETS = {
-	"Default":
-	{
+	"Default": {
 		"terrain_detail": 0,
 		"antialiasing_mode": 0,
 		"rendering_scale": 1.0,
@@ -46,8 +45,7 @@ const PRESETS = {
 		"bg_music_volume": 50.0,
 		"drone_volume": 100.0
 	},
-	"Mysterious":
-	{
+	"Mysterious": {
 		"terrain_detail": 0,
 		"antialiasing_mode": 0,
 		"rendering_scale": 1.0,
