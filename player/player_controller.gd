@@ -319,9 +319,9 @@ func _physics_process(delta):
 	if run_demo and not _demo_y_final_reached and current_z.y >= 6000.0:
 		_demo_y_final_reached = true
 		var tween = create_tween().set_process_mode(Tween.TWEEN_PROCESS_PHYSICS)
-		tween.tween_property(Config, "speed_near_zeros", 100.0, 3.0)
-		tween.tween_property(Config, "camera_height", 16.0, 3.0)
-		tween.tween_property(Config, "movement_speed", 100.0, 3.0)
+		tween.tween_property(Config, "speed_near_zeros", 100.0, 2.0)
+		tween.tween_property(Config, "camera_height", 15.0, 2.0)
+		tween.tween_property(Config, "movement_speed", 7.5, 2.0)
 
 	if auto_walk_state != AutoWalkState.NONE:
 		var manual_input = Input.get_vector("move_left", "move_right", "move_forward", "move_backward")
@@ -785,13 +785,13 @@ func _check_zeta_stability(y: float) -> void:
 		[500.0, 1000.0]: 1000,
 		[1000.0, 2000.0]: 1500,
 		[2000.0, 3000.0]: 2000,
-		[3000.0, 6000.0]: 2500,
-		[6000.0, 7000.0]: 3000,
-		[7000.0, 9000.0]: 4000,
-		[9000.0, 11000.0]: 5000,
-		[11000.0, 15000.0]: 6000,
-		[15000.0, 20000.0]: 8000,
-		[20000.0, 25000.0]: 10000
+		[3000.0, 6500.0]: 2500,
+		[6500.0, 7500.0]: 3000,
+		[7500.0, 9500.0]: 4000,
+		[9500.0, 11500.0]: 5000,
+		[11500.0, 15500.0]: 6000,
+		[15500.0, 20500.0]: 8000,
+		[20500.0, 25000.0]: 10000
 	}
 	if Config.function.get("is_dirichlet", false):
 		# 30000 is about where the GPU float32 starts to give
