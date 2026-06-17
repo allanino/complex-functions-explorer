@@ -350,6 +350,10 @@ func _ready():
 
 
 func _init_slider_bindings():
+	var fmt_pct = func(v): return str(int(round(v))) + "%"
+	var to_pct = func(v): return v / 100.0
+	var from_pct = func(c): return c * 100.0
+
 	var bindings = {
 		rendering_scale_slider: {
 			"config_key": "rendering_scale",
@@ -373,19 +377,19 @@ func _init_slider_bindings():
 			"config_key": "master_volume",
 			"to_config": func(v): return v,
 			"from_config": func(c): return c,
-			"format": func(v): return str(int(round(v))) + "%"
+			"format": fmt_pct
 		},
 		bg_music_slider: {
 			"config_key": "bg_music_volume",
 			"to_config": func(v): return v,
 			"from_config": func(c): return c,
-			"format": func(v): return str(int(round(v))) + "%"
+			"format": fmt_pct
 		},
 		drone_slider: {
 			"config_key": "drone_volume",
 			"to_config": func(v): return v,
 			"from_config": func(c): return c,
-			"format": func(v): return str(int(round(v))) + "%"
+			"format": fmt_pct
 		},
 		zero_proximity_nav_slider: {
 			"config_key": "zero_proximity_nav",
@@ -403,7 +407,7 @@ func _init_slider_bindings():
 			"config_key": "speed_near_zeros",
 			"to_config": func(v): return v,
 			"from_config": func(c): return c,
-			"format": func(v): return str(int(round(v))) + "%"
+			"format": fmt_pct
 		},
 		view_distance_slider: {
 			"config_key": "view_distance",
@@ -431,40 +435,40 @@ func _init_slider_bindings():
 		},
 		sky_luminosity_slider: {
 			"config_key": "sky_luminosity",
-			"to_config": func(v): return v / 100.0,
-			"from_config": func(c): return c * 100.0,
-			"format": func(v): return str(int(round(v))) + "%"
+			"to_config": to_pct,
+			"from_config": from_pct,
+			"format": fmt_pct
 		},
 		sun_luminosity_slider: {
 			"config_key": "sun_luminosity",
-			"to_config": func(v): return v / 100.0,
-			"from_config": func(c): return c * 100.0,
-			"format": func(v): return str(int(round(v))) + "%"
+			"to_config": to_pct,
+			"from_config": from_pct,
+			"format": fmt_pct
 		},
 		self_illumination_slider: {
 			"config_key": "self_illumination",
-			"to_config": func(v): return v / 100.0,
-			"from_config": func(c): return c * 100.0,
-			"format": func(v): return str(int(round(v))) + "%"
+			"to_config": to_pct,
+			"from_config": from_pct,
+			"format": fmt_pct
 		},
 		fog_density_slider: {
 			"config_key": "fog_density",
-			"to_config": func(v): return v / 100.0,
-			"from_config": func(c): return c * 100.0,
+			"to_config": to_pct,
+			"from_config": from_pct,
 			"format": func(v): return "%.1f%%" % v
 		},
 		menu_scale_slider: {
 			"config_key": "menu_scale",
-			"to_config": func(v): return v / 100.0,
-			"from_config": func(c): return c * 100.0,
-			"format": func(v): return str(int(round(v))) + "%",
+			"to_config": to_pct,
+			"from_config": from_pct,
+			"format": fmt_pct,
 			"on_changed": func(_v): emit_signal('update_hud_layout_signal')
 		},
 		hud_scale_slider: {
 			"config_key": "hud_scale",
-			"to_config": func(v): return v / 100.0,
-			"from_config": func(c): return c * 100.0,
-			"format": func(v): return str(int(round(v))) + "%"
+			"to_config": to_pct,
+			"from_config": from_pct,
+			"format": fmt_pct
 		},
 		iter_slider: {
 			"config_key": "iterations",
@@ -495,61 +499,61 @@ func _init_slider_bindings():
 			"config_key": "terrain_brightness",
 			"to_config": func(v): return v / 50.0,
 			"from_config": func(c): return c * 50.0,
-			"format": func(v): return str(int(round(v))) + "%"
+			"format": fmt_pct
 		},
 		saturation_slider: {
 			"config_key": "terrain_saturation",
-			"to_config": func(v): return v / 100.0,
-			"from_config": func(c): return c * 100.0,
-			"format": func(v): return str(int(round(v))) + "%"
+			"to_config": to_pct,
+			"from_config": from_pct,
+			"format": fmt_pct
 		},
 		ao_slider: {
 			"config_key": "terrain_ao",
-			"to_config": func(v): return v / 100.0,
-			"from_config": func(c): return c * 100.0,
-			"format": func(v): return str(int(round(v))) + "%"
+			"to_config": to_pct,
+			"from_config": from_pct,
+			"format": fmt_pct
 		},
 		rim_slider: {
 			"config_key": "terrain_rim",
-			"to_config": func(v): return v / 100.0,
-			"from_config": func(c): return c * 100.0,
-			"format": func(v): return str(int(round(v))) + "%"
+			"to_config": to_pct,
+			"from_config": from_pct,
+			"format": fmt_pct
 		},
 		rim_tint_slider: {
 			"config_key": "terrain_rim_tint",
-			"to_config": func(v): return v / 100.0,
-			"from_config": func(c): return c * 100.0,
-			"format": func(v): return str(int(round(v))) + "%"
+			"to_config": to_pct,
+			"from_config": from_pct,
+			"format": fmt_pct
 		},
 		albedo_slider: {
 			"config_key": "terrain_albedo",
-			"to_config": func(v): return v / 100.0,
-			"from_config": func(c): return c * 100.0,
-			"format": func(v): return str(int(round(v))) + "%"
+			"to_config": to_pct,
+			"from_config": from_pct,
+			"format": fmt_pct
 		},
 		emission_slider: {
 			"config_key": "terrain_emission",
-			"to_config": func(v): return v / 100.0,
-			"from_config": func(c): return c * 100.0,
-			"format": func(v): return str(int(round(v))) + "%"
+			"to_config": to_pct,
+			"from_config": from_pct,
+			"format": fmt_pct
 		},
 		metallic_slider: {
 			"config_key": "terrain_metallic",
-			"to_config": func(v): return v / 100.0,
-			"from_config": func(c): return c * 100.0,
-			"format": func(v): return str(int(round(v))) + "%"
+			"to_config": to_pct,
+			"from_config": from_pct,
+			"format": fmt_pct
 		},
 		roughness_slider: {
 			"config_key": "terrain_roughness",
-			"to_config": func(v): return v / 100.0,
-			"from_config": func(c): return c * 100.0,
-			"format": func(v): return str(int(round(v))) + "%"
+			"to_config": to_pct,
+			"from_config": from_pct,
+			"format": fmt_pct
 		},
 		surface_texture_slider: {
 			"config_key": "terrain_surface_texture",
-			"to_config": func(v): return v / 100.0,
-			"from_config": func(c): return c * 100.0,
-			"format": func(v): return str(int(round(v))) + "%"
+			"to_config": to_pct,
+			"from_config": from_pct,
+			"format": fmt_pct
 		},
 		morph_slider: {
 			"config_target": GameState, "config_key": "morph_value",
