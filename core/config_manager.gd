@@ -219,7 +219,6 @@ const PRESET_KEYS = [
 	"terrain_emission",
 	"terrain_metallic",
 	"terrain_roughness",
-	"terrain_surface_texture",
 	"terrain_ao",
 	"terrain_rim",
 	"terrain_rim_tint",
@@ -416,11 +415,6 @@ var terrain_roughness: float = 0.1:
 		if terrain_roughness == v: return
 		terrain_roughness = v
 		config_changed.emit("terrain_roughness")
-var terrain_surface_texture: float = 0.0:
-	set(v):
-		if terrain_surface_texture == v: return
-		terrain_surface_texture = v
-		config_changed.emit("terrain_surface_texture")
 var terrain_ao: float = 1.0:
 	set(v):
 		if terrain_ao == v: return
@@ -667,7 +661,6 @@ func save_settings():
 	config.set_value("rendering", "terrain_emission", terrain_emission)
 	config.set_value("rendering", "terrain_metallic", terrain_metallic)
 	config.set_value("rendering", "terrain_roughness", terrain_roughness)
-	config.set_value("rendering", "terrain_surface_texture", terrain_surface_texture)
 	config.set_value("rendering", "terrain_ao", terrain_ao)
 	config.set_value("rendering", "terrain_rim", terrain_rim)
 	config.set_value("rendering", "terrain_rim_tint", terrain_rim_tint)
@@ -750,7 +743,6 @@ func load_settings():
 	terrain_emission = config.get_value("rendering", "terrain_emission", terrain_emission)
 	terrain_metallic = config.get_value("rendering", "terrain_metallic", terrain_metallic)
 	terrain_roughness = config.get_value("rendering", "terrain_roughness", terrain_roughness)
-	terrain_surface_texture = config.get_value("rendering", "terrain_surface_texture", terrain_surface_texture)
 	terrain_ao = config.get_value("rendering", "terrain_ao", terrain_ao)
 	terrain_rim = config.get_value("rendering", "terrain_rim", terrain_rim)
 	terrain_rim_tint = config.get_value("rendering", "terrain_rim_tint", terrain_rim_tint)
