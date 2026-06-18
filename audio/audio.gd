@@ -218,8 +218,8 @@ func _physics_process(delta):
 	pulse_presence = exp(-pow(mag, 3.0))
 
 	# Stable breathing speed
-	target_pulse_rate = lerp(1.5, 6.0, pulse_presence)
-	target_harmonic_intensity = clamp(proximity * 0.08, 0.0, 0.4)
+	target_pulse_rate = lerp(1.5, 4.0, pulse_presence)
+	target_harmonic_intensity = clamp(proximity * 0.12, 0.0, 0.4)
 	target_fm_index = clamp(proximity * 0.15, 0.0, 1.5)
 
 	# 3. PHASE arg(f)
