@@ -310,7 +310,7 @@ func _physics_process(delta):
 	# Converts player's world position back to the mathematical complex plane to calculate field values
 	current_z = Config.world_to_complex(global_position.x, global_position.z)
 	var _current_pos2d_check = Vector2(global_position.x, global_position.z)
-	if _predicted_pos != Vector2.INF and _predicted_pos.distance_squared_to(_current_pos2d_check) < 0.000001:
+	if _predicted_pos != Vector2.INF and _predicted_pos.distance_squared_to(_current_pos2d_check) < 1e-6:
 		current_f = _predicted_next_f
 	else:
 		current_f = ComplexField.get_field(global_position.x, global_position.z)
@@ -407,7 +407,7 @@ func _physics_process(delta):
 		var current_pos2d = Vector2(global_position.x, global_position.z)
 		var target_pos2d = Vector2(target_x, target_z)
 
-		if current_pos2d.distance_squared_to(target_pos2d) > 0.0001:
+		if current_pos2d.distance_squared_to(target_pos2d) > 1e-4:
 			var target_dir2d = (target_pos2d - current_pos2d).normalized()
 			var target_yaw = atan2(-target_dir2d.x, -target_dir2d.y)
 			rotation.y = lerp_angle(rotation.y, target_yaw, 10.0 * delta)
@@ -892,7 +892,7 @@ func _process_zero_detection(z_mid: Vector2, current_auto_walk_state: int):
 			call_deferred("_on_zero_detected", zero_res, current_auto_walk_state)
 
 func _on_zero_detected(true_z: Vector2, current_auto_walk_state: int):
-	if true_z.distance_squared_to(last_detected_z) > 0.000001:
+	if true_z.distance_squared_to(last_detected_z) > 1e-6:
 		GameState.total_zeros_found += 1
 		GameState.visited_zeros.push_back(true_z)
 		if current_auto_walk_state == AutoWalkState.MOVING_TO_LINE or current_auto_walk_state == AutoWalkState.WALKING:
