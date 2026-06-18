@@ -265,7 +265,7 @@ func _physics_process(delta):
 			target_ps = 1.0
 
 		target_ps = clamp(target_ps, 0.5, 2.0)
-		current_pitch_scale = lerp(current_pitch_scale, target_ps, delta * 5.0)
+		current_pitch_scale = lerp(current_pitch_scale, target_ps, delta * 4.0)
 
 		if abs(current_pitch_scale - last_pitch) > 0.001:
 			pitch_shift_effect.pitch_scale = current_pitch_scale
@@ -280,7 +280,7 @@ func _physics_process(delta):
 	if lpf_effect:
 		var target_cut = lerp(600.0, 4500.0, clamp(mag * 0.05, 0.0, 1.0))
 		if is_finite(target_cut):
-			current_lpf_cutoff = lerp(current_lpf_cutoff, target_cut, delta * 5.0)
+			current_lpf_cutoff = lerp(current_lpf_cutoff, target_cut, delta * 4.0)
 			lpf_effect.cutoff_hz = clamp(current_lpf_cutoff, 100.0, 20000.0)
 
 	fill_buffer()
