@@ -208,7 +208,9 @@ void compute_sun_moon(vec3 eye_dir, bool light0_enabled, vec3 light0_dir, vec3 l
         float moon_disk = smoothstep(moon_size * 0.5, moon_size * 0.45, moon_dist);
         float moon_disk_intensity = smoothstep(0.0, 0.1, light1_en);
 
-        vec3 moon_color = light1_col;
+        float moon_glow_dist = max(0.0, moon_dist - moon_size * 0.45);
+        float moon_glow = 0.005 / (0.001 + moon_glow_dist * moon_glow_dist * 5.0);
+
         if (moon_disk > 0.0) {
             float moon_radius = moon_size * 0.5;
             vec3 up = abs(light1_dir.y) < 0.999 ? vec3(0.0, 1.0, 0.0) : vec3(0.0, 0.0, 1.0);
@@ -232,16 +234,13 @@ void compute_sun_moon(vec3 eye_dir, bool light0_enabled, vec3 light0_dir, vec3 l
             float edge_shade = clamp(mz, 0.0, 1.0);
             texture *= 0.8 + 0.2 * edge_shade;
 
-            moon_color *= texture;
+            float texture_blend = mix(1.0, texture, moon_disk);
+            vec3 disk_color = light1_col * moon_disk * moon_disk_intensity * texture_blend;
+            vec3 local_glow = light1_col * moon_glow * light1_en * mix(1.0, texture_blend, moon_disk);
+            cloud_final_color += disk_color + local_glow;
+        } else {
+            cloud_final_color += light1_col * moon_glow * light1_en;
         }
-
-        cloud_final_color += moon_color * moon_disk * moon_disk_intensity;
-
-        float moon_glow_dist = max(0.0, moon_dist - moon_size * 0.45);
-
-        // Moon glow
-        float moon_glow = 0.005 / (0.001 + moon_glow_dist * moon_glow_dist * 5.0);
-        cloud_final_color += light1_col * moon_glow * light1_en;
     }
 }
 

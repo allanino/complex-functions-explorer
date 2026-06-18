@@ -7,6 +7,7 @@ extends Node3D
 # Day night cycle variables
 var _golden_hour_transition: float = 0.0
 var _sun_color = Color("#fc9500")
+var _moon_color = Color("#FFF7EB")
 
 # Smooth angle variables
 var _current_angle: float = 0.0
@@ -86,7 +87,9 @@ func _update_sky_positions(delta: float):
 	if moon:
 		moon.basis = Basis.looking_at(moon_dir, Vector3.UP if abs(moon_dir.y) < 0.99 else Vector3.FORWARD)
 		var moon_elevation = - moon_dir.y
-		moon.light_energy = smoothstep(-0.02, 0.02, moon_elevation) * 0.08 * Config.sun_luminosity
+		var t = smoothstep(-0.02, 0.02, moon_elevation)
+		moon.light_energy = lerp(0.15, 0.30, t) * Config.sun_luminosity
+		moon.light_color = lerp(Color(1.0, 0.82, 0.68), _moon_color, _golden_hour_transition)
 		moon.shadow_enabled = Config.shadows_enabled and moon_elevation > -0.01
 
 	if world_environment and world_environment.environment and world_environment.environment.sky:
