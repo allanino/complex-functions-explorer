@@ -48,7 +48,7 @@ var is_teleporting: bool = false
 
 # --- STARTUP ENVELOPE ---
 var startup_time := 0.0
-var startup_duration := 5.0
+var startup_duration := 15.0
 
 # --- FPS GUARD ---
 var low_fps_counter: int = 0
@@ -70,6 +70,9 @@ var buffer_min_available := 999999
 var buffer_max_available := 0
 
 func _ready():
+	# get_tree().paused = true
+	# await get_tree().create_timer(5.0).timeout
+	# get_tree().paused = false
 	Config.config_changed.connect(_on_config_changed)
 
 	setup_audio_bus_and_effects()
@@ -288,14 +291,23 @@ func _physics_process(delta):
 func fill_buffer():
 	if playback == null: return
 
-	var available = playback.get_frames_available()
+	var drone_vol_scale = Config.drone_volume / 100.0
+	if drone_vol_scale <= 0.0 or is_suppressed:
+		# If muted/suppressed, just push silent frames quickly without synthesis math
+		var available = playback.get_frames_available()
+		var to_fill = TARGET_FILL - (4096 - available)
+		if to_fill > 0:
+			to_fill = min(to_fill, 1024)
+			for i in range(to_fill):
+				playback.push_frame(Vector2.ZERO)
+		return
 
+	var available = playback.get_frames_available()
 	buffer_min_available = min(buffer_min_available, available)
 	buffer_max_available = max(buffer_max_available, available)
 
 	# Fill only enough to keep stable occupancy
 	var to_fill = TARGET_FILL - (4096 - available)
-
 	if to_fill <= 0:
 		return
 
@@ -304,70 +316,51 @@ func fill_buffer():
 	var startup_gain = clamp(startup_time / startup_duration, 0.0, 1.0)
 	startup_gain = startup_gain * startup_gain # smoother fade-in
 
+	# Hoist invariant gains and multipliers outside the loop
+	var amp_base = current_volume * drone_vol_scale * startup_gain * teleport_fade
+	var pan_l = clamp(1.0 - current_pan, 0.0, 1.0)
+	var pan_r = clamp(1.0 + current_pan, 0.0, 1.0)
+	
+	# Pre-calculate LFO phase value once for the frame since 0.12 Hz LFO changes 
+	# negligibly (< 0.002%) over 1024 samples (23ms)
+	lfo_phase = fmod(lfo_phase + (0.12 * to_fill) / sample_rate, 1.0)
+	var lfo_val = sin(lfo_phase * TAU)
+	var jitter = lfo_val * 0.008
+
+	var freq = current_frequency * (1.0 + jitter)
+	var increment = freq / sample_rate
+	var mod_increment = freq / sample_rate # simplified (freq * 1.0 / sample_rate)
+
+	# Hoist slowly converging lerps to their target or intermediate values
+	audio_fm_index = lerp(audio_fm_index, current_fm_index, 0.1)
+	audio_pulse_presence = lerp(audio_pulse_presence, pulse_presence, 0.1)
+
+	# Hoist pulse wave calculation
+	pulse_phase = fmod(pulse_phase + (current_pulse_rate * to_fill) / sample_rate, 1.0)
+	var pulse_wave = 0.75 + 0.25 * sin(pulse_phase * TAU)
+	var pulse_multiplier = lerp(1.0, pulse_wave, audio_pulse_presence)
+	
+	var amp_l = amp_base * pulse_multiplier * pan_l
+	var amp_r = amp_base * pulse_multiplier * pan_r
+	var shape = 0.25 + 0.1 * lfo_val
+
 	while to_fill > 0:
-		# --- PHASE INCREMENTS ---
-		# LFO for organic drift (0.12 Hz)
-		lfo_phase = fmod(lfo_phase + 0.12 / sample_rate, 1.0)
-		var jitter = sin(lfo_phase * TAU) * 0.008
-
-		var freq = current_frequency * (1.0 + jitter)
-		var increment = freq / sample_rate
-		if not is_finite(increment): increment = 0.001
 		phase = fmod(phase + increment, 1.0)
-
-		# Modulator phase (harmonic ratio 1.0 or 2.0)
-		freq = clamp(freq, 20.0, 4000.0)
-		var mod_increment = freq * 1.0 / sample_rate
 		mod_phase = fmod(mod_phase + mod_increment, 1.0)
 
-		# --- FM SYNTHESIS ---
-
 		# Modulator
-		audio_fm_index = lerp(audio_fm_index, current_fm_index, 0.1)
 		var modulator = sin(mod_phase * TAU) * audio_fm_index
 
-		# Carrier
+		# Carrier + Fifth
 		var sample = sin(phase * TAU + modulator)
-	
-		# Add fifth
 		sample += 0.15 * sin(phase * TAU * 1.5 + modulator * 0.3)
 
-		# Non-linear saturation (Cubic soft-clipper) with wave shape
+		# Non-linear saturation (Cubic soft-clipper)
 		sample = clamp(sample * 1.1, -1.1, 1.1)
-		var shape = 0.25 + 0.1 * sin(lfo_phase * TAU)
 		sample = sample - (sample * sample * sample * shape)
 
-		if not is_finite(sample): sample = 0.0
-
-		# --- LOCALIZED ZERO PULSE ---
-
-		pulse_phase = fmod(
-			pulse_phase + current_pulse_rate / sample_rate,
-			1.0
-		)
-
-		# Gentle breathing curve
-		var pulse_wave = 0.75 + 0.25 * sin(pulse_phase * TAU)
-
-		# Pulse only appears near zeros
-		audio_pulse_presence = lerp(audio_pulse_presence, pulse_presence, 0.1)
-
-		sample *= lerp(1.0, pulse_wave, audio_pulse_presence)
-
-		var drone_vol_scale = Config.drone_volume / 100.0
-		var frame = Vector2.ONE * sample * current_volume * drone_vol_scale * startup_gain * teleport_fade
-
-		# Apply Stereo Panning
-		var pan_l = clamp(1.0 - current_pan, 0.0, 1.0)
-		var pan_r = clamp(1.0 + current_pan, 0.0, 1.0)
-		frame.x *= pan_l
-		frame.y *= pan_r
-
-		if is_finite(frame.x) and is_finite(frame.y):
-			playback.push_frame(frame)
-		else:
-			playback.push_frame(Vector2.ZERO)
-
+		# Push frame
+		playback.push_frame(Vector2(sample * amp_l, sample * amp_r))
 		to_fill -= 1
 
 func _process_audio_toggles():
