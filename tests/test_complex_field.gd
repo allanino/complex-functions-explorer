@@ -788,7 +788,7 @@ func test_newton_step():
 	var z1_next = res1[0]
 	var f1_val = res1[1]
 
-	var expected_f1_res = ComplexFieldScript.zeta_with_derivatives(z1.x, z1.y, Config.iterations * 2)
+	var expected_f1_res = ComplexFieldScript.zeta_with_derivatives(z1.x, z1.y, Config.iterations)
 	var expected_f1_val = expected_f1_res[0]
 	var expected_f1_prime = expected_f1_res[1]
 	var expected_f1_second = expected_f1_res[2]

@@ -1216,11 +1216,11 @@ static func is_close_to_zero(z_mid: Vector2) -> Array:
 		var ext = ClassDB.instantiate("ComplexFunctions")
 		var res = []
 		if Config.function_type == Config.ComplexFunc.ZETA_CONTINUATION or Config.function_type == Config.ComplexFunc.ZETA_POWER_SERIES:
-			res = ext.call("zeta_is_close_to_zero", z_mid.x, z_mid.y, Config.iterations * 2)
+			res = ext.call("zeta_is_close_to_zero", z_mid.x, z_mid.y, Config.iterations)
 		elif Config.function_type == Config.ComplexFunc.DIRICHLET_ETA_CONTINUATION or Config.function_type == Config.ComplexFunc.DIRICHLET_ETA:
-			res = ext.call("eta_is_close_to_zero", z_mid.x, z_mid.y, Config.iterations * 2)
+			res = ext.call("eta_is_close_to_zero", z_mid.x, z_mid.y, Config.iterations)
 		elif Config.function_type == Config.ComplexFunc.DIRICHLET_BETA_CONTINUATION:
-			res = ext.call("beta_is_close_to_zero", z_mid.x, z_mid.y, Config.iterations * 2)
+			res = ext.call("beta_is_close_to_zero", z_mid.x, z_mid.y, Config.iterations)
 
 		if res.size() == 1:
 			return [res[0] > 0.5, z_mid]
@@ -1231,19 +1231,19 @@ static func is_close_to_zero(z_mid: Vector2) -> Array:
 	if Config.input_function_type == Config.ComplexFunc.IDENTITY:
 		var res = []
 		if Config.function_type == Config.ComplexFunc.ZETA:
-			res = zeta_with_derivatives(z_mid.x, z_mid.y, Config.iterations * 2)
+			res = zeta_with_derivatives(z_mid.x, z_mid.y, Config.iterations)
 			use_analytic = true
 		elif Config.function_type == Config.ComplexFunc.ZETA_CONTINUATION:
-			res = zeta_continuation_with_derivatives(z_mid.x, z_mid.y, Config.iterations * 2)
+			res = zeta_continuation_with_derivatives(z_mid.x, z_mid.y, Config.iterations)
 			use_analytic = true
 		elif Config.function_type == Config.ComplexFunc.ZETA_POWER_SERIES:
-			res = zeta_power_series_with_derivatives(z_mid.x, z_mid.y, Config.iterations * 2)
+			res = zeta_power_series_with_derivatives(z_mid.x, z_mid.y, Config.iterations)
 			use_analytic = true
 		elif Config.function_type == Config.ComplexFunc.DIRICHLET_ETA_CONTINUATION:
-			res = eta_continuation_with_derivatives(z_mid.x, z_mid.y, Config.iterations * 2)
+			res = eta_continuation_with_derivatives(z_mid.x, z_mid.y, Config.iterations)
 			use_analytic = true
 		elif Config.function_type == Config.ComplexFunc.DIRICHLET_ETA:
-			res = dirichlet_eta_with_derivatives(z_mid.x, z_mid.y, Config.iterations * 2)
+			res = dirichlet_eta_with_derivatives(z_mid.x, z_mid.y, Config.iterations)
 			use_analytic = true
 
 		if use_analytic:
@@ -1429,7 +1429,7 @@ static func newton_step(z_input: Variant, step_size_mult: float, max_step: float
 
 	if Config.input_function_type == Config.ComplexFunc.IDENTITY:
 		if Config.function_type == Config.ComplexFunc.ZETA:
-			var res = zeta_with_derivatives(z.x, z.y, Config.iterations * 2)
+			var res = zeta_with_derivatives(z.x, z.y, Config.iterations)
 			f_val = DoubleVector2.new(res[0].x, res[0].y)
 			f_prime = DoubleVector2.new(res[1].x, res[1].y)
 			f_second = DoubleVector2.new(res[2].x, res[2].y)
@@ -1437,7 +1437,7 @@ static func newton_step(z_input: Variant, step_size_mult: float, max_step: float
 		elif Config.function_type == Config.ComplexFunc.ZETA_CONTINUATION:
 			var res = []
 			if z.x < 0.0:
-				res = zeta_continuation_with_derivatives(z.x, z.y, Config.iterations * 2)
+				res = zeta_continuation_with_derivatives(z.x, z.y, Config.iterations)
 			else:
 				res = zeta_borwein_with_derivatives(z.x, z.y, Config.iterations)
 
@@ -1446,7 +1446,7 @@ static func newton_step(z_input: Variant, step_size_mult: float, max_step: float
 			f_second = res[2] if res[2] is DoubleVector2 else DoubleVector2.new(res[2].x, res[2].y)
 			use_analytic = true
 		elif Config.function_type == Config.ComplexFunc.ZETA_POWER_SERIES:
-			var res = zeta_power_series_with_derivatives(z.x, z.y, Config.iterations * 2)
+			var res = zeta_power_series_with_derivatives(z.x, z.y, Config.iterations)
 			f_val = DoubleVector2.new(res[0].x, res[0].y)
 			f_prime = DoubleVector2.new(res[1].x, res[1].y)
 			f_second = DoubleVector2.new(res[2].x, res[2].y)
@@ -1483,25 +1483,25 @@ static func newton_step(z_input: Variant, step_size_mult: float, max_step: float
 			f_second = DoubleVector2.new(res[2].x, res[2].y)
 			use_analytic = true
 		elif Config.function_type == Config.ComplexFunc.DIRICHLET_ETA:
-			var res = dirichlet_eta_with_derivatives(z.x, z.y, Config.iterations * 2)
+			var res = dirichlet_eta_with_derivatives(z.x, z.y, Config.iterations)
 			f_val = DoubleVector2.new(res[0].x, res[0].y)
 			f_prime = DoubleVector2.new(res[1].x, res[1].y)
 			f_second = DoubleVector2.new(res[2].x, res[2].y)
 			use_analytic = true
 		elif Config.function_type == Config.ComplexFunc.DIRICHLET_BETA:
-			var res = dirichlet_beta_with_derivatives(z.x, z.y, Config.iterations * 2)
+			var res = dirichlet_beta_with_derivatives(z.x, z.y, Config.iterations)
 			f_val = DoubleVector2.new(res[0].x, res[0].y)
 			f_prime = DoubleVector2.new(res[1].x, res[1].y)
 			f_second = DoubleVector2.new(res[2].x, res[2].y)
 			use_analytic = true
 		elif Config.function_type == Config.ComplexFunc.DIRICHLET_ETA_BORWEIN:
-			var res = eta_borwein_with_derivatives(z.x, z.y, Config.iterations * 2)
+			var res = eta_borwein_with_derivatives(z.x, z.y, Config.iterations)
 			f_val = res[0]
 			f_prime = res[1]
 			f_second = res[2]
 			use_analytic = true
 		elif Config.function_type == Config.ComplexFunc.ZETA_BORWEIN:
-			var res = zeta_borwein_with_derivatives(z.x, z.y, Config.iterations * 2)
+			var res = zeta_borwein_with_derivatives(z.x, z.y, Config.iterations)
 			f_val = res[0]
 			f_prime = res[1]
 			f_second = res[2]
