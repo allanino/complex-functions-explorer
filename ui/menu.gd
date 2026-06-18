@@ -350,49 +350,55 @@ func _init_slider_bindings():
 	var fmt_pct = func(v): return str(int(round(v))) + "%"
 	var to_pct = func(v): return v / 100.0
 	var from_pct = func(c): return c * 100.0
+	var to_int = func(v): return int(round(v))
+	var fmt_int = func(v): return str(int(round(v)))
+	var fmt_1f = func(v): return "%.1f" % v
+	var fmt_2f = func(v): return "%.2f" % v
+	var id = func(v): return v
+	var id_c = func(c): return c
 
 	var bindings = {
 		rendering_scale_slider: {
 			"config_key": "rendering_scale",
-			"to_config": func(v): return v,
-			"from_config": func(c): return c,
-			"format": func(v): return "%.2f" % v
+			"to_config": id,
+			"from_config": id_c,
+			"format": fmt_2f
 		},
 		camera_height_slider: {
 			"config_key": "camera_height",
-			"to_config": func(v): return v,
-			"from_config": func(c): return c,
-			"format": func(v): return "%.1f" % v
+			"to_config": id,
+			"from_config": id_c,
+			"format": fmt_1f
 		},
 		speed_slider: {
 			"config_key": "movement_speed",
 			"to_config": func(v): return v * 10.0,
 			"from_config": func(c): return c * 0.1,
-			"format": func(v): return "%.1f" % v
+			"format": fmt_1f
 		},
 		master_volume_slider: {
 			"config_key": "master_volume",
-			"to_config": func(v): return v,
-			"from_config": func(c): return c,
+			"to_config": id,
+			"from_config": id_c,
 			"format": fmt_pct
 		},
 		bg_music_slider: {
 			"config_key": "bg_music_volume",
-			"to_config": func(v): return v,
-			"from_config": func(c): return c,
+			"to_config": id,
+			"from_config": id_c,
 			"format": fmt_pct
 		},
 		drone_slider: {
 			"config_key": "drone_volume",
-			"to_config": func(v): return v,
-			"from_config": func(c): return c,
+			"to_config": id,
+			"from_config": id_c,
 			"format": fmt_pct
 		},
 		zero_proximity_nav_slider: {
 			"config_key": "zero_proximity_nav",
-			"to_config": func(v): return v,
-			"from_config": func(c): return c,
-			"format": func(v): return "%.2f" % v
+			"to_config": id,
+			"from_config": id_c,
+			"format": fmt_2f
 		},
 		zoom_slider: {
 			"config_key": "zoom_factor",
@@ -402,33 +408,33 @@ func _init_slider_bindings():
 		},
 		zero_speed_slider: {
 			"config_key": "speed_near_zeros",
-			"to_config": func(v): return v,
-			"from_config": func(c): return c,
+			"to_config": id,
+			"from_config": id_c,
 			"format": fmt_pct
 		},
 		view_distance_slider: {
 			"config_key": "view_distance",
-			"to_config": func(v): return int(round(v)),
-			"from_config": func(c): return c,
-			"format": func(v): return str(int(round(v)))
+			"to_config": to_int,
+			"from_config": id_c,
+			"format": fmt_int
 		},
 		day_duration_slider: {
 			"config_key": "day_duration",
-			"to_config": func(v): return v,
-			"from_config": func(c): return c,
+			"to_config": id,
+			"from_config": id_c,
 			"format": func(v): return _format_time(v)
 		},
 		day_time_slider: {
 			"config_key": "day_time",
-			"to_config": func(v): return v,
-			"from_config": func(c): return c,
+			"to_config": id,
+			"from_config": id_c,
 			"format": func(v): return _format_time(v)
 		},
 		sunrise_slider: {
 			"config_key": "sunrise_direction",
-			"to_config": func(v): return v,
-			"from_config": func(c): return c,
-			"format": func(v): return str(int(round(v))) + "°"
+			"to_config": id,
+			"from_config": id_c,
+			"format": func(v): return fmt_int.call(v) + "°"
 		},
 		sky_luminosity_slider: {
 			"config_key": "sky_luminosity",
@@ -469,28 +475,28 @@ func _init_slider_bindings():
 		},
 		iter_slider: {
 			"config_key": "iterations",
-			"to_config": func(v): return int(round(v)),
-			"from_config": func(c): return c,
-			"format": func(v): return str(int(round(v)))
+			"to_config": to_int,
+			"from_config": id_c,
+			"format": fmt_int
 		},
 		height_theta_slider: {
 			"config_key": "height_theta",
-			"to_config": func(v): return v,
-			"from_config": func(c): return c,
+			"to_config": id,
+			"from_config": id_c,
 			"format": func(v): return "%.2f rad" % v
 		},
 		multivalued_slider: {
 			"config_key": "multivalued_n",
-			"to_config": func(v): return int(round(v)),
-			"from_config": func(c): return c,
-			"format": func(v): return str(int(round(v))),
+			"to_config": to_int,
+			"from_config": id_c,
+			"format": fmt_int,
 			"on_changed": func(_v): _update_branch_k_slider_range()
 		},
 		branch_k_slider: {
 			"config_target": GameState, "config_key": "current_branch",
-			"to_config": func(v): return int(round(v)),
-			"from_config": func(c): return c,
-			"format": func(v): return str(int(round(v)))
+			"to_config": to_int,
+			"from_config": id_c,
+			"format": fmt_int
 		},
 		brightness_slider: {
 			"config_key": "terrain_brightness",
@@ -548,9 +554,9 @@ func _init_slider_bindings():
 		},
 		morph_slider: {
 			"config_target": GameState, "config_key": "morph_value",
-			"to_config": func(v): return v,
-			"from_config": func(c): return c,
-			"format": func(v): return "%.2f" % v
+			"to_config": id,
+			"from_config": id_c,
+			"format": fmt_2f
 		}
 	}
 	for slider in bindings:
