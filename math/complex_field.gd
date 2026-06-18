@@ -624,8 +624,7 @@ static func dirichlet_eta_with_derivatives(x: float, y: float, iters: int) -> Ar
 
 		actual_iters = n + 1
 
-		if amp < 1e-4 or amp2 < 1e-4:
-			break
+		if amp < 1e-4 or amp2 < 1e-4: break
 
 	if actual_iters > 0 and x >= 0.5:
 		var next_n = float(actual_iters + 1)

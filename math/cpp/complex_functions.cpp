@@ -262,9 +262,7 @@ PackedFloat64Array ComplexFunctions::dirichlet_eta_with_derivatives(double x, do
 
 		actual_iters = n + 1;
 
-	   if (amp < 1e-4 || amp2 < 1e-4) {
-			break;
-		}
+	   if (amp < 1e-4 || amp2 < 1e-4) break;
 	}
 
 	if (actual_iters > 0 && x >= 0.5) {
