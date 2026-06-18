@@ -11,6 +11,8 @@ void ComplexFunctions::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("dirichlet_eta_with_derivatives", "x", "y", "iters"), &ComplexFunctions::dirichlet_eta_with_derivatives);
 	ClassDB::bind_method(D_METHOD("eta_find_zero", "x", "y", "iters", "step_mult", "step_max", "debug"), &ComplexFunctions::eta_find_zero);
 	ClassDB::bind_method(D_METHOD("zeta_find_zero", "x", "y", "iters", "step_mult", "step_max", "debug"), &ComplexFunctions::zeta_find_zero);
+	ClassDB::bind_method(D_METHOD("eta_is_close_to_zero", "x", "y", "iters"), &ComplexFunctions::eta_is_close_to_zero);
+	ClassDB::bind_method(D_METHOD("zeta_is_close_to_zero", "x", "y", "iters"), &ComplexFunctions::zeta_is_close_to_zero);
 	ClassDB::bind_method(D_METHOD("zeta_with_derivatives", "x", "y", "iters"), &ComplexFunctions::zeta_with_derivatives);
 	ClassDB::bind_method(D_METHOD("eta_borwein_with_derivatives", "x", "y", "order"), &ComplexFunctions::eta_borwein_with_derivatives);
 	ClassDB::bind_method(D_METHOD("zeta_borwein_with_derivatives", "x", "y", "order"), &ComplexFunctions::zeta_borwein_with_derivatives);
@@ -23,6 +25,7 @@ void ComplexFunctions::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("log_beta_continuation_with_derivatives", "x", "y", "iters"), &ComplexFunctions::log_beta_continuation_with_derivatives);
 	ClassDB::bind_method(D_METHOD("beta_continuation_with_derivatives", "x", "y", "iters"), &ComplexFunctions::beta_continuation_with_derivatives);
 	ClassDB::bind_method(D_METHOD("beta_find_zero", "x", "y", "iters", "step_mult", "step_max", "debug"), &ComplexFunctions::beta_find_zero);
+	ClassDB::bind_method(D_METHOD("beta_is_close_to_zero", "x", "y", "iters"), &ComplexFunctions::beta_is_close_to_zero);
 
 	ClassDB::bind_method(D_METHOD("complex_mul", "ax", "ay", "bx", "by"), &ComplexFunctions::complex_mul);
 	ClassDB::bind_method(D_METHOD("complex_div", "ax", "ay", "bx", "by"), &ComplexFunctions::complex_div);
@@ -672,6 +675,31 @@ PackedFloat64Array ComplexFunctions::eta_continuation_with_derivatives(double x,
 	return result;
 }
 
+PackedFloat64Array ComplexFunctions::_is_close_to_zero_core(double x, double y, int iters, DerivativeFunc func) {
+	auto res = (this->*func)(x, y, iters * 2);
+	double f_val_x = res[0]; double f_val_y = res[1];
+	double f_prime_x = res[2]; double f_prime_y = res[3];
+	double f_second_x = res[4]; double f_second_y = res[5];
+
+	// Complex multiplication of f_val and f_second
+	double num_x = f_val_x * f_second_x - f_val_y * f_second_y;
+	double num_y = f_val_x * f_second_y + f_val_y * f_second_x;
+	double num_len = std::hypot(num_x, num_y);
+
+	double f_prime_len_sq = f_prime_x * f_prime_x + f_prime_y * f_prime_y;
+	double den_kappa = std::max(f_prime_len_sq, 1e-12);
+
+	double kappa = num_len / den_kappa;
+
+	PackedFloat64Array ret;
+	if (kappa < 1.0) {
+		ret.push_back(1.0);
+	} else {
+		ret.push_back(0.0);
+	}
+	return ret;
+}
+
 PackedFloat64Array ComplexFunctions::_find_zero_core(double x, double y, int iters, double step_mult, double step_max, bool debug, DerivativeFunc func) {
 	auto res = (this->*func)(x, y, iters * 2);
 	double f_val_x = res[0]; double f_val_y = res[1];
@@ -806,6 +834,14 @@ PackedFloat64Array ComplexFunctions::eta_find_zero(double x, double y, int iters
 		return _find_zero_core(x, y, iters, step_mult, step_max, debug, &ComplexFunctions::eta_continuation_with_derivatives);
 	} else {
 		return _find_zero_core(x, y, iters, step_mult, step_max, debug, &ComplexFunctions::eta_borwein_with_derivatives);
+	}
+}
+
+PackedFloat64Array ComplexFunctions::eta_is_close_to_zero(double x, double y, int iters) {
+	if (x < 0.0) {
+		return _is_close_to_zero_core(x, y, iters, &ComplexFunctions::eta_continuation_with_derivatives);
+	} else {
+		return _is_close_to_zero_core(x, y, iters, &ComplexFunctions::eta_borwein_with_derivatives);
 	}
 }
 
@@ -965,12 +1001,23 @@ PackedFloat64Array ComplexFunctions::beta_find_zero(double x, double y, int iter
 	return _find_zero_core(x, y, iters, step_mult, step_max, debug, &ComplexFunctions::beta_continuation_with_derivatives);
 }
 
+PackedFloat64Array ComplexFunctions::beta_is_close_to_zero(double x, double y, int iters) {
+	return _is_close_to_zero_core(x, y, iters, &ComplexFunctions::beta_continuation_with_derivatives);
+}
 
 PackedFloat64Array ComplexFunctions::zeta_find_zero(double x, double y, int iters, double step_mult, double step_max, bool debug) {
 	if (x < 0.0) {
 		return _find_zero_core(x, y, iters, step_mult, step_max, debug, &ComplexFunctions::zeta_continuation_with_derivatives);
 	} else {
 		return _find_zero_core(x, y, iters, step_mult, step_max, debug, &ComplexFunctions::zeta_borwein_with_derivatives);
+	}
+}
+
+PackedFloat64Array ComplexFunctions::zeta_is_close_to_zero(double x, double y, int iters) {
+	if (x < 0.0) {
+		return _is_close_to_zero_core(x, y, iters, &ComplexFunctions::zeta_continuation_with_derivatives);
+	} else {
+		return _is_close_to_zero_core(x, y, iters, &ComplexFunctions::zeta_borwein_with_derivatives);
 	}
 }
 
