@@ -5,7 +5,7 @@ const ZERO_PITCH_BOOST = 1.5
 const BASE_FREQUENCY = 130.8 # C3 (Standard drone)
 const REVERB_AMOUNT = 0.5
 const PITCH_DEADZONE = 0.01
-const TARGET_FILL = 2048
+const TARGET_FILL = 4096
 
 # --- SYNTHESIS STATE ---
 var playback: AudioStreamGeneratorPlayback
@@ -34,6 +34,8 @@ var current_harmonic_intensity: float = 0.0
 var target_fm_index: float = 0.0
 var current_fm_index: float = 0.0
 var pulse_presence: float = 0.0
+var current_amp_l: float = 0.0
+var current_amp_r: float = 0.0
 
 var current_pitch_scale: float = 1.0
 var current_reverb_wet: float = REVERB_AMOUNT
@@ -77,7 +79,7 @@ func _ready():
 
 	var generator = AudioStreamGenerator.new()
 	generator.mix_rate = 44100
-	generator.buffer_length = 0.05
+	generator.buffer_length = 0.15
 
 	stream_player.stream = generator
 
@@ -87,7 +89,7 @@ func _ready():
 	sample_rate = generator.mix_rate
 
 	# Prefill silence
-	var frames_to_fill = int(sample_rate)
+	var frames_to_fill = int(sample_rate * 0.15)
 
 	for i in frames_to_fill:
 		playback.push_frame(Vector2.ZERO)
@@ -284,7 +286,8 @@ func fill_buffer():
 	if playback == null: return
 
 	var available = playback.get_frames_available()
-	var to_fill = TARGET_FILL - (4096 - available)
+	var capacity = int(sample_rate * 0.15) # 6615
+	var to_fill = TARGET_FILL - (capacity - available)
 	# Fill only enough to keep stable occupancy
 	if to_fill <= 0:
 		return
@@ -332,8 +335,8 @@ func fill_buffer():
 	var pulse_wave = 0.75 + 0.25 * sin(pulse_phase * TAU)
 	var pulse_multiplier = lerp(1.0, pulse_wave, audio_pulse_presence)
 	
-	var amp_l = amp_base * pulse_multiplier * pan_l
-	var amp_r = amp_base * pulse_multiplier * pan_r
+	var target_amp_l = amp_base * pulse_multiplier * pan_l
+	var target_amp_r = amp_base * pulse_multiplier * pan_r
 	var shape = 0.25 + 0.1 * lfo_val
 
 	while to_fill > 0:
@@ -351,8 +354,12 @@ func fill_buffer():
 		sample = clamp(sample * 1.1, -1.1, 1.1)
 		sample = sample - (sample * sample * sample * shape)
 
+		# Smoothly interpolate amplitude sample-by-sample to prevent any clicks or discontinuities
+		current_amp_l = lerp(current_amp_l, target_amp_l, 0.01)
+		current_amp_r = lerp(current_amp_r, target_amp_r, 0.01)
+
 		# Push frame
-		playback.push_frame(Vector2(sample * amp_l, sample * amp_r))
+		playback.push_frame(Vector2(sample * current_amp_l, sample * current_amp_r))
 		to_fill -= 1
 
 func _process_audio_toggles():
@@ -415,5 +422,4 @@ func trigger_teleport_fade() -> void:
 	teleport_fade = 0.0
 	is_teleporting = true
 	if reverb_effect:
-		reverb_effect.wet = 0.0
 		current_reverb_wet = 0.0
