@@ -132,14 +132,14 @@ func _update_chunks(p_x: int, p_z: int, force: bool = false):
 		_update_all_chunks_lod(true)
 		return
 
-	# Clean up queued loads that are now out of view distance
-	var i = _chunks_to_load.size() - 1
-	while i >= 0:
-		var coord = _chunks_to_load[i]
-		if abs(coord.x - p_x) > Config.view_distance or abs(coord.y - p_z) > Config.view_distance:
+	# Clean up queued loads that are now out of view distance (O(N) filtering)
+	var new_chunks_to_load: Array[Vector2i] = []
+	for coord in _chunks_to_load:
+		if abs(coord.x - p_x) <= Config.view_distance and abs(coord.y - p_z) <= Config.view_distance:
+			new_chunks_to_load.append(coord)
+		else:
 			_queued_chunks_to_load.erase(coord)
-			_chunks_to_load.remove_at(i)
-		i -= 1
+	_chunks_to_load = new_chunks_to_load
 
 	# Add new chunks to load queue
 	for offset in _sorted_view_offsets:
