@@ -95,18 +95,16 @@ func _process(delta):
 
 
 func _update_chunks(p_x: int, p_z: int, force: bool = false):
-	var old_min_x = _last_player_chunk.x - _last_view_distance
-	var old_max_x = _last_player_chunk.x + _last_view_distance
-	var old_min_z = _last_player_chunk.y - _last_view_distance
-	var old_max_z = _last_player_chunk.y + _last_view_distance
+	var old_p = _last_player_chunk
+	var new_p = Vector2i(p_x, p_z)
 
 	var is_first_update = chunks.is_empty()
 	var view_distance_changed = _last_view_distance != -1 and _last_view_distance != Config.view_distance
 
-	_last_player_chunk = Vector2i(p_x, p_z)
+	_last_player_chunk = new_p
 	_last_view_distance = Config.view_distance
 
-	if force:
+	if force or is_first_update or view_distance_changed or old_p == Vector2i(9999, 9999) or max(abs(new_p.x - old_p.x), abs(new_p.y - old_p.y)) > 2:
 		_chunks_to_load.clear()
 		_queued_chunks_to_load.clear()
 		_chunks_to_unload.clear()
@@ -114,22 +112,33 @@ func _update_chunks(p_x: int, p_z: int, force: bool = false):
 		_lod_updates_pending.clear()
 		_queued_lod_updates.clear()
 
-		# Load all immediate
-		for offset in _sorted_view_offsets:
-			var chunk_coord = Vector2i(p_x + offset.x, p_z + offset.y)
-			if not chunks.has(chunk_coord):
-				_load_chunk(chunk_coord)
+		if force:
+			# Load all immediate
+			for offset in _sorted_view_offsets:
+				var chunk_coord = Vector2i(p_x + offset.x, p_z + offset.y)
+				if not chunks.has(chunk_coord):
+					_load_chunk(chunk_coord)
 
-		# Unload all immediate
-		var chunks_to_remove = []
-		for chunk_coord in chunks:
-			if abs(chunk_coord.x - p_x) > Config.view_distance or abs(chunk_coord.y - p_z) > Config.view_distance:
-				chunks_to_remove.append(chunk_coord)
-		for chunk_coord in chunks_to_remove:
-			_unload_chunk(chunk_coord)
+			# Unload all immediate
+			var chunks_to_remove = []
+			for chunk_coord in chunks:
+				if abs(chunk_coord.x - p_x) > Config.view_distance or abs(chunk_coord.y - p_z) > Config.view_distance:
+					chunks_to_remove.append(chunk_coord)
+			for chunk_coord in chunks_to_remove:
+				_unload_chunk(chunk_coord)
 
-		_flush_dirty_neighbors()
-		_update_all_chunks_lod(true)
+			_flush_dirty_neighbors()
+			_update_all_chunks_lod(true)
+		else:
+			# Queue all loads
+			for offset in _sorted_view_offsets:
+				var chunk_coord = Vector2i(p_x + offset.x, p_z + offset.y)
+				_queue_chunk_load_if_needed(chunk_coord)
+			
+			# Queue all unloads
+			for chunk_coord in chunks:
+				if abs(chunk_coord.x - p_x) > Config.view_distance or abs(chunk_coord.y - p_z) > Config.view_distance:
+					_queue_chunk_unload_if_needed(chunk_coord)
 		return
 
 	# Clean up queued loads that are now out of view distance (O(N) filtering)
@@ -141,24 +150,94 @@ func _update_chunks(p_x: int, p_z: int, force: bool = false):
 			_queued_chunks_to_load.erase(coord)
 	_chunks_to_load = new_chunks_to_load
 
-	# Add new chunks to load queue
-	for offset in _sorted_view_offsets:
-		var x = p_x + offset.x
-		var z = p_z + offset.y
-		if not is_first_update and not view_distance_changed and x >= old_min_x and x <= old_max_x and z >= old_min_z and z <= old_max_z:
-			continue
+	# Incremental/Edge-based update
+	var dx = new_p.x - old_p.x
+	var dz = new_p.y - old_p.y
+	
+	var old_min_x = old_p.x - Config.view_distance
+	var old_max_x = old_p.x + Config.view_distance
+	var old_min_z = old_p.y - Config.view_distance
+	var old_max_z = old_p.y + Config.view_distance
 
-		var chunk_coord = Vector2i(x, z)
-		if not chunks.has(chunk_coord) and not _queued_chunks_to_load.has(chunk_coord):
-			_chunks_to_load.append(chunk_coord)
-			_queued_chunks_to_load[chunk_coord] = true
+	var new_min_x = new_p.x - Config.view_distance
+	var new_max_x = new_p.x + Config.view_distance
+	var new_min_z = new_p.y - Config.view_distance
+	var new_max_z = new_p.y + Config.view_distance
 
-	# Queue unloads for distant chunks
-	for chunk_coord in chunks:
-		if abs(chunk_coord.x - p_x) > Config.view_distance or abs(chunk_coord.y - p_z) > Config.view_distance:
-			if not _queued_chunks_to_unload.has(chunk_coord):
-				_chunks_to_unload.append(chunk_coord)
-				_queued_chunks_to_unload[chunk_coord] = true
+	# 1. New chunks to load
+	if dx > 0:
+		for x in range(old_max_x + 1, new_max_x + 1):
+			for z in range(new_min_z, new_max_z + 1):
+				_queue_chunk_load_if_needed(Vector2i(x, z))
+	elif dx < 0:
+		for x in range(new_min_x, old_min_x):
+			for z in range(new_min_z, new_max_z + 1):
+				_queue_chunk_load_if_needed(Vector2i(x, z))
+
+	if dz > 0:
+		var x_start = new_min_x
+		var x_end = new_max_x
+		if dx > 0:
+			x_end = old_max_x
+		elif dx < 0:
+			x_start = old_min_x
+		for z in range(old_max_z + 1, new_max_z + 1):
+			for x in range(x_start, x_end + 1):
+				_queue_chunk_load_if_needed(Vector2i(x, z))
+	elif dz < 0:
+		var x_start = new_min_x
+		var x_end = new_max_x
+		if dx > 0:
+			x_end = old_max_x
+		elif dx < 0:
+			x_start = old_min_x
+		for z in range(new_min_z, old_min_z):
+			for x in range(x_start, x_end + 1):
+				_queue_chunk_load_if_needed(Vector2i(x, z))
+
+	# 2. Distant chunks to unload
+	if dx > 0:
+		for x in range(old_min_x, new_min_x):
+			for z in range(old_min_z, old_max_z + 1):
+				_queue_chunk_unload_if_needed(Vector2i(x, z))
+	elif dx < 0:
+		for x in range(new_max_x + 1, old_max_x + 1):
+			for z in range(old_min_z, old_max_z + 1):
+				_queue_chunk_unload_if_needed(Vector2i(x, z))
+
+	if dz > 0:
+		var x_start = old_min_x
+		var x_end = old_max_x
+		if dx > 0:
+			x_start = new_min_x
+		elif dx < 0:
+			x_end = new_max_x
+		for z in range(old_min_z, new_min_z):
+			for x in range(x_start, x_end + 1):
+				_queue_chunk_unload_if_needed(Vector2i(x, z))
+	elif dz < 0:
+		var x_start = old_min_x
+		var x_end = old_max_x
+		if dx > 0:
+			x_start = new_min_x
+		elif dx < 0:
+			x_end = new_max_x
+		for z in range(new_max_z + 1, old_max_z + 1):
+			for x in range(x_start, x_end + 1):
+				_queue_chunk_unload_if_needed(Vector2i(x, z))
+
+
+func _queue_chunk_load_if_needed(coord: Vector2i):
+	if not chunks.has(coord) and not _queued_chunks_to_load.has(coord):
+		_chunks_to_load.append(coord)
+		_queued_chunks_to_load[coord] = true
+
+
+func _queue_chunk_unload_if_needed(coord: Vector2i):
+	if chunks.has(coord) and not _queued_chunks_to_unload.has(coord):
+		_chunks_to_unload.append(coord)
+		_queued_chunks_to_unload[coord] = true
+
 
 
 func _update_all_chunks_lod(force: bool = false):
