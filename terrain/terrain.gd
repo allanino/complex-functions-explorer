@@ -112,33 +112,22 @@ func _update_chunks(p_x: int, p_z: int, force: bool = false):
 		_lod_updates_pending.clear()
 		_queued_lod_updates.clear()
 
-		if force:
-			# Load all immediate
-			for offset in _sorted_view_offsets:
-				var chunk_coord = Vector2i(p_x + offset.x, p_z + offset.y)
-				if not chunks.has(chunk_coord):
-					_load_chunk(chunk_coord)
+		# Load all immediate
+		for offset in _sorted_view_offsets:
+			var chunk_coord = Vector2i(p_x + offset.x, p_z + offset.y)
+			if not chunks.has(chunk_coord):
+				_load_chunk(chunk_coord)
 
-			# Unload all immediate
-			var chunks_to_remove = []
-			for chunk_coord in chunks:
-				if abs(chunk_coord.x - p_x) > Config.view_distance or abs(chunk_coord.y - p_z) > Config.view_distance:
-					chunks_to_remove.append(chunk_coord)
-			for chunk_coord in chunks_to_remove:
-				_unload_chunk(chunk_coord)
+		# Unload all immediate
+		var chunks_to_remove = []
+		for chunk_coord in chunks:
+			if abs(chunk_coord.x - p_x) > Config.view_distance or abs(chunk_coord.y - p_z) > Config.view_distance:
+				chunks_to_remove.append(chunk_coord)
+		for chunk_coord in chunks_to_remove:
+			_unload_chunk(chunk_coord)
 
-			_flush_dirty_neighbors()
-			_update_all_chunks_lod(true)
-		else:
-			# Queue all loads
-			for offset in _sorted_view_offsets:
-				var chunk_coord = Vector2i(p_x + offset.x, p_z + offset.y)
-				_queue_chunk_load_if_needed(chunk_coord)
-			
-			# Queue all unloads
-			for chunk_coord in chunks:
-				if abs(chunk_coord.x - p_x) > Config.view_distance or abs(chunk_coord.y - p_z) > Config.view_distance:
-					_queue_chunk_unload_if_needed(chunk_coord)
+		_flush_dirty_neighbors()
+		_update_all_chunks_lod(true)
 		return
 
 	# Clean up queued loads that are now out of view distance (O(N) filtering)
