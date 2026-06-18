@@ -7,7 +7,7 @@ extends Node3D
 # Day night cycle variables
 var _golden_hour_transition: float = 0.0
 var _sun_color = Color("#fc9500")
-var _moon_color = Color("#FFF7EB")
+var _moon_color = Color("#FFF2E3")
 
 # Smooth angle variables
 var _current_angle: float = 0.0
@@ -80,16 +80,17 @@ func _update_sky_positions(delta: float):
 
 	if sun:
 		sun.basis = Basis.looking_at(sun_dir, Vector3.UP if abs(sun_dir.y) < 0.99 else Vector3.FORWARD)
-		sun.light_energy = smoothstep(-0.02, 0.02, sun_elevation) * Config.sun_luminosity
+		sun.light_energy = smoothstep(-0.03, -0.015, sun_elevation) * Config.sun_luminosity
 		sun.light_color = lerp(_sun_color, Color(1.0, 0.5, 0.2), _golden_hour_transition)
 		sun.shadow_enabled = Config.shadows_enabled and sun_elevation > -0.01
 
 	if moon:
 		moon.basis = Basis.looking_at(moon_dir, Vector3.UP if abs(moon_dir.y) < 0.99 else Vector3.FORWARD)
 		var moon_elevation = - moon_dir.y
-		var t = smoothstep(-0.02, 0.02, moon_elevation)
-		moon.light_energy = lerp(0.15, 0.30, t) * Config.sun_luminosity
-		moon.light_color = lerp(Color(1.0, 0.82, 0.68), _moon_color, _golden_hour_transition)
+		var t = smoothstep(-0.03, -0.015, moon_elevation)
+
+		moon.light_energy = lerp(0.15, 0.25, t) * Config.sun_luminosity
+		moon.light_color = lerp(Color("#FFD1AD"), _moon_color, _golden_hour_transition)
 		moon.shadow_enabled = Config.shadows_enabled and moon_elevation > -0.01
 
 	if world_environment and world_environment.environment and world_environment.environment.sky:

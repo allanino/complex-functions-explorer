@@ -209,7 +209,7 @@ void compute_sun_moon(vec3 eye_dir, bool light0_enabled, vec3 light0_dir, vec3 l
         float moon_disk_intensity = smoothstep(0.0, 0.1, light1_en);
 
         float moon_glow_dist = max(0.0, moon_dist - moon_size * 0.45);
-        float moon_glow = 0.005 / (0.001 + moon_glow_dist * moon_glow_dist * 5.0);
+        float moon_glow = 0.001 / (0.001 + moon_glow_dist * moon_glow_dist * 30.0);
 
         if (moon_disk > 0.0) {
             float moon_radius = moon_size * 0.5;
