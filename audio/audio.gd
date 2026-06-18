@@ -247,12 +247,12 @@ func _physics_process(delta):
 			is_teleporting = false
 	else:
 		# Balanced interpolation rates: moderately faster but clean response to terrain changes
-		current_volume = lerp(current_volume, target_volume, delta * 15.0)
-		current_frequency = lerp(current_frequency, target_frequency, delta * 15.0)
-		current_pulse_rate = lerp(current_pulse_rate, target_pulse_rate, delta * 15.0)
-		current_pan = lerp(current_pan, target_pan, delta * 15.0)
-		current_harmonic_intensity = lerp(current_harmonic_intensity, target_harmonic_intensity, delta * 15.0)
-		current_fm_index = lerp(current_fm_index, target_fm_index, delta * 15.0)
+		current_volume = lerp(current_volume, target_volume, delta * 5.0)
+		current_frequency = lerp(current_frequency, target_frequency, delta * 5.0)
+		current_pulse_rate = lerp(current_pulse_rate, target_pulse_rate, delta * 5.0)
+		current_pan = lerp(current_pan, target_pan, delta * 2.5)
+		current_harmonic_intensity = lerp(current_harmonic_intensity, target_harmonic_intensity, delta * 5.0)
+		current_fm_index = lerp(current_fm_index, target_fm_index, delta * 5.0)
 
 	# Final safety clamp
 	current_frequency = max(0.8, current_frequency)
@@ -265,7 +265,7 @@ func _physics_process(delta):
 			target_ps = 1.0
 
 		target_ps = clamp(target_ps, 0.5, 2.0)
-		current_pitch_scale = lerp(current_pitch_scale, target_ps, delta * 15.0)
+		current_pitch_scale = lerp(current_pitch_scale, target_ps, delta * 5.0)
 
 		if abs(current_pitch_scale - last_pitch) > 0.001:
 			pitch_shift_effect.pitch_scale = current_pitch_scale
@@ -274,13 +274,13 @@ func _physics_process(delta):
 	if reverb_effect:
 		var target_rv = clamp(REVERB_AMOUNT + (proximity * 0.01), 0.0, 0.9)
 		if is_finite(target_rv):
-			current_reverb_wet = lerp(current_reverb_wet, target_rv, delta * 10.0)
+			current_reverb_wet = lerp(current_reverb_wet, target_rv, delta)
 			reverb_effect.wet = current_reverb_wet
 
 	if lpf_effect:
 		var target_cut = lerp(600.0, 4500.0, clamp(mag * 0.05, 0.0, 1.0))
 		if is_finite(target_cut):
-			current_lpf_cutoff = lerp(current_lpf_cutoff, target_cut, delta * 10.0)
+			current_lpf_cutoff = lerp(current_lpf_cutoff, target_cut, delta * 5.0)
 			lpf_effect.cutoff_hz = clamp(current_lpf_cutoff, 100.0, 20000.0)
 
 	fill_buffer()
