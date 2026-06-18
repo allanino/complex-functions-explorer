@@ -1209,6 +1209,22 @@ static func get_field(world_x: float, world_z: float) -> Vector2:
 	return get_field_at(w.x, w.y, Config.function_type, false)
 
 static func is_close_to_zero(z_mid: Vector2) -> Array:
+	var has_ext = ClassDB.class_exists("ComplexFunctions")
+	var has_cpp = function_has_cpp_find_zero()
+
+	if has_cpp and has_ext:
+		var ext = ClassDB.instantiate("ComplexFunctions")
+		var res = []
+		if Config.function_type == Config.ComplexFunc.ZETA_CONTINUATION or Config.function_type == Config.ComplexFunc.ZETA_POWER_SERIES:
+			res = ext.call("zeta_is_close_to_zero", z_mid.x, z_mid.y, Config.iterations * 2)
+		elif Config.function_type == Config.ComplexFunc.DIRICHLET_ETA_CONTINUATION or Config.function_type == Config.ComplexFunc.DIRICHLET_ETA:
+			res = ext.call("eta_is_close_to_zero", z_mid.x, z_mid.y, Config.iterations * 2)
+		elif Config.function_type == Config.ComplexFunc.DIRICHLET_BETA_CONTINUATION:
+			res = ext.call("beta_is_close_to_zero", z_mid.x, z_mid.y, Config.iterations * 2)
+
+		if res.size() == 1:
+			return [res[0] > 0.5, z_mid]
+
 	var use_analytic = false
 	var kappa = 0.0
 

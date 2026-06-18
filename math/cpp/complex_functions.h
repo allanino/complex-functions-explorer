@@ -29,6 +29,10 @@ public:
 	PackedFloat64Array zeta_find_zero(double x, double y, int iters, double step_mult, double step_max, bool debug);
 	PackedFloat64Array beta_find_zero(double x, double y, int iters, double step_mult, double step_max, bool debug);
 
+	PackedFloat64Array eta_is_close_to_zero(double x, double y, int iters);
+	PackedFloat64Array zeta_is_close_to_zero(double x, double y, int iters);
+	PackedFloat64Array beta_is_close_to_zero(double x, double y, int iters);
+
 	PackedFloat64Array eta_borwein_with_derivatives(double x, double y, int order);
 	PackedFloat64Array zeta_borwein_with_derivatives(double x, double y, int order);
 	PackedFloat64Array lanczos_log_gamma_with_derivatives(double x, double y);
@@ -56,6 +60,7 @@ private:
 
 	using DerivativeFunc = PackedFloat64Array (ComplexFunctions::*)(double, double, int);
 	PackedFloat64Array _find_zero_core(double x, double y, int iters, double step_mult, double step_max, bool debug, DerivativeFunc func);
+	PackedFloat64Array _is_close_to_zero_core(double x, double y, int iters, DerivativeFunc func);
 
 };
 
