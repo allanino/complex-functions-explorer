@@ -283,27 +283,23 @@ func _physics_process(delta):
 func fill_buffer():
 	if playback == null: return
 
-	var drone_vol_scale = Config.drone_volume / 100.0
-	if drone_vol_scale <= 0.0 or is_suppressed:
-		# If muted/suppressed, just push silent frames quickly without synthesis math
-		var available = playback.get_frames_available()
-		var to_fill = TARGET_FILL - (4096 - available)
-		if to_fill > 0:
-			to_fill = min(to_fill, 1024)
-			for i in range(to_fill):
-				playback.push_frame(Vector2.ZERO)
-		return
-
 	var available = playback.get_frames_available()
-	buffer_min_available = min(buffer_min_available, available)
-	buffer_max_available = max(buffer_max_available, available)
-
-	# Fill only enough to keep stable occupancy
 	var to_fill = TARGET_FILL - (4096 - available)
+	# Fill only enough to keep stable occupancy
 	if to_fill <= 0:
 		return
 
 	to_fill = min(to_fill, 1024)
+
+	var drone_vol_scale = Config.drone_volume / 100.0
+	if drone_vol_scale <= 0.0 or is_suppressed:
+		# If muted/suppressed, just push silent frames quickly without synthesis math
+		for i in range(to_fill):
+			playback.push_frame(Vector2.ZERO)
+		return
+
+	buffer_min_available = min(buffer_min_available, available)
+	buffer_max_available = max(buffer_max_available, available)
 
 	var startup_gain = clamp(startup_time / startup_duration, 0.0, 1.0)
 	startup_gain = startup_gain * startup_gain # smoother fade-in
