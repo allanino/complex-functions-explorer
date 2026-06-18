@@ -205,7 +205,7 @@ func _physics_process(delta):
 	# --- MAPPINGS ---
 
 	# 1. MAGNITUDE |f|
-	target_volume = clamp(0.20 - mag * 0.01, 0.0, 0.2)
+	target_volume = clamp(0.5 - mag * 0.1, 0.1, 0.5)
 
 	# 2. PROXIMITY TO ZERO
 	var proximity = 1.0 / (0.05 + mag)
@@ -245,12 +245,12 @@ func _physics_process(delta):
 		if teleport_fade >= 1.0:
 			is_teleporting = false
 	else:
-		current_volume = lerp(current_volume, target_volume, delta * 10.0)
-		current_frequency = lerp(current_frequency, target_frequency, delta * 10.0)
-		current_pulse_rate = lerp(current_pulse_rate, target_pulse_rate, delta * 10.0)
+		current_volume = lerp(current_volume, target_volume, delta * 5.0)
+		current_frequency = lerp(current_frequency, target_frequency, delta * 5.0)
+		current_pulse_rate = lerp(current_pulse_rate, target_pulse_rate, delta * 5.0)
 		current_pan = lerp(current_pan, target_pan, delta * 3.0)
-		current_harmonic_intensity = lerp(current_harmonic_intensity, target_harmonic_intensity, delta * 10.0)
-		current_fm_index = lerp(current_fm_index, target_fm_index, delta * 10.0)
+		current_harmonic_intensity = lerp(current_harmonic_intensity, target_harmonic_intensity, delta * 5.0)
+		current_fm_index = lerp(current_fm_index, target_fm_index, delta * 5.0)
 
 	# Final safety clamp
 	current_frequency = max(0.8, current_frequency)
@@ -262,7 +262,7 @@ func _physics_process(delta):
 			target_ps = 1.0
 
 		target_ps = clamp(target_ps, 0.5, 2.0)
-		current_pitch_scale = lerp(current_pitch_scale, target_ps, delta * 15.0)
+		current_pitch_scale = lerp(current_pitch_scale, target_ps, delta * 1.5)
 
 		if abs(current_pitch_scale - last_pitch) > 0.001:
 			pitch_shift_effect.pitch_scale = current_pitch_scale
@@ -271,13 +271,13 @@ func _physics_process(delta):
 	if reverb_effect:
 		var target_rv = clamp(REVERB_AMOUNT + (proximity * 0.01), 0.0, 0.9)
 		if is_finite(target_rv):
-			current_reverb_wet = lerp(current_reverb_wet, target_rv, delta * 4.0)
+			current_reverb_wet = lerp(current_reverb_wet, target_rv, delta * 1.5)
 			reverb_effect.wet = current_reverb_wet
 
 	if lpf_effect:
 		var target_cut = lerp(600.0, 4500.0, clamp(mag * 0.05, 0.0, 1.0))
 		if is_finite(target_cut):
-			current_lpf_cutoff = lerp(current_lpf_cutoff, target_cut, delta * 4.0)
+			current_lpf_cutoff = lerp(current_lpf_cutoff, target_cut, delta * 1.5)
 			lpf_effect.cutoff_hz = clamp(current_lpf_cutoff, 100.0, 20000.0)
 
 	fill_buffer()
@@ -294,7 +294,7 @@ func fill_buffer():
 
 	to_fill = min(to_fill, 1024)
 
-	var drone_vol_scale = Config.drone_volume / 100.0
+	var drone_vol_scale = (Config.drone_volume / 100.0) * 0.75
 	if drone_vol_scale <= 0.0 or is_suppressed:
 		# If muted/suppressed, just push silent frames quickly without synthesis math
 		for i in range(to_fill):
