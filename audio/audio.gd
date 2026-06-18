@@ -47,7 +47,7 @@ var is_teleporting: bool = false
 
 # --- STARTUP ENVELOPE ---
 var startup_time := 0.0
-var startup_duration := 15.0
+var startup_duration := 5.0
 
 # --- FPS GUARD ---
 var low_fps_counter: int = 0
