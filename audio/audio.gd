@@ -4,8 +4,7 @@ extends Node3D
 const ZERO_PITCH_BOOST = 1.5
 const BASE_FREQUENCY = 130.8 # C3 (Standard drone)
 const REVERB_AMOUNT = 0.5
-const PHASE_PAN_STRENGTH = 1.0
-const PITCH_DEADZONE := 0.01
+
 const TARGET_FILL := 2048
 
 # --- SYNTHESIS STATE ---
@@ -221,14 +220,12 @@ func _physics_process(delta):
 
 	# Stable breathing speed
 	target_pulse_rate = lerp(1.5, 6.0, pulse_presence)
-
-	# Store for synthesis stage
 	target_harmonic_intensity = clamp(proximity * 0.08, 0.0, 0.4)
 	target_fm_index = clamp(proximity * 0.15, 0.0, 1.5)
 
 	# 3. PHASE arg(f)
 	var arg = atan2(f.y, f.x)
-	target_pan = cos(arg) * PHASE_PAN_STRENGTH
+	target_pan = clamp(cos(arg), -1.0, 1.0)
 
 	# --- FINITE CHECKS BEFORE LERP ---
 	if not is_finite(target_frequency): target_frequency = BASE_FREQUENCY
@@ -249,13 +246,13 @@ func _physics_process(delta):
 		if teleport_fade >= 1.0:
 			is_teleporting = false
 	else:
-		# Significantly increased interpolation weights for instantaneous response
-		current_volume = lerp(current_volume, target_volume, delta * 10.0)
-		current_frequency = lerp(current_frequency, target_frequency, delta * 10.0)
-		current_pulse_rate = lerp(current_pulse_rate, target_pulse_rate, delta * 10.0)
-		current_pan = lerp(current_pan, target_pan, delta * 4.0)
-		current_harmonic_intensity = lerp(current_harmonic_intensity, target_harmonic_intensity, delta * 10.0)
-		current_fm_index = lerp(current_fm_index, target_fm_index, delta * 10.0)
+		# Balanced interpolation rates: moderately faster but clean response to terrain changes
+		current_volume = lerp(current_volume, target_volume, delta * 15.0)
+		current_frequency = lerp(current_frequency, target_frequency, delta * 15.0)
+		current_pulse_rate = lerp(current_pulse_rate, target_pulse_rate, delta * 15.0)
+		current_pan = lerp(current_pan, target_pan, delta * 15.0)
+		current_harmonic_intensity = lerp(current_harmonic_intensity, target_harmonic_intensity, delta * 15.0)
+		current_fm_index = lerp(current_fm_index, target_fm_index, delta * 15.0)
 
 	# Final safety clamp
 	current_frequency = max(0.8, current_frequency)
@@ -263,7 +260,7 @@ func _physics_process(delta):
 	# --- EFFECT MODULATION ---
 	if pitch_shift_effect:
 		var target_ps = 1.0 + current_harmonic_intensity * 0.02
-
+		const PITCH_DEADZONE := 0.01
 		if abs(target_ps - 1.0) < PITCH_DEADZONE:
 			target_ps = 1.0
 
@@ -277,13 +274,13 @@ func _physics_process(delta):
 	if reverb_effect:
 		var target_rv = clamp(REVERB_AMOUNT + (proximity * 0.01), 0.0, 0.9)
 		if is_finite(target_rv):
-			current_reverb_wet = lerp(current_reverb_wet, target_rv, delta * 4.0)
+			current_reverb_wet = lerp(current_reverb_wet, target_rv, delta * 10.0)
 			reverb_effect.wet = current_reverb_wet
 
 	if lpf_effect:
 		var target_cut = lerp(600.0, 4500.0, clamp(mag * 0.05, 0.0, 1.0))
 		if is_finite(target_cut):
-			current_lpf_cutoff = lerp(current_lpf_cutoff, target_cut, delta * 4.0)
+			current_lpf_cutoff = lerp(current_lpf_cutoff, target_cut, delta * 10.0)
 			lpf_effect.cutoff_hz = clamp(current_lpf_cutoff, 100.0, 20000.0)
 
 	fill_buffer()
@@ -318,8 +315,12 @@ func fill_buffer():
 
 	# Hoist invariant gains and multipliers outside the loop
 	var amp_base = current_volume * drone_vol_scale * startup_gain * teleport_fade
-	var pan_l = clamp(1.0 - current_pan, 0.0, 1.0)
-	var pan_r = clamp(1.0 + current_pan, 0.0, 1.0)
+	
+	# Constant-power panning to maintain volume sum and create highly perceptible separation.
+	# current_pan is in [-1.0, 1.0]. Map it to angle in [0, PI/2].
+	var pan_angle = (current_pan + 1.0) * (PI / 4.0)
+	var pan_l = cos(pan_angle)
+	var pan_r = sin(pan_angle)
 	
 	# Pre-calculate LFO phase value once for the frame since 0.12 Hz LFO changes 
 	# negligibly (< 0.002%) over 1024 samples (23ms)
