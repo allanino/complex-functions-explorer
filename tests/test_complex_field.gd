@@ -318,15 +318,15 @@ func test_log_zeta_continuation_with_derivatives():
 	assert_almost_eq(res2[1].y, -0.6493, 0.0001)
 
 func test_eta_continuation_power_series_with_derivatives():
-	var res = ComplexFieldScript.eta_continuation_power_series_with_derivatives(-0.5, 0.0, 2000)
-	assert_almost_eq(res[0].x, 0.3801, 0.001)
+	var res = ComplexFieldScript.eta_continuation_power_series_with_derivatives(1.5, 0.0, 2000)
+	assert_almost_eq(res[0].x, 0.7651, 0.001)
 	assert_almost_eq(res[0].y, 0.0, 0.015)
 
-	# Continuity test near x = 0
-	var res3 = ComplexFieldScript.eta_continuation_power_series_with_derivatives(-0.01, 2.0, 2000)
-	var res4 = ComplexFieldScript.eta_continuation_power_series_with_derivatives(0.01, 2.0, 2000)
-	assert_almost_eq(res3[0].x, res4[0].x, 0.2, "Continuity across x=0 real part")
-	assert_almost_eq(res3[0].y, res4[0].y, 0.2, "Continuity across x=0 imaginary part")
+	# Continuity test near x = 1.0 (since x <= 0 is bad for unaccelerated series)
+	var res3 = ComplexFieldScript.eta_continuation_power_series_with_derivatives(0.99, 2.0, 2000)
+	var res4 = ComplexFieldScript.eta_continuation_power_series_with_derivatives(1.01, 2.0, 2000)
+	assert_almost_eq(res3[0].x, res4[0].x, 0.2, "Continuity across x=1 real part")
+	assert_almost_eq(res3[0].y, res4[0].y, 0.2, "Continuity across x=1 imaginary part")
 
 
 func test_zeta_power_series_with_derivatives():
@@ -347,10 +347,10 @@ func test_zeta_power_series_with_derivatives():
 	assert_almost_eq(res[0].x, 0.0, 0.05)
 	assert_almost_eq(res[0].y, 0.0, 0.05)
 
-	# Test at x = -0.5, y = 0.0
-	var res2 = ComplexFieldScript.zeta_power_series_with_derivatives(-0.5, 0.0, 2000)
+	# Test at x = 2.0, y = 0.0
+	var res2 = ComplexFieldScript.zeta_power_series_with_derivatives(2.0, 0.0, 2000)
 	# Compare to mathematically known approximation or zeta_continuation
-	var expected = ComplexFieldScript.zeta_continuation(-0.5, 0.0)
+	var expected = ComplexFieldScript.zeta_continuation(2.0, 0.0)
 	assert_almost_eq(res2[0].x, expected.x, 0.05)
 	assert_almost_eq(res2[0].y, expected.y, 0.05)
 

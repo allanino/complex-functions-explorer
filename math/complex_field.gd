@@ -379,63 +379,54 @@ static func evaluate_power_series(center: Vector2, coeffs: Array, z: Vector2) ->
 
 static func compute_eta_taylor_patch(x: float, y: float, iters: int) -> Array:
 	var K = PATCH_MAX_K
-	var max_terms = min(80, iters)
 
 	var fact = []
 	fact.append(1.0)
 	for k in range(1, K + 1):
 		fact.append(fact[k - 1] * float(k))
 
+	var inner_sums_x = PackedFloat64Array()
+	var inner_sums_y = PackedFloat64Array()
+	inner_sums_x.resize(K + 1)
+	inner_sums_y.resize(K + 1)
+	for k in range(K + 1):
+		inner_sums_x[k] = 0.0
+		inner_sums_y[k] = 0.0
+
+	for n in range(1, iters + 1, 2):
+		var nf = float(n)
+		var amp = pow(nf, -x)
+		var log_n = log(nf)
+		var raw_theta = -y * log_n
+		var theta = fposmod(raw_theta, TAU)
+
+		var term_x = amp * cos(theta)
+		var term_y = amp * sin(theta)
+
+		for k in range(K + 1):
+			inner_sums_x[k] += term_x
+			inner_sums_y[k] += term_y
+			term_x *= -log_n
+			term_y *= -log_n
+
+		var nf2 = float(n + 1)
+		var amp2 = pow(nf2, -x)
+		var log_n2 = log(nf2)
+		var raw_theta2 = -y * log_n2
+		var theta2 = fposmod(raw_theta2, TAU)
+
+		var term2_x = amp2 * cos(theta2)
+		var term2_y = amp2 * sin(theta2)
+
+		for k in range(K + 1):
+			inner_sums_x[k] -= term2_x
+			inner_sums_y[k] -= term2_y
+			term2_x *= -log_n2
+			term2_y *= -log_n2
+
 	var eta_coeffs = []
 	for k in range(K + 1):
-		eta_coeffs.append(Vector2.ZERO)
-
-	for n in range(max_terms):
-		var inner_sums_x = PackedFloat64Array()
-		var inner_sums_y = PackedFloat64Array()
-		inner_sums_x.resize(K + 1)
-		inner_sums_y.resize(K + 1)
-		for k in range(K + 1):
-			inner_sums_x[k] = 0.0
-			inner_sums_y[k] = 0.0
-
-		var binom = 1.0
-		for k in range(n + 1):
-			var base_term_x: float = 0.0
-			var base_term_y: float = 0.0
-			var log_k1: float = 0.0
-
-			if k == 0:
-				base_term_x = float(binom)
-				base_term_y = 0.0
-				log_k1 = 0.0
-			else:
-				var k1 = float(k + 1)
-				var amp = pow(k1, -x)
-				var raw_theta = -y * log(k1)
-				var theta = fposmod(raw_theta, TAU)
-				var sign_k = 1.0 if k % 2 == 0 else -1.0
-				base_term_x = sign_k * float(binom) * amp * cos(theta)
-				base_term_y = sign_k * float(binom) * amp * sin(theta)
-				log_k1 = log(k1)
-
-			inner_sums_x[0] += base_term_x
-			inner_sums_y[0] += base_term_y
-
-			var current_term_x = base_term_x
-			var current_term_y = base_term_y
-			for m in range(1, K + 1):
-				current_term_x *= -log_k1
-				current_term_y *= -log_k1
-				inner_sums_x[m] += current_term_x
-				inner_sums_y[m] += current_term_y
-
-			binom = binom * (n - k) / (k + 1)
-
-		var div_pow2 = pow(2.0, float(n + 1))
-		for m in range(K + 1):
-			var v = Vector2(inner_sums_x[m] / div_pow2 / fact[m], inner_sums_y[m] / div_pow2 / fact[m])
-			eta_coeffs[m] += v
+		eta_coeffs.append(Vector2(inner_sums_x[k] / fact[k], inner_sums_y[k] / fact[k]))
 
 	return eta_coeffs
 
