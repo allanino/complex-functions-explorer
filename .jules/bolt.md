@@ -33,3 +33,7 @@
 ## 2025-03-02 - Optimize LineEdit IME process checking
 **Learning:** In `ui/components/text_input.gd`, `_process` ran every frame checking `has_ime_text()` and calling `$LineEdit`, wasting CPU cycles. Since IME checking is only needed while the input is actively being used, the process loop can be suspended entirely when the user is not focused on the text field.
 **Action:** Cache the LineEdit node with `@onready`, initialize with `set_process(false)`, and toggle `set_process(true/false)` by hooking into the LineEdit's `focus_entered` and `focus_exited` signals.
+
+## 2025-03-02 - Optimize Spatial Distance Checks
+**Learning:** For spatial distance comparisons inside tight loops (like physics processing or convergence checks), calling `distance_to()` computes a costly and unnecessary square root operation.
+**Action:** Replace `distance_to()` with `distance_squared_to()` and compare it against the threshold squared (`threshold ** 2`) to optimize CPU usage.

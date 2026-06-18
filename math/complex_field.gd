@@ -1355,12 +1355,12 @@ static func find_zero(true_z: Vector2, debug: bool = false) -> Variant:
 		f_val = result[1]
 		f_mag = f_val.length()
 
-		var z_dist = 0.0
+		var z_dist_sq = 0.0
 		if typeof(refined_z) == TYPE_VECTOR2:
-			z_dist = sqrt((next_z.x - refined_z.x) ** 2 + (next_z.y - refined_z.y) ** 2)
+			z_dist_sq = (next_z.x - refined_z.x) ** 2 + (next_z.y - refined_z.y) ** 2
 		else:
-			z_dist = next_z.distance_to(refined_z)
-		if f_mag < MAG_MIN or z_dist < ZERO_DIST_MIN:
+			z_dist_sq = next_z.distance_squared_to(refined_z)
+		if f_mag < MAG_MIN or z_dist_sq < ZERO_DIST_MIN ** 2:
 			converged = true
 			break
 

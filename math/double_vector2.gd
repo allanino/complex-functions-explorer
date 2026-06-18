@@ -21,6 +21,11 @@ func distance_to(other: DoubleVector2) -> float:
 	var dy = y - other.y
 	return sqrt(dx * dx + dy * dy)
 
+func distance_squared_to(other: DoubleVector2) -> float:
+	var dx = x - other.x
+	var dy = y - other.y
+	return dx * dx + dy * dy
+
 func normalized() -> DoubleVector2:
 	var l = length()
 	if l == 0:
