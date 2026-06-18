@@ -310,7 +310,7 @@ func _physics_process(delta):
 	# Converts player's world position back to the mathematical complex plane to calculate field values
 	current_z = Config.world_to_complex(global_position.x, global_position.z)
 	var _current_pos2d_check = Vector2(global_position.x, global_position.z)
-	if _predicted_pos != Vector2.INF and _predicted_pos.distance_to(_current_pos2d_check) < 0.001:
+	if _predicted_pos != Vector2.INF and _predicted_pos.distance_squared_to(_current_pos2d_check) < 0.000001:
 		current_f = _predicted_next_f
 	else:
 		current_f = ComplexField.get_field(global_position.x, global_position.z)
@@ -407,7 +407,7 @@ func _physics_process(delta):
 		var current_pos2d = Vector2(global_position.x, global_position.z)
 		var target_pos2d = Vector2(target_x, target_z)
 
-		if current_pos2d.distance_to(target_pos2d) > 0.01:
+		if current_pos2d.distance_squared_to(target_pos2d) > 0.0001:
 			var target_dir2d = (target_pos2d - current_pos2d).normalized()
 			var target_yaw = atan2(-target_dir2d.x, -target_dir2d.y)
 			rotation.y = lerp_angle(rotation.y, target_yaw, 10.0 * delta)
@@ -419,8 +419,8 @@ func _physics_process(delta):
 			velocity.z = 0.0
 		else:
 			if newton_converged:
-				var dist = current_pos2d.distance_to(target_pos2d)
-				if dist <= current_speed * delta:
+				var dist_sq = current_pos2d.distance_squared_to(target_pos2d)
+				if dist_sq <= (current_speed * delta) ** 2:
 					global_position.x = target_x
 					global_position.z = target_z
 					velocity.x = 0.0
@@ -430,9 +430,9 @@ func _physics_process(delta):
 					var target_dir2d = (target_pos2d - current_pos2d).normalized()
 					direction = Vector3(target_dir2d.x, 0, target_dir2d.y)
 			else:
-				var dist = current_pos2d.distance_to(target_pos2d)
+				var dist_sq = current_pos2d.distance_squared_to(target_pos2d)
 				var arrival_margin = max(0.1, current_speed * delta * 1.5)
-				if dist > arrival_margin:
+				if dist_sq > arrival_margin ** 2:
 					var target_dir2d = (target_pos2d - current_pos2d).normalized()
 					direction = Vector3(target_dir2d.x, 0, target_dir2d.y)
 				else:
@@ -713,7 +713,7 @@ func _process(_delta):
 
 	# If player teleported (e.g. reset, demo actions, or function change),
 	# bypass crossing detection to prevent false branch jumping.
-	if last_z.distance_to(frame_z) > 2.0:
+	if last_z.distance_squared_to(frame_z) > 4.0:
 		last_z = frame_z
 
 	if Config.function.get("is_multivalued", false):
@@ -852,7 +852,7 @@ func start_newton_walk():
 			# Cycle detection: check if we are jumping back and forth
 			loop_detected = false
 			for j in range(max(0, path.size() - 4), path.size()):
-				if path[j].distance_to(next_z.to_vector2()) < 1e-3:
+				if path[j].distance_squared_to(next_z.to_vector2()) < 1e-6:
 					loop_detected = true
 					break
 
@@ -892,7 +892,7 @@ func _process_zero_detection(z_mid: Vector2, current_auto_walk_state: int):
 			call_deferred("_on_zero_detected", zero_res, current_auto_walk_state)
 
 func _on_zero_detected(true_z: Vector2, current_auto_walk_state: int):
-	if true_z.distance_to(last_detected_z) > 0.001:
+	if true_z.distance_squared_to(last_detected_z) > 0.000001:
 		GameState.total_zeros_found += 1
 		GameState.visited_zeros.push_back(true_z)
 		if current_auto_walk_state == AutoWalkState.MOVING_TO_LINE or current_auto_walk_state == AutoWalkState.WALKING:
