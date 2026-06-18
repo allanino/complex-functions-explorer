@@ -421,5 +421,3 @@ func _exit_tree():
 func trigger_teleport_fade() -> void:
 	teleport_fade = 0.0
 	is_teleporting = true
-	if reverb_effect:
-		current_reverb_wet = 0.0
