@@ -16,6 +16,9 @@ var _last_view_distance: int = -1
 var slow_frame_counter: int = 0
 var _shaders_stopped: bool = false
 var _last_lod_player_chunk = Vector2i(9999, 9999)
+var _lod_speed_bias: float = 1.0
+var _last_applied_speed_bias: float = 1.0
+
 
 # Work queues for spreading the load across multiple frames
 var _chunks_to_load: Array[Vector2i] = []
@@ -87,9 +90,21 @@ func _process(delta):
 
 	var current = Vector2i(player_chunk_x, player_chunk_z)
 
+	# Dynamic LOD bias calculation
+	var current_speed = player.velocity.length()
+	# Scale relative to a baseline reference speed of 10.0
+	var target_bias = 1.0 + clamp((current_speed - 10.0) / 15.0, 0.0, 4.0)
+	_lod_speed_bias = lerp(_lod_speed_bias, target_bias, delta * 2.0)
+
+	# If bias has shifted significantly, force an update scan of LOD transitions
+	if abs(_lod_speed_bias - _last_applied_speed_bias) > 0.2:
+		_update_all_chunks_lod(true)
+		_last_applied_speed_bias = _lod_speed_bias
+
 	if current != _last_lod_player_chunk:
 		_update_all_chunks_lod()
 		_last_lod_player_chunk = current
+
 
 	_process_work_queues()
 
@@ -228,7 +243,6 @@ func _queue_chunk_unload_if_needed(coord: Vector2i):
 		_queued_chunks_to_unload[coord] = true
 
 
-
 func _update_all_chunks_lod(force: bool = false):
 	var player_chunk_coord = _last_player_chunk
 	if force:
@@ -238,7 +252,6 @@ func _update_all_chunks_lod(force: bool = false):
 			_update_chunk_lod(chunk, desired_lod, coord, true)
 		_flush_dirty_neighbors()
 		return
-
 
 func _process_work_queues():
 	var start_time = Time.get_ticks_usec()
@@ -319,17 +332,17 @@ func _get_lod_level(coord: Vector2i, player_coord: Vector2i) -> int:
 	var dz = abs(coord.y - player_coord.y)
 	var dist = max(dx, dz)
 
-	if dist <= 2:
+	if dist <= int(round(2.0 * _lod_speed_bias)):
 		return 0
-	elif dist <= 4:
+	elif dist <= int(round(4.0 * _lod_speed_bias)):
 		return 1
-	elif dist <= 8:
+	elif dist <= int(round(8.0 * _lod_speed_bias)):
 		return 2
-	elif dist <= 16:
+	elif dist <= int(round(16.0 * _lod_speed_bias)):
 		return 3
-	elif dist <= 32:
+	elif dist <= int(round(32.0 * _lod_speed_bias)):
 		return 4
-	elif dist <= 48:
+	elif dist <= int(round(48.0 * _lod_speed_bias)):
 		return 5
 	else:
 		return 6
