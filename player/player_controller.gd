@@ -324,7 +324,13 @@ func _physics_process(delta):
 		var tween = create_tween().set_process_mode(Tween.TWEEN_PROCESS_PHYSICS)
 		tween.tween_property(Config, "speed_near_zeros", 100.0, 2.0)
 		tween.tween_property(Config, "camera_height", 15.0, 2.0)
-		tween.tween_property(Config, "movement_speed", 7.5, 2.0)
+		tween.tween_property(Config, "movement_speed", 75.0, 2.0)
+		# Disable HUD elements
+		tween.parallel().tween_property(Config, "show_hud_navigation", false, 1.5)
+		tween.parallel().tween_property(Config, "show_minimap", false, 1.5)
+		tween.parallel().tween_property(Config, "show_hud_zeros", false, 1.5)
+		tween.parallel().tween_property(Config, "show_hud_monitor_fps", false, 1.5)
+		tween.parallel().tween_property(Config, "show_hud_chunks", false, 1.5)
 
 	if auto_walk_state != AutoWalkState.NONE:
 		var manual_input = Input.get_vector("move_left", "move_right", "move_forward", "move_backward")
