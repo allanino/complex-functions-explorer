@@ -369,12 +369,10 @@ static func get_shader_patch_coeffs() -> PackedVector2Array:
 	return coeffs
 
 static func evaluate_power_series(center: Vector2, coeffs: Array, z: Vector2) -> Vector2:
-	var res = Vector2.ZERO
 	var dz = z - center
-	var dz_k = Vector2(1.0, 0.0)
-	for k in range(coeffs.size()):
-		res += complex_mul(coeffs[k], dz_k)
-		dz_k = complex_mul(dz_k, dz)
+	var res = coeffs[coeffs.size() - 1]
+	for k in range(coeffs.size() - 2, -1, -1):
+		res = complex_mul(res, dz) + coeffs[k]
 	return res
 
 static func compute_eta_taylor_patch(x: float, y: float, iters: int) -> Array:
@@ -536,13 +534,10 @@ static func eta_continuation_power_series_with_derivatives(x: float, y: float, i
 	var patch = _get_or_create_patch(z, iters)
 	var val = evaluate_power_series(patch["center"], patch["coeffs"], z)
 
-	var res_prime = Vector2.ZERO
 	var dz = z - patch["center"]
-	var dz_k = Vector2(1.0, 0.0)
-	for k in range(1, patch["coeffs"].size()):
-		var coeff_scaled = patch["coeffs"][k] * float(k)
-		res_prime += complex_mul(coeff_scaled, dz_k)
-		dz_k = complex_mul(dz_k, dz)
+	var res_prime = patch["coeffs"][patch["coeffs"].size() - 1] * float(patch["coeffs"].size() - 1)
+	for k in range(patch["coeffs"].size() - 2, 0, -1):
+		res_prime = complex_mul(res_prime, dz) + patch["coeffs"][k] * float(k)
 
 	return [val, res_prime]
 

@@ -1191,12 +1191,10 @@ ComplexFieldData zeta_borwein_with_derivatives(float x, float y, int order) {
 }
 
 vec2 evaluate_power_series(vec2 center, vec2 coeffs[16], vec2 z) {
-	vec2 res = vec2(0.0);
 	vec2 dz = z - center;
-	vec2 dz_k = vec2(1.0, 0.0);
-	for (int k = 0; k <= PATCH_MAX_K; k++) {
-		res += complex_mul(coeffs[k], dz_k);
-		dz_k = complex_mul(dz_k, dz);
+	vec2 res = coeffs[PATCH_MAX_K];
+	for (int k = PATCH_MAX_K - 1; k >= 0; k--) {
+		res = complex_mul(res, dz) + coeffs[k];
 	}
 	return res;
 }
@@ -1260,15 +1258,12 @@ ComplexFieldData eta_continuation_power_series_with_derivatives(float x, float y
 	}
 
 	ComplexFieldData res;
+	vec2 dz = z - curr_center;
 	res.value = evaluate_power_series(curr_center, curr_coeffs, z);
 
-	vec2 res_prime = vec2(0.0);
-	vec2 dz = z - curr_center;
-	vec2 dz_k = vec2(1.0, 0.0);
-	for (int k = 1; k <= PATCH_MAX_K; k++) {
-		vec2 coeff_scaled = curr_coeffs[k] * float(k);
-		res_prime += complex_mul(coeff_scaled, dz_k);
-		dz_k = complex_mul(dz_k, dz);
+	vec2 res_prime = curr_coeffs[PATCH_MAX_K] * float(PATCH_MAX_K);
+	for (int k = PATCH_MAX_K - 1; k >= 1; k--) {
+		res_prime = complex_mul(res_prime, dz) + curr_coeffs[k] * float(k);
 	}
 
 	res.dx = res_prime;
