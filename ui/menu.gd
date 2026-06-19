@@ -355,6 +355,7 @@ func _init_slider_bindings():
 	var fmt_1f = func(v): return "%.1f" % v
 	var fmt_2f = func(v): return "%.2f" % v
 	var id = func(v): return v
+	var fmt_time = func(v): return _format_time(v)
 
 	var bindings = {
 		rendering_scale_slider: {
@@ -421,13 +422,13 @@ func _init_slider_bindings():
 			"config_key": "day_duration",
 			"to_config": id,
 			"from_config": id,
-			"format": func(v): return _format_time(v)
+			"format": fmt_time
 		},
 		day_time_slider: {
 			"config_key": "day_time",
 			"to_config": id,
 			"from_config": id,
-			"format": func(v): return _format_time(v)
+			"format": fmt_time
 		},
 		sunrise_slider: {
 			"config_key": "sunrise_direction",
