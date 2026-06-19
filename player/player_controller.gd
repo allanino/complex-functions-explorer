@@ -319,18 +319,8 @@ func _physics_process(delta):
 		current_f = ComplexField.get_field(global_position.x, global_position.z)
 	current_mag = current_f.length()
 
-	if run_demo and not _demo_y_final_reached and current_z.y >= 6000.0:
-		_demo_y_final_reached = true
-		var tween = create_tween().set_process_mode(Tween.TWEEN_PROCESS_PHYSICS)
-		tween.tween_property(Config, "speed_near_zeros", 100.0, 2.0)
-		tween.tween_property(Config, "camera_height", 15.0, 2.0)
-		tween.tween_property(Config, "movement_speed", 75.0, 2.0)
-		# Disable HUD elements
-		tween.parallel().tween_property(Config, "show_hud_navigation", false, 1.5)
-		tween.parallel().tween_property(Config, "show_minimap", false, 1.5)
-		tween.parallel().tween_property(Config, "show_hud_zeros", false, 1.5)
-		tween.parallel().tween_property(Config, "show_hud_monitor_fps", false, 1.5)
-		tween.parallel().tween_property(Config, "show_hud_chunks", false, 1.5)
+	if not _demo_y_final_reached and current_z.y >= 6001.5:
+		demo_actions_end()
 
 	if auto_walk_state != AutoWalkState.NONE:
 		var manual_input = Input.get_vector("move_left", "move_right", "move_forward", "move_backward")
@@ -476,14 +466,15 @@ func _physics_process(delta):
 
 	_predicted_pos = Vector2(predicted_pos.x, predicted_pos.z)
 	_predicted_next_f = ComplexField.get_field(predicted_pos.x, predicted_pos.z)
-	var terrain_h = get_terrain_height(predicted_pos.x, predicted_pos.z, _predicted_next_f)
-
-	if not is_finite(terrain_h):
-		velocity.x = 0.0
-		velocity.z = 0.0
-		terrain_h = last_valid_terrain_height
-	else:
-		last_valid_terrain_height = terrain_h
+	var terrain_h = last_valid_terrain_height
+	if not _demo_y_final_reached:
+		var new_terrain_h = get_terrain_height(predicted_pos.x, predicted_pos.z, _predicted_next_f)
+		if not is_finite(new_terrain_h):
+			velocity.x = 0.0
+			velocity.z = 0.0
+		else:
+			terrain_h = new_terrain_h
+			last_valid_terrain_height = new_terrain_h
 
 	# Prevent player from probing heights higher/lower than GameState.MAX_WORLD_HEIGHT
 	var target_y = terrain_h + scaled_camera_height + height_offset
@@ -650,7 +641,7 @@ func demo_actions():
 	Config.show_curves = true
 	Config.show_curves_labels = false
 	Config.show_position_marker = false
-
+	Config.iterations = 100
 
 	auto_walk_state = AutoWalkState.NONE
 	is_resetting_height = false
@@ -708,6 +699,7 @@ func demo_actions():
 	tween.tween_callback(self._start_auto_walk_from_demo)
 
 func _start_auto_walk_from_demo():
+	Config.iterations = 2500
 	auto_walk_state = AutoWalkState.MOVING_TO_LINE
 	GameState.visited_zeros.clear()
 	GameState.state_changed.emit("visited_zeros")
@@ -716,6 +708,20 @@ func _start_auto_walk_from_demo():
 	Config.show_hud_zeros = true
 	Config.show_critical_stripe = true
 	GameState.rvm_start_t = abs(Config.world_to_complex(0.0, global_position.z).y)
+
+func demo_actions_end():
+	_demo_y_final_reached = true
+
+	var tween = create_tween().set_process_mode(Tween.TWEEN_PROCESS_PHYSICS)
+	tween.tween_property(Config, "camera_height", 15.0, 2.0)
+	tween.parallel().tween_property(Config, "speed_near_zeros", 100.0, 0.1)
+	tween.tween_property(Config, "movement_speed", 50.0, 4.0)
+	# Disable HUD elements
+	tween.parallel().tween_property(Config, "show_hud_navigation", false, 1.5)
+	tween.parallel().tween_property(Config, "show_minimap", false, 1.5)
+	tween.parallel().tween_property(Config, "show_hud_zeros", false, 1.5)
+	tween.parallel().tween_property(Config, "show_hud_monitor_fps", false, 1.5)
+	tween.parallel().tween_property(Config, "show_hud_chunks", false, 1.5)
 
 func _process(_delta):
 	var frame_z = Config.world_to_complex(global_position.x, global_position.z)
@@ -803,7 +809,7 @@ func _check_zeta_stability(y: float) -> void:
 		[15500.0, 20500.0]: 8000,
 		[20500.0, 25000.0]: 10000
 	}
-	if Config.function.get("is_dirichlet", false):
+	if Config.function.get("is_dirichlet", false) and not _demo_y_final_reached:
 		# 30000 is about where the GPU float32 starts to give
 		# wrong results even with 10000 iterations
 		if abs(y) > 30000:
