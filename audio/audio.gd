@@ -42,8 +42,6 @@ var current_reverb_wet: float = REVERB_AMOUNT
 var current_lpf_cutoff: float = 800.0
 
 # --- TELEPORT FADE STATE ---
-var last_audio_player_pos := Vector3.ZERO
-var has_last_pos := false
 var teleport_fade: float = 1.0
 var is_teleporting: bool = false
 
@@ -72,6 +70,7 @@ var buffer_max_available := 0
 
 func _ready():
 	Config.config_changed.connect(_on_config_changed)
+	GameState.state_changed.connect(_on_state_changed)
 
 	setup_audio_bus_and_effects()
 
@@ -182,18 +181,8 @@ func _physics_process(delta):
 			playback = stream_player.get_stream_playback()
 		if playback == null: return
 
-	# --- TELEPORT DETECTION ---
-	if player:
-		var player_pos = player.global_position
-		if not has_last_pos:
-			last_audio_player_pos = player_pos
-			has_last_pos = true
-		elif last_audio_player_pos.distance_to(player_pos) > 10.0 * GameState.effective_zoom:
-			trigger_teleport_fade()
-		last_audio_player_pos = player_pos
-
 	# Sample complex field
-	var f = player.current_f
+	var f = player.current_f if player else Vector2.ZERO
 
 	# --- NAN SAFETY ---
 	if not is_finite(f.x) or not is_finite(f.y):
@@ -411,6 +400,10 @@ func set_performance_protection(active: bool):
 func _on_config_changed(key: String):
 	if key in ["master_volume", "bg_music_volume", "drone_volume"]:
 		_process_audio_toggles()
+
+func _on_state_changed(key: String):
+	if key == "is_teleporting" and GameState.is_teleporting:
+		trigger_teleport_fade()
 
 func _exit_tree():
 	if _audio_stream_player and _audio_stream_player.playing:
