@@ -154,6 +154,9 @@ func _ready():
 			settings_btn.pressed.connect(main_ui.toggle_menu.bind(false))
 
 	if run_demo:
+		get_tree().paused = true
+		await get_tree().create_timer(5.0).timeout
+		get_tree().paused = false
 		demo_actions()
 
 func _unhandled_input(event):
@@ -319,7 +322,7 @@ func _physics_process(delta):
 		current_f = ComplexField.get_field(global_position.x, global_position.z)
 	current_mag = current_f.length()
 
-	if not _demo_y_final_reached and current_z.y >= 6001.5:
+	if run_demo and not _demo_y_final_reached and current_z.y >= 6001.5:
 		demo_actions_end()
 
 	if auto_walk_state != AutoWalkState.NONE:
