@@ -52,6 +52,11 @@ var _unstable_zeta_timer: float = 0.0
 var current_scale = 2.0
 const BASE_HUD_PANEL_SIZE: float = 240.0
 
+var _prev_zeros_size: int = 0
+var _prev_hud_scale: float = -1.0
+var _prev_is_dirichlet: bool = false
+
+
 
 # Wraps a numeric string in BBCode: dims a leading '-' sign, colors the rest.
 func _bb_re(value: String, color: String) -> String:
@@ -401,10 +406,104 @@ func _update_zeros_list():
 	GameState.accented_zero_index = current_size - 1
 
 	var actual_hud_scale = Config.hud_scale
-	var children = zeros_list_label.get_children()
-	var child_idx = 0
-
 	var is_dirichlet = f_data.get("is_dirichlet", false)
+	var scale_changed = actual_hud_scale != _prev_hud_scale
+
+	var children = zeros_list_label.get_children()
+
+	# Fast path: exactly one new zero appended, no context/scale change
+	if current_size == _prev_zeros_size + 1 and is_dirichlet == _prev_is_dirichlet and not scale_changed:
+		# Deactivate previously active item (it is at child index 0)
+		if children.size() > 0 and children[0].visible:
+			children[0].is_active = false
+
+		# Prepare new item
+		var zero = GameState.visited_zeros[current_size - 1]
+		var item
+		var reused = false
+		for j in range(children.size() - 1, -1, -1):
+			if not children[j].visible:
+				item = children[j]
+				reused = true
+				break
+		if not reused:
+			item = ZERO_LIST_ITEM_SCENE.instantiate()
+			zeros_list_label.add_child(item)
+			item.clicked.connect(_on_zero_item_clicked)
+			# Refresh the children list because a new child was added
+			children = zeros_list_label.get_children()
+
+		# Move to top
+		zeros_list_label.move_child(item, 0)
+		item.visible = true
+		item.zero_index = current_size - 1
+
+		var re_str = _format_float_3(zero[0])
+		var im_str = _format_float_3(zero[1])
+		item.set_values(re_str, im_str, is_dirichlet)
+		item.set_meta("cached_zero", zero)
+		item.set_meta("is_dirichlet", is_dirichlet)
+
+		_rescale_card(item, actual_hud_scale)
+		item.is_active = true
+
+		# Update zero_index on shifted children if needed, but since we are keeping absolute index,
+		# the shifted children already have correct indexes because current_size grew and no pop_front happened.
+		
+		# Hide overflow (keep max 100 visible)
+		var visible_count = 0
+		for child in children:
+			if child.visible:
+				visible_count += 1
+		if visible_count > 100:
+			for j in range(children.size() - 1, -1, -1):
+				var child = children[j]
+				if child.visible:
+					child.visible = false
+					break
+
+		_prev_zeros_size = current_size
+		return
+
+	# Fast path B: exactly one new zero added, but size capped at 100 (elements shifted)
+	elif current_size == 100 and _prev_zeros_size == 100 and is_dirichlet == _prev_is_dirichlet and not scale_changed:
+		# Find the last visible item (the one that corresponds to the popped zero)
+		var last_visible_item = null
+		for j in range(children.size() - 1, -1, -1):
+			if children[j].visible:
+				last_visible_item = children[j]
+				break
+
+		if last_visible_item:
+			# Deactivate previous active item (currently at index 0)
+			if children.size() > 0 and children[0].visible:
+				children[0].is_active = false
+
+			# Move last visible item to the top
+			zeros_list_label.move_child(last_visible_item, 0)
+			
+			# Update its values with the new zero
+			var zero = GameState.visited_zeros[current_size - 1]
+			var re_str = _format_float_3(zero[0])
+			var im_str = _format_float_3(zero[1])
+			last_visible_item.set_values(re_str, im_str, is_dirichlet)
+			last_visible_item.set_meta("cached_zero", zero)
+			last_visible_item.set_meta("is_dirichlet", is_dirichlet)
+			
+			last_visible_item.is_active = true
+			
+			# Decrement zero_index of all other items (since array shifted left)
+			var updated_children = zeros_list_label.get_children()
+			updated_children[0].zero_index = current_size - 1
+			for j in range(1, updated_children.size()):
+				if updated_children[j].visible:
+					updated_children[j].zero_index -= 1
+
+			_prev_zeros_size = current_size
+			return
+
+	# Slow path: full rebuild
+	var child_idx = 0
 
 	for i in range(current_size - 1, max(-1, current_size - 101), -1):
 		var zero = GameState.visited_zeros[i]
@@ -433,7 +532,8 @@ func _update_zeros_list():
 			item.set_meta("cached_zero", zero)
 			item.set_meta("is_dirichlet", is_dirichlet)
 
-		_rescale_card(item, actual_hud_scale)
+		if scale_changed:
+			_rescale_card(item, actual_hud_scale)
 		item.is_active = (i == GameState.accented_zero_index)
 
 		child_idx += 1
@@ -441,6 +541,11 @@ func _update_zeros_list():
 	# Hide remaining unused items
 	for i in range(child_idx, children.size()):
 		children[i].visible = false
+
+	_prev_zeros_size = current_size
+	_prev_hud_scale = actual_hud_scale
+	_prev_is_dirichlet = is_dirichlet
+
 
 func _on_complex_aspect_resized():
 	if phase_wheel.custom_minimum_size.y != phase_wheel.size.x:
