@@ -93,7 +93,7 @@ func _process(delta):
 	# Dynamic LOD bias calculation
 	var current_speed = player.velocity.length()
 	# Scale relative to a baseline reference speed of 10.0
-	var target_bias = 1.0 + clamp((current_speed - 20.0) / 40.0, 0.0, 4.0)
+	var target_bias = 1.0 + clamp((current_speed - 20.0) / 25.0, 0.0, 4.0)
 	_lod_speed_bias = lerp(_lod_speed_bias, target_bias, delta * 2.0)
 
 	# If bias has shifted significantly, force an update scan of LOD transitions
