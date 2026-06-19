@@ -450,12 +450,12 @@ func _update_zeros_list():
 		# Update zero_index on shifted children if needed, but since we are keeping absolute index,
 		# the shifted children already have correct indexes because current_size grew and no pop_front happened.
 		
-		# Hide overflow (keep max 100 visible)
+		# Hide overflow (keep max GameState.MAX_VISITED_ZEROS visible)
 		var visible_count = 0
 		for child in children:
 			if child.visible:
 				visible_count += 1
-		if visible_count > 100:
+		if visible_count > GameState.MAX_VISITED_ZEROS:
 			for j in range(children.size() - 1, -1, -1):
 				var child = children[j]
 				if child.visible:
@@ -465,8 +465,8 @@ func _update_zeros_list():
 		_prev_zeros_size = current_size
 		return
 
-	# Fast path B: exactly one new zero added, but size capped at 100 (elements shifted)
-	elif current_size == 100 and _prev_zeros_size == 100 and is_dirichlet == _prev_is_dirichlet and not scale_changed:
+	# Fast path B: exactly one new zero added, but size capped at MAX_VISITED_ZEROS (elements shifted)
+	elif current_size == GameState.MAX_VISITED_ZEROS and _prev_zeros_size == GameState.MAX_VISITED_ZEROS and is_dirichlet == _prev_is_dirichlet and not scale_changed:
 		# Find the last visible item (the one that corresponds to the popped zero)
 		var last_visible_item = null
 		for j in range(children.size() - 1, -1, -1):
@@ -505,7 +505,7 @@ func _update_zeros_list():
 	# Slow path: full rebuild
 	var child_idx = 0
 
-	for i in range(current_size - 1, max(-1, current_size - 101), -1):
+	for i in range(current_size - 1, max(-1, current_size - (GameState.MAX_VISITED_ZEROS + 1)), -1):
 		var zero = GameState.visited_zeros[i]
 
 		var item

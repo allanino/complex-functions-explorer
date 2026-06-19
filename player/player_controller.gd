@@ -666,19 +666,19 @@ func demo_actions():
 	var tween_duration = 5.0
 
 	# Phase 1: go up to 50.0 while camera slowly turns downwards
-	tween.tween_property(self , "height_offset", 50.0 * GameState.effective_zoom, tween_duration)
+	tween.tween_property(self, "height_offset", 50.0 * GameState.effective_zoom, tween_duration)
 	tween.parallel().tween_property(camera, "rotation:x", -PI / 2.0, tween_duration)
 
 	# Phase 2: rotate CCW while tilting upwards to face zeta wall towards -x
-	tween.tween_property(self , "rotation:y", PI / 2.0, tween_duration)
+	tween.tween_property(self, "rotation:y", PI / 2.0, tween_duration)
 	tween.parallel().tween_property(camera, "rotation:x", 0.0, tween_duration)
 
 	# Phase 3: height decrease to 3.5 while rotating towards +x
-	tween.tween_property(self , "height_offset", 3.5 * GameState.effective_zoom, tween_duration)
+	tween.tween_property(self, "height_offset", 3.5 * GameState.effective_zoom, tween_duration)
 
 	# Phase 4: walk backwards to see the trivial zero at (-2, 0)
 	tween.tween_property(camera, "rotation:x", -PI / 2.0, tween_duration * 0.6)
-	tween.parallel().tween_property(self , "global_position:x", Config.complex_to_world(-2.0, 0.0).x, tween_duration * 0.6)
+	tween.parallel().tween_property(self, "global_position:x", Config.complex_to_world(-2.0, 0.0).x, tween_duration * 0.6)
 
 	# Wait a moment to contemplate the trivial zero
 	tween.tween_interval(2.0)
@@ -686,15 +686,15 @@ func demo_actions():
 	# Phase 5: rotate towards the pole and walk slightly to its side
 	# Math coordinates (1, 1) -> x = 10.0 * ez, z = -10.0 * ez
 	tween.tween_property(camera, "rotation:x", PI / 8.0, tween_duration)
-	tween.parallel().tween_property(self , "rotation:y", -PI / 2.0, tween_duration)
+	tween.parallel().tween_property(self, "rotation:y", -PI / 2.0, tween_duration)
 
-	tween.tween_property(self , "global_position:x", Config.complex_to_world(0.5, 0.0).x, tween_duration)
-	tween.parallel().tween_property(self , "global_position:z", Config.complex_to_world(0.0, 1.0).y, tween_duration)
+	tween.tween_property(self, "global_position:x", Config.complex_to_world(0.5, 0.0).x, tween_duration)
+	tween.parallel().tween_property(self, "global_position:z", Config.complex_to_world(0.0, 1.0).y, tween_duration)
 
 	tween.parallel().tween_property(camera, "rotation:x", -PI / 8.0, tween_duration)
 
 	# Phase 6: rotate back to horizontal and start auto-walk
-	tween.tween_property(self , "rotation:y", 0.0, tween_duration * 0.5)
+	tween.tween_property(self, "rotation:y", 0.0, tween_duration * 0.5)
 	tween.parallel().tween_property(camera, "rotation:x", -PI / 8.0, tween_duration * 0.5)
 
 	tween.tween_interval(1.0)
@@ -903,7 +903,7 @@ func _on_zero_detected(true_z: Vector2, current_auto_walk_state: int):
 				if not GameState.found_off_critical_line:
 					GameState.found_off_critical_line_val = true_z
 				GameState.found_off_critical_line = true
-		if GameState.visited_zeros.size() > 100:
+		if GameState.visited_zeros.size() > GameState.MAX_VISITED_ZEROS:
 			GameState.visited_zeros.pop_front()
 		GameState.state_changed.emit("visited_zeros")
 		last_detected_z = true_z

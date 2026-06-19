@@ -3,6 +3,8 @@ extends Node
 signal state_changed(key: String)
 
 const MAX_WORLD_HEIGHT = 1000.0
+const MAX_VISITED_ZEROS = 20
+
 
 # Session state (not saved)
 var visited_zeros: Array[Vector2] = []
