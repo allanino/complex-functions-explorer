@@ -79,7 +79,7 @@ void fragment() {
     vec2 offset = (UV - vec2(0.5)) * 2.0 * view_radius;
     vec2 world_pos = player_pos_world + offset;
 
-    ComplexFieldData fd = get_field_with_derivatives(world_pos.x, world_pos.y, current_branch);
+    ComplexFieldData fd = get_field_with_derivatives(world_pos.x, world_pos.y, 0);
     vec2 f = fd.value;
 
     vec2 z_id = vec2(0.1 * world_pos.x, -0.1 * world_pos.y) / zoom_factor;
