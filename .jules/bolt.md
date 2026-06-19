@@ -37,3 +37,7 @@
 ## 2025-03-02 - Optimize Spatial Distance Checks
 **Learning:** For spatial distance comparisons inside tight loops (like physics processing or convergence checks), calling `distance_to()` computes a costly and unnecessary square root operation.
 **Action:** Replace `distance_to()` with `distance_squared_to()` and compare it against the threshold squared (`threshold ** 2`) to optimize CPU usage.
+
+## 2025-03-02 - Optimize Teleport Detection
+**Learning:** Checking for player teleports by calculating spatial distances (`distance_to`) every frame in `_physics_process` (like in `audio.gd`) wastes CPU cycles. This is especially true since teleportation events are discrete and can be directly hooked into.
+**Action:** Replace polling loops with signal-driven events. Create a dedicated `is_teleporting` state variable in `GameState`, set it during the teleport action, and listen to the `state_changed` signal to trigger effects like audio fades.

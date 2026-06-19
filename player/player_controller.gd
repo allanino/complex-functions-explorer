@@ -77,6 +77,7 @@ func get_initial_position() -> Vector3:
 	return Vector3(0.0, 0.0, 0.0)
 
 func teleport_to_world_pos(target_pos: Vector3) -> void:
+	GameState.is_teleporting = true
 	var terrain_h = get_terrain_height(target_pos.x, target_pos.z)
 	if not is_finite(terrain_h) or abs(terrain_h) >= GameState.MAX_WORLD_HEIGHT:
 		GameState.out_of_bounds_teleport_active = true
@@ -90,6 +91,8 @@ func teleport_to_world_pos(target_pos: Vector3) -> void:
 
 	var complex_pos = Config.world_to_complex(global_position.x, global_position.z)
 	_check_zeta_stability(complex_pos.y)
+
+	GameState.is_teleporting = false
 
 func _ready():
 	add_to_group("player")
