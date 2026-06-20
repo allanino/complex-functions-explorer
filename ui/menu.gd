@@ -305,31 +305,39 @@ func _ready():
 	emit_signal("apply_aa_signal")
 	_disable_sliders_focus(self )
 
-	iter_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Iterations"))
-	height_theta_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Parameter θ"))
-	morph_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Morph Transition"))
 	Config.config_changed.connect(_on_config_changed)
 	morph_style_dropdown.item_selected.connect(_on_morph_style_selected)
-	multivalued_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Branches (n)"))
-	branch_k_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Branch number"))
-	day_duration_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Day Duration"))
-	day_time_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Time of day"))
-	sunrise_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Sunrise Direction"))
-	sky_luminosity_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Sky Luminosity"))
-	sun_luminosity_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Sun Luminosity"))
-	self_illumination_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Self-Illumination"))
-	fog_density_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Fog Density"))
-	brightness_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Brightness"))
-	saturation_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Saturation"))
-	albedo_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Albedo"))
-	emission_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Emission"))
-	metallic_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Metallic"))
-	roughness_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Roughness"))
-	ao_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Ambient Occlusion"))
-	rim_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Rim"))
-	rim_tint_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Rim Tint"))
-	rendering_scale_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "Rendering Scale"))
-	view_distance_slider.detach_requested.connect(func(s, v): detach_controller.detach_slider_control(s, v, "View Distance"))
+
+	var detach_bindings = {
+		iter_slider: "Iterations",
+		height_theta_slider: "Parameter θ",
+		morph_slider: "Morph Transition",
+		multivalued_slider: "Branches (n)",
+		branch_k_slider: "Branch number",
+		day_duration_slider: "Day Duration",
+		day_time_slider: "Time of day",
+		sunrise_slider: "Sunrise Direction",
+		sky_luminosity_slider: "Sky Luminosity",
+		sun_luminosity_slider: "Sun Luminosity",
+		self_illumination_slider: "Self-Illumination",
+		fog_density_slider: "Fog Density",
+		brightness_slider: "Brightness",
+		saturation_slider: "Saturation",
+		albedo_slider: "Albedo",
+		emission_slider: "Emission",
+		metallic_slider: "Metallic",
+		roughness_slider: "Roughness",
+		ao_slider: "Ambient Occlusion",
+		rim_slider: "Rim",
+		rim_tint_slider: "Rim Tint",
+		rendering_scale_slider: "Rendering Scale",
+		view_distance_slider: "View Distance"
+	}
+
+	for slider in detach_bindings:
+		var title = detach_bindings[slider]
+		var cb = func(s, v, t): detach_controller.detach_slider_control(s, v, t)
+		slider.detach_requested.connect(cb.bind(title))
 
 	main_menu_panel.scale = Vector2.ONE
 	_rescale_menu(Config.menu_scale)
