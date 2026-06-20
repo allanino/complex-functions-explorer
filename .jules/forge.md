@@ -17,3 +17,6 @@ Action: Remove redundant `if` checks for statically defined components before ac
 ## 4 - [Extracting duplicated Callable variables into local closures]
 Learning: Massive dictionaries config (like UI bindings) often repeat anonymous Lambda closures identically, leading to bloated files and harder updates.
 Action: Extract identically defined `func(x): return ...` patterns into locally scoped `var` properties (e.g. `var to_pct = func(v): return v / 100.0`) and reference those variables instead to reduce size and improve consistency.
+## 5 - [Using Callable.bind() to prevent closure variable capture bugs in loops]
+Learning: In GDScript 4, when lambdas are created dynamically inside a loop, they capture local loop variables by reference, not by value. If these lambdas are used as signal callbacks, all callbacks will erroneously reference the final value of the loop variable.
+Action: To safely pass dynamic loop variables to callbacks, explicitly define a `Callable` and append the dynamic arguments using `.bind(loop_var)` when connecting the signal, ensuring pass-by-value.
