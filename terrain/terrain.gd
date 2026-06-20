@@ -496,6 +496,7 @@ func _load_chunk(coord: Vector2i):
 		add_child(chunk)
 	else:
 		chunk = _chunk_pool.pop_back()
+		chunk.process_mode = Node.PROCESS_MODE_INHERIT
 
 	chunk.visible = !GameState.performance_protection_active
 
@@ -550,6 +551,9 @@ func _update_chunk_lod(chunk: MeshInstance3D, lod: int, coord: Vector2i, force: 
 func _unload_chunk(coord: Vector2i):
 	var chunk = chunks[coord]
 	chunk.visible = false
+	chunk.process_mode = Node.PROCESS_MODE_DISABLED
+	chunk.mesh = null
+
 	_chunk_pool.append(chunk)
 	chunks.erase(coord)
 	_loaded_chunk_list.erase(coord)
