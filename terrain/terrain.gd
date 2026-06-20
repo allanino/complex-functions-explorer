@@ -12,6 +12,7 @@ var chunk_leeway = 0.01
 var LOD_SUBS = [] # This will be set in code
 var _lod_mesh_cache = {}
 var _last_player_chunk = Vector2i(9999, 9999)
+var _chunk_pool: Array[MeshInstance3D] = []
 var _last_view_distance: int = -1
 var slow_frame_counter: int = 0
 var _shaders_stopped: bool = false
@@ -489,8 +490,13 @@ func _update_neighbor_lod_uniforms(coord: Vector2i):
 	chunk.set_instance_shader_parameter("neighbor_lods", Vector4i(left_lod, right_lod, top_lod, bottom_lod))
 
 func _load_chunk(coord: Vector2i):
-	var chunk = terrain_chunk_scene.instantiate()
-	add_child(chunk)
+	var chunk: MeshInstance3D
+	if _chunk_pool.is_empty():
+		chunk = terrain_chunk_scene.instantiate()
+		add_child(chunk)
+	else:
+		chunk = _chunk_pool.pop_back()
+
 	chunk.visible = !GameState.performance_protection_active
 
 	chunk.material_override = terrain_material
@@ -543,7 +549,8 @@ func _update_chunk_lod(chunk: MeshInstance3D, lod: int, coord: Vector2i, force: 
 
 func _unload_chunk(coord: Vector2i):
 	var chunk = chunks[coord]
-	chunk.queue_free()
+	chunk.visible = false
+	_chunk_pool.append(chunk)
 	chunks.erase(coord)
 	_loaded_chunk_list.erase(coord)
 	_chunk_lods.erase(coord)
