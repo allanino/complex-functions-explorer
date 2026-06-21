@@ -20,3 +20,7 @@ Action: Extract identically defined `func(x): return ...` patterns into locally 
 ## 5 - [Using Callable.bind() to prevent closure variable capture bugs in loops]
 Learning: In GDScript 4, when lambdas are created dynamically inside a loop, they capture local loop variables by reference, not by value. If these lambdas are used as signal callbacks, all callbacks will erroneously reference the final value of the loop variable.
 Action: To safely pass dynamic loop variables to callbacks, explicitly define a `Callable` and append the dynamic arguments using `.bind(loop_var)` when connecting the signal, ensuring pass-by-value.
+
+## 6 - [Optimize array copying with native constructors]
+Learning: Using a GDScript `for` loop to append elements sequentially from a standard `Array` to a `Packed*Array` creates unnecessary interpreter overhead. Godot provides native constructors (e.g., `PackedFloat32Array(source_array)`) that delegate the memory copying to the C++ backend, executing far more efficiently.
+Action: Whenever a standard `Array` needs to be converted into a `Packed*Array`, replace the `for` loop and `.append()` calls with direct instantiation via the native constructor (e.g. `var my_packed_array = PackedVector2Array(my_array)`).
