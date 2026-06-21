@@ -509,16 +509,18 @@ func _physics_process(delta):
 	var d_pos = global_position - last_player_pos
 	d_pos.y = 0.0 # Only care about horizontal movement
 	
-	if d_pos.length_squared() > 100.0: # Teleport detected
+	var d_pos_sq = d_pos.length_squared()
+	if d_pos_sq > 100.0: # Teleport detected
 		camera_push_offset = Vector3.ZERO
 		target_offset = Vector3.ZERO
-	elif d_pos.length_squared() > 1e-4:
+	elif d_pos_sq > 1e-4:
 		var delta_h = terrain_h - last_terrain_h
-		var slope = delta_h / d_pos.length()
-		# On a steep slope (uphill or downhill)
-		if abs(slope) > 2.0 and auto_walk_state == AutoWalkState.NONE:
+		# Check if slope > 2.0 using squared values to avoid sqrt on flat ground
+		# slope = delta_h / d_pos.length()
+		# abs(slope) > 2.0 <=> delta_h^2 / d_pos_sq > 4.0
+		if (delta_h * delta_h) > 4.0 * d_pos_sq and auto_walk_state == AutoWalkState.NONE:
 			# Always push the camera downhill (opposite to the rising slope)
-			var push_dir = - d_pos.normalized() * sign(slope)
+			var push_dir = - d_pos / sqrt(d_pos_sq) * sign(delta_h)
 			target_offset = push_dir
 		else:
 			# On flat ground, decay to zero
