@@ -1536,8 +1536,6 @@ static func get_height_from_field(f: Vector2, z_id: Vector2 = Vector2.ZERO) -> f
 	if not is_finite(f.x) or not is_finite(f.y): return NAN
 	var mag = f.length()
 	if not is_finite(mag): return NAN
-	
-	mag = clamp(mag, -1e5, 1e5)
 
 	# Match shader morphing blend factor (usually 1.0)
 	var s = 0.5 - 0.5 * cos(PI * GameState.morph_value)

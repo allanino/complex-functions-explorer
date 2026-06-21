@@ -1356,16 +1356,6 @@ float get_complex_height(vec2 fz, vec2 field_val, out bool h_clamped) {
     float mag = length(fz);
     float h = 0.0;
 
-    if (mag < -1e5) {
-        mag = -1e5;
-        h_clamped = true;
-    } else if (mag > 1e5) {
-        mag = 1e5;
-        h_clamped = true;
-    } else {
-        h_clamped = false;
-    }
-    
     if (height_type == 0) {
         h = mag;
     } else if (height_type == 1) {
@@ -1379,6 +1369,17 @@ float get_complex_height(vec2 fz, vec2 field_val, out bool h_clamped) {
     } else if (height_type == 5) {
         h = 0.0;
     }
+
+    if (h < -1e5) {
+        h = -1e5;
+        h_clamped = true;
+    } else if (h > 1e5) {
+        h = 1e5;
+        h_clamped = true;
+    } else {
+        h_clamped = false;
+    }
+
     return h;
 }
 
