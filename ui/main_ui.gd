@@ -613,6 +613,7 @@ func _get_rvm_n(T: float) -> float:
 	return (T / (2.0 * PI)) * (log(T / (2.0 * PI)) - 1.0) + 7.0 / 8.0
 
 var _last_hud_state = {}
+var _cached_layout_assignment: Dictionary = {}
 
 func _update_hud_layout():
 	if not hud_columns: return
@@ -648,7 +649,6 @@ func _update_hud_layout():
 		"show_fps": Config.show_hud_monitor_fps,
 		"show_chunks": show_hud_chunks,
 		"is_multivalued": f_data.get("is_multivalued", false),
-		"cards_heights": cards.map(func(c): return c.get_combined_minimum_size().y if c.visible else 0.0)
 	}
 
 	if current_state.hash() == _last_hud_state.hash():
@@ -675,6 +675,12 @@ func _update_hud_layout():
 
 	_apply_stack_layout(hud_stack_right, right_cards)
 	_apply_stack_layout(hud_stack_left, left_cards)
+
+	_cached_layout_assignment.clear()
+	for card in right_cards:
+		_cached_layout_assignment[card] = "right"
+	for card in left_cards:
+		_cached_layout_assignment[card] = "left"
 
 	hud_stack_right.add_theme_constant_override("separation", 10)
 	hud_stack_left.add_theme_constant_override("separation", 10)
