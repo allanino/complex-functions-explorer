@@ -308,7 +308,7 @@ func _physics_process(delta):
 
 	if GameState.is_detached_interactive or GameState.is_menu_open:
 		velocity = Vector3.ZERO
-		var target_y_menu = get_terrain_height(global_position.x, global_position.z) + scaled_camera_height + height_offset
+		var target_y_menu = get_terrain_height(global_position.x, global_position.z, current_f) + scaled_camera_height + height_offset
 		camera.position = Vector3(0.0, target_y_menu, 0.0) + transform.basis.inverse() * camera_push_offset
 		return
 
