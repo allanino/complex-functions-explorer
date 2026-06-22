@@ -703,17 +703,17 @@ func test_get_height_from_field():
 	var res5 = ComplexFieldScript.get_height_from_field(f3)
 	assert_almost_eq(res5, expected_scaled, 0.0001)
 
-	# Test 7: Clamping height to [-1e5, 1e5]
+	# Test 7: Clamping height to [-1e5, 1e5] (now returns NAN to prevent entering clamped territory)
 	Config.height_type = 2
 	GameState.morph_value = 1.0
 	GameState.effective_zoom = 1.0
 	var f_huge_neg = Vector2(0.0, -200000.0)
 	var res_clamped_neg = ComplexFieldScript.get_height_from_field(f_huge_neg)
-	assert_almost_eq(res_clamped_neg, -100000.0, 0.0001)
+	assert_true(is_nan(res_clamped_neg))
 
 	var f_huge_pos = Vector2(0.0, 200000.0)
 	var res_clamped_pos = ComplexFieldScript.get_height_from_field(f_huge_pos)
-	assert_almost_eq(res_clamped_pos, 100000.0, 0.0001)
+	assert_true(is_nan(res_clamped_pos))
 
 	# Test 8: Projected Complex Component (height_type = 4)
 	var orig_theta = Config.height_theta
