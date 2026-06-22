@@ -261,16 +261,16 @@ func _on_values_timer_timeout():
 	var val_fx = f.x
 	var val_fy = f.y
 
-	var target_re = _format_float_3(val_fx)
-	var target_im = _format_float_3(val_fy)
+	var target_re = _format_float(val_fx)
+	var target_im = _format_float(val_fy)
 
-	var domain_re = _format_float_3(val_re)
-	var domain_im = _format_float_3(val_im)
+	var domain_re = _format_float(val_re)
+	var domain_im = _format_float(val_im)
 
 	target_val.text = _bb_re(target_re, ThemeColors.CLR_REAL) + _bb_im(target_im)
 	domain_val.text = _bb_re(domain_re, ThemeColors.CLR_REAL) + _bb_im(domain_im)
 
-	phase_abs_val.text = _format_float_3(f.length())
+	phase_abs_val.text = _format_float(f.length())
 
 
 func _on_monitor_timer_timeout():
@@ -354,8 +354,8 @@ func _update_monitor_label():
 
 		if GameState.found_off_critical_line:
 			var off_z = GameState.found_off_critical_line_val
-			var re_str = _format_float_3(off_z.x)
-			var im_str = _format_float_3(off_z.y)
+			var re_str = _format_float(off_z.x)
+			var im_str = _format_float(off_z.y)
 			var zero_str = _bb_re(re_str, ThemeColors.CLR_REAL) + _bb_im(im_str)
 			bbcode += "[color=#ffcc00][font_size=14]Zero found off critical line (" + zero_str + "[color=#ffcc00]). Increase zeta iterations.[/color][/font_size]\n"
 
@@ -442,8 +442,8 @@ func _update_zeros_list():
 		item.visible = true
 		item.zero_index = current_size - 1
 
-		var re_str = _format_float_3(zero[0])
-		var im_str = _format_float_3(zero[1])
+		var re_str = _format_float(zero[0])
+		var im_str = _format_float(zero[1])
 		item.set_values(re_str, im_str, is_dirichlet)
 		item.set_meta("cached_zero", zero)
 		item.set_meta("is_dirichlet", is_dirichlet)
@@ -490,8 +490,8 @@ func _update_zeros_list():
 			
 			# Update its values with the new zero
 			var zero = GameState.visited_zeros[current_size - 1]
-			var re_str = _format_float_3(zero[0])
-			var im_str = _format_float_3(zero[1])
+			var re_str = _format_float(zero[0])
+			var im_str = _format_float(zero[1])
 			last_visible_item.set_values(re_str, im_str, is_dirichlet)
 			last_visible_item.set_meta("cached_zero", zero)
 			last_visible_item.set_meta("is_dirichlet", is_dirichlet)
@@ -532,8 +532,8 @@ func _update_zeros_list():
 			needs_update = true
 
 		if needs_update:
-			var re_str = _format_float_3(zero[0])
-			var im_str = _format_float_3(zero[1])
+			var re_str = _format_float(zero[0])
+			var im_str = _format_float(zero[1])
 			item.set_values(re_str, im_str, is_dirichlet)
 			item.set_meta("cached_zero", zero)
 			item.set_meta("is_dirichlet", is_dirichlet)
@@ -579,11 +579,24 @@ func apply_aa():
 func toggle_menu(applied: bool = false):
 	menu_overlay.toggle_menu(applied)
 
-func _format_float_3(val: float) -> String:
-	if abs(val) >= 1e5:
-		var exp_val = int(floor(log(abs(val)) / log(10.0)))
+func _format_float(val: float) -> String:
+	var abs_val = abs(val)
+	if abs_val >= 1e7:
+		var exp_val = int(floor(log(abs_val) / log(10.0)))
+		var mantissa = val / pow(10.0, float(exp_val))
+		return "%.2f" % mantissa + "e" + ("+" if exp_val >= 0 else "") + str(exp_val)
+
+	if abs_val >= 1e6:
+		var exp_val = int(floor(log(abs_val) / log(10.0)))
 		var mantissa = val / pow(10.0, float(exp_val))
 		return "%.3f" % mantissa + "e" + ("+" if exp_val >= 0 else "") + str(exp_val)
+
+	if abs_val >= 1e5:
+		return "%.1f" % snappedf(val, 0.1)
+
+	if abs_val >= 1e4:
+		return "%.2f" % snappedf(val, 0.01)
+
 	return "%.3f" % snappedf(val, 0.001)
 
 func _get_rvm_n(T: float) -> float:
