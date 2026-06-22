@@ -63,22 +63,14 @@ func _sync_all_uniforms():
 
 		_update_zeros_shader()
 
-		var real_shaded = PackedFloat32Array(GameState.real_level_curves_highlighted)
-		while real_shaded.size() < 10:
-			real_shaded.append(99999.0)
+		var real_shaded = GameState.get_padded_level_curves(GameState.real_level_curves_highlighted)
 		mat.set_shader_parameter("real_level_curves_highlighted", real_shaded)
 
-		var imag_shaded = PackedFloat32Array(GameState.imag_level_curves_highlighted)
-		while imag_shaded.size() < 10:
-			imag_shaded.append(99999.0)
+		var imag_shaded = GameState.get_padded_level_curves(GameState.imag_level_curves_highlighted)
 		mat.set_shader_parameter("imag_level_curves_highlighted", imag_shaded)
 
-		var newton_path = PackedVector2Array()
-		if GameState.newton_path.size() > 0:
-			newton_path = PackedVector2Array(GameState.newton_path)
-		var newton_path_size = newton_path.size()
-		while newton_path.size() < 50:
-			newton_path.append(Vector2.ZERO)
+		var newton_path_size = GameState.newton_path.size()
+		var newton_path = GameState.get_padded_newton_path()
 
 		mat.set_shader_parameter("newton_path_size", newton_path_size)
 		mat.set_shader_parameter("newton_path", newton_path)
@@ -132,15 +124,11 @@ func _on_state_changed(key: String):
 		mat.set_shader_parameter("eta_patch_coeffs", ComplexField.get_shader_patch_coeffs())
 
 	if key == "real_level_curves_highlighted":
-		var real_shaded = PackedFloat32Array(GameState.real_level_curves_highlighted)
-		while real_shaded.size() < 10:
-			real_shaded.append(99999.0)
+		var real_shaded = GameState.get_padded_level_curves(GameState.real_level_curves_highlighted)
 		mat.set_shader_parameter("real_level_curves_highlighted", real_shaded)
 
 	if key == "imag_level_curves_highlighted":
-		var imag_shaded = PackedFloat32Array(GameState.imag_level_curves_highlighted)
-		while imag_shaded.size() < 10:
-			imag_shaded.append(99999.0)
+		var imag_shaded = GameState.get_padded_level_curves(GameState.imag_level_curves_highlighted)
 		mat.set_shader_parameter("imag_level_curves_highlighted", imag_shaded)
 
 	if key == "newton_path_bbox":
@@ -151,10 +139,8 @@ func _on_state_changed(key: String):
 
 	if key == "newton_path":
 		if GameState.newton_path.size() > 0:
-			var newton_path = PackedVector2Array(GameState.newton_path)
-			var newton_path_size = newton_path.size()
-			while newton_path.size() < 50:
-				newton_path.append(Vector2.ZERO)
+			var newton_path_size = GameState.newton_path.size()
+			var newton_path = GameState.get_padded_newton_path()
 
 			mat.set_shader_parameter("newton_path_size", newton_path_size)
 			mat.set_shader_parameter("newton_path", newton_path)

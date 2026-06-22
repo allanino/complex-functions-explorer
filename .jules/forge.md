@@ -24,3 +24,7 @@ Action: To safely pass dynamic loop variables to callbacks, explicitly define a 
 ## 6 - [Optimize array copying with native constructors]
 Learning: Using a GDScript `for` loop to append elements sequentially from a standard `Array` to a `Packed*Array` creates unnecessary interpreter overhead. Godot provides native constructors (e.g., `PackedFloat32Array(source_array)`) that delegate the memory copying to the C++ backend, executing far more efficiently.
 Action: Whenever a standard `Array` needs to be converted into a `Packed*Array`, replace the `for` loop and `.append()` calls with direct instantiation via the native constructor (e.g. `var my_packed_array = PackedVector2Array(my_array)`).
+
+## 7 - [Centralize array padding for shaders using native methods]
+Learning: Repeatedly padding `Packed*Array` instances with `.append()` inside a `while` loop is both duplicated across scripts calling similar shaders (e.g. Minimap and Terrain) and computationally inefficient.
+Action: Centralize the padding logic into global utility functions (like `GameState.get_padded_level_curves()`) and optimize it by resizing the array and using the native `.fill()` method, restoring original elements where necessary, to minimize overhead and duplicate code.
