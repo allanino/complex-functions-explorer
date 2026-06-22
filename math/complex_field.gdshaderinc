@@ -1354,18 +1354,19 @@ ComplexFieldData get_field_with_derivatives(float world_x, float world_z, int br
 
 float get_complex_height(vec2 fz, vec2 field_val, out bool h_clamped) {
     float mag = length(fz);
-    float h = 0.0;
 
-    if (mag < -1e5) {
-        mag = -1e5;
+    if (mag < -1e18) {
+        mag = -1e18;
         h_clamped = true;
-    } else if (mag > 1e5) {
-        mag = 1e5;
+    } else if (mag > 1e18) {
+        mag = 1e18;
         h_clamped = true;
     } else {
         h_clamped = false;
     }
-    
+
+    float h = 0.0;
+
     if (height_type == 0) {
         h = mag;
     } else if (height_type == 1) {
@@ -1378,6 +1379,14 @@ float get_complex_height(vec2 fz, vec2 field_val, out bool h_clamped) {
         h = field_val.x * cos(height_theta) + field_val.y * sin(height_theta);
     } else if (height_type == 5) {
         h = 0.0;
+    }
+
+    if (h < -1e5) {
+        h = -1e5;
+        h_clamped = true;
+    } else if (h > 1e5) {
+        h = 1e5;
+        h_clamped = true;
     }
     return h;
 }

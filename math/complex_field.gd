@@ -1535,9 +1535,11 @@ static func newton_step(z_input: Variant, step_size_mult: float, max_step: float
 static func get_height_from_field(f: Vector2, z_id: Vector2 = Vector2.ZERO) -> float:
 	if not is_finite(f.x) or not is_finite(f.y): return NAN
 	var mag = f.length()
-	if not is_finite(mag): return NAN
-	
-	mag = clamp(mag, -1e5, 1e5)
+	if not is_finite(mag):
+		return NAN
+
+	if mag < -1e18 or mag > 1e18:
+		return NAN
 
 	# Match shader morphing blend factor (usually 1.0)
 	var s = 0.5 - 0.5 * cos(PI * GameState.morph_value)
@@ -1559,7 +1561,10 @@ static func get_height_from_field(f: Vector2, z_id: Vector2 = Vector2.ZERO) -> f
 	elif Config.height_type == 3: h = field_val.x
 	elif Config.height_type == 4: h = field_val.x * cos(Config.height_theta) + field_val.y * sin(Config.height_theta)
 	elif Config.height_type == 5: h = 0.0
-	h = clamp(h, -1e5, 1e5)
+	
+	if h < -1e5 or h > 1e5:
+		return NAN
+		
 	h *= blend * GameState.effective_zoom
 
 	return h if is_finite(h) else NAN
