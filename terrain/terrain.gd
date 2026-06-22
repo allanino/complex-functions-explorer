@@ -413,16 +413,12 @@ func _update_terrain_material_uniforms(key: String):
 		return
 
 	if key == "real_level_curves_highlighted":
-		var real_shaded = PackedFloat32Array(GameState.real_level_curves_highlighted)
-		while real_shaded.size() < 10:
-			real_shaded.append(99999.0)
+		var real_shaded = GameState.get_padded_level_curves(GameState.real_level_curves_highlighted)
 		terrain_material.set_shader_parameter("real_level_curves_highlighted", real_shaded)
 		return
 
 	if key == "imag_level_curves_highlighted":
-		var imag_shaded = PackedFloat32Array(GameState.imag_level_curves_highlighted)
-		while imag_shaded.size() < 10:
-			imag_shaded.append(99999.0)
+		var imag_shaded = GameState.get_padded_level_curves(GameState.imag_level_curves_highlighted)
 		terrain_material.set_shader_parameter("imag_level_curves_highlighted", imag_shaded)
 		return
 
@@ -433,10 +429,8 @@ func _update_terrain_material_uniforms(key: String):
 
 	if key == "newton_path":
 		if GameState.newton_path.size() > 0:
-			var newton_path = PackedVector2Array(GameState.newton_path)
-			var newton_path_size = newton_path.size()
-			while newton_path.size() < 50:
-				newton_path.append(Vector2.ZERO)
+			var newton_path_size = GameState.newton_path.size()
+			var newton_path = GameState.get_padded_newton_path()
 
 			terrain_material.set_shader_parameter("newton_path_size", newton_path_size)
 			terrain_material.set_shader_parameter("newton_path", newton_path)

@@ -97,3 +97,31 @@ var imag_level_curves_highlighted: Array[float] = []:
 	set(v):
 		imag_level_curves_highlighted = v
 		state_changed.emit("imag_level_curves_highlighted")
+
+
+# Utility functions for array padding for shaders
+func get_padded_level_curves(curves: Array[float], max_size: int = 10, pad_value: float = 99999.0) -> PackedFloat32Array:
+	var padded = PackedFloat32Array(curves)
+	var size = padded.size()
+	if size < max_size:
+		padded.resize(max_size)
+		padded.fill(pad_value)
+		# Restore original values that were overwritten by fill
+		for i in range(size):
+			padded[i] = curves[i]
+	elif size > max_size:
+		padded = padded.slice(0, max_size)
+	return padded
+
+func get_padded_newton_path(max_size: int = 50) -> PackedVector2Array:
+	var padded = PackedVector2Array(newton_path)
+	var size = padded.size()
+	if size < max_size:
+		padded.resize(max_size)
+		padded.fill(Vector2.ZERO)
+		# Restore original values that were overwritten by fill
+		for i in range(size):
+			padded[i] = newton_path[i]
+	elif size > max_size:
+		padded = padded.slice(0, max_size)
+	return padded
