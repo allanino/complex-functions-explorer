@@ -57,7 +57,6 @@ var _prev_hud_scale: float = -1.0
 var _prev_is_dirichlet: bool = false
 
 
-
 # Wraps a numeric string in BBCode: dims a leading '-' sign, colors the rest.
 func _bb_re(value: String, color: String) -> String:
 	if value.begins_with("-"):
@@ -581,6 +580,10 @@ func toggle_menu(applied: bool = false):
 	menu_overlay.toggle_menu(applied)
 
 func _format_float_3(val: float) -> String:
+	if abs(val) >= 1e5:
+		var exp_val = int(floor(log(abs(val)) / log(10.0)))
+		var mantissa = val / pow(10.0, float(exp_val))
+		return "%.3f" % mantissa + "e" + ("+" if exp_val >= 0 else "") + str(exp_val)
 	return "%.3f" % snappedf(val, 0.001)
 
 func _get_rvm_n(T: float) -> float:
