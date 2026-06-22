@@ -293,8 +293,11 @@ func _on_game_state_changed(key: String):
 			_unstable_zeta_timer = 5.0
 			set_process(true)
 		_update_monitor_label()
-	elif key in ["visited_zeros", "total_zeros_found"]:
+	elif key == "visited_zeros":
 		_update_zeros_list()
+	elif key == "total_zeros_found":
+		if zeros_count_label:
+			zeros_count_label.text = str(GameState.total_zeros_found)
 	elif key == "current_branch":
 		phase_branch_val.text = str(GameState.current_branch)
 	elif key == "eta_patches":
@@ -435,6 +438,8 @@ func _update_zeros_list():
 
 		# Move to top
 		zeros_list_label.move_child(item, 0)
+		# Refresh the children list because order changed and/or a new child was added
+		children = zeros_list_label.get_children()
 		item.visible = true
 		item.zero_index = current_size - 1
 
@@ -481,6 +486,8 @@ func _update_zeros_list():
 
 			# Move last visible item to the top
 			zeros_list_label.move_child(last_visible_item, 0)
+			# Refresh the children list because order changed
+			children = zeros_list_label.get_children()
 			
 			# Update its values with the new zero
 			var zero = GameState.visited_zeros[current_size - 1]
