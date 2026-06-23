@@ -28,3 +28,7 @@ Action: Whenever a standard `Array` needs to be converted into a `Packed*Array`,
 ## 7 - [Centralize array padding for shaders using native methods]
 Learning: Repeatedly padding `Packed*Array` instances with `.append()` inside a `while` loop is both duplicated across scripts calling similar shaders (e.g. Minimap and Terrain) and computationally inefficient.
 Action: Centralize the padding logic into global utility functions (like `GameState.get_padded_level_curves()`) and optimize it by resizing the array and using the native `.fill()` method, restoring original elements where necessary, to minimize overhead and duplicate code.
+
+## 8 - [Optimize direct indexing over append loops]
+Learning: Appending items inside loops into generic or native Arrays creates significant reallocation overhead compared to directly addressing memory.
+Action: Before a loop, calculate the final array size and call `.resize()`, then iterate and index elements directly into the pre-sized array instead of appending.

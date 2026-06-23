@@ -105,12 +105,23 @@ func get_padded_level_curves(curves: Array[float], max_size: int = 10, pad_value
 	var size = padded.size()
 	if size < max_size:
 		padded.resize(max_size)
-		padded.fill(pad_value)
-		# Restore original values that were overwritten by fill
-		for i in range(size):
-			padded[i] = curves[i]
+		if pad_value != 0.0:
+			for i in range(size, max_size):
+				padded[i] = pad_value
 	elif size > max_size:
 		padded = padded.slice(0, max_size)
+	return padded
+
+func get_padded_visited_zeros(max_size: int = 10, pad_value: Vector2 = Vector2.ZERO) -> PackedVector2Array:
+	var padded = PackedVector2Array(visited_zeros)
+	var size = padded.size()
+	if size < max_size:
+		padded.resize(max_size)
+		if pad_value != Vector2.ZERO:
+			for i in range(size, max_size):
+				padded[i] = pad_value
+	elif size > max_size:
+		padded = padded.slice(-max_size)
 	return padded
 
 func get_padded_newton_path(max_size: int = 50) -> PackedVector2Array:
@@ -118,10 +129,6 @@ func get_padded_newton_path(max_size: int = 50) -> PackedVector2Array:
 	var size = padded.size()
 	if size < max_size:
 		padded.resize(max_size)
-		padded.fill(Vector2.ZERO)
-		# Restore original values that were overwritten by fill
-		for i in range(size):
-			padded[i] = newton_path[i]
 	elif size > max_size:
 		padded = padded.slice(0, max_size)
 	return padded

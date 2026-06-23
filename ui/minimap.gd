@@ -82,17 +82,13 @@ func _update_zeros_shader():
 	var mat = map_rect.material as ShaderMaterial
 	mat.set_shader_parameter("show_hud_zeros", Config.show_hud_zeros)
 	if Config.show_hud_zeros:
-		var visited = PackedVector2Array(GameState.visited_zeros)
-		var v_size = min(visited.size(), 10)
+		var visited_size_raw = GameState.visited_zeros.size()
+		var v_size = min(visited_size_raw, 10)
 		var shader_accented_index = GameState.accented_zero_index
-		if visited.size() > 10:
-			shader_accented_index = GameState.accented_zero_index - (visited.size() - 10)
+		if visited_size_raw > 10:
+			shader_accented_index = GameState.accented_zero_index - (visited_size_raw - 10)
 
-		while visited.size() < 10:
-			visited.append(Vector2.ZERO)
-
-		if visited.size() > 10:
-			visited = visited.slice(-10)
+		var visited = GameState.get_padded_visited_zeros(10)
 
 		mat.set_shader_parameter("visited_zeros_size", v_size)
 		mat.set_shader_parameter("visited_zeros", visited)

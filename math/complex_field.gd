@@ -356,16 +356,22 @@ static func get_rational(x: float, y: float, num_coeffs: PackedVector2Array, den
 static func get_shader_patch_centers() -> PackedVector2Array:
 	var centers = PackedVector2Array()
 	var start_idx = max(0, eta_patches.size() - 64)
-	for i in range(start_idx, eta_patches.size()):
-		centers.append(eta_patches[i]["center"])
+	var count = eta_patches.size() - start_idx
+	centers.resize(count)
+	for i in range(count):
+		centers[i] = eta_patches[start_idx + i]["center"]
 	return centers
 
 static func get_shader_patch_coeffs() -> PackedVector2Array:
 	var coeffs = PackedVector2Array()
 	var start_idx = max(0, eta_patches.size() - 64)
-	for i in range(start_idx, eta_patches.size()):
+	var count = eta_patches.size() - start_idx
+	coeffs.resize(count * 16)
+	for i in range(count):
+		var patch_coeffs = eta_patches[start_idx + i]["coeffs"]
+		var base_idx = i * 16
 		for k in range(16):
-			coeffs.append(eta_patches[i]["coeffs"][k])
+			coeffs[base_idx + k] = patch_coeffs[k]
 	return coeffs
 
 static func evaluate_power_series(center: Vector2, coeffs: Array, z: Vector2) -> Vector2:

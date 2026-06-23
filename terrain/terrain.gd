@@ -49,9 +49,13 @@ func _ready():
 func _update_view_offsets():
 	_sorted_view_offsets.clear()
 	var d = Config.view_distance
+	var count = (2 * d + 1) * (2 * d + 1)
+	_sorted_view_offsets.resize(count)
+	var idx = 0
 	for x in range(-d, d + 1):
 		for z in range(-d, d + 1):
-			_sorted_view_offsets.append(Vector2i(x, z))
+			_sorted_view_offsets[idx] = Vector2i(x, z)
+			idx += 1
 	_sorted_view_offsets.sort_custom(func(a, b):
 		return max(abs(a.x), abs(a.y)) < max(abs(b.x), abs(b.y))
 	)
@@ -394,9 +398,10 @@ func _update_all_terrain_material_uniforms():
 		_update_terrain_material_uniforms(k)
 
 	terrain_material.set_shader_parameter("chunk_size", chunk_size)
-	var segments = []
-	for sub in LOD_SUBS:
-		segments.append(float(sub + 1))
+	var segments = PackedFloat32Array()
+	segments.resize(LOD_SUBS.size())
+	for i in range(LOD_SUBS.size()):
+		segments[i] = float(LOD_SUBS[i] + 1)
 	terrain_material.set_shader_parameter("lod_segments", segments)
 
 
