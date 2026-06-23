@@ -466,7 +466,8 @@ static func _get_or_create_patch(z: Vector2, iters: int) -> Dictionary:
 				closest_patch = patch
 
 		# If the target is within the safe valid radius of our closest patch, return it!
-		if min_dist <= PATCH_RADIUS * PATCH_THRESHOLD:
+		var threshold = PATCH_RADIUS * PATCH_THRESHOLD
+		if min_dist_sq <= threshold * threshold:
 			return closest_patch
 
 		# Otherwise, step systematically from our closest patch toward the target
