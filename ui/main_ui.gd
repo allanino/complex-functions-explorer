@@ -310,12 +310,12 @@ func _update_polynomial_debug_str():
 
 	var frame_z = Config.world_to_complex(player.global_position.x, player.global_position.z)
 	var closest_patch = null
-	var min_dist = 1e9
+	var min_dist_sq = 1e18
 
 	for patch in ComplexField.eta_patches:
-		var dist = (frame_z - patch["center"]).length()
-		if dist < min_dist:
-			min_dist = dist
+		var dist_sq = (frame_z - patch["center"]).length_squared()
+		if dist_sq < min_dist_sq:
+			min_dist_sq = dist_sq
 			closest_patch = patch
 
 	if closest_patch:

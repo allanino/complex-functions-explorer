@@ -46,3 +46,7 @@
 ## 2025-03-02 - Optimize get_terrain_height caching
 **Learning:** Calling `get_terrain_height` or `ComplexField.get_height` computes the mathematical complex function. If it is called without passing a cached field value during `_physics_process` (like when the menu is open and the player is paused), it wastes CPU recalculating the exact same math every frame.
 **Action:** When calling `get_terrain_height` inside a loop where position hasn't changed, always pass the cached `current_f` field value to skip redundant mathematical computations.
+
+## 2025-03-02 - Optimize GDScript Array Iteration Length Computations
+**Learning:** For distance comparisons or threshold checks in GDScript tight loops (like in `_process` and loops inside it), calculating `length()` involves a costly square root operation.
+**Action:** Replace `length()` calls with `length_squared()` and pre-calculate the squared threshold. When iterating over arrays (like `ComplexField.eta_patches`), maintaining a `min_dist_sq` and comparing it directly against `length_squared()` reduces overhead significantly compared to using `length()`.

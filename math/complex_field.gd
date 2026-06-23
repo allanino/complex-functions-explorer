@@ -457,12 +457,12 @@ static func _get_or_create_patch(z: Vector2, iters: int) -> Dictionary:
 	# 2. Iterate pathfinding / stepping until we reach a patch containing target `z`
 	while true:
 		var closest_patch = null
-		var min_dist = 1e9
+		var min_dist_sq = 1e18
 
 		for patch in eta_patches:
-			var dist = (z - patch["center"]).length()
-			if dist < min_dist:
-				min_dist = dist
+			var dist_sq = (z - patch["center"]).length_squared()
+			if dist_sq < min_dist_sq:
+				min_dist_sq = dist_sq
 				closest_patch = patch
 
 		# If the target is within the safe valid radius of our closest patch, return it!
