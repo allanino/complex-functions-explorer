@@ -333,3 +333,37 @@ func test_zeta_stability_check():
 	assert_true(GameState.unstable_zeta_computation)
 
 	Config.function_type = original_function_type
+
+func test_gamepad_support():
+	var player = player_scene.instantiate()
+	add_child_autoqfree(player)
+	
+	# Verify input actions exist in InputMap
+	assert_true(InputMap.has_action("look_left"))
+	assert_true(InputMap.has_action("look_right"))
+	assert_true(InputMap.has_action("look_up"))
+	assert_true(InputMap.has_action("look_down"))
+	assert_true(InputMap.has_action("move_up"))
+	assert_true(InputMap.has_action("speed_boost"))
+	assert_true(InputMap.has_action("slow_movement"))
+	assert_true(InputMap.has_action("ui_cancel"))
+	
+	# Simulate gamepad right stick look right
+	var initial_rotation_y = player.rotation.y
+	Input.action_press("look_right", 0.8)
+	# Also need look_left to be 0 since Input.get_vector handles opposing axes
+	Input.action_release("look_left")
+	
+	player._physics_process(0.016)
+	Input.action_release("look_right")
+	
+	assert_ne(player.rotation.y, initial_rotation_y)
+
+	# Verify gamepad look does not rotate camera when menu is open
+	GameState.is_menu_open = true
+	var rotation_before_menu_look = player.rotation.y
+	Input.action_press("look_right", 0.8)
+	player._physics_process(0.016)
+	Input.action_release("look_right")
+	assert_eq(player.rotation.y, rotation_before_menu_look)
+	GameState.is_menu_open = false

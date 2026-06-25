@@ -57,10 +57,22 @@ func detach_slider_control(source_slider: HSlider, source_value_label: Label, ti
 	main_ui.toggle_menu(true)
 	is_detaching = false
 	visible = true
+	set_process(true)
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	GameState.is_detached_interactive = true
 
 func _process(delta):
+	if visible and interaction_active:
+		# Emulate mouse movement with Right Analog Stick
+		var right_stick = Input.get_vector("look_left", "look_right", "look_up", "look_down")
+		if right_stick != Vector2.ZERO:
+			var mouse_pos = get_viewport().get_mouse_position()
+			var new_mouse_pos = mouse_pos + right_stick * 800.0 * delta
+			var vp_size = get_viewport().get_visible_rect().size
+			new_mouse_pos.x = clamp(new_mouse_pos.x, 0, vp_size.x)
+			new_mouse_pos.y = clamp(new_mouse_pos.y, 0, vp_size.y)
+			get_viewport().warp_mouse(new_mouse_pos)
+
 	if is_playing:
 		var range_val = detach_slider.max_value - detach_slider.min_value
 		if range_val > 0.0:
@@ -76,7 +88,6 @@ func _process(delta):
 
 func _on_play_pressed():
 	is_playing = !is_playing
-	set_process(is_playing)
 	if is_playing:
 		play_button.text = "■"
 		playback_value = detach_slider.value
@@ -106,3 +117,37 @@ func _on_exit_detach_pressed():
 	visible = false
 	GameState.is_detached_interactive = false
 	main_ui.toggle_menu()
+
+func _input(event):
+	if visible:
+		if event is InputEventJoypadButton:
+			if event.pressed:
+				if event.button_index == JOY_BUTTON_RIGHT_STICK:
+					main_ui.toggle_menu()
+					get_viewport().set_input_as_handled()
+					return
+				
+				if not interaction_active:
+					return
+
+				if event.button_index == JOY_BUTTON_B:
+					_on_exit_detach_pressed()
+					get_viewport().set_input_as_handled()
+					return
+				elif event.button_index == JOY_BUTTON_X or event.button_index == JOY_BUTTON_Y:
+					_on_play_pressed()
+					get_viewport().set_input_as_handled()
+					return
+
+			if not interaction_active:
+				return
+
+			if event.button_index == JOY_BUTTON_A:
+				var m_event = InputEventMouseButton.new()
+				m_event.button_index = MOUSE_BUTTON_LEFT
+				m_event.pressed = event.pressed
+				m_event.position = get_viewport().get_mouse_position()
+				m_event.global_position = m_event.position
+				get_viewport().push_input(m_event)
+				get_viewport().set_input_as_handled()
+				return

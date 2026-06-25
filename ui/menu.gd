@@ -1,6 +1,10 @@
 extends Control
 
 var SLIDER_BINDINGS: Dictionary = {}
+var _using_mouse_pointer: bool = true
+var _hovered_slider: HSlider = null
+var _left_stick_horizontal_state: int = 0
+
 
 signal apply_aa_signal()
 signal update_hud_layout_signal()
@@ -210,9 +214,9 @@ func _ready():
 		var btn = tab_buttons[i]
 		if btn:
 			btn.flat = false
+			btn.focus_mode = Control.FOCUS_NONE
 			btn.add_theme_stylebox_override("hover", hover_tab_style)
 			btn.add_theme_stylebox_override("pressed", active_tab_style)
-			btn.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
 			btn.alignment = HorizontalAlignment.HORIZONTAL_ALIGNMENT_LEFT
 			btn.pressed.connect(func(): _on_tab_button_pressed(i))
 
@@ -303,7 +307,7 @@ func _ready():
 	#morph_style_dropdown.add_item("Exponential")
 
 	emit_signal("apply_aa_signal")
-	_disable_sliders_focus(self )
+
 
 	Config.config_changed.connect(_on_config_changed)
 	morph_style_dropdown.item_selected.connect(_on_morph_style_selected)
@@ -352,6 +356,9 @@ func _ready():
 			_rescale_menu(Config.menu_scale)
 		)
 	_update_morph_style_ui()
+	_connect_popup_inputs()
+	_disable_dpad_focus_recursive(self)
+	_connect_slider_hover_signals(self)
 
 
 func _init_slider_bindings():
@@ -597,12 +604,6 @@ var last_submitted_input: int = -1
 
 var _syncing_ui: bool = false
 
-func _disable_sliders_focus(node: Node):
-	if node is HSlider:
-		node.focus_mode = Control.FOCUS_NONE
-	for child in node.get_children():
-		_disable_sliders_focus(child)
-
 
 func _populate_function_dropdown(button: OptionButton, exclude_multivalued: bool):
 	button.clear()
@@ -622,30 +623,178 @@ func _on_func_item_selected(index):
 func _on_input_item_selected(index: int):
 	_on_input_selected(input_button.get_item_id(index))
 
+func _disable_dpad_focus_recursive(node: Node):
+	if node is Control:
+		if node is LineEdit:
+			node.focus_mode = Control.FOCUS_CLICK
+		else:
+			node.focus_mode = Control.FOCUS_NONE
+	for child in node.get_children(true):
+		_disable_dpad_focus_recursive(child)
+
+func _connect_slider_hover_signals(node: Node):
+	if node is HSlider:
+		node.mouse_entered.connect(func(): _hovered_slider = node)
+		node.mouse_exited.connect(func(): if _hovered_slider == node: _hovered_slider = null)
+	for child in node.get_children(true):
+		_connect_slider_hover_signals(child)
+
+func _connect_popup_inputs():
+	var ob_list = [
+		func_button,
+		input_button,
+		height_button,
+		terrain_detail_button,
+		aa_button,
+		color_scheme_button,
+		%PresetButton
+	]
+	for ob in ob_list:
+		if ob and ob is OptionButton:
+			var popup = ob.get_popup()
+			if popup:
+				popup.window_input.connect(_on_popup_input.bind(popup))
+
+func _on_popup_input(event: InputEvent, popup: PopupMenu):
+	if event is InputEventJoypadButton and event.pressed:
+		if event.button_index == JOY_BUTTON_B:
+			popup.visible = false
+			popup.get_viewport().set_input_as_handled()
+		elif event.button_index == JOY_BUTTON_A:
+			var idx = popup.get_focused_item()
+			if idx >= 0:
+				var parent_ob = popup.get_parent()
+				if parent_ob and parent_ob is OptionButton:
+					parent_ob.select(idx)
+					parent_ob.item_selected.emit(idx)
+			popup.visible = false
+			popup.get_viewport().set_input_as_handled()
+
+func _get_open_popup() -> PopupMenu:
+	var ob_list = [
+		func_button,
+		input_button,
+		height_button,
+		terrain_detail_button,
+		aa_button,
+		color_scheme_button,
+		%PresetButton
+	]
+	for ob in ob_list:
+		if ob and ob is OptionButton and ob.get_popup() and ob.get_popup().visible:
+			return ob.get_popup()
+	return null
+
 func _input(event):
-	if event is InputEventKey and event.pressed and event.keycode == KEY_P and event.ctrl_pressed:
-		var target_func = last_submitted_func if current_submitted_func == Config.function_type else current_submitted_func
-		var target_input = last_submitted_input if current_submitted_input == Config.input_function_type else current_submitted_input
+	if visible:
+		var open_popup = _get_open_popup()
+		if open_popup:
+			return
 
-		var func_index = func_button.get_item_index(target_func)
-		var input_index = input_button.get_item_index(target_input)
+		if _hovered_slider:
+			if event is InputEventJoypadMotion and event.axis == JOY_AXIS_LEFT_X:
+				var axis_val = event.axis_value
+				var new_state = 0
+				if axis_val < -0.5:
+					new_state = -1
+				elif axis_val > 0.5:
+					new_state = 1
+				
+				if new_state != _left_stick_horizontal_state:
+					if new_state == -1:
+						var step = _hovered_slider.step
+						if step == 0.0:
+							step = (_hovered_slider.max_value - _hovered_slider.min_value) / 100.0
+						_hovered_slider.value -= step
+					elif new_state == 1:
+						var step = _hovered_slider.step
+						if step == 0.0:
+							step = (_hovered_slider.max_value - _hovered_slider.min_value) / 100.0
+						_hovered_slider.value += step
+					_left_stick_horizontal_state = new_state
+				elif abs(axis_val) < 0.2:
+					_left_stick_horizontal_state = 0
+				
+				get_viewport().set_input_as_handled()
+				return
+			
+			elif event.is_action_pressed("dpad_left") and not event.is_echo():
+				var step = _hovered_slider.step
+				if step == 0.0:
+					step = (_hovered_slider.max_value - _hovered_slider.min_value) / 100.0
+				_hovered_slider.value -= step
+				get_viewport().set_input_as_handled()
+				return
+			elif event.is_action_pressed("dpad_right") and not event.is_echo():
+				var step = _hovered_slider.step
+				if step == 0.0:
+					step = (_hovered_slider.max_value - _hovered_slider.min_value) / 100.0
+				_hovered_slider.value += step
+				get_viewport().set_input_as_handled()
+				return
+		else:
+			if (event.is_action_pressed("dpad_left") or event.is_action_pressed("dpad_right")) and not event.is_echo():
+				_toggle_preset_command()
+				get_viewport().set_input_as_handled()
+				return
 
-		if func_index >= 0:
-			func_button.select(func_index)
-			var was_syncing = _syncing_ui
-			_syncing_ui = true
-			_on_func_item_selected(func_index)
-			_syncing_ui = was_syncing
-		if input_index >= 0:
-			input_button.select(input_index)
-			var was_syncing = _syncing_ui
-			_syncing_ui = true
-			_on_input_item_selected(input_index)
-			_syncing_ui = was_syncing
+		if event is InputEventJoypadButton:
+			if event.pressed:
+				if event.button_index == JOY_BUTTON_LEFT_SHOULDER:
+					var current = tab_container.current_tab
+					var next = (current - 1 + tab_buttons.size()) % tab_buttons.size()
+					_on_tab_button_pressed(next)
+					get_viewport().set_input_as_handled()
+					return
+				elif event.button_index == JOY_BUTTON_RIGHT_SHOULDER:
+					var current = tab_container.current_tab
+					var next = (current + 1) % tab_buttons.size()
+					_on_tab_button_pressed(next)
+					get_viewport().set_input_as_handled()
+					return
 
-		if func_index >= 0 or input_index >= 0:
-			_on_set_pos_pressed(false)
-			get_viewport().set_input_as_handled()
+				if event.button_index == JOY_BUTTON_B:
+					toggle_menu(false)
+					get_viewport().set_input_as_handled()
+					return
+
+			if event.button_index == JOY_BUTTON_A:
+				var target_pos = get_viewport().get_mouse_position()
+				var m_event = InputEventMouseButton.new()
+				m_event.button_index = MOUSE_BUTTON_LEFT
+				m_event.pressed = event.pressed
+				m_event.position = target_pos
+				m_event.global_position = target_pos
+				get_viewport().push_input(m_event)
+				get_viewport().set_input_as_handled()
+				return
+
+	if (event is InputEventKey and event.pressed and event.keycode == KEY_P and event.ctrl_pressed) or ((event.is_action_pressed("dpad_left") or event.is_action_pressed("dpad_right")) and not event.is_echo() and not visible):
+		_toggle_preset_command()
+		get_viewport().set_input_as_handled()
+
+func _toggle_preset_command():
+	var target_func = last_submitted_func if current_submitted_func == Config.function_type else current_submitted_func
+	var target_input = last_submitted_input if current_submitted_input == Config.input_function_type else current_submitted_input
+
+	var func_index = func_button.get_item_index(target_func)
+	var input_index = input_button.get_item_index(target_input)
+
+	if func_index >= 0:
+		func_button.select(func_index)
+		var was_syncing = _syncing_ui
+		_syncing_ui = true
+		_on_func_item_selected(func_index)
+		_syncing_ui = was_syncing
+	if input_index >= 0:
+		input_button.select(input_index)
+		var was_syncing = _syncing_ui
+		_syncing_ui = true
+		_on_input_item_selected(input_index)
+		_syncing_ui = was_syncing
+
+	if func_index >= 0 or input_index >= 0:
+		_on_set_pos_pressed(false)
 
 func _on_input_selected(f_type: int):
 	Config.input_function_type = f_type
@@ -728,7 +877,7 @@ func _on_freeze_time_toggled(pressed: bool):
 
 func _on_set_pos_pressed(_toggle_menu: bool = true):
 	var audio = get_node_or_null("/root/Main/Audio")
-	if audio.has_method("trigger_teleport_fade"):
+	if audio and audio.has_method("trigger_teleport_fade"):
 		audio.trigger_teleport_fade()
 
 	GameState.performance_protection_active = false
@@ -1169,8 +1318,21 @@ func _process(delta: float):
 		_title_click_timer -= delta
 		if _title_click_timer <= 0.0:
 			_title_clicks = 0
-			# Performance: Suspend _process when the title click timer expires
-			set_process(false)
+			if not visible:
+				set_process(false)
+
+	if visible:
+		# Emulate mouse movement with Right Analog Stick
+		var right_stick = Input.get_vector("look_left", "look_right", "look_up", "look_down")
+		if right_stick != Vector2.ZERO:
+			_using_mouse_pointer = true
+			var mouse_pos = get_viewport().get_mouse_position()
+			var new_mouse_pos = mouse_pos + right_stick * 800.0 * delta
+			var vp_size = get_viewport().get_visible_rect().size
+			new_mouse_pos.x = clamp(new_mouse_pos.x, 0, vp_size.x)
+			new_mouse_pos.y = clamp(new_mouse_pos.y, 0, vp_size.y)
+			get_viewport().warp_mouse(new_mouse_pos)
+
 
 func _on_title_gui_input(event: InputEvent):
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
@@ -1206,9 +1368,11 @@ func _update_tab_buttons_styling():
 	for i in range(tab_buttons.size()):
 		var btn = tab_buttons[i]
 		if not btn: continue
+
 		if i == tab_container.current_tab:
 			btn.add_theme_stylebox_override("normal", active_tab_style)
 			btn.add_theme_stylebox_override("hover", hover_active_tab_style)
+			btn.add_theme_stylebox_override("focus", hover_active_tab_style)
 			btn.add_theme_color_override("font_color", ThemeColors.gold)
 			btn.add_theme_color_override("font_hover_color", ThemeColors.gold)
 			btn.add_theme_color_override("font_pressed_color", ThemeColors.gold)
@@ -1216,6 +1380,7 @@ func _update_tab_buttons_styling():
 		else:
 			btn.add_theme_stylebox_override("normal", inactive_tab_style)
 			btn.add_theme_stylebox_override("hover", hover_tab_style)
+			btn.add_theme_stylebox_override("focus", hover_tab_style)
 			btn.add_theme_color_override("font_color", Color(0.909804, 0.894118, 0.862745, 0.5))
 			btn.add_theme_color_override("font_hover_color", Color(0.909804, 0.894118, 0.862745, 1.0))
 			btn.add_theme_color_override("font_pressed_color", Color(0.909804, 0.894118, 0.862745, 0.3))
@@ -1247,6 +1412,7 @@ func _format_float_3(val: float) -> String:
 	return "%.3f" % snappedf(val, 0.001)
 
 func toggle_menu(applied: bool = false):
+	_left_stick_horizontal_state = 0
 	if detach_controller.visible:
 		detach_controller.interaction_active = !detach_controller.interaction_active
 		if detach_controller.interaction_active:
@@ -1264,6 +1430,8 @@ func toggle_menu(applied: bool = false):
 	GameState.is_menu_open = visible
 
 	if visible:
+		set_process(true)
+		_using_mouse_pointer = true
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 		_initial_master_volume = Config.master_volume
 		_initial_bg_music_volume = Config.bg_music_volume
@@ -1313,6 +1481,7 @@ func toggle_menu(applied: bool = false):
 		preset_controller.update_preset_button_text()
 
 	else:
+		set_process(false)
 		if not detach_controller.visible and not detach_controller.is_detaching:
 			Config.morph_style = Config.MorphStyle.DISABLED
 		tooltip_manager.hide_tooltip()

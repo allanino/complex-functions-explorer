@@ -177,15 +177,18 @@ func _unhandled_input(event):
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		camera_input_dir += event.relative
 
+	if event.is_action_pressed("zoom_in"):
+		Config.zoom_factor *= 1.1
+		Config.save_settings()
+	elif event.is_action_pressed("zoom_out"):
+		Config.zoom_factor /= 1.1
+		Config.save_settings()
+	elif event.is_action_pressed("zoom_reset"):
+		Config.zoom_factor = 1.0
+		Config.save_settings()
+
 	if event is InputEventMouseButton and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-		if event.button_index == MOUSE_BUTTON_WHEEL_UP and event.pressed:
-			Config.zoom_factor *= 1.1
-		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN and event.pressed:
-			Config.zoom_factor /= 1.1
-		elif event.button_index == MOUSE_BUTTON_MIDDLE and event.pressed:
-			Config.zoom_factor = 1.0
-			Config.save_settings()
-		elif event.button_index == MOUSE_BUTTON_LEFT and event.pressed and event.ctrl_pressed:
+		if event.button_index == MOUSE_BUTTON_LEFT and event.pressed and event.ctrl_pressed:
 			if Config.show_curves:
 				# If close to a real curve level, push or toggle it in the list capped at 10
 				var closest_curve_real = round(current_f.x)
@@ -215,27 +218,16 @@ func _unhandled_input(event):
 			if Config.show_curves:
 				GameState.real_level_curves_highlighted = []
 				GameState.imag_level_curves_highlighted = []
-					
 
-	if event is InputEventKey and event.pressed and event.keycode == KEY_SPACE and not event.echo:
+	if event.is_action_pressed("move_up") and not event.is_echo():
 		var current_time = Time.get_ticks_msec() / 1000.0
 		if current_time - last_space_time < DOUBLE_PRESS_TIME:
 			is_resetting_height = true
 		last_space_time = current_time
 
-	if event is InputEventKey and event.pressed and event.ctrl_pressed:
-		if event.keycode == KEY_G:
-			Config.freeze_time = true
-			Config.day_time = 22740
-			Config.save_settings()
-		elif event.keycode == KEY_N:
-			Config.freeze_time = false
-			Config.save_settings()
-		elif event.keycode == KEY_C:
-			var f_data = Config.function
-			if not f_data.get("is_dirichlet", false):
-				return
-
+	if event.is_action_pressed("toggle_autowalk"):
+		var f_data = Config.function
+		if f_data.get("is_dirichlet", false):
 			if auto_walk_state == AutoWalkState.NONE:
 				auto_walk_state = AutoWalkState.MOVING_TO_LINE
 				# Reset zero counter when starting auto-walk
@@ -247,24 +239,35 @@ func _unhandled_input(event):
 				GameState.rvm_start_t = abs(Config.world_to_complex(0.0, global_position.z).y)
 			else:
 				auto_walk_state = AutoWalkState.NONE
-		elif event.keycode == KEY_Z:
-			if auto_walk_state == AutoWalkState.NONE:
-				start_newton_walk()
-			else:
-				auto_walk_state = AutoWalkState.NONE
-		elif event.keycode == KEY_R:
-			global_position = get_initial_position()
-			if not Config.function.get("is_dirichlet", false) and not Config.function.has("initial_pos"):
-				rotation.y = - PI / 2.0
-			else:
-				rotation.y = 0.0
-			velocity = Vector3.ZERO
+
+	elif event.is_action_pressed("start_newtonwalk"):
+		if auto_walk_state == AutoWalkState.NONE:
+			start_newton_walk()
+		else:
 			auto_walk_state = AutoWalkState.NONE
-			height_offset = 0.0
-			is_resetting_height = false
-			GameState.current_branch = 0
-			current_f = ComplexField.get_field(global_position.x, global_position.z)
-			current_mag = current_f.length()
+
+	elif event.is_action_pressed("reset_player"):
+		global_position = get_initial_position()
+		if not Config.function.get("is_dirichlet", false) and not Config.function.has("initial_pos"):
+			rotation.y = - PI / 2.0
+		else:
+			rotation.y = 0.0
+		velocity = Vector3.ZERO
+		auto_walk_state = AutoWalkState.NONE
+		height_offset = 0.0
+		is_resetting_height = false
+		GameState.current_branch = 0
+		current_f = ComplexField.get_field(global_position.x, global_position.z)
+		current_mag = current_f.length()
+
+	if event is InputEventKey and event.pressed and event.ctrl_pressed:
+		if event.keycode == KEY_G:
+			Config.freeze_time = true
+			Config.day_time = 22740
+			Config.save_settings()
+		elif event.keycode == KEY_N:
+			Config.freeze_time = false
+			Config.save_settings()
 
 func get_terrain_height(x: float, z: float, field_val: Vector2 = Vector2.INF) -> float:
 	if field_val != Vector2.INF:
@@ -286,6 +289,15 @@ func _physics_process(delta):
 			if auto_walk_state == AutoWalkState.NONE or auto_walk_state == AutoWalkState.WALKING:
 				rotate_y(-joy_output.x * MOUSE_SENSITIVITY * 20.0)
 				rotation_x -= joy_output.y * MOUSE_SENSITIVITY * 20.0
+				rotation_x = clamp(rotation_x, -PI / 2, PI / 2)
+				camera.rotation.x = rotation_x
+
+	if not GameState.is_menu_open and not GameState.is_detached_interactive:
+		var gamepad_look = Input.get_vector("look_left", "look_right", "look_up", "look_down")
+		if gamepad_look != Vector2.ZERO:
+			if auto_walk_state == AutoWalkState.NONE or auto_walk_state == AutoWalkState.WALKING:
+				rotate_y(-gamepad_look.x * MOUSE_SENSITIVITY * 25.0)
+				rotation_x -= gamepad_look.y * MOUSE_SENSITIVITY * 25.0
 				rotation_x = clamp(rotation_x, -PI / 2, PI / 2)
 				camera.rotation.x = rotation_x
 
@@ -327,7 +339,7 @@ func _physics_process(delta):
 
 	if auto_walk_state != AutoWalkState.NONE:
 		var manual_input = Input.get_vector("move_left", "move_right", "move_forward", "move_backward")
-		if manual_input != Vector2.ZERO or Input.is_key_pressed(KEY_SPACE):
+		if manual_input != Vector2.ZERO or Input.is_action_pressed("move_up"):
 			auto_walk_state = AutoWalkState.NONE
 
 	var current_speed = scaled_movement_speed
@@ -348,12 +360,12 @@ func _physics_process(delta):
 			current_speed = min(current_speed, 20.0)
 
 	if auto_walk_state == AutoWalkState.NONE:
-		if Input.is_key_pressed(KEY_SHIFT):
+		if Input.is_action_pressed("speed_boost"):
 			current_speed *= 2.0
-		elif Input.is_key_pressed(KEY_CTRL):
+		elif Input.is_action_pressed("slow_movement"):
 			current_speed *= 0.05
 
-	if Input.is_key_pressed(KEY_SPACE):
+	if Input.is_action_pressed("move_up"):
 		space_held_time += delta
 		if space_held_time > DOUBLE_PRESS_TIME:
 			is_resetting_height = false

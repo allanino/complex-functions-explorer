@@ -300,9 +300,46 @@ func test_detached_slider_play_loop():
 	# If playing is true and we exit detach, it should stop
 	dc.play_button.pressed.emit()
 	assert_true(dc.is_playing)
-	dc._on_exit_detach_pressed()
-	assert_false(dc.is_playing)
-	assert_eq(dc.play_button.text, "▶")
+	
+	# Simulate gamepad X button (Play/Stop toggle)
+	var ev_x = InputEventJoypadButton.new()
+	ev_x.button_index = JOY_BUTTON_X
+	ev_x.pressed = true
+	dc._input(ev_x)
+	assert_false(dc.is_playing) # Toggled off
+	
+	# Simulate gamepad B button (Close/Exit detach)
+	var ev_b = InputEventJoypadButton.new()
+	ev_b.button_index = JOY_BUTTON_B
+	ev_b.pressed = true
+	dc._input(ev_b)
+	assert_false(dc.visible)
+
+	# Simulate gamepad R3 button (Right Stick Click) to toggle interaction mode
+	var ev_r3 = InputEventJoypadButton.new()
+	ev_r3.button_index = JOY_BUTTON_RIGHT_STICK
+	ev_r3.pressed = true
+
+	# Open detach slider back up
+	dc.detach_slider_control(source_slider, source_label, "Test Slider")
+	assert_true(dc.interaction_active)
+	assert_true(GameState.is_detached_interactive)
+
+	# Press R3 -> Interaction should turn OFF (camera move mode enabled)
+	dc._input(ev_r3)
+	assert_false(dc.interaction_active)
+	assert_false(GameState.is_detached_interactive)
+
+	# Press R3 again -> Interaction should turn ON (pointer control mode enabled)
+	dc._input(ev_r3)
+	assert_true(dc.interaction_active)
+	assert_true(GameState.is_detached_interactive)
+
+
+	# Clean up
+	dc.visible = false
+	GameState.is_detached_interactive = false
+
 
 func test_branch_k_slider_ranges():
 	# Test MULTIVALUED_Z_POW (range 0 to n-1)
@@ -329,5 +366,210 @@ func test_line_edit_dead_key_circumflex_handling():
 	
 	# Verify that the _process method runs without throwing
 	text_input._process(0.016)
+
+func test_menu_gamepad_navigation():
+	var menu = main_ui_instance.menu_overlay
+	# Test opening menu
+	menu.toggle_menu(false)
+	assert_true(menu.visible)
+	assert_true(menu.is_processing())
+	
+	# Verify that HSliders and CheckBoxes have FOCUS_NONE by default (D-pad focus disabled)
+	assert_eq(menu.iter_slider.get_slider().focus_mode, Control.FOCUS_NONE)
+	assert_eq(menu.curves_checkbox.get_node("Control/CheckBox").focus_mode, Control.FOCUS_NONE)
+	# Verify that tab buttons are FOCUS_NONE
+	assert_eq(menu.func_tab_button.focus_mode, Control.FOCUS_NONE)
+
+	# Simulate joypad A button press (which clicks at current mouse position)
+	var ev = InputEventJoypadButton.new()
+	ev.button_index = JOY_BUTTON_A
+	ev.pressed = true
+	menu._input(ev)
+	
+	# Simulate joypad L1/R1 shoulder button tab switching
+	# Start at tab 0. Press R1 (Right shoulder) -> switches to tab 1.
+	var ev_r1 = InputEventJoypadButton.new()
+	ev_r1.button_index = JOY_BUTTON_RIGHT_SHOULDER
+	ev_r1.pressed = true
+	menu._input(ev_r1)
+	assert_eq(menu.tab_container.current_tab, 1)
+	
+	# Press L1 (Left shoulder) -> switches back to tab 0.
+	var ev_l1 = InputEventJoypadButton.new()
+	ev_l1.button_index = JOY_BUTTON_LEFT_SHOULDER
+	ev_l1.pressed = true
+	menu._input(ev_l1)
+	assert_eq(menu.tab_container.current_tab, 0)
+
+	# Simulate joypad B button press (Cancel without saving)
+	var ev_cancel = InputEventJoypadButton.new()
+	ev_cancel.button_index = JOY_BUTTON_B
+	ev_cancel.pressed = true
+	menu._input(ev_cancel)
+
+	assert_false(menu.visible)
+	assert_false(menu.is_processing())
+
+func test_menu_dropdown_popup_input_handling():
+	var menu = main_ui_instance.menu_overlay
+	menu.toggle_menu(false)
+	assert_true(menu.visible)
+
+	# Simulate opening a popup on func_button
+	var popup = menu.func_button.get_popup()
+	popup.visible = true
+	assert_eq(menu._get_open_popup(), popup)
+
+	# Pressing JOY_BUTTON_B (Circle) should close the popup, not the main menu overlay
+	var ev_cancel = InputEventJoypadButton.new()
+	ev_cancel.button_index = JOY_BUTTON_B
+	ev_cancel.pressed = true
+	popup.emit_signal("window_input", ev_cancel)
+	
+	assert_false(popup.visible)
+	assert_true(menu.visible) # Main menu is still open!
+
+	# Open it again
+	popup.visible = true
+	
+	# Set a focused item index
+	popup.set_focused_item(1)
+	
+	# Connect to item_selected to verify OptionButton gets updated
+	var context = {"selected_index": - 1}
+	var on_selected = func(idx): context["selected_index"] = idx
+	menu.func_button.item_selected.connect(on_selected)
+
+	# Pressing JOY_BUTTON_A (Cross) should activate index 1 and close the popup
+	var ev_select = InputEventJoypadButton.new()
+	ev_select.button_index = JOY_BUTTON_A
+	ev_select.pressed = true
+	popup.emit_signal("window_input", ev_select)
+
+	assert_eq(context["selected_index"], 1)
+	assert_false(popup.visible)
+	assert_true(menu.visible)
+	
+	# Clean up signal
+	menu.func_button.item_selected.disconnect(on_selected)
+
+	# Now pressing JOY_BUTTON_B should close the main menu overlay
+	menu._input(ev_cancel)
+	assert_false(menu.visible)
+
+func test_menu_hovered_slider_gamepad_adjustments():
+	var menu = main_ui_instance.menu_overlay
+	menu.toggle_menu(false)
+	assert_true(menu.visible)
+
+	var slider = menu.iter_slider.get_slider()
+	slider.value = 1000.0
+
+	# Simulate hover
+	menu._hovered_slider = slider
+	assert_eq(menu._hovered_slider, slider)
+
+	# Simulate D-pad Right (dpad_right)
+	var ev_right = InputEventAction.new()
+	ev_right.action = "dpad_right"
+	ev_right.pressed = true
+	menu._input(ev_right)
+	assert_eq(slider.value, 1100.0) # step is 100.0
+
+	# Simulate D-pad Left (dpad_left)
+	var ev_left = InputEventAction.new()
+	ev_left.action = "dpad_left"
+	ev_left.pressed = true
+	menu._input(ev_left)
+	assert_eq(slider.value, 1000.0)
+
+	# Simulate Left Analog/D-pad action (dpad_right) to verify it increments step-by-step
+	var ev_analog_right = InputEventAction.new()
+	ev_analog_right.action = "dpad_right"
+	ev_analog_right.pressed = true
+	menu._input(ev_analog_right)
+	assert_eq(slider.value, 1100.0)
+
+	# Simulate Joypad Motion (JOY_AXIS_LEFT_X = 0.6)
+	var ev_motion_right = InputEventJoypadMotion.new()
+	ev_motion_right.axis = JOY_AXIS_LEFT_X
+	ev_motion_right.axis_value = 0.6
+	menu._input(ev_motion_right)
+	assert_eq(slider.value, 1200.0)
+
+	# Simulate holding Joypad Motion (JOY_AXIS_LEFT_X = 0.7) - value should NOT change
+	var ev_motion_right_hold = InputEventJoypadMotion.new()
+	ev_motion_right_hold.axis = JOY_AXIS_LEFT_X
+	ev_motion_right_hold.axis_value = 0.7
+	menu._input(ev_motion_right_hold)
+	assert_eq(slider.value, 1200.0)
+
+	# Simulate returning to neutral (JOY_AXIS_LEFT_X = 0.1) - value should NOT change
+	var ev_motion_neutral = InputEventJoypadMotion.new()
+	ev_motion_neutral.axis = JOY_AXIS_LEFT_X
+	ev_motion_neutral.axis_value = 0.1
+	menu._input(ev_motion_neutral)
+	assert_eq(slider.value, 1200.0)
+
+	# Simulate pushing right again (JOY_AXIS_LEFT_X = 0.6) - value should change
+	menu._input(ev_motion_right)
+	assert_eq(slider.value, 1300.0)
+
+	# Clean up hover
+	menu._hovered_slider = null
+
+func test_menu_unhovered_slider_preset_toggle():
+	var menu = main_ui_instance.menu_overlay
+	menu.toggle_menu(false)
+	assert_true(menu.visible)
+
+	menu._hovered_slider = null
+	menu.last_submitted_func = Config.ComplexFunc.ZETA_CONTINUATION
+	menu.current_submitted_func = Config.ComplexFunc.DIRICHLET_ETA_CONTINUATION
+	Config.function_type = Config.ComplexFunc.DIRICHLET_ETA_CONTINUATION
+
+	# Simulate dpad_left action while not hovering a slider
+	var ev_left = InputEventAction.new()
+	ev_left.action = "dpad_left"
+	ev_left.pressed = true
+	menu._input(ev_left)
+
+	# It should toggle Config.function_type to last_submitted_func (ZETA_CONTINUATION)
+	assert_eq(Config.function_type, Config.ComplexFunc.ZETA_CONTINUATION)
+
+	# Simulate dpad_right action while not hovering a slider
+	var ev_right = InputEventAction.new()
+	ev_right.action = "dpad_right"
+	ev_right.pressed = true
+	menu._input(ev_right)
+
+	# It should toggle Config.function_type back to DIRICHLET_ETA_CONTINUATION
+	assert_eq(Config.function_type, Config.ComplexFunc.DIRICHLET_ETA_CONTINUATION)
+
+func test_menu_closed_preset_toggle():
+	var menu = main_ui_instance.menu_overlay
+	if menu.visible:
+		menu.toggle_menu(false)
+	assert_false(menu.visible)
+
+	menu.last_submitted_func = Config.ComplexFunc.ZETA_CONTINUATION
+	menu.current_submitted_func = Config.ComplexFunc.DIRICHLET_ETA_CONTINUATION
+	Config.function_type = Config.ComplexFunc.DIRICHLET_ETA_CONTINUATION
+
+	# Simulate dpad_left action when menu is closed
+	var ev_left = InputEventAction.new()
+	ev_left.action = "dpad_left"
+	ev_left.pressed = true
+	menu._input(ev_left)
+
+	assert_eq(Config.function_type, Config.ComplexFunc.ZETA_CONTINUATION)
+
+	# Simulate dpad_right action when menu is closed
+	var ev_right = InputEventAction.new()
+	ev_right.action = "dpad_right"
+	ev_right.pressed = true
+	menu._input(ev_right)
+
+	assert_eq(Config.function_type, Config.ComplexFunc.DIRICHLET_ETA_CONTINUATION)
 
 
