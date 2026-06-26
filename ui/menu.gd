@@ -59,6 +59,7 @@ signal update_hud_layout_signal()
 @onready var fog_density_slider = %FogDensitySlider
 @onready var shadows_checkbox = %ShadowsCheckbox
 @onready var minimap_checkbox = %MinimapCheckbox
+@onready var minimap_range_checkbox = %MinimapRangeCheckbox
 @onready var hud_phase_wheel_checkbox = %HudComplexCheckbox
 @onready var hud_position_checkbox = %HudPositionCheckbox
 @onready var hud_zeros_checkbox = %HudZerosDetectionCheckbox
@@ -238,6 +239,7 @@ func _ready():
 	flow_checkbox.toggled.connect(_on_flow_toggled)
 	position_marker_checkbox.toggled.connect(_on_position_marker_toggled)
 	minimap_checkbox.toggled.connect(_on_minimap_toggled)
+	minimap_range_checkbox.toggled.connect(_on_minimap_range_toggled)
 	hud_phase_wheel_checkbox.toggled.connect(_on_hud_phase_wheel_toggled)
 	hud_position_checkbox.toggled.connect(_on_hud_navigation_toggled)
 	hud_zeros_checkbox.toggled.connect(_on_hud_zeros_toggled)
@@ -914,6 +916,7 @@ func _on_set_pos_pressed(_toggle_menu: bool = true):
 	Config.show_critical_stripe = critical_checkbox.button_pressed
 	Config.shadows_enabled = shadows_checkbox.button_pressed
 	Config.show_minimap = minimap_checkbox.button_pressed
+	Config.show_minimap_range = minimap_range_checkbox.button_pressed
 	Config.show_hud_phase_wheel = hud_phase_wheel_checkbox.button_pressed
 	Config.show_hud_navigation = hud_position_checkbox.button_pressed
 	Config.show_hud_zeros = hud_zeros_checkbox.button_pressed
@@ -1018,6 +1021,8 @@ func _sync_ui_to_config():
 	critical_checkbox.button_pressed = Config.show_critical_stripe
 	shadows_checkbox.button_pressed = Config.shadows_enabled
 	minimap_checkbox.button_pressed = Config.show_minimap
+	minimap_range_checkbox.button_pressed = Config.show_minimap_range
+	minimap_range_checkbox.visible = Config.show_minimap
 	hud_phase_wheel_checkbox.button_pressed = Config.show_hud_phase_wheel
 	hud_position_checkbox.button_pressed = Config.show_hud_navigation
 	hud_phase_wheel_checkbox.visible = Config.show_hud_navigation
@@ -1095,6 +1100,10 @@ func _on_position_marker_toggled(pressed: bool):
 
 func _on_minimap_toggled(pressed: bool):
 	Config.show_minimap = pressed
+	minimap_range_checkbox.visible = pressed
+
+func _on_minimap_range_toggled(pressed: bool):
+	Config.show_minimap_range = pressed
 
 func _on_hud_phase_wheel_toggled(pressed: bool):
 	Config.show_hud_phase_wheel = pressed

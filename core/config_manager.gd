@@ -228,6 +228,7 @@ const PRESET_KEYS = [
 	"camera_height",
 	"zero_proximity_nav",
 	"show_minimap",
+	"show_minimap_range",
 	"show_hud_phase_wheel",
 	"show_hud_navigation",
 	"show_hud_zeros",
@@ -449,6 +450,11 @@ var show_minimap: bool = true:
 		if show_minimap == v: return
 		show_minimap = v
 		config_changed.emit("show_minimap")
+var show_minimap_range: bool = false:
+	set(v):
+		if show_minimap_range == v: return
+		show_minimap_range = v
+		config_changed.emit("show_minimap_range")
 var show_hud_phase_wheel: bool = true:
 	set(v):
 		if show_hud_phase_wheel == v: return
@@ -674,6 +680,7 @@ func save_settings():
 	config.set_value("player", "zero_proximity_nav", zero_proximity_nav)
 
 	config.set_value("ui", "show_minimap", show_minimap)
+	config.set_value("ui", "show_minimap_range", show_minimap_range)
 	config.set_value("ui", "show_hud_phase_wheel", show_hud_phase_wheel)
 	config.set_value("ui", "show_hud_navigation", show_hud_navigation)
 	config.set_value("ui", "show_hud_zeros", show_hud_zeros)
@@ -761,6 +768,7 @@ func load_settings():
 	zero_proximity_nav = config.get_value("player", "zero_proximity_nav", zero_proximity_nav)
 
 	show_minimap = config.get_value("ui", "show_minimap", show_minimap)
+	show_minimap_range = config.get_value("ui", "show_minimap_range", show_minimap_range)
 	show_hud_phase_wheel = config.get_value("ui", "show_hud_phase_wheel", show_hud_phase_wheel)
 	show_hud_navigation = config.get_value("ui", "show_hud_navigation", show_hud_navigation)
 	show_hud_zeros = config.get_value("ui", "show_hud_zeros", show_hud_zeros)
