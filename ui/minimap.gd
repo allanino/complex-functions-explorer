@@ -44,28 +44,33 @@ func _setup_range_labels():
 	range_labels_overlay = Control.new()
 	range_labels_overlay.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
 	range_labels_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	range_labels_overlay.visible = false
 	add_child(range_labels_overlay)
 
 	var stylebox = StyleBoxFlat.new()
-	stylebox.bg_color = Color(0.028, 0.045, 0.09, 0.6)
+	stylebox.bg_color = Color(0.028, 0.045, 0.09, 0.8)
 	stylebox.corner_radius_top_left = 5
 	stylebox.corner_radius_top_right = 5
 	stylebox.corner_radius_bottom_left = 5
 	stylebox.corner_radius_bottom_right = 5
+	stylebox.content_margin_left = 8
+	stylebox.content_margin_right = 8
+	stylebox.content_margin_top = 4
+	stylebox.content_margin_bottom = 4
 
 	var left_right_style = stylebox.duplicate() as StyleBoxFlat
 	left_right_style.border_width_left = 1
 	left_right_style.border_width_top = 1
 	left_right_style.border_width_right = 1
 	left_right_style.border_width_bottom = 1
-	left_right_style.border_color = Color(ThemeColors.real, 0.4)
+	left_right_style.border_color = ThemeColors.real
 
 	var top_bottom_style = stylebox.duplicate() as StyleBoxFlat
 	top_bottom_style.border_width_left = 1
 	top_bottom_style.border_width_top = 1
 	top_bottom_style.border_width_right = 1
 	top_bottom_style.border_width_bottom = 1
-	top_bottom_style.border_color = Color(ThemeColors.imaginary, 0.4)
+	top_bottom_style.border_color = ThemeColors.imaginary
 
 	var font = ThemeDB.fallback_font
 	if ThemeColors.theme and ThemeColors.theme.has_font("font", "Label"):
@@ -104,7 +109,7 @@ func _format_coordinate(val: float) -> String:
 	if abs_val >= 1e4 or (abs_val > 0.0 and abs_val < 1e-3):
 		var exp_val = int(floor(log(abs_val) / log(10.0)))
 		var mantissa = val / pow(10.0, float(exp_val))
-		return "%.1f" % mantissa + "e" + ("+" if exp_val >= 0 else "") + str(exp_val)
+		return "%.3f" % mantissa + "e" + ("+" if exp_val >= 0 else "") + str(exp_val)
 	return "%.1f" % val
 
 func _sync_all_uniforms():
@@ -239,7 +244,7 @@ func _process(_delta):
 	var current_size = fov_overlay.size
 
 	if Config.show_minimap_range:
-		if not range_labels_overlay.visible:
+		if range_labels_overlay.size.x > 0 and not range_labels_overlay.visible:
 			range_labels_overlay.visible = true
 
 		top_label.text = _format_coordinate(Config.world_to_complex(0.0, player.global_position.z - view_radius).y)
@@ -247,14 +252,27 @@ func _process(_delta):
 		left_label.text = _format_coordinate(Config.world_to_complex(player.global_position.x - view_radius, 0.0).x)
 		right_label.text = _format_coordinate(Config.world_to_complex(player.global_position.x + view_radius, 0.0).x)
 
-		# Anchor offsets update automatically since we set PRESET on creation,
-		# but if text size changes drastically we might need to queue_sort/force layout.
-		# Instead of re-setting preset every frame, rely on Godot Control layout engine.
-		# We'll just reset positions after text update to ensure they stay pinned.
-		top_label.position.y = 8
-		bottom_label.position.y = range_labels_overlay.size.y - bottom_label.size.y - 8
-		left_label.position.x = 8
-		right_label.position.x = range_labels_overlay.size.x - right_label.size.x - 8
+		# Force size updates synchronously so position math uses the new size this frame
+		top_label.size = Vector2.ZERO
+		top_label.reset_size()
+		bottom_label.size = Vector2.ZERO
+		bottom_label.reset_size()
+		left_label.size = Vector2.ZERO
+		left_label.reset_size()
+		right_label.size = Vector2.ZERO
+		right_label.reset_size()
+
+		top_label.position.x = (range_labels_overlay.size.x - top_label.size.x) / 2.0
+		top_label.position.y = 5
+
+		bottom_label.position.x = (range_labels_overlay.size.x - bottom_label.size.x) / 2.0
+		bottom_label.position.y = range_labels_overlay.size.y - bottom_label.size.y - 5
+
+		left_label.position.x = 5
+		left_label.position.y = (range_labels_overlay.size.y - left_label.size.y) / 2.0
+
+		right_label.position.x = range_labels_overlay.size.x - right_label.size.x - 5
+		right_label.position.y = (range_labels_overlay.size.y - right_label.size.y) / 2.0
 	else:
 		if range_labels_overlay.visible:
 			range_labels_overlay.visible = false
