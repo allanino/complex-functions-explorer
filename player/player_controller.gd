@@ -179,13 +179,10 @@ func _unhandled_input(event):
 
 	if event.is_action_pressed("zoom_in"):
 		Config.zoom_factor *= 1.1
-		Config.save_settings()
 	elif event.is_action_pressed("zoom_out"):
 		Config.zoom_factor /= 1.1
-		Config.save_settings()
 	elif event.is_action_pressed("zoom_reset"):
 		Config.zoom_factor = 1.0
-		Config.save_settings()
 
 	if event is InputEventMouseButton and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		if event.button_index == MOUSE_BUTTON_LEFT and event.pressed and event.ctrl_pressed:
