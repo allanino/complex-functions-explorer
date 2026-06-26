@@ -11,7 +11,17 @@ var view_radius: float = 80.0
 var _last_camera_yaw: float = 999.0
 var _last_fov_size: Vector2 = Vector2.ZERO
 
+# Range Labels
+var range_labels_overlay: Control
+var top_label: Label
+var bottom_label: Label
+var left_label: Label
+var right_label: Label
+
+
 func _ready():
+
+	_setup_range_labels()
 	fov_overlay.draw.connect(_on_fov_overlay_draw)
 
 	resized.connect(_on_resized)
@@ -29,6 +39,74 @@ func _notification(what):
 func _on_resized():
 	if custom_minimum_size.y != size.x:
 		custom_minimum_size.y = size.x
+
+
+func _setup_range_labels():
+	range_labels_overlay = Control.new()
+	range_labels_overlay.set_anchors_and_offsets_preset(PRESET_FULL_RECT)
+	range_labels_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(range_labels_overlay)
+
+	var stylebox = StyleBoxFlat.new()
+	stylebox.bg_color = Color(0.028, 0.045, 0.09, 0.6)
+	stylebox.corner_radius_top_left = 5
+	stylebox.corner_radius_top_right = 5
+	stylebox.corner_radius_bottom_left = 5
+	stylebox.corner_radius_bottom_right = 5
+
+	var left_right_style = stylebox.duplicate() as StyleBoxFlat
+	left_right_style.border_width_left = 1
+	left_right_style.border_width_top = 1
+	left_right_style.border_width_right = 1
+	left_right_style.border_width_bottom = 1
+	left_right_style.border_color = Color(ThemeColors.real, 0.4)
+
+	var top_bottom_style = stylebox.duplicate() as StyleBoxFlat
+	top_bottom_style.border_width_left = 1
+	top_bottom_style.border_width_top = 1
+	top_bottom_style.border_width_right = 1
+	top_bottom_style.border_width_bottom = 1
+	top_bottom_style.border_color = Color(ThemeColors.imaginary, 0.4)
+
+	var font = ThemeDB.fallback_font
+	if ThemeColors.theme and ThemeColors.theme.has_font("font", "Label"):
+		font = ThemeColors.theme.get_font("font", "Label")
+
+	var create_label = func(sbox: StyleBoxFlat, t_color: Color) -> Label:
+		var lbl = Label.new()
+		lbl.add_theme_stylebox_override("normal", sbox)
+		lbl.add_theme_color_override("font_color", t_color)
+		lbl.add_theme_font_size_override("font_size", 12)
+		lbl.add_theme_font_override("font", font)
+		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		range_labels_overlay.add_child(lbl)
+		return lbl
+
+	top_label = create_label.call(top_bottom_style, ThemeColors.imaginary)
+	bottom_label = create_label.call(top_bottom_style, ThemeColors.imaginary)
+	left_label = create_label.call(left_right_style, ThemeColors.real)
+	right_label = create_label.call(left_right_style, ThemeColors.real)
+
+	top_label.set_anchors_and_offsets_preset(PRESET_CENTER_TOP)
+	top_label.position.y += 8
+
+	bottom_label.set_anchors_and_offsets_preset(PRESET_CENTER_BOTTOM)
+	bottom_label.position.y -= 8
+
+	left_label.set_anchors_and_offsets_preset(PRESET_CENTER_LEFT)
+	left_label.position.x += 8
+
+	right_label.set_anchors_and_offsets_preset(PRESET_CENTER_RIGHT)
+	right_label.position.x -= 8
+
+func _format_coordinate(val: float) -> String:
+	var abs_val = abs(val)
+	if abs_val >= 1e4 or (abs_val > 0.0 and abs_val < 1e-3):
+		var exp_val = int(floor(log(abs_val) / log(10.0)))
+		var mantissa = val / pow(10.0, float(exp_val))
+		return "%.1f" % mantissa + "e" + ("+" if exp_val >= 0 else "") + str(exp_val)
+	return "%.1f" % val
 
 func _sync_all_uniforms():
 	if map_rect.material:
@@ -160,6 +238,28 @@ func _process(_delta):
 	# Only redraw FOV overlay if camera yaw or overlay size changed
 	var current_yaw = camera.global_rotation.y
 	var current_size = fov_overlay.size
+
+	if Config.show_minimap_range:
+		if not range_labels_overlay.visible:
+			range_labels_overlay.visible = true
+
+		top_label.text = _format_coordinate(-(player.global_position.z - view_radius))
+		bottom_label.text = _format_coordinate(-(player.global_position.z + view_radius))
+		left_label.text = _format_coordinate(player.global_position.x - view_radius)
+		right_label.text = _format_coordinate(player.global_position.x + view_radius)
+
+		# Anchor offsets update automatically since we set PRESET on creation,
+		# but if text size changes drastically we might need to queue_sort/force layout.
+		# Instead of re-setting preset every frame, rely on Godot Control layout engine.
+		# We'll just reset positions after text update to ensure they stay pinned.
+		top_label.position.y = 8
+		bottom_label.position.y = range_labels_overlay.size.y - bottom_label.size.y - 8
+		left_label.position.x = 8
+		right_label.position.x = range_labels_overlay.size.x - right_label.size.x - 8
+	else:
+		if range_labels_overlay.visible:
+			range_labels_overlay.visible = false
+
 	if abs(current_yaw - _last_camera_yaw) > 0.001 or current_size != _last_fov_size:
 		_last_camera_yaw = current_yaw
 		_last_fov_size = current_size
