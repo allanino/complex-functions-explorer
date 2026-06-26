@@ -38,7 +38,7 @@ const PRESETS = {
 		"show_hud_zeros": true,
 		"show_rvm": true,
 		"show_minimap": true,
-		"show_minimap_range": true,
+		"show_minimap_range": false,
 		"show_hud_monitor_fps": false,
 		"hud_scale": 1.0,
 		"menu_scale": 1.0,

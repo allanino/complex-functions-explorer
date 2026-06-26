@@ -450,7 +450,7 @@ var show_minimap: bool = true:
 		if show_minimap == v: return
 		show_minimap = v
 		config_changed.emit("show_minimap")
-var show_minimap_range: bool = true:
+var show_minimap_range: bool = false:
 	set(v):
 		if show_minimap_range == v: return
 		show_minimap_range = v
