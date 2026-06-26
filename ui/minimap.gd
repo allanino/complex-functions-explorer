@@ -5,7 +5,7 @@ extends AspectRatioContainer
 
 @onready var player: Node3D = get_tree().get_first_node_in_group("player")
 @onready var camera: Camera3D = player.get_node("Camera3D") if player else null
-var view_radius: float = 80.0
+var view_radius: float = 50.0
 
 # Tracking state for optimization
 var _last_camera_yaw: float = 999.0
