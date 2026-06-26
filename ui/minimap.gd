@@ -20,7 +20,6 @@ var right_label: Label
 
 
 func _ready():
-
 	_setup_range_labels()
 	fov_overlay.draw.connect(_on_fov_overlay_draw)
 
@@ -243,10 +242,10 @@ func _process(_delta):
 		if not range_labels_overlay.visible:
 			range_labels_overlay.visible = true
 
-		top_label.text = _format_coordinate(-(player.global_position.z - view_radius))
-		bottom_label.text = _format_coordinate(-(player.global_position.z + view_radius))
-		left_label.text = _format_coordinate(player.global_position.x - view_radius)
-		right_label.text = _format_coordinate(player.global_position.x + view_radius)
+		top_label.text = _format_coordinate(Config.world_to_complex(0.0, player.global_position.z - view_radius).y)
+		bottom_label.text = _format_coordinate(Config.world_to_complex(0.0, player.global_position.z + view_radius).y)
+		left_label.text = _format_coordinate(Config.world_to_complex(player.global_position.x - view_radius, 0.0).x)
+		right_label.text = _format_coordinate(Config.world_to_complex(player.global_position.x + view_radius, 0.0).x)
 
 		# Anchor offsets update automatically since we set PRESET on creation,
 		# but if text size changes drastically we might need to queue_sort/force layout.
