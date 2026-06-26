@@ -8,8 +8,8 @@ echo "Zipping Windows release..."
 # Remove old zip if it exists to start fresh
 rm -f bin/Windows/ComplexFunctionsExplorer.zip
 
-# Zip the Windows executable and GDExtension DLL
-zip bin/Windows/ComplexFunctionsExplorer.zip bin/Windows/ComplexFunctionsExplorer.exe bin/libcomplex_functions.windows.template_release.x86_64.dll
+# Zip the Windows executable and GDExtension DLL, junking the paths to keep them at the root
+zip -j bin/Windows/ComplexFunctionsExplorer.zip bin/Windows/ComplexFunctionsExplorer.exe bin/libcomplex_functions.windows.template_release.x86_64.dll
 
 echo "Building Linux AppImage..."
 # Ensure the destination directory exists
