@@ -46,3 +46,6 @@
 ## 2025-03-02 - Optimize get_terrain_height caching
 **Learning:** Calling `get_terrain_height` or `ComplexField.get_height` computes the mathematical complex function. If it is called without passing a cached field value during `_physics_process` (like when the menu is open and the player is paused), it wastes CPU recalculating the exact same math every frame.
 **Action:** When calling `get_terrain_height` inside a loop where position hasn't changed, always pass the cached `current_f` field value to skip redundant mathematical computations.
+## 2025-03-02 - Optimize real-time audio buffer pushing
+**Learning:** Pushing single sample frames iteratively using `push_frame()` inside GDScript loops incurs huge overhead since Godot iterates the loop within the interpreter and executes the C++ method per sample.
+**Action:** Replace `push_frame()` inside loops with batch insertion via `push_buffer()`. First construct or resize a `PackedVector2Array`, fill it natively (e.g. `fill()` for silence) or assign directly by index, and push the entire buffer in a single native C++ call.
