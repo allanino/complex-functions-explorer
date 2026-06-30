@@ -28,3 +28,6 @@ Action: Whenever a standard `Array` needs to be converted into a `Packed*Array`,
 ## 7 - [Centralize array padding for shaders using native methods]
 Learning: Repeatedly padding `Packed*Array` instances with `.append()` inside a `while` loop is both duplicated across scripts calling similar shaders (e.g. Minimap and Terrain) and computationally inefficient.
 Action: Centralize the padding logic into global utility functions (like `GameState.get_padded_level_curves()`) and optimize it by resizing the array and using the native `.fill()` method, restoring original elements where necessary, to minimize overhead and duplicate code.
+## 8 - [Removing duplicated fallback logic via inverted guard clauses]
+Learning: Repeated fallback or error-handling code blocks in parsing functions (like formatting a default value when input is invalid or infinite) can cause maintenance hazards and code bloat.
+Action: Invert the validation conditions into early returns for the 'success' path. This allows the failure/fallback logic to cascade naturally to the end of the function, entirely eliminating the need to duplicate it.

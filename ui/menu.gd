@@ -1131,21 +1131,17 @@ func _on_color_scheme_selected(index: int):
 
 func _parse_float_input(input_node: LineEdit, default_value: float) -> float:
 	var text = input_node.text
-	if not text.is_valid_float():
-		var default_str = "0.0" if default_value == 0.0 else str(default_value)
-		# Try to keep decimal point for 3.0, 1.0 etc if it's an integer
-		if default_value == round(default_value):
-			default_str = "%.1f" % default_value
-		input_node.text = default_str
-		return default_value
-	var val = float(text)
-	if not is_finite(val):
-		var default_str = "0.0" if default_value == 0.0 else str(default_value)
-		if default_value == round(default_value):
-			default_str = "%.1f" % default_value
-		input_node.text = default_str
-		return default_value
-	return val
+	if text.is_valid_float():
+		var val = float(text)
+		if is_finite(val):
+			return val
+
+	var default_str = "0.0" if default_value == 0.0 else str(default_value)
+	# Try to keep decimal point for 3.0, 1.0 etc if it's an integer
+	if default_value == round(default_value):
+		default_str = "%.1f" % default_value
+	input_node.text = default_str
+	return default_value
 
 func _on_re_text_submitted(_new_text: String):
 	var re = _parse_float_input(re_input, 0.0)
