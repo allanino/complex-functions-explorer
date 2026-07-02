@@ -90,8 +90,10 @@ func _ready():
 	# Prefill silence
 	var frames_to_fill = int(sample_rate * 0.15)
 
-	for i in frames_to_fill:
-		playback.push_frame(Vector2.ZERO)
+	var silence_buffer = PackedVector2Array()
+	silence_buffer.resize(frames_to_fill)
+	silence_buffer.fill(Vector2.ZERO)
+	playback.push_buffer(silence_buffer)
 
 	# Small delay lets audio thread stabilize
 	await get_tree().process_frame
@@ -286,8 +288,10 @@ func fill_buffer():
 	var drone_vol_scale = (Config.drone_volume / 100.0) * 0.75
 	if drone_vol_scale <= 0.0 or is_suppressed:
 		# If muted/suppressed, just push silent frames quickly without synthesis math
-		for i in range(to_fill):
-			playback.push_frame(Vector2.ZERO)
+		var silence_buffer = PackedVector2Array()
+		silence_buffer.resize(to_fill)
+		silence_buffer.fill(Vector2.ZERO)
+		playback.push_buffer(silence_buffer)
 		return
 
 	buffer_min_available = min(buffer_min_available, available)
@@ -328,6 +332,9 @@ func fill_buffer():
 	var target_amp_r = amp_base * pulse_multiplier * pan_r
 	var shape = 0.25 + 0.1 * lfo_val
 
+	var output_buffer = PackedVector2Array()
+	output_buffer.resize(to_fill)
+	var idx = 0
 	while to_fill > 0:
 		phase = fmod(phase + increment, 1.0)
 		mod_phase = fmod(mod_phase + mod_increment, 1.0)
@@ -348,8 +355,10 @@ func fill_buffer():
 		current_amp_r = lerp(current_amp_r, target_amp_r, 0.01)
 
 		# Push frame
-		playback.push_frame(Vector2(sample * current_amp_l, sample * current_amp_r))
+		output_buffer[idx] = Vector2(sample * current_amp_l, sample * current_amp_r)
+		idx += 1
 		to_fill -= 1
+	playback.push_buffer(output_buffer)
 
 func _process_audio_toggles():
 	# 0. Global Master Volume
