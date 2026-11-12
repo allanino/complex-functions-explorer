@@ -19,6 +19,18 @@ var accented_zero_index: int = -1:
 		accented_zero_index = v
 		state_changed.emit("accented_zero_index")
 
+# Config keys whose change may alter the zeros of the explored function
+const ZERO_AFFECTING_CONFIG_KEYS = [
+	"function_type",
+	"input_function_type",
+	"rational_num_coeffs",
+	"rational_den_coeffs",
+	"input_rational_num_coeffs",
+	"input_rational_den_coeffs",
+]
+var _last_function_type: int = -1
+var _last_input_function_type: int = -1
+
 var rvm_start_t: float = 0.0
 var performance_protection_active: bool = false:
 	set(v):
@@ -97,6 +109,31 @@ var imag_level_curves_highlighted: Array[float] = []:
 	set(v):
 		imag_level_curves_highlighted = v
 		state_changed.emit("imag_level_curves_highlighted")
+
+
+func _ready():
+	_last_function_type = Config.function_type
+	_last_input_function_type = Config.input_function_type
+	Config.config_changed.connect(_on_config_changed)
+
+func _on_config_changed(key: String):
+	if not key in ZERO_AFFECTING_CONFIG_KEYS:
+		return
+	# function_type's setter emits even when the value is unchanged; ignore those.
+	if key == "function_type":
+		if Config.function_type == _last_function_type: return
+		_last_function_type = Config.function_type
+	elif key == "input_function_type":
+		if Config.input_function_type == _last_input_function_type: return
+		_last_input_function_type = Config.input_function_type
+	clear_zeros()
+
+# Clears the visited zeros list and notifies listeners (HUD list, minimap, player).
+func clear_zeros() -> void:
+	visited_zeros.clear()
+	total_zeros_found = 0
+	accented_zero_index = -1
+	state_changed.emit("visited_zeros")
 
 
 # Utility functions for array padding for shaders
