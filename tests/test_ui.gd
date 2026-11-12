@@ -572,4 +572,38 @@ func test_menu_closed_preset_toggle():
 
 	assert_eq(Config.function_type, Config.ComplexFunc.DIRICHLET_ETA_CONTINUATION)
 
+func test_update_view_only_clears_zeros_on_nav_or_func_change():
+	var menu = main_ui_instance.menu_overlay
+	# Open menu (initializes _initial_re_text and _initial_im_text)
+	menu.toggle_menu(false)
+	assert_true(menu.visible)
+
+	# Populate some visited zeros
+	GameState.visited_zeros.clear()
+	GameState.visited_zeros.append(Vector2(0.5, 14.1347))
+	GameState.total_zeros_found = 1
+	GameState.state_changed.emit("visited_zeros")
+
+	# Clicking Update View without changing Re, Im, or function should NOT clear zeros
+	menu._on_set_pos_pressed(false)
+	assert_eq(GameState.visited_zeros.size(), 1)
+	assert_eq(GameState.total_zeros_found, 1)
+
+	# Changing Re and clicking Update View SHOULD clear zeros
+	menu.re_input.text = "2.500"
+	menu._on_set_pos_pressed(false)
+	assert_eq(GameState.visited_zeros.size(), 0)
+	assert_eq(GameState.total_zeros_found, 0)
+
+	# Populate again and test direct Enter submission on Im input
+	GameState.visited_zeros.append(Vector2(0.5, 21.0220))
+	GameState.total_zeros_found = 1
+	GameState.state_changed.emit("visited_zeros")
+
+	menu.im_input.text = "10.000"
+	menu._on_im_text_submitted("10.000")
+	assert_eq(GameState.visited_zeros.size(), 0)
+	assert_eq(GameState.total_zeros_found, 0)
+
+
 

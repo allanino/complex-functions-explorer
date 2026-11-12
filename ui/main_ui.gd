@@ -294,6 +294,7 @@ func _on_game_state_changed(key: String):
 		_update_monitor_label()
 	elif key == "visited_zeros":
 		_update_zeros_list()
+		_update_hud_layout()
 	elif key == "total_zeros_found":
 		if zeros_count_label:
 			zeros_count_label.text = str(GameState.total_zeros_found)

@@ -96,6 +96,7 @@ func teleport_to_world_pos(target_pos: Vector3) -> void:
 
 func _ready():
 	add_to_group("player")
+	GameState.state_changed.connect(_on_game_state_changed)
 
 	global_position = get_initial_position()
 	if not Config.function.get("is_dirichlet", false) and not Config.function.has("initial_pos"):
@@ -228,10 +229,7 @@ func _unhandled_input(event):
 			if auto_walk_state == AutoWalkState.NONE:
 				auto_walk_state = AutoWalkState.MOVING_TO_LINE
 				# Reset zero counter when starting auto-walk
-				GameState.visited_zeros.clear()
-				GameState.state_changed.emit("visited_zeros")
-				GameState.total_zeros_found = 0
-				last_detected_z = Vector2(0.0, 0.0)
+				GameState.clear_zeros()
 				Config.show_hud_zeros = true
 				GameState.rvm_start_t = abs(Config.world_to_complex(0.0, global_position.z).y)
 			else:
@@ -710,10 +708,7 @@ func demo_actions():
 func _start_auto_walk_from_demo():
 	Config.iterations = 2500
 	auto_walk_state = AutoWalkState.MOVING_TO_LINE
-	GameState.visited_zeros.clear()
-	GameState.state_changed.emit("visited_zeros")
-	GameState.total_zeros_found = 0
-	last_detected_z = Vector2(0.0, 0.0)
+	GameState.clear_zeros()
 	Config.show_hud_zeros = true
 	Config.show_critical_stripe = true
 	GameState.rvm_start_t = abs(Config.world_to_complex(0.0, global_position.z).y)
@@ -904,6 +899,12 @@ func start_newton_walk():
 
 		GameState.newton_path = path
 		GameState.newton_path_bbox = Vector4(min_x, max_x, min_y, max_y)
+
+func _on_game_state_changed(key: String):
+	# When the zeros list is cleared, forget the last detected zero so the same
+	# location can be recorded again (e.g. after switching functions).
+	if key == "visited_zeros" and GameState.visited_zeros.is_empty():
+		last_detected_z = Vector2(0.0, 0.0)
 
 func _process_zero_detection(z_mid: Vector2, current_auto_walk_state: int):
 	var check_res = ComplexField.is_close_to_zero(z_mid)

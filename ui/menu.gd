@@ -140,6 +140,8 @@ var _initial_view_distance: int
 var _initial_shadows_enabled: bool
 var _initial_preset: String
 var _initial_edited_presets: Dictionary
+var _initial_re_text: String = ""
+var _initial_im_text: String = ""
 
 var _title_clicks: int = 0
 var _title_click_timer: float = 0.0
@@ -889,10 +891,6 @@ func _on_set_pos_pressed(_toggle_menu: bool = true):
 	var h_a = _parse_float_input(height_a_input, 3.0)
 	var h_eps = _parse_float_input(height_eps_input, 1.0)
 
-	if !hud_zeros_checkbox.button_pressed:
-		GameState.visited_zeros.clear()
-		GameState.total_zeros_found = 0
-
 	# Apply non-slider values to Config
 	Config.height_a = h_a
 	Config.height_epsilon = h_eps
@@ -953,11 +951,14 @@ func _on_set_pos_pressed(_toggle_menu: bool = true):
 	emit_signal('update_hud_layout_signal')
 	preset_controller.update_preset_button_text()
 
-	GameState.visited_zeros.clear()
-	GameState.total_zeros_found = 0
+	var nav_changed = (re_input.text != _initial_re_text) or (im_input.text != _initial_im_text)
+	if nav_changed:
+		GameState.clear_zeros()
+		_initial_re_text = re_input.text
+		_initial_im_text = im_input.text
 
 	if player:
-		if is_finite(re) and is_finite(im) and player:
+		if nav_changed and is_finite(re) and is_finite(im):
 			var target_pos = Config.complex_to_world(re, im)
 			player.teleport_to_world_pos(Vector3(target_pos.x, player.global_position.y, target_pos.y))
 
@@ -1116,8 +1117,7 @@ func _on_hud_navigation_toggled(pressed: bool):
 func _on_hud_zeros_toggled(pressed: bool):
 	Config.show_hud_zeros = pressed
 	if not pressed:
-		GameState.visited_zeros.clear()
-		GameState.total_zeros_found = 0
+		GameState.clear_zeros()
 		emit_signal('update_hud_layout_signal')
 
 func _on_rvm_toggled(pressed: bool):
@@ -1145,6 +1145,9 @@ func _parse_float_input(input_node: LineEdit, default_value: float) -> float:
 
 func _on_re_text_submitted(_new_text: String):
 	var re = _parse_float_input(re_input, 0.0)
+	if re_input.text != _initial_re_text:
+		GameState.clear_zeros()
+		_initial_re_text = re_input.text
 	if player:
 		var current_complex = Config.world_to_complex(player.global_position.x, player.global_position.z)
 		var target_x = Config.complex_to_world(re, current_complex.y).x
@@ -1152,6 +1155,9 @@ func _on_re_text_submitted(_new_text: String):
 
 func _on_im_text_submitted(_new_text: String):
 	var im = _parse_float_input(im_input, 0.0)
+	if im_input.text != _initial_im_text:
+		GameState.clear_zeros()
+		_initial_im_text = im_input.text
 	if player:
 		var current_complex = Config.world_to_complex(player.global_position.x, player.global_position.z)
 		var target_z = Config.complex_to_world(current_complex.x, im).y
@@ -1482,6 +1488,8 @@ func toggle_menu(applied: bool = false):
 			if not is_finite(im_val): im_val = 0.0
 			re_input.text = _format_float_3(re_val)
 			im_input.text = _format_float_3(im_val)
+		_initial_re_text = re_input.text
+		_initial_im_text = im_input.text
 
 		preset_controller.update_preset_button_text()
 
