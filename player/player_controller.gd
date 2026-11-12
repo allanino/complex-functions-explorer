@@ -271,32 +271,27 @@ func get_terrain_height(x: float, z: float, field_val: Vector2 = Vector2.INF) ->
 		return ComplexField.get_height_from_field(field_val)
 	return ComplexField.get_height(x, z)
 
+func _apply_camera_rotation(input_vec: Vector2, sensitivity_mult: float = 1.0) -> void:
+	if auto_walk_state == AutoWalkState.NONE or auto_walk_state == AutoWalkState.WALKING:
+		rotate_y(-input_vec.x * MOUSE_SENSITIVITY * sensitivity_mult)
+		rotation_x -= input_vec.y * MOUSE_SENSITIVITY * sensitivity_mult
+		rotation_x = clamp(rotation_x, -PI / 2, PI / 2)
+		camera.rotation.x = rotation_x
+
 func _physics_process(delta):
 	if camera_input_dir != Vector2.ZERO:
-		if auto_walk_state == AutoWalkState.NONE or auto_walk_state == AutoWalkState.WALKING:
-			rotate_y(-camera_input_dir.x * MOUSE_SENSITIVITY)
-			rotation_x -= camera_input_dir.y * MOUSE_SENSITIVITY
-			rotation_x = clamp(rotation_x, -PI / 2, PI / 2)
-			camera.rotation.x = rotation_x
+		_apply_camera_rotation(camera_input_dir, 1.0)
 		camera_input_dir = Vector2.ZERO
 
 	if enable_joystick and right_joy:
 		var joy_output = right_joy.output
 		if joy_output != Vector2.ZERO:
-			if auto_walk_state == AutoWalkState.NONE or auto_walk_state == AutoWalkState.WALKING:
-				rotate_y(-joy_output.x * MOUSE_SENSITIVITY * 20.0)
-				rotation_x -= joy_output.y * MOUSE_SENSITIVITY * 20.0
-				rotation_x = clamp(rotation_x, -PI / 2, PI / 2)
-				camera.rotation.x = rotation_x
+			_apply_camera_rotation(joy_output, 20.0)
 
 	if not GameState.is_menu_open and not GameState.is_detached_interactive:
 		var gamepad_look = Input.get_vector("look_left", "look_right", "look_up", "look_down")
 		if gamepad_look != Vector2.ZERO:
-			if auto_walk_state == AutoWalkState.NONE or auto_walk_state == AutoWalkState.WALKING:
-				rotate_y(-gamepad_look.x * MOUSE_SENSITIVITY * 25.0)
-				rotation_x -= gamepad_look.y * MOUSE_SENSITIVITY * 25.0
-				rotation_x = clamp(rotation_x, -PI / 2, PI / 2)
-				camera.rotation.x = rotation_x
+			_apply_camera_rotation(gamepad_look, 25.0)
 
 	# Smooth zoom interpolation
 	var old_ez = GameState.effective_zoom
