@@ -4,333 +4,398 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Complex Functions Explorer</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <title>Complex Functions Explorer — Interactive 3D Complex Plane</title>
+    <meta name="description"
+        content="An interactive 3D visualization tool for exploring complex analysis, the Riemann zeta function, zeros, poles, and multivalued branches as immersive landscapes.">
+    <meta property="og:title" content="Complex Functions Explorer">
+    <meta property="og:description"
+        content="An interactive 3D journey through the complex plane. Explore the Riemann zeta function, zeros, poles, and branch portals in real time.">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="images/hero.png">
+    <link rel="icon" type="image/svg+xml" href="assets/icons/favicon.svg">
+    <link rel="stylesheet" href="assets/css/site.css">
+    <script defer src="assets/js/site.js"></script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    <style>
-        :root {
-            --accent-color: #4a90e2;
-            --text-color: #ffffff;
-            --secondary-text: #cccccc;
-        }
-
-        body,
-        html {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            font-family: 'Inter', sans-serif;
-            color: var(--text-color);
-            background-color: #000;
-        }
-
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 60px 20px;
-            line-height: 1.6;
-        }
-
-        header {
-            text-align: center;
-            margin-bottom: 80px;
-        }
-
-        h1 {
-            font-size: 3.5rem;
-            font-weight: 700;
-            margin-bottom: 10px;
-            letter-spacing: -1px;
-        }
-
-        .subtitle {
-            font-size: 1.2rem;
-            color: var(--secondary-text);
-            font-weight: 300;
-        }
-
-        section {
-            margin-bottom: 60px;
-        }
-
-        h2 {
-            font-size: 2rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            padding-bottom: 10px;
-            margin-bottom: 25px;
-            color: var(--accent-color);
-        }
-
-        p {
-            font-size: 1.1rem;
-            margin-bottom: 20px;
-            font-weight: 300;
-        }
-
-        .download-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-top: 30px;
-        }
-
-        .download-card {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 30px;
-            text-align: center;
-            border-radius: 12px;
-            transition: transform 0.3s ease, background 0.3s ease;
-            cursor: pointer;
-            text-decoration: none;
-            color: white;
-        }
-
-        .download-card:hover {
-            transform: translateY(-5px);
-            background: rgba(255, 255, 255, 0.1);
-            border-color: var(--accent-color);
-        }
-
-        .download-card svg {
-            width: 48px;
-            height: 48px;
-            margin-bottom: 15px;
-            fill: var(--accent-color);
-        }
-
-        .math-block {
-            background: rgba(255, 255, 255, 0.03);
-            padding: 20px;
-            border-radius: 8px;
-            margin: 20px 0;
-            overflow-x: auto;
-        }
-
-        ul {
-            list-style: none;
-            padding: 0;
-        }
-
-        li {
-            margin-bottom: 15px;
-            padding-left: 25px;
-            position: relative;
-        }
-
-        li::before {
-            content: "•";
-            color: var(--accent-color);
-            position: absolute;
-            left: 0;
-            font-weight: bold;
-        }
-
-        footer {
-            text-align: center;
-            padding: 40px 0;
-            color: var(--secondary-text);
-            font-size: 0.9rem;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        @media (max-width: 600px) {
-            h1 {
-                font-size: 2.5rem;
-            }
-
-            .container {
-                padding: 40px 20px;
-            }
-        }
-
-        .content {
-            position: relative;
-            z-index: 1;
-        }
-
-        .hero-image-container {
-            margin: 50px 0 70px 0;
-            display: flex;
-            justify-content: center;
-        }
-
-        .hero-image-container img {
-            width: 100%;
-            max-width: 1000px;
-            height: auto;
-            border-radius: 28px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow:
-                0 20px 60px rgba(0, 0, 0, 0.55),
-                0 0 40px rgba(255, 255, 255, 0.03);
-        }
-
-        .domain-images {
-            display: flex;
-            justify-content: center;
-            gap: 4.0rem;
-            margin-top: 2.5rem;
-            flex-wrap: wrap;
-        }
-
-        .domain-image {
-            flex: 1 1 240px;
-            max-width: 320px;
-        }
-
-        .domain-image img {
-            width: 100%;
-            height: auto;
-
-            border-radius: 24px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-
-            box-shadow:
-                0 10px 40px rgba(0, 0, 0, .45),
-                0 0 30px rgba(255, 255, 255, .03);
-        }
-
-        @media (max-width: 700px) {
-            .domain-images {
-                flex-direction: column;
-                align-items: center;
-                gap: 1.0rem;
-            }
-
-            .domain-image {
-                width: 100%;
-                max-width: 250px;
-            }
-        }
-    </style>
 </head>
 
 <body>
-    <div class="content">
-        <div class="container">
-            <header>
-                <h1>Complex Functions Explorer</h1>
-                <p class="subtitle">An interactive 3D journey through the complex plane</p>
-            </header>
+    <a href="#main-content" class="skip-link">Skip to content</a>
 
-            <div class="hero-image-container">
-                <img src="images/hero.png" alt="Complex Functions Explorer">
+    <header class="site-header">
+        <div class="site-header__inner">
+            <a href="index.html" class="brand-link">
+                <span class="brand-mark" aria-hidden="true">
+                    <span class="brand-mark__core"></span>
+                </span>
+                <span class="brand-text">
+                    <span class="brand-text__title">Complex Functions Explorer</span>
+                    <span class="brand-text__tag">3D Analytic Landscapes</span>
+                </span>
+            </a>
+
+            <button class="nav-toggle" type="button" data-nav-toggle aria-expanded="false"
+                aria-controls="primary-navigation">
+                Menu
+            </button>
+
+            <nav id="primary-navigation" class="site-nav" data-site-nav aria-label="Primary">
+                <a href="index.html" class="site-nav__link" aria-current="page">Overview</a>
+                <a href="docs.html" class="site-nav__link">Documentation</a>
+                <a href="https://github.com/allanino/complex-functions-explorer" class="site-nav__link" target="_blank"
+                    rel="noopener noreferrer">GitHub</a>
+                <a href="#download" class="site-nav__link site-nav__link--cta">Download</a>
+            </nav>
+        </div>
+    </header>
+
+    <main id="main-content">
+        <!-- Hero Stage -->
+        <section class="hero-landing">
+            <div class="container">
+                <div class="hero-stage">
+                    <div class="hero-stage__media">
+                        <picture>
+                            <source srcset="images/hero.webp" type="image/webp">
+                            <img src="images/hero.png" alt="3D terrain of a complex function with phase coloring"
+                                width="3840" height="2160" fetchpriority="high">
+                        </picture>
+                    </div>
+                    <div class="hero-stage__scrim" aria-hidden="true"></div>
+
+                    <div class="hero-stage__hud-badge" aria-hidden="true">
+                        <div class="hero-stage__hud-title">Position · Telemetry</div>
+                        <div>s = <span class="text-re">0.500</span> + <span class="text-im">14.135i</span></div>
+                        <div>|ζ(s)| ≈ <span class="text-gold">0.000</span></div>
+                    </div>
+
+                    <div class="hero-stage__content">
+                        <div class="eyebrow">Interactive · Real-Time GPU · Open Source</div>
+                        <h1 class="hero-stage__title">An interactive 3D journey through the <em>complex plane</em></h1>
+                        <p class="hero-stage__subtitle">
+                            Navigate analytic landscapes where terrain elevation encodes magnitude and colour reveals
+                            phase. Walk the critical strip of the Riemann zeta function, hunt for zeros, and step
+                            through branch portals in real time.
+                        </p>
+                        <div class="btn-row">
+                            <a href="#download" class="btn btn--primary" data-os-download>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                    <polyline points="7 10 12 15 17 10" />
+                                    <line x1="12" y1="15" x2="12" y2="3" />
+                                </svg>
+                                <span data-os-download-label>Download Latest Release</span>
+                            </a>
+                            <a href="docs.html" class="btn btn--outline">
+                                Read the Documentation
+                            </a>
+                        </div>
+                    </div>
+                </div>
             </div>
+        </section>
 
-            <section id="download">
-                <h2>Download</h2>
+        <!-- Feature Grid -->
+        <section id="highlights" class="section">
+            <div class="container">
+                <div class="section-header">
+                    <div class="eyebrow">Capabilities · 01</div>
+                    <h2>Designed for mathematical intuition</h2>
+                    <p class="section-lead">
+                        Created for students, researchers, and the mathematically curious to experience the geometry
+                        hidden inside complex functions first-hand.
+                    </p>
+                </div>
+
+                <div class="feature-grid">
+                    <article class="feature-card">
+                        <div class="feature-card__top">
+                            <span class="feature-card__icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                    <circle cx="12" cy="12" r="9" />
+                                    <path d="M12 12L18 8" />
+                                    <circle cx="12" cy="12" r="2" />
+                                </svg>
+                            </span>
+                            <span class="feature-card__index">01 / PHASE &amp; MAGNITUDE</span>
+                        </div>
+                        <h3 class="feature-card__title">Domain colouring in 3D</h3>
+                        <p class="feature-card__desc">
+                            Terrain elevation maps directly to modulus \( |f(s)| \) while surface hue encodes the
+                            argument \( \arg(f(s)) \), augmented by crisp contour isolines.
+                        </p>
+                    </article>
+
+                    <article class="feature-card">
+                        <div class="feature-card__top">
+                            <span class="feature-card__icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                    <path d="M3 17l6-6 4 4 8-8" />
+                                    <path d="M14 7h7v7" />
+                                </svg>
+                            </span>
+                            <span class="feature-card__index">02 / UNBOUNDED DOMAIN</span>
+                        </div>
+                        <h3 class="feature-card__title">Endless procedural horizon</h3>
+                        <p class="feature-card__desc">
+                            No bounding boxes or static meshes. The complex plane unfolds continuously around you as you
+                            walk, sprint, or fly across any region.
+                        </p>
+                    </article>
+
+                    <article class="feature-card">
+                        <div class="feature-card__top">
+                            <span class="feature-card__icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                    <circle cx="12" cy="12" r="8" />
+                                    <line x1="12" y1="2" x2="12" y2="6" />
+                                    <line x1="12" y1="18" x2="12" y2="22" />
+                                    <line x1="2" y1="12" x2="6" y2="12" />
+                                    <line x1="18" y1="12" x2="22" y2="12" />
+                                </svg>
+                            </span>
+                            <span class="feature-card__index">03 / ROOT FINDING</span>
+                        </div>
+                        <h3 class="feature-card__title">Newton &amp; critical walks</h3>
+                        <p class="feature-card__desc">
+                            Trigger automated Newton-step descent to converge directly onto nearby zeros \( f(s)=0 \),
+                            or lock onto the critical line \( \operatorname{Re}(s)=\tfrac{1}{2} \).
+                        </p>
+                    </article>
+
+                    <article class="feature-card">
+                        <div class="feature-card__top">
+                            <span class="feature-card__icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+                                </svg>
+                            </span>
+                            <span class="feature-card__index">04 / RIEMANN ZETA</span>
+                        </div>
+                        <h3 class="feature-card__title">Analytic continuation</h3>
+                        <p class="feature-card__desc">
+                            Explore \( \zeta(s) \), Dirichlet \( \eta(s) \), \( \beta(s) \), and \( \Gamma(s) \) across
+                            the entire plane using reflection formulas and Borwein acceleration.
+                        </p>
+                    </article>
+
+                    <article class="feature-card">
+                        <div class="feature-card__top">
+                            <span class="feature-card__icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                    <ellipse cx="12" cy="12" rx="5" ry="9" />
+                                    <path d="M3 12h18" />
+                                </svg>
+                            </span>
+                            <span class="feature-card__index">05 / RIEMANN SURFACES</span>
+                        </div>
+                        <h3 class="feature-card__title">Immersive branch portals</h3>
+                        <p class="feature-card__desc">
+                            Traverse between sheets of multivalued functions—such as \( \log(z) \), \( z^{1/n} \), and
+                            inverse trig functions—by walking through branch-cut portals.
+                        </p>
+                    </article>
+
+                    <article class="feature-card">
+                        <div class="feature-card__top">
+                            <span class="feature-card__icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                    <line x1="4" y1="21" x2="4" y2="14" />
+                                    <line x1="4" y1="10" x2="4" y2="3" />
+                                    <line x1="12" y1="21" x2="12" y2="12" />
+                                    <line x1="12" y1="8" x2="12" y2="3" />
+                                    <line x1="20" y1="21" x2="20" y2="16" />
+                                    <line x1="20" y1="12" x2="20" y2="3" />
+                                    <line x1="1" y1="14" x2="7" y2="14" />
+                                    <line x1="9" y1="8" x2="15" y2="8" />
+                                    <line x1="17" y1="16" x2="23" y2="16" />
+                                </svg>
+                            </span>
+                            <span class="feature-card__index">06 / LIVE INSTRUMENTATION</span>
+                        </div>
+                        <h3 class="feature-card__title">Instant parameter morphing</h3>
+                        <p class="feature-card__desc">
+                            Edit polynomial coefficients, zoom factor, series iterations, and lighting time-of-day on
+                            the fly and watch the landscape respond immediately.
+                        </p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <!-- HUD & Showcase -->
+        <section class="section">
+            <div class="container">
+                <div class="section-header">
+                    <div class="eyebrow">Instrumentation · 02</div>
+                    <h2>Precision telemetry while you explore</h2>
+                    <p class="section-lead">
+                        The in-game HUD tracks every coordinate, function evaluation, and detected root in real time
+                        without obscuring the horizon.
+                    </p>
+                </div>
+
+                <div class="showcase-frame">
+                    <picture>
+                        <source srcset="images/highlights.webp" type="image/webp">
+                        <img src="images/highlights.png"
+                            alt="In-game screenshot showing the Zeros counter, Position phase wheel, and 2D Minimap"
+                            width="1920" height="1080" loading="lazy">
+                    </picture>
+                </div>
+
+                <div class="hud-legend">
+                    <div class="hud-legend__item">
+                        <div class="hud-legend__label">Zeros Registry</div>
+                        <p class="hud-legend__text">
+                            Automatically detects and catalogues distinct zeros \( f(s)=0 \) encountered during your
+                            walk, displaying their exact real and imaginary coordinates.
+                        </p>
+                    </div>
+                    <div class="hud-legend__item hud-legend__item--re">
+                        <div class="hud-legend__label">Position &amp; Phase Dial</div>
+                        <p class="hud-legend__text">
+                            Live readout of <span class="text-re">Re</span> and <span class="text-im">Im</span>
+                            components for both \( s \) and \( f(s) \), paired with an angular \( \arg(f) \) compass and
+                            modulus \( |f| \).
+                        </p>
+                    </div>
+                    <div class="hud-legend__item hud-legend__item--im">
+                        <div class="hud-legend__label">Domain Minimap</div>
+                        <p class="hud-legend__text">
+                            Overhead 2D domain-colouring radar showing your camera frustum, contour lines, and discovered
+                            roots across the surrounding complex plane.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- The Mathematics -->
+        <section id="mathematics" class="section">
+            <div class="container">
+                <div class="math-split">
+                    <div>
+                        <div class="eyebrow">The Mathematics · 03</div>
+                        <h2>From rational polynomials to the Riemann Hypothesis</h2>
+                        <p>
+                            The explorer supports a rich library of complex functions—including trigonometric,
+                            exponential, rational, logarithmic, and fractal families—each evaluated directly in custom
+                            GPU shaders and high-precision C++ routines.
+                        </p>
+                        <p>
+                            Special emphasis is placed on the <strong>Riemann zeta function</strong> \( \zeta(s) \),
+                            combining the Dirichlet eta series, Riemann's functional reflection equation, and Borwein's
+                            accelerated algorithm to render the critical strip seamlessly:
+                        </p>
+                        <div class="math-block">
+                            \[ \zeta(s) = 2^s \pi^{s-1} \sin\!\left(\frac{\pi s}{2}\right) \Gamma(1-s)\,\zeta(1-s) \]
+                        </div>
+                        <p>
+                            Dive into the full mathematical breakdown, Lanczos Gamma coefficients, and shader precision
+                            notes in the <a href="docs.html">technical documentation</a>.
+                        </p>
+                    </div>
+
+                    <div class="math-showcase-cards">
+                        <figure class="visual-tile">
+                            <picture>
+                                <source srcset="images/domain.webp" type="image/webp">
+                                <img src="images/domain.png" alt="Phase wheel mapping complex argument to hue"
+                                    width="420" height="420" loading="lazy">
+                            </picture>
+                            <figcaption>
+                                <strong>Phase Encoding</strong>
+                                Argument \(\arg(f(s)) \in [-\pi, \pi]\) mapped continuously around the colour wheel.
+                            </figcaption>
+                        </figure>
+
+                        <figure class="visual-tile">
+                            <picture>
+                                <source srcset="images/curve_levels.webp" type="image/webp">
+                                <img src="images/curve_levels.png"
+                                    alt="Poles and contour isolines on a complex surface" width="1024" height="1024"
+                                    loading="lazy">
+                            </picture>
+                            <figcaption>
+                                <strong>Poles &amp; Isolines</strong>
+                                Orthogonal level curves of constant modulus \(|f|\) and constant phase \(\arg(f)\).
+                            </figcaption>
+                        </figure>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Download Section -->
+        <section id="download" class="section">
+            <div class="container">
+                <div class="section-header section-header--center">
+                    <div class="eyebrow eyebrow--center">Releases · 04</div>
+                    <h2>Download Complex Functions Explorer</h2>
+                    <p class="section-lead">
+                        Free and open source for Windows and Linux. Built with Godot 4 and C++ GDExtension.
+                    </p>
+                </div>
+
                 <div class="download-grid">
                     <a href="https://github.com/allanino/complex-functions-explorer/releases/latest/download/ComplexFunctionsExplorer.zip"
-                        class="download-card">
-                        <svg viewBox="0 0 24 24">
-                            <path d="M0 0h24v24H0z" fill="none" />
-                            <path
-                                d="M1 5.5v13L11 20v-7.5H1zm11 14.5l11 1.5v-13l-11-1.5V20zM12 5.5l11-1.5v7H12v-5.5zM1 11.5l10-1.5V4.5L1 6v5.5z" />
-                        </svg>
-                        <div>Windows</div>
+                        class="download-card" data-os="windows">
+                        <span class="download-card__badge">Recommended for your OS</span>
+                        <span class="download-card__icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M2 4.5l8.5-1.2v8.2H2V4.5zm9.5-1.3L22 1.8v9.7H11.5V3.2zM2 12.5h8.5v8.2L2 19.5v-7zm9.5 0H22v9.7l-10.5-1.4v-8.3z" />
+                            </svg>
+                        </span>
+                        <div class="download-card__title">Windows</div>
+                        <div class="download-card__meta">x86_64 · Portable .zip archive</div>
+                        <span class="download-card__action">Download .zip →</span>
                     </a>
+
                     <a href="https://github.com/allanino/complex-functions-explorer/releases/latest/download/Complex_Functions_Explorer-x86_64.AppImage"
-                        class="download-card">
-                        <svg viewBox="0 0 24 24">
-                            <path
-                                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" />
-                        </svg>
-                        <div>Linux</div>
+                        class="download-card" data-os="linux">
+                        <span class="download-card__badge">Recommended for your OS</span>
+                        <span class="download-card__icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M12 2c-2.5 0-4.2 1.9-4.2 4.6 0 1.4.4 2.6.4 3.4 0 1.3-2.2 3.2-2.2 6.1 0 2.5 1.8 3.9 3.8 3.9.9 0 1.6-.3 2.2-.3s1.3.3 2.2.3c2 0 3.8-1.4 3.8-3.9 0-2.9-2.2-4.8-2.2-6.1 0-.8.4-2 .4-3.4C16.2 3.9 14.5 2 12 2zm-1.4 4.2c.4 0 .8.4.8.9s-.4.9-.8.9-.8-.4-.8-.9.4-.9.8-.9zm2.8 0c.4 0 .8.4.8.9s-.4.9-.8.9-.8-.4-.8-.9.4-.9.8-.9zm-1.4 2.4c1.1 0 2 .5 2 1.1s-.9 1.1-2 1.1-2-.5-2-1.1.9-1.1 2-1.1zm0 3.2c1.9 0 3.3 1.7 3.3 4.1 0 1.8-1.3 2.8-3.3 2.8s-3.3-1-3.3-2.8c0-2.4 1.4-4.1 3.3-4.1z" />
+                            </svg>
+                        </span>
+                        <div class="download-card__title">Linux</div>
+                        <div class="download-card__meta">x86_64 · Standalone AppImage</div>
+                        <span class="download-card__action">Download .AppImage →</span>
                     </a>
 
                     <a href="https://github.com/allanino/complex-functions-explorer" class="download-card"
                         target="_blank" rel="noopener noreferrer">
-                        <svg viewBox="0 0 24 24">
-                            <path
-                                d="M12 .5C5.65.5.5 5.65.5 12a11.5 11.5 0 0 0 7.86 10.92c.58.1.79-.25.79-.56v-2.17c-3.2.69-3.88-1.38-3.88-1.38-.52-1.32-1.27-1.67-1.27-1.67-1.04-.71.08-.7.08-.7 1.15.08 1.75 1.18 1.75 1.18 1.02 1.75 2.68 1.24 3.33.95.1-.74.4-1.24.72-1.53-2.55-.29-5.23-1.28-5.23-5.68 0-1.25.45-2.27 1.18-3.07-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.15 1.17a10.9 10.9 0 0 1 5.74 0c2.19-1.48 3.15-1.17 3.15-1.17.62 1.58.23 2.75.11 3.04.73.8 1.18 1.82 1.18 3.07 0 4.41-2.69 5.38-5.25 5.67.41.35.77 1.03.77 2.08v3.08c0 .31.21.67.8.56A11.5 11.5 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z" />
-                        </svg>
-                        <div>GitHub</div>
+                        <span class="download-card__icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M12 .5C5.65.5.5 5.65.5 12a11.5 11.5 0 0 0 7.86 10.92c.58.1.79-.25.79-.56v-2.17c-3.2.69-3.88-1.38-3.88-1.38-.52-1.32-1.27-1.67-1.27-1.67-1.04-.71.08-.7.08-.7 1.15.08 1.75 1.18 1.75 1.18 1.02 1.75 2.68 1.24 3.33.95.1-.74.4-1.24.72-1.53-2.55-.29-5.23-1.28-5.23-5.68 0-1.25.45-2.27 1.18-3.07-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.15 1.17a10.9 10.9 0 0 1 5.74 0c2.19-1.48 3.15-1.17 3.15-1.17.62 1.58.23 2.75.11 3.04.73.8 1.18 1.82 1.18 3.07 0 4.41-2.69 5.38-5.25 5.67.41.35.77 1.03.77 2.08v3.08c0 .31.21.67.8.56A11.5 11.5 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z" />
+                            </svg>
+                        </span>
+                        <div class="download-card__title">Source Code</div>
+                        <div class="download-card__meta">Godot 4.7 + C++ GDExtension</div>
+                        <span class="download-card__action">View on GitHub ↗</span>
                     </a>
                 </div>
-            </section>
-
-            <section id="introduction">
-                <h2>Introduction</h2>
-                <p>
-                    Complex Functions Explorer is an interactive 3D visualization tool for exploring complex analysis
-                    through immersive landscapes.
-                    Navigate functions such as the Riemann zeta function and discover zeros, poles, critical structures,
-                    and transformations directly in the complex plane.
-                </p>
-
-                <p>
-                    Designed for students, researchers, and the mathematically curious, it offers an intuitive way to
-                    experience the geometry hidden inside complex functions.
-                </p>
-            </section>
-
-            <section id="highlights">
-                <h2>Highlights</h2>
-
-                <ul>
-                    <li>Explore complex functions in real time as immersive 3D landscapes.</li>
-
-                    <li>Visualize function values using color for phase and terrain height for magnitude.</li>
-
-                    <li>Navigate the complex plane freely with smooth first-person camera controls.</li>
-
-                    <li>No bounding boxes — the landscape unfolds as you travel.</li>
-
-                    <li>Discover zeros, poles, and critical structures.</li>
-
-                    <li>Explore the Riemann zeta function and its hidden geometry.</li>
-
-                    <li>Use the minimap to orient yourself across the complex plane.</li>
-
-                    <li>Adjust function parameters and watch the landscape transform instantly.</li>
-
-                    <li>Navigate between branches of multivalued functions through immersive portals.</li>
-
-                    <li>Customize environment, colors and rendering options.</li>
-                </ul>
-            </section>
-
-            <div class="hero-image-container">
-                <img src="images/highlights.png" alt="Highlights">
             </div>
+        </section>
+    </main>
 
-            <section id="mathematics">
-                <h2>The Mathematics</h2>
-
-                <p>
-                    The explorer supports a variety of complex functions, including trigonometric,
-                    exponential, rational, and logarithmic families.
-                </p>
-
-                <p>
-                    A special focus is given to the
-                    <strong>Riemann zeta function</strong> \( \zeta(s) \),
-                    whose rich structure makes it one of the most fascinating objects in mathematics.
-                </p>
-
-                <p>
-                    The built-in zero search tools allow you to investigate points where
-                    \( f(s)=0 \), revealing the geometric structure hidden in the complex plane.
-                </p>
-            </section>
-
-            <section id="Further information">
-                <h2>Further Information</h2>
-                <p>
-                    For more detailed information about the project and its mathematical background, please
-                    refer to
-                    the <a href="https://allanino.github.io/complex-functions-explorer/docs">documentation</a>.
-                </p>
-            </section>
-
-            <footer>
-                <p>Complex Functions Explorer • Built with Godot • Open Source • © 2026.</p>
-            </footer>
+    <footer class="site-footer">
+        <div class="site-footer__inner">
+            <div>Complex Functions Explorer • Built with Godot • Open Source • © 2026</div>
+            <div class="site-footer__links">
+                <a href="index.html">Overview</a>
+                <a href="docs.html">Documentation</a>
+                <a href="https://github.com/allanino/complex-functions-explorer" target="_blank"
+                    rel="noopener noreferrer">GitHub</a>
+            </div>
         </div>
-    </div>
+    </footer>
 </body>
 
 </html>

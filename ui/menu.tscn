@@ -6,6 +6,7 @@
 [ext_resource type="PackedScene" path="res://ui/components/text_input.tscn" id="TextInputScene"]
 [ext_resource type="Script" path="res://ui/menu.gd" id="1_menu_script"]
 [ext_resource type="Theme" path="res://ui/theme/theme.tres" id="theme_tres"]
+[ext_resource type="Texture2D" path="res://ui/assets/logo.svg" id="logo_svg"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_glass"]
 bg_color = Color(0.03, 0.03, 0.03, 0.5)
@@ -352,6 +353,16 @@ theme_override_constants/separation = 20
 
 [node name="TitleHBox" type="HBoxContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox"]
 layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="TitleLogo" type="TextureRect" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TitleHBox"]
+custom_minimum_size = Vector2(28, 28)
+layout_mode = 2
+size_flags_vertical = 4
+texture_filter = 4
+texture = ExtResource("logo_svg")
+expand_mode = 1
+stretch_mode = 5
 
 [node name="TitleLabel" type="Label" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/TitleHBox"]
 unique_name_in_owner = true
