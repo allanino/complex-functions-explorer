@@ -4,6 +4,14 @@ set -e
 # Change directory to the repository root
 cd "$(dirname "$0")/.."
 
+echo "Exporting Linux release from Godot..."
+mkdir -p bin/ComplexFunctionsExplorer.AppDir/usr/bin
+godot --headless --export-release "Linux"
+
+echo "Exporting Windows release from Godot..."
+mkdir -p bin/Windows
+godot --headless --export-release "Windows Desktop"
+
 echo "Zipping Windows release..."
 # Remove old zip if it exists to start fresh
 rm -f bin/Windows/ComplexFunctionsExplorer.zip

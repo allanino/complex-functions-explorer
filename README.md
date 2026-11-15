@@ -84,26 +84,39 @@ SCons rebuilds incrementally (only changed files).
 
 Then reload the Godot project if changes do not appear.
 
-#### Exporting release builds
+#### Exporting and packaging release builds
 
-Before exporting:
+1. **Build the release GDExtension library:**
 
-```bash
-scons platform=linux target=template_release
-```
+   ```bash
+   scons platform=linux target=template_release
+   ```
 
-This generates:
+   This generates:
 
-```text
-bin/libcomplex_functions.linux.template_release.x86_64.so
-```
+   ```text
+   bin/libcomplex_functions.linux.template_release.x86_64.so
+   ```
 
-Godot automatically loads:
+   Godot automatically loads:
+   * `*.debug.*` → Editor + Debug exports
+   * `*.release.*` → Release exports
 
-* `*.debug.*` → Editor + Debug exports
-* `*.release.*` → Release exports
+2. **Install Godot Export Templates (one-time per Godot version):**
 
-No manual switching required.
+   Open the project in the Godot editor, go to **Editor → Manage Export Templates...**, and click **Download and Install** for the current Godot version (templates are installed to `~/.local/share/godot/export_templates/`).
+
+3. **Export and package releases:**
+
+   Run the packaging script from the repository root:
+
+   ```bash
+   ./utils/package_releases.sh
+   ```
+
+   This script runs `godot --headless --export-release` for both **Linux** and **Windows Desktop** presets and packages the final artifacts:
+   * `bin/Linux/Complex_Functions_Explorer-x86_64.AppImage`
+   * `bin/Windows/ComplexFunctionsExplorer.zip`
 
 ### Common problems
 

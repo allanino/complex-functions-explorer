@@ -115,6 +115,15 @@ func _ready():
 	_last_function_type = Config.function_type
 	_last_input_function_type = Config.input_function_type
 	Config.config_changed.connect(_on_config_changed)
+	if DisplayServer.get_name() != "headless":
+		var icon_tex := load("res://ui/assets/logo.svg") as Texture2D
+		if icon_tex:
+			var img := icon_tex.get_image()
+			if img:
+				if img.is_compressed():
+					img.decompress()
+				img.resize(128, 128, Image.INTERPOLATE_LANCZOS)
+				DisplayServer.set_icon(img)
 
 func _on_config_changed(key: String):
 	if not key in ZERO_AFFECTING_CONFIG_KEYS:
