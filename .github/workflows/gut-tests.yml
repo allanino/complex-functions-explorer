@@ -56,6 +56,7 @@ jobs:
 
           sed \
             -e '/GDExtension dynamic library not found/d' \
+            -e "/Can't open dynamic library/d" \
             -e '/Error loading extension/d' \
             -e '/open_dynamic_library/d' \
             -e '/FileAccess::exists(path)/d' \
