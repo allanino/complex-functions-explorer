@@ -95,13 +95,10 @@ func test_sphere_height_disabled_follows_sphere_surface():
 	Config.riemann_sphere_mode = true
 	Config.riemann_sphere_height = false
 	Config.riemann_sphere_radius = 50.0
+	Config.height_type = 0
 	GameState.effective_zoom = 1.0
 
-	# ComplexField.get_height_from_field should return 0.0 (un-displaced radius) when sphere_height is disabled,
-	# even for a non-zero function value.
 	var f_val = Vector2(3.0, 4.0)
-	assert_almost_eq(ComplexField.get_height_from_field(f_val), 0.0, 1e-6)
-
 	var player_scene := load("res://player/player.tscn") as PackedScene
 	var player = autofree(player_scene.instantiate())
 
@@ -113,12 +110,12 @@ func test_sphere_height_disabled_follows_sphere_surface():
 	var expected_y = 50.0 * (cos(dist / 50.0) - 1.0)
 	assert_almost_eq(player.get_terrain_height(dist, 0.0, f_val), expected_y, 1e-4)
 
-	# Even when f_val is INF or NAN (e.g., at a pole or infinity on the sphere),
-	# height remains finite on the sphere surface when sphere_height is disabled.
-	assert_almost_eq(ComplexField.get_height_from_field(Vector2(INF, INF)), 0.0, 1e-6)
-	assert_almost_eq(ComplexField.get_height_from_field(Vector2(NAN, NAN)), 0.0, 1e-6)
+	# get_terrain_height stays on the smooth sphere even for INF/NAN, while get_plane_height
+	# returns the complex-plane function height so the shadow area (> MAX_WORLD_HEIGHT) is still detected.
 	assert_almost_eq(player.get_terrain_height(0.0, 0.0, Vector2(INF, INF)), 0.0, 1e-5)
 	assert_almost_eq(player.get_terrain_height(dist, 0.0, Vector2(NAN, NAN)), expected_y, 1e-4)
+	assert_almost_eq(player.get_plane_height(0.0, 0.0, f_val), 5.0, 1e-4)
+	assert_gt(player.get_plane_height(0.0, 0.0, Vector2(2000.0, 0.0)), GameState.MAX_WORLD_HEIGHT)
 
 func test_minimap_view_radius_scales_with_stereographic_factor():
 	var minimap_scene := load("res://ui/minimap.tscn") as PackedScene

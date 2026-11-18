@@ -1533,8 +1533,6 @@ static func newton_step(z_input: Variant, step_size_mult: float, max_step: float
 	return [z.sub(step.mul(step_size_mult)), f_val]
 
 static func get_height_from_field(f: Vector2, z_id: Vector2 = Vector2.ZERO) -> float:
-	if Config.riemann_sphere_mode and not Config.riemann_sphere_height:
-		return 0.0
 	if not is_finite(f.x) or not is_finite(f.y): return NAN
 	var mag = f.length()
 	if not is_finite(mag):

@@ -11,6 +11,7 @@ varying vec2 field_val;
 varying vec2 v_f_dir;
 varying float v_nan;
 varying float v_h_clamped;
+varying float v_h_surface;
 
 instance uniform int lod_level = 0;
 instance uniform ivec4 neighbor_lods = ivec4(-1, -1, -1, -1);
@@ -663,7 +664,7 @@ void compute_position_marker(vec3 w_pos, vec3 nrm, inout vec3 out_albedo, inout 
 
 // Evaluates the function on the Riemann Sphere at the chart offset c (world units around the player).
 // Returns the displaced surface position in world space (player frame) and its normal.
-void compute_sphere_surface(vec2 c, out vec3 p_world, out vec3 nrm, out vec2 f_val, out bool invalid, out bool h_clamped_out) {
+void compute_sphere_surface(vec2 c, out vec3 p_world, out vec3 nrm, out vec2 f_val, out bool invalid, out bool h_clamped_out, out float h_func_out) {
     float radius = sphere_radius;
     SphereChartFrame sf = sphere_chart_frame(c, radius);
     vec3 u = sphere_basis * sf.l;
@@ -679,16 +680,18 @@ void compute_sphere_surface(vec2 c, out vec3 p_world, out vec3 nrm, out vec2 f_v
     vec2 dh = vec2(0.0); // derivatives of h with respect to (Re z, Im z)
     f_val = vec2(0.0);
     h_clamped_out = false;
+    h_func_out = 0.0;
 
     if (!invalid) {
         f_val = fd.value;
         bool hc = false;
         float h_raw = get_complex_height(fd.value, fd.value, hc);
         h_clamped_out = hc;
+        h_func_out = h_raw * zoom_factor;
         if (sphere_height) {
             vec2 dh_w = get_complex_height_derivatives(fd.value, fd.value, vec2(0.0), fd.dx, fd.dy, 1.0, hc, 0);
             dh = zoom_factor * vec2(dh_w.x * 10.0, -dh_w.y * 10.0);
-            h = h_raw * zoom_factor;
+            h = h_func_out;
             if (h < -0.9 * radius) {
                 h = -0.9 * radius;
                 dh = vec2(0.0);
@@ -717,6 +720,8 @@ void vertex() {
         v_normal = vec3(0.0, 1.0, 0.0);
         NORMAL = (MODEL_NORMAL_MATRIX * v_normal);
         v_nan = 0.0;
+        v_h_clamped = 0.0;
+        v_h_surface = 0.0;
         field_val = vec2(0.0);
     } else if (sphere_mode) {
         float half_size = chunk_size * 0.5;
@@ -729,12 +734,14 @@ void vertex() {
         vec2 s_field;
         bool s_invalid;
         bool s_clamped;
-        compute_sphere_surface(chart, sphere_p, sphere_n, s_field, s_invalid, s_clamped);
+        float s_h_func;
+        compute_sphere_surface(chart, sphere_p, sphere_n, s_field, s_invalid, s_clamped, s_h_func);
 
         v_nan = s_invalid ? 1.0 : 0.0;
         field_val = s_field;
         v_f_dir = length(s_field) > 0.0 ? normalize(s_field) : vec2(0.0);
         v_h_clamped = s_clamped ? 1.0 : 0.0;
+        v_h_surface = s_h_func;
         v_normal = sphere_n;
 
         VERTEX = sphere_p - chunk_origin;
@@ -766,6 +773,7 @@ void vertex() {
             v_normal = vec3(0.0, 1.0, 0.0);
             local_pos = vec3(snap_v.x, 0.0, snap_v.z);
             v_h_clamped = 0.0;
+            v_h_surface = 0.0;
         } else {
             v_nan = 0.0;
 
@@ -799,6 +807,7 @@ void vertex() {
             v_h_clamped = h_clamped ? 1.0 : 0.0;
 
             h *= blend * zoom_factor;
+            v_h_surface = h;
 
             local_pos = vec3(snap_v.x, snap_v.y + h, snap_v.z);
 
@@ -870,7 +879,7 @@ void fragment() {
         }
 
         // Apply smooth decay for large heights, just like minimap
-        float h_abs = abs(world_pos.y);
+        float h_abs = abs(v_h_surface);
         float fade_factor = 1.0;
         if (v_h_clamped > 0.5) {
             fade_factor = 0.3;
