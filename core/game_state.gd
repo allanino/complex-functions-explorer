@@ -111,6 +111,47 @@ var imag_level_curves_highlighted: Array[float] = []:
 		state_changed.emit("imag_level_curves_highlighted")
 
 
+# --- Riemann Sphere state ---
+# Maps the player's local frame (up = +Y) to the inertial sphere frame, where the point
+# (0, 1, 0) is z = 0 and (0, -1, 0) is z = infinity. The sphere "rotates under the player".
+var sphere_basis: Basis = Basis.IDENTITY
+
+# Inverse stereographic projection (from the south pole): complex number -> unit vector.
+func complex_to_sphere_unit(z: Vector2) -> Vector3:
+	var r2 = z.length_squared()
+	var den = 1.0 + r2
+	return Vector3(2.0 * z.x / den, (1.0 - r2) / den, -2.0 * z.y / den)
+
+# Stereographic projection: unit vector -> complex number.
+func sphere_unit_to_complex(u: Vector3) -> Vector2:
+	var w = maxf(1.0 + u.y, 1e-9)
+	return Vector2(u.x / w, -u.z / w)
+
+# Places the player on the sphere at the complex number z, keeping "Re increases to +X, Im to -Z".
+func set_sphere_position(z: Vector2) -> void:
+	var up = complex_to_sphere_unit(z)
+	var eps = 1e-4 * maxf(1.0, z.length())
+	var east = (complex_to_sphere_unit(z + Vector2(eps, 0.0)) - complex_to_sphere_unit(z - Vector2(eps, 0.0)))
+	east = (east - up * east.dot(up))
+	if east.length_squared() < 1e-24:
+		east = Vector3(1.0, 0.0, 0.0)
+		east = east - up * east.dot(up)
+	east = east.normalized()
+	var back = east.cross(up).normalized()
+	sphere_basis = Basis(east, up, back)
+	state_changed.emit("sphere_basis")
+
+# Moves the player by a flat offset (arc length in world units) along the sphere surface.
+func advance_on_sphere(offset: Vector2, radius: float) -> void:
+	var dist = offset.length()
+	if dist < 1e-9 or radius <= 0.0:
+		return
+	var dir = Vector3(offset.x, 0.0, offset.y) / dist
+	var axis = Vector3.UP.cross(dir).normalized()
+	sphere_basis = (sphere_basis * Basis(axis, dist / radius)).orthonormalized()
+	state_changed.emit("sphere_basis")
+
+
 func _ready():
 	_last_function_type = Config.function_type
 	_last_input_function_type = Config.input_function_type

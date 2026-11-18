@@ -97,8 +97,11 @@ func teleport_to_world_pos(target_pos: Vector3) -> void:
 func _ready():
 	add_to_group("player")
 	GameState.state_changed.connect(_on_game_state_changed)
+	Config.config_changed.connect(_on_config_changed)
 
 	global_position = get_initial_position()
+	if Config.riemann_sphere_mode:
+		_place_on_sphere_at_initial_position()
 	if not Config.function.get("is_dirichlet", false) and not Config.function.has("initial_pos"):
 		rotation.y = - PI / 2.0
 
@@ -243,6 +246,8 @@ func _unhandled_input(event):
 
 	elif event.is_action_pressed("reset_player"):
 		global_position = get_initial_position()
+		if Config.riemann_sphere_mode:
+			_place_on_sphere_at_initial_position()
 		if not Config.function.get("is_dirichlet", false) and not Config.function.has("initial_pos"):
 			rotation.y = - PI / 2.0
 		else:
@@ -265,9 +270,20 @@ func _unhandled_input(event):
 			Config.save_settings()
 
 func get_terrain_height(x: float, z: float, field_val: Vector2 = Vector2.INF) -> float:
+	var h: float
 	if field_val != Vector2.INF:
-		return ComplexField.get_height_from_field(field_val)
-	return ComplexField.get_height(x, z)
+		h = ComplexField.get_height_from_field(field_val)
+	else:
+		h = ComplexField.get_height(x, z)
+	if not is_finite(h):
+		return NAN
+	if Config.riemann_sphere_mode:
+		var r_sphere = Config.get_sphere_radius()
+		h = maxf(h, -0.9 * r_sphere)
+		var dist = Vector2(x, z).length()
+		var d = minf(dist / r_sphere, PI)
+		return (r_sphere + h) * cos(d) - r_sphere
+	return h
 
 func _apply_camera_rotation(input_vec: Vector2, sensitivity_mult: float = 1.0) -> void:
 	if auto_walk_state == AutoWalkState.NONE or auto_walk_state == AutoWalkState.WALKING:
@@ -276,7 +292,65 @@ func _apply_camera_rotation(input_vec: Vector2, sensitivity_mult: float = 1.0) -
 		rotation_x = clamp(rotation_x, -PI / 2, PI / 2)
 		camera.rotation.x = rotation_x
 
+# Riemann Sphere: the player stays pinned on top of the sphere and walking rotates the sphere
+# underneath. Any horizontal displacement accumulated since the last frame is converted into a
+# rotation of GameState.sphere_basis and the player is moved back to the origin.
+func _recenter_on_sphere() -> void:
+	var offset = Vector2(global_position.x, global_position.z)
+	if offset.is_zero_approx():
+		return
+	GameState.advance_on_sphere(offset, Config.get_sphere_radius())
+	global_position.x = 0.0
+	global_position.z = 0.0
+	# Keep the wall-avoidance logic aware of the movement direction.
+	last_player_pos = Vector3(-offset.x, last_player_pos.y, -offset.y)
+	_predicted_pos = Vector2.INF
+
+func _place_on_sphere_at_initial_position() -> void:
+	var z = Config.plane_world_to_complex(global_position.x, global_position.z)
+	GameState.set_sphere_position(z)
+	global_position.x = 0.0
+	global_position.z = 0.0
+	last_player_pos = global_position
+	_predicted_pos = Vector2.INF
+
+func _on_config_changed(key: String) -> void:
+	if key in ["riemann_sphere_height", "riemann_sphere_radius"]:
+		camera_push_offset = Vector3.ZERO
+		var cur_h = get_terrain_height(global_position.x, global_position.z, current_f)
+		if is_finite(cur_h):
+			last_terrain_h = cur_h
+			last_valid_terrain_height = cur_h
+		return
+	if key != "riemann_sphere_mode":
+		return
+	_predicted_pos = Vector2.INF
+	velocity = Vector3.ZERO
+	camera_push_offset = Vector3.ZERO
+	if Config.riemann_sphere_mode:
+		# Plane -> sphere: land on the sphere at the complex number we were standing on.
+		var z = Config.plane_world_to_complex(global_position.x, global_position.z)
+		GameState.set_sphere_position(z)
+		global_position.x = 0.0
+		global_position.z = 0.0
+	else:
+		# Sphere -> plane: walk back to the complex number under our feet.
+		var z = Config.sphere_world_to_complex(0.0, 0.0)
+		var p = Config.plane_complex_to_world(z.x, z.y)
+		global_position.x = p.x
+		global_position.z = p.y
+	last_player_pos = global_position
+	current_f = ComplexField.get_field(global_position.x, global_position.z)
+	current_mag = current_f.length()
+	var new_h = get_terrain_height(global_position.x, global_position.z, current_f)
+	if is_finite(new_h):
+		last_terrain_h = new_h
+		last_valid_terrain_height = new_h
+
 func _physics_process(delta):
+	if Config.riemann_sphere_mode:
+		_recenter_on_sphere()
+
 	if camera_input_dir != Vector2.ZERO:
 		_apply_camera_rotation(camera_input_dir, 1.0)
 		camera_input_dir = Vector2.ZERO
@@ -463,7 +537,8 @@ func _physics_process(delta):
 
 	# Predict player's position based on velocity and check its height
 	var predicted_pos = global_position + velocity * delta
-	var is_field_valid = is_finite(current_f.x) and is_finite(current_f.y) and is_finite(current_mag)
+	var sphere_flat = Config.riemann_sphere_mode and not Config.riemann_sphere_height
+	var is_field_valid = sphere_flat or (is_finite(current_f.x) and is_finite(current_f.y) and is_finite(current_mag))
 
 	if not is_field_valid:
 		velocity.x = 0.0
@@ -735,7 +810,7 @@ func _process(_delta):
 	if last_z.distance_squared_to(frame_z) > 4.0:
 		last_z = frame_z
 
-	if Config.function.get("is_multivalued", false):
+	if Config.is_multivalued_active():
 		var branch_changed = false
 		if Config.function_type == Config.ComplexFunc.MULTIVALUED_ASIN or Config.function_type == Config.ComplexFunc.MULTIVALUED_ACOS:
 			# Portals at x >= 1.0 and x <= -1.0

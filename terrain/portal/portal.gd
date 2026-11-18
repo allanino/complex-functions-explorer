@@ -22,11 +22,11 @@ func _ready():
 	_update_portal_state()
 
 func _on_config_changed(key: String):
-	if key == "function_type":
+	if key == "function_type" or key == "riemann_sphere_mode":
 		_update_portal_state()
 
 func _update_portal_state():
-	var is_portal_mode = Config.function.get("is_multivalued", false)
+	var is_portal_mode = Config.is_multivalued_active()
 	visible = is_portal_mode
 	# Performance: Disable _process when not in a multivalued function to save CPU cycles
 	set_process(is_portal_mode)

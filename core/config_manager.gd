@@ -204,6 +204,9 @@ const PRESET_KEYS = [
 	"view_distance",
 	"show_flow",
 	"show_position_marker",
+	"riemann_sphere_mode",
+	"riemann_sphere_radius",
+	"riemann_sphere_height",
 	"color_scheme",
 	"freeze_time",
 	"day_duration",
@@ -360,6 +363,24 @@ var show_flow: bool = false:
 		if show_flow == v: return
 		show_flow = v
 		config_changed.emit("show_flow")
+var riemann_sphere_mode: bool = false:
+	set(v):
+		if riemann_sphere_mode == v: return
+		riemann_sphere_mode = v
+		config_changed.emit("riemann_sphere_mode")
+# Radius (in world units, before zoom) of the Riemann Sphere. Zoom scales this radius.
+var riemann_sphere_radius: float = 50.0:
+	set(v):
+		v = clampf(v, 10.0, 500.0)
+		if riemann_sphere_radius == v: return
+		riemann_sphere_radius = v
+		config_changed.emit("riemann_sphere_radius")
+# When true the function height displaces the sphere radially; otherwise only colours are shown.
+var riemann_sphere_height: bool = true:
+	set(v):
+		if riemann_sphere_height == v: return
+		riemann_sphere_height = v
+		config_changed.emit("riemann_sphere_height")
 var show_position_marker: bool = true:
 	set(v):
 		if show_position_marker == v: return
@@ -513,11 +534,54 @@ func apply_zoom_immediate():
 	GameState.effective_zoom = float(zoom_factor)
 
 func world_to_complex(world_x: float, world_z: float) -> Vector2:
-	return Vector2(world_x * 0.1 / GameState.effective_zoom, -world_z * 0.1 / GameState.effective_zoom)
+	if riemann_sphere_mode:
+		return sphere_world_to_complex(world_x, world_z)
+	return plane_world_to_complex(world_x, world_z)
 
 # Converts 2D complex plane coordinates (Re, Im) to 3D world coordinates (x, z), accounting for zoom.
 func complex_to_world(complex_x: float, complex_y: float) -> Vector2:
+	if riemann_sphere_mode:
+		return sphere_complex_to_world(complex_x, complex_y)
+	return plane_complex_to_world(complex_x, complex_y)
+
+# Multivalued functions (and their portals) are disabled while walking on the Riemann Sphere.
+func is_multivalued_active() -> bool:
+	return function.get("is_multivalued", false) and not riemann_sphere_mode
+
+# Flat complex plane mapping (always available, independent of the sphere mode).
+func plane_world_to_complex(world_x: float, world_z: float) -> Vector2:
+	return Vector2(world_x * 0.1 / GameState.effective_zoom, -world_z * 0.1 / GameState.effective_zoom)
+
+func plane_complex_to_world(complex_x: float, complex_y: float) -> Vector2:
 	return Vector2(complex_x * 10.0 * GameState.effective_zoom, -complex_y * 10.0 * GameState.effective_zoom)
+
+# Effective Riemann Sphere radius in world units (zoom scales the radius).
+func get_sphere_radius() -> float:
+	return riemann_sphere_radius * GameState.effective_zoom
+
+# Maps a world offset (relative to the player, who stands on top of the sphere) to the complex
+# number at that point of the Riemann Sphere (stereographic projection). Mirrors riemann_sphere.gdshaderinc.
+func sphere_world_to_complex(world_x: float, world_z: float) -> Vector2:
+	var r_sphere = get_sphere_radius()
+	var c = Vector2(world_x, world_z)
+	var dist = c.length()
+	var d = minf(dist / r_sphere, PI)
+	var local_dir = Vector3(0.0, 1.0, 0.0)
+	if dist > 1e-9:
+		var s = sin(d) / dist
+		local_dir = Vector3(c.x * s, cos(d), c.y * s)
+	return GameState.sphere_unit_to_complex(GameState.sphere_basis * local_dir)
+
+# Inverse of sphere_world_to_complex.
+func sphere_complex_to_world(complex_x: float, complex_y: float) -> Vector2:
+	var u = GameState.complex_to_sphere_unit(Vector2(complex_x, complex_y))
+	var l = GameState.sphere_basis.transposed() * u
+	var d = acos(clampf(l.y, -1.0, 1.0))
+	var horiz = Vector2(l.x, l.z)
+	var hl = horiz.length()
+	if hl < 1e-9:
+		return Vector2.ZERO
+	return horiz / hl * d * get_sphere_radius()
 
 
 func _snapshot_current() -> Dictionary:
@@ -652,6 +716,9 @@ func save_settings():
 	config.set_value("rendering", "view_distance", view_distance)
 	config.set_value("rendering", "show_flow", show_flow)
 	config.set_value("rendering", "show_position_marker", show_position_marker)
+	config.set_value("rendering", "riemann_sphere_mode", riemann_sphere_mode)
+	config.set_value("rendering", "riemann_sphere_radius", riemann_sphere_radius)
+	config.set_value("rendering", "riemann_sphere_height", riemann_sphere_height)
 	config.set_value("rendering", "color_scheme", color_scheme)
 	config.set_value("rendering", "freeze_time", freeze_time)
 	config.set_value("rendering", "day_duration", day_duration)
@@ -735,6 +802,9 @@ func load_settings():
 	view_distance = config.get_value("rendering", "view_distance", view_distance)
 	show_flow = config.get_value("rendering", "show_flow", show_flow)
 	show_position_marker = config.get_value("rendering", "show_position_marker", show_position_marker)
+	riemann_sphere_mode = config.get_value("rendering", "riemann_sphere_mode", riemann_sphere_mode)
+	riemann_sphere_radius = config.get_value("rendering", "riemann_sphere_radius", riemann_sphere_radius)
+	riemann_sphere_height = config.get_value("rendering", "riemann_sphere_height", riemann_sphere_height)
 	color_scheme = config.get_value("rendering", "color_scheme", color_scheme)
 	freeze_time = config.get_value("rendering", "freeze_time", freeze_time)
 	day_duration = config.get_value("rendering", "day_duration", day_duration)

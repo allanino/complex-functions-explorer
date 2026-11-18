@@ -629,6 +629,29 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 15
 
+[node name="RiemannSphereCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/ENVIRONMENT/Margin/VBox" unique_id=1820000001 instance=ExtResource("3_checkbox")]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Riemann Sphere"
+
+[node name="SphereHeightCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/ENVIRONMENT/Margin/VBox" unique_id=1820000002 instance=ExtResource("3_checkbox")]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Sphere height"
+
+[node name="SphereRadiusSlider" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/ENVIRONMENT/Margin/VBox" unique_id=1820000003 instance=ExtResource("1")]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Sphere Radius"
+min_value = 10.0
+max_value = 500.0
+step = 5.0
+value = 50.0
+value_text = "50"
+show_detach_button = true
+
 [node name="FreezeTimeCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/ENVIRONMENT/Margin/VBox" unique_id=2707504 instance=ExtResource("3_checkbox")]
 unique_name_in_owner = true
 layout_mode = 2

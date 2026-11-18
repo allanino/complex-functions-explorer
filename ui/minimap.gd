@@ -122,7 +122,7 @@ func _sync_all_uniforms():
 		mat.set_shader_parameter("input_function_type", Config.input_function_type)
 		mat.set_shader_parameter("color_scheme", Config.color_scheme)
 		mat.set_shader_parameter("is_dirichlet", Config.function.get("is_dirichlet", false))
-		mat.set_shader_parameter("is_multivalued", Config.function.get("is_multivalued", false))
+		mat.set_shader_parameter("is_multivalued", Config.is_multivalued_active())
 		mat.set_shader_parameter("rational_num_coeffs", Config.rational_num_coeffs)
 		mat.set_shader_parameter("rational_den_coeffs", Config.rational_den_coeffs)
 		mat.set_shader_parameter("input_rational_num_coeffs", Config.input_rational_num_coeffs)
@@ -231,13 +231,22 @@ func _on_state_changed(key: String):
 			mat.set_shader_parameter("newton_path_size", 0)
 
 
+# Center of the minimap in flat-plane world units. On the Riemann Sphere the minimap shows the
+# stereographic chart of the complex plane centered on the player's current complex position.
+func _get_map_center() -> Vector2:
+	if Config.riemann_sphere_mode:
+		var z = Config.world_to_complex(player.global_position.x, player.global_position.z)
+		return Config.plane_complex_to_world(z.x, z.y)
+	return Vector2(player.global_position.x, player.global_position.z)
+
+
 func _process(_delta):
 	if not player or not camera:
 		return
 
 	var mat = map_rect.material as ShaderMaterial
 	if mat:
-		mat.set_shader_parameter("player_pos_world", Vector2(player.global_position.x, player.global_position.z))
+		mat.set_shader_parameter("player_pos_world", _get_map_center())
 
 	# Only redraw FOV overlay if camera yaw or overlay size changed
 	var current_yaw = camera.global_rotation.y
@@ -247,10 +256,10 @@ func _process(_delta):
 		if range_labels_overlay.size.x > 0 and not range_labels_overlay.visible:
 			range_labels_overlay.visible = true
 
-		top_label.text = _format_coordinate(Config.world_to_complex(0.0, player.global_position.z - view_radius).y)
-		bottom_label.text = _format_coordinate(Config.world_to_complex(0.0, player.global_position.z + view_radius).y)
-		left_label.text = _format_coordinate(Config.world_to_complex(player.global_position.x - view_radius, 0.0).x)
-		right_label.text = _format_coordinate(Config.world_to_complex(player.global_position.x + view_radius, 0.0).x)
+		top_label.text = _format_coordinate(Config.plane_world_to_complex(0.0, _get_map_center().y - view_radius).y)
+		bottom_label.text = _format_coordinate(Config.plane_world_to_complex(0.0, _get_map_center().y + view_radius).y)
+		left_label.text = _format_coordinate(Config.plane_world_to_complex(_get_map_center().x - view_radius, 0.0).x)
+		right_label.text = _format_coordinate(Config.plane_world_to_complex(_get_map_center().x + view_radius, 0.0).x)
 
 		# Force size updates synchronously so position math uses the new size this frame
 		top_label.size = Vector2.ZERO

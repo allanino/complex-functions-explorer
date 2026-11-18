@@ -3,6 +3,7 @@ render_mode cull_disabled;
 
 #include "res://math/complex_field.gdshaderinc"
 #include "res://math/glsl/color_utils.gdshaderinc"
+#include "res://math/glsl/riemann_sphere.gdshaderinc"
 
 varying vec3 world_pos;
 varying vec3 v_normal;
@@ -660,6 +661,54 @@ void compute_position_marker(vec3 w_pos, vec3 nrm, inout vec3 out_albedo, inout 
 }
 
 
+// Evaluates the function on the Riemann Sphere at the chart offset c (world units around the player).
+// Returns the displaced surface position in world space (player frame) and its normal.
+void compute_sphere_surface(vec2 c, out vec3 p_world, out vec3 nrm, out vec2 f_val, out bool invalid, out bool h_clamped_out) {
+    float radius = sphere_radius;
+    SphereChartFrame sf = sphere_chart_frame(c, radius);
+    vec3 u = sphere_basis * sf.l;
+    vec3 dre_du;
+    vec3 dim_du;
+    vec2 zc = sphere_unit_to_complex(u, dre_du, dim_du);
+
+    ComplexFieldData fd = get_field_with_derivatives_complex(zc.x, zc.y, 0);
+    invalid = any(isnan(fd.value)) || any(isinf(fd.value)) ||
+            any(isnan(fd.dx)) || any(isinf(fd.dx));
+
+    float h = 0.0;
+    vec2 dh = vec2(0.0); // derivatives of h with respect to (Re z, Im z)
+    f_val = vec2(0.0);
+    h_clamped_out = false;
+
+    if (!invalid) {
+        f_val = fd.value;
+        bool hc = false;
+        float h_raw = get_complex_height(fd.value, fd.value, hc);
+        h_clamped_out = hc;
+        if (sphere_height) {
+            vec2 dh_w = get_complex_height_derivatives(fd.value, fd.value, vec2(0.0), fd.dx, fd.dy, 1.0, hc, 0);
+            dh = zoom_factor * vec2(dh_w.x * 10.0, -dh_w.y * 10.0);
+            h = h_raw * zoom_factor;
+            if (h < -0.9 * radius) {
+                h = -0.9 * radius;
+                dh = vec2(0.0);
+            }
+        }
+    }
+
+    float dre_dcx = dot(dre_du, sphere_basis * sf.dl_dcx);
+    float dre_dcz = dot(dre_du, sphere_basis * sf.dl_dcz);
+    float dim_dcx = dot(dim_du, sphere_basis * sf.dl_dcx);
+    float dim_dcz = dot(dim_du, sphere_basis * sf.dl_dcz);
+    float dh_dcx = dh.x * dre_dcx + dh.y * dim_dcx;
+    float dh_dcz = dh.x * dre_dcz + dh.y * dim_dcz;
+
+    vec3 ds_dcx = dh_dcx * sf.l + (radius + h) * sf.dl_dcx;
+    vec3 ds_dcz = dh_dcz * sf.l + (radius + h) * sf.dl_dcz;
+    nrm = normalize(cross(ds_dcz, ds_dcx));
+    p_world = sf.l * (radius + h) - vec3(0.0, radius, 0.0);
+}
+
 void vertex() {
     vec3 local_pos = VERTEX;
     if (performance_protection_active) {
@@ -669,6 +718,28 @@ void vertex() {
         NORMAL = (MODEL_NORMAL_MATRIX * v_normal);
         v_nan = 0.0;
         field_val = vec2(0.0);
+    } else if (sphere_mode) {
+        float half_size = chunk_size * 0.5;
+        vec3 snap_v = apply_lod_snapping(VERTEX, half_size);
+        vec3 chunk_origin = MODEL_MATRIX[3].xyz; // chunks are pure translations
+        vec2 chart = (chunk_origin + snap_v).xz - player_position_world.xz;
+
+        vec3 sphere_p;
+        vec3 sphere_n;
+        vec2 s_field;
+        bool s_invalid;
+        bool s_clamped;
+        compute_sphere_surface(chart, sphere_p, sphere_n, s_field, s_invalid, s_clamped);
+
+        v_nan = s_invalid ? 1.0 : 0.0;
+        field_val = s_field;
+        v_f_dir = length(s_field) > 0.0 ? normalize(s_field) : vec2(0.0);
+        v_h_clamped = s_clamped ? 1.0 : 0.0;
+        v_normal = sphere_n;
+
+        VERTEX = sphere_p - chunk_origin;
+        world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
+        NORMAL = (MODEL_NORMAL_MATRIX * v_normal);
     } else {
         float half_size = chunk_size * 0.5;
         vec3 snap_v = apply_lod_snapping(VERTEX, half_size);
@@ -827,7 +898,7 @@ void fragment() {
         }
 
         float core_critical = 0.0;
-        if (show_critical_stripe && is_dirichlet) {
+        if (show_critical_stripe && is_dirichlet && !sphere_mode) {
             compute_critical_stripe_highlight(world_pos, v_normal, final_emission, core_critical);
             ALBEDO = mix(ALBEDO, vec3(1.0, 0.655, 0.0), core_critical);
         }
@@ -845,7 +916,9 @@ void fragment() {
             compute_position_marker(world_pos, v_normal, ALBEDO, final_emission);
         }
 
-        compute_newton_path(world_pos, ALBEDO, final_emission);
+        if (!sphere_mode) {
+            compute_newton_path(world_pos, ALBEDO, final_emission);
+        }
 
         // Reinhard Tone Mapping to keep high emissions from blowing out to absolute white
         final_emission = final_emission / (final_emission + vec3(1.0));

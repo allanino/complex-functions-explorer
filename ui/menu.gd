@@ -50,6 +50,9 @@ signal update_hud_layout_signal()
 @onready var flow_checkbox = %FlowCheckbox
 @onready var position_marker_checkbox = %PositionMarkerCheckbox
 @onready var freeze_time_checkbox = %FreezeTimeCheckbox
+@onready var riemann_sphere_checkbox = %RiemannSphereCheckbox
+@onready var sphere_height_checkbox = %SphereHeightCheckbox
+@onready var sphere_radius_slider = %SphereRadiusSlider
 @onready var day_duration_slider = %DayDurationSlider
 @onready var day_time_slider = %DayTimeSlider
 @onready var sunrise_slider = %SunriseContainer
@@ -138,6 +141,9 @@ var _initial_antialiasing_mode: int
 var _initial_rendering_scale: float
 var _initial_view_distance: int
 var _initial_shadows_enabled: bool
+var _initial_riemann_sphere_mode: bool
+var _initial_riemann_sphere_height: bool
+var _initial_riemann_sphere_radius: float
 var _initial_preset: String
 var _initial_edited_presets: Dictionary
 var _initial_re_text: String = ""
@@ -268,6 +274,8 @@ func _ready():
 	terrain_detail_button.item_selected.connect(_on_terrain_detail_selected)
 	aa_button.item_selected.connect(_on_aa_selected)
 	shadows_checkbox.toggled.connect(_on_shadows_toggled)
+	riemann_sphere_checkbox.toggled.connect(_on_riemann_sphere_toggled)
+	sphere_height_checkbox.toggled.connect(_on_sphere_height_toggled)
 	get_viewport().size_changed.connect(func(): emit_signal("update_hud_layout_signal"))
 
 	_populate_function_dropdown(func_button, false)
@@ -325,6 +333,7 @@ func _ready():
 		day_duration_slider: "Day Duration",
 		day_time_slider: "Time of day",
 		sunrise_slider: "Sunrise Direction",
+		sphere_radius_slider: "Sphere Radius",
 		sky_luminosity_slider: "Sky Luminosity",
 		sun_luminosity_slider: "Sun Luminosity",
 		self_illumination_slider: "Self-Illumination",
@@ -448,6 +457,12 @@ func _init_slider_bindings():
 			"to_config": id,
 			"from_config": id,
 			"format": fmt_time
+		},
+		sphere_radius_slider: {
+			"config_key": "riemann_sphere_radius",
+			"to_config": id,
+			"from_config": id,
+			"format": fmt_int
 		},
 		sunrise_slider: {
 			"config_key": "sunrise_direction",
@@ -913,6 +928,8 @@ func _on_set_pos_pressed(_toggle_menu: bool = true):
 	Config.show_curves_labels = curves_labels_checkbox.button_pressed
 	Config.show_critical_stripe = critical_checkbox.button_pressed
 	Config.shadows_enabled = shadows_checkbox.button_pressed
+	Config.riemann_sphere_mode = riemann_sphere_checkbox.button_pressed
+	Config.riemann_sphere_height = sphere_height_checkbox.button_pressed
 	Config.show_minimap = minimap_checkbox.button_pressed
 	Config.show_minimap_range = minimap_range_checkbox.button_pressed
 	Config.show_hud_phase_wheel = hud_phase_wheel_checkbox.button_pressed
@@ -1021,6 +1038,10 @@ func _sync_ui_to_config():
 	curves_labels_checkbox.button_pressed = Config.show_curves_labels
 	critical_checkbox.button_pressed = Config.show_critical_stripe
 	shadows_checkbox.button_pressed = Config.shadows_enabled
+	riemann_sphere_checkbox.button_pressed = Config.riemann_sphere_mode
+	sphere_height_checkbox.button_pressed = Config.riemann_sphere_height
+	sphere_height_checkbox.visible = Config.riemann_sphere_mode
+	sphere_radius_slider.visible = Config.riemann_sphere_mode
 	minimap_checkbox.button_pressed = Config.show_minimap
 	minimap_range_checkbox.button_pressed = Config.show_minimap_range
 	minimap_range_checkbox.visible = Config.show_minimap
@@ -1080,6 +1101,14 @@ func _on_terrain_detail_selected(index: int):
 func _on_aa_selected(index: int):
 	Config.antialiasing_mode = index
 	emit_signal('apply_aa_signal')
+
+func _on_riemann_sphere_toggled(pressed: bool):
+	Config.riemann_sphere_mode = pressed
+	sphere_height_checkbox.visible = pressed
+	sphere_radius_slider.visible = pressed
+
+func _on_sphere_height_toggled(pressed: bool):
+	Config.riemann_sphere_height = pressed
 
 func _on_shadows_toggled(pressed: bool):
 	Config.shadows_enabled = pressed
@@ -1473,6 +1502,9 @@ func toggle_menu(applied: bool = false):
 		_initial_rendering_scale = Config.rendering_scale
 		_initial_view_distance = Config.view_distance
 		_initial_shadows_enabled = Config.shadows_enabled
+		_initial_riemann_sphere_mode = Config.riemann_sphere_mode
+		_initial_riemann_sphere_height = Config.riemann_sphere_height
+		_initial_riemann_sphere_radius = Config.riemann_sphere_radius
 		_initial_preset = Config.current_preset
 		_initial_edited_presets = Config._edited_presets.duplicate(true)
 
@@ -1531,6 +1563,9 @@ func toggle_menu(applied: bool = false):
 			Config.rendering_scale = _initial_rendering_scale
 			Config.view_distance = _initial_view_distance
 			Config.shadows_enabled = _initial_shadows_enabled
+			Config.riemann_sphere_mode = _initial_riemann_sphere_mode
+			Config.riemann_sphere_height = _initial_riemann_sphere_height
+			Config.riemann_sphere_radius = _initial_riemann_sphere_radius
 			Config.current_preset = _initial_preset
 			Config._edited_presets = _initial_edited_presets
 

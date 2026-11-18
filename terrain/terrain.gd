@@ -43,6 +43,7 @@ func _ready():
 	_update_lod_subs()
 	_update_view_offsets()
 	_update_all_terrain_material_uniforms()
+	_update_sphere_uniforms()
 	# Uncomment this to debug the mesh wireframe
 	# get_viewport().debug_draw = Viewport.DEBUG_DRAW_WIREFRAME
 
@@ -400,6 +401,35 @@ func _update_all_terrain_material_uniforms():
 	terrain_material.set_shader_parameter("lod_segments", segments)
 
 
+func _update_sphere_uniforms():
+	if not terrain_material:
+		return
+	terrain_material.set_shader_parameter("sphere_mode", Config.riemann_sphere_mode)
+	terrain_material.set_shader_parameter("sphere_radius", Config.get_sphere_radius())
+	terrain_material.set_shader_parameter("sphere_height", Config.riemann_sphere_height)
+	terrain_material.set_shader_parameter("sphere_basis", GameState.sphere_basis)
+
+
+# Vertices are displaced by the shader (up to the whole sphere), so frustum culling by the flat
+# AABB would hide visible chunks in sphere mode.
+func _make_chunk_aabb() -> AABB:
+	if Config.riemann_sphere_mode:
+		var e = 4000.0
+		return AABB(Vector3(-e, -e, -e), Vector3(2.0 * e, 2.0 * e, 2.0 * e))
+	return AABB(
+		Vector3(- (chunk_size + chunk_leeway) * 0.5, -50, - (chunk_size + chunk_leeway) * 0.5),
+		Vector3(chunk_size + chunk_leeway, 1400, chunk_size + chunk_leeway)
+	)
+
+
+func _on_sphere_mode_changed():
+	_update_terrain_material_uniforms("function_type")
+	_update_sphere_uniforms()
+	var aabb = _make_chunk_aabb()
+	for coord in chunks:
+		chunks[coord].custom_aabb = aabb
+
+
 func _update_terrain_material_uniforms(key: String):
 	if not terrain_material:
 		return
@@ -409,7 +439,7 @@ func _update_terrain_material_uniforms(key: String):
 		terrain_material.set_shader_parameter("function_type", Config.function_type)
 		terrain_material.set_shader_parameter("input_function_type", Config.input_function_type)
 		terrain_material.set_shader_parameter("is_dirichlet", f_data.get("is_dirichlet", false))
-		terrain_material.set_shader_parameter("is_multivalued", f_data.get("is_multivalued", false))
+		terrain_material.set_shader_parameter("is_multivalued", Config.is_multivalued_active())
 		return
 
 	if key == "real_level_curves_highlighted":
@@ -504,10 +534,7 @@ func _load_chunk(coord: Vector2i):
 		coord.y * chunk_size + chunk_size * 0.5
 	)
 
-	chunk.custom_aabb = AABB(
-		Vector3(- (chunk_size + chunk_leeway) * 0.5, -50, - (chunk_size + chunk_leeway) * 0.5),
-		Vector3(chunk_size + chunk_leeway, 1400, chunk_size + chunk_leeway)
-	)
+	chunk.custom_aabb = _make_chunk_aabb()
 
 func _update_chunk_lod(chunk: MeshInstance3D, lod: int, coord: Vector2i, force: bool = false):
 	var old_lod = _chunk_lods.get(coord, -1)
@@ -552,6 +579,11 @@ func _unload_chunk(coord: Vector2i):
 	_dirty_neighbor_coords[Vector2i(coord.x, coord.y + 1)] = true
 
 func _on_config_changed(key: String):
+	if key in ["riemann_sphere_mode", "riemann_sphere_radius", "riemann_sphere_height"]:
+		_on_sphere_mode_changed()
+		if key == "riemann_sphere_mode" and player:
+			_update_chunks(floor(player.global_position.x / chunk_size), floor(player.global_position.z / chunk_size), true)
+		return
 	if key in ["iterations", "terrain_detail", "view_distance", "show_curves", "show_critical_stripe", "show_flow", "show_position_marker", "color_scheme", "function_type", "input_function_type", "height_type", "height_a", "height_epsilon", "height_theta", "rational_num_coeffs", "rational_den_coeffs", "input_rational_num_coeffs", "input_rational_den_coeffs", "multivalued_n", "self_illumination", "terrain_brightness", "terrain_saturation", "terrain_albedo", "terrain_emission", "terrain_metallic", "terrain_roughness", "terrain_ao", "terrain_rim", "terrain_rim_tint", "morph_style", "morph_value", "fog_density", "morph_style"]:
 		_update_terrain_material_uniforms(key)
 		if key == "terrain_detail":
@@ -565,6 +597,12 @@ func _on_config_changed(key: String):
 				_update_chunks(floor(player.global_position.x / chunk_size), floor(player.global_position.z / chunk_size), true)
 
 func _on_state_changed(key: String):
+	if key == "sphere_basis":
+		if terrain_material:
+			terrain_material.set_shader_parameter("sphere_basis", GameState.sphere_basis)
+		return
+	if key == "effective_zoom" and Config.riemann_sphere_mode:
+		terrain_material.set_shader_parameter("sphere_radius", Config.get_sphere_radius())
 	if key in ["current_branch", "morph_value", "newton_path", "newton_path_bbox", "real_level_curves_highlighted", "imag_level_curves_highlighted", "effective_zoom"]:
 		_update_terrain_material_uniforms(key)
 	elif key == "eta_patches":
