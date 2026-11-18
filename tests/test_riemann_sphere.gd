@@ -120,4 +120,22 @@ func test_sphere_height_disabled_follows_sphere_surface():
 	assert_almost_eq(player.get_terrain_height(0.0, 0.0, Vector2(INF, INF)), 0.0, 1e-5)
 	assert_almost_eq(player.get_terrain_height(dist, 0.0, Vector2(NAN, NAN)), expected_y, 1e-4)
 
+func test_minimap_view_radius_scales_with_stereographic_factor():
+	var minimap_scene := load("res://ui/minimap.tscn") as PackedScene
+	var minimap = autofree(minimap_scene.instantiate())
+	add_child_autofree(minimap)
+
+	Config.riemann_sphere_mode = true
+	Config.riemann_sphere_radius = 50.0
+	GameState.set_sphere_position(Vector2(0.0, 0.0))
+	var r_at_zero = minimap._get_effective_view_radius()
+
+	# Far from the origin (e.g. z = 0 - 50i, like in the critical strip),
+	# stereographic projection magnifies |dz/ds| by (1 + |z|^2) / 2, so the minimap
+	# view_radius must expand proportionally so the map doesn't fly past.
+	GameState.set_sphere_position(Vector2(0.5, -50.0))
+	var r_at_50 = minimap._get_effective_view_radius()
+	assert_gt(r_at_50, r_at_zero * 500.0)
+
+
 
