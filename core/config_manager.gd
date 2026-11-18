@@ -376,7 +376,7 @@ var riemann_sphere_radius: float = 50.0:
 		riemann_sphere_radius = v
 		config_changed.emit("riemann_sphere_radius")
 # When true the function height displaces the sphere radially; otherwise only colours are shown.
-var riemann_sphere_height: bool = true:
+var riemann_sphere_height: bool = false:
 	set(v):
 		if riemann_sphere_height == v: return
 		riemann_sphere_height = v
