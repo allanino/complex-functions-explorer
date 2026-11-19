@@ -106,6 +106,10 @@ func _setup_range_labels():
 	right_label.position.x -= 8
 
 func _format_coordinate(val: float) -> String:
+	if is_nan(val):
+		return "NaN"
+	if is_inf(val):
+		return "∞" if val > 0.0 else "-∞"
 	var abs_val = abs(val)
 	if abs_val >= 1e4 or (abs_val > 0.0 and abs_val < 1e-3):
 		var exp_val = int(floor(log(abs_val) / log(10.0)))

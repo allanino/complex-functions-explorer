@@ -161,9 +161,13 @@ func test_player_height_matches_sphere_height_fade():
 	var player = autofree(player_scene.instantiate())
 	var f_val = Vector2(3.0, 4.0) # |f| = 5.0
 
-	# Near z = 0: full radial height
+	# Near z = 0: smoothly compressed radial height h_max * tanh(h / h_max)
 	GameState.set_sphere_position(Vector2(0.0, 0.0))
-	assert_almost_eq(player.get_terrain_height(0.0, 0.0, f_val), 5.0, 1e-4)
+	var expected_5 = RiemannSphere.compress_height(5.0, 50.0)
+	assert_almost_eq(player.get_terrain_height(0.0, 0.0, f_val), expected_5, 1e-4)
+	# Poles (INF / -INF) saturate smoothly to +/- MAX_HEIGHT_RATIO * R instead of NaN
+	assert_almost_eq(RiemannSphere.compress_height(INF, 50.0), 50.0 * RiemannSphere.MAX_HEIGHT_RATIO, 1e-4)
+	assert_almost_eq(RiemannSphere.compress_height(-INF, 50.0), -50.0 * RiemannSphere.MAX_HEIGHT_RATIO, 1e-4)
 
 	# Far from origin (lambda >> SPHERE_HEIGHT_FADE_END): radial height fades to 0
 	GameState.set_sphere_position(Vector2(-12.0, 44.0))
@@ -211,9 +215,9 @@ func test_teleport_to_complex_and_oob_reset_in_sphere_mode():
 	assert_almost_eq(player.global_position.x, 0.0, 1e-6)
 	assert_almost_eq(player.global_position.z, 0.0, 1e-6)
 
-	# Out-of-bounds teleport (e.g. near the pole s = 1) resets to the function's initial position
+	# Non-finite teleport resets to the function's initial position
 	GameState.out_of_bounds_teleport_active = false
-	player.teleport_to_complex(Vector2(1.0, 0.0))
+	player.teleport_to_complex(Vector2(INF, 0.0))
 	assert_true(GameState.out_of_bounds_teleport_active)
 	var reset_z = Config.world_to_complex(player.global_position.x, player.global_position.z)
 	var expected_init = Config.plane_world_to_complex(player.get_initial_position().x, player.get_initial_position().z)
@@ -261,6 +265,20 @@ func test_compute_chunk_lambda_range_matches_acos_formula():
 		var exp_min = 1.0 / (r_sphere * maxf(1.0 - cos(minf(PI, theta + chunk_ang)), 1e-5))
 		assert_almost_eq(got.x, exp_min, maxf(1e-4, exp_min * 1e-4))
 		assert_almost_eq(got.y, exp_max, maxf(1e-4, exp_max * 1e-4))
+
+func test_ui_formatters_handle_inf_and_nan():
+	var main_ui_scene := load("res://ui/main_ui.tscn") as PackedScene
+	var main_ui = autofree(main_ui_scene.instantiate())
+	assert_eq(main_ui._format_float(INF), "∞")
+	assert_eq(main_ui._format_float(-INF), "-∞")
+	assert_eq(main_ui._format_float(NAN), "NaN")
+
+	var minimap_scene := load("res://ui/minimap.tscn") as PackedScene
+	var minimap = autofree(minimap_scene.instantiate())
+	assert_eq(minimap._format_coordinate(INF), "∞")
+	assert_eq(minimap._format_coordinate(-INF), "-∞")
+	assert_eq(minimap._format_coordinate(NAN), "NaN")
+
 
 
 

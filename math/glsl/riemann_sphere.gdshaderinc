@@ -13,9 +13,11 @@ uniform bool sphere_height = true;    // radial displacement by the function hei
 uniform mat3 sphere_basis;            // local player frame -> inertial sphere frame
 
 // Stereographic magnification thresholds (complex units per world unit) for fading radial height
-// where the mesh vertices can no longer resolve the terrain. Mirrors Config.SPHERE_HEIGHT_FADE_*.
+// where the mesh vertices can no longer resolve the terrain. Mirrors RiemannSphere constants.
 const float SPHERE_HEIGHT_FADE_START = 2.0;
 const float SPHERE_HEIGHT_FADE_END = 6.0;
+// Maximum radial displacement as a fraction of sphere_radius for smooth tanh height compression.
+const float SPHERE_MAX_HEIGHT_RATIO = 0.45;
 
 struct SphereChartFrame {
     vec3 l;        // unit direction in the player frame
@@ -127,6 +129,15 @@ float sphere_height_fade_deriv(float lambda) {
     return -6.0 * t * (1.0 - t) / span;
 }
 
+// Smoothly bounds radial displacement to (-h_max, +h_max) with h_max = SPHERE_MAX_HEIGHT_RATIO * R.
+// Preserves 1:1 heights for |h| << h_max while keeping poles and deep valleys continuous and finite.
+float sphere_compress_height(float h, float radius, out float dcomp_dh) {
+    float h_max = max(SPHERE_MAX_HEIGHT_RATIO * radius, 1e-5);
+    float t = tanh(clamp(h / h_max, -20.0, 20.0));
+    dcomp_dh = 1.0 - t * t;
+    return h_max * t;
+}
+
 // Evaluates the function on the Riemann Sphere at the chart offset c (world units around the player).
 // Returns the displaced surface position in world space (player frame), its normal, and (when
 // need_flow_grad is true) the downhill gradient in inertial sphere coordinates.
@@ -161,8 +172,8 @@ void compute_sphere_surface(vec2 c, bool skip_field_if_flat, bool need_flow_grad
             any(isnan(fd.dx)) || any(isinf(fd.dx));
 
     float h = 0.0;
-    vec2 dh = vec2(0.0); // derivatives of h_func with respect to (Re z, Im z)
-    bool floor_clamped = false;
+    float h_comp = 0.0;
+    vec2 dh = vec2(0.0); // derivatives of h_comp with respect to (Re z, Im z)
 
     if (!invalid) {
         f_val = fd.value;
@@ -180,15 +191,17 @@ void compute_sphere_surface(vec2 c, bool skip_field_if_flat, bool need_flow_grad
             flow_grad_u = -gu;
         }
         if (h_fade > 0.0) {
-            h = h_func_out * h_fade;
-            if (h < -0.9 * radius) {
-                h = -0.9 * radius;
-                dh = vec2(0.0);
-                floor_clamped = true;
-            }
+            float dcomp_dh = 1.0;
+            h_comp = sphere_compress_height(h_func_out, radius, dcomp_dh);
+            h = h_comp * h_fade;
+            dh *= dcomp_dh;
         } else {
             dh = vec2(0.0);
         }
+    } else if (h_fade > 0.0) {
+        // At an exact singularity/pole, smoothly match the saturated +h_max plateau instead of dipping to 0.
+        h_comp = SPHERE_MAX_HEIGHT_RATIO * radius;
+        h = h_comp * h_fade;
     }
 
     vec3 du_dcx = sphere_basis * sf.dl_dcx;
@@ -200,11 +213,11 @@ void compute_sphere_surface(vec2 c, bool skip_field_if_flat, bool need_flow_grad
 
     float dh_dcx = (dh.x * dre_dcx + dh.y * dim_dcx) * h_fade;
     float dh_dcz = (dh.x * dre_dcz + dh.y * dim_dcz) * h_fade;
-    if (!floor_clamped && h_fade > 0.0 && h_fade < 1.0) {
-        // Product-rule term: h_func * d(h_fade)/dc, keeping normals exact across the fade zone.
+    if (h_fade > 0.0 && h_fade < 1.0) {
+        // Product-rule term: h_comp * d(h_fade)/dc, keeping normals exact across the fade zone.
         float dfade_duy = sphere_height_fade_deriv(lambda) * (-lambda / w);
-        dh_dcx += h_func_out * dfade_duy * du_dcx.y;
-        dh_dcz += h_func_out * dfade_duy * du_dcz.y;
+        dh_dcx += h_comp * dfade_duy * du_dcx.y;
+        dh_dcz += h_comp * dfade_duy * du_dcz.y;
     }
 
     vec3 ds_dcx = dh_dcx * sf.l + (radius + h) * sf.dl_dcx;

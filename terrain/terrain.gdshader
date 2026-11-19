@@ -792,6 +792,8 @@ void fragment() {
     vec3 sphere_flow_grad = v_sphere_flow_grad;
     vec3 sphere_u = vec3(0.0, 1.0, 0.0);
     bool has_sphere_u = false;
+    float analytic_phase_change = 0.0;
+    vec2 chart_fw = fwidth(v_chart);
 
     // resolve_per_pixel is an instance uniform (constant per draw call), so derivatives stay valid.
     if (resolve_per_pixel && !performance_protection_active) {
@@ -812,11 +814,18 @@ void fragment() {
         } else {
             nan_flag = 0.0;
             fv = ffd.value;
-            f_dir = length(fv) > 0.0 ? normalize(fv) : vec2(0.0);
+            float f_len = length(fv);
+            f_dir = f_len > 0.0 ? (fv / f_len) : vec2(0.0);
             bool hc = false;
             float h_raw = get_complex_height(fv, fv, hc);
             h_clamped_flag = hc ? 1.0 : 0.0;
             h_surface = h_raw * zoom_factor;
+            // Alias-free analytic phase rate |f'(z)/f(z)| * |dz/ds| * |ds/dpx| (never folds back at Nyquist).
+            float w_u = max(1.0 + sphere_u.y, 1e-5);
+            float frag_lambda = 1.0 / (sphere_radius * w_u);
+            float dx_len = (any(isnan(ffd.dx)) || any(isinf(ffd.dx))) ? 1e6 : length(ffd.dx);
+            float log_deriv = (f_len > 1e-30) ? (dx_len / f_len) : 1e6;
+            analytic_phase_change = log_deriv * frag_lambda * length(chart_fw);
             if (show_flow) {
                 sphere_flow_grad = sphere_downhill_grad_u(sphere_u, dre_du, dim_du, ffd, hc, sphere_radius);
             }
@@ -832,14 +841,32 @@ void fragment() {
         ROUGHNESS = 1.0;
         METALLIC = 0.0;
     } else if (nan_flag > 0.5) {
-        vec3 local_albedo, local_emission;
-        float rgh, mtl, spec;
-        compute_matrix_effect(world_pos.xz, vec3(0.0, 0.8, 0.2), vec3(0.7, 1.0, 0.7), local_albedo, local_emission, rgh, mtl, spec);
-        ALBEDO = local_albedo;
-        EMISSION = local_emission;
-        ROUGHNESS = rgh;
-        METALLIC = mtl;
-        SPECULAR = spec;
+        if (sphere_mode) {
+            // Seamless neutral pole cap matching moire_suppression at high phase frequency.
+            vec3 pole_base = vec3(0.5) * brightness * 0.5;
+            ALBEDO = pole_base * albedo;
+            vec3 pole_em = pole_base * emission;
+            if (self_illumination > 0.0) {
+                compute_self_illumination_effect(world_pos, CAMERA_POSITION_WORLD, ALBEDO, pole_em);
+            }
+            EMISSION = pole_em / (pole_em + vec3(1.0));
+            ROUGHNESS = clamp(roughness, 0.0, 1.0);
+            METALLIC = metallic;
+            SPECULAR = specular_intensity;
+            AO = ao;
+            AO_LIGHT_AFFECT = 0.0;
+            RIM = rim;
+            RIM_TINT = rim_tint;
+        } else {
+            vec3 local_albedo, local_emission;
+            float rgh, mtl, spec;
+            compute_matrix_effect(world_pos.xz, vec3(0.0, 0.8, 0.2), vec3(0.7, 1.0, 0.7), local_albedo, local_emission, rgh, mtl, spec);
+            ALBEDO = local_albedo;
+            EMISSION = local_emission;
+            ROUGHNESS = rgh;
+            METALLIC = mtl;
+            SPECULAR = spec;
+        }
     } else {
         float x = world_pos.x;
         float z = world_pos.z;
@@ -858,10 +885,10 @@ void fragment() {
 
         // Anti-alias high-frequency phase oscillation (Moiré suppression)
         float f_mag = length(f);
-        float phase_change = length(vec2(raw_w_re, raw_w_im)) / (f_mag + 1e-12);
-        float moire_suppression = smoothstep(0.5, 3.0, phase_change);
+        float phase_change = max(length(vec2(raw_w_re, raw_w_im)) / (f_mag + 1e-12), analytic_phase_change);
+        float moire_suppression = smoothstep(0.4, 2.2, phase_change);
 
-        float eff_sat = mix(saturation, 0.0, moire_suppression * 0.8);
+        float eff_sat = mix(saturation, 0.0, moire_suppression);
         float eff_bri = mix(brightness, brightness * 0.5, moire_suppression * 0.5);
 
         vec3 base = hsv2rgb(vec3(hue, eff_sat, eff_bri));
@@ -875,18 +902,20 @@ void fragment() {
             base = vec3(v) * eff_bri;
         }
 
-        // Apply smooth decay for large heights, just like minimap
-        float h_abs = abs(h_surface);
-        float fade_factor = 1.0;
-        if (h_clamped_flag > 0.5) {
-            fade_factor = 0.3;
-        } else if (h_abs > max_world_height) {
-            float excess = h_abs - max_world_height;
-            float decay_rate = 0.0005;
-            float exp_fade = exp(-decay_rate * excess);
-            fade_factor = 0.3 + 0.7 * exp_fade;
+        // Apply smooth decay for large heights in plane mode (sphere mode uses continuous tanh compression)
+        if (!sphere_mode) {
+            float h_abs = abs(h_surface);
+            float fade_factor = 1.0;
+            if (h_clamped_flag > 0.5) {
+                fade_factor = 0.3;
+            } else if (h_abs > max_world_height) {
+                float excess = h_abs - max_world_height;
+                float decay_rate = 0.0005;
+                float exp_fade = exp(-decay_rate * excess);
+                fade_factor = 0.3 + 0.7 * exp_fade;
+            }
+            base *= fade_factor;
         }
-        base *= fade_factor;
 
         if (show_curves) {
             compute_curves_highlight(f, raw_w_re, raw_w_im, base, highlight_re_glow, highlight_im_glow);

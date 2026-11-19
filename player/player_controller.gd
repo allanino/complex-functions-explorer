@@ -83,10 +83,7 @@ func teleport_to_complex(target_z: Vector2) -> void:
 		return
 
 	GameState.is_teleporting = true
-	var w: Vector2 = ComplexField.get_field_at(target_z.x, target_z.y, Config.input_function_type, true)
-	var f: Vector2 = ComplexField.get_field_at(w.x, w.y, Config.function_type, false)
-	var check_h = ComplexField.get_height_from_field(f, target_z)
-	if not is_finite(check_h) or abs(check_h) >= GameState.MAX_WORLD_HEIGHT:
+	if not is_finite(target_z.x) or not is_finite(target_z.y):
 		GameState.out_of_bounds_teleport_active = true
 		global_position = get_initial_position()
 		_place_on_sphere_at_initial_position()
@@ -319,10 +316,10 @@ func get_terrain_height(x: float, z: float, field_val: Vector2 = Vector2.INF, ap
 		h = ComplexField.get_height_from_field(field_val)
 	else:
 		h = ComplexField.get_height(x, z)
-	if not is_finite(h):
-		return NAN
 	if Config.riemann_sphere_mode:
 		return _sphere_surface_height(x, z, h, apply_curvature)
+	if not is_finite(h):
+		return NAN
 	return h
 
 func _sphere_surface_height(x: float, z: float, radial_h: float, apply_curvature: bool = true) -> float:
@@ -585,7 +582,7 @@ func _physics_process(delta):
 
 	# Predict player's position based on velocity and check its height
 	var predicted_pos = global_position + velocity * delta
-	var is_field_valid = is_finite(current_f.x) and is_finite(current_f.y) and is_finite(current_mag)
+	var is_field_valid = Config.riemann_sphere_mode or (is_finite(current_f.x) and is_finite(current_f.y) and is_finite(current_mag))
 
 	if not is_field_valid:
 		velocity.x = 0.0
@@ -606,39 +603,25 @@ func _physics_process(delta):
 	# Prevent player from probing heights higher/lower than GameState.MAX_WORLD_HEIGHT
 	var target_y = terrain_h + scaled_camera_height + height_offset
 	var last_target_y = last_terrain_h + scaled_camera_height + height_offset
-	var blocked_by_shadow = false
-	if Config.riemann_sphere_mode and not _demo_y_final_reached:
-		var pred_plane_h = get_plane_height(predicted_pos.x, predicted_pos.z, _predicted_next_f)
-		var cur_plane_h = get_plane_height(global_position.x, global_position.z, current_f)
-		var pred_abs = abs(pred_plane_h) if is_finite(pred_plane_h) else INF
-		var cur_abs = abs(cur_plane_h) if is_finite(cur_plane_h) else INF
-		if pred_abs >= GameState.MAX_WORLD_HEIGHT:
-			blocked_by_shadow = true
-			if pred_abs >= cur_abs:
-				velocity.x = 0.0
-				velocity.z = 0.0
-				terrain_h = last_terrain_h
-				target_y = terrain_h + scaled_camera_height + height_offset
 
-	if blocked_by_shadow or abs(target_y) >= GameState.MAX_WORLD_HEIGHT:
+	if abs(target_y) >= GameState.MAX_WORLD_HEIGHT:
 		GameState.height_protection_active = true
-		if abs(target_y) >= GameState.MAX_WORLD_HEIGHT:
-			# If moving to a height that is greater in magnitude than our current/last height, block it
-			if abs(target_y) > abs(last_target_y):
-				velocity.x = 0.0
-				velocity.z = 0.0
-				terrain_h = last_terrain_h
+		# If moving to a height that is greater in magnitude than our current/last height, block it
+		if abs(target_y) > abs(last_target_y):
+			velocity.x = 0.0
+			velocity.z = 0.0
+			terrain_h = last_terrain_h
 
-			# Ensure height_offset stays bounded by GameState.MAX_WORLD_HEIGHT impeding further offset
-			var max_allowed_offset = GameState.MAX_WORLD_HEIGHT - terrain_h - scaled_camera_height
-			var min_allowed_offset = - GameState.MAX_WORLD_HEIGHT - terrain_h - scaled_camera_height
+		# Ensure height_offset stays bounded by GameState.MAX_WORLD_HEIGHT impeding further offset
+		var max_allowed_offset = GameState.MAX_WORLD_HEIGHT - terrain_h - scaled_camera_height
+		var min_allowed_offset = - GameState.MAX_WORLD_HEIGHT - terrain_h - scaled_camera_height
 
-			if target_y > GameState.MAX_WORLD_HEIGHT:
-				height_offset = min(height_offset, max_allowed_offset)
-			elif target_y < -GameState.MAX_WORLD_HEIGHT:
-				height_offset = max(height_offset, min_allowed_offset)
+		if target_y > GameState.MAX_WORLD_HEIGHT:
+			height_offset = min(height_offset, max_allowed_offset)
+		elif target_y < -GameState.MAX_WORLD_HEIGHT:
+			height_offset = max(height_offset, min_allowed_offset)
 
-			target_y = clamp(terrain_h + scaled_camera_height + height_offset, -GameState.MAX_WORLD_HEIGHT, GameState.MAX_WORLD_HEIGHT)
+		target_y = clamp(terrain_h + scaled_camera_height + height_offset, -GameState.MAX_WORLD_HEIGHT, GameState.MAX_WORLD_HEIGHT)
 	else:
 		GameState.height_protection_active = false
 

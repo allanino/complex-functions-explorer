@@ -439,6 +439,7 @@ func _update_sphere_uniforms():
 	if not terrain_material:
 		return
 	terrain_material.set_shader_parameter("sphere_mode", Config.riemann_sphere_mode)
+	terrain_material.set_shader_parameter("clamp_exp_overflow", Config.riemann_sphere_mode)
 	terrain_material.set_shader_parameter("sphere_radius", Config.get_sphere_radius())
 	terrain_material.set_shader_parameter("sphere_height", Config.riemann_sphere_height)
 	terrain_material.set_shader_parameter("sphere_basis", GameState.sphere_basis)
@@ -549,8 +550,8 @@ func _make_chunk_aabb(coord: Vector2i) -> AABB:
 		)
 
 	var r_sphere = maxf(Config.get_sphere_radius(), 1.0)
-	var r_min = 0.1 * r_sphere if Config.riemann_sphere_height else r_sphere
-	var r_max = (r_sphere + GameState.MAX_WORLD_HEIGHT) if Config.riemann_sphere_height else r_sphere
+	var r_min = (1.0 - RiemannSphere.MAX_HEIGHT_RATIO) * r_sphere if Config.riemann_sphere_height else r_sphere
+	var r_max = (1.0 + RiemannSphere.MAX_HEIGHT_RATIO) * r_sphere if Config.riemann_sphere_height else r_sphere
 	var origin = Vector3(coord.x * chunk_size + chunk_size * 0.5, 0.0, coord.y * chunk_size + chunk_size * 0.5)
 	var sphere_center_offset = Vector3(0.0, r_sphere, 0.0) + origin
 	var hs = chunk_size * 0.5

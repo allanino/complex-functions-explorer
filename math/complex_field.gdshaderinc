@@ -11,6 +11,7 @@ uniform float height_epsilon = 1.0;
 uniform bool performance_protection_active = false;
 uniform bool is_dirichlet = false;
 uniform bool is_multivalued = false;
+uniform bool clamp_exp_overflow = false;
 
 uniform vec2 rational_num_coeffs[10];
 uniform vec2 rational_den_coeffs[10];
@@ -61,7 +62,7 @@ vec2 complex_div(vec2 a, vec2 b) {
 }
 
 vec2 complex_exp(float x, float y) {
-    float amp = exp(x);
+    float amp = exp(clamp_exp_overflow ? clamp(x, -30.0, 30.0) : x);
     return vec2(
         amp * cos(y),
         amp * sin(y)

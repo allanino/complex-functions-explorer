@@ -8,7 +8,7 @@ const HEIGHT_FADE_START: float = 2.0
 const HEIGHT_FADE_END: float = 6.0
 const PER_PIXEL_THRESHOLD: float = 0.05
 const PER_PIXEL_HYSTERESIS: float = 0.8
-const MIN_RADIAL_FACTOR: float = -0.9
+const MAX_HEIGHT_RATIO: float = 0.45
 
 # Inverse stereographic projection (from the south pole): complex number -> unit vector.
 # (0, 1, 0) -> z = 0, (0, -1, 0) -> z = infinity.
@@ -78,13 +78,23 @@ static func magnification(z: Vector2, radius: float) -> float:
 static func height_fade(z: Vector2, radius: float) -> float:
 	return 1.0 - smoothstep(HEIGHT_FADE_START, HEIGHT_FADE_END, magnification(z, radius))
 
+# Smoothly bounds radial displacement to (-h_max, +h_max) with h_max = MAX_HEIGHT_RATIO * R.
+static func compress_height(h: float, radius: float) -> float:
+	var h_max = maxf(MAX_HEIGHT_RATIO * radius, 1e-5)
+	if is_nan(h):
+		return h_max
+	if is_inf(h):
+		return h_max if h > 0.0 else -h_max
+	return h_max * tanh(clampf(h / h_max, -20.0, 20.0))
+
 # World-space Y height of the displaced sphere surface at chart offset (world_x, world_z).
 static func surface_y(world_x: float, world_z: float, radial_h: float, basis: Basis, radius: float, apply_curvature: bool = true) -> float:
 	var r_sphere = maxf(radius, 1e-5)
-	var h = radial_h
-	if h != 0.0:
-		h *= height_fade(world_to_complex(world_x, world_z, basis, r_sphere), r_sphere)
-	h = maxf(h, MIN_RADIAL_FACTOR * r_sphere)
+	var h = 0.0
+	if radial_h != 0.0:
+		var fade = height_fade(world_to_complex(world_x, world_z, basis, r_sphere), r_sphere)
+		if fade > 0.0:
+			h = compress_height(radial_h, r_sphere) * fade
 	if not apply_curvature:
 		return h
 	var dist = Vector2(world_x, world_z).length()

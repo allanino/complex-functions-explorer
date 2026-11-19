@@ -58,16 +58,34 @@ var _prev_is_dirichlet: bool = false
 
 
 # Wraps a numeric string in BBCode: dims a leading '-' sign, colors the rest.
-func _bb_re(value: String, color: String) -> String:
+const INF_FONT_SCALE: float = 1.45
+
+class _InfBaselineEffect extends RichTextEffect:
+	var bbcode = "inf_align"
+	func _process_custom_fx(char_fx: CharFXTransform) -> bool:
+		char_fx.offset.y += float(char_fx.env.get("dy", 2.0))
+		return true
+
+func _bb_num(num: String, rtl: RichTextLabel) -> String:
+	if num == "∞":
+		var base_sz = rtl.get_theme_font_size("normal_font_size")
+		var sz = int(round(base_sz * INF_FONT_SCALE))
+		var dy = base_sz * 0.15
+		return "[inf_align dy=%.1f][font_size=%d]∞[/font_size][/inf_align]" % [dy, sz]
+	return num
+
+func _bb_re(value: String, color: String, rtl: RichTextLabel = null) -> String:
+	var target = rtl if rtl else target_val
 	if value.begins_with("-"):
-		return "[color=%s]-[/color][color=%s]%s[/color]" % [ThemeColors.CLR_DIM, color, value.substr(1)]
-	return "[color=%s]%s[/color]" % [color, value]
+		return "[color=%s]-[/color][color=%s]%s[/color]" % [ThemeColors.CLR_DIM, color, _bb_num(value.substr(1), target)]
+	return "[color=%s]%s[/color]" % [color, _bb_num(value, target)]
 
 # Formats an imaginary value as "± number i" with a dim operator separator.
-func _bb_im(im: String) -> String:
+func _bb_im(im: String, rtl: RichTextLabel = null) -> String:
+	var target = rtl if rtl else target_val
 	if im.begins_with("-"):
-		return "[color=%s] - [/color][color=%s]%s[/color][color=%s]i[/color]" % [ThemeColors.CLR_DIM, ThemeColors.CLR_IMAGINARY, im.substr(1), ThemeColors.CLR_IMAGINARY_DIM]
-	return "[color=%s] + [/color][color=%s]%s[/color][color=%s]i[/color]" % [ThemeColors.CLR_DIM, ThemeColors.CLR_IMAGINARY, im, ThemeColors.CLR_IMAGINARY_DIM]
+		return "[color=%s] - [/color][color=%s]%s[/color][color=%s]i[/color]" % [ThemeColors.CLR_DIM, ThemeColors.CLR_IMAGINARY, _bb_num(im.substr(1), target), ThemeColors.CLR_IMAGINARY_DIM]
+	return "[color=%s] + [/color][color=%s]%s[/color][color=%s]i[/color]" % [ThemeColors.CLR_DIM, ThemeColors.CLR_IMAGINARY, _bb_num(im, target), ThemeColors.CLR_IMAGINARY_DIM]
 
 func update_arg_val(f: Vector2):
 	var angle_rad: float
@@ -149,6 +167,9 @@ func _ready():
 
 	get_viewport().scaling_3d_scale = Config.rendering_scale
 	Config.config_changed.connect(_on_config_changed)
+	var inf_fx = _InfBaselineEffect.new()
+	target_val.install_effect(inf_fx)
+	domain_val.install_effect(inf_fx)
 	_update_function_labels()
 
 	if not mobile_settings_btn.pressed.is_connected(toggle_menu.bind(false)):
@@ -267,10 +288,16 @@ func _on_values_timer_timeout():
 	var domain_re = _format_float(val_re)
 	var domain_im = _format_float(val_im)
 
-	target_val.text = _bb_re(target_re, ThemeColors.CLR_REAL) + _bb_im(target_im)
-	domain_val.text = _bb_re(domain_re, ThemeColors.CLR_REAL) + _bb_im(domain_im)
+	target_val.text = _bb_re(target_re, ThemeColors.CLR_REAL, target_val) + _bb_im(target_im, target_val)
+	domain_val.text = _bb_re(domain_re, ThemeColors.CLR_REAL, domain_val) + _bb_im(domain_im, domain_val)
 
-	phase_abs_val.text = _format_float(f.length())
+	var abs_text = _format_float(f.length())
+	phase_abs_val.text = abs_text
+	if phase_abs_val.has_meta("base_font_size"):
+		var base_fs = float(phase_abs_val.get_meta("base_font_size")) * _prev_hud_scale
+		var desired_fs = int(round(base_fs * (INF_FONT_SCALE if abs_text.contains("∞") else 1.0)))
+		if phase_abs_val.get_theme_font_size("font_size") != desired_fs:
+			phase_abs_val.add_theme_font_size_override("font_size", desired_fs)
 
 
 func _on_monitor_timer_timeout():
@@ -581,6 +608,10 @@ func toggle_menu(applied: bool = false):
 	menu_overlay.toggle_menu(applied)
 
 func _format_float(val: float) -> String:
+	if is_nan(val):
+		return "NaN"
+	if is_inf(val):
+		return "∞" if val > 0.0 else "-∞"
 	var abs_val = abs(val)
 	if abs_val >= 1e7:
 		var exp_val = int(floor(log(abs_val) / log(10.0)))
