@@ -559,6 +559,20 @@ func plane_complex_to_world(complex_x: float, complex_y: float) -> Vector2:
 func get_sphere_radius() -> float:
 	return riemann_sphere_radius * GameState.effective_zoom
 
+# Stereographic magnification thresholds (complex units per world unit) mirroring riemann_sphere.gdshaderinc.
+const SPHERE_HEIGHT_FADE_START: float = 2.0
+const SPHERE_HEIGHT_FADE_END: float = 6.0
+const SPHERE_PER_PIXEL_THRESHOLD: float = 0.05
+const SPHERE_PER_PIXEL_HYSTERESIS: float = 0.8
+
+# Local stereographic magnification |dz|/ds in complex units per world unit.
+func sphere_lambda(z: Vector2) -> float:
+	return (1.0 + z.length_squared()) / (2.0 * maxf(get_sphere_radius(), 1e-5))
+
+# Smoothly fades radial height displacement to 0 where vertices cannot resolve the terrain.
+func sphere_height_fade(z: Vector2) -> float:
+	return 1.0 - smoothstep(SPHERE_HEIGHT_FADE_START, SPHERE_HEIGHT_FADE_END, sphere_lambda(z))
+
 # Maps a world offset (relative to the player, who stands on top of the sphere) to the complex
 # number at that point of the Riemann Sphere (stereographic projection). Mirrors riemann_sphere.gdshaderinc.
 func sphere_world_to_complex(world_x: float, world_z: float) -> Vector2:

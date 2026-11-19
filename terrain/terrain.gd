@@ -7,6 +7,15 @@ extends Node3D
 
 var chunks = {}
 var _chunk_lods = {}
+var _chunk_per_pixel = {}
+var _chunk_min_lambda = {}
+var _chunk_max_lambda = {}
+var _chunk_unit_dir = {}
+var _chunk_beyond_antipode = {}
+var _sphere_chunks_dirty: bool = false
+var _sphere_geom_dirty: bool = false
+var _last_geom_radius: float = -1.0
+var _last_flag_pole: Vector3 = Vector3.ZERO
 var _dirty_neighbor_coords = {}
 var chunk_leeway = 0.01
 var LOD_SUBS = [] # This will be set in code
@@ -107,6 +116,14 @@ func _process(delta):
 		_update_all_chunks_lod()
 		_last_lod_player_chunk = current
 
+	if _sphere_geom_dirty:
+		_sphere_geom_dirty = false
+		_sphere_chunks_dirty = false
+		_refresh_sphere_chunk_geometry()
+		_update_sphere_chunk_flags(true)
+	elif _sphere_chunks_dirty:
+		_sphere_chunks_dirty = false
+		_update_sphere_chunk_flags()
 
 	_process_work_queues()
 
@@ -334,20 +351,37 @@ func _get_lod_level(coord: Vector2i, player_coord: Vector2i) -> int:
 	var dz = abs(coord.y - player_coord.y)
 	var dist = max(dx, dz)
 
+	var lod: int
 	if dist <= int(round(2.0 * _lod_speed_bias)):
-		return 0
+		lod = 0
 	elif dist <= int(round(4.0 * _lod_speed_bias)):
-		return 1
+		lod = 1
 	elif dist <= int(round(8.0 * _lod_speed_bias)):
-		return 2
+		lod = 2
 	elif dist <= int(round(16.0 * _lod_speed_bias)):
-		return 3
+		lod = 3
 	elif dist <= int(round(32.0 * _lod_speed_bias)):
-		return 4
+		lod = 4
 	elif dist <= int(round(48.0 * _lod_speed_bias)):
-		return 5
+		lod = 5
 	else:
-		return 6
+		lod = 6
+
+	if Config.riemann_sphere_mode:
+		if _chunk_per_pixel.get(coord, false):
+			if not Config.riemann_sphere_height or _chunk_min_lambda.get(coord, 0.0) >= Config.SPHERE_HEIGHT_FADE_END:
+				lod = max(lod, 3)
+				while lod < LOD_SUBS.size() - 1 and LOD_SUBS[lod] > 31:
+					lod += 1
+		else:
+			# Avoid over-sampling near z = 0 where stereographic lambda << plane scale (0.1).
+			var max_lam = _chunk_max_lambda.get(coord, 0.1)
+			var plane_ref = 0.1 / maxf(GameState.effective_zoom, 1e-5)
+			var target_step = plane_ref * (chunk_size / float(LOD_SUBS[lod] + 1))
+			while lod < LOD_SUBS.size() - 1 and LOD_SUBS[lod + 1] >= 31 and max_lam * (chunk_size / float(LOD_SUBS[lod + 1] + 1)) <= target_step:
+				lod += 1
+
+	return lod
 
 func _create_lod_mesh(size: float, subdivisions: int) -> Mesh:
 	var plane = PlaneMesh.new()
@@ -358,8 +392,8 @@ func _create_lod_mesh(size: float, subdivisions: int) -> Mesh:
 
 func _apply_performance_protection(active: bool):
 	_shaders_stopped = active
-	for chunk in chunks.values():
-		chunk.visible = !active
+	for coord in chunks:
+		chunks[coord].visible = (not active) and (not _chunk_beyond_antipode.get(coord, false))
 
 	if terrain_material:
 		terrain_material.set_shader_parameter("performance_protection_active", active)
@@ -410,24 +444,172 @@ func _update_sphere_uniforms():
 	terrain_material.set_shader_parameter("sphere_basis", GameState.sphere_basis)
 
 
-# Vertices are displaced by the shader (up to the whole sphere), so frustum culling by the flat
-# AABB would hide visible chunks in sphere mode.
-func _make_chunk_aabb() -> AABB:
-	if Config.riemann_sphere_mode:
-		var e = 4000.0
-		return AABB(Vector3(-e, -e, -e), Vector3(2.0 * e, 2.0 * e, 2.0 * e))
-	return AABB(
-		Vector3(- (chunk_size + chunk_leeway) * 0.5, -50, - (chunk_size + chunk_leeway) * 0.5),
-		Vector3(chunk_size + chunk_leeway, 1400, chunk_size + chunk_leeway)
+# True when every corner of chunk `coord` lies past the antipode (distance > PI * R), where the
+# sphere shader collapses all vertices onto a single point on the far side of the sphere.
+func _is_chunk_beyond_antipode(coord: Vector2i, r_sphere: float) -> bool:
+	var min_x = coord.x * chunk_size
+	var min_z = coord.y * chunk_size
+	var nx = clampf(0.0, min_x, min_x + chunk_size)
+	var nz = clampf(0.0, min_z, min_z + chunk_size)
+	var max_r = PI * r_sphere
+	return (nx * nx + nz * nz) > (max_r * max_r)
+
+
+func _compute_chunk_unit_dir(coord: Vector2i, r_sphere: float) -> Vector3:
+	var cx = coord.x * chunk_size + chunk_size * 0.5
+	var cz = coord.y * chunk_size + chunk_size * 0.5
+	var dist = sqrt(cx * cx + cz * cz)
+	if dist < 1e-6:
+		return Vector3.UP
+	var d = minf(dist / r_sphere, PI)
+	var a = sin(d) / dist
+	return Vector3(cx * a, cos(d), cz * a)
+
+
+func _should_resolve_per_pixel(coord: Vector2i, max_lambda: float) -> bool:
+	if not Config.riemann_sphere_mode or LOD_SUBS.is_empty():
+		return false
+	var spacing_lod0 = chunk_size / float(LOD_SUBS[0] + 1)
+	var c_per_vert = max_lambda * spacing_lod0
+	if _chunk_per_pixel.get(coord, false):
+		return c_per_vert >= Config.SPHERE_PER_PIXEL_THRESHOLD * Config.SPHERE_PER_PIXEL_HYSTERESIS
+	return c_per_vert > Config.SPHERE_PER_PIXEL_THRESHOLD
+
+
+func _update_sphere_chunk_flags(force: bool = false):
+	if not player:
+		return
+	var player_pos = player.global_position
+	var player_chunk = Vector2i(floor(player_pos.x / chunk_size), floor(player_pos.z / chunk_size))
+	var lod_changed = false
+
+	if not Config.riemann_sphere_mode:
+		for coord in chunks:
+			if _chunk_per_pixel.get(coord, false):
+				_chunk_per_pixel[coord] = false
+				chunks[coord].set_instance_shader_parameter("resolve_per_pixel", false)
+			_chunk_min_lambda[coord] = 0.0
+			var target_lod = _get_lod_level(coord, player_chunk)
+			if target_lod != _chunk_lods.get(coord, -1):
+				_update_chunk_lod(chunks[coord], target_lod, coord)
+				lod_changed = true
+		if lod_changed:
+			_flush_dirty_neighbors()
+		return
+
+	var r_sphere = maxf(Config.get_sphere_radius(), 1.0)
+	# South pole (z = infinity) expressed in the player's local frame.
+	var pole_local = GameState.sphere_basis.transposed() * Vector3(0.0, -1.0, 0.0)
+	# Skip redundant scans during tiny sub-degree rotations unless forced.
+	if not force and _last_flag_pole.length_squared() > 0.5 and pole_local.dot(_last_flag_pole) > 0.99995:
+		return
+	_last_flag_pole = pole_local
+
+	var chunk_ang = (chunk_size * 0.7072) / r_sphere
+	var spacing_lod0 = chunk_size / float(LOD_SUBS[0] + 1) if not LOD_SUBS.is_empty() else 1.0
+	var min_lam_interest = minf(
+		Config.SPHERE_PER_PIXEL_THRESHOLD * Config.SPHERE_PER_PIXEL_HYSTERESIS / maxf(spacing_lod0, 1e-5),
+		Config.SPHERE_HEIGHT_FADE_END
 	)
+	var cos_cap = 1.0 - 1.0 / maxf(r_sphere * min_lam_interest, 0.5001)
+	var cos_fast_reject = cos(minf(acos(clampf(cos_cap, -1.0, 1.0)) + chunk_ang, PI))
+
+	for coord in chunks:
+		if _chunk_beyond_antipode.get(coord, false):
+			continue
+		var l_center: Vector3 = _chunk_unit_dir.get(coord, _compute_chunk_unit_dir(coord, r_sphere))
+		var dot_p = l_center.dot(pole_local)
+		var old_flag = _chunk_per_pixel.get(coord, false)
+		var old_min_lam = _chunk_min_lambda.get(coord, 0.0)
+		var theta = acos(clampf(dot_p, -1.0, 1.0))
+		var theta_min = maxf(0.0, theta - chunk_ang)
+		var max_lam = 1.0 / (r_sphere * maxf(1.0 - cos(theta_min), 1e-5))
+		_chunk_max_lambda[coord] = max_lam
+
+		var new_flag = false
+		var min_lam = 0.0
+		if dot_p >= cos_fast_reject or old_flag or old_min_lam > 0.0:
+			var theta_max = minf(PI, theta + chunk_ang)
+			min_lam = 1.0 / (r_sphere * maxf(1.0 - cos(theta_max), 1e-5))
+			new_flag = _should_resolve_per_pixel(coord, max_lam)
+
+		var chunk = chunks[coord]
+		_chunk_min_lambda[coord] = min_lam
+		if new_flag != old_flag:
+			_chunk_per_pixel[coord] = new_flag
+			chunk.set_instance_shader_parameter("resolve_per_pixel", new_flag)
+
+		var target_lod = _get_lod_level(coord, player_chunk)
+		if target_lod != _chunk_lods.get(coord, -1):
+			_update_chunk_lod(chunk, target_lod, coord)
+			lod_changed = true
+
+	if lod_changed:
+		_flush_dirty_neighbors()
+
+
+# Tight local AABB for frustum culling in both flat and Riemann Sphere modes.
+# In sphere mode, every vertex on a chunk lies on the outward ray l * (R + h) - (0, R, 0),
+# which depends only on chart offset and radius (independent of sphere_basis), so chunks behind
+# the camera remain frustum-culled even with radial height displacement enabled.
+func _make_chunk_aabb(coord: Vector2i) -> AABB:
+	if not Config.riemann_sphere_mode:
+		return AABB(
+			Vector3(- (chunk_size + chunk_leeway) * 0.5, -50, - (chunk_size + chunk_leeway) * 0.5),
+			Vector3(chunk_size + chunk_leeway, 1400, chunk_size + chunk_leeway)
+		)
+
+	var r_sphere = maxf(Config.get_sphere_radius(), 1.0)
+	var r_min = 0.1 * r_sphere if Config.riemann_sphere_height else r_sphere
+	var r_max = (r_sphere + GameState.MAX_WORLD_HEIGHT) if Config.riemann_sphere_height else r_sphere
+	var origin = Vector3(coord.x * chunk_size + chunk_size * 0.5, 0.0, coord.y * chunk_size + chunk_size * 0.5)
+	var sphere_center_offset = Vector3(0.0, r_sphere, 0.0) + origin
+	var hs = chunk_size * 0.5
+	var min_v = Vector3(INF, INF, INF)
+	var max_v = Vector3(-INF, -INF, -INF)
+	for ox in [-hs, hs]:
+		for oz in [-hs, hs]:
+			var c = Vector2(origin.x + ox, origin.z + oz)
+			var dist = c.length()
+			var d = minf(dist / r_sphere, PI)
+			var l = Vector3(0.0, 1.0, 0.0)
+			if dist > 1e-6:
+				var a = sin(d) / dist
+				l = Vector3(c.x * a, cos(d), c.y * a)
+			var p_min = l * r_min - sphere_center_offset
+			min_v = min_v.min(p_min)
+			max_v = max_v.max(p_min)
+			if r_max != r_min:
+				var p_max = l * r_max - sphere_center_offset
+				min_v = min_v.min(p_max)
+				max_v = max_v.max(p_max)
+	var pad = Vector3.ONE * maxf(4.0, chunk_size * 0.35)
+	return AABB(min_v - pad, (max_v - min_v) + pad * 2.0)
+
+
+func _refresh_sphere_chunk_geometry():
+	var r_sphere = maxf(Config.get_sphere_radius(), 1.0)
+	_last_geom_radius = r_sphere
+	for coord in chunks:
+		var chunk = chunks[coord]
+		if Config.riemann_sphere_mode:
+			_chunk_unit_dir[coord] = _compute_chunk_unit_dir(coord, r_sphere)
+			var beyond = _is_chunk_beyond_antipode(coord, r_sphere)
+			_chunk_beyond_antipode[coord] = beyond
+			chunk.visible = (not GameState.performance_protection_active) and (not beyond)
+			if not beyond:
+				chunk.custom_aabb = _make_chunk_aabb(coord)
+		else:
+			_chunk_beyond_antipode[coord] = false
+			chunk.visible = not GameState.performance_protection_active
+			chunk.custom_aabb = _make_chunk_aabb(coord)
 
 
 func _on_sphere_mode_changed():
 	_update_terrain_material_uniforms("function_type")
 	_update_sphere_uniforms()
-	var aabb = _make_chunk_aabb()
-	for coord in chunks:
-		chunks[coord].custom_aabb = aabb
+	_refresh_sphere_chunk_geometry()
+	_update_sphere_chunk_flags(true)
 
 
 func _update_terrain_material_uniforms(key: String):
@@ -488,6 +670,7 @@ func _update_terrain_material_uniforms(key: String):
 func _update_chunk_uniforms(chunk: MeshInstance3D, coord: Vector2i):
 	var lod = _chunk_lods.get(coord, 0)
 	chunk.set_instance_shader_parameter("lod_level", lod)
+	chunk.set_instance_shader_parameter("resolve_per_pixel", _chunk_per_pixel.get(coord, false))
 
 
 func _update_neighbor_lod_uniforms(coord: Vector2i):
@@ -522,6 +705,26 @@ func _load_chunk(coord: Vector2i):
 
 	var player_pos = player.global_position
 	var player_chunk_coord = Vector2i(floor(player_pos.x / chunk_size), floor(player_pos.z / chunk_size))
+	if Config.riemann_sphere_mode:
+		var r_sphere = maxf(Config.get_sphere_radius(), 1.0)
+		var l_center = _compute_chunk_unit_dir(coord, r_sphere)
+		_chunk_unit_dir[coord] = l_center
+		var beyond = _is_chunk_beyond_antipode(coord, r_sphere)
+		_chunk_beyond_antipode[coord] = beyond
+		chunk.visible = (not GameState.performance_protection_active) and (not beyond)
+		var pole_local = GameState.sphere_basis.transposed() * Vector3(0.0, -1.0, 0.0)
+		var chunk_ang = (chunk_size * 0.7072) / r_sphere
+		var theta = acos(clampf(l_center.dot(pole_local), -1.0, 1.0))
+		var max_lam = 1.0 / (r_sphere * maxf(1.0 - cos(maxf(0.0, theta - chunk_ang)), 1e-5))
+		var min_lam = 1.0 / (r_sphere * maxf(1.0 - cos(minf(PI, theta + chunk_ang)), 1e-5))
+		_chunk_min_lambda[coord] = min_lam
+		_chunk_max_lambda[coord] = max_lam
+		_chunk_per_pixel[coord] = _should_resolve_per_pixel(coord, max_lam)
+	else:
+		_chunk_beyond_antipode[coord] = false
+		_chunk_min_lambda.erase(coord)
+		_chunk_max_lambda.erase(coord)
+		_chunk_per_pixel[coord] = false
 	var lod = _get_lod_level(coord, player_chunk_coord)
 
 	chunks[coord] = chunk
@@ -534,7 +737,7 @@ func _load_chunk(coord: Vector2i):
 		coord.y * chunk_size + chunk_size * 0.5
 	)
 
-	chunk.custom_aabb = _make_chunk_aabb()
+	chunk.custom_aabb = _make_chunk_aabb(coord)
 
 func _update_chunk_lod(chunk: MeshInstance3D, lod: int, coord: Vector2i, force: bool = false):
 	var old_lod = _chunk_lods.get(coord, -1)
@@ -568,11 +771,17 @@ func _unload_chunk(coord: Vector2i):
 	chunk.visible = false
 	chunk.process_mode = Node.PROCESS_MODE_DISABLED
 	chunk.mesh = null
+	chunk.set_instance_shader_parameter("resolve_per_pixel", false)
 
 	_chunk_pool.append(chunk)
 	chunks.erase(coord)
 	_loaded_chunk_list.erase(coord)
 	_chunk_lods.erase(coord)
+	_chunk_per_pixel.erase(coord)
+	_chunk_min_lambda.erase(coord)
+	_chunk_max_lambda.erase(coord)
+	_chunk_unit_dir.erase(coord)
+	_chunk_beyond_antipode.erase(coord)
 	_dirty_neighbor_coords[Vector2i(coord.x - 1, coord.y)] = true
 	_dirty_neighbor_coords[Vector2i(coord.x + 1, coord.y)] = true
 	_dirty_neighbor_coords[Vector2i(coord.x, coord.y - 1)] = true
@@ -589,6 +798,8 @@ func _on_config_changed(key: String):
 		if key == "terrain_detail":
 			_update_lod_subs()
 			_lod_mesh_cache.clear()
+			if Config.riemann_sphere_mode:
+				_update_sphere_chunk_flags(true)
 			_update_all_chunks_lod(true)
 		if key in ["view_distance", "terrain_detail", "function_type", "input_function_type"]:
 			if key == "view_distance":
@@ -600,9 +811,15 @@ func _on_state_changed(key: String):
 	if key == "sphere_basis":
 		if terrain_material:
 			terrain_material.set_shader_parameter("sphere_basis", GameState.sphere_basis)
+		if Config.riemann_sphere_mode:
+			_sphere_chunks_dirty = true
 		return
 	if key == "effective_zoom" and Config.riemann_sphere_mode:
-		terrain_material.set_shader_parameter("sphere_radius", Config.get_sphere_radius())
+		var r_sphere = maxf(Config.get_sphere_radius(), 1.0)
+		terrain_material.set_shader_parameter("sphere_radius", r_sphere)
+		var zoom_done = is_equal_approx(GameState.effective_zoom, float(Config.zoom_factor))
+		if zoom_done or _last_geom_radius <= 0.0 or abs(r_sphere - _last_geom_radius) / _last_geom_radius >= 0.2:
+			_sphere_geom_dirty = true
 	if key in ["current_branch", "morph_value", "newton_path", "newton_path_bbox", "real_level_curves_highlighted", "imag_level_curves_highlighted", "effective_zoom"]:
 		_update_terrain_material_uniforms(key)
 	elif key == "eta_patches":

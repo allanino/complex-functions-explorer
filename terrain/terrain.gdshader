@@ -12,9 +12,11 @@ varying vec2 v_f_dir;
 varying float v_nan;
 varying float v_h_clamped;
 varying float v_h_surface;
+varying vec2 v_chart;
 
 instance uniform int lod_level = 0;
 instance uniform ivec4 neighbor_lods = ivec4(-1, -1, -1, -1);
+instance uniform bool resolve_per_pixel = false;
 
 uniform float lod_segments[7];
 uniform float chunk_size;
@@ -662,56 +664,6 @@ void compute_position_marker(vec3 w_pos, vec3 nrm, inout vec3 out_albedo, inout 
 }
 
 
-// Evaluates the function on the Riemann Sphere at the chart offset c (world units around the player).
-// Returns the displaced surface position in world space (player frame) and its normal.
-void compute_sphere_surface(vec2 c, out vec3 p_world, out vec3 nrm, out vec2 f_val, out bool invalid, out bool h_clamped_out, out float h_func_out) {
-    float radius = sphere_radius;
-    SphereChartFrame sf = sphere_chart_frame(c, radius);
-    vec3 u = sphere_basis * sf.l;
-    vec3 dre_du;
-    vec3 dim_du;
-    vec2 zc = sphere_unit_to_complex(u, dre_du, dim_du);
-
-    ComplexFieldData fd = get_field_with_derivatives_complex(zc.x, zc.y, 0);
-    invalid = any(isnan(fd.value)) || any(isinf(fd.value)) ||
-            any(isnan(fd.dx)) || any(isinf(fd.dx));
-
-    float h = 0.0;
-    vec2 dh = vec2(0.0); // derivatives of h with respect to (Re z, Im z)
-    f_val = vec2(0.0);
-    h_clamped_out = false;
-    h_func_out = 0.0;
-
-    if (!invalid) {
-        f_val = fd.value;
-        bool hc = false;
-        float h_raw = get_complex_height(fd.value, fd.value, hc);
-        h_clamped_out = hc;
-        h_func_out = h_raw * zoom_factor;
-        if (sphere_height) {
-            vec2 dh_w = get_complex_height_derivatives(fd.value, fd.value, vec2(0.0), fd.dx, fd.dy, 1.0, hc, 0);
-            dh = zoom_factor * vec2(dh_w.x * 10.0, -dh_w.y * 10.0);
-            h = h_func_out;
-            if (h < -0.9 * radius) {
-                h = -0.9 * radius;
-                dh = vec2(0.0);
-            }
-        }
-    }
-
-    float dre_dcx = dot(dre_du, sphere_basis * sf.dl_dcx);
-    float dre_dcz = dot(dre_du, sphere_basis * sf.dl_dcz);
-    float dim_dcx = dot(dim_du, sphere_basis * sf.dl_dcx);
-    float dim_dcz = dot(dim_du, sphere_basis * sf.dl_dcz);
-    float dh_dcx = dh.x * dre_dcx + dh.y * dim_dcx;
-    float dh_dcz = dh.x * dre_dcz + dh.y * dim_dcz;
-
-    vec3 ds_dcx = dh_dcx * sf.l + (radius + h) * sf.dl_dcx;
-    vec3 ds_dcz = dh_dcz * sf.l + (radius + h) * sf.dl_dcz;
-    nrm = normalize(cross(ds_dcz, ds_dcx));
-    p_world = sf.l * (radius + h) - vec3(0.0, radius, 0.0);
-}
-
 void vertex() {
     vec3 local_pos = VERTEX;
     if (performance_protection_active) {
@@ -722,12 +674,14 @@ void vertex() {
         v_nan = 0.0;
         v_h_clamped = 0.0;
         v_h_surface = 0.0;
+        v_chart = vec2(0.0);
         field_val = vec2(0.0);
     } else if (sphere_mode) {
         float half_size = chunk_size * 0.5;
         vec3 snap_v = apply_lod_snapping(VERTEX, half_size);
         vec3 chunk_origin = MODEL_MATRIX[3].xyz; // chunks are pure translations
         vec2 chart = (chunk_origin + snap_v).xz - player_position_world.xz;
+        v_chart = chart;
 
         vec3 sphere_p;
         vec3 sphere_n;
@@ -735,7 +689,7 @@ void vertex() {
         bool s_invalid;
         bool s_clamped;
         float s_h_func;
-        compute_sphere_surface(chart, sphere_p, sphere_n, s_field, s_invalid, s_clamped, s_h_func);
+        compute_sphere_surface(chart, resolve_per_pixel, sphere_p, sphere_n, s_field, s_invalid, s_clamped, s_h_func);
 
         v_nan = s_invalid ? 1.0 : 0.0;
         field_val = s_field;
@@ -748,6 +702,7 @@ void vertex() {
         world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
         NORMAL = (MODEL_NORMAL_MATRIX * v_normal);
     } else {
+        v_chart = vec2(0.0);
         float half_size = chunk_size * 0.5;
         vec3 snap_v = apply_lod_snapping(VERTEX, half_size);
         vec3 world_v_pos = (MODEL_MATRIX * vec4(snap_v, 1.0)).xyz;
@@ -826,15 +781,44 @@ void vertex() {
 
 
 void fragment() {
+    vec2 fv = field_val;
+    vec2 f_dir = v_f_dir;
+    float nan_flag = v_nan;
+    float h_clamped_flag = v_h_clamped;
+    float h_surface = v_h_surface;
+
+    // resolve_per_pixel is an instance uniform (constant per draw call), so derivatives stay valid.
+    if (resolve_per_pixel && !performance_protection_active) {
+        float frag_lambda;
+        vec2 zc = sphere_chart_to_complex(v_chart, sphere_radius, frag_lambda);
+        ComplexFieldData ffd = get_field_with_derivatives_complex(zc.x, zc.y, 0);
+        bool f_invalid = any(isnan(ffd.value)) || any(isinf(ffd.value));
+        if (f_invalid) {
+            nan_flag = 1.0;
+            fv = vec2(0.0);
+            f_dir = vec2(0.0);
+            h_clamped_flag = 0.0;
+            h_surface = 0.0;
+        } else {
+            nan_flag = 0.0;
+            fv = ffd.value;
+            f_dir = length(fv) > 0.0 ? normalize(fv) : vec2(0.0);
+            bool hc = false;
+            float h_raw = get_complex_height(fv, fv, hc);
+            h_clamped_flag = hc ? 1.0 : 0.0;
+            h_surface = h_raw * zoom_factor;
+        }
+    }
+
     // Get raw pixel derivatives unconditionally before any divergent branches
-    float raw_w_re = fwidth(field_val.x);
-    float raw_w_im = fwidth(field_val.y);
+    float raw_w_re = fwidth(fv.x);
+    float raw_w_im = fwidth(fv.y);
 
     if (performance_protection_active) {
         ALBEDO = vec3(0.01, 0.02, 0.03);
         ROUGHNESS = 1.0;
         METALLIC = 0.0;
-    } else if (v_nan > 0.5) {
+    } else if (nan_flag > 0.5) {
         vec3 local_albedo, local_emission;
         float rgh, mtl, spec;
         compute_matrix_effect(world_pos.xz, vec3(0.0, 0.8, 0.2), vec3(0.7, 1.0, 0.7), local_albedo, local_emission, rgh, mtl, spec);
@@ -847,10 +831,10 @@ void fragment() {
         float x = world_pos.x;
         float z = world_pos.z;
 
-        vec2 f = field_val;
+        vec2 f = fv;
         float phase;
-        if (length(v_f_dir) > 0.0) {
-            phase = atan(v_f_dir.y, v_f_dir.x);
+        if (length(f_dir) > 0.0) {
+            phase = atan(f_dir.y, f_dir.x);
         } else {
             phase = atan(f.y, f.x);
         }
@@ -879,9 +863,9 @@ void fragment() {
         }
 
         // Apply smooth decay for large heights, just like minimap
-        float h_abs = abs(v_h_surface);
+        float h_abs = abs(h_surface);
         float fade_factor = 1.0;
-        if (v_h_clamped > 0.5) {
+        if (h_clamped_flag > 0.5) {
             fade_factor = 0.3;
         } else if (h_abs > max_world_height) {
             float excess = h_abs - max_world_height;

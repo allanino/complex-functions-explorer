@@ -134,5 +134,64 @@ func test_minimap_view_radius_scales_with_stereographic_factor():
 	var r_at_50 = minimap._get_effective_view_radius()
 	assert_gt(r_at_50, r_at_zero * 500.0)
 
+func test_sphere_lambda_and_height_fade_match_shader_formula():
+	Config.riemann_sphere_mode = true
+	Config.riemann_sphere_radius = 50.0
+	GameState.effective_zoom = 1.0
+
+	for z in [Vector2(0.0, 0.0), Vector2(1.0, 0.0), Vector2(3.0, -4.0), Vector2(-12.0, 44.0)]:
+		var u = GameState.complex_to_sphere_unit(z)
+		var w = maxf(1.0 + u.y, 1e-5)
+		var expected_lam = 1.0 / (Config.get_sphere_radius() * w)
+		assert_almost_eq(Config.sphere_lambda(z), expected_lam, maxf(1e-4, expected_lam * 1e-4))
+
+	# Well-resolved region near origin: fade == 1.0
+	assert_almost_eq(Config.sphere_height_fade(Vector2(0.0, 0.0)), 1.0, 1e-6)
+	# Under-resolved region near infinity: fade == 0.0
+	assert_almost_eq(Config.sphere_height_fade(Vector2(-12.0, 44.0)), 0.0, 1e-6)
+
+func test_player_height_matches_sphere_height_fade():
+	Config.riemann_sphere_mode = true
+	Config.riemann_sphere_height = true
+	Config.riemann_sphere_radius = 50.0
+	Config.height_type = 0
+	GameState.effective_zoom = 1.0
+
+	var player_scene := load("res://player/player.tscn") as PackedScene
+	var player = autofree(player_scene.instantiate())
+	var f_val = Vector2(3.0, 4.0) # |f| = 5.0
+
+	# Near z = 0: full radial height
+	GameState.set_sphere_position(Vector2(0.0, 0.0))
+	assert_almost_eq(player.get_terrain_height(0.0, 0.0, f_val), 5.0, 1e-4)
+
+	# Far from origin (lambda >> SPHERE_HEIGHT_FADE_END): radial height fades to 0
+	GameState.set_sphere_position(Vector2(-12.0, 44.0))
+	assert_almost_eq(player.get_terrain_height(0.0, 0.0, f_val), 0.0, 1e-4)
+
+func test_per_pixel_flag_hysteresis():
+	var terrain_scene := load("res://terrain/terrain.tscn") as PackedScene
+	var terrain = autofree(terrain_scene.instantiate())
+	Config.riemann_sphere_mode = true
+	Config.terrain_detail = 1 # Medium: LOD_SUBS[0] = 127 -> spacing = 16 / 128 = 0.125
+	terrain._update_lod_subs()
+
+	var coord = Vector2i(0, 0)
+	var spacing = terrain.chunk_size / float(terrain.LOD_SUBS[0] + 1)
+	var turn_on_lam = (Config.SPHERE_PER_PIXEL_THRESHOLD / spacing) + 0.05
+	var mid_lam = (Config.SPHERE_PER_PIXEL_THRESHOLD * 0.9 / spacing)
+	var turn_off_lam = (Config.SPHERE_PER_PIXEL_THRESHOLD * Config.SPHERE_PER_PIXEL_HYSTERESIS / spacing) - 0.05
+
+	# Starts off; mid_lam should NOT turn it on
+	assert_false(terrain._should_resolve_per_pixel(coord, mid_lam))
+	# Crossing above threshold turns it on
+	assert_true(terrain._should_resolve_per_pixel(coord, turn_on_lam))
+	terrain._chunk_per_pixel[coord] = true
+	# Hysteresis keeps it on at mid_lam
+	assert_true(terrain._should_resolve_per_pixel(coord, mid_lam))
+	# Dropping below hysteresis floor turns it off
+	assert_false(terrain._should_resolve_per_pixel(coord, turn_off_lam))
+
+
 
 

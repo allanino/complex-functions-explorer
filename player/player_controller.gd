@@ -285,7 +285,10 @@ func get_terrain_height(x: float, z: float, field_val: Vector2 = Vector2.INF) ->
 
 func _sphere_surface_height(x: float, z: float, radial_h: float) -> float:
 	var r_sphere = Config.get_sphere_radius()
-	var h = maxf(radial_h, -0.9 * r_sphere)
+	var h = radial_h
+	if h != 0.0:
+		h *= Config.sphere_height_fade(Config.sphere_world_to_complex(x, z))
+	h = maxf(h, -0.9 * r_sphere)
 	var dist = Vector2(x, z).length()
 	var d = minf(dist / r_sphere, PI)
 	return (r_sphere + h) * cos(d) - r_sphere
