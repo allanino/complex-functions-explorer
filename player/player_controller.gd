@@ -326,16 +326,7 @@ func get_terrain_height(x: float, z: float, field_val: Vector2 = Vector2.INF, ap
 	return h
 
 func _sphere_surface_height(x: float, z: float, radial_h: float, apply_curvature: bool = true) -> float:
-	var r_sphere = Config.get_sphere_radius()
-	var h = radial_h
-	if h != 0.0:
-		h *= Config.sphere_height_fade(Config.sphere_world_to_complex(x, z))
-	h = maxf(h, -0.9 * r_sphere)
-	if not apply_curvature:
-		return h
-	var dist = Vector2(x, z).length()
-	var d = minf(dist / r_sphere, PI)
-	return (r_sphere + h) * cos(d) - r_sphere
+	return RiemannSphere.surface_y(x, z, radial_h, GameState.sphere_basis, Config.get_sphere_radius(), apply_curvature)
 
 func get_plane_height(x: float, z: float, field_val: Vector2 = Vector2.INF) -> float:
 	var f = field_val if field_val != Vector2.INF else ComplexField.get_field(x, z)

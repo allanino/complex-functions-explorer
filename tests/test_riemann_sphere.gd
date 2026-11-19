@@ -178,9 +178,9 @@ func test_per_pixel_flag_hysteresis():
 
 	var coord = Vector2i(0, 0)
 	var spacing = terrain.chunk_size / float(terrain.LOD_SUBS[0] + 1)
-	var turn_on_lam = (Config.SPHERE_PER_PIXEL_THRESHOLD / spacing) + 0.05
-	var mid_lam = (Config.SPHERE_PER_PIXEL_THRESHOLD * 0.9 / spacing)
-	var turn_off_lam = (Config.SPHERE_PER_PIXEL_THRESHOLD * Config.SPHERE_PER_PIXEL_HYSTERESIS / spacing) - 0.05
+	var turn_on_lam = (RiemannSphere.PER_PIXEL_THRESHOLD / spacing) + 0.05
+	var mid_lam = (RiemannSphere.PER_PIXEL_THRESHOLD * 0.9 / spacing)
+	var turn_off_lam = (RiemannSphere.PER_PIXEL_THRESHOLD * RiemannSphere.PER_PIXEL_HYSTERESIS / spacing) - 0.05
 
 	# Starts off; mid_lam should NOT turn it on
 	assert_false(terrain._should_resolve_per_pixel(coord, mid_lam))

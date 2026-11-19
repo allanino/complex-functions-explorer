@@ -369,7 +369,7 @@ func _get_lod_level(coord: Vector2i, player_coord: Vector2i) -> int:
 
 	if Config.riemann_sphere_mode:
 		if _chunk_per_pixel.get(coord, false):
-			if not Config.riemann_sphere_height or _chunk_min_lambda.get(coord, 0.0) >= Config.SPHERE_HEIGHT_FADE_END:
+			if not Config.riemann_sphere_height or _chunk_min_lambda.get(coord, 0.0) >= RiemannSphere.HEIGHT_FADE_END:
 				lod = max(lod, 3)
 				while lod < LOD_SUBS.size() - 1 and LOD_SUBS[lod] > 31:
 					lod += 1
@@ -456,14 +456,8 @@ func _is_chunk_beyond_antipode(coord: Vector2i, r_sphere: float) -> bool:
 
 
 func _compute_chunk_unit_dir(coord: Vector2i, r_sphere: float) -> Vector3:
-	var cx = coord.x * chunk_size + chunk_size * 0.5
-	var cz = coord.y * chunk_size + chunk_size * 0.5
-	var dist = sqrt(cx * cx + cz * cz)
-	if dist < 1e-6:
-		return Vector3.UP
-	var d = minf(dist / r_sphere, PI)
-	var a = sin(d) / dist
-	return Vector3(cx * a, cos(d), cz * a)
+	var center = Vector2(coord.x * chunk_size + chunk_size * 0.5, coord.y * chunk_size + chunk_size * 0.5)
+	return RiemannSphere.chart_to_local_unit(center, r_sphere)
 
 
 func _should_resolve_per_pixel(coord: Vector2i, max_lambda: float) -> bool:
@@ -472,24 +466,14 @@ func _should_resolve_per_pixel(coord: Vector2i, max_lambda: float) -> bool:
 	var spacing_lod0 = chunk_size / float(LOD_SUBS[0] + 1)
 	var c_per_vert = max_lambda * spacing_lod0
 	if _chunk_per_pixel.get(coord, false):
-		return c_per_vert >= Config.SPHERE_PER_PIXEL_THRESHOLD * Config.SPHERE_PER_PIXEL_HYSTERESIS
-	return c_per_vert > Config.SPHERE_PER_PIXEL_THRESHOLD
+		return c_per_vert >= RiemannSphere.PER_PIXEL_THRESHOLD * RiemannSphere.PER_PIXEL_HYSTERESIS
+	return c_per_vert > RiemannSphere.PER_PIXEL_THRESHOLD
 
 
 const CHUNK_HALF_DIAG_RATIO = 0.70710678 # sqrt(2) / 2
 
-# Computes Vector2(min_lambda, max_lambda) across a chunk without calling acos/cos per chunk,
-# using cos(theta +/- alpha) = dot_p * cos_ang -/+ sqrt(1 - dot_p^2) * sin_ang.
 func _compute_chunk_lambda_range(l_center: Vector3, pole_local: Vector3, r_sphere: float, cos_ang: float, sin_ang: float) -> Vector2:
-	var dot_p = clampf(l_center.dot(pole_local), -1.0, 1.0)
-	var sin_theta = sqrt(maxf(0.0, 1.0 - dot_p * dot_p))
-	# When theta <= chunk_ang, the south pole lies inside the chunk -> cos(theta_min) = 1.0.
-	var cos_t_min = 1.0 if dot_p >= cos_ang else minf(1.0, dot_p * cos_ang + sin_theta * sin_ang)
-	# When theta + chunk_ang >= PI, the antipode lies inside the chunk -> cos(theta_max) = -1.0.
-	var cos_t_max = -1.0 if dot_p <= -cos_ang else maxf(-1.0, dot_p * cos_ang - sin_theta * sin_ang)
-	var max_lam = 1.0 / (r_sphere * maxf(1.0 - cos_t_min, 1e-5))
-	var min_lam = 1.0 / (r_sphere * maxf(1.0 - cos_t_max, 1e-5))
-	return Vector2(min_lam, max_lam)
+	return RiemannSphere.chunk_lambda_range(l_center, pole_local, r_sphere, cos_ang, sin_ang)
 
 
 func _update_sphere_chunk_flags(force: bool = false):
@@ -580,11 +564,7 @@ func _make_chunk_aabb(coord: Vector2i) -> AABB:
 			var dist = c.length()
 			min_dist = minf(min_dist, dist)
 			max_dist = maxf(max_dist, dist)
-			var d = minf(dist / r_sphere, PI)
-			var l = Vector3(0.0, 1.0, 0.0)
-			if dist > 1e-6:
-				var a = sin(d) / dist
-				l = Vector3(c.x * a, cos(d), c.y * a)
+			var l = RiemannSphere.chart_to_local_unit(c, r_sphere)
 			var p_min = l * r_min - sphere_center_offset
 			min_v = min_v.min(p_min)
 			max_v = max_v.max(p_min)

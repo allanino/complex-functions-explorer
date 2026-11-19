@@ -559,43 +559,17 @@ func plane_complex_to_world(complex_x: float, complex_y: float) -> Vector2:
 func get_sphere_radius() -> float:
 	return riemann_sphere_radius * GameState.effective_zoom
 
-# Stereographic magnification thresholds (complex units per world unit) mirroring riemann_sphere.gdshaderinc.
-const SPHERE_HEIGHT_FADE_START: float = 2.0
-const SPHERE_HEIGHT_FADE_END: float = 6.0
-const SPHERE_PER_PIXEL_THRESHOLD: float = 0.05
-const SPHERE_PER_PIXEL_HYSTERESIS: float = 0.8
-
-# Local stereographic magnification |dz|/ds in complex units per world unit.
 func sphere_lambda(z: Vector2) -> float:
-	return (1.0 + z.length_squared()) / (2.0 * maxf(get_sphere_radius(), 1e-5))
+	return RiemannSphere.magnification(z, get_sphere_radius())
 
-# Smoothly fades radial height displacement to 0 where vertices cannot resolve the terrain.
 func sphere_height_fade(z: Vector2) -> float:
-	return 1.0 - smoothstep(SPHERE_HEIGHT_FADE_START, SPHERE_HEIGHT_FADE_END, sphere_lambda(z))
+	return RiemannSphere.height_fade(z, get_sphere_radius())
 
-# Maps a world offset (relative to the player, who stands on top of the sphere) to the complex
-# number at that point of the Riemann Sphere (stereographic projection). Mirrors riemann_sphere.gdshaderinc.
 func sphere_world_to_complex(world_x: float, world_z: float) -> Vector2:
-	var r_sphere = get_sphere_radius()
-	var c = Vector2(world_x, world_z)
-	var dist = c.length()
-	var d = minf(dist / r_sphere, PI)
-	var local_dir = Vector3(0.0, 1.0, 0.0)
-	if dist > 1e-9:
-		var s = sin(d) / dist
-		local_dir = Vector3(c.x * s, cos(d), c.y * s)
-	return GameState.sphere_unit_to_complex(GameState.sphere_basis * local_dir)
+	return RiemannSphere.world_to_complex(world_x, world_z, GameState.sphere_basis, get_sphere_radius())
 
-# Inverse of sphere_world_to_complex.
 func sphere_complex_to_world(complex_x: float, complex_y: float) -> Vector2:
-	var u = GameState.complex_to_sphere_unit(Vector2(complex_x, complex_y))
-	var l = GameState.sphere_basis.transposed() * u
-	var d = acos(clampf(l.y, -1.0, 1.0))
-	var horiz = Vector2(l.x, l.z)
-	var hl = horiz.length()
-	if hl < 1e-9:
-		return Vector2.ZERO
-	return horiz / hl * d * get_sphere_radius()
+	return RiemannSphere.complex_to_world(complex_x, complex_y, GameState.sphere_basis, get_sphere_radius())
 
 
 func _snapshot_current() -> Dictionary:

@@ -359,11 +359,4 @@ func _on_fov_overlay_draw():
 func _get_minimap_forward(yaw: float) -> Vector2:
 	if not Config.riemann_sphere_mode:
 		return Vector2(-sin(yaw), -cos(yaw))
-	var f_local = Vector3(-sin(yaw), 0.0, -cos(yaw))
-	var u = GameState.sphere_basis.y
-	var du = GameState.sphere_basis * f_local
-	var w = maxf(1.0 + u.y, 1e-5)
-	var d_re = du.x * w - u.x * du.y
-	var d_im = -du.z * w + u.z * du.y
-	var v = Vector2(d_re, -d_im)
-	return v.normalized() if v.length_squared() > 1e-12 else Vector2(-sin(yaw), -cos(yaw))
+	return RiemannSphere.project_forward_to_minimap(yaw, GameState.sphere_basis)
