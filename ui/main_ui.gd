@@ -8,6 +8,8 @@ const NEON_FONT = preload("res://ui/theme/font_neon.tres")
 @onready var hud_stack_right = %MainUIStackRight
 @onready var minimap_panel = %MinimapPanel
 @onready var minimap = %MinimapAspect
+@onready var target_sphere_panel = %TargetSpherePanel
+@onready var target_sphere = %TargetSphereAspect
 @onready var phase_wheel = %PhaseWheel
 @onready var position_panel = %PositionPanel
 @onready var monitor_panel = %MonitorPanel
@@ -186,6 +188,7 @@ func _ready():
 	phase_wheel.resized.connect(_on_complex_aspect_resized)
 
 	minimap.resized.connect(_on_minimap_resized)
+	target_sphere.resized.connect(_on_target_sphere_resized)
 
 	hud_columns.offset_top = -1000
 
@@ -223,6 +226,7 @@ func _ready():
 
 	zeros_panel.visible = Config.show_hud_zeros
 	minimap_panel.visible = Config.show_minimap
+	target_sphere_panel.visible = Config.show_hud_target_sphere
 	phase_wheel.get_parent().visible = Config.show_hud_phase_wheel and Config.show_hud_navigation
 	phase_wheel.visible = Config.show_hud_phase_wheel and Config.show_hud_navigation
 	if phase_wheel.visible:
@@ -270,8 +274,10 @@ func _on_values_timer_timeout():
 	var x = player.global_position.x
 	var f = player.current_f
 
-	# Update phase wheel
+	# Update phase wheel and target Riemann sphere
 	phase_wheel.update_data(f)
+	if target_sphere_panel.visible:
+		target_sphere.update_data(f)
 
 	if position_arg_val.visible:
 		update_arg_val(f)
@@ -589,6 +595,10 @@ func _on_minimap_resized():
 	if minimap.custom_minimum_size.y != minimap.size.x:
 		minimap.custom_minimum_size.y = minimap.size.x
 
+func _on_target_sphere_resized():
+	if target_sphere.custom_minimum_size.y != target_sphere.size.x:
+		target_sphere.custom_minimum_size.y = target_sphere.size.x
+
 func apply_aa():
 	var vp = get_viewport()
 	# Reset both
@@ -650,7 +660,7 @@ var _cached_layout_assignment: Dictionary = {}
 func _update_hud_layout():
 	if not hud_columns: return
 
-	var cards = [minimap_panel, position_panel, zeros_panel, monitor_panel]
+	var cards = [minimap_panel, target_sphere_panel, position_panel, zeros_panel, monitor_panel]
 
 	var actual_hud_scale = Config.hud_scale
 
@@ -766,7 +776,7 @@ func _rescale_card(card: Control, _scale: float):
 
 		if node is Control:
 			# Only scale custom minimum size for specific panels to maintain layout proportions
-			if node.name == "ComplexAspect" or node.name == "MinimapAspect" or node.name == "PhaseWheel":
+			if node.name == "ComplexAspect" or node.name == "MinimapAspect" or node.name == "TargetSphereAspect" or node.name == "PhaseWheel":
 				pass
 			elif node.name == "PositionPanel":
 				if not node.has_meta("base_min_size"):
@@ -858,6 +868,8 @@ func _on_config_changed(key: String):
 		position_panel.visible = Config.show_hud_navigation
 	if key == "show_minimap":
 		minimap_panel.visible = Config.show_minimap
+	if key == "show_hud_target_sphere":
+		target_sphere_panel.visible = Config.show_hud_target_sphere
 	if key == "show_hud_zeros":
 		zeros_panel.visible = Config.show_hud_zeros
 		_update_zeros_list()
@@ -873,7 +885,7 @@ func _on_config_changed(key: String):
 		position_panel.update_minimum_size()
 		position_panel.queue_sort()
 
-	if key in ["function_type", "show_hud_navigation", "show_hud_phase_wheel", "show_minimap", "show_hud_zeros", "show_hud_monitor_fps", "show_hud_chunks"]:
+	if key in ["function_type", "show_hud_navigation", "show_hud_phase_wheel", "show_minimap", "show_hud_target_sphere", "show_hud_zeros", "show_hud_monitor_fps", "show_hud_chunks"]:
 		_update_hud_layout()
 
 	if key == "zoom_factor":

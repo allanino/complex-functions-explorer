@@ -1,0 +1,81 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://ui/target_sphere.gd" id="1_ts_script"]
+[ext_resource type="Shader" path="res://ui/target_sphere.gdshader" id="2_ts_shader"]
+[ext_resource type="Theme" path="res://ui/theme/theme.tres" id="3_ts_theme"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_ts_1"]
+shader = ExtResource("2_ts_shader")
+shader_parameter/current_point = Vector3(0, -1, 0)
+shader_parameter/has_valid_point = true
+shader_parameter/trail_count = 0
+shader_parameter/cam_yaw = 0.55
+shader_parameter/cam_pitch = 0.36
+shader_parameter/color_scheme = 0
+shader_parameter/brightness = 1.0
+shader_parameter/saturation = 0.85
+shader_parameter/albedo = 0.15
+shader_parameter/emission = 0.1
+
+[node name="TargetSphere" type="AspectRatioContainer"]
+custom_minimum_size = Vector2(0, 240)
+size_flags_horizontal = 3
+ratio = 1.0
+stretch_mode = 2
+theme = ExtResource("3_ts_theme")
+script = ExtResource("1_ts_script")
+
+[node name="Panel" type="MarginContainer" parent="."]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="ColorRect" type="ColorRect" parent="Panel"]
+unique_name_in_owner = true
+material = SubResource("ShaderMaterial_ts_1")
+layout_mode = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 0)
+
+[node name="PoleLabels" type="Control" parent="Panel"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="NorthPoleLabel" type="Label" parent="Panel/PoleLabels"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -20.0
+offset_top = -2.0
+offset_right = 20.0
+offset_bottom = 24.0
+grow_horizontal = 2
+mouse_filter = 2
+theme_type_variation = &"SecondaryLabel"
+theme_override_colors/font_color = Color(0.784314, 0.662745, 0.431373, 0.85)
+theme_override_font_sizes/font_size = 22
+text = "∞"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="SouthPoleLabel" type="Label" parent="Panel/PoleLabels"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -20.0
+offset_top = -24.0
+offset_right = 20.0
+offset_bottom = 0.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+theme_type_variation = &"SecondaryLabel"
+theme_override_colors/font_color = Color(0.784314, 0.662745, 0.431373, 0.85)
+theme_override_font_sizes/font_size = 15
+text = "0"
+horizontal_alignment = 1
+vertical_alignment = 1
+

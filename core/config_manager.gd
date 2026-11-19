@@ -232,6 +232,7 @@ const PRESET_KEYS = [
 	"zero_proximity_nav",
 	"show_minimap",
 	"show_minimap_range",
+	"show_hud_target_sphere",
 	"show_hud_phase_wheel",
 	"show_hud_navigation",
 	"show_hud_zeros",
@@ -476,6 +477,11 @@ var show_minimap_range: bool = false:
 		if show_minimap_range == v: return
 		show_minimap_range = v
 		config_changed.emit("show_minimap_range")
+var show_hud_target_sphere: bool = false:
+	set(v):
+		if show_hud_target_sphere == v: return
+		show_hud_target_sphere = v
+		config_changed.emit("show_hud_target_sphere")
 var show_hud_phase_wheel: bool = true:
 	set(v):
 		if show_hud_phase_wheel == v: return
@@ -596,12 +602,13 @@ func is_preset_dirty() -> bool:
 	if not PRESETS.has(clean_name):
 		return true
 	var preset = PRESETS[clean_name]
+	var default_preset = PRESET_DEFAULTS.PRESETS["Default"]
 	for key in PRESET_KEYS:
 		if key == "day_time" and not get("freeze_time"):
 			continue
-		if preset.has(key):
+		if preset.has(key) or default_preset.has(key):
 			var val1 = get(key)
-			var val2 = preset[key]
+			var val2 = preset.get(key, default_preset.get(key))
 			if typeof(val1) == TYPE_FLOAT and typeof(val2) == TYPE_FLOAT:
 				if not is_equal_approx(val1, val2):
 					return true
@@ -618,12 +625,13 @@ func is_preset_dirty_by_name(preset_name: String) -> bool:
 		return false
 	var cached = _edited_presets[preset_name]
 	var clean = PRESETS[preset_name]
+	var default_preset = PRESET_DEFAULTS.PRESETS["Default"]
 	for key in PRESET_KEYS:
 		if key == "day_time" and not cached.get("freeze_time", false):
 			continue
-		if clean.has(key) and cached.has(key):
+		if cached.has(key) and (clean.has(key) or default_preset.has(key)):
 			var val1 = cached[key]
-			var val2 = clean[key]
+			var val2 = clean.get(key, default_preset.get(key))
 			if typeof(val1) == TYPE_FLOAT and typeof(val2) == TYPE_FLOAT:
 				if not is_equal_approx(val1, val2):
 					return true
@@ -736,6 +744,7 @@ func save_settings():
 
 	config.set_value("ui", "show_minimap", show_minimap)
 	config.set_value("ui", "show_minimap_range", show_minimap_range)
+	config.set_value("ui", "show_hud_target_sphere", show_hud_target_sphere)
 	config.set_value("ui", "show_hud_phase_wheel", show_hud_phase_wheel)
 	config.set_value("ui", "show_hud_navigation", show_hud_navigation)
 	config.set_value("ui", "show_hud_zeros", show_hud_zeros)
@@ -818,7 +827,9 @@ func load_settings():
 	var saved_presets = config.get_value("session", "custom_presets", {})
 	for preset_name in saved_presets:
 		if not built_in_keys.has(preset_name):
-			PRESETS[preset_name] = saved_presets[preset_name]
+			var merged = PRESET_DEFAULTS.PRESETS["Default"].duplicate(true)
+			merged.merge(saved_presets[preset_name], true)
+			PRESETS[preset_name] = merged
 
 	movement_speed = config.get_value("player", "movement_speed", movement_speed)
 	speed_near_zeros = config.get_value("player", "speed_near_zeros", speed_near_zeros)
@@ -827,6 +838,7 @@ func load_settings():
 
 	show_minimap = config.get_value("ui", "show_minimap", show_minimap)
 	show_minimap_range = config.get_value("ui", "show_minimap_range", show_minimap_range)
+	show_hud_target_sphere = config.get_value("ui", "show_hud_target_sphere", show_hud_target_sphere)
 	show_hud_phase_wheel = config.get_value("ui", "show_hud_phase_wheel", show_hud_phase_wheel)
 	show_hud_navigation = config.get_value("ui", "show_hud_navigation", show_hud_navigation)
 	show_hud_zeros = config.get_value("ui", "show_hud_zeros", show_hud_zeros)

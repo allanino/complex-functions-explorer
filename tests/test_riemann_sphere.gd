@@ -279,6 +279,85 @@ func test_ui_formatters_handle_inf_and_nan():
 	assert_eq(minimap._format_coordinate(-INF), "-∞")
 	assert_eq(minimap._format_coordinate(NAN), "NaN")
 
+func test_target_sphere_projection_and_trail():
+	const TargetSphereScript = preload("res://ui/target_sphere.gd")
+	# Stereographic projection onto target sphere: 0 -> south pole, inf -> north pole, |w|=1 -> equator
+	var p0 = TargetSphereScript.complex_to_target_unit(Vector2.ZERO)
+	assert_almost_eq(p0.x, 0.0, 1e-6)
+	assert_almost_eq(p0.y, -1.0, 1e-6)
+	assert_almost_eq(p0.z, 0.0, 1e-6)
+
+	var p_inf = TargetSphereScript.complex_to_target_unit(Vector2(INF, 0.0))
+	assert_almost_eq(p_inf.x, 0.0, 1e-6)
+	assert_almost_eq(p_inf.y, 1.0, 1e-6)
+	assert_almost_eq(p_inf.z, 0.0, 1e-6)
+
+	var p_one = TargetSphereScript.complex_to_target_unit(Vector2(1.0, 0.0))
+	assert_almost_eq(p_one.x, 1.0, 1e-6)
+	assert_almost_eq(p_one.y, 0.0, 1e-6)
+	assert_almost_eq(p_one.z, 0.0, 1e-6)
+
+	var p_i = TargetSphereScript.complex_to_target_unit(Vector2(0.0, 1.0))
+	assert_almost_eq(p_i.x, 0.0, 1e-6)
+	assert_almost_eq(p_i.y, 0.0, 1e-6)
+	assert_almost_eq(p_i.z, -1.0, 1e-6)
+
+	var p_nan = TargetSphereScript.complex_to_target_unit(Vector2(NAN, 0.0))
+	assert_eq(p_nan, Vector3.ZERO)
+
+	# Widget trail and validity handling
+	var ts_scene := load("res://ui/target_sphere.tscn") as PackedScene
+	var ts = autofree(ts_scene.instantiate())
+	add_child_autofree(ts)
+
+	ts.update_data(Vector2(1.0, 0.0))
+	assert_true(ts.has_valid_point)
+	assert_eq(ts._trail.size(), 1)
+
+	ts.update_data(Vector2(0.0, 1.0))
+	assert_eq(ts._trail.size(), 2)
+
+	ts.update_data(Vector2(NAN, 0.0))
+	assert_false(ts.has_valid_point)
+
+	ts.clear_trail()
+	assert_eq(ts._trail.size(), 0)
+
+func test_target_sphere_hud_toggle_and_preset_key():
+	assert_true("show_hud_target_sphere" in Config.PRESET_KEYS)
+	var orig_preset = Config.current_preset
+	Config._edited_presets.clear()
+	Config.apply_preset("Default")
+	var default_val: bool = Config.PRESET_DEFAULTS.PRESETS["Default"]["show_hud_target_sphere"]
+	var toggled_val: bool = not default_val
+
+	var main_ui_scene := load("res://ui/main_ui.tscn") as PackedScene
+	var main_ui = autofree(main_ui_scene.instantiate())
+	add_child_autofree(main_ui)
+
+	assert_false(Config.is_preset_dirty())
+	Config.show_hud_target_sphere = toggled_val
+	assert_eq(main_ui.target_sphere_panel.visible, toggled_val)
+	assert_true(Config.is_preset_dirty())
+	assert_true(Config.current_preset.ends_with("*"))
+
+	# Save into a custom preset and verify it clears the asterisk and persists
+	Config.update_preset("TargetSphereTestPreset")
+	assert_false(Config.is_preset_dirty())
+	assert_eq(Config.PRESETS["TargetSphereTestPreset"]["show_hud_target_sphere"], toggled_val)
+
+	# Simulate a legacy custom preset missing show_hud_target_sphere
+	Config.PRESETS["TargetSphereTestPreset"].erase("show_hud_target_sphere")
+	Config.show_hud_target_sphere = toggled_val
+	assert_true(Config.is_preset_dirty())
+
+	Config.show_hud_target_sphere = default_val
+	assert_eq(main_ui.target_sphere_panel.visible, default_val)
+
+	# Cleanup
+	Config.delete_preset("TargetSphereTestPreset")
+	Config.apply_preset(orig_preset.trim_suffix("*"))
+
 
 
 

@@ -63,6 +63,7 @@ signal update_hud_layout_signal()
 @onready var shadows_checkbox = %ShadowsCheckbox
 @onready var minimap_checkbox = %MinimapCheckbox
 @onready var minimap_range_checkbox = %MinimapRangeCheckbox
+@onready var hud_target_sphere_checkbox = %HudTargetSphereCheckbox
 @onready var hud_phase_wheel_checkbox = %HudComplexCheckbox
 @onready var hud_position_checkbox = %HudPositionCheckbox
 @onready var hud_zeros_checkbox = %HudZerosDetectionCheckbox
@@ -248,6 +249,7 @@ func _ready():
 	position_marker_checkbox.toggled.connect(_on_position_marker_toggled)
 	minimap_checkbox.toggled.connect(_on_minimap_toggled)
 	minimap_range_checkbox.toggled.connect(_on_minimap_range_toggled)
+	hud_target_sphere_checkbox.toggled.connect(_on_hud_target_sphere_toggled)
 	hud_phase_wheel_checkbox.toggled.connect(_on_hud_phase_wheel_toggled)
 	hud_position_checkbox.toggled.connect(_on_hud_navigation_toggled)
 	hud_zeros_checkbox.toggled.connect(_on_hud_zeros_toggled)
@@ -932,6 +934,7 @@ func _on_set_pos_pressed(_toggle_menu: bool = true):
 	Config.riemann_sphere_height = sphere_height_checkbox.button_pressed
 	Config.show_minimap = minimap_checkbox.button_pressed
 	Config.show_minimap_range = minimap_range_checkbox.button_pressed
+	Config.show_hud_target_sphere = hud_target_sphere_checkbox.button_pressed
 	Config.show_hud_phase_wheel = hud_phase_wheel_checkbox.button_pressed
 	Config.show_hud_navigation = hud_position_checkbox.button_pressed
 	Config.show_hud_zeros = hud_zeros_checkbox.button_pressed
@@ -1045,6 +1048,7 @@ func _sync_ui_to_config():
 	minimap_checkbox.button_pressed = Config.show_minimap
 	minimap_range_checkbox.button_pressed = Config.show_minimap_range
 	minimap_range_checkbox.visible = Config.show_minimap
+	hud_target_sphere_checkbox.button_pressed = Config.show_hud_target_sphere
 	hud_phase_wheel_checkbox.button_pressed = Config.show_hud_phase_wheel
 	hud_position_checkbox.button_pressed = Config.show_hud_navigation
 	hud_phase_wheel_checkbox.visible = Config.show_hud_navigation
@@ -1146,6 +1150,9 @@ func _on_minimap_toggled(pressed: bool):
 
 func _on_minimap_range_toggled(pressed: bool):
 	Config.show_minimap_range = pressed
+
+func _on_hud_target_sphere_toggled(pressed: bool):
+	Config.show_hud_target_sphere = pressed
 
 func _on_hud_phase_wheel_toggled(pressed: bool):
 	Config.show_hud_phase_wheel = pressed

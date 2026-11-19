@@ -33,3 +33,18 @@ func test_terrain_shader_material_creation():
 	material.shader = shader
 
 	assert_not_null(material.shader)
+
+func test_target_sphere_shader_loads():
+	var shader := load("res://ui/target_sphere.gdshader")
+
+	assert_not_null(shader)
+	assert_true(shader is Shader)
+	assert_ne(shader.code.length(), 0)
+
+func test_target_sphere_shader_material_creation():
+	var shader := load("res://ui/target_sphere.gdshader")
+	var material := ShaderMaterial.new()
+
+	material.shader = shader
+
+	assert_not_null(material.shader)
