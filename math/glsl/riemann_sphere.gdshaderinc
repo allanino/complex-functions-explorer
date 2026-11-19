@@ -50,9 +50,8 @@ SphereChartFrame sphere_chart_frame(vec2 c, float radius) {
     return f;
 }
 
-// Fast chart-to-complex projection (without chart derivatives) for per-pixel evaluation.
-// Also returns local stereographic magnification lambda = |dz|/ds = 1 / (radius * w).
-vec2 sphere_chart_to_complex(vec2 c, float radius, out float out_lambda) {
+// Fast chart-to-unit-sphere projection (without chart derivatives).
+vec3 sphere_chart_to_unit(vec2 c, float radius) {
     float r = length(c);
     float max_r = PI * radius;
     if (r > max_r) {
@@ -61,7 +60,13 @@ vec2 sphere_chart_to_complex(vec2 c, float radius, out float out_lambda) {
     }
     float d = r / radius;
     float a = (d < 1e-3) ? (1.0 - d * d / 6.0) / radius : sin(d) / r;
-    vec3 u = sphere_basis * vec3(c.x * a, cos(d), c.y * a);
+    return sphere_basis * vec3(c.x * a, cos(d), c.y * a);
+}
+
+// Fast chart-to-complex projection (without chart derivatives) for per-pixel evaluation.
+// Also returns local stereographic magnification lambda = |dz|/ds = 1 / (radius * w).
+vec2 sphere_chart_to_complex(vec2 c, float radius, out float out_lambda) {
+    vec3 u = sphere_chart_to_unit(c, radius);
     float w = max(1.0 + u.y, 1e-5);
     out_lambda = 1.0 / (radius * w);
     return vec2(u.x, -u.z) / w;
@@ -75,6 +80,43 @@ vec2 sphere_unit_to_complex(vec3 u, out vec3 dre_du, out vec3 dim_du) {
     return vec2(u.x, -u.z) / w;
 }
 
+// Computes the downhill gradient of the complex height on the unit sphere (in the inertial sphere
+// frame, scaled by 1/radius so magnitude matches world-space slope |dh/ds| on the plane).
+vec3 sphere_downhill_grad_u(vec3 u, vec3 dre_du, vec3 dim_du, ComplexFieldData fd, bool h_clamped, float radius) {
+    vec2 dh_w = get_complex_height_derivatives(fd.value, fd.value, vec2(0.0), fd.dx, fd.dy, 1.0, h_clamped, 0);
+    vec2 dh = zoom_factor * vec2(dh_w.x * 10.0, -dh_w.y * 10.0);
+    vec3 grad_u = (dh.x * dre_du + dh.y * dim_du) / max(radius, 1e-5);
+    grad_u -= u * dot(grad_u, u);
+    return -grad_u;
+}
+
+// Equal-angle cube-sphere UV (in world units, anchored to the inertial sphere frame u so arrows
+// stick to the sphere as you walk) and projection of the 3D downhill gradient onto that 2D frame.
+void sphere_flow_uv_and_grad(vec3 u, vec3 downhill_u, float radius, out vec2 flow_uv, out vec2 flow_grad) {
+    vec3 au = abs(u);
+    vec3 t_x;
+    vec3 t_y;
+    if (au.y >= au.x && au.y >= au.z) {
+        float sy = u.y >= 0.0 ? 1.0 : -1.0;
+        flow_uv = vec2(atan(u.x, au.y), atan(u.z, au.y)) * radius;
+        t_x = normalize(vec3(au.y, -sy * u.x, 0.0));
+        t_y = normalize(vec3(0.0, -sy * u.z, au.y));
+    } else if (au.x >= au.y && au.x >= au.z) {
+        float sx = u.x >= 0.0 ? 1.0 : -1.0;
+        flow_uv = vec2(atan(u.z, au.x), atan(u.y, au.x)) * radius;
+        t_x = normalize(vec3(-sx * u.z, 0.0, au.x));
+        t_y = normalize(vec3(-sx * u.y, au.x, 0.0));
+    } else {
+        float sz = u.z >= 0.0 ? 1.0 : -1.0;
+        flow_uv = vec2(atan(u.x, au.z), atan(u.y, au.z)) * radius;
+        t_x = normalize(vec3(au.z, 0.0, -sz * u.x));
+        t_y = normalize(vec3(0.0, au.z, -sz * u.y));
+    }
+    vec2 g = vec2(dot(downhill_u, t_x), dot(downhill_u, t_y));
+    // Match plane mode's nrm.xz = (-dh_dx, -dh_dz) / sqrt(1 + |grad|^2) scaling.
+    flow_grad = g / sqrt(1.0 + dot(g, g));
+}
+
 float sphere_height_fade(float lambda) {
     return 1.0 - smoothstep(SPHERE_HEIGHT_FADE_START, SPHERE_HEIGHT_FADE_END, lambda);
 }
@@ -86,10 +128,11 @@ float sphere_height_fade_deriv(float lambda) {
 }
 
 // Evaluates the function on the Riemann Sphere at the chart offset c (world units around the player).
-// Returns the displaced surface position in world space (player frame) and its normal.
+// Returns the displaced surface position in world space (player frame), its normal, and (when
+// need_flow_grad is true) the downhill gradient in inertial sphere coordinates.
 // When skip_field_if_flat is true (per-pixel chunks), skips vertex-stage function evaluation if the
 // surface is already flat at this point (sphere_height off or height faded to zero).
-void compute_sphere_surface(vec2 c, bool skip_field_if_flat, out vec3 p_world, out vec3 nrm, out vec2 f_val, out bool invalid, out bool h_clamped_out, out float h_func_out) {
+void compute_sphere_surface(vec2 c, bool skip_field_if_flat, bool need_flow_grad, out vec3 p_world, out vec3 nrm, out vec2 f_val, out bool invalid, out bool h_clamped_out, out float h_func_out, out vec3 flow_grad_u) {
     float radius = sphere_radius;
     SphereChartFrame sf = sphere_chart_frame(c, radius);
     vec3 u = sphere_basis * sf.l;
@@ -101,6 +144,7 @@ void compute_sphere_surface(vec2 c, bool skip_field_if_flat, out vec3 p_world, o
     invalid = false;
     h_clamped_out = false;
     h_func_out = 0.0;
+    flow_grad_u = vec3(0.0);
 
     if (skip_field_if_flat && h_fade <= 0.0) {
         p_world = sf.l * radius - vec3(0.0, radius, 0.0);
@@ -126,15 +170,24 @@ void compute_sphere_surface(vec2 c, bool skip_field_if_flat, out vec3 p_world, o
         float h_raw = get_complex_height(fd.value, fd.value, hc);
         h_clamped_out = hc;
         h_func_out = h_raw * zoom_factor;
-        if (h_fade > 0.0) {
+        if (h_fade > 0.0 || need_flow_grad) {
             vec2 dh_w = get_complex_height_derivatives(fd.value, fd.value, vec2(0.0), fd.dx, fd.dy, 1.0, hc, 0);
             dh = zoom_factor * vec2(dh_w.x * 10.0, -dh_w.y * 10.0);
+        }
+        if (need_flow_grad) {
+            vec3 gu = (dh.x * dre_du + dh.y * dim_du) / max(radius, 1e-5);
+            gu -= u * dot(gu, u);
+            flow_grad_u = -gu;
+        }
+        if (h_fade > 0.0) {
             h = h_func_out * h_fade;
             if (h < -0.9 * radius) {
                 h = -0.9 * radius;
                 dh = vec2(0.0);
                 floor_clamped = true;
             }
+        } else {
+            dh = vec2(0.0);
         }
     }
 

@@ -109,7 +109,7 @@ func update_arg_val(f: Vector2):
 	position_arg_arrow.queue_redraw()
 
 func _setup_branch_data():
-	if Config.function.get("is_multivalued", false):
+	if Config.is_multivalued_active():
 		phase_branch_val.visible = true
 		branch_label.visible = true
 	else:
@@ -224,7 +224,7 @@ func _on_values_timer_timeout():
 
 	if Config.show_hud_zeros:
 		if Config.show_rvm and Config.function.get("has_von_mangoldt", false):
-			var T = abs(Config.world_to_complex(0.0, z).y)
+			var T = abs(Config.world_to_complex(player.global_position.x, z).y)
 			var rvm_val = _get_rvm_n(T) - _get_rvm_n(GameState.rvm_start_t)
 			rvm_val = max(0.0, rvm_val)
 			var delta_val = GameState.total_zeros_found - rvm_val
@@ -821,6 +821,8 @@ func _on_config_changed(key: String):
 		_update_zeros_list()
 		_setup_branch_data()
 		_update_function_labels()
+	if key == "riemann_sphere_mode":
+		_setup_branch_data()
 	if key == "show_hud_navigation":
 		position_panel.visible = Config.show_hud_navigation
 	if key == "show_minimap":

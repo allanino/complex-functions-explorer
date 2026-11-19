@@ -13,6 +13,7 @@ varying float v_nan;
 varying float v_h_clamped;
 varying float v_h_surface;
 varying vec2 v_chart;
+varying vec3 v_sphere_flow_grad;
 
 instance uniform int lod_level = 0;
 instance uniform ivec4 neighbor_lods = ivec4(-1, -1, -1, -1);
@@ -446,17 +447,15 @@ void compute_critical_stripe_highlight(vec3 w_pos, vec3 nrm, inout vec3 final_em
 }
 
 
-void compute_flow_effect(vec3 w_pos, vec3 nrm, vec3 camera_position_world, inout vec3 out_albedo, inout vec3 final_emission) {
+void compute_flow_effect_2d(vec2 flow_pos, vec2 grad, vec3 w_pos, vec3 camera_position_world, inout vec3 out_albedo, inout vec3 final_emission) {
     float dist_to_camera = length(w_pos - camera_position_world);
     float flow_fade = 1.0 - smoothstep(30.0, 80.0, dist_to_camera);
 
     if (flow_fade > 0.001) {
         float g_size = 0.75;
-        vec2 cell_id = floor(w_pos.xz / g_size);
-        vec2 grid_uv = fract(w_pos.xz / g_size) - 0.5;
+        vec2 cell_id = floor(flow_pos / g_size);
+        vec2 grid_uv = fract(flow_pos / g_size) - 0.5;
 
-        // Get gradient from normal (change the sign to change flow direction)
-        vec2 grad = nrm.xz;
         float grad_mag = length(grad);
 
         if (grad_mag > 0.001) {
@@ -675,6 +674,7 @@ void vertex() {
         v_h_clamped = 0.0;
         v_h_surface = 0.0;
         v_chart = vec2(0.0);
+        v_sphere_flow_grad = vec3(0.0);
         field_val = vec2(0.0);
     } else if (sphere_mode) {
         float half_size = chunk_size * 0.5;
@@ -689,7 +689,8 @@ void vertex() {
         bool s_invalid;
         bool s_clamped;
         float s_h_func;
-        compute_sphere_surface(chart, resolve_per_pixel, sphere_p, sphere_n, s_field, s_invalid, s_clamped, s_h_func);
+        vec3 s_flow_grad;
+        compute_sphere_surface(chart, resolve_per_pixel, show_flow && !resolve_per_pixel, sphere_p, sphere_n, s_field, s_invalid, s_clamped, s_h_func, s_flow_grad);
 
         v_nan = s_invalid ? 1.0 : 0.0;
         field_val = s_field;
@@ -697,12 +698,14 @@ void vertex() {
         v_h_clamped = s_clamped ? 1.0 : 0.0;
         v_h_surface = s_h_func;
         v_normal = sphere_n;
+        v_sphere_flow_grad = s_flow_grad;
 
         VERTEX = sphere_p - chunk_origin;
         world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
         NORMAL = (MODEL_NORMAL_MATRIX * v_normal);
     } else {
         v_chart = vec2(0.0);
+        v_sphere_flow_grad = vec3(0.0);
         float half_size = chunk_size * 0.5;
         vec3 snap_v = apply_lod_snapping(VERTEX, half_size);
         vec3 world_v_pos = (MODEL_MATRIX * vec4(snap_v, 1.0)).xyz;
@@ -786,11 +789,17 @@ void fragment() {
     float nan_flag = v_nan;
     float h_clamped_flag = v_h_clamped;
     float h_surface = v_h_surface;
+    vec3 sphere_flow_grad = v_sphere_flow_grad;
+    vec3 sphere_u = vec3(0.0, 1.0, 0.0);
+    bool has_sphere_u = false;
 
     // resolve_per_pixel is an instance uniform (constant per draw call), so derivatives stay valid.
     if (resolve_per_pixel && !performance_protection_active) {
-        float frag_lambda;
-        vec2 zc = sphere_chart_to_complex(v_chart, sphere_radius, frag_lambda);
+        sphere_u = sphere_chart_to_unit(v_chart, sphere_radius);
+        has_sphere_u = true;
+        vec3 dre_du;
+        vec3 dim_du;
+        vec2 zc = sphere_unit_to_complex(sphere_u, dre_du, dim_du);
         ComplexFieldData ffd = get_field_with_derivatives_complex(zc.x, zc.y, 0);
         bool f_invalid = any(isnan(ffd.value)) || any(isinf(ffd.value));
         if (f_invalid) {
@@ -799,6 +808,7 @@ void fragment() {
             f_dir = vec2(0.0);
             h_clamped_flag = 0.0;
             h_surface = 0.0;
+            sphere_flow_grad = vec3(0.0);
         } else {
             nan_flag = 0.0;
             fv = ffd.value;
@@ -807,6 +817,9 @@ void fragment() {
             float h_raw = get_complex_height(fv, fv, hc);
             h_clamped_flag = hc ? 1.0 : 0.0;
             h_surface = h_raw * zoom_factor;
+            if (show_flow) {
+                sphere_flow_grad = sphere_downhill_grad_u(sphere_u, dre_du, dim_du, ffd, hc, sphere_radius);
+            }
         }
     }
 
@@ -897,7 +910,17 @@ void fragment() {
         }
 
         if (show_flow) {
-            compute_flow_effect(world_pos, v_normal, CAMERA_POSITION_WORLD, ALBEDO, final_emission);
+            if (sphere_mode) {
+                if (!has_sphere_u) {
+                    sphere_u = sphere_chart_to_unit(v_chart, sphere_radius);
+                }
+                vec2 flow_uv;
+                vec2 flow_grad;
+                sphere_flow_uv_and_grad(sphere_u, sphere_flow_grad, sphere_radius, flow_uv, flow_grad);
+                compute_flow_effect_2d(flow_uv, flow_grad, world_pos, CAMERA_POSITION_WORLD, ALBEDO, final_emission);
+            } else {
+                compute_flow_effect_2d(world_pos.xz, v_normal.xz, world_pos, CAMERA_POSITION_WORLD, ALBEDO, final_emission);
+            }
         }
 
 

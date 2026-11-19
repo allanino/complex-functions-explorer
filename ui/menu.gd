@@ -849,13 +849,14 @@ func _on_func_selected(f_type: int):
 	func_rational_container.visible = is_rational
 	if is_rational:
 		_on_func_rational_text_submitted(func_rational_input.text)
-	multivalued_slider.visible = is_multivalued_n
+	multivalued_slider.visible = is_multivalued_n and not Config.riemann_sphere_mode
 	iter_slider.visible = has_iters
 	critical_checkbox.visible = is_dirichlet
-	auto_walk_checkbox.visible = is_dirichlet
+	auto_walk_checkbox.visible = is_dirichlet and not Config.riemann_sphere_mode
+	zero_walk_checkbox.visible = not Config.riemann_sphere_mode
 	rvm_checkbox.visible = is_dirichlet
 
-	var is_multivalued = f_data.get("is_multivalued", false)
+	var is_multivalued = Config.is_multivalued_active()
 	branch_k_slider.visible = is_multivalued
 	_update_branch_k_slider_range()
 
@@ -870,8 +871,7 @@ func _on_func_selected(f_type: int):
 	var im = _parse_float_input(im_input, 0.0)
 
 	if player and not _syncing_ui:
-		var target_pos = Config.complex_to_world(re, im)
-		player.teleport_to_world_pos(Vector3(target_pos.x, 0, target_pos.y))
+		player.teleport_to_complex(Vector2(re, im))
 
 func _update_branch_k_slider_range():
 	if Config.function_type == Config.ComplexFunc.MULTIVALUED_Z_POW:
@@ -976,18 +976,19 @@ func _on_set_pos_pressed(_toggle_menu: bool = true):
 
 	if player:
 		if nav_changed and is_finite(re) and is_finite(im):
-			var target_pos = Config.complex_to_world(re, im)
-			player.teleport_to_world_pos(Vector3(target_pos.x, player.global_position.y, target_pos.y))
+			player.teleport_to_complex(Vector2(re, im))
 
 		var f_data = Config.function
 		if f_data.get("is_dirichlet", false):
-			GameState.rvm_start_t = abs(Config.world_to_complex(0.0, player.global_position.z).y)
+			GameState.rvm_start_t = abs(Config.world_to_complex(player.global_position.x, player.global_position.z).y)
 
-		# Update auto-walk state
-		if auto_walk_checkbox.button_pressed:
+		# Update auto-walk state (disabled in Riemann Sphere mode)
+		if Config.riemann_sphere_mode:
+			player.auto_walk_state = 0 # NONE
+		elif auto_walk_checkbox.button_pressed:
 			if player.auto_walk_state == 0 or player.auto_walk_state == 3: # NONE or NEWTON_WALK
 				player.auto_walk_state = 1 # MOVING_TO_LINE
-				GameState.rvm_start_t = abs(Config.world_to_complex(0.0, player.global_position.z).y)
+				GameState.rvm_start_t = abs(Config.world_to_complex(player.global_position.x, player.global_position.z).y)
 				if "last_detected_t" in player:
 					player.last_detected_t = -1.0
 		elif zero_walk_checkbox.button_pressed:
@@ -1040,8 +1041,7 @@ func _sync_ui_to_config():
 	shadows_checkbox.button_pressed = Config.shadows_enabled
 	riemann_sphere_checkbox.button_pressed = Config.riemann_sphere_mode
 	sphere_height_checkbox.button_pressed = Config.riemann_sphere_height
-	sphere_height_checkbox.visible = Config.riemann_sphere_mode
-	sphere_radius_slider.visible = Config.riemann_sphere_mode
+	_update_sphere_mode_dependent_ui()
 	minimap_checkbox.button_pressed = Config.show_minimap
 	minimap_range_checkbox.button_pressed = Config.show_minimap_range
 	minimap_range_checkbox.visible = Config.show_minimap
@@ -1102,10 +1102,22 @@ func _on_aa_selected(index: int):
 	Config.antialiasing_mode = index
 	emit_signal('apply_aa_signal')
 
+func _update_sphere_mode_dependent_ui():
+	var sphere_on = Config.riemann_sphere_mode
+	sphere_height_checkbox.visible = sphere_on
+	sphere_radius_slider.visible = sphere_on
+	var f_data = Config.function
+	var is_dirichlet = f_data.get("is_dirichlet", false)
+	auto_walk_checkbox.visible = is_dirichlet and not sphere_on
+	zero_walk_checkbox.visible = not sphere_on
+	var is_multivalued = Config.is_multivalued_active()
+	branch_k_slider.visible = is_multivalued
+	multivalued_slider.visible = (Config.function_type == Config.ComplexFunc.MULTIVALUED_Z_POW) and not sphere_on
+	input_button.disabled = is_multivalued
+
 func _on_riemann_sphere_toggled(pressed: bool):
 	Config.riemann_sphere_mode = pressed
-	sphere_height_checkbox.visible = pressed
-	sphere_radius_slider.visible = pressed
+	_update_sphere_mode_dependent_ui()
 
 func _on_sphere_height_toggled(pressed: bool):
 	Config.riemann_sphere_height = pressed
@@ -1179,8 +1191,7 @@ func _on_re_text_submitted(_new_text: String):
 		_initial_re_text = re_input.text
 	if player:
 		var current_complex = Config.world_to_complex(player.global_position.x, player.global_position.z)
-		var target_x = Config.complex_to_world(re, current_complex.y).x
-		player.teleport_to_world_pos(Vector3(target_x, player.global_position.y, player.global_position.z))
+		player.teleport_to_complex(Vector2(re, current_complex.y))
 
 func _on_im_text_submitted(_new_text: String):
 	var im = _parse_float_input(im_input, 0.0)
@@ -1189,8 +1200,7 @@ func _on_im_text_submitted(_new_text: String):
 		_initial_im_text = im_input.text
 	if player:
 		var current_complex = Config.world_to_complex(player.global_position.x, player.global_position.z)
-		var target_z = Config.complex_to_world(current_complex.x, im).y
-		player.teleport_to_world_pos(Vector3(player.global_position.x, player.global_position.y, target_z))
+		player.teleport_to_complex(Vector2(current_complex.x, im))
 
 func _on_height_a_text_submitted(_new_text: String):
 	var h_a = _parse_float_input(height_a_input, 3.0)

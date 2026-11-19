@@ -192,6 +192,77 @@ func test_per_pixel_flag_hysteresis():
 	# Dropping below hysteresis floor turns it off
 	assert_false(terrain._should_resolve_per_pixel(coord, turn_off_lam))
 
+func test_teleport_to_complex_and_oob_reset_in_sphere_mode():
+	Config.riemann_sphere_mode = true
+	Config.riemann_sphere_height = false
+	Config.riemann_sphere_radius = 50.0
+	Config.function_type = Config.ComplexFunc.ZETA_CONTINUATION
+	GameState.effective_zoom = 1.0
+
+	var player_scene := load("res://player/player.tscn") as PackedScene
+	var player = autofree(player_scene.instantiate())
+	add_child_autofree(player)
+
+	# Teleport directly to a complex coordinate
+	player.teleport_to_complex(Vector2(0.5, 14.134))
+	var landed = Config.world_to_complex(player.global_position.x, player.global_position.z)
+	assert_almost_eq(landed.x, 0.5, 1e-3)
+	assert_almost_eq(landed.y, 14.134, 1e-2)
+	assert_almost_eq(player.global_position.x, 0.0, 1e-6)
+	assert_almost_eq(player.global_position.z, 0.0, 1e-6)
+
+	# Out-of-bounds teleport (e.g. near the pole s = 1) resets to the function's initial position
+	GameState.out_of_bounds_teleport_active = false
+	player.teleport_to_complex(Vector2(1.0, 0.0))
+	assert_true(GameState.out_of_bounds_teleport_active)
+	var reset_z = Config.world_to_complex(player.global_position.x, player.global_position.z)
+	var expected_init = Config.plane_world_to_complex(player.get_initial_position().x, player.get_initial_position().z)
+	assert_almost_eq(reset_z.x, expected_init.x, 1e-2)
+	assert_almost_eq(reset_z.y, expected_init.y, 1e-2)
+
+func test_minimap_forward_matches_stereographic_heading():
+	var minimap_scene := load("res://ui/minimap.tscn") as PackedScene
+	var minimap = autofree(minimap_scene.instantiate())
+	add_child_autofree(minimap)
+
+	Config.riemann_sphere_mode = true
+	Config.riemann_sphere_radius = 50.0
+
+	# At z = 0 with identity basis, yaw = 0 looks along -Z -> +Im -> minimap up (0, -1)
+	GameState.sphere_basis = Basis.IDENTITY
+	var f0 = minimap._get_minimap_forward(0.0)
+	assert_almost_eq(f0.x, 0.0, 1e-5)
+	assert_almost_eq(f0.y, -1.0, 1e-5)
+
+	# After walking in a curved path (holonomy), _get_minimap_forward should match the actual
+	# finite-difference complex direction of stepping forward along yaw = 0.
+	GameState.advance_on_sphere(Vector2(30.0, 0.0), 50.0)
+	GameState.advance_on_sphere(Vector2(0.0, -30.0), 50.0)
+	GameState.advance_on_sphere(Vector2(-30.0, 0.0), 50.0)
+	var z_here = Config.sphere_world_to_complex(0.0, 0.0)
+	var z_ahead = Config.sphere_world_to_complex(0.0, -0.05)
+	var dz = z_ahead - z_here
+	var expected_dir = Vector2(dz.x, -dz.y).normalized()
+	var got_dir = minimap._get_minimap_forward(0.0)
+	assert_almost_eq(got_dir.x, expected_dir.x, 1e-3)
+	assert_almost_eq(got_dir.y, expected_dir.y, 1e-3)
+
+func test_compute_chunk_lambda_range_matches_acos_formula():
+	var terrain_scene := load("res://terrain/terrain.tscn") as PackedScene
+	var terrain = autofree(terrain_scene.instantiate())
+	var r_sphere = 50.0
+	var chunk_ang = (terrain.chunk_size * terrain.CHUNK_HALF_DIAG_RATIO) / r_sphere
+	var pole_local = Vector3(0.3, -0.8, 0.5).normalized()
+
+	for l_center in [Vector3(0, 1, 0), Vector3(0.4, 0.7, -0.5).normalized(), pole_local, -pole_local]:
+		var got = terrain._compute_chunk_lambda_range(l_center, pole_local, r_sphere, cos(chunk_ang), sin(chunk_ang))
+		var theta = acos(clampf(l_center.dot(pole_local), -1.0, 1.0))
+		var exp_max = 1.0 / (r_sphere * maxf(1.0 - cos(maxf(0.0, theta - chunk_ang)), 1e-5))
+		var exp_min = 1.0 / (r_sphere * maxf(1.0 - cos(minf(PI, theta + chunk_ang)), 1e-5))
+		assert_almost_eq(got.x, exp_min, maxf(1e-4, exp_min * 1e-4))
+		assert_almost_eq(got.y, exp_max, maxf(1e-4, exp_max * 1e-4))
+
+
 
 
 

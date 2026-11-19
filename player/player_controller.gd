@@ -76,10 +76,49 @@ func get_initial_position() -> Vector3:
 		return Config.function["initial_pos"]
 	return Vector3(0.0, 0.0, 0.0)
 
-func teleport_to_world_pos(target_pos: Vector3) -> void:
+func teleport_to_complex(target_z: Vector2) -> void:
+	if not Config.riemann_sphere_mode:
+		var p = Config.plane_complex_to_world(target_z.x, target_z.y)
+		teleport_to_world_pos(Vector3(p.x, global_position.y, p.y))
+		return
+
 	GameState.is_teleporting = true
-	var check_h = get_plane_height(target_pos.x, target_pos.z) if Config.riemann_sphere_mode else get_terrain_height(target_pos.x, target_pos.z)
+	var w: Vector2 = ComplexField.get_field_at(target_z.x, target_z.y, Config.input_function_type, true)
+	var f: Vector2 = ComplexField.get_field_at(w.x, w.y, Config.function_type, false)
+	var check_h = ComplexField.get_height_from_field(f, target_z)
 	if not is_finite(check_h) or abs(check_h) >= GameState.MAX_WORLD_HEIGHT:
+		GameState.out_of_bounds_teleport_active = true
+		global_position = get_initial_position()
+		_place_on_sphere_at_initial_position()
+		if not Config.function.get("is_dirichlet", false) and not Config.function.has("initial_pos"):
+			rotation.y = - PI / 2.0
+	else:
+		GameState.set_sphere_position(target_z)
+		global_position.x = 0.0
+		global_position.z = 0.0
+
+	velocity = Vector3.ZERO
+	camera_push_offset = Vector3.ZERO
+	last_player_pos = global_position
+	_predicted_pos = Vector2.INF
+	current_f = ComplexField.get_field(0.0, 0.0)
+	current_mag = current_f.length()
+	var new_h = get_terrain_height(0.0, 0.0, current_f, false)
+	if is_finite(new_h):
+		last_terrain_h = new_h
+		last_valid_terrain_height = new_h
+
+	var complex_pos = Config.world_to_complex(global_position.x, global_position.z)
+	_check_zeta_stability(complex_pos.y)
+	GameState.is_teleporting = false
+
+func teleport_to_world_pos(target_pos: Vector3) -> void:
+	if Config.riemann_sphere_mode:
+		teleport_to_complex(Config.sphere_world_to_complex(target_pos.x, target_pos.z))
+		return
+	GameState.is_teleporting = true
+	var terrain_h = get_terrain_height(target_pos.x, target_pos.z)
+	if not is_finite(terrain_h) or abs(terrain_h) >= GameState.MAX_WORLD_HEIGHT:
 		GameState.out_of_bounds_teleport_active = true
 		target_pos = get_initial_position()
 
@@ -227,19 +266,22 @@ func _unhandled_input(event):
 		last_space_time = current_time
 
 	if event.is_action_pressed("toggle_autowalk"):
-		var f_data = Config.function
-		if f_data.get("is_dirichlet", false):
+		if Config.riemann_sphere_mode:
+			auto_walk_state = AutoWalkState.NONE
+		elif Config.function.get("is_dirichlet", false):
 			if auto_walk_state == AutoWalkState.NONE:
 				auto_walk_state = AutoWalkState.MOVING_TO_LINE
 				# Reset zero counter when starting auto-walk
 				GameState.clear_zeros()
 				Config.show_hud_zeros = true
-				GameState.rvm_start_t = abs(Config.world_to_complex(0.0, global_position.z).y)
+				GameState.rvm_start_t = abs(Config.world_to_complex(global_position.x, global_position.z).y)
 			else:
 				auto_walk_state = AutoWalkState.NONE
 
 	elif event.is_action_pressed("start_newtonwalk"):
-		if auto_walk_state == AutoWalkState.NONE:
+		if Config.riemann_sphere_mode:
+			auto_walk_state = AutoWalkState.NONE
+		elif auto_walk_state == AutoWalkState.NONE:
 			start_newton_walk()
 		else:
 			auto_walk_state = AutoWalkState.NONE
@@ -269,9 +311,9 @@ func _unhandled_input(event):
 			Config.freeze_time = false
 			Config.save_settings()
 
-func get_terrain_height(x: float, z: float, field_val: Vector2 = Vector2.INF) -> float:
+func get_terrain_height(x: float, z: float, field_val: Vector2 = Vector2.INF, apply_curvature: bool = true) -> float:
 	if Config.riemann_sphere_mode and not Config.riemann_sphere_height:
-		return _sphere_surface_height(x, z, 0.0)
+		return _sphere_surface_height(x, z, 0.0, apply_curvature)
 	var h: float
 	if field_val != Vector2.INF:
 		h = ComplexField.get_height_from_field(field_val)
@@ -280,15 +322,17 @@ func get_terrain_height(x: float, z: float, field_val: Vector2 = Vector2.INF) ->
 	if not is_finite(h):
 		return NAN
 	if Config.riemann_sphere_mode:
-		return _sphere_surface_height(x, z, h)
+		return _sphere_surface_height(x, z, h, apply_curvature)
 	return h
 
-func _sphere_surface_height(x: float, z: float, radial_h: float) -> float:
+func _sphere_surface_height(x: float, z: float, radial_h: float, apply_curvature: bool = true) -> float:
 	var r_sphere = Config.get_sphere_radius()
 	var h = radial_h
 	if h != 0.0:
 		h *= Config.sphere_height_fade(Config.sphere_world_to_complex(x, z))
 	h = maxf(h, -0.9 * r_sphere)
+	if not apply_curvature:
+		return h
 	var dist = Vector2(x, z).length()
 	var d = minf(dist / r_sphere, PI)
 	return (r_sphere + h) * cos(d) - r_sphere
@@ -341,6 +385,7 @@ func _on_config_changed(key: String) -> void:
 	camera_push_offset = Vector3.ZERO
 	if Config.riemann_sphere_mode:
 		# Plane -> sphere: land on the sphere at the complex number we were standing on.
+		auto_walk_state = AutoWalkState.NONE
 		var z = Config.plane_world_to_complex(global_position.x, global_position.z)
 		GameState.set_sphere_position(z)
 		global_position.x = 0.0
@@ -559,7 +604,7 @@ func _physics_process(delta):
 	_predicted_next_f = ComplexField.get_field(predicted_pos.x, predicted_pos.z)
 	var terrain_h = last_valid_terrain_height
 	if not _demo_y_final_reached:
-		var new_terrain_h = get_terrain_height(predicted_pos.x, predicted_pos.z, _predicted_next_f)
+		var new_terrain_h = get_terrain_height(predicted_pos.x, predicted_pos.z, _predicted_next_f, false)
 		if not is_finite(new_terrain_h):
 			velocity.x = 0.0
 			velocity.z = 0.0
@@ -570,36 +615,39 @@ func _physics_process(delta):
 	# Prevent player from probing heights higher/lower than GameState.MAX_WORLD_HEIGHT
 	var target_y = terrain_h + scaled_camera_height + height_offset
 	var last_target_y = last_terrain_h + scaled_camera_height + height_offset
-	var check_y = target_y
-	var last_check_y = last_target_y
+	var blocked_by_shadow = false
 	if Config.riemann_sphere_mode and not _demo_y_final_reached:
 		var pred_plane_h = get_plane_height(predicted_pos.x, predicted_pos.z, _predicted_next_f)
 		var cur_plane_h = get_plane_height(global_position.x, global_position.z, current_f)
-		if not is_finite(pred_plane_h):
-			check_y = GameState.MAX_WORLD_HEIGHT
-		else:
-			check_y = pred_plane_h + scaled_camera_height + height_offset
-		if is_finite(cur_plane_h):
-			last_check_y = cur_plane_h + scaled_camera_height + height_offset
+		var pred_abs = abs(pred_plane_h) if is_finite(pred_plane_h) else INF
+		var cur_abs = abs(cur_plane_h) if is_finite(cur_plane_h) else INF
+		if pred_abs >= GameState.MAX_WORLD_HEIGHT:
+			blocked_by_shadow = true
+			if pred_abs >= cur_abs:
+				velocity.x = 0.0
+				velocity.z = 0.0
+				terrain_h = last_terrain_h
+				target_y = terrain_h + scaled_camera_height + height_offset
 
-	if abs(check_y) >= GameState.MAX_WORLD_HEIGHT:
+	if blocked_by_shadow or abs(target_y) >= GameState.MAX_WORLD_HEIGHT:
 		GameState.height_protection_active = true
-		# If moving to a height that is greater in magnitude than our current/last height, block it
-		if not is_finite(last_check_y) or abs(check_y) >= abs(last_check_y):
-			velocity.x = 0.0
-			velocity.z = 0.0
-			terrain_h = last_terrain_h
+		if abs(target_y) >= GameState.MAX_WORLD_HEIGHT:
+			# If moving to a height that is greater in magnitude than our current/last height, block it
+			if abs(target_y) > abs(last_target_y):
+				velocity.x = 0.0
+				velocity.z = 0.0
+				terrain_h = last_terrain_h
 
-		# Ensure height_offset stays bounded by GameState.MAX_WORLD_HEIGHT impeding further offset
-		var max_allowed_offset = GameState.MAX_WORLD_HEIGHT - terrain_h - scaled_camera_height
-		var min_allowed_offset = - GameState.MAX_WORLD_HEIGHT - terrain_h - scaled_camera_height
+			# Ensure height_offset stays bounded by GameState.MAX_WORLD_HEIGHT impeding further offset
+			var max_allowed_offset = GameState.MAX_WORLD_HEIGHT - terrain_h - scaled_camera_height
+			var min_allowed_offset = - GameState.MAX_WORLD_HEIGHT - terrain_h - scaled_camera_height
 
-		if target_y > GameState.MAX_WORLD_HEIGHT:
-			height_offset = min(height_offset, max_allowed_offset)
-		elif target_y < -GameState.MAX_WORLD_HEIGHT:
-			height_offset = max(height_offset, min_allowed_offset)
+			if target_y > GameState.MAX_WORLD_HEIGHT:
+				height_offset = min(height_offset, max_allowed_offset)
+			elif target_y < -GameState.MAX_WORLD_HEIGHT:
+				height_offset = max(height_offset, min_allowed_offset)
 
-		target_y = clamp(terrain_h + scaled_camera_height + height_offset, -GameState.MAX_WORLD_HEIGHT, GameState.MAX_WORLD_HEIGHT)
+			target_y = clamp(terrain_h + scaled_camera_height + height_offset, -GameState.MAX_WORLD_HEIGHT, GameState.MAX_WORLD_HEIGHT)
 	else:
 		GameState.height_protection_active = false
 
@@ -641,7 +689,7 @@ func _physics_process(delta):
 
 			# Find the closest real and imaginary integer curves in the direction we are facing
 			var cam_dir = - camera.global_transform.basis.z
-			var step_size = Config.complex_to_world(0.1, 0.0).x
+			var step_size = Config.plane_complex_to_world(0.1, 0.0).x
 			var max_steps = 30
 			var re_found = false
 			var im_found = false
@@ -808,7 +856,7 @@ func _start_auto_walk_from_demo():
 	GameState.clear_zeros()
 	Config.show_hud_zeros = true
 	Config.show_critical_stripe = true
-	GameState.rvm_start_t = abs(Config.world_to_complex(0.0, global_position.z).y)
+	GameState.rvm_start_t = abs(Config.world_to_complex(global_position.x, global_position.z).y)
 
 func demo_actions_end():
 	_demo_y_final_reached = true

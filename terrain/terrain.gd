@@ -476,6 +476,22 @@ func _should_resolve_per_pixel(coord: Vector2i, max_lambda: float) -> bool:
 	return c_per_vert > Config.SPHERE_PER_PIXEL_THRESHOLD
 
 
+const CHUNK_HALF_DIAG_RATIO = 0.70710678 # sqrt(2) / 2
+
+# Computes Vector2(min_lambda, max_lambda) across a chunk without calling acos/cos per chunk,
+# using cos(theta +/- alpha) = dot_p * cos_ang -/+ sqrt(1 - dot_p^2) * sin_ang.
+func _compute_chunk_lambda_range(l_center: Vector3, pole_local: Vector3, r_sphere: float, cos_ang: float, sin_ang: float) -> Vector2:
+	var dot_p = clampf(l_center.dot(pole_local), -1.0, 1.0)
+	var sin_theta = sqrt(maxf(0.0, 1.0 - dot_p * dot_p))
+	# When theta <= chunk_ang, the south pole lies inside the chunk -> cos(theta_min) = 1.0.
+	var cos_t_min = 1.0 if dot_p >= cos_ang else minf(1.0, dot_p * cos_ang + sin_theta * sin_ang)
+	# When theta + chunk_ang >= PI, the antipode lies inside the chunk -> cos(theta_max) = -1.0.
+	var cos_t_max = -1.0 if dot_p <= -cos_ang else maxf(-1.0, dot_p * cos_ang - sin_theta * sin_ang)
+	var max_lam = 1.0 / (r_sphere * maxf(1.0 - cos_t_min, 1e-5))
+	var min_lam = 1.0 / (r_sphere * maxf(1.0 - cos_t_max, 1e-5))
+	return Vector2(min_lam, max_lam)
+
+
 func _update_sphere_chunk_flags(force: bool = false):
 	if not player:
 		return
@@ -489,6 +505,7 @@ func _update_sphere_chunk_flags(force: bool = false):
 				_chunk_per_pixel[coord] = false
 				chunks[coord].set_instance_shader_parameter("resolve_per_pixel", false)
 			_chunk_min_lambda[coord] = 0.0
+			_chunk_max_lambda.erase(coord)
 			var target_lod = _get_lod_level(coord, player_chunk)
 			if target_lod != _chunk_lods.get(coord, -1):
 				_update_chunk_lod(chunks[coord], target_lod, coord)
@@ -505,36 +522,24 @@ func _update_sphere_chunk_flags(force: bool = false):
 		return
 	_last_flag_pole = pole_local
 
-	var chunk_ang = (chunk_size * 0.7072) / r_sphere
-	var spacing_lod0 = chunk_size / float(LOD_SUBS[0] + 1) if not LOD_SUBS.is_empty() else 1.0
-	var min_lam_interest = minf(
-		Config.SPHERE_PER_PIXEL_THRESHOLD * Config.SPHERE_PER_PIXEL_HYSTERESIS / maxf(spacing_lod0, 1e-5),
-		Config.SPHERE_HEIGHT_FADE_END
-	)
-	var cos_cap = 1.0 - 1.0 / maxf(r_sphere * min_lam_interest, 0.5001)
-	var cos_fast_reject = cos(minf(acos(clampf(cos_cap, -1.0, 1.0)) + chunk_ang, PI))
+	var chunk_ang = minf((chunk_size * CHUNK_HALF_DIAG_RATIO) / r_sphere, PI)
+	var cos_ang = cos(chunk_ang)
+	var sin_ang = sin(chunk_ang)
 
 	for coord in chunks:
 		if _chunk_beyond_antipode.get(coord, false):
 			continue
 		var l_center: Vector3 = _chunk_unit_dir.get(coord, _compute_chunk_unit_dir(coord, r_sphere))
-		var dot_p = l_center.dot(pole_local)
-		var old_flag = _chunk_per_pixel.get(coord, false)
-		var old_min_lam = _chunk_min_lambda.get(coord, 0.0)
-		var theta = acos(clampf(dot_p, -1.0, 1.0))
-		var theta_min = maxf(0.0, theta - chunk_ang)
-		var max_lam = 1.0 / (r_sphere * maxf(1.0 - cos(theta_min), 1e-5))
+		var lam_range = _compute_chunk_lambda_range(l_center, pole_local, r_sphere, cos_ang, sin_ang)
+		var min_lam = lam_range.x
+		var max_lam = lam_range.y
+		_chunk_min_lambda[coord] = min_lam
 		_chunk_max_lambda[coord] = max_lam
 
-		var new_flag = false
-		var min_lam = 0.0
-		if dot_p >= cos_fast_reject or old_flag or old_min_lam > 0.0:
-			var theta_max = minf(PI, theta + chunk_ang)
-			min_lam = 1.0 / (r_sphere * maxf(1.0 - cos(theta_max), 1e-5))
-			new_flag = _should_resolve_per_pixel(coord, max_lam)
+		var old_flag = _chunk_per_pixel.get(coord, false)
+		var new_flag = _should_resolve_per_pixel(coord, max_lam)
 
 		var chunk = chunks[coord]
-		_chunk_min_lambda[coord] = min_lam
 		if new_flag != old_flag:
 			_chunk_per_pixel[coord] = new_flag
 			chunk.set_instance_shader_parameter("resolve_per_pixel", new_flag)
@@ -567,10 +572,14 @@ func _make_chunk_aabb(coord: Vector2i) -> AABB:
 	var hs = chunk_size * 0.5
 	var min_v = Vector3(INF, INF, INF)
 	var max_v = Vector3(-INF, -INF, -INF)
+	var min_dist = INF
+	var max_dist = 0.0
 	for ox in [-hs, hs]:
 		for oz in [-hs, hs]:
 			var c = Vector2(origin.x + ox, origin.z + oz)
 			var dist = c.length()
+			min_dist = minf(min_dist, dist)
+			max_dist = maxf(max_dist, dist)
 			var d = minf(dist / r_sphere, PI)
 			var l = Vector3(0.0, 1.0, 0.0)
 			if dist > 1e-6:
@@ -583,6 +592,17 @@ func _make_chunk_aabb(coord: Vector2i) -> AABB:
 				var p_max = l * r_max - sphere_center_offset
 				min_v = min_v.min(p_max)
 				max_v = max_v.max(p_max)
+	# If the chunk straddles the equator (d = PI/2), include the equator radial peak so tall
+	# mountains on small spheres (e.g. R = 10) aren't clipped by the 4-corner chord.
+	var eq_dist = PI * 0.5 * r_sphere
+	if r_max != r_min and min_dist < eq_dist and max_dist > eq_dist:
+		var c_dir = Vector2(origin.x, origin.z)
+		if c_dir.length_squared() > 1e-6:
+			c_dir = c_dir.normalized()
+			var l_eq = Vector3(c_dir.x, 0.0, c_dir.y)
+			var p_eq = l_eq * r_max - sphere_center_offset
+			min_v = min_v.min(p_eq)
+			max_v = max_v.max(p_eq)
 	var pad = Vector3.ONE * maxf(4.0, chunk_size * 0.35)
 	return AABB(min_v - pad, (max_v - min_v) + pad * 2.0)
 
@@ -603,13 +623,6 @@ func _refresh_sphere_chunk_geometry():
 			_chunk_beyond_antipode[coord] = false
 			chunk.visible = not GameState.performance_protection_active
 			chunk.custom_aabb = _make_chunk_aabb(coord)
-
-
-func _on_sphere_mode_changed():
-	_update_terrain_material_uniforms("function_type")
-	_update_sphere_uniforms()
-	_refresh_sphere_chunk_geometry()
-	_update_sphere_chunk_flags(true)
 
 
 func _update_terrain_material_uniforms(key: String):
@@ -713,13 +726,11 @@ func _load_chunk(coord: Vector2i):
 		_chunk_beyond_antipode[coord] = beyond
 		chunk.visible = (not GameState.performance_protection_active) and (not beyond)
 		var pole_local = GameState.sphere_basis.transposed() * Vector3(0.0, -1.0, 0.0)
-		var chunk_ang = (chunk_size * 0.7072) / r_sphere
-		var theta = acos(clampf(l_center.dot(pole_local), -1.0, 1.0))
-		var max_lam = 1.0 / (r_sphere * maxf(1.0 - cos(maxf(0.0, theta - chunk_ang)), 1e-5))
-		var min_lam = 1.0 / (r_sphere * maxf(1.0 - cos(minf(PI, theta + chunk_ang)), 1e-5))
-		_chunk_min_lambda[coord] = min_lam
-		_chunk_max_lambda[coord] = max_lam
-		_chunk_per_pixel[coord] = _should_resolve_per_pixel(coord, max_lam)
+		var chunk_ang = minf((chunk_size * CHUNK_HALF_DIAG_RATIO) / r_sphere, PI)
+		var lam_range = _compute_chunk_lambda_range(l_center, pole_local, r_sphere, cos(chunk_ang), sin(chunk_ang))
+		_chunk_min_lambda[coord] = lam_range.x
+		_chunk_max_lambda[coord] = lam_range.y
+		_chunk_per_pixel[coord] = _should_resolve_per_pixel(coord, lam_range.y)
 	else:
 		_chunk_beyond_antipode[coord] = false
 		_chunk_min_lambda.erase(coord)
@@ -789,9 +800,12 @@ func _unload_chunk(coord: Vector2i):
 
 func _on_config_changed(key: String):
 	if key in ["riemann_sphere_mode", "riemann_sphere_radius", "riemann_sphere_height"]:
-		_on_sphere_mode_changed()
+		_update_terrain_material_uniforms("function_type")
+		_update_sphere_uniforms()
 		if key == "riemann_sphere_mode" and player:
 			_update_chunks(floor(player.global_position.x / chunk_size), floor(player.global_position.z / chunk_size), true)
+		_refresh_sphere_chunk_geometry()
+		_update_sphere_chunk_flags(true)
 		return
 	if key in ["iterations", "terrain_detail", "view_distance", "show_curves", "show_critical_stripe", "show_flow", "show_position_marker", "color_scheme", "function_type", "input_function_type", "height_type", "height_a", "height_epsilon", "height_theta", "rational_num_coeffs", "rational_den_coeffs", "input_rational_num_coeffs", "input_rational_den_coeffs", "multivalued_n", "self_illumination", "terrain_brightness", "terrain_saturation", "terrain_albedo", "terrain_emission", "terrain_metallic", "terrain_roughness", "terrain_ao", "terrain_rim", "terrain_rim_tint", "morph_style", "morph_value", "fog_density", "morph_style"]:
 		_update_terrain_material_uniforms(key)

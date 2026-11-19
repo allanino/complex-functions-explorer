@@ -10,6 +10,7 @@ var view_radius: float = 50.0
 # Tracking state for optimization
 var _last_camera_yaw: float = 999.0
 var _last_fov_size: Vector2 = Vector2.ZERO
+var _last_view_radius: float = -1.0
 
 # Range Labels
 var range_labels_overlay: Control
@@ -112,14 +113,18 @@ func _format_coordinate(val: float) -> String:
 		return "%.3f" % mantissa + "e" + ("+" if exp_val >= 0 else "") + str(exp_val)
 	return "%.1f" % val
 
+func _get_effective_view_radius_for_z(z: Vector2) -> float:
+	if Config.riemann_sphere_mode:
+		var conformal_scale = 0.5 * (1.0 + minf(z.length_squared(), 1e6))
+		var r_base = maxf(Config.riemann_sphere_radius, 1.0)
+		return view_radius * (10.0 / r_base) * conformal_scale
+	return view_radius
+
 func _get_effective_view_radius() -> float:
 	if Config.riemann_sphere_mode:
 		var px = player.global_position.x if player else 0.0
 		var pz = player.global_position.z if player else 0.0
-		var z = Config.world_to_complex(px, pz)
-		var conformal_scale = 0.5 * (1.0 + minf(z.length_squared(), 1e6))
-		var r_base = maxf(Config.riemann_sphere_radius, 1.0)
-		return view_radius * (10.0 / r_base) * conformal_scale
+		return _get_effective_view_radius_for_z(Config.world_to_complex(px, pz))
 	return view_radius
 
 func _sync_all_uniforms():
@@ -201,6 +206,10 @@ func _on_config_changed(key: String):
 func _on_state_changed(key: String):
 	var mat = map_rect.material as ShaderMaterial
 	if not mat: return
+	if key == "sphere_basis" and Config.riemann_sphere_mode:
+		fov_overlay.queue_redraw()
+		return
+
 	if key == "current_branch" or key == "effective_zoom" or key == "morph_value":
 		mat.set_shader_parameter("current_branch", GameState.current_branch)
 		mat.set_shader_parameter("show_curves", Config.show_curves)
@@ -254,12 +263,22 @@ func _process(_delta):
 	if not player or not camera:
 		return
 
-	var eff_radius = _get_effective_view_radius()
-	var map_center = _get_map_center()
+	var map_center: Vector2
+	var eff_radius: float
+	if Config.riemann_sphere_mode:
+		var z = Config.world_to_complex(player.global_position.x, player.global_position.z)
+		map_center = Config.plane_complex_to_world(z.x, z.y)
+		eff_radius = _get_effective_view_radius_for_z(z)
+	else:
+		map_center = Vector2(player.global_position.x, player.global_position.z)
+		eff_radius = view_radius
+
 	var mat = map_rect.material as ShaderMaterial
 	if mat:
 		mat.set_shader_parameter("player_pos_world", map_center)
-		mat.set_shader_parameter("view_radius", eff_radius)
+		if eff_radius != _last_view_radius:
+			_last_view_radius = eff_radius
+			mat.set_shader_parameter("view_radius", eff_radius)
 
 	# Only redraw FOV overlay if camera yaw or overlay size changed
 	var current_yaw = camera.global_rotation.y
@@ -319,7 +338,7 @@ func _on_fov_overlay_draw():
 	var yaw = camera.global_rotation.y
 	var fov_rad = deg_to_rad(camera.fov)
 
-	var forward = Vector2(-sin(yaw), -cos(yaw))
+	var forward = _get_minimap_forward(yaw)
 
 	var left_angle = atan2(forward.y, forward.x) - fov_rad / 2.0
 	var right_angle = atan2(forward.y, forward.x) + fov_rad / 2.0
@@ -333,3 +352,18 @@ func _on_fov_overlay_draw():
 	fov_overlay.draw_polygon(points, colors)
 	fov_overlay.draw_line(center, p1, Color(1, 1, 1, 0.5), 1.0, true)
 	fov_overlay.draw_line(center, p2, Color(1, 1, 1, 0.5), 1.0, true)
+
+# Maps the camera's forward direction to the 2D minimap screen direction (+X = +Re, -Y = +Im).
+# On the Riemann Sphere, projects the local tangent vector through sphere_basis and the
+# stereographic differential so the FOV cone stays aligned even after curved walking (holonomy).
+func _get_minimap_forward(yaw: float) -> Vector2:
+	if not Config.riemann_sphere_mode:
+		return Vector2(-sin(yaw), -cos(yaw))
+	var f_local = Vector3(-sin(yaw), 0.0, -cos(yaw))
+	var u = GameState.sphere_basis.y
+	var du = GameState.sphere_basis * f_local
+	var w = maxf(1.0 + u.y, 1e-5)
+	var d_re = du.x * w - u.x * du.y
+	var d_im = -du.z * w + u.z * du.y
+	var v = Vector2(d_re, -d_im)
+	return v.normalized() if v.length_squared() > 1e-12 else Vector2(-sin(yaw), -cos(yaw))
