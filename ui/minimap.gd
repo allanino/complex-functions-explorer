@@ -134,7 +134,8 @@ func _get_effective_view_radius() -> float:
 func _sync_all_uniforms():
 	if map_rect.material:
 		var mat = map_rect.material as ShaderMaterial
-		mat.set_shader_parameter("view_radius", _get_effective_view_radius())
+		_last_view_radius = _get_effective_view_radius()
+		mat.set_shader_parameter("view_radius", _last_view_radius)
 		mat.set_shader_parameter("iterations", Config.iterations)
 		mat.set_shader_parameter("zoom_factor", GameState.effective_zoom)
 		mat.set_shader_parameter("function_type", Config.function_type)
@@ -211,7 +212,8 @@ func _on_state_changed(key: String):
 	var mat = map_rect.material as ShaderMaterial
 	if not mat: return
 	if key == "sphere_basis" and Config.riemann_sphere_mode:
-		fov_overlay.queue_redraw()
+		if is_visible_in_tree():
+			fov_overlay.queue_redraw()
 		return
 
 	if key == "current_branch" or key == "effective_zoom" or key == "morph_value":

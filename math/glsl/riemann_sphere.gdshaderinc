@@ -5,7 +5,7 @@
 // azimuthal-equidistant projection, rotated by sphere_basis into the inertial sphere frame and then
 // projected stereographically (from the south pole) to the complex plane:
 //   (0, 1, 0) -> z = 0,   (0, -1, 0) -> z = infinity,   Re = u.x / (1 + u.y),   Im = -u.z / (1 + u.y)
-// This mirrors Config.sphere_world_to_complex / GameState.sphere_unit_to_complex in GDScript.
+// This mirrors RiemannSphere in math/riemann_sphere.gd.
 
 uniform bool sphere_mode = false;
 uniform float sphere_radius = 50.0;   // effective radius in world units (already scaled by zoom)
@@ -63,15 +63,6 @@ vec3 sphere_chart_to_unit(vec2 c, float radius) {
     float d = r / radius;
     float a = (d < 1e-3) ? (1.0 - d * d / 6.0) / radius : sin(d) / r;
     return sphere_basis * vec3(c.x * a, cos(d), c.y * a);
-}
-
-// Fast chart-to-complex projection (without chart derivatives) for per-pixel evaluation.
-// Also returns local stereographic magnification lambda = |dz|/ds = 1 / (radius * w).
-vec2 sphere_chart_to_complex(vec2 c, float radius, out float out_lambda) {
-    vec3 u = sphere_chart_to_unit(c, radius);
-    float w = max(1.0 + u.y, 1e-5);
-    out_lambda = 1.0 / (radius * w);
-    return vec2(u.x, -u.z) / w;
 }
 
 // Stereographic projection. Also returns the gradients of Re and Im with respect to u.

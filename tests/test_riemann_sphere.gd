@@ -68,6 +68,21 @@ func test_mode_disables_multivalued():
 	assert_true(Config.is_multivalued_active())
 	Config.riemann_sphere_mode = true
 	assert_false(Config.is_multivalued_active())
+	assert_false(Config.function.get("is_multivalued", false))
+	assert_eq(Config.function_type, Config.ComplexFunc.ZETA_CONTINUATION)
+
+	# Selecting a multivalued function while in Riemann Sphere mode is blocked
+	Config.function_type = Config.ComplexFunc.MULTIVALUED_LOG
+	assert_eq(Config.function_type, Config.ComplexFunc.ZETA_CONTINUATION)
+
+func test_basis_at_complex_large_z_is_orthonormal():
+	for z in [Vector2(1e4, -2e4), Vector2(-1e8, 5e7)]:
+		var b = RiemannSphere.basis_at_complex(z)
+		assert_almost_eq(b.determinant(), 1.0, 1e-4)
+		assert_almost_eq(b.x.length(), 1.0, 1e-5)
+		assert_almost_eq(b.y.length(), 1.0, 1e-5)
+		assert_almost_eq(b.z.length(), 1.0, 1e-5)
+		assert_almost_eq(b.x.dot(b.y), 0.0, 1e-5)
 
 func test_world_to_complex_dispatch():
 	GameState.set_sphere_position(Vector2(1.0, 1.0))

@@ -699,19 +699,23 @@ func _load_chunk(coord: Vector2i):
 
 	var player_pos = player.global_position
 	var player_chunk_coord = Vector2i(floor(player_pos.x / chunk_size), floor(player_pos.z / chunk_size))
+	var beyond = false
 	if Config.riemann_sphere_mode:
 		var r_sphere = maxf(Config.get_sphere_radius(), 1.0)
 		var l_center = _compute_chunk_unit_dir(coord, r_sphere)
 		_chunk_unit_dir[coord] = l_center
-		var beyond = _is_chunk_beyond_antipode(coord, r_sphere)
+		beyond = _is_chunk_beyond_antipode(coord, r_sphere)
 		_chunk_beyond_antipode[coord] = beyond
 		chunk.visible = (not GameState.performance_protection_active) and (not beyond)
-		var pole_local = GameState.sphere_basis.transposed() * Vector3(0.0, -1.0, 0.0)
-		var chunk_ang = minf((chunk_size * CHUNK_HALF_DIAG_RATIO) / r_sphere, PI)
-		var lam_range = _compute_chunk_lambda_range(l_center, pole_local, r_sphere, cos(chunk_ang), sin(chunk_ang))
-		_chunk_min_lambda[coord] = lam_range.x
-		_chunk_max_lambda[coord] = lam_range.y
-		_chunk_per_pixel[coord] = _should_resolve_per_pixel(coord, lam_range.y)
+		if not beyond:
+			var pole_local = GameState.sphere_basis.transposed() * Vector3(0.0, -1.0, 0.0)
+			var chunk_ang = minf((chunk_size * CHUNK_HALF_DIAG_RATIO) / r_sphere, PI)
+			var lam_range = _compute_chunk_lambda_range(l_center, pole_local, r_sphere, cos(chunk_ang), sin(chunk_ang))
+			_chunk_min_lambda[coord] = lam_range.x
+			_chunk_max_lambda[coord] = lam_range.y
+			_chunk_per_pixel[coord] = _should_resolve_per_pixel(coord, lam_range.y)
+		else:
+			_chunk_per_pixel[coord] = false
 	else:
 		_chunk_beyond_antipode[coord] = false
 		_chunk_min_lambda.erase(coord)
@@ -729,7 +733,8 @@ func _load_chunk(coord: Vector2i):
 		coord.y * chunk_size + chunk_size * 0.5
 	)
 
-	chunk.custom_aabb = _make_chunk_aabb(coord)
+	if not beyond:
+		chunk.custom_aabb = _make_chunk_aabb(coord)
 
 func _update_chunk_lod(chunk: MeshInstance3D, lod: int, coord: Vector2i, force: bool = false):
 	var old_lod = _chunk_lods.get(coord, -1)

@@ -263,6 +263,8 @@ var iterations: int = 500:
 var function_iterations: Dictionary = {}
 var function_type: int = ComplexFunc.ZETA_CONTINUATION:
 	set(value):
+		if riemann_sphere_mode and FUNCTIONS.get(value, {}).get("is_multivalued", false):
+			return
 		function_iterations[function_type] = iterations
 		function_type = value
 		function = FUNCTIONS.get(function_type, {})
@@ -369,6 +371,8 @@ var riemann_sphere_mode: bool = false:
 	set(v):
 		if riemann_sphere_mode == v: return
 		riemann_sphere_mode = v
+		if riemann_sphere_mode and function.get("is_multivalued", false):
+			function_type = ComplexFunc.ZETA_CONTINUATION
 		config_changed.emit("riemann_sphere_mode")
 # Radius (in world units, before zoom) of the Riemann Sphere. Zoom scales this radius.
 var riemann_sphere_radius: float = 50.0:

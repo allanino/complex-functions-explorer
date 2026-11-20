@@ -247,11 +247,13 @@ func _ready():
 func _on_values_timer_timeout():
 	if player == null:
 		return
+	var x = player.global_position.x
 	var z = player.global_position.z
+	var complex_pos = Config.world_to_complex(x, z)
 
 	if Config.show_hud_zeros:
 		if Config.show_rvm and Config.function.get("has_von_mangoldt", false):
-			var T = abs(Config.world_to_complex(player.global_position.x, z).y)
+			var T = abs(complex_pos.y)
 			var rvm_val = _get_rvm_n(T) - _get_rvm_n(GameState.rvm_start_t)
 			rvm_val = max(0.0, rvm_val)
 			var delta_val = GameState.total_zeros_found - rvm_val
@@ -273,9 +275,7 @@ func _on_values_timer_timeout():
 		else:
 			rvm_hbox.visible = false
 
-	var x = player.global_position.x
 	var f = player.current_f
-	var complex_pos = Config.world_to_complex(x, z)
 
 	# Update phase wheel and domain/target Riemann spheres
 	phase_wheel.update_data(f)
@@ -304,7 +304,7 @@ func _on_values_timer_timeout():
 	var abs_text = _format_float(f.length())
 	phase_abs_val.text = abs_text
 	if phase_abs_val.has_meta("base_font_size"):
-		var base_fs = float(phase_abs_val.get_meta("base_font_size")) * _prev_hud_scale
+		var base_fs = float(phase_abs_val.get_meta("base_font_size")) * Config.hud_scale
 		var desired_fs = int(round(base_fs * (INF_FONT_SCALE if abs_text.contains("∞") else 1.0)))
 		if phase_abs_val.get_theme_font_size("font_size") != desired_fs:
 			phase_abs_val.add_theme_font_size_override("font_size", desired_fs)

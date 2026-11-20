@@ -23,16 +23,23 @@ static func unit_to_complex(u: Vector3) -> Vector2:
 	return Vector2(u.x / w, -u.z / w)
 
 # Constructs a local player-frame -> inertial-sphere-frame Basis at complex coordinate z,
-# keeping "+Re -> +X" and "+Im -> -Z".
+# keeping "+Re -> +X" and "+Im -> -Z". Uses the exact closed-form stereographic tangent
+# d/dx u(z) / |d/dx u(z)|, rescaled for |z| > 1 to avoid float overflow.
 static func basis_at_complex(z: Vector2) -> Basis:
 	var up = complex_to_unit(z)
-	var eps = 1e-4 * maxf(1.0, z.length())
-	var east = complex_to_unit(z + Vector2(eps, 0.0)) - complex_to_unit(z - Vector2(eps, 0.0))
-	east = east - up * east.dot(up)
-	if east.length_squared() < 1e-24:
-		east = Vector3(1.0, 0.0, 0.0)
-		east = east - up * east.dot(up)
-	east = east.normalized()
+	var r2 = z.length_squared()
+	var east: Vector3
+	if r2 <= 1.0:
+		var den = 1.0 + r2
+		east = Vector3(1.0 - z.x * z.x + z.y * z.y, -2.0 * z.x, 2.0 * z.x * z.y) / den
+	else:
+		var inv_r = 1.0 / sqrt(r2)
+		var ux = z.x * inv_r
+		var uy = z.y * inv_r
+		var inv_r2 = inv_r * inv_r
+		var den = 1.0 + inv_r2
+		east = Vector3(inv_r2 - ux * ux + uy * uy, -2.0 * ux * inv_r, 2.0 * ux * uy) / den
+	east = (east - up * east.dot(up)).normalized()
 	var back = east.cross(up).normalized()
 	return Basis(east, up, back)
 

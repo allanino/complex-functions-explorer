@@ -67,7 +67,7 @@ vec3 phase_to_color(float phase) {
 // Evaluates the surface color and alpha at unit point p on the HUD Riemann sphere.
 // Convention: (0, +1, 0) = infinity, (0, -1, 0) = 0, (1, 0, 0) = +1, (0, 0, -1) = +i.
 vec4 shade_sphere_point(vec3 p, vec3 rd, bool is_front, float px_size) {
-	float phase = atan(-p.z, p.x);
+	float phase = dot(p.xz, p.xz) > 1e-12 ? atan(-p.z, p.x) : 0.0;
 	vec3 p_col = phase_to_color(phase);
 
 	// Latitude tinting: dark near 0 (south pole), vivid on |w|=1 (equator), pale near infinity (north pole).
@@ -180,14 +180,14 @@ vec4 shade_sphere_point(vec3 p, vec3 rd, bool is_front, float px_size) {
 		}
 	}
 
-	// --- Current f(z) point marker ---
+	// --- Current point marker ---
 	if (has_valid_point) {
 		float d_pt = length(p - current_point);
 		float halo = exp(-d_pt * 9.0) * (is_front ? 0.55 : 0.22);
 		float outline = 1.0 - smoothstep(0.075, 0.075 + aa, d_pt);
 		float core = 1.0 - smoothstep(0.052, 0.052 + aa, d_pt);
 
-		float cur_phase = atan(-current_point.z, current_point.x);
+		float cur_phase = dot(current_point.xz, current_point.xz) > 1e-12 ? atan(-current_point.z, current_point.x) : 0.0;
 		vec3 cur_col = mix(phase_to_color(cur_phase), gold_bright, 0.45);
 
 		col += cur_col * halo;

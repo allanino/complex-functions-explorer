@@ -296,12 +296,21 @@ func _unhandled_input(event):
 		else:
 			rotation.y = 0.0
 		velocity = Vector3.ZERO
+		camera_push_offset = Vector3.ZERO
 		auto_walk_state = AutoWalkState.NONE
 		height_offset = 0.0
 		is_resetting_height = false
 		GameState.current_branch = 0
+		last_player_pos = global_position
+		_predicted_pos = Vector2.INF
 		current_f = ComplexField.get_field(global_position.x, global_position.z)
 		current_mag = current_f.length()
+		var reset_h = get_terrain_height(global_position.x, global_position.z, current_f, false)
+		if is_finite(reset_h):
+			last_terrain_h = reset_h
+			last_valid_terrain_height = reset_h
+		var reset_z = Config.world_to_complex(global_position.x, global_position.z)
+		_check_zeta_stability(reset_z.y)
 		GameState.is_teleporting = false
 
 	if event is InputEventKey and event.pressed and event.ctrl_pressed:

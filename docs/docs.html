@@ -224,7 +224,7 @@
                             To compute the Riemann zeta function accurately and rapidly, we also implement
                             <strong>Borwein's algorithm</strong>. This Chebyshev-accelerated alternating series provides
                             exponential convergence across the critical strip. We specifically use it in our C++ zero
-                            finder (`float64`) to refine candidate positions and lock onto non-trivial zeros on the
+                            finder (<code>float64</code>) to refine candidate positions and lock onto non-trivial zeros on the
                             critical line with high precision.
                         </p>
                     </div>
@@ -491,11 +491,19 @@
                             working both with and without radial height.
                         </li>
                         <li>
+                            <strong>Smooth pole caps &amp; overflow clamping:</strong> Unlike plane mode (where
+                            <code>NaN</code>/overflow regions display the green grid), Riemann Sphere mode clamps
+                            exponential overflow to \([-30, 30]\) and renders remaining singularities as a seamless
+                            neutral pole cap matching high-frequency Moiré suppression.
+                        </li>
+                        <li>
                             <strong>Domain &amp; Target Riemann Sphere HUD widgets:</strong> Available in both plane and
                             sphere modes under the <strong>UI</strong> tab, display interactive, draggable 3D Riemann
-                            spheres showing your current domain position \( z \) and live image \( w = f(z) \) (with
-                            \( 0 \) at the south pole, \( \infty \) at the north pole, and unit modulus on the equator)
-                            together with their recent trajectory trails.
+                            spheres (double-click to reset view) showing your current domain position \( z \) and live
+                            image \( w = f(z) \) together with their recent trajectory trails. Unlike the walkable
+                            terrain (which places \( z = 0 \) at the top apex), the HUD spheres use the textbook
+                            orientation with \( 0 \) at the south pole, \( \infty \) at the north pole, and unit modulus
+                            on the equator.
                         </li>
                     </ul>
 
@@ -511,8 +519,10 @@
                         </div>
                         <p>
                             Switching between the complex plane and the Riemann Sphere preserves your current complex
-                            coordinate \( z \). While in Riemann Sphere mode, multivalued branch portals and automated
-                            critical-line / Newton walks are disabled.
+                            coordinate \( z \) (falling back to the function's initial position if switching back to the
+                            plane from near \( \infty \) or an out-of-bounds pole). While in Riemann Sphere mode,
+                            multivalued functions (and branch portals), automated critical-line / Newton walks, the 3D
+                            critical-stripe overlay, and terrain morphing are disabled.
                         </p>
                     </aside>
                 </div>

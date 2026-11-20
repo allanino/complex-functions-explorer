@@ -14,8 +14,10 @@ const DEFAULT_CAM_PITCH := 0.36
 var target_point: Vector3 = Vector3(0.0, -1.0, 0.0)
 var display_point: Vector3 = Vector3(0.0, -1.0, 0.0)
 var has_valid_point: bool = true
+var _point_dirty: bool = true
 
 var _trail: Array[Vector3] = []
+var _trail_buffer: PackedVector3Array = PackedVector3Array()
 var _trail_dirty: bool = true
 
 var cam_yaw: float = DEFAULT_CAM_YAW
@@ -41,6 +43,8 @@ static func complex_to_unit(w: Vector2) -> Vector3:
 
 
 func _ready():
+	_trail_buffer.resize(MAX_TRAIL_POINTS)
+	_trail_buffer.fill(Vector3.ZERO)
 	Config.config_changed.connect(_on_config_changed)
 	GameState.state_changed.connect(_on_state_changed)
 	resized.connect(_on_resized)
@@ -57,6 +61,8 @@ func _notification(what):
 		set_process(vis)
 		if vis:
 			clear_trail()
+		else:
+			_dragging = false
 
 
 func _on_resized():
@@ -99,19 +105,21 @@ func _sync_point_uniforms():
 	var mat := color_rect.material as ShaderMaterial
 	mat.set_shader_parameter("current_point", display_point)
 	mat.set_shader_parameter("has_valid_point", has_valid_point)
+	_point_dirty = false
 
 
 func _sync_trail_uniforms():
 	if not color_rect or not color_rect.material:
 		return
 	var mat := color_rect.material as ShaderMaterial
-	var padded := PackedVector3Array()
-	padded.resize(MAX_TRAIL_POINTS)
-	padded.fill(Vector3.ZERO)
+	if _trail_buffer.size() != MAX_TRAIL_POINTS:
+		_trail_buffer.resize(MAX_TRAIL_POINTS)
 	var count: int = mini(_trail.size(), MAX_TRAIL_POINTS)
 	for i in range(count):
-		padded[i] = _trail[i]
-	mat.set_shader_parameter("trail", padded)
+		_trail_buffer[i] = _trail[i]
+	for i in range(count, MAX_TRAIL_POINTS):
+		_trail_buffer[i] = Vector3.ZERO
+	mat.set_shader_parameter("trail", _trail_buffer)
 	mat.set_shader_parameter("trail_count", count)
 	_trail_dirty = false
 
@@ -126,17 +134,22 @@ func clear_trail() -> void:
 func update_data(w: Vector2) -> void:
 	var u: Vector3 = complex_to_unit(w)
 	if u.length_squared() < 0.5:
-		has_valid_point = false
+		if has_valid_point:
+			has_valid_point = false
+			_point_dirty = true
 		return
 
 	var was_invalid: bool = not has_valid_point
 	has_valid_point = true
-	target_point = u
+	if was_invalid or target_point.distance_squared_to(u) > 1e-10:
+		target_point = u
+		_point_dirty = true
 	if was_invalid or _trail.is_empty():
 		display_point = u
 		_trail.clear()
 		_trail.append(u)
 		_trail_dirty = true
+		_point_dirty = true
 	elif _trail[_trail.size() - 1].distance_to(u) >= TRAIL_MIN_STEP:
 		_trail.append(u)
 		if _trail.size() > MAX_TRAIL_POINTS:
@@ -145,14 +158,16 @@ func update_data(w: Vector2) -> void:
 
 
 func _process(delta: float) -> void:
-	if has_valid_point:
+	if has_valid_point and display_point.distance_squared_to(target_point) > 1e-10:
 		var t: float = 1.0 - exp(-SMOOTH_SPEED * delta)
 		var blended: Vector3 = display_point.lerp(target_point, t)
 		if blended.length_squared() > 1e-6:
 			display_point = blended.normalized()
 		else:
 			display_point = target_point
-	_sync_point_uniforms()
+		_point_dirty = true
+	if _point_dirty:
+		_sync_point_uniforms()
 	if _trail_dirty:
 		_sync_trail_uniforms()
 

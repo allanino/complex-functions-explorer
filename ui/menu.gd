@@ -282,7 +282,7 @@ func _ready():
 	sphere_height_checkbox.toggled.connect(_on_sphere_height_toggled)
 	get_viewport().size_changed.connect(func(): emit_signal("update_hud_layout_signal"))
 
-	_populate_function_dropdown(func_button, false)
+	_populate_function_dropdown(func_button, Config.riemann_sphere_mode)
 	_populate_function_dropdown(input_button, true)
 
 	height_button.clear()
@@ -1114,6 +1114,10 @@ func _update_sphere_mode_dependent_ui():
 	var sphere_on = Config.riemann_sphere_mode
 	sphere_height_checkbox.visible = sphere_on
 	sphere_radius_slider.visible = sphere_on
+	_populate_function_dropdown(func_button, sphere_on)
+	var func_idx = func_button.get_item_index(Config.function_type)
+	if func_idx >= 0:
+		func_button.select(func_idx)
 	var f_data = Config.function
 	var is_dirichlet = f_data.get("is_dirichlet", false)
 	auto_walk_checkbox.visible = is_dirichlet and not sphere_on
@@ -1121,11 +1125,20 @@ func _update_sphere_mode_dependent_ui():
 	var is_multivalued = Config.is_multivalued_active()
 	branch_k_slider.visible = is_multivalued
 	multivalued_slider.visible = (Config.function_type == Config.ComplexFunc.MULTIVALUED_Z_POW) and not sphere_on
-	input_button.disabled = is_multivalued
+	if is_multivalued:
+		input_button.disabled = true
+		if Config.input_function_type != Config.ComplexFunc.IDENTITY:
+			input_button.select(input_button.get_item_index(Config.ComplexFunc.IDENTITY))
+			_on_input_selected(Config.ComplexFunc.IDENTITY)
+	else:
+		input_button.disabled = false
 
 func _on_riemann_sphere_toggled(pressed: bool):
+	var prev_func = Config.function_type
 	Config.riemann_sphere_mode = pressed
 	_update_sphere_mode_dependent_ui()
+	if Config.function_type != prev_func:
+		_on_func_selected(Config.function_type)
 
 func _on_sphere_height_toggled(pressed: bool):
 	Config.riemann_sphere_height = pressed
@@ -1408,7 +1421,7 @@ func _on_title_gui_input(event: InputEvent):
 		_title_click_timer = 1.0 # 1 second window to do the 3 clicks
 		if _title_clicks >= 3:
 			GameState.show_hidden_options = !GameState.show_hidden_options
-			_populate_function_dropdown(func_button, false)
+			_populate_function_dropdown(func_button, Config.riemann_sphere_mode)
 			_populate_function_dropdown(input_button, true)
 
 			var f_idx = func_button.get_item_index(current_submitted_func)
