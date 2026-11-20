@@ -25,7 +25,7 @@ Check the [web page](https://allanino.github.io/complex-functions-explorer/) and
 * Adjust function parameters and watch the landscape transform instantly.
 * Navigate between branches of multivalued functions through immersive portals.
 * Walk on the Riemann Sphere instead of the plane (Visualization tab), with adjustable radius and optional radial height.
-* Track the live image of $f(z)$ and its recent trail on an interactive 3D Target Riemann Sphere HUD widget (UI tab).
+* Track your position $z$ and the live image $f(z)$ with their recent trails on interactive 3D Domain and Target Riemann Sphere HUD widgets (UI tab).
 * Customize environment, colors and rendering options.
 
 <p align="center">

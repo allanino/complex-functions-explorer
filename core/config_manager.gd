@@ -232,6 +232,7 @@ const PRESET_KEYS = [
 	"zero_proximity_nav",
 	"show_minimap",
 	"show_minimap_range",
+	"show_hud_domain_sphere",
 	"show_hud_target_sphere",
 	"show_hud_phase_wheel",
 	"show_hud_navigation",
@@ -477,6 +478,11 @@ var show_minimap_range: bool = false:
 		if show_minimap_range == v: return
 		show_minimap_range = v
 		config_changed.emit("show_minimap_range")
+var show_hud_domain_sphere: bool = false:
+	set(v):
+		if show_hud_domain_sphere == v: return
+		show_hud_domain_sphere = v
+		config_changed.emit("show_hud_domain_sphere")
 var show_hud_target_sphere: bool = false:
 	set(v):
 		if show_hud_target_sphere == v: return
@@ -744,6 +750,7 @@ func save_settings():
 
 	config.set_value("ui", "show_minimap", show_minimap)
 	config.set_value("ui", "show_minimap_range", show_minimap_range)
+	config.set_value("ui", "show_hud_domain_sphere", show_hud_domain_sphere)
 	config.set_value("ui", "show_hud_target_sphere", show_hud_target_sphere)
 	config.set_value("ui", "show_hud_phase_wheel", show_hud_phase_wheel)
 	config.set_value("ui", "show_hud_navigation", show_hud_navigation)
@@ -838,6 +845,7 @@ func load_settings():
 
 	show_minimap = config.get_value("ui", "show_minimap", show_minimap)
 	show_minimap_range = config.get_value("ui", "show_minimap_range", show_minimap_range)
+	show_hud_domain_sphere = config.get_value("ui", "show_hud_domain_sphere", show_hud_domain_sphere)
 	show_hud_target_sphere = config.get_value("ui", "show_hud_target_sphere", show_hud_target_sphere)
 	show_hud_phase_wheel = config.get_value("ui", "show_hud_phase_wheel", show_hud_phase_wheel)
 	show_hud_navigation = config.get_value("ui", "show_hud_navigation", show_hud_navigation)

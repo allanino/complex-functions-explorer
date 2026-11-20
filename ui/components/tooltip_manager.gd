@@ -42,6 +42,7 @@ const DESCRIPTIONS = {
 	"Fog Density": "Adjust the thickness of the fog and aerial perspective.",
 	"Shadows": "Enable real-time directional shadows for terrain features.",
 	"Phase wheel": "Show the phase wheel for the argument of f(s).",
+	"Domain sphere": "Show a 3D domain Riemann sphere displaying your current position s and its recent trail.",
 	"Target sphere": "Show a 3D target Riemann sphere displaying the live image of f(s) and its recent trail.",
 	"Position": "Show coordinate and magnitude information for domain and target on the HUD.",
 	"Zeros detection": "Show the list of discovered zeros during walking.",

@@ -8,6 +8,8 @@ const NEON_FONT = preload("res://ui/theme/font_neon.tres")
 @onready var hud_stack_right = %MainUIStackRight
 @onready var minimap_panel = %MinimapPanel
 @onready var minimap = %MinimapAspect
+@onready var domain_sphere_panel = %DomainSpherePanel
+@onready var domain_sphere = %DomainSphereAspect
 @onready var target_sphere_panel = %TargetSpherePanel
 @onready var target_sphere = %TargetSphereAspect
 @onready var phase_wheel = %PhaseWheel
@@ -225,6 +227,7 @@ func _ready():
 
 	zeros_panel.visible = Config.show_hud_zeros
 	minimap_panel.visible = Config.show_minimap
+	domain_sphere_panel.visible = Config.show_hud_domain_sphere
 	target_sphere_panel.visible = Config.show_hud_target_sphere
 	phase_wheel.get_parent().visible = Config.show_hud_phase_wheel and Config.show_hud_navigation
 	phase_wheel.visible = Config.show_hud_phase_wheel and Config.show_hud_navigation
@@ -272,16 +275,18 @@ func _on_values_timer_timeout():
 
 	var x = player.global_position.x
 	var f = player.current_f
+	var complex_pos = Config.world_to_complex(x, z)
 
-	# Update phase wheel and target Riemann sphere
+	# Update phase wheel and domain/target Riemann spheres
 	phase_wheel.update_data(f)
+	if domain_sphere_panel.visible:
+		domain_sphere.update_data(complex_pos)
 	if target_sphere_panel.visible:
 		target_sphere.update_data(f)
 
 	if position_arg_val.visible:
 		update_arg_val(f)
 
-	var complex_pos = Config.world_to_complex(x, z)
 	var val_re = complex_pos.x
 	var val_im = complex_pos.y
 	var val_fx = f.x
@@ -655,7 +660,7 @@ var _cached_layout_assignment: Dictionary = {}
 func _update_hud_layout():
 	if not hud_columns: return
 
-	var cards = [minimap_panel, target_sphere_panel, position_panel, zeros_panel, monitor_panel]
+	var cards = [minimap_panel, domain_sphere_panel, target_sphere_panel, position_panel, zeros_panel, monitor_panel]
 
 	var actual_hud_scale = Config.hud_scale
 
@@ -771,7 +776,7 @@ func _rescale_card(card: Control, _scale: float):
 
 		if node is Control:
 			# Only scale custom minimum size for specific panels to maintain layout proportions
-			if node.name == "ComplexAspect" or node.name == "MinimapAspect" or node.name == "TargetSphereAspect" or node.name == "PhaseWheel":
+			if node.name == "ComplexAspect" or node.name == "MinimapAspect" or node.name == "DomainSphereAspect" or node.name == "TargetSphereAspect" or node.name == "PhaseWheel":
 				pass
 			elif node.name == "PositionPanel":
 				if not node.has_meta("base_min_size"):
@@ -863,6 +868,8 @@ func _on_config_changed(key: String):
 		position_panel.visible = Config.show_hud_navigation
 	if key == "show_minimap":
 		minimap_panel.visible = Config.show_minimap
+	if key == "show_hud_domain_sphere":
+		domain_sphere_panel.visible = Config.show_hud_domain_sphere
 	if key == "show_hud_target_sphere":
 		target_sphere_panel.visible = Config.show_hud_target_sphere
 	if key == "show_hud_zeros":
@@ -880,7 +887,7 @@ func _on_config_changed(key: String):
 		position_panel.update_minimum_size()
 		position_panel.queue_sort()
 
-	if key in ["function_type", "riemann_sphere_mode", "show_hud_navigation", "show_hud_phase_wheel", "show_minimap", "show_hud_target_sphere", "show_hud_zeros", "show_hud_monitor_fps", "show_hud_chunks"]:
+	if key in ["function_type", "riemann_sphere_mode", "show_hud_navigation", "show_hud_phase_wheel", "show_minimap", "show_hud_domain_sphere", "show_hud_target_sphere", "show_hud_zeros", "show_hud_monitor_fps", "show_hud_chunks"]:
 		_update_hud_layout()
 
 	if key == "zoom_factor":

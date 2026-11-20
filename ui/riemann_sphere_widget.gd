@@ -1,9 +1,11 @@
-class_name TargetSphere
+class_name RiemannSphereWidget
 extends AspectRatioContainer
+
+@export var clear_trail_on_function_change: bool = true
 
 @onready var color_rect: ColorRect = %ColorRect
 
-const MAX_TRAIL_POINTS := 32
+const MAX_TRAIL_POINTS := 64
 const TRAIL_MIN_STEP := 0.035
 const SMOOTH_SPEED := 18.0
 const DEFAULT_CAM_YAW := 0.55
@@ -21,12 +23,12 @@ var cam_pitch: float = DEFAULT_CAM_PITCH
 var _dragging: bool = false
 
 
-# Maps a complex target value w = f(z) onto the unit target Riemann sphere:
+# Maps a complex value w onto the unit HUD Riemann sphere:
 #   w = 0        -> (0, -1, 0)  (south pole)
 #   w = infinity -> (0, +1, 0)  (north pole)
 #   |w| = 1      -> equator (y = 0), with +1 -> +X and +i -> -Z.
 # Returns Vector3.ZERO if w contains NaN.
-static func complex_to_target_unit(w: Vector2) -> Vector3:
+static func complex_to_unit(w: Vector2) -> Vector3:
 	if is_nan(w.x) or is_nan(w.y):
 		return Vector3.ZERO
 	if is_inf(w.x) or is_inf(w.y):
@@ -65,12 +67,12 @@ func _on_resized():
 func _on_config_changed(key: String):
 	if key in ["color_scheme", "terrain_brightness", "terrain_saturation"]:
 		_update_material_config()
-	elif key in ["function_type", "input_function_type", "rational_num_coeffs", "rational_den_coeffs", "input_rational_num_coeffs", "input_rational_den_coeffs", "riemann_sphere_mode"]:
+	elif key == "riemann_sphere_mode" or (clear_trail_on_function_change and key in ["function_type", "input_function_type", "rational_num_coeffs", "rational_den_coeffs", "input_rational_num_coeffs", "input_rational_den_coeffs"]):
 		clear_trail()
 
 
 func _on_state_changed(key: String):
-	if (key == "is_teleporting" and GameState.is_teleporting) or key == "current_branch":
+	if (key == "is_teleporting" and GameState.is_teleporting) or (clear_trail_on_function_change and key == "current_branch"):
 		clear_trail()
 
 
@@ -121,8 +123,8 @@ func clear_trail() -> void:
 		_sync_trail_uniforms()
 
 
-func update_data(f: Vector2) -> void:
-	var u: Vector3 = complex_to_target_unit(f)
+func update_data(w: Vector2) -> void:
+	var u: Vector3 = complex_to_unit(w)
 	if u.length_squared() < 0.5:
 		has_valid_point = false
 		return
@@ -170,4 +172,3 @@ func _gui_input(event: InputEvent) -> void:
 		cam_pitch = clampf(cam_pitch + event.relative.y * 0.012, -1.35, 1.35)
 		_sync_camera_uniforms()
 		accept_event()
-

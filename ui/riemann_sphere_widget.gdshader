@@ -5,7 +5,7 @@ shader_type canvas_item;
 uniform vec3 current_point = vec3(0.0, -1.0, 0.0);
 uniform bool has_valid_point = true;
 
-uniform vec3 trail[32];
+uniform vec3 trail[64];
 uniform int trail_count = 0;
 
 uniform float cam_yaw = 0.55;
@@ -64,7 +64,7 @@ vec3 phase_to_color(float phase) {
 	return base;
 }
 
-// Evaluates the surface color and alpha at unit point p on the target Riemann sphere.
+// Evaluates the surface color and alpha at unit point p on the HUD Riemann sphere.
 // Convention: (0, +1, 0) = infinity, (0, -1, 0) = 0, (1, 0, 0) = +1, (0, 0, -1) = +i.
 vec4 shade_sphere_point(vec3 p, vec3 rd, bool is_front, float px_size) {
 	float phase = atan(-p.z, p.x);
@@ -152,7 +152,7 @@ vec4 shade_sphere_point(vec3 p, vec3 rd, bool is_front, float px_size) {
 	if (trail_count >= 2) {
 		float trail_mask = 0.0;
 		float trail_age = 0.0;
-		int segs = min(trail_count - 1, 31);
+		int segs = min(trail_count - 1, 63);
 		for (int i = 0; i < segs; i++) {
 			vec3 a = trail[i];
 			vec3 b = trail[i + 1];

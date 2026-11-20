@@ -1102,6 +1102,12 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "Minimap range"
 
+[node name="HudDomainSphereCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/UI/Margin/VBox" instance=ExtResource("3_checkbox")]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Domain sphere"
+
 [node name="HudTargetSphereCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/UI/Margin/VBox" instance=ExtResource("3_checkbox")]
 unique_name_in_owner = true
 layout_mode = 2
