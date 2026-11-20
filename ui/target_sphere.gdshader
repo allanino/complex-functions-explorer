@@ -14,8 +14,6 @@ uniform float cam_pitch = 0.36;
 uniform int color_scheme = 0;
 uniform float brightness : hint_range(0.0, 2.0) = 1.0;
 uniform float saturation : hint_range(0.3, 1.0) = 0.85;
-uniform float albedo : hint_range(0.0, 1.0) = 0.15;
-uniform float emission : hint_range(0.0, 1.0) = 0.1;
 
 // Shortest distance from ray (ro + t * rd, t >= 0) to 3D line segment [a, b],
 // also returning the ray parameter t_ray at closest approach.

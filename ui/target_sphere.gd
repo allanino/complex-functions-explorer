@@ -51,7 +51,10 @@ func _ready():
 
 func _notification(what):
 	if what == NOTIFICATION_VISIBILITY_CHANGED:
-		set_process(is_visible_in_tree())
+		var vis := is_visible_in_tree()
+		set_process(vis)
+		if vis:
+			clear_trail()
 
 
 func _on_resized():
@@ -60,14 +63,14 @@ func _on_resized():
 
 
 func _on_config_changed(key: String):
-	if key in ["color_scheme", "terrain_brightness", "terrain_saturation", "terrain_albedo", "terrain_emission"]:
+	if key in ["color_scheme", "terrain_brightness", "terrain_saturation"]:
 		_update_material_config()
-	elif key in ["function_type", "input_function_type", "rational_num_coeffs", "rational_den_coeffs", "input_rational_num_coeffs", "input_rational_den_coeffs"]:
+	elif key in ["function_type", "input_function_type", "rational_num_coeffs", "rational_den_coeffs", "input_rational_num_coeffs", "input_rational_den_coeffs", "riemann_sphere_mode"]:
 		clear_trail()
 
 
 func _on_state_changed(key: String):
-	if key == "is_teleporting" and GameState.is_teleporting:
+	if (key == "is_teleporting" and GameState.is_teleporting) or key == "current_branch":
 		clear_trail()
 
 
@@ -78,8 +81,6 @@ func _update_material_config():
 	mat.set_shader_parameter("color_scheme", Config.color_scheme)
 	mat.set_shader_parameter("brightness", Config.terrain_brightness)
 	mat.set_shader_parameter("saturation", Config.terrain_saturation)
-	mat.set_shader_parameter("albedo", Config.terrain_albedo)
-	mat.set_shader_parameter("emission", Config.terrain_emission)
 
 
 func _sync_camera_uniforms():
@@ -163,8 +164,10 @@ func _gui_input(event: InputEvent) -> void:
 			_dragging = false
 		else:
 			_dragging = event.pressed
+		accept_event()
 	elif event is InputEventMouseMotion and _dragging:
 		cam_yaw -= event.relative.x * 0.012
 		cam_pitch = clampf(cam_pitch + event.relative.y * 0.012, -1.35, 1.35)
 		_sync_camera_uniforms()
+		accept_event()
 

@@ -796,7 +796,7 @@ void fragment() {
     vec2 chart_fw = fwidth(v_chart);
 
     // resolve_per_pixel is an instance uniform (constant per draw call), so derivatives stay valid.
-    if (resolve_per_pixel && !performance_protection_active) {
+    if (sphere_mode && resolve_per_pixel && !performance_protection_active) {
         sphere_u = sphere_chart_to_unit(v_chart, sphere_radius);
         has_sphere_u = true;
         vec3 dre_du;
@@ -827,7 +827,9 @@ void fragment() {
             float log_deriv = (f_len > 1e-30) ? (dx_len / f_len) : 1e6;
             analytic_phase_change = log_deriv * frag_lambda * length(chart_fw);
             if (show_flow) {
-                sphere_flow_grad = sphere_downhill_grad_u(sphere_u, dre_du, dim_du, ffd, hc, sphere_radius);
+                bool deriv_invalid = any(isnan(ffd.dx)) || any(isinf(ffd.dx)) ||
+                        any(isnan(ffd.dy)) || any(isinf(ffd.dy));
+                sphere_flow_grad = deriv_invalid ? vec3(0.0) : sphere_downhill_grad_u(sphere_u, dre_du, dim_du, ffd, hc, sphere_radius);
             }
         }
     }
@@ -842,8 +844,9 @@ void fragment() {
         METALLIC = 0.0;
     } else if (nan_flag > 0.5) {
         if (sphere_mode) {
-            // Seamless neutral pole cap matching moire_suppression at high phase frequency.
-            vec3 pole_base = vec3(0.5) * brightness * 0.5;
+            // Seamless neutral pole cap matching moire_suppression = 1.0 (eff_bri = 0.75 * brightness).
+            float pole_bri = brightness * 0.75;
+            vec3 pole_base = vec3(color_scheme == 2 ? 0.5 : 1.0) * pole_bri;
             ALBEDO = pole_base * albedo;
             vec3 pole_em = pole_base * emission;
             if (self_illumination > 0.0) {

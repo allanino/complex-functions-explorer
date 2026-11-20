@@ -254,15 +254,6 @@ func _on_state_changed(key: String):
 			mat.set_shader_parameter("newton_path_size", 0)
 
 
-# Center of the minimap in flat-plane world units. On the Riemann Sphere the minimap shows the
-# stereographic chart of the complex plane centered on the player's current complex position.
-func _get_map_center() -> Vector2:
-	if Config.riemann_sphere_mode:
-		var z = Config.world_to_complex(player.global_position.x, player.global_position.z)
-		return Config.plane_complex_to_world(z.x, z.y)
-	return Vector2(player.global_position.x, player.global_position.z)
-
-
 func _process(_delta):
 	if not player or not camera:
 		return

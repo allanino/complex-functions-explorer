@@ -1,4 +1,4 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://ui/target_sphere.gd" id="1_ts_script"]
 [ext_resource type="Shader" path="res://ui/target_sphere.gdshader" id="2_ts_shader"]
@@ -14,8 +14,6 @@ shader_parameter/cam_pitch = 0.36
 shader_parameter/color_scheme = 0
 shader_parameter/brightness = 1.0
 shader_parameter/saturation = 0.85
-shader_parameter/albedo = 0.15
-shader_parameter/emission = 0.1
 
 [node name="TargetSphere" type="AspectRatioContainer"]
 custom_minimum_size = Vector2(0, 240)

@@ -151,7 +151,10 @@ func _ready():
 	current_mag = current_f.length()
 	
 	last_player_pos = global_position
-	last_terrain_h = ComplexField.get_height_from_field(current_f)
+	var init_h = get_terrain_height(global_position.x, global_position.z, current_f)
+	if is_finite(init_h):
+		last_terrain_h = init_h
+		last_valid_terrain_height = init_h
 	
 	re_label = Label3D.new()
 	re_label.text = "Re"
@@ -284,6 +287,7 @@ func _unhandled_input(event):
 			auto_walk_state = AutoWalkState.NONE
 
 	elif event.is_action_pressed("reset_player"):
+		GameState.is_teleporting = true
 		global_position = get_initial_position()
 		if Config.riemann_sphere_mode:
 			_place_on_sphere_at_initial_position()
@@ -298,6 +302,7 @@ func _unhandled_input(event):
 		GameState.current_branch = 0
 		current_f = ComplexField.get_field(global_position.x, global_position.z)
 		current_mag = current_f.length()
+		GameState.is_teleporting = false
 
 	if event is InputEventKey and event.pressed and event.ctrl_pressed:
 		if event.keycode == KEY_G:
@@ -324,10 +329,6 @@ func get_terrain_height(x: float, z: float, field_val: Vector2 = Vector2.INF, ap
 
 func _sphere_surface_height(x: float, z: float, radial_h: float, apply_curvature: bool = true) -> float:
 	return RiemannSphere.surface_y(x, z, radial_h, GameState.sphere_basis, Config.get_sphere_radius(), apply_curvature)
-
-func get_plane_height(x: float, z: float, field_val: Vector2 = Vector2.INF) -> float:
-	var f = field_val if field_val != Vector2.INF else ComplexField.get_field(x, z)
-	return ComplexField.get_height_from_field(f, Config.world_to_complex(x, z))
 
 func _apply_camera_rotation(input_vec: Vector2, sensitivity_mult: float = 1.0) -> void:
 	if auto_walk_state == AutoWalkState.NONE or auto_walk_state == AutoWalkState.WALKING:
@@ -379,11 +380,23 @@ func _on_config_changed(key: String) -> void:
 		global_position.x = 0.0
 		global_position.z = 0.0
 	else:
-		# Sphere -> plane: walk back to the complex number under our feet.
+		# Sphere -> plane: walk back to the complex number under our feet, falling back to the
+		# initial position if we were near infinity or over an out-of-bounds pole.
 		var z = Config.sphere_world_to_complex(0.0, 0.0)
 		var p = Config.plane_complex_to_world(z.x, z.y)
-		global_position.x = p.x
-		global_position.z = p.y
+		const MAX_PLANE_COORD := 1e7
+		var valid_plane_pos = is_finite(p.x) and is_finite(p.y) and abs(p.x) <= MAX_PLANE_COORD and abs(p.y) <= MAX_PLANE_COORD
+		if valid_plane_pos:
+			var plane_h = get_terrain_height(p.x, p.y)
+			valid_plane_pos = is_finite(plane_h) and abs(plane_h) < GameState.MAX_WORLD_HEIGHT
+		if valid_plane_pos:
+			global_position.x = p.x
+			global_position.z = p.y
+		else:
+			GameState.out_of_bounds_teleport_active = true
+			global_position = get_initial_position()
+			if not Config.function.get("is_dirichlet", false) and not Config.function.has("initial_pos"):
+				rotation.y = - PI / 2.0
 	last_player_pos = global_position
 	current_f = ComplexField.get_field(global_position.x, global_position.z)
 	current_mag = current_f.length()

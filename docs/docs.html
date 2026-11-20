@@ -351,7 +351,8 @@
                     <div class="eyebrow">Function · 02.4</div>
                     <h3>The Mandelbrot function</h3>
                     <p>
-                        The explorer visualizes the <strong>Mandelbrot set</strong> by iterating the quadratic recurrence
+                        The explorer visualizes the <strong>Mandelbrot set</strong> by iterating the quadratic
+                        recurrence
                         \( z_{n+1} = z_n^2 + c \) starting at \( z_0 = 0 \), where \( c \) is the coordinate in the
                         complex plane. The <code>iterations</code> parameter controls the recursion depth.
                     </p>
@@ -421,28 +422,34 @@
 
                     <div class="math-block">
                         \[ d = \min\!\left(\frac{\|\mathbf{c}\|}{R},\,\pi\right), \qquad
-                        \mathbf{l}(\mathbf{c}) = \left(\frac{x}{\|\mathbf{c}\|}\sin d,\;\cos d,\;\frac{z}{\|\mathbf{c}\|}\sin d\right) \]
+                        \mathbf{l}(\mathbf{c}) = \left(\frac{x}{\|\mathbf{c}\|}\sin d,\;\cos
+                        d,\;\frac{z}{\|\mathbf{c}\|}\sin d\right) \]
                     </div>
 
                     <p>
                         Rotating into the inertial sphere frame gives \( \mathbf{u} = \mathbf{B}\mathbf{l} \), where
                         the north pole \((0, 1, 0)\) represents \( z = 0 \) and the south pole \((0, -1, 0)\)
                         represents \( z = \infty \). <strong>Stereographic projection</strong> from the south pole
-                        maps \( \mathbf{u} = (u_x, u_y, u_z) \) to the complex coordinate \( z = \operatorname{Re}(z) + i\operatorname{Im}(z) \):
+                        maps \( \mathbf{u} = (u_x, u_y, u_z) \) to the complex coordinate \( z = \operatorname{Re}(z) +
+                        i\operatorname{Im}(z) \):
                     </p>
 
                     <div class="math-block">
                         \[ z(\mathbf{u}) = \frac{u_x - i\,u_z}{1 + u_y}, \qquad
-                        \mathbf{u}(z) = \frac{1}{1 + |z|^2}\bigl(2\operatorname{Re}(z),\; 1 - |z|^2,\; -2\operatorname{Im}(z)\bigr) \]
+                        \mathbf{u}(z) = \frac{1}{1 + |z|^2}\bigl(2\operatorname{Re}(z),\; 1 - |z|^2,\;
+                        -2\operatorname{Im}(z)\bigr) \]
                     </div>
 
                     <p>
-                        When <strong>Sphere height</strong> is enabled, the surface is displaced radially outward along
-                        \( \mathbf{l} \) by the function height \( h(z) \):
+                        When <strong>Sphere height</strong> is enabled, the raw function height \( h(z) \) is smoothly
+                        compressed via \( h_{\text{comp}}(z) = h_{\max}\tanh\!\bigl(h(z) / h_{\max}\bigr) \) with
+                        \( h_{\max} = 0.45\,R \) (preserving 1:1 heights for small values while keeping poles and deep
+                        valleys finite and continuous), and displaced radially outward along \( \mathbf{l} \):
                     </p>
 
                     <div class="math-block">
-                        \[ \mathbf{p}(\mathbf{c}) = (R + h)\,\mathbf{l}(\mathbf{c}) - (0, R, 0) \]
+                        \[ \mathbf{p}(\mathbf{c}) = \bigl(R + h_{\text{comp}}\cdot
+                        w_{\text{fade}}(\lambda)\bigr)\,\mathbf{l}(\mathbf{c}) - (0, R, 0) \]
                     </div>
                 </div>
 
@@ -477,9 +484,18 @@
                         <li>
                             <strong>Conformal minimap &amp; Flow:</strong> The minimap expands its view radius
                             proportionally to \( (1 + |z|^2)/2 \) and transforms the camera heading through the
-                            stereographic differential so it stays aligned after curved walking. The <strong>Flow</strong>
-                            overlay uses inertial cube-sphere UVs and the true tangent downhill gradient \( -\nabla h \),
+                            stereographic differential so it stays aligned after curved walking. The
+                            <strong>Flow</strong>
+                            overlay uses inertial cube-sphere UVs and the true tangent downhill gradient \( -\nabla h
+                            \),
                             working both with and without radial height.
+                        </li>
+                        <li>
+                            <strong>Target Riemann Sphere HUD widget:</strong> Available in both plane and sphere modes
+                            under
+                            the <strong>UI</strong> tab, displays an interactive, draggable 3D Riemann sphere showing
+                            the live image \( w = f(z) \) (with \( 0 \) at the south pole, \( \infty \) at the north
+                            pole, and \( |w| = 1 \) on the equator) together with its recent trajectory trail.
                         </li>
                     </ul>
 

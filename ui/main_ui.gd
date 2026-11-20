@@ -188,7 +188,6 @@ func _ready():
 	phase_wheel.resized.connect(_on_complex_aspect_resized)
 
 	minimap.resized.connect(_on_minimap_resized)
-	target_sphere.resized.connect(_on_target_sphere_resized)
 
 	hud_columns.offset_top = -1000
 
@@ -595,10 +594,6 @@ func _on_minimap_resized():
 	if minimap.custom_minimum_size.y != minimap.size.x:
 		minimap.custom_minimum_size.y = minimap.size.x
 
-func _on_target_sphere_resized():
-	if target_sphere.custom_minimum_size.y != target_sphere.size.x:
-		target_sphere.custom_minimum_size.y = target_sphere.size.x
-
 func apply_aa():
 	var vp = get_viewport()
 	# Reset both
@@ -690,7 +685,7 @@ func _update_hud_layout():
 		"show_rvm": Config.show_rvm and f_data.get("has_von_mangoldt", false),
 		"show_fps": Config.show_hud_monitor_fps,
 		"show_chunks": show_hud_chunks,
-		"is_multivalued": f_data.get("is_multivalued", false),
+		"is_multivalued": Config.is_multivalued_active(),
 	}
 
 	if current_state.hash() == _last_hud_state.hash():
@@ -885,7 +880,7 @@ func _on_config_changed(key: String):
 		position_panel.update_minimum_size()
 		position_panel.queue_sort()
 
-	if key in ["function_type", "show_hud_navigation", "show_hud_phase_wheel", "show_minimap", "show_hud_target_sphere", "show_hud_zeros", "show_hud_monitor_fps", "show_hud_chunks"]:
+	if key in ["function_type", "riemann_sphere_mode", "show_hud_navigation", "show_hud_phase_wheel", "show_minimap", "show_hud_target_sphere", "show_hud_zeros", "show_hud_monitor_fps", "show_hud_chunks"]:
 		_update_hud_layout()
 
 	if key == "zoom_factor":

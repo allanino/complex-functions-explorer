@@ -811,7 +811,8 @@ func _on_state_changed(key: String):
 		return
 	if key == "effective_zoom" and Config.riemann_sphere_mode:
 		var r_sphere = maxf(Config.get_sphere_radius(), 1.0)
-		terrain_material.set_shader_parameter("sphere_radius", r_sphere)
+		if terrain_material:
+			terrain_material.set_shader_parameter("sphere_radius", r_sphere)
 		var zoom_done = is_equal_approx(GameState.effective_zoom, float(Config.zoom_factor))
 		if zoom_done or _last_geom_radius <= 0.0 or abs(r_sphere - _last_geom_radius) / _last_geom_radius >= 0.2:
 			_sphere_geom_dirty = true

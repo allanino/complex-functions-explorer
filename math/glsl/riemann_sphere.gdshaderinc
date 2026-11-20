@@ -9,7 +9,7 @@
 
 uniform bool sphere_mode = false;
 uniform float sphere_radius = 50.0;   // effective radius in world units (already scaled by zoom)
-uniform bool sphere_height = true;    // radial displacement by the function height
+uniform bool sphere_height = false;   // radial displacement by the function height
 uniform mat3 sphere_basis;            // local player frame -> inertial sphere frame
 
 // Stereographic magnification thresholds (complex units per world unit) for fading radial height
@@ -133,6 +133,10 @@ float sphere_height_fade_deriv(float lambda) {
 // Preserves 1:1 heights for |h| << h_max while keeping poles and deep valleys continuous and finite.
 float sphere_compress_height(float h, float radius, out float dcomp_dh) {
     float h_max = max(SPHERE_MAX_HEIGHT_RATIO * radius, 1e-5);
+    if (isnan(h)) {
+        dcomp_dh = 0.0;
+        return h_max;
+    }
     float t = tanh(clamp(h / h_max, -20.0, 20.0));
     dcomp_dh = 1.0 - t * t;
     return h_max * t;
@@ -168,8 +172,9 @@ void compute_sphere_surface(vec2 c, bool skip_field_if_flat, bool need_flow_grad
     vec2 zc = sphere_unit_to_complex(u, dre_du, dim_du);
 
     ComplexFieldData fd = get_field_with_derivatives_complex(zc.x, zc.y, 0);
-    invalid = any(isnan(fd.value)) || any(isinf(fd.value)) ||
-            any(isnan(fd.dx)) || any(isinf(fd.dx));
+    invalid = any(isnan(fd.value)) || any(isinf(fd.value));
+    bool deriv_invalid = any(isnan(fd.dx)) || any(isinf(fd.dx)) ||
+            any(isnan(fd.dy)) || any(isinf(fd.dy));
 
     float h = 0.0;
     float h_comp = 0.0;
@@ -181,11 +186,11 @@ void compute_sphere_surface(vec2 c, bool skip_field_if_flat, bool need_flow_grad
         float h_raw = get_complex_height(fd.value, fd.value, hc);
         h_clamped_out = hc;
         h_func_out = h_raw * zoom_factor;
-        if (h_fade > 0.0 || need_flow_grad) {
+        if (!deriv_invalid && (h_fade > 0.0 || need_flow_grad)) {
             vec2 dh_w = get_complex_height_derivatives(fd.value, fd.value, vec2(0.0), fd.dx, fd.dy, 1.0, hc, 0);
             dh = zoom_factor * vec2(dh_w.x * 10.0, -dh_w.y * 10.0);
         }
-        if (need_flow_grad) {
+        if (need_flow_grad && !deriv_invalid) {
             vec3 gu = (dh.x * dre_du + dh.y * dim_du) / max(radius, 1e-5);
             gu -= u * dot(gu, u);
             flow_grad_u = -gu;

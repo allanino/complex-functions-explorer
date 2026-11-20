@@ -110,12 +110,9 @@ func test_sphere_height_disabled_follows_sphere_surface():
 	var expected_y = 50.0 * (cos(dist / 50.0) - 1.0)
 	assert_almost_eq(player.get_terrain_height(dist, 0.0, f_val), expected_y, 1e-4)
 
-	# get_terrain_height stays on the smooth sphere even for INF/NAN, while get_plane_height
-	# returns the complex-plane function height so the shadow area (> MAX_WORLD_HEIGHT) is still detected.
+	# get_terrain_height stays on the smooth sphere even for INF/NAN.
 	assert_almost_eq(player.get_terrain_height(0.0, 0.0, Vector2(INF, INF)), 0.0, 1e-5)
 	assert_almost_eq(player.get_terrain_height(dist, 0.0, Vector2(NAN, NAN)), expected_y, 1e-4)
-	assert_almost_eq(player.get_plane_height(0.0, 0.0, f_val), 5.0, 1e-4)
-	assert_gt(player.get_plane_height(0.0, 0.0, Vector2(2000.0, 0.0)), GameState.MAX_WORLD_HEIGHT)
 
 func test_minimap_view_radius_scales_with_stereographic_factor():
 	var minimap_scene := load("res://ui/minimap.tscn") as PackedScene
@@ -358,8 +355,60 @@ func test_target_sphere_hud_toggle_and_preset_key():
 	Config.delete_preset("TargetSphereTestPreset")
 	Config.apply_preset(orig_preset.trim_suffix("*"))
 
+func test_sphere_to_plane_near_infinity_falls_back_to_initial_position():
+	Config.riemann_sphere_mode = true
+	Config.riemann_sphere_radius = 50.0
+	Config.function_type = Config.ComplexFunc.ZETA_CONTINUATION
+	GameState.effective_zoom = 1.0
 
+	var player_scene := load("res://player/player.tscn") as PackedScene
+	var player = autofree(player_scene.instantiate())
+	add_child_autofree(player)
 
+	# Stand right at the south pole (z -> infinity)
+	GameState.sphere_basis = Basis(Vector3(1, 0, 0), Vector3(0, -1, 0), Vector3(0, 0, -1))
+	GameState.out_of_bounds_teleport_active = false
+	Config.riemann_sphere_mode = false
 
+	assert_true(GameState.out_of_bounds_teleport_active)
+	var expected_init = player.get_initial_position()
+	assert_almost_eq(player.global_position.x, expected_init.x, 1e-4)
+	assert_almost_eq(player.global_position.z, expected_init.z, 1e-4)
 
+func test_terrain_zoom_state_change_without_material_does_not_crash():
+	var terrain_scene := load("res://terrain/terrain.tscn") as PackedScene
+	var terrain = autofree(terrain_scene.instantiate())
+	terrain.terrain_material = null
+	Config.riemann_sphere_mode = true
+	GameState.effective_zoom = 2.0
+	terrain._on_state_changed("effective_zoom")
+	assert_true(terrain._sphere_geom_dirty)
 
+func test_target_sphere_clears_trail_on_branch_mode_and_visibility():
+	var ts_scene := load("res://ui/target_sphere.tscn") as PackedScene
+	var ts = autofree(ts_scene.instantiate())
+	add_child_autofree(ts)
+
+	ts.update_data(Vector2(1.0, 0.0))
+	ts.update_data(Vector2(0.0, 1.0))
+	assert_eq(ts._trail.size(), 2)
+
+	GameState.current_branch = 1
+	assert_eq(ts._trail.size(), 0)
+	GameState.current_branch = 0
+
+	ts.update_data(Vector2(1.0, 0.0))
+	ts.update_data(Vector2(0.0, 1.0))
+	assert_eq(ts._trail.size(), 2)
+
+	Config.riemann_sphere_mode = true
+	assert_eq(ts._trail.size(), 0)
+	Config.riemann_sphere_mode = false
+
+	ts.update_data(Vector2(1.0, 0.0))
+	ts.update_data(Vector2(0.0, 1.0))
+	assert_eq(ts._trail.size(), 2)
+
+	ts.visible = false
+	ts.visible = true
+	assert_eq(ts._trail.size(), 0)
