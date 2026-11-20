@@ -13,13 +13,19 @@ const MAX_HEIGHT_RATIO: float = 0.45
 # Inverse stereographic projection (from the south pole): complex number -> unit vector.
 # (0, 1, 0) -> z = 0, (0, -1, 0) -> z = infinity.
 static func complex_to_unit(z: Vector2) -> Vector3:
+	if not is_finite(z.x) or not is_finite(z.y):
+		return Vector3(0.0, -1.0, 0.0)
 	var r2 = z.length_squared()
+	if not is_finite(r2):
+		return Vector3(0.0, -1.0, 0.0)
 	var den = 1.0 + r2
 	return Vector3(2.0 * z.x / den, (1.0 - r2) / den, -2.0 * z.y / den)
 
 # Stereographic projection: unit vector -> complex number.
 static func unit_to_complex(u: Vector3) -> Vector2:
-	var w = maxf(1.0 + u.y, 1e-9)
+	var w = 1.0 + u.y
+	if w <= 1e-12:
+		return Vector2(INF, 0.0)
 	return Vector2(u.x / w, -u.z / w)
 
 # Constructs a local player-frame -> inertial-sphere-frame Basis at complex coordinate z,
@@ -79,11 +85,16 @@ static func complex_to_world(complex_x: float, complex_y: float, basis: Basis, r
 
 # Local stereographic magnification |dz|/ds in complex units per world unit.
 static func magnification(z: Vector2, radius: float) -> float:
+	if not is_finite(z.x) or not is_finite(z.y):
+		return INF
 	return (1.0 + z.length_squared()) / (2.0 * maxf(radius, 1e-5))
 
 # Smoothly fades radial height displacement to 0 where vertices cannot resolve the terrain.
 static func height_fade(z: Vector2, radius: float) -> float:
-	return 1.0 - smoothstep(HEIGHT_FADE_START, HEIGHT_FADE_END, magnification(z, radius))
+	var lam = magnification(z, radius)
+	if not is_finite(lam) or lam >= HEIGHT_FADE_END:
+		return 0.0
+	return 1.0 - smoothstep(HEIGHT_FADE_START, HEIGHT_FADE_END, lam)
 
 # Smoothly bounds radial displacement to (-h_max, +h_max) with h_max = MAX_HEIGHT_RATIO * R.
 static func compress_height(h: float, radius: float) -> float:

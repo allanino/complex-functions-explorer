@@ -21,6 +21,13 @@ func test_stereographic_round_trip():
 		assert_almost_eq(back.x, z.x, 1e-4)
 		assert_almost_eq(back.y, z.y, 1e-4)
 
+	# Exact south pole maps to infinity (never collapses back to z = 0)
+	var z_inf = GameState.sphere_unit_to_complex(Vector3(0.0, -1.0, 0.0))
+	assert_true(is_inf(z_inf.x))
+	var u_south = GameState.complex_to_sphere_unit(Vector2(INF, 0.0))
+	assert_almost_eq(u_south.y, -1.0, 1e-6)
+	assert_almost_eq(RiemannSphere.height_fade(Vector2(INF, 0.0), 50.0), 0.0, 1e-6)
+
 func test_origin_is_under_player_initially():
 	var z = Config.sphere_world_to_complex(0.0, 0.0)
 	assert_almost_eq(z.length(), 0.0, 1e-6)

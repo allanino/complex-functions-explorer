@@ -802,8 +802,9 @@ void fragment() {
         vec3 dre_du;
         vec3 dim_du;
         vec2 zc = sphere_unit_to_complex(sphere_u, dre_du, dim_du);
+        bool at_south_pole = (1.0 + sphere_u.y) <= 1e-6;
         ComplexFieldData ffd = get_field_with_derivatives_complex(zc.x, zc.y, 0);
-        bool f_invalid = any(isnan(ffd.value)) || any(isinf(ffd.value));
+        bool f_invalid = at_south_pole || any(isnan(ffd.value)) || any(isinf(ffd.value));
         if (f_invalid) {
             nan_flag = 1.0;
             fv = vec2(0.0);
