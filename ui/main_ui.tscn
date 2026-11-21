@@ -1,4 +1,4 @@
-[gd_scene load_steps=20 format=3]
+[gd_scene load_steps=21 format=3]
 
 [ext_resource type="Script" path="res://ui/main_ui.gd" id="1_script"]
 [ext_resource type="PackedScene" path="res://ui/components/checkbox.tscn" id="3_checkbox"]
@@ -14,6 +14,7 @@
 [ext_resource type="PackedScene" path="res://ui/minimap.tscn" id="10_minimap"]
 [ext_resource type="PackedScene" path="res://ui/phase_wheel.tscn" id="11_phase_wheel"]
 [ext_resource type="Script" path="res://ui/components/hud_arrow.gd" id="12_hud_arrow"]
+[ext_resource type="PackedScene" path="res://ui/riemann_sphere_widget.tscn" id="13_riemann_sphere_widget"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hud_panel"]
 bg_color = Color(0.015686, 0.031372, 0.070588, 0.78)
@@ -648,6 +649,97 @@ custom_minimum_size = Vector2(0, 3)
 layout_mode = 2
 
 [node name="MinimapAspect" parent="Control/MainUIColumns/MainUIStackRight/MinimapPanel/MarginContainer/VBox" instance=ExtResource("10_minimap")]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+ratio = 1.0
+stretch_mode = 2
+
+[node name="DomainSpherePanel" type="PanelContainer" parent="Control/MainUIColumns/MainUIStackRight"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 240)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MarginContainer" type="MarginContainer" parent="Control/MainUIColumns/MainUIStackRight/DomainSpherePanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="VBox" type="VBoxContainer" parent="Control/MainUIColumns/MainUIStackRight/DomainSpherePanel/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 5
+
+[node name="DomainSphereTitleHBox" type="HBoxContainer" parent="Control/MainUIColumns/MainUIStackRight/DomainSpherePanel/MarginContainer/VBox"]
+layout_mode = 2
+
+[node name="DomainSphereTitle" type="Label" parent="Control/MainUIColumns/MainUIStackRight/DomainSpherePanel/MarginContainer/VBox/DomainSphereTitleHBox"]
+theme_type_variation = &"HeaderLabel"
+layout_mode = 2
+theme_override_constants/character_spacing = 2
+theme_override_constants/outline_size = 0
+theme_override_constants/shadow_outline_size = 0
+text = "DOMAIN SPHERE"
+horizontal_alignment = 0
+
+[node name="HSeparator" type="HSeparator" parent="Control/MainUIColumns/MainUIStackRight/DomainSpherePanel/MarginContainer/VBox/DomainSphereTitleHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/separator = SubResource("StyleBoxLine_header_sep")
+
+[node name="Spacer" type="Control" parent="Control/MainUIColumns/MainUIStackRight/DomainSpherePanel/MarginContainer/VBox"]
+custom_minimum_size = Vector2(0, 3)
+layout_mode = 2
+
+[node name="DomainSphereAspect" parent="Control/MainUIColumns/MainUIStackRight/DomainSpherePanel/MarginContainer/VBox" instance=ExtResource("13_riemann_sphere_widget")]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+ratio = 1.0
+stretch_mode = 2
+clear_trail_on_function_change = false
+
+[node name="TargetSpherePanel" type="PanelContainer" parent="Control/MainUIColumns/MainUIStackRight"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 240)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MarginContainer" type="MarginContainer" parent="Control/MainUIColumns/MainUIStackRight/TargetSpherePanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="VBox" type="VBoxContainer" parent="Control/MainUIColumns/MainUIStackRight/TargetSpherePanel/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 5
+
+[node name="TargetSphereTitleHBox" type="HBoxContainer" parent="Control/MainUIColumns/MainUIStackRight/TargetSpherePanel/MarginContainer/VBox"]
+layout_mode = 2
+
+[node name="TargetSphereTitle" type="Label" parent="Control/MainUIColumns/MainUIStackRight/TargetSpherePanel/MarginContainer/VBox/TargetSphereTitleHBox"]
+theme_type_variation = &"HeaderLabel"
+layout_mode = 2
+theme_override_constants/character_spacing = 2
+theme_override_constants/outline_size = 0
+theme_override_constants/shadow_outline_size = 0
+text = "TARGET SPHERE"
+horizontal_alignment = 0
+
+[node name="HSeparator" type="HSeparator" parent="Control/MainUIColumns/MainUIStackRight/TargetSpherePanel/MarginContainer/VBox/TargetSphereTitleHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/separator = SubResource("StyleBoxLine_header_sep")
+
+[node name="Spacer" type="Control" parent="Control/MainUIColumns/MainUIStackRight/TargetSpherePanel/MarginContainer/VBox"]
+custom_minimum_size = Vector2(0, 3)
+layout_mode = 2
+
+[node name="TargetSphereAspect" parent="Control/MainUIColumns/MainUIStackRight/TargetSpherePanel/MarginContainer/VBox" instance=ExtResource("13_riemann_sphere_widget")]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3

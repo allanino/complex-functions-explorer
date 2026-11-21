@@ -33,3 +33,18 @@ func test_terrain_shader_material_creation():
 	material.shader = shader
 
 	assert_not_null(material.shader)
+
+func test_riemann_sphere_widget_shader_loads():
+	var shader := load("res://ui/riemann_sphere_widget.gdshader")
+
+	assert_not_null(shader)
+	assert_true(shader is Shader)
+	assert_ne(shader.code.length(), 0)
+
+func test_riemann_sphere_widget_shader_material_creation():
+	var shader := load("res://ui/riemann_sphere_widget.gdshader")
+	var material := ShaderMaterial.new()
+
+	material.shader = shader
+
+	assert_not_null(material.shader)

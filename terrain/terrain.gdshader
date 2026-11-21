@@ -3,6 +3,7 @@ render_mode cull_disabled;
 
 #include "res://math/complex_field.gdshaderinc"
 #include "res://math/glsl/color_utils.gdshaderinc"
+#include "res://math/glsl/riemann_sphere.gdshaderinc"
 
 varying vec3 world_pos;
 varying vec3 v_normal;
@@ -10,9 +11,13 @@ varying vec2 field_val;
 varying vec2 v_f_dir;
 varying float v_nan;
 varying float v_h_clamped;
+varying float v_h_surface;
+varying vec2 v_chart;
+varying vec3 v_sphere_flow_grad;
 
 instance uniform int lod_level = 0;
 instance uniform ivec4 neighbor_lods = ivec4(-1, -1, -1, -1);
+instance uniform bool resolve_per_pixel = false;
 
 uniform float lod_segments[7];
 uniform float chunk_size;
@@ -442,17 +447,15 @@ void compute_critical_stripe_highlight(vec3 w_pos, vec3 nrm, inout vec3 final_em
 }
 
 
-void compute_flow_effect(vec3 w_pos, vec3 nrm, vec3 camera_position_world, inout vec3 out_albedo, inout vec3 final_emission) {
+void compute_flow_effect_2d(vec2 flow_pos, vec2 grad, vec3 w_pos, vec3 camera_position_world, inout vec3 out_albedo, inout vec3 final_emission) {
     float dist_to_camera = length(w_pos - camera_position_world);
     float flow_fade = 1.0 - smoothstep(30.0, 80.0, dist_to_camera);
 
     if (flow_fade > 0.001) {
         float g_size = 0.75;
-        vec2 cell_id = floor(w_pos.xz / g_size);
-        vec2 grid_uv = fract(w_pos.xz / g_size) - 0.5;
+        vec2 cell_id = floor(flow_pos / g_size);
+        vec2 grid_uv = fract(flow_pos / g_size) - 0.5;
 
-        // Get gradient from normal (change the sign to change flow direction)
-        vec2 grad = nrm.xz;
         float grad_mag = length(grad);
 
         if (grad_mag > 0.001) {
@@ -668,8 +671,41 @@ void vertex() {
         v_normal = vec3(0.0, 1.0, 0.0);
         NORMAL = (MODEL_NORMAL_MATRIX * v_normal);
         v_nan = 0.0;
+        v_h_clamped = 0.0;
+        v_h_surface = 0.0;
+        v_chart = vec2(0.0);
+        v_sphere_flow_grad = vec3(0.0);
         field_val = vec2(0.0);
+    } else if (sphere_mode) {
+        float half_size = chunk_size * 0.5;
+        vec3 snap_v = apply_lod_snapping(VERTEX, half_size);
+        vec3 chunk_origin = MODEL_MATRIX[3].xyz; // chunks are pure translations
+        vec2 chart = (chunk_origin + snap_v).xz - player_position_world.xz;
+        v_chart = chart;
+
+        vec3 sphere_p;
+        vec3 sphere_n;
+        vec2 s_field;
+        bool s_invalid;
+        bool s_clamped;
+        float s_h_func;
+        vec3 s_flow_grad;
+        compute_sphere_surface(chart, resolve_per_pixel, show_flow && !resolve_per_pixel, sphere_p, sphere_n, s_field, s_invalid, s_clamped, s_h_func, s_flow_grad);
+
+        v_nan = s_invalid ? 1.0 : 0.0;
+        field_val = s_field;
+        v_f_dir = length(s_field) > 0.0 ? normalize(s_field) : vec2(0.0);
+        v_h_clamped = s_clamped ? 1.0 : 0.0;
+        v_h_surface = s_h_func;
+        v_normal = sphere_n;
+        v_sphere_flow_grad = s_flow_grad;
+
+        VERTEX = sphere_p - chunk_origin;
+        world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
+        NORMAL = (MODEL_NORMAL_MATRIX * v_normal);
     } else {
+        v_chart = vec2(0.0);
+        v_sphere_flow_grad = vec3(0.0);
         float half_size = chunk_size * 0.5;
         vec3 snap_v = apply_lod_snapping(VERTEX, half_size);
         vec3 world_v_pos = (MODEL_MATRIX * vec4(snap_v, 1.0)).xyz;
@@ -695,6 +731,7 @@ void vertex() {
             v_normal = vec3(0.0, 1.0, 0.0);
             local_pos = vec3(snap_v.x, 0.0, snap_v.z);
             v_h_clamped = 0.0;
+            v_h_surface = 0.0;
         } else {
             v_nan = 0.0;
 
@@ -728,6 +765,7 @@ void vertex() {
             v_h_clamped = h_clamped ? 1.0 : 0.0;
 
             h *= blend * zoom_factor;
+            v_h_surface = h;
 
             local_pos = vec3(snap_v.x, snap_v.y + h, snap_v.z);
 
@@ -746,31 +784,101 @@ void vertex() {
 
 
 void fragment() {
+    vec2 fv = field_val;
+    vec2 f_dir = v_f_dir;
+    float nan_flag = v_nan;
+    float h_clamped_flag = v_h_clamped;
+    float h_surface = v_h_surface;
+    vec3 sphere_flow_grad = v_sphere_flow_grad;
+    vec3 sphere_u = vec3(0.0, 1.0, 0.0);
+    bool has_sphere_u = false;
+    float analytic_phase_change = 0.0;
+    vec2 chart_fw = fwidth(v_chart);
+
+    // resolve_per_pixel is an instance uniform (constant per draw call), so derivatives stay valid.
+    if (sphere_mode && resolve_per_pixel && !performance_protection_active) {
+        sphere_u = sphere_chart_to_unit(v_chart, sphere_radius);
+        has_sphere_u = true;
+        vec3 dre_du;
+        vec3 dim_du;
+        vec2 zc = sphere_unit_to_complex(sphere_u, dre_du, dim_du);
+        bool at_south_pole = (1.0 + sphere_u.y) <= 1e-6;
+        ComplexFieldData ffd = get_field_with_derivatives_complex(zc.x, zc.y, 0);
+        bool f_invalid = at_south_pole || any(isnan(ffd.value)) || any(isinf(ffd.value));
+        if (f_invalid) {
+            nan_flag = 1.0;
+            fv = vec2(0.0);
+            f_dir = vec2(0.0);
+            h_clamped_flag = 0.0;
+            h_surface = 0.0;
+            sphere_flow_grad = vec3(0.0);
+        } else {
+            nan_flag = 0.0;
+            fv = ffd.value;
+            float f_len = length(fv);
+            f_dir = f_len > 0.0 ? (fv / f_len) : vec2(0.0);
+            bool hc = false;
+            float h_raw = get_complex_height(fv, fv, hc);
+            h_clamped_flag = hc ? 1.0 : 0.0;
+            h_surface = h_raw * zoom_factor;
+            // Alias-free analytic phase rate |f'(z)/f(z)| * |dz/ds| * |ds/dpx| (never folds back at Nyquist).
+            float w_u = max(1.0 + sphere_u.y, 1e-5);
+            float frag_lambda = 1.0 / (sphere_radius * w_u);
+            float dx_len = (any(isnan(ffd.dx)) || any(isinf(ffd.dx))) ? 1e6 : length(ffd.dx);
+            float log_deriv = (f_len > 1e-30) ? (dx_len / f_len) : 1e6;
+            analytic_phase_change = log_deriv * frag_lambda * length(chart_fw);
+            if (show_flow) {
+                bool deriv_invalid = any(isnan(ffd.dx)) || any(isinf(ffd.dx)) ||
+                        any(isnan(ffd.dy)) || any(isinf(ffd.dy));
+                sphere_flow_grad = deriv_invalid ? vec3(0.0) : sphere_downhill_grad_u(sphere_u, dre_du, dim_du, ffd, hc, sphere_radius);
+            }
+        }
+    }
+
     // Get raw pixel derivatives unconditionally before any divergent branches
-    float raw_w_re = fwidth(field_val.x);
-    float raw_w_im = fwidth(field_val.y);
+    float raw_w_re = fwidth(fv.x);
+    float raw_w_im = fwidth(fv.y);
 
     if (performance_protection_active) {
         ALBEDO = vec3(0.01, 0.02, 0.03);
         ROUGHNESS = 1.0;
         METALLIC = 0.0;
-    } else if (v_nan > 0.5) {
-        vec3 local_albedo, local_emission;
-        float rgh, mtl, spec;
-        compute_matrix_effect(world_pos.xz, vec3(0.0, 0.8, 0.2), vec3(0.7, 1.0, 0.7), local_albedo, local_emission, rgh, mtl, spec);
-        ALBEDO = local_albedo;
-        EMISSION = local_emission;
-        ROUGHNESS = rgh;
-        METALLIC = mtl;
-        SPECULAR = spec;
+    } else if (nan_flag > 0.5) {
+        if (sphere_mode) {
+            // Seamless neutral pole cap matching moire_suppression = 1.0 (eff_bri = 0.75 * brightness).
+            float pole_bri = brightness * 0.75;
+            vec3 pole_base = vec3(color_scheme == 2 ? 0.5 : 1.0) * pole_bri;
+            ALBEDO = pole_base * albedo;
+            vec3 pole_em = pole_base * emission;
+            if (self_illumination > 0.0) {
+                compute_self_illumination_effect(world_pos, CAMERA_POSITION_WORLD, ALBEDO, pole_em);
+            }
+            EMISSION = pole_em / (pole_em + vec3(1.0));
+            ROUGHNESS = clamp(roughness, 0.0, 1.0);
+            METALLIC = metallic;
+            SPECULAR = specular_intensity;
+            AO = ao;
+            AO_LIGHT_AFFECT = 0.0;
+            RIM = rim;
+            RIM_TINT = rim_tint;
+        } else {
+            vec3 local_albedo, local_emission;
+            float rgh, mtl, spec;
+            compute_matrix_effect(world_pos.xz, vec3(0.0, 0.8, 0.2), vec3(0.7, 1.0, 0.7), local_albedo, local_emission, rgh, mtl, spec);
+            ALBEDO = local_albedo;
+            EMISSION = local_emission;
+            ROUGHNESS = rgh;
+            METALLIC = mtl;
+            SPECULAR = spec;
+        }
     } else {
         float x = world_pos.x;
         float z = world_pos.z;
 
-        vec2 f = field_val;
+        vec2 f = fv;
         float phase;
-        if (length(v_f_dir) > 0.0) {
-            phase = atan(v_f_dir.y, v_f_dir.x);
+        if (length(f_dir) > 0.0) {
+            phase = atan(f_dir.y, f_dir.x);
         } else {
             phase = atan(f.y, f.x);
         }
@@ -781,10 +889,10 @@ void fragment() {
 
         // Anti-alias high-frequency phase oscillation (Moiré suppression)
         float f_mag = length(f);
-        float phase_change = length(vec2(raw_w_re, raw_w_im)) / (f_mag + 1e-12);
-        float moire_suppression = smoothstep(0.5, 3.0, phase_change);
+        float phase_change = max(length(vec2(raw_w_re, raw_w_im)) / (f_mag + 1e-12), analytic_phase_change);
+        float moire_suppression = smoothstep(0.4, 2.2, phase_change);
 
-        float eff_sat = mix(saturation, 0.0, moire_suppression * 0.8);
+        float eff_sat = mix(saturation, 0.0, moire_suppression);
         float eff_bri = mix(brightness, brightness * 0.5, moire_suppression * 0.5);
 
         vec3 base = hsv2rgb(vec3(hue, eff_sat, eff_bri));
@@ -798,18 +906,20 @@ void fragment() {
             base = vec3(v) * eff_bri;
         }
 
-        // Apply smooth decay for large heights, just like minimap
-        float h_abs = abs(world_pos.y);
-        float fade_factor = 1.0;
-        if (v_h_clamped > 0.5) {
-            fade_factor = 0.3;
-        } else if (h_abs > max_world_height) {
-            float excess = h_abs - max_world_height;
-            float decay_rate = 0.0005;
-            float exp_fade = exp(-decay_rate * excess);
-            fade_factor = 0.3 + 0.7 * exp_fade;
+        // Apply smooth decay for large heights in plane mode (sphere mode uses continuous tanh compression)
+        if (!sphere_mode) {
+            float h_abs = abs(h_surface);
+            float fade_factor = 1.0;
+            if (h_clamped_flag > 0.5) {
+                fade_factor = 0.3;
+            } else if (h_abs > max_world_height) {
+                float excess = h_abs - max_world_height;
+                float decay_rate = 0.0005;
+                float exp_fade = exp(-decay_rate * excess);
+                fade_factor = 0.3 + 0.7 * exp_fade;
+            }
+            base *= fade_factor;
         }
-        base *= fade_factor;
 
         if (show_curves) {
             compute_curves_highlight(f, raw_w_re, raw_w_im, base, highlight_re_glow, highlight_im_glow);
@@ -827,13 +937,23 @@ void fragment() {
         }
 
         float core_critical = 0.0;
-        if (show_critical_stripe && is_dirichlet) {
+        if (show_critical_stripe && is_dirichlet && !sphere_mode) {
             compute_critical_stripe_highlight(world_pos, v_normal, final_emission, core_critical);
             ALBEDO = mix(ALBEDO, vec3(1.0, 0.655, 0.0), core_critical);
         }
 
         if (show_flow) {
-            compute_flow_effect(world_pos, v_normal, CAMERA_POSITION_WORLD, ALBEDO, final_emission);
+            if (sphere_mode) {
+                if (!has_sphere_u) {
+                    sphere_u = sphere_chart_to_unit(v_chart, sphere_radius);
+                }
+                vec2 flow_uv;
+                vec2 flow_grad;
+                sphere_flow_uv_and_grad(sphere_u, sphere_flow_grad, sphere_radius, flow_uv, flow_grad);
+                compute_flow_effect_2d(flow_uv, flow_grad, world_pos, CAMERA_POSITION_WORLD, ALBEDO, final_emission);
+            } else {
+                compute_flow_effect_2d(world_pos.xz, v_normal.xz, world_pos, CAMERA_POSITION_WORLD, ALBEDO, final_emission);
+            }
         }
 
 
@@ -845,7 +965,9 @@ void fragment() {
             compute_position_marker(world_pos, v_normal, ALBEDO, final_emission);
         }
 
-        compute_newton_path(world_pos, ALBEDO, final_emission);
+        if (!sphere_mode) {
+            compute_newton_path(world_pos, ALBEDO, final_emission);
+        }
 
         // Reinhard Tone Mapping to keep high emissions from blowing out to absolute white
         final_emission = final_emission / (final_emission + vec3(1.0));

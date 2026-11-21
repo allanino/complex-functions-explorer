@@ -24,6 +24,8 @@ Check the [web page](https://allanino.github.io/complex-functions-explorer/) and
 * Use the minimap to orient yourself across the complex plane.
 * Adjust function parameters and watch the landscape transform instantly.
 * Navigate between branches of multivalued functions through immersive portals.
+* Walk on the Riemann Sphere instead of the plane (Visualization tab), with adjustable radius and optional radial height.
+* Track your position $z$ and the live image $f(z)$ with their recent trails on interactive 3D Domain and Target Riemann Sphere HUD widgets (UI tab).
 * Customize environment, colors and rendering options.
 
 <p align="center">

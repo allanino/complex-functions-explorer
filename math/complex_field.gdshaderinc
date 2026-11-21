@@ -11,6 +11,7 @@ uniform float height_epsilon = 1.0;
 uniform bool performance_protection_active = false;
 uniform bool is_dirichlet = false;
 uniform bool is_multivalued = false;
+uniform bool clamp_exp_overflow = false;
 
 uniform vec2 rational_num_coeffs[10];
 uniform vec2 rational_den_coeffs[10];
@@ -61,7 +62,7 @@ vec2 complex_div(vec2 a, vec2 b) {
 }
 
 vec2 complex_exp(float x, float y) {
-    float amp = exp(x);
+    float amp = exp(clamp_exp_overflow ? clamp(x, -30.0, 30.0) : x);
     return vec2(
         amp * cos(y),
         amp * sin(y)
@@ -1337,11 +1338,8 @@ ComplexFieldData evaluate_function_with_derivatives(float x, float y, int func_t
     return res;
 }
 
-ComplexFieldData get_field_with_derivatives(float world_x, float world_z, int branch_offset) {
-    float zoom = 1.0 / zoom_factor;
-    float x = world_x * 0.1 * zoom;
-    float y = -world_z * 0.1 * zoom;
-
+// Evaluates f(input(z)) and its derivatives directly at the complex point (x, y).
+ComplexFieldData get_field_with_derivatives_complex(float x, float y, int branch_offset) {
     ComplexFieldData input_fd = evaluate_function_with_derivatives(x, y, input_function_type, iterations, 0, true);
     ComplexFieldData outer_fd = evaluate_function_with_derivatives(input_fd.value.x, input_fd.value.y, function_type, iterations, branch_offset, false);
 
@@ -1350,6 +1348,13 @@ ComplexFieldData get_field_with_derivatives(float world_x, float world_z, int br
     res.dx = complex_mul(outer_fd.dx, input_fd.dx);
     res.dy = vec2(-res.dx.y, res.dx.x);
     return res;
+}
+
+ComplexFieldData get_field_with_derivatives(float world_x, float world_z, int branch_offset) {
+    float zoom = 1.0 / zoom_factor;
+    float x = world_x * 0.1 * zoom;
+    float y = -world_z * 0.1 * zoom;
+    return get_field_with_derivatives_complex(x, y, branch_offset);
 }
 
 float get_complex_height(vec2 fz, vec2 field_val, out bool h_clamped) {

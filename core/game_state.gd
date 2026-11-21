@@ -111,6 +111,29 @@ var imag_level_curves_highlighted: Array[float] = []:
 		state_changed.emit("imag_level_curves_highlighted")
 
 
+# --- Riemann Sphere state ---
+# Maps the player's local frame (up = +Y) to the inertial sphere frame, where the point
+# (0, 1, 0) is z = 0 and (0, -1, 0) is z = infinity. The sphere "rotates under the player".
+var sphere_basis: Basis = Basis.IDENTITY
+
+func complex_to_sphere_unit(z: Vector2) -> Vector3:
+	return RiemannSphere.complex_to_unit(z)
+
+func sphere_unit_to_complex(u: Vector3) -> Vector2:
+	return RiemannSphere.unit_to_complex(u)
+
+func set_sphere_position(z: Vector2) -> void:
+	sphere_basis = RiemannSphere.basis_at_complex(z)
+	state_changed.emit("sphere_basis")
+
+func advance_on_sphere(offset: Vector2, radius: float) -> void:
+	var next_basis = RiemannSphere.advance_basis(sphere_basis, offset, radius)
+	if next_basis == sphere_basis:
+		return
+	sphere_basis = next_basis
+	state_changed.emit("sphere_basis")
+
+
 func _ready():
 	_last_function_type = Config.function_type
 	_last_input_function_type = Config.input_function_type

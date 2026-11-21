@@ -204,6 +204,9 @@ const PRESET_KEYS = [
 	"view_distance",
 	"show_flow",
 	"show_position_marker",
+	"riemann_sphere_mode",
+	"riemann_sphere_radius",
+	"riemann_sphere_height",
 	"color_scheme",
 	"freeze_time",
 	"day_duration",
@@ -229,6 +232,8 @@ const PRESET_KEYS = [
 	"zero_proximity_nav",
 	"show_minimap",
 	"show_minimap_range",
+	"show_hud_domain_sphere",
+	"show_hud_target_sphere",
 	"show_hud_phase_wheel",
 	"show_hud_navigation",
 	"show_hud_zeros",
@@ -258,6 +263,8 @@ var iterations: int = 500:
 var function_iterations: Dictionary = {}
 var function_type: int = ComplexFunc.ZETA_CONTINUATION:
 	set(value):
+		if riemann_sphere_mode and FUNCTIONS.get(value, {}).get("is_multivalued", false):
+			return
 		function_iterations[function_type] = iterations
 		function_type = value
 		function = FUNCTIONS.get(function_type, {})
@@ -360,6 +367,26 @@ var show_flow: bool = false:
 		if show_flow == v: return
 		show_flow = v
 		config_changed.emit("show_flow")
+var riemann_sphere_mode: bool = false:
+	set(v):
+		if riemann_sphere_mode == v: return
+		riemann_sphere_mode = v
+		if riemann_sphere_mode and function.get("is_multivalued", false):
+			function_type = ComplexFunc.ZETA_CONTINUATION
+		config_changed.emit("riemann_sphere_mode")
+# Radius (in world units, before zoom) of the Riemann Sphere. Zoom scales this radius.
+var riemann_sphere_radius: float = 50.0:
+	set(v):
+		v = clampf(v, 10.0, 500.0)
+		if riemann_sphere_radius == v: return
+		riemann_sphere_radius = v
+		config_changed.emit("riemann_sphere_radius")
+# When true the function height displaces the sphere radially; otherwise only colours are shown.
+var riemann_sphere_height: bool = false:
+	set(v):
+		if riemann_sphere_height == v: return
+		riemann_sphere_height = v
+		config_changed.emit("riemann_sphere_height")
 var show_position_marker: bool = true:
 	set(v):
 		if show_position_marker == v: return
@@ -455,6 +482,16 @@ var show_minimap_range: bool = false:
 		if show_minimap_range == v: return
 		show_minimap_range = v
 		config_changed.emit("show_minimap_range")
+var show_hud_domain_sphere: bool = false:
+	set(v):
+		if show_hud_domain_sphere == v: return
+		show_hud_domain_sphere = v
+		config_changed.emit("show_hud_domain_sphere")
+var show_hud_target_sphere: bool = false:
+	set(v):
+		if show_hud_target_sphere == v: return
+		show_hud_target_sphere = v
+		config_changed.emit("show_hud_target_sphere")
 var show_hud_phase_wheel: bool = true:
 	set(v):
 		if show_hud_phase_wheel == v: return
@@ -513,11 +550,42 @@ func apply_zoom_immediate():
 	GameState.effective_zoom = float(zoom_factor)
 
 func world_to_complex(world_x: float, world_z: float) -> Vector2:
-	return Vector2(world_x * 0.1 / GameState.effective_zoom, -world_z * 0.1 / GameState.effective_zoom)
+	if riemann_sphere_mode:
+		return sphere_world_to_complex(world_x, world_z)
+	return plane_world_to_complex(world_x, world_z)
 
 # Converts 2D complex plane coordinates (Re, Im) to 3D world coordinates (x, z), accounting for zoom.
 func complex_to_world(complex_x: float, complex_y: float) -> Vector2:
+	if riemann_sphere_mode:
+		return sphere_complex_to_world(complex_x, complex_y)
+	return plane_complex_to_world(complex_x, complex_y)
+
+# Multivalued functions (and their portals) are disabled while walking on the Riemann Sphere.
+func is_multivalued_active() -> bool:
+	return function.get("is_multivalued", false) and not riemann_sphere_mode
+
+# Flat complex plane mapping (always available, independent of the sphere mode).
+func plane_world_to_complex(world_x: float, world_z: float) -> Vector2:
+	return Vector2(world_x * 0.1 / GameState.effective_zoom, -world_z * 0.1 / GameState.effective_zoom)
+
+func plane_complex_to_world(complex_x: float, complex_y: float) -> Vector2:
 	return Vector2(complex_x * 10.0 * GameState.effective_zoom, -complex_y * 10.0 * GameState.effective_zoom)
+
+# Effective Riemann Sphere radius in world units (zoom scales the radius).
+func get_sphere_radius() -> float:
+	return riemann_sphere_radius * GameState.effective_zoom
+
+func sphere_lambda(z: Vector2) -> float:
+	return RiemannSphere.magnification(z, get_sphere_radius())
+
+func sphere_height_fade(z: Vector2) -> float:
+	return RiemannSphere.height_fade(z, get_sphere_radius())
+
+func sphere_world_to_complex(world_x: float, world_z: float) -> Vector2:
+	return RiemannSphere.world_to_complex(world_x, world_z, GameState.sphere_basis, get_sphere_radius())
+
+func sphere_complex_to_world(complex_x: float, complex_y: float) -> Vector2:
+	return RiemannSphere.complex_to_world(complex_x, complex_y, GameState.sphere_basis, get_sphere_radius())
 
 
 func _snapshot_current() -> Dictionary:
@@ -544,12 +612,13 @@ func is_preset_dirty() -> bool:
 	if not PRESETS.has(clean_name):
 		return true
 	var preset = PRESETS[clean_name]
+	var default_preset = PRESET_DEFAULTS.PRESETS["Default"]
 	for key in PRESET_KEYS:
 		if key == "day_time" and not get("freeze_time"):
 			continue
-		if preset.has(key):
+		if preset.has(key) or default_preset.has(key):
 			var val1 = get(key)
-			var val2 = preset[key]
+			var val2 = preset.get(key, default_preset.get(key))
 			if typeof(val1) == TYPE_FLOAT and typeof(val2) == TYPE_FLOAT:
 				if not is_equal_approx(val1, val2):
 					return true
@@ -566,12 +635,13 @@ func is_preset_dirty_by_name(preset_name: String) -> bool:
 		return false
 	var cached = _edited_presets[preset_name]
 	var clean = PRESETS[preset_name]
+	var default_preset = PRESET_DEFAULTS.PRESETS["Default"]
 	for key in PRESET_KEYS:
 		if key == "day_time" and not cached.get("freeze_time", false):
 			continue
-		if clean.has(key) and cached.has(key):
+		if cached.has(key) and (clean.has(key) or default_preset.has(key)):
 			var val1 = cached[key]
-			var val2 = clean[key]
+			var val2 = clean.get(key, default_preset.get(key))
 			if typeof(val1) == TYPE_FLOAT and typeof(val2) == TYPE_FLOAT:
 				if not is_equal_approx(val1, val2):
 					return true
@@ -652,6 +722,9 @@ func save_settings():
 	config.set_value("rendering", "view_distance", view_distance)
 	config.set_value("rendering", "show_flow", show_flow)
 	config.set_value("rendering", "show_position_marker", show_position_marker)
+	config.set_value("rendering", "riemann_sphere_mode", riemann_sphere_mode)
+	config.set_value("rendering", "riemann_sphere_radius", riemann_sphere_radius)
+	config.set_value("rendering", "riemann_sphere_height", riemann_sphere_height)
 	config.set_value("rendering", "color_scheme", color_scheme)
 	config.set_value("rendering", "freeze_time", freeze_time)
 	config.set_value("rendering", "day_duration", day_duration)
@@ -681,6 +754,8 @@ func save_settings():
 
 	config.set_value("ui", "show_minimap", show_minimap)
 	config.set_value("ui", "show_minimap_range", show_minimap_range)
+	config.set_value("ui", "show_hud_domain_sphere", show_hud_domain_sphere)
+	config.set_value("ui", "show_hud_target_sphere", show_hud_target_sphere)
 	config.set_value("ui", "show_hud_phase_wheel", show_hud_phase_wheel)
 	config.set_value("ui", "show_hud_navigation", show_hud_navigation)
 	config.set_value("ui", "show_hud_zeros", show_hud_zeros)
@@ -735,6 +810,9 @@ func load_settings():
 	view_distance = config.get_value("rendering", "view_distance", view_distance)
 	show_flow = config.get_value("rendering", "show_flow", show_flow)
 	show_position_marker = config.get_value("rendering", "show_position_marker", show_position_marker)
+	riemann_sphere_mode = config.get_value("rendering", "riemann_sphere_mode", riemann_sphere_mode)
+	riemann_sphere_radius = config.get_value("rendering", "riemann_sphere_radius", riemann_sphere_radius)
+	riemann_sphere_height = config.get_value("rendering", "riemann_sphere_height", riemann_sphere_height)
 	color_scheme = config.get_value("rendering", "color_scheme", color_scheme)
 	freeze_time = config.get_value("rendering", "freeze_time", freeze_time)
 	day_duration = config.get_value("rendering", "day_duration", day_duration)
@@ -760,7 +838,9 @@ func load_settings():
 	var saved_presets = config.get_value("session", "custom_presets", {})
 	for preset_name in saved_presets:
 		if not built_in_keys.has(preset_name):
-			PRESETS[preset_name] = saved_presets[preset_name]
+			var merged = PRESET_DEFAULTS.PRESETS["Default"].duplicate(true)
+			merged.merge(saved_presets[preset_name], true)
+			PRESETS[preset_name] = merged
 
 	movement_speed = config.get_value("player", "movement_speed", movement_speed)
 	speed_near_zeros = config.get_value("player", "speed_near_zeros", speed_near_zeros)
@@ -769,6 +849,8 @@ func load_settings():
 
 	show_minimap = config.get_value("ui", "show_minimap", show_minimap)
 	show_minimap_range = config.get_value("ui", "show_minimap_range", show_minimap_range)
+	show_hud_domain_sphere = config.get_value("ui", "show_hud_domain_sphere", show_hud_domain_sphere)
+	show_hud_target_sphere = config.get_value("ui", "show_hud_target_sphere", show_hud_target_sphere)
 	show_hud_phase_wheel = config.get_value("ui", "show_hud_phase_wheel", show_hud_phase_wheel)
 	show_hud_navigation = config.get_value("ui", "show_hud_navigation", show_hud_navigation)
 	show_hud_zeros = config.get_value("ui", "show_hud_zeros", show_hud_zeros)

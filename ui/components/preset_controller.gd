@@ -135,6 +135,7 @@ func _connect_preset_dirtiers():
 	# Connect checkboxes
 	for cb in [
 		main_ui.menu_overlay.curves_checkbox, main_ui.menu_overlay.critical_checkbox, main_ui.menu_overlay.flow_checkbox, main_ui.menu_overlay.hud_phase_wheel_checkbox,
+		main_ui.menu_overlay.hud_domain_sphere_checkbox, main_ui.menu_overlay.hud_target_sphere_checkbox, main_ui.menu_overlay.minimap_checkbox, main_ui.menu_overlay.minimap_range_checkbox,
 		main_ui.menu_overlay.hud_position_checkbox, main_ui.menu_overlay.hud_zeros_checkbox, main_ui.menu_overlay.rvm_checkbox,
 		main_ui.menu_overlay.hud_monitor_fps_checkbox, main_ui.menu_overlay.shadows_checkbox,
 		main_ui.menu_overlay.auto_walk_checkbox, main_ui.menu_overlay.freeze_time_checkbox
@@ -151,6 +152,14 @@ func _connect_preset_dirtiers():
 	for le in [main_ui.menu_overlay.height_a_input, main_ui.menu_overlay.height_eps_input]:
 		if le and le.has_signal("text_submitted"):
 			le.text_submitted.connect(on_changed)
+
+	# Keep preset dirty indicator synced whenever any preset-tracked Config key changes
+	if not Config.config_changed.is_connected(_on_config_changed):
+		Config.config_changed.connect(_on_config_changed)
+
+func _on_config_changed(key: String):
+	if key in Config.PRESET_KEYS and main_ui and main_ui.menu_overlay and not main_ui.menu_overlay._syncing_ui:
+		update_preset_button_text()
 
 func update_preset_button_text():
 	var preset_name = Config.current_preset.trim_suffix("*")

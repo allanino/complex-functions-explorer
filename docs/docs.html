@@ -63,6 +63,7 @@
                         <li><a href="#mandelbrot">Mandelbrot Set</a></li>
                     </ul>
                 </li>
+                <li><a href="#riemann-sphere">Riemann Sphere Projection</a></li>
             </ul>
         </aside>
 
@@ -90,6 +91,7 @@
                             <li><a href="#mandelbrot">Mandelbrot Set</a></li>
                         </ul>
                     </li>
+                    <li><a href="#riemann-sphere">Riemann Sphere Projection</a></li>
                 </ul>
             </details>
 
@@ -222,7 +224,7 @@
                             To compute the Riemann zeta function accurately and rapidly, we also implement
                             <strong>Borwein's algorithm</strong>. This Chebyshev-accelerated alternating series provides
                             exponential convergence across the critical strip. We specifically use it in our C++ zero
-                            finder (`float64`) to refine candidate positions and lock onto non-trivial zeros on the
+                            finder (<code>float64</code>) to refine candidate positions and lock onto non-trivial zeros on the
                             critical line with high precision.
                         </p>
                     </div>
@@ -349,7 +351,8 @@
                     <div class="eyebrow">Function · 02.4</div>
                     <h3>The Mandelbrot function</h3>
                     <p>
-                        The explorer visualizes the <strong>Mandelbrot set</strong> by iterating the quadratic recurrence
+                        The explorer visualizes the <strong>Mandelbrot set</strong> by iterating the quadratic
+                        recurrence
                         \( z_{n+1} = z_n^2 + c \) starting at \( z_0 = 0 \), where \( c \) is the coordinate in the
                         complex plane. The <code>iterations</code> parameter controls the recursion depth.
                     </p>
@@ -385,6 +388,141 @@
                             pipeline. In the Mandelbrot visualization, deep zooms expose self-similar formations,
                             filamentary boundaries, and intricate recursive structures characteristic of fractal
                             geometry.
+                        </p>
+                    </aside>
+                </div>
+            </section>
+
+            <!-- Riemann Sphere Section -->
+            <section id="riemann-sphere" class="doc-section">
+                <div class="eyebrow">Section · 03</div>
+                <h2>Riemann Sphere Projection</h2>
+                <p>
+                    As an alternative to the flat complex plane, the explorer supports walking directly on the
+                    <strong>Riemann Sphere</strong> \(\widehat{\mathbb{C}} = \mathbb{C} \cup \{\infty\}\). Enable it
+                    under the <strong>Visualization</strong> tab in the menu, where you can also toggle radial
+                    <strong>Sphere height</strong> displacement and adjust the base <strong>Sphere Radius</strong>
+                    (which scales proportionally with <code>Zoom Factor</code>).
+                </p>
+
+                <div class="doc-subsection">
+                    <div class="eyebrow">Geometry · 03.1</div>
+                    <h3>Floating-origin chart &amp; stereographic projection</h3>
+                    <p>
+                        To reuse the flat chunk streaming and LOD system without floating-point drift, the player
+                        always stands at the apex \((0, 0, 0)\) of a sphere of effective radius
+                        \( R = R_{\text{base}} \cdot \text{zoom} \), while walking rotates the sphere underneath via
+                        an orthonormal orientation matrix \( \mathbf{B} \in SO(3) \).
+                    </p>
+                    <p>
+                        Each vertex at flat chart offset \( \mathbf{c} = (x, z) \) around the player is first mapped
+                        to a local unit direction \( \mathbf{l} \in S^2 \) by an <strong>azimuthal-equidistant
+                            projection</strong> (preserving true arc-length distances near the player):
+                    </p>
+
+                    <div class="math-block">
+                        \[ d = \min\!\left(\frac{\|\mathbf{c}\|}{R},\,\pi\right), \qquad
+                        \mathbf{l}(\mathbf{c}) = \left(\frac{x}{\|\mathbf{c}\|}\sin d,\;\cos
+                        d,\;\frac{z}{\|\mathbf{c}\|}\sin d\right) \]
+                    </div>
+
+                    <p>
+                        Rotating into the inertial sphere frame gives \( \mathbf{u} = \mathbf{B}\mathbf{l} \), where
+                        the north pole \((0, 1, 0)\) represents \( z = 0 \) and the south pole \((0, -1, 0)\)
+                        represents \( z = \infty \). <strong>Stereographic projection</strong> from the south pole
+                        maps \( \mathbf{u} = (u_x, u_y, u_z) \) to the complex coordinate \( z = \operatorname{Re}(z) +
+                        i\operatorname{Im}(z) \):
+                    </p>
+
+                    <div class="math-block">
+                        \[ z(\mathbf{u}) = \frac{u_x - i\,u_z}{1 + u_y}, \qquad
+                        \mathbf{u}(z) = \frac{1}{1 + |z|^2}\bigl(2\operatorname{Re}(z),\; 1 - |z|^2,\;
+                        -2\operatorname{Im}(z)\bigr) \]
+                    </div>
+
+                    <p>
+                        When <strong>Sphere height</strong> is enabled, the raw function height \( h(z) \) is smoothly
+                        compressed via \( h_{\text{comp}}(z) = h_{\max}\tanh\!\bigl(h(z) / h_{\max}\bigr) \) with
+                        \( h_{\max} = 0.45\,R \) (preserving 1:1 heights for small values while keeping poles and deep
+                        valleys finite and continuous), and displaced radially outward along \( \mathbf{l} \):
+                    </p>
+
+                    <div class="math-block">
+                        \[ \mathbf{p}(\mathbf{c}) = \bigl(R + h_{\text{comp}}\cdot
+                        w_{\text{fade}}(\lambda)\bigr)\,\mathbf{l}(\mathbf{c}) - (0, R, 0) \]
+                    </div>
+                </div>
+
+                <div class="doc-subsection">
+                    <div class="eyebrow">Rendering · 03.2</div>
+                    <h3>Stereographic magnification &amp; adaptive detail</h3>
+                    <p>
+                        Because stereographic projection compresses the entire exterior of the complex plane onto a
+                        small cap around the south pole \( z = \infty \), the local complex-units-per-world-unit
+                        magnification grows quadratically with \( |z| \):
+                    </p>
+
+                    <div class="math-block">
+                        \[ \lambda(z) = \frac{|dz|}{ds} = \frac{1 + |z|^2}{2R} = \frac{1}{R(1 + u_y)} \]
+                    </div>
+
+                    <p>
+                        The renderer uses \( \lambda \) across several stages to keep both visual detail and frame
+                        rate comparable to plane mode:
+                    </p>
+                    <ul>
+                        <li>
+                            <strong>Per-pixel resolution near \(\infty\):</strong> Chunks whose vertex spacing in
+                            complex units exceeds the resolution threshold automatically switch to per-pixel evaluation
+                            in the fragment shader, eliminating blocky polygon artifacts near \( z = \infty \).
+                        </li>
+                        <li>
+                            <strong>Band-limited radial height:</strong> Where \( \lambda \in [2, 6] \), radial height
+                            displacement smoothly fades to zero (with exact product-rule surface normals) so
+                            under-sampled oscillations do not create jagged silhouettes.
+                        </li>
+                        <li>
+                            <strong>Conformal minimap &amp; Flow:</strong> The minimap expands its view radius
+                            proportionally to \( (1 + |z|^2)/2 \) and transforms the camera heading through the
+                            stereographic differential so it stays aligned after curved walking. The
+                            <strong>Flow</strong>
+                            overlay uses inertial cube-sphere UVs and the true tangent downhill gradient \( -\nabla h
+                            \),
+                            working both with and without radial height.
+                        </li>
+                        <li>
+                            <strong>Smooth pole caps &amp; overflow clamping:</strong> Unlike plane mode (where
+                            <code>NaN</code>/overflow regions display the green grid), Riemann Sphere mode clamps
+                            exponential overflow to \([-30, 30]\) and renders remaining singularities as a seamless
+                            neutral pole cap matching high-frequency Moiré suppression.
+                        </li>
+                        <li>
+                            <strong>Domain &amp; Target Riemann Sphere HUD widgets:</strong> Available in both plane and
+                            sphere modes under the <strong>UI</strong> tab, display interactive, draggable 3D Riemann
+                            spheres (double-click to reset view) showing your current domain position \( z \) and live
+                            image \( w = f(z) \) together with their recent trajectory trails. Unlike the walkable
+                            terrain (which places \( z = 0 \) at the top apex), the HUD spheres use the textbook
+                            orientation with \( 0 \) at the south pole, \( \infty \) at the north pole, and unit modulus
+                            on the equator.
+                        </li>
+                    </ul>
+
+                    <aside class="callout callout--tip" aria-label="Riemann Sphere Notes">
+                        <div class="callout__header">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                aria-hidden="true">
+                                <circle cx="12" cy="12" r="10" />
+                                <line x1="12" y1="16" x2="12" y2="12" />
+                                <line x1="12" y1="8" x2="12.01" y2="8" />
+                            </svg>
+                            <span>Mode Behavior</span>
+                        </div>
+                        <p>
+                            Switching between the complex plane and the Riemann Sphere preserves your current complex
+                            coordinate \( z \) (falling back to the function's initial position if switching back to the
+                            plane from near \( \infty \) or an out-of-bounds pole). While in Riemann Sphere mode,
+                            multivalued functions (and branch portals), automated critical-line / Newton walks, the 3D
+                            critical-stripe overlay, and terrain morphing are disabled.
                         </p>
                     </aside>
                 </div>

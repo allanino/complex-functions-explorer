@@ -50,6 +50,9 @@ signal update_hud_layout_signal()
 @onready var flow_checkbox = %FlowCheckbox
 @onready var position_marker_checkbox = %PositionMarkerCheckbox
 @onready var freeze_time_checkbox = %FreezeTimeCheckbox
+@onready var riemann_sphere_checkbox = %RiemannSphereCheckbox
+@onready var sphere_height_checkbox = %SphereHeightCheckbox
+@onready var sphere_radius_slider = %SphereRadiusSlider
 @onready var day_duration_slider = %DayDurationSlider
 @onready var day_time_slider = %DayTimeSlider
 @onready var sunrise_slider = %SunriseContainer
@@ -60,6 +63,8 @@ signal update_hud_layout_signal()
 @onready var shadows_checkbox = %ShadowsCheckbox
 @onready var minimap_checkbox = %MinimapCheckbox
 @onready var minimap_range_checkbox = %MinimapRangeCheckbox
+@onready var hud_domain_sphere_checkbox = %HudDomainSphereCheckbox
+@onready var hud_target_sphere_checkbox = %HudTargetSphereCheckbox
 @onready var hud_phase_wheel_checkbox = %HudComplexCheckbox
 @onready var hud_position_checkbox = %HudPositionCheckbox
 @onready var hud_zeros_checkbox = %HudZerosDetectionCheckbox
@@ -138,6 +143,9 @@ var _initial_antialiasing_mode: int
 var _initial_rendering_scale: float
 var _initial_view_distance: int
 var _initial_shadows_enabled: bool
+var _initial_riemann_sphere_mode: bool
+var _initial_riemann_sphere_height: bool
+var _initial_riemann_sphere_radius: float
 var _initial_preset: String
 var _initial_edited_presets: Dictionary
 var _initial_re_text: String = ""
@@ -242,6 +250,8 @@ func _ready():
 	position_marker_checkbox.toggled.connect(_on_position_marker_toggled)
 	minimap_checkbox.toggled.connect(_on_minimap_toggled)
 	minimap_range_checkbox.toggled.connect(_on_minimap_range_toggled)
+	hud_domain_sphere_checkbox.toggled.connect(_on_hud_domain_sphere_toggled)
+	hud_target_sphere_checkbox.toggled.connect(_on_hud_target_sphere_toggled)
 	hud_phase_wheel_checkbox.toggled.connect(_on_hud_phase_wheel_toggled)
 	hud_position_checkbox.toggled.connect(_on_hud_navigation_toggled)
 	hud_zeros_checkbox.toggled.connect(_on_hud_zeros_toggled)
@@ -268,9 +278,11 @@ func _ready():
 	terrain_detail_button.item_selected.connect(_on_terrain_detail_selected)
 	aa_button.item_selected.connect(_on_aa_selected)
 	shadows_checkbox.toggled.connect(_on_shadows_toggled)
+	riemann_sphere_checkbox.toggled.connect(_on_riemann_sphere_toggled)
+	sphere_height_checkbox.toggled.connect(_on_sphere_height_toggled)
 	get_viewport().size_changed.connect(func(): emit_signal("update_hud_layout_signal"))
 
-	_populate_function_dropdown(func_button, false)
+	_populate_function_dropdown(func_button, Config.riemann_sphere_mode)
 	_populate_function_dropdown(input_button, true)
 
 	height_button.clear()
@@ -325,6 +337,7 @@ func _ready():
 		day_duration_slider: "Day Duration",
 		day_time_slider: "Time of day",
 		sunrise_slider: "Sunrise Direction",
+		sphere_radius_slider: "Sphere Radius",
 		sky_luminosity_slider: "Sky Luminosity",
 		sun_luminosity_slider: "Sun Luminosity",
 		self_illumination_slider: "Self-Illumination",
@@ -448,6 +461,12 @@ func _init_slider_bindings():
 			"to_config": id,
 			"from_config": id,
 			"format": fmt_time
+		},
+		sphere_radius_slider: {
+			"config_key": "riemann_sphere_radius",
+			"to_config": id,
+			"from_config": id,
+			"format": fmt_int
 		},
 		sunrise_slider: {
 			"config_key": "sunrise_direction",
@@ -834,13 +853,14 @@ func _on_func_selected(f_type: int):
 	func_rational_container.visible = is_rational
 	if is_rational:
 		_on_func_rational_text_submitted(func_rational_input.text)
-	multivalued_slider.visible = is_multivalued_n
+	multivalued_slider.visible = is_multivalued_n and not Config.riemann_sphere_mode
 	iter_slider.visible = has_iters
 	critical_checkbox.visible = is_dirichlet
-	auto_walk_checkbox.visible = is_dirichlet
+	auto_walk_checkbox.visible = is_dirichlet and not Config.riemann_sphere_mode
+	zero_walk_checkbox.visible = not Config.riemann_sphere_mode
 	rvm_checkbox.visible = is_dirichlet
 
-	var is_multivalued = f_data.get("is_multivalued", false)
+	var is_multivalued = Config.is_multivalued_active()
 	branch_k_slider.visible = is_multivalued
 	_update_branch_k_slider_range()
 
@@ -855,8 +875,7 @@ func _on_func_selected(f_type: int):
 	var im = _parse_float_input(im_input, 0.0)
 
 	if player and not _syncing_ui:
-		var target_pos = Config.complex_to_world(re, im)
-		player.teleport_to_world_pos(Vector3(target_pos.x, 0, target_pos.y))
+		player.teleport_to_complex(Vector2(re, im))
 
 func _update_branch_k_slider_range():
 	if Config.function_type == Config.ComplexFunc.MULTIVALUED_Z_POW:
@@ -913,8 +932,12 @@ func _on_set_pos_pressed(_toggle_menu: bool = true):
 	Config.show_curves_labels = curves_labels_checkbox.button_pressed
 	Config.show_critical_stripe = critical_checkbox.button_pressed
 	Config.shadows_enabled = shadows_checkbox.button_pressed
+	Config.riemann_sphere_mode = riemann_sphere_checkbox.button_pressed
+	Config.riemann_sphere_height = sphere_height_checkbox.button_pressed
 	Config.show_minimap = minimap_checkbox.button_pressed
 	Config.show_minimap_range = minimap_range_checkbox.button_pressed
+	Config.show_hud_domain_sphere = hud_domain_sphere_checkbox.button_pressed
+	Config.show_hud_target_sphere = hud_target_sphere_checkbox.button_pressed
 	Config.show_hud_phase_wheel = hud_phase_wheel_checkbox.button_pressed
 	Config.show_hud_navigation = hud_position_checkbox.button_pressed
 	Config.show_hud_zeros = hud_zeros_checkbox.button_pressed
@@ -959,18 +982,19 @@ func _on_set_pos_pressed(_toggle_menu: bool = true):
 
 	if player:
 		if nav_changed and is_finite(re) and is_finite(im):
-			var target_pos = Config.complex_to_world(re, im)
-			player.teleport_to_world_pos(Vector3(target_pos.x, player.global_position.y, target_pos.y))
+			player.teleport_to_complex(Vector2(re, im))
 
 		var f_data = Config.function
 		if f_data.get("is_dirichlet", false):
-			GameState.rvm_start_t = abs(Config.world_to_complex(0.0, player.global_position.z).y)
+			GameState.rvm_start_t = abs(Config.world_to_complex(player.global_position.x, player.global_position.z).y)
 
-		# Update auto-walk state
-		if auto_walk_checkbox.button_pressed:
+		# Update auto-walk state (disabled in Riemann Sphere mode)
+		if Config.riemann_sphere_mode:
+			player.auto_walk_state = 0 # NONE
+		elif auto_walk_checkbox.button_pressed:
 			if player.auto_walk_state == 0 or player.auto_walk_state == 3: # NONE or NEWTON_WALK
 				player.auto_walk_state = 1 # MOVING_TO_LINE
-				GameState.rvm_start_t = abs(Config.world_to_complex(0.0, player.global_position.z).y)
+				GameState.rvm_start_t = abs(Config.world_to_complex(player.global_position.x, player.global_position.z).y)
 				if "last_detected_t" in player:
 					player.last_detected_t = -1.0
 		elif zero_walk_checkbox.button_pressed:
@@ -1021,9 +1045,14 @@ func _sync_ui_to_config():
 	curves_labels_checkbox.button_pressed = Config.show_curves_labels
 	critical_checkbox.button_pressed = Config.show_critical_stripe
 	shadows_checkbox.button_pressed = Config.shadows_enabled
+	riemann_sphere_checkbox.button_pressed = Config.riemann_sphere_mode
+	sphere_height_checkbox.button_pressed = Config.riemann_sphere_height
+	_update_sphere_mode_dependent_ui()
 	minimap_checkbox.button_pressed = Config.show_minimap
 	minimap_range_checkbox.button_pressed = Config.show_minimap_range
 	minimap_range_checkbox.visible = Config.show_minimap
+	hud_domain_sphere_checkbox.button_pressed = Config.show_hud_domain_sphere
+	hud_target_sphere_checkbox.button_pressed = Config.show_hud_target_sphere
 	hud_phase_wheel_checkbox.button_pressed = Config.show_hud_phase_wheel
 	hud_position_checkbox.button_pressed = Config.show_hud_navigation
 	hud_phase_wheel_checkbox.visible = Config.show_hud_navigation
@@ -1081,6 +1110,39 @@ func _on_aa_selected(index: int):
 	Config.antialiasing_mode = index
 	emit_signal('apply_aa_signal')
 
+func _update_sphere_mode_dependent_ui():
+	var sphere_on = Config.riemann_sphere_mode
+	sphere_height_checkbox.visible = sphere_on
+	sphere_radius_slider.visible = sphere_on
+	_populate_function_dropdown(func_button, sphere_on)
+	var func_idx = func_button.get_item_index(Config.function_type)
+	if func_idx >= 0:
+		func_button.select(func_idx)
+	var f_data = Config.function
+	var is_dirichlet = f_data.get("is_dirichlet", false)
+	auto_walk_checkbox.visible = is_dirichlet and not sphere_on
+	zero_walk_checkbox.visible = not sphere_on
+	var is_multivalued = Config.is_multivalued_active()
+	branch_k_slider.visible = is_multivalued
+	multivalued_slider.visible = (Config.function_type == Config.ComplexFunc.MULTIVALUED_Z_POW) and not sphere_on
+	if is_multivalued:
+		input_button.disabled = true
+		if Config.input_function_type != Config.ComplexFunc.IDENTITY:
+			input_button.select(input_button.get_item_index(Config.ComplexFunc.IDENTITY))
+			_on_input_selected(Config.ComplexFunc.IDENTITY)
+	else:
+		input_button.disabled = false
+
+func _on_riemann_sphere_toggled(pressed: bool):
+	var prev_func = Config.function_type
+	Config.riemann_sphere_mode = pressed
+	_update_sphere_mode_dependent_ui()
+	if Config.function_type != prev_func:
+		_on_func_selected(Config.function_type)
+
+func _on_sphere_height_toggled(pressed: bool):
+	Config.riemann_sphere_height = pressed
+
 func _on_shadows_toggled(pressed: bool):
 	Config.shadows_enabled = pressed
 
@@ -1105,6 +1167,12 @@ func _on_minimap_toggled(pressed: bool):
 
 func _on_minimap_range_toggled(pressed: bool):
 	Config.show_minimap_range = pressed
+
+func _on_hud_domain_sphere_toggled(pressed: bool):
+	Config.show_hud_domain_sphere = pressed
+
+func _on_hud_target_sphere_toggled(pressed: bool):
+	Config.show_hud_target_sphere = pressed
 
 func _on_hud_phase_wheel_toggled(pressed: bool):
 	Config.show_hud_phase_wheel = pressed
@@ -1150,8 +1218,7 @@ func _on_re_text_submitted(_new_text: String):
 		_initial_re_text = re_input.text
 	if player:
 		var current_complex = Config.world_to_complex(player.global_position.x, player.global_position.z)
-		var target_x = Config.complex_to_world(re, current_complex.y).x
-		player.teleport_to_world_pos(Vector3(target_x, player.global_position.y, player.global_position.z))
+		player.teleport_to_complex(Vector2(re, current_complex.y))
 
 func _on_im_text_submitted(_new_text: String):
 	var im = _parse_float_input(im_input, 0.0)
@@ -1160,8 +1227,7 @@ func _on_im_text_submitted(_new_text: String):
 		_initial_im_text = im_input.text
 	if player:
 		var current_complex = Config.world_to_complex(player.global_position.x, player.global_position.z)
-		var target_z = Config.complex_to_world(current_complex.x, im).y
-		player.teleport_to_world_pos(Vector3(player.global_position.x, player.global_position.y, target_z))
+		player.teleport_to_complex(Vector2(current_complex.x, im))
 
 func _on_height_a_text_submitted(_new_text: String):
 	var h_a = _parse_float_input(height_a_input, 3.0)
@@ -1355,7 +1421,7 @@ func _on_title_gui_input(event: InputEvent):
 		_title_click_timer = 1.0 # 1 second window to do the 3 clicks
 		if _title_clicks >= 3:
 			GameState.show_hidden_options = !GameState.show_hidden_options
-			_populate_function_dropdown(func_button, false)
+			_populate_function_dropdown(func_button, Config.riemann_sphere_mode)
 			_populate_function_dropdown(input_button, true)
 
 			var f_idx = func_button.get_item_index(current_submitted_func)
@@ -1473,6 +1539,9 @@ func toggle_menu(applied: bool = false):
 		_initial_rendering_scale = Config.rendering_scale
 		_initial_view_distance = Config.view_distance
 		_initial_shadows_enabled = Config.shadows_enabled
+		_initial_riemann_sphere_mode = Config.riemann_sphere_mode
+		_initial_riemann_sphere_height = Config.riemann_sphere_height
+		_initial_riemann_sphere_radius = Config.riemann_sphere_radius
 		_initial_preset = Config.current_preset
 		_initial_edited_presets = Config._edited_presets.duplicate(true)
 
@@ -1531,6 +1600,9 @@ func toggle_menu(applied: bool = false):
 			Config.rendering_scale = _initial_rendering_scale
 			Config.view_distance = _initial_view_distance
 			Config.shadows_enabled = _initial_shadows_enabled
+			Config.riemann_sphere_mode = _initial_riemann_sphere_mode
+			Config.riemann_sphere_height = _initial_riemann_sphere_height
+			Config.riemann_sphere_radius = _initial_riemann_sphere_radius
 			Config.current_preset = _initial_preset
 			Config._edited_presets = _initial_edited_presets
 

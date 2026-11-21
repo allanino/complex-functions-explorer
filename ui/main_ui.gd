@@ -8,6 +8,10 @@ const NEON_FONT = preload("res://ui/theme/font_neon.tres")
 @onready var hud_stack_right = %MainUIStackRight
 @onready var minimap_panel = %MinimapPanel
 @onready var minimap = %MinimapAspect
+@onready var domain_sphere_panel = %DomainSpherePanel
+@onready var domain_sphere = %DomainSphereAspect
+@onready var target_sphere_panel = %TargetSpherePanel
+@onready var target_sphere = %TargetSphereAspect
 @onready var phase_wheel = %PhaseWheel
 @onready var position_panel = %PositionPanel
 @onready var monitor_panel = %MonitorPanel
@@ -58,16 +62,34 @@ var _prev_is_dirichlet: bool = false
 
 
 # Wraps a numeric string in BBCode: dims a leading '-' sign, colors the rest.
-func _bb_re(value: String, color: String) -> String:
+const INF_FONT_SCALE: float = 1.45
+
+class _InfBaselineEffect extends RichTextEffect:
+	var bbcode = "inf_align"
+	func _process_custom_fx(char_fx: CharFXTransform) -> bool:
+		char_fx.offset.y += float(char_fx.env.get("dy", 2.0))
+		return true
+
+func _bb_num(num: String, rtl: RichTextLabel) -> String:
+	if num == "∞":
+		var base_sz = rtl.get_theme_font_size("normal_font_size")
+		var sz = int(round(base_sz * INF_FONT_SCALE))
+		var dy = base_sz * 0.15
+		return "[inf_align dy=%.1f][font_size=%d]∞[/font_size][/inf_align]" % [dy, sz]
+	return num
+
+func _bb_re(value: String, color: String, rtl: RichTextLabel = null) -> String:
+	var target = rtl if rtl else target_val
 	if value.begins_with("-"):
-		return "[color=%s]-[/color][color=%s]%s[/color]" % [ThemeColors.CLR_DIM, color, value.substr(1)]
-	return "[color=%s]%s[/color]" % [color, value]
+		return "[color=%s]-[/color][color=%s]%s[/color]" % [ThemeColors.CLR_DIM, color, _bb_num(value.substr(1), target)]
+	return "[color=%s]%s[/color]" % [color, _bb_num(value, target)]
 
 # Formats an imaginary value as "± number i" with a dim operator separator.
-func _bb_im(im: String) -> String:
+func _bb_im(im: String, rtl: RichTextLabel = null) -> String:
+	var target = rtl if rtl else target_val
 	if im.begins_with("-"):
-		return "[color=%s] - [/color][color=%s]%s[/color][color=%s]i[/color]" % [ThemeColors.CLR_DIM, ThemeColors.CLR_IMAGINARY, im.substr(1), ThemeColors.CLR_IMAGINARY_DIM]
-	return "[color=%s] + [/color][color=%s]%s[/color][color=%s]i[/color]" % [ThemeColors.CLR_DIM, ThemeColors.CLR_IMAGINARY, im, ThemeColors.CLR_IMAGINARY_DIM]
+		return "[color=%s] - [/color][color=%s]%s[/color][color=%s]i[/color]" % [ThemeColors.CLR_DIM, ThemeColors.CLR_IMAGINARY, _bb_num(im.substr(1), target), ThemeColors.CLR_IMAGINARY_DIM]
+	return "[color=%s] + [/color][color=%s]%s[/color][color=%s]i[/color]" % [ThemeColors.CLR_DIM, ThemeColors.CLR_IMAGINARY, _bb_num(im, target), ThemeColors.CLR_IMAGINARY_DIM]
 
 func update_arg_val(f: Vector2):
 	var angle_rad: float
@@ -109,7 +131,7 @@ func update_arg_val(f: Vector2):
 	position_arg_arrow.queue_redraw()
 
 func _setup_branch_data():
-	if Config.function.get("is_multivalued", false):
+	if Config.is_multivalued_active():
 		phase_branch_val.visible = true
 		branch_label.visible = true
 	else:
@@ -149,6 +171,9 @@ func _ready():
 
 	get_viewport().scaling_3d_scale = Config.rendering_scale
 	Config.config_changed.connect(_on_config_changed)
+	var inf_fx = _InfBaselineEffect.new()
+	target_val.install_effect(inf_fx)
+	domain_val.install_effect(inf_fx)
 	_update_function_labels()
 
 	if not mobile_settings_btn.pressed.is_connected(toggle_menu.bind(false)):
@@ -202,6 +227,8 @@ func _ready():
 
 	zeros_panel.visible = Config.show_hud_zeros
 	minimap_panel.visible = Config.show_minimap
+	domain_sphere_panel.visible = Config.show_hud_domain_sphere
+	target_sphere_panel.visible = Config.show_hud_target_sphere
 	phase_wheel.get_parent().visible = Config.show_hud_phase_wheel and Config.show_hud_navigation
 	phase_wheel.visible = Config.show_hud_phase_wheel and Config.show_hud_navigation
 	if phase_wheel.visible:
@@ -220,11 +247,13 @@ func _ready():
 func _on_values_timer_timeout():
 	if player == null:
 		return
+	var x = player.global_position.x
 	var z = player.global_position.z
+	var complex_pos = Config.world_to_complex(x, z)
 
 	if Config.show_hud_zeros:
 		if Config.show_rvm and Config.function.get("has_von_mangoldt", false):
-			var T = abs(Config.world_to_complex(0.0, z).y)
+			var T = abs(complex_pos.y)
 			var rvm_val = _get_rvm_n(T) - _get_rvm_n(GameState.rvm_start_t)
 			rvm_val = max(0.0, rvm_val)
 			var delta_val = GameState.total_zeros_found - rvm_val
@@ -246,16 +275,18 @@ func _on_values_timer_timeout():
 		else:
 			rvm_hbox.visible = false
 
-	var x = player.global_position.x
 	var f = player.current_f
 
-	# Update phase wheel
+	# Update phase wheel and domain/target Riemann spheres
 	phase_wheel.update_data(f)
+	if domain_sphere_panel.visible:
+		domain_sphere.update_data(complex_pos)
+	if target_sphere_panel.visible:
+		target_sphere.update_data(f)
 
 	if position_arg_val.visible:
 		update_arg_val(f)
 
-	var complex_pos = Config.world_to_complex(x, z)
 	var val_re = complex_pos.x
 	var val_im = complex_pos.y
 	var val_fx = f.x
@@ -267,10 +298,16 @@ func _on_values_timer_timeout():
 	var domain_re = _format_float(val_re)
 	var domain_im = _format_float(val_im)
 
-	target_val.text = _bb_re(target_re, ThemeColors.CLR_REAL) + _bb_im(target_im)
-	domain_val.text = _bb_re(domain_re, ThemeColors.CLR_REAL) + _bb_im(domain_im)
+	target_val.text = _bb_re(target_re, ThemeColors.CLR_REAL, target_val) + _bb_im(target_im, target_val)
+	domain_val.text = _bb_re(domain_re, ThemeColors.CLR_REAL, domain_val) + _bb_im(domain_im, domain_val)
 
-	phase_abs_val.text = _format_float(f.length())
+	var abs_text = _format_float(f.length())
+	phase_abs_val.text = abs_text
+	if phase_abs_val.has_meta("base_font_size"):
+		var base_fs = float(phase_abs_val.get_meta("base_font_size")) * Config.hud_scale
+		var desired_fs = int(round(base_fs * (INF_FONT_SCALE if abs_text.contains("∞") else 1.0)))
+		if phase_abs_val.get_theme_font_size("font_size") != desired_fs:
+			phase_abs_val.add_theme_font_size_override("font_size", desired_fs)
 
 
 func _on_monitor_timer_timeout():
@@ -581,6 +618,10 @@ func toggle_menu(applied: bool = false):
 	menu_overlay.toggle_menu(applied)
 
 func _format_float(val: float) -> String:
+	if is_nan(val):
+		return "NaN"
+	if is_inf(val):
+		return "∞" if val > 0.0 else "-∞"
 	var abs_val = abs(val)
 	if abs_val >= 1e7:
 		var exp_val = int(floor(log(abs_val) / log(10.0)))
@@ -619,7 +660,7 @@ var _cached_layout_assignment: Dictionary = {}
 func _update_hud_layout():
 	if not hud_columns: return
 
-	var cards = [minimap_panel, position_panel, zeros_panel, monitor_panel]
+	var cards = [minimap_panel, domain_sphere_panel, target_sphere_panel, position_panel, zeros_panel, monitor_panel]
 
 	var actual_hud_scale = Config.hud_scale
 
@@ -649,7 +690,7 @@ func _update_hud_layout():
 		"show_rvm": Config.show_rvm and f_data.get("has_von_mangoldt", false),
 		"show_fps": Config.show_hud_monitor_fps,
 		"show_chunks": show_hud_chunks,
-		"is_multivalued": f_data.get("is_multivalued", false),
+		"is_multivalued": Config.is_multivalued_active(),
 	}
 
 	if current_state.hash() == _last_hud_state.hash():
@@ -735,7 +776,7 @@ func _rescale_card(card: Control, _scale: float):
 
 		if node is Control:
 			# Only scale custom minimum size for specific panels to maintain layout proportions
-			if node.name == "ComplexAspect" or node.name == "MinimapAspect" or node.name == "PhaseWheel":
+			if node.name == "ComplexAspect" or node.name == "MinimapAspect" or node.name == "DomainSphereAspect" or node.name == "TargetSphereAspect" or node.name == "PhaseWheel":
 				pass
 			elif node.name == "PositionPanel":
 				if not node.has_meta("base_min_size"):
@@ -821,10 +862,16 @@ func _on_config_changed(key: String):
 		_update_zeros_list()
 		_setup_branch_data()
 		_update_function_labels()
+	if key == "riemann_sphere_mode":
+		_setup_branch_data()
 	if key == "show_hud_navigation":
 		position_panel.visible = Config.show_hud_navigation
 	if key == "show_minimap":
 		minimap_panel.visible = Config.show_minimap
+	if key == "show_hud_domain_sphere":
+		domain_sphere_panel.visible = Config.show_hud_domain_sphere
+	if key == "show_hud_target_sphere":
+		target_sphere_panel.visible = Config.show_hud_target_sphere
 	if key == "show_hud_zeros":
 		zeros_panel.visible = Config.show_hud_zeros
 		_update_zeros_list()
@@ -840,7 +887,7 @@ func _on_config_changed(key: String):
 		position_panel.update_minimum_size()
 		position_panel.queue_sort()
 
-	if key in ["function_type", "show_hud_navigation", "show_hud_phase_wheel", "show_minimap", "show_hud_zeros", "show_hud_monitor_fps", "show_hud_chunks"]:
+	if key in ["function_type", "riemann_sphere_mode", "show_hud_navigation", "show_hud_phase_wheel", "show_minimap", "show_hud_domain_sphere", "show_hud_target_sphere", "show_hud_zeros", "show_hud_monitor_fps", "show_hud_chunks"]:
 		_update_hud_layout()
 
 	if key == "zoom_factor":

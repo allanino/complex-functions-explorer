@@ -802,6 +802,29 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 15
 
+[node name="RiemannSphereCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/VISUALIZATION/Margin/VBox" unique_id=1820000001 instance=ExtResource("3_checkbox")]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Riemann Sphere"
+
+[node name="SphereHeightCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/VISUALIZATION/Margin/VBox" unique_id=1820000002 instance=ExtResource("3_checkbox")]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Sphere height"
+
+[node name="SphereRadiusSlider" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/VISUALIZATION/Margin/VBox" unique_id=1820000003 instance=ExtResource("1")]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Sphere Radius"
+min_value = 10.0
+max_value = 500.0
+step = 5.0
+value = 50.0
+value_text = "50"
+show_detach_button = true
+
 [node name="ColorSchemeContainer" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/VISUALIZATION/Margin/VBox" unique_id=1766626415 instance=ExtResource("DropdownScene")]
 unique_name_in_owner = true
 layout_mode = 2
@@ -1078,6 +1101,18 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Minimap range"
+
+[node name="HudDomainSphereCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/UI/Margin/VBox" instance=ExtResource("3_checkbox")]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Domain sphere"
+
+[node name="HudTargetSphereCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/UI/Margin/VBox" instance=ExtResource("3_checkbox")]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Target sphere"
 
 [node name="HudMonitorFpsCheckbox" parent="CenterContainer/MainMenuPanel/MarginContainer/ContentVBox/MainLayoutHBox/RightAreaVBox/TabContainer/UI/Margin/VBox" unique_id=1861309937 instance=ExtResource("3_checkbox")]
 unique_name_in_owner = true

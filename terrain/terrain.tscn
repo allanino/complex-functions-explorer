@@ -38,6 +38,9 @@ shader_parameter/portal_width = 100.0
 shader_parameter/specular_intensity = 0.1
 shader_parameter/self_illumination = 0.0
 shader_parameter/fog_density = 0.0
+shader_parameter/sphere_mode = false
+shader_parameter/sphere_radius = 50.0
+shader_parameter/sphere_height = false
 
 [node name="WorldManager" type="Node3D"]
 script = ExtResource("1_world")
