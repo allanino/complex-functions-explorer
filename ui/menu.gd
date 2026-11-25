@@ -270,8 +270,6 @@ func _ready():
 	for slider in SLIDER_BINDINGS:
 		slider.value_changed.connect(func(v): _on_generic_slider_changed(slider, v))
 
-	freeze_time_checkbox.toggled.connect(_on_freeze_time_toggled)
-
 	terrain_detail_button.item_selected.connect(_on_terrain_detail_selected)
 	aa_button.item_selected.connect(_on_aa_selected)
 	riemann_sphere_checkbox.toggled.connect(_on_riemann_sphere_toggled)
@@ -388,6 +386,7 @@ func _init_checkbox_bindings():
 		hud_monitor_fps_checkbox: "show_hud_monitor_fps",
 		shadows_checkbox: "shadows_enabled",
 		sphere_height_checkbox: "riemann_sphere_height",
+		freeze_time_checkbox: "freeze_time",
 	}
 
 func _on_generic_checkbox_toggled(pressed: bool, config_key: String):
@@ -908,10 +907,6 @@ func _on_height_selected(index):
 	height_a_container.visible = is_log
 	height_eps_container.visible = is_log
 	height_theta_slider.visible = (index == 4)
-
-func _on_freeze_time_toggled(pressed: bool):
-	Config.freeze_time = pressed
-
 
 func _on_set_pos_pressed(_toggle_menu: bool = true):
 	var audio = get_node_or_null("/root/Main/Audio")
@@ -1478,8 +1473,6 @@ func toggle_menu(applied: bool = false):
 		_snapshot_menu_state()
 
 		_sync_ui_to_config()
-
-		freeze_time_checkbox.button_pressed = Config.freeze_time
 
 		if player:
 			var complex_pos = Config.world_to_complex(player.global_position.x, player.global_position.z)
