@@ -605,5 +605,45 @@ func test_update_view_only_clears_zeros_on_nav_or_func_change():
 	assert_eq(GameState.visited_zeros.size(), 0)
 	assert_eq(GameState.total_zeros_found, 0)
 
+func test_menu_cancel_restores_snapshotted_config():
+	var menu = main_ui_instance.menu_overlay
+	var original_values := {}
+	for key in menu.SNAPSHOT_CONFIG_KEYS:
+		original_values[key] = Config.get(key)
+	var original_preset := Config.current_preset
 
+	# Open menu -> captures snapshot
+	menu.toggle_menu(false)
+	assert_true(menu.visible)
+
+	# Mutate every snapshotted config key plus morph/preset state
+	for key in menu.SNAPSHOT_CONFIG_KEYS:
+		var val = original_values[key]
+		if val is bool:
+			Config.set(key, not val)
+		elif val is int:
+			Config.set(key, val + 1)
+		elif val is float:
+			Config.set(key, val + 0.5)
+	GameState.morph_value = 0.25
+	Config.current_preset = "Modified"
+	Config._edited_presets["Modified"] = {"terrain_brightness": 99.0}
+
+	# Close without applying -> restores every snapshotted value
+	menu.toggle_menu(false)
+	assert_false(menu.visible)
+
+	for key in menu.SNAPSHOT_CONFIG_KEYS:
+		assert_eq(Config.get(key), original_values[key], "Key '%s' should be restored on cancel" % key)
+	assert_eq(GameState.morph_value, 1.0)
+	assert_eq(Config.current_preset, original_preset)
+	assert_false(Config._edited_presets.has("Modified"))
+
+	# Re-open, mutate, and close with applied = true -> preserves changes
+	menu.toggle_menu(false)
+	var new_brightness: float = original_values["terrain_brightness"] + 0.25
+	Config.terrain_brightness = new_brightness
+	menu.toggle_menu(true)
+	assert_false(menu.visible)
+	assert_almost_eq(Config.terrain_brightness, new_brightness, 1e-6)
 
