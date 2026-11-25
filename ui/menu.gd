@@ -1,6 +1,7 @@
 extends Control
 
 var SLIDER_BINDINGS: Dictionary = {}
+var CHECKBOX_BINDINGS: Dictionary = {}
 var _using_mouse_pointer: bool = true
 var _hovered_slider: HSlider = null
 var _left_stick_horizontal_state: int = 0
@@ -246,20 +247,13 @@ func _ready():
 	func_rational_input.text_submitted.connect(_on_func_rational_text_submitted)
 	input_rational_input.text_submitted.connect(_on_input_rational_text_submitted)
 
-	curves_checkbox.toggled.connect(_on_curves_toggled)
-	curves_labels_checkbox.toggled.connect(_on_curves_labels_toggled)
-	critical_checkbox.toggled.connect(_on_critical_toggled)
-	flow_checkbox.toggled.connect(_on_flow_toggled)
-	position_marker_checkbox.toggled.connect(_on_position_marker_toggled)
+	_init_checkbox_bindings()
+	for checkbox in CHECKBOX_BINDINGS:
+		checkbox.toggled.connect(_on_generic_checkbox_toggled.bind(CHECKBOX_BINDINGS[checkbox]))
+
 	minimap_checkbox.toggled.connect(_on_minimap_toggled)
-	minimap_range_checkbox.toggled.connect(_on_minimap_range_toggled)
-	hud_domain_sphere_checkbox.toggled.connect(_on_hud_domain_sphere_toggled)
-	hud_target_sphere_checkbox.toggled.connect(_on_hud_target_sphere_toggled)
-	hud_phase_wheel_checkbox.toggled.connect(_on_hud_phase_wheel_toggled)
 	hud_position_checkbox.toggled.connect(_on_hud_navigation_toggled)
 	hud_zeros_checkbox.toggled.connect(_on_hud_zeros_toggled)
-	rvm_checkbox.toggled.connect(_on_rvm_toggled)
-	hud_monitor_fps_checkbox.toggled.connect(_on_hud_monitor_fps_toggled)
 	color_scheme_button.item_selected.connect(_on_color_scheme_selected)
 
 	apply_button.pressed.connect(_on_set_pos_pressed)
@@ -276,13 +270,9 @@ func _ready():
 	for slider in SLIDER_BINDINGS:
 		slider.value_changed.connect(func(v): _on_generic_slider_changed(slider, v))
 
-	freeze_time_checkbox.toggled.connect(_on_freeze_time_toggled)
-
 	terrain_detail_button.item_selected.connect(_on_terrain_detail_selected)
 	aa_button.item_selected.connect(_on_aa_selected)
-	shadows_checkbox.toggled.connect(_on_shadows_toggled)
 	riemann_sphere_checkbox.toggled.connect(_on_riemann_sphere_toggled)
-	sphere_height_checkbox.toggled.connect(_on_sphere_height_toggled)
 	get_viewport().size_changed.connect(func(): emit_signal("update_hud_layout_signal"))
 
 	_populate_function_dropdown(func_button, Config.riemann_sphere_mode)
@@ -380,6 +370,27 @@ func _ready():
 	_disable_dpad_focus_recursive(self)
 	_connect_slider_hover_signals(self)
 
+
+func _init_checkbox_bindings():
+	CHECKBOX_BINDINGS = {
+		curves_checkbox: "show_curves",
+		curves_labels_checkbox: "show_curves_labels",
+		critical_checkbox: "show_critical_stripe",
+		flow_checkbox: "show_flow",
+		position_marker_checkbox: "show_position_marker",
+		minimap_range_checkbox: "show_minimap_range",
+		hud_domain_sphere_checkbox: "show_hud_domain_sphere",
+		hud_target_sphere_checkbox: "show_hud_target_sphere",
+		hud_phase_wheel_checkbox: "show_hud_phase_wheel",
+		rvm_checkbox: "show_rvm",
+		hud_monitor_fps_checkbox: "show_hud_monitor_fps",
+		shadows_checkbox: "shadows_enabled",
+		sphere_height_checkbox: "riemann_sphere_height",
+		freeze_time_checkbox: "freeze_time",
+	}
+
+func _on_generic_checkbox_toggled(pressed: bool, config_key: String):
+	Config.set(config_key, pressed)
 
 func _init_slider_bindings():
 	var fmt_pct = func(v): return str(int(round(v))) + "%"
@@ -897,10 +908,6 @@ func _on_height_selected(index):
 	height_eps_container.visible = is_log
 	height_theta_slider.visible = (index == 4)
 
-func _on_freeze_time_toggled(pressed: bool):
-	Config.freeze_time = pressed
-
-
 func _on_set_pos_pressed(_toggle_menu: bool = true):
 	var audio = get_node_or_null("/root/Main/Audio")
 	if audio and audio.has_method("trigger_teleport_fade"):
@@ -1044,31 +1051,20 @@ func _sync_ui_to_config():
 	aa_button.selected = Config.antialiasing_mode
 	color_scheme_button.selected = Config.color_scheme
 
-	curves_checkbox.button_pressed = Config.show_curves
-	curves_labels_checkbox.button_pressed = Config.show_curves_labels
-	critical_checkbox.button_pressed = Config.show_critical_stripe
-	shadows_checkbox.button_pressed = Config.shadows_enabled
+	for checkbox in CHECKBOX_BINDINGS:
+		checkbox.button_pressed = Config.get(CHECKBOX_BINDINGS[checkbox])
+
 	riemann_sphere_checkbox.button_pressed = Config.riemann_sphere_mode
-	sphere_height_checkbox.button_pressed = Config.riemann_sphere_height
 	_update_sphere_mode_dependent_ui()
 	minimap_checkbox.button_pressed = Config.show_minimap
-	minimap_range_checkbox.button_pressed = Config.show_minimap_range
 	minimap_range_checkbox.visible = Config.show_minimap
-	hud_domain_sphere_checkbox.button_pressed = Config.show_hud_domain_sphere
-	hud_target_sphere_checkbox.button_pressed = Config.show_hud_target_sphere
-	hud_phase_wheel_checkbox.button_pressed = Config.show_hud_phase_wheel
 	hud_position_checkbox.button_pressed = Config.show_hud_navigation
 	hud_phase_wheel_checkbox.visible = Config.show_hud_navigation
 	hud_zeros_checkbox.button_pressed = Config.show_hud_zeros
-	rvm_checkbox.button_pressed = Config.show_rvm
-	hud_monitor_fps_checkbox.button_pressed = Config.show_hud_monitor_fps
 
 	if player:
 		auto_walk_checkbox.button_pressed = (player.auto_walk_state == 1 or player.auto_walk_state == 2)
 		zero_walk_checkbox.button_pressed = (player.auto_walk_state == 3)
-
-	flow_checkbox.button_pressed = Config.show_flow
-	position_marker_checkbox.button_pressed = Config.show_position_marker
 
 	func_button.select(func_button.get_item_index(Config.function_type))
 	input_button.select(input_button.get_item_index(Config.input_function_type))
@@ -1143,42 +1139,9 @@ func _on_riemann_sphere_toggled(pressed: bool):
 	if Config.function_type != prev_func:
 		_on_func_selected(Config.function_type)
 
-func _on_sphere_height_toggled(pressed: bool):
-	Config.riemann_sphere_height = pressed
-
-func _on_shadows_toggled(pressed: bool):
-	Config.shadows_enabled = pressed
-
-func _on_curves_toggled(pressed: bool):
-	Config.show_curves = pressed
-
-func _on_curves_labels_toggled(pressed: bool):
-	Config.show_curves_labels = pressed
-
-func _on_critical_toggled(pressed: bool):
-	Config.show_critical_stripe = pressed
-
-func _on_flow_toggled(pressed: bool):
-	Config.show_flow = pressed
-
-func _on_position_marker_toggled(pressed: bool):
-	Config.show_position_marker = pressed
-
 func _on_minimap_toggled(pressed: bool):
 	Config.show_minimap = pressed
 	minimap_range_checkbox.visible = pressed
-
-func _on_minimap_range_toggled(pressed: bool):
-	Config.show_minimap_range = pressed
-
-func _on_hud_domain_sphere_toggled(pressed: bool):
-	Config.show_hud_domain_sphere = pressed
-
-func _on_hud_target_sphere_toggled(pressed: bool):
-	Config.show_hud_target_sphere = pressed
-
-func _on_hud_phase_wheel_toggled(pressed: bool):
-	Config.show_hud_phase_wheel = pressed
 
 func _on_hud_navigation_toggled(pressed: bool):
 	Config.show_hud_navigation = pressed
@@ -1190,12 +1153,6 @@ func _on_hud_zeros_toggled(pressed: bool):
 	if not pressed:
 		GameState.clear_zeros()
 		emit_signal('update_hud_layout_signal')
-
-func _on_rvm_toggled(pressed: bool):
-	Config.show_rvm = pressed
-
-func _on_hud_monitor_fps_toggled(pressed: bool):
-	Config.show_hud_monitor_fps = pressed
 
 func _on_color_scheme_selected(index: int):
 	Config.color_scheme = index
@@ -1516,8 +1473,6 @@ func toggle_menu(applied: bool = false):
 		_snapshot_menu_state()
 
 		_sync_ui_to_config()
-
-		freeze_time_checkbox.button_pressed = Config.freeze_time
 
 		if player:
 			var complex_pos = Config.world_to_complex(player.global_position.x, player.global_position.z)
