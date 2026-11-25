@@ -160,6 +160,58 @@ func test_curve_labels_throttled_update():
 	Config.show_curves_labels = original_show_curves_labels
 	Config.function_type = original_function_type
 
+func test_curve_labels_real_and_imag_crossings():
+	var original_show_curves = Config.show_curves
+	var original_show_curves_labels = Config.show_curves_labels
+	var original_function_type = Config.function_type
+	var original_zoom = Config.zoom_factor
+	Config.show_curves = true
+	Config.show_curves_labels = true
+	Config.function_type = Config.ComplexFunc.IDENTITY
+	Config.zoom_factor = 1.0
+	Config.apply_zoom_immediate()
+
+	var player = player_scene.instantiate()
+	player.set("run_demo", false)
+	add_child_autoqfree(player)
+
+	# Verify both labels share styling and use distinct theme colors
+	assert_eq(player.re_label.modulate, ThemeColors.real)
+	assert_eq(player.im_label.modulate, ThemeColors.imaginary)
+	assert_eq(player.re_label.font_size, player.im_label.font_size)
+	assert_true(player.re_label.top_level and player.im_label.top_level)
+
+	# Place at z = (0.5, 0.5) => world (5.0, 0.0, -5.0), facing (+X, -Z) (increasing Re and Im)
+	player.global_position = Vector3(5.0, 0.0, -5.0)
+	player.rotation = Vector3(0.0, -PI / 4.0, 0.0)
+	player._curve_label_update_timer = player.CURVE_LABEL_UPDATE_INTERVAL
+	player._physics_process(0.016)
+
+	assert_true(player.re_label.visible)
+	assert_true(player.im_label.visible)
+	assert_eq(player.re_label.text, "1")
+	assert_eq(player.im_label.text, "1i")
+	assert_almost_eq(player._re_label_target_pos.x, 10.0, 0.05)
+	assert_almost_eq(player._im_label_target_pos.z, -10.0, 0.05)
+
+	# Face (-X, +Z) (decreasing Re and Im) to exercise the ceil() branch
+	player.rotation = Vector3(0.0, 3.0 * PI / 4.0, 0.0)
+	player._curve_label_update_timer = player.CURVE_LABEL_UPDATE_INTERVAL
+	player._physics_process(0.016)
+
+	assert_true(player.re_label.visible)
+	assert_true(player.im_label.visible)
+	assert_eq(player.re_label.text, "0")
+	assert_eq(player.im_label.text, "0i")
+	assert_almost_eq(player._re_label_target_pos.x, 0.0, 0.05)
+	assert_almost_eq(player._im_label_target_pos.z, 0.0, 0.05)
+
+	Config.show_curves = original_show_curves
+	Config.show_curves_labels = original_show_curves_labels
+	Config.function_type = original_function_type
+	Config.zoom_factor = original_zoom
+	Config.apply_zoom_immediate()
+
 func test_player_max_world_height_limit():
 	var player = player_scene.instantiate()
 	var main_ui = ui_scene.instantiate()
