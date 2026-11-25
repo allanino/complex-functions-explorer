@@ -692,6 +692,83 @@ func _ready():
 	load_settings()
 	apply_zoom_immediate()
 
+# Standard ConfigFile sections and property keys persisted verbatim by save_settings()/load_settings().
+# Special-case keys with custom ordering, casting, or fallback rules (function_type,
+# input_function_type, function_iterations, iterations, and session presets) are handled explicitly.
+const PERSISTED_SETTINGS = {
+	"field": [
+		"height_type",
+		"height_a",
+		"height_epsilon",
+		"height_theta",
+		"rational_num_coeffs",
+		"rational_den_coeffs",
+		"input_rational_num_coeffs",
+		"input_rational_den_coeffs",
+		"multivalued_n",
+		"zoom_factor",
+		"zoom_damping",
+		"morph_style",
+	],
+	"rendering": [
+		"terrain_detail",
+		"antialiasing_mode",
+		"rendering_scale",
+		"show_curves",
+		"show_curves_labels",
+		"show_critical_stripe",
+		"view_distance",
+		"show_flow",
+		"show_position_marker",
+		"riemann_sphere_mode",
+		"riemann_sphere_radius",
+		"riemann_sphere_height",
+		"color_scheme",
+		"freeze_time",
+		"day_duration",
+		"day_time",
+		"sunrise_direction",
+		"sky_luminosity",
+		"sun_luminosity",
+		"self_illumination",
+		"shadows_enabled",
+		"terrain_brightness",
+		"terrain_saturation",
+		"terrain_albedo",
+		"terrain_emission",
+		"terrain_metallic",
+		"terrain_roughness",
+		"terrain_ao",
+		"terrain_rim",
+		"terrain_rim_tint",
+		"fog_density",
+	],
+	"player": [
+		"movement_speed",
+		"speed_near_zeros",
+		"camera_height",
+		"zero_proximity_nav",
+	],
+	"ui": [
+		"show_minimap",
+		"show_minimap_range",
+		"show_hud_domain_sphere",
+		"show_hud_target_sphere",
+		"show_hud_phase_wheel",
+		"show_hud_navigation",
+		"show_hud_zeros",
+		"show_rvm",
+		"show_hud_monitor_fps",
+		"hud_scale",
+		"menu_scale",
+	],
+	"audio": [
+		"master_volume",
+		"bg_music_volume",
+		"drone_volume",
+	],
+}
+
 func save_settings():
 	var config = ConfigFile.new()
 
@@ -700,73 +777,13 @@ func save_settings():
 	config.set_value("field", "function_iterations", function_iterations)
 	config.set_value("field", "function_type", int(function_type))
 	config.set_value("field", "input_function_type", int(input_function_type))
-	config.set_value("field", "height_type", height_type)
-	config.set_value("field", "height_a", height_a)
-	config.set_value("field", "height_epsilon", height_epsilon)
-	config.set_value("field", "height_theta", height_theta)
-	config.set_value("field", "rational_num_coeffs", rational_num_coeffs)
-	config.set_value("field", "rational_den_coeffs", rational_den_coeffs)
-	config.set_value("field", "input_rational_num_coeffs", input_rational_num_coeffs)
-	config.set_value("field", "input_rational_den_coeffs", input_rational_den_coeffs)
-	config.set_value("field", "multivalued_n", multivalued_n)
-	config.set_value("field", "zoom_factor", zoom_factor)
-	config.set_value("field", "zoom_damping", zoom_damping)
-	config.set_value("field", "morph_style", morph_style)
 
-	config.set_value("rendering", "terrain_detail", terrain_detail)
-	config.set_value("rendering", "antialiasing_mode", antialiasing_mode)
-	config.set_value("rendering", "rendering_scale", rendering_scale)
-	config.set_value("rendering", "show_curves", show_curves)
-	config.set_value("rendering", "show_curves_labels", show_curves_labels)
-	config.set_value("rendering", "show_critical_stripe", show_critical_stripe)
-	config.set_value("rendering", "view_distance", view_distance)
-	config.set_value("rendering", "show_flow", show_flow)
-	config.set_value("rendering", "show_position_marker", show_position_marker)
-	config.set_value("rendering", "riemann_sphere_mode", riemann_sphere_mode)
-	config.set_value("rendering", "riemann_sphere_radius", riemann_sphere_radius)
-	config.set_value("rendering", "riemann_sphere_height", riemann_sphere_height)
-	config.set_value("rendering", "color_scheme", color_scheme)
-	config.set_value("rendering", "freeze_time", freeze_time)
-	config.set_value("rendering", "day_duration", day_duration)
-	config.set_value("rendering", "day_time", day_time)
-	config.set_value("rendering", "sunrise_direction", sunrise_direction)
-	config.set_value("rendering", "sky_luminosity", sky_luminosity)
-	config.set_value("rendering", "sun_luminosity", sun_luminosity)
-	config.set_value("rendering", "self_illumination", self_illumination)
-	config.set_value("rendering", "shadows_enabled", shadows_enabled)
-	config.set_value("rendering", "terrain_brightness", terrain_brightness)
-	config.set_value("rendering", "terrain_saturation", terrain_saturation)
-	config.set_value("rendering", "terrain_albedo", terrain_albedo)
-	config.set_value("rendering", "terrain_emission", terrain_emission)
-	config.set_value("rendering", "terrain_metallic", terrain_metallic)
-	config.set_value("rendering", "terrain_roughness", terrain_roughness)
-	config.set_value("rendering", "terrain_ao", terrain_ao)
-	config.set_value("rendering", "terrain_rim", terrain_rim)
-	config.set_value("rendering", "terrain_rim_tint", terrain_rim_tint)
-	config.set_value("rendering", "fog_density", fog_density)
+	for section in PERSISTED_SETTINGS:
+		for key in PERSISTED_SETTINGS[section]:
+			config.set_value(section, key, get(key))
+
 	config.set_value("session", "current_preset", current_preset)
 	config.set_value("session", "custom_presets", PRESETS)
-
-	config.set_value("player", "movement_speed", movement_speed)
-	config.set_value("player", "speed_near_zeros", speed_near_zeros)
-	config.set_value("player", "camera_height", camera_height)
-	config.set_value("player", "zero_proximity_nav", zero_proximity_nav)
-
-	config.set_value("ui", "show_minimap", show_minimap)
-	config.set_value("ui", "show_minimap_range", show_minimap_range)
-	config.set_value("ui", "show_hud_domain_sphere", show_hud_domain_sphere)
-	config.set_value("ui", "show_hud_target_sphere", show_hud_target_sphere)
-	config.set_value("ui", "show_hud_phase_wheel", show_hud_phase_wheel)
-	config.set_value("ui", "show_hud_navigation", show_hud_navigation)
-	config.set_value("ui", "show_hud_zeros", show_hud_zeros)
-	config.set_value("ui", "show_rvm", show_rvm)
-	config.set_value("ui", "show_hud_monitor_fps", show_hud_monitor_fps)
-	config.set_value("ui", "hud_scale", hud_scale)
-	config.set_value("ui", "menu_scale", menu_scale)
-
-	config.set_value("audio", "master_volume", master_volume)
-	config.set_value("audio", "bg_music_volume", bg_music_volume)
-	config.set_value("audio", "drone_volume", drone_volume)
 
 	config.save(save_path)
 
@@ -776,11 +793,10 @@ func load_settings():
 	if err != OK:
 		return
 
-	var ft_raw = config.get_value("field", "function_type", int(function_type))
-	function_type = ft_raw
-
-	var in_ft_raw = config.get_value("field", "input_function_type", int(input_function_type))
-	input_function_type = in_ft_raw
+	# Load function_type before riemann_sphere_mode (whose setter guards against
+	# multivalued functions) and before iterations (which falls back to function_iterations).
+	function_type = config.get_value("field", "function_type", int(function_type))
+	input_function_type = config.get_value("field", "input_function_type", int(input_function_type))
 
 	function_iterations = config.get_value("field", "function_iterations", {})
 	if function_iterations.has(function_type):
@@ -788,50 +804,10 @@ func load_settings():
 	else:
 		iterations = config.get_value("field", "iterations", iterations)
 
-	height_type = config.get_value("field", "height_type", height_type)
-	height_a = config.get_value("field", "height_a", height_a)
-	height_epsilon = config.get_value("field", "height_epsilon", height_epsilon)
-	height_theta = config.get_value("field", "height_theta", height_theta)
-	rational_num_coeffs = config.get_value("field", "rational_num_coeffs", rational_num_coeffs)
-	rational_den_coeffs = config.get_value("field", "rational_den_coeffs", rational_den_coeffs)
-	input_rational_num_coeffs = config.get_value("field", "input_rational_num_coeffs", input_rational_num_coeffs)
-	input_rational_den_coeffs = config.get_value("field", "input_rational_den_coeffs", input_rational_den_coeffs)
-	multivalued_n = config.get_value("field", "multivalued_n", multivalued_n)
-	zoom_factor = config.get_value("field", "zoom_factor", zoom_factor)
-	zoom_damping = config.get_value("field", "zoom_damping", zoom_damping)
-	morph_style = config.get_value("field", "morph_style", morph_style)
+	for section in PERSISTED_SETTINGS:
+		for key in PERSISTED_SETTINGS[section]:
+			set(key, config.get_value(section, key, get(key)))
 
-	terrain_detail = config.get_value("rendering", "terrain_detail", terrain_detail)
-	antialiasing_mode = config.get_value("rendering", "antialiasing_mode", antialiasing_mode)
-	rendering_scale = config.get_value("rendering", "rendering_scale", rendering_scale)
-	show_curves = config.get_value("rendering", "show_curves", show_curves)
-	show_curves_labels = config.get_value("rendering", "show_curves_labels", show_curves_labels)
-	show_critical_stripe = config.get_value("rendering", "show_critical_stripe", show_critical_stripe)
-	view_distance = config.get_value("rendering", "view_distance", view_distance)
-	show_flow = config.get_value("rendering", "show_flow", show_flow)
-	show_position_marker = config.get_value("rendering", "show_position_marker", show_position_marker)
-	riemann_sphere_mode = config.get_value("rendering", "riemann_sphere_mode", riemann_sphere_mode)
-	riemann_sphere_radius = config.get_value("rendering", "riemann_sphere_radius", riemann_sphere_radius)
-	riemann_sphere_height = config.get_value("rendering", "riemann_sphere_height", riemann_sphere_height)
-	color_scheme = config.get_value("rendering", "color_scheme", color_scheme)
-	freeze_time = config.get_value("rendering", "freeze_time", freeze_time)
-	day_duration = config.get_value("rendering", "day_duration", day_duration)
-	day_time = config.get_value("rendering", "day_time", day_time)
-	sunrise_direction = config.get_value("rendering", "sunrise_direction", sunrise_direction)
-	sky_luminosity = config.get_value("rendering", "sky_luminosity", sky_luminosity)
-	sun_luminosity = config.get_value("rendering", "sun_luminosity", sun_luminosity)
-	self_illumination = config.get_value("rendering", "self_illumination", self_illumination)
-	shadows_enabled = config.get_value("rendering", "shadows_enabled", shadows_enabled)
-	terrain_brightness = config.get_value("rendering", "terrain_brightness", terrain_brightness)
-	terrain_saturation = config.get_value("rendering", "terrain_saturation", terrain_saturation)
-	terrain_albedo = config.get_value("rendering", "terrain_albedo", terrain_albedo)
-	terrain_emission = config.get_value("rendering", "terrain_emission", terrain_emission)
-	terrain_metallic = config.get_value("rendering", "terrain_metallic", terrain_metallic)
-	terrain_roughness = config.get_value("rendering", "terrain_roughness", terrain_roughness)
-	terrain_ao = config.get_value("rendering", "terrain_ao", terrain_ao)
-	terrain_rim = config.get_value("rendering", "terrain_rim", terrain_rim)
-	terrain_rim_tint = config.get_value("rendering", "terrain_rim_tint", terrain_rim_tint)
-	fog_density = config.get_value("rendering", "fog_density", fog_density)
 	current_preset = config.get_value("session", "current_preset", "Default")
 	# Only restore custom (non-built-in) presets; built-ins always come from preset_defaults.gd
 	var built_in_keys = PRESET_DEFAULTS.PRESETS.keys()
@@ -841,24 +817,3 @@ func load_settings():
 			var merged = PRESET_DEFAULTS.PRESETS["Default"].duplicate(true)
 			merged.merge(saved_presets[preset_name], true)
 			PRESETS[preset_name] = merged
-
-	movement_speed = config.get_value("player", "movement_speed", movement_speed)
-	speed_near_zeros = config.get_value("player", "speed_near_zeros", speed_near_zeros)
-	camera_height = config.get_value("player", "camera_height", camera_height)
-	zero_proximity_nav = config.get_value("player", "zero_proximity_nav", zero_proximity_nav)
-
-	show_minimap = config.get_value("ui", "show_minimap", show_minimap)
-	show_minimap_range = config.get_value("ui", "show_minimap_range", show_minimap_range)
-	show_hud_domain_sphere = config.get_value("ui", "show_hud_domain_sphere", show_hud_domain_sphere)
-	show_hud_target_sphere = config.get_value("ui", "show_hud_target_sphere", show_hud_target_sphere)
-	show_hud_phase_wheel = config.get_value("ui", "show_hud_phase_wheel", show_hud_phase_wheel)
-	show_hud_navigation = config.get_value("ui", "show_hud_navigation", show_hud_navigation)
-	show_hud_zeros = config.get_value("ui", "show_hud_zeros", show_hud_zeros)
-	show_rvm = config.get_value("ui", "show_rvm", show_rvm)
-	show_hud_monitor_fps = config.get_value("ui", "show_hud_monitor_fps", show_hud_monitor_fps)
-	hud_scale = config.get_value("ui", "hud_scale", hud_scale)
-	menu_scale = config.get_value("ui", "menu_scale", menu_scale)
-
-	master_volume = config.get_value("audio", "master_volume", master_volume)
-	bg_music_volume = config.get_value("audio", "bg_music_volume", bg_music_volume)
-	drone_volume = config.get_value("audio", "drone_volume", drone_volume)
