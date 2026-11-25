@@ -663,11 +663,11 @@ func test_menu_checkbox_bindings_toggle_and_sync():
 	menu._sync_ui_to_config()
 	for checkbox in menu.CHECKBOX_BINDINGS:
 		var key: String = menu.CHECKBOX_BINDINGS[checkbox]
-		assert_eq(checkbox.button_pressed, not originals[key], "Sync failed for '%s'" % key)
+		assert_eq(checkbox.button_pressed, not originals[key], "Sync mismatch for '%s'" % key)
 
 	# Verify toggling each checkbox updates Config -> original value
 	for checkbox in menu.CHECKBOX_BINDINGS:
 		var key: String = menu.CHECKBOX_BINDINGS[checkbox]
 		checkbox.button_pressed = originals[key]
-		assert_eq(Config.get(key), originals[key], "Toggle failed for '%s'" % key)
+		assert_eq(Config.get(key), originals[key], "Toggle mismatch for '%s'" % key)
 
