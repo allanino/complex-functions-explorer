@@ -156,37 +156,8 @@ func _ready():
 		last_terrain_h = init_h
 		last_valid_terrain_height = init_h
 	
-	re_label = Label3D.new()
-	re_label.text = "Re"
-	re_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	re_label.no_depth_test = true
-	re_label.fixed_size = true
-	re_label.font = load("res://ui/theme/font_neon.tres")
-	re_label.pixel_size = 0.000625
-	re_label.font_size = 192
-	re_label.outline_size = 8
-	re_label.modulate = ThemeColors.real
-	re_label.outline_modulate = Color(0.0, 0.0, 0.0, 1.0)
-	re_label.outline_render_priority = -1
-	re_label.top_level = true
-	re_label.visible = false
-	add_child(re_label)
-
-	im_label = Label3D.new()
-	im_label.text = "Im"
-	im_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	im_label.no_depth_test = true
-	im_label.fixed_size = true
-	im_label.font = load("res://ui/theme/font_neon.tres")
-	im_label.pixel_size = 0.000625
-	im_label.font_size = 192
-	im_label.outline_size = 8
-	im_label.modulate = ThemeColors.imaginary
-	im_label.outline_modulate = Color(0.0, 0.0, 0.0, 1.0)
-	im_label.outline_render_priority = -1
-	im_label.top_level = true
-	im_label.visible = false
-	add_child(im_label)
+	re_label = _create_curve_label("Re", ThemeColors.real)
+	im_label = _create_curve_label("Im", ThemeColors.imaginary)
 
 	enable_joystick = DisplayServer.has_feature(DisplayServer.FEATURE_TOUCHSCREEN) and not OS.has_feature("pc")
 
@@ -678,85 +649,7 @@ func _physics_process(delta):
 	# Compute surface normal to offset camera horizontally and avoid entering in vertical walls
 	camera.position = Vector3(0.0, target_y, 0.0) + transform.basis.inverse() * camera_push_offset
 
-	if Config.show_curves and Config.show_curves_labels:
-		_curve_label_update_timer += delta
-		if _curve_label_update_timer >= CURVE_LABEL_UPDATE_INTERVAL:
-			_curve_label_update_timer = 0.0
-
-			# Find the closest real and imaginary integer curves in the direction we are facing
-			var cam_dir = - camera.global_transform.basis.z
-			var step_size = Config.plane_complex_to_world(0.1, 0.0).x
-			var max_steps = 30
-			var re_found = false
-			var im_found = false
-
-			var last_val = current_f
-			var last_p_x = global_position.x
-			var last_p_z = global_position.z
-
-			var re_was_visible = re_label.visible
-			var im_was_visible = im_label.visible
-
-			re_label.visible = false
-			im_label.visible = false
-
-			for i in range(1, max_steps):
-				var dist = i * step_size
-				var p_x = global_position.x + cam_dir.x * dist
-				var p_z = global_position.z + cam_dir.z * dist
-				var f_val = ComplexField.get_field(p_x, p_z)
-
-				if not re_found:
-					if floor(last_val.x) != floor(f_val.x):
-						var target_int = floor(f_val.x) if f_val.x > last_val.x else ceil(f_val.x)
-						var denominator = f_val.x - last_val.x
-						var t = 0.5
-						if abs(denominator) > 0.0001:
-							t = (target_int - last_val.x) / denominator
-						t = clamp(t, 0.0, 1.0)
-
-						var cross_x = lerp(last_p_x, p_x, t)
-						var cross_z = lerp(last_p_z, p_z, t)
-						var cross_f = lerp(last_val, f_val, t)
-						var h = get_terrain_height(cross_x, cross_z, cross_f)
-
-						var target_pos = Vector3(cross_x, h + 1.0, cross_z)
-						if not re_was_visible:
-							re_label.global_position = target_pos
-						_re_label_target_pos = target_pos
-
-						re_label.text = str(int(target_int))
-						re_label.visible = true
-						re_found = true
-
-				if not im_found:
-					if floor(last_val.y) != floor(f_val.y):
-						var target_int = floor(f_val.y) if f_val.y > last_val.y else ceil(f_val.y)
-						var denominator = f_val.y - last_val.y
-						var t = 0.5
-						if abs(denominator) > 0.0001:
-							t = (target_int - last_val.y) / denominator
-						t = clamp(t, 0.0, 1.0)
-
-						var cross_x = lerp(last_p_x, p_x, t)
-						var cross_z = lerp(last_p_z, p_z, t)
-						var cross_f = lerp(last_val, f_val, t)
-						var h = get_terrain_height(cross_x, cross_z, cross_f)
-
-						var target_pos = Vector3(cross_x, h + 1.0, cross_z)
-						if not im_was_visible:
-							im_label.global_position = target_pos
-						_im_label_target_pos = target_pos
-
-						im_label.text = str(int(target_int)) + "i"
-						im_label.visible = true
-						im_found = true
-
-				if re_found and im_found:
-					break
-				last_val = f_val
-				last_p_x = p_x
-				last_p_z = p_z
+	_update_curve_labels(delta)
 
 	# Function zero detection
 	if Config.show_hud_zeros && ZEROS_DETECTION_START_RECORDING:
@@ -776,6 +669,111 @@ func _physics_process(delta):
 				WorkerThreadPool.add_task(_process_zero_detection.bind(z_mid, state))
 
 	move_and_slide()
+
+
+func _create_curve_label(initial_text: String, color: Color) -> Label3D:
+	var label := Label3D.new()
+	label.text = initial_text
+	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	label.no_depth_test = true
+	label.fixed_size = true
+	label.font = load("res://ui/theme/font_neon.tres")
+	label.pixel_size = 0.000625
+	label.font_size = 192
+	label.outline_size = 8
+	label.modulate = color
+	label.outline_modulate = Color(0.0, 0.0, 0.0, 1.0)
+	label.outline_render_priority = -1
+	label.top_level = true
+	label.visible = false
+	add_child(label)
+	return label
+
+
+func _update_curve_labels(delta: float) -> void:
+	if not (Config.show_curves and Config.show_curves_labels):
+		return
+
+	_curve_label_update_timer += delta
+	if _curve_label_update_timer < CURVE_LABEL_UPDATE_INTERVAL:
+		return
+	_curve_label_update_timer = 0.0
+
+	# Find the closest real and imaginary integer curves in the direction we are facing
+	var cam_dir = - camera.global_transform.basis.z
+	var step_size = Config.plane_complex_to_world(0.1, 0.0).x
+	var max_steps = 30
+	var re_found = false
+	var im_found = false
+
+	var last_val = current_f
+	var last_p_x = global_position.x
+	var last_p_z = global_position.z
+
+	var re_was_visible = re_label.visible
+	var im_was_visible = im_label.visible
+
+	re_label.visible = false
+	im_label.visible = false
+
+	for i in range(1, max_steps):
+		var dist = i * step_size
+		var p_x = global_position.x + cam_dir.x * dist
+		var p_z = global_position.z + cam_dir.z * dist
+		var f_val = ComplexField.get_field(p_x, p_z)
+
+		if not re_found and floor(last_val.x) != floor(f_val.x):
+			_re_label_target_pos = _place_curve_label_at_crossing(
+				re_label, re_was_visible, last_val.x, f_val.x,
+				last_val, f_val, last_p_x, last_p_z, p_x, p_z, ""
+			)
+			re_found = true
+
+		if not im_found and floor(last_val.y) != floor(f_val.y):
+			_im_label_target_pos = _place_curve_label_at_crossing(
+				im_label, im_was_visible, last_val.y, f_val.y,
+				last_val, f_val, last_p_x, last_p_z, p_x, p_z, "i"
+			)
+			im_found = true
+
+		if re_found and im_found:
+			break
+		last_val = f_val
+		last_p_x = p_x
+		last_p_z = p_z
+
+
+func _place_curve_label_at_crossing(
+		label: Label3D,
+		was_visible: bool,
+		last_comp: float,
+		curr_comp: float,
+		last_val: Vector2,
+		curr_val: Vector2,
+		last_p_x: float,
+		last_p_z: float,
+		p_x: float,
+		p_z: float,
+		suffix: String
+) -> Vector3:
+	var target_int = floor(curr_comp) if curr_comp > last_comp else ceil(curr_comp)
+	var denominator = curr_comp - last_comp
+	var t = 0.5
+	if abs(denominator) > 0.0001:
+		t = (target_int - last_comp) / denominator
+	t = clamp(t, 0.0, 1.0)
+
+	var cross_x = lerp(last_p_x, p_x, t)
+	var cross_z = lerp(last_p_z, p_z, t)
+	var cross_f = lerp(last_val, curr_val, t)
+	var h = get_terrain_height(cross_x, cross_z, cross_f)
+
+	var target_pos = Vector3(cross_x, h + 1.0, cross_z)
+	if not was_visible:
+		label.global_position = target_pos
+	label.text = str(int(target_int)) + suffix
+	label.visible = true
+	return target_pos
 
 func demo_actions():
 	Config.function_type = Config.ComplexFunc.ZETA_CONTINUATION
