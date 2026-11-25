@@ -114,40 +114,43 @@ var inactive_tab_style: StyleBoxFlat
 var hover_tab_style: StyleBoxFlat
 var hover_active_tab_style: StyleBoxFlat
 @export var tooltip_manager: Node
-var _initial_master_volume: float
-var _initial_bg_music_volume: float
-var _initial_drone_volume: float
-var _initial_zero_proximity_nav: float
-var _initial_iterations: int
-var _initial_terrain_brightness: float
-var _initial_terrain_saturation: float
-var _initial_terrain_albedo: float
-var _initial_terrain_emission: float
-var _initial_terrain_metallic: float
-var _initial_terrain_roughness: float
-var _initial_terrain_ao: float
-var _initial_terrain_rim: float
-var _initial_terrain_rim_tint: float
-var _initial_menu_scale: float
-var _initial_hud_scale: float
-var _initial_sky_luminosity: float
-var _initial_sun_luminosity: float
-var _initial_self_illumination: float
-var _initial_freeze_time: bool
-var _initial_day_duration: float
-var _initial_day_time: float
-var _initial_fog_density: float
-var _initial_morph_value: float
-var _initial_terrain_detail: int
-var _initial_antialiasing_mode: int
-var _initial_rendering_scale: float
-var _initial_view_distance: int
-var _initial_shadows_enabled: bool
-var _initial_riemann_sphere_mode: bool
-var _initial_riemann_sphere_height: bool
-var _initial_riemann_sphere_radius: float
-var _initial_preset: String
-var _initial_edited_presets: Dictionary
+const SNAPSHOT_CONFIG_KEYS: Array[String] = [
+	"master_volume",
+	"bg_music_volume",
+	"drone_volume",
+	"zero_proximity_nav",
+	"iterations",
+	"terrain_brightness",
+	"terrain_saturation",
+	"terrain_albedo",
+	"terrain_emission",
+	"terrain_metallic",
+	"terrain_roughness",
+	"terrain_ao",
+	"terrain_rim",
+	"terrain_rim_tint",
+	"menu_scale",
+	"hud_scale",
+	"sky_luminosity",
+	"sun_luminosity",
+	"self_illumination",
+	"freeze_time",
+	"day_duration",
+	"day_time",
+	"fog_density",
+	"terrain_detail",
+	"antialiasing_mode",
+	"rendering_scale",
+	"view_distance",
+	"shadows_enabled",
+	"riemann_sphere_mode",
+	"riemann_sphere_height",
+	"riemann_sphere_radius",
+]
+
+var _initial_config_snapshot: Dictionary = {}
+var _initial_preset: String = ""
+var _initial_edited_presets: Dictionary = {}
 var _initial_re_text: String = ""
 var _initial_im_text: String = ""
 
@@ -1510,40 +1513,7 @@ func toggle_menu(applied: bool = false):
 		set_process(true)
 		_using_mouse_pointer = true
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-		_initial_master_volume = Config.master_volume
-		_initial_bg_music_volume = Config.bg_music_volume
-		_initial_drone_volume = Config.drone_volume
-		_initial_zero_proximity_nav = Config.zero_proximity_nav
-		_initial_iterations = Config.iterations
-		_initial_terrain_brightness = Config.terrain_brightness
-		_initial_terrain_saturation = Config.terrain_saturation
-		_initial_terrain_albedo = Config.terrain_albedo
-		_initial_terrain_emission = Config.terrain_emission
-		_initial_terrain_metallic = Config.terrain_metallic
-		_initial_terrain_roughness = Config.terrain_roughness
-		_initial_terrain_ao = Config.terrain_ao
-		_initial_terrain_rim = Config.terrain_rim
-		_initial_terrain_rim_tint = Config.terrain_rim_tint
-		_initial_menu_scale = Config.menu_scale
-		_initial_hud_scale = Config.hud_scale
-		_initial_sky_luminosity = Config.sky_luminosity
-		_initial_sun_luminosity = Config.sun_luminosity
-		_initial_self_illumination = Config.self_illumination
-		_initial_freeze_time = Config.freeze_time
-		_initial_day_duration = Config.day_duration
-		_initial_day_time = Config.day_time
-		_initial_fog_density = Config.fog_density
-		_initial_morph_value = 1.0
-		_initial_terrain_detail = Config.terrain_detail
-		_initial_antialiasing_mode = Config.antialiasing_mode
-		_initial_rendering_scale = Config.rendering_scale
-		_initial_view_distance = Config.view_distance
-		_initial_shadows_enabled = Config.shadows_enabled
-		_initial_riemann_sphere_mode = Config.riemann_sphere_mode
-		_initial_riemann_sphere_height = Config.riemann_sphere_height
-		_initial_riemann_sphere_radius = Config.riemann_sphere_radius
-		_initial_preset = Config.current_preset
-		_initial_edited_presets = Config._edited_presets.duplicate(true)
+		_snapshot_menu_state()
 
 		_sync_ui_to_config()
 
@@ -1569,44 +1539,28 @@ func toggle_menu(applied: bool = false):
 		tooltip_manager.hide_tooltip()
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 		if not applied:
-			Config.master_volume = _initial_master_volume
-			Config.bg_music_volume = _initial_bg_music_volume
-			Config.drone_volume = _initial_drone_volume
-			Config.zero_proximity_nav = _initial_zero_proximity_nav
-			Config.iterations = _initial_iterations
-			Config.terrain_brightness = _initial_terrain_brightness
-			Config.terrain_saturation = _initial_terrain_saturation
-			Config.terrain_albedo = _initial_terrain_albedo
-			Config.terrain_emission = _initial_terrain_emission
-			Config.terrain_metallic = _initial_terrain_metallic
-			Config.terrain_roughness = _initial_terrain_roughness
-			Config.terrain_ao = _initial_terrain_ao
-			Config.terrain_rim = _initial_terrain_rim
-			Config.terrain_rim_tint = _initial_terrain_rim_tint
-			if Config.menu_scale != _initial_menu_scale:
-				Config.menu_scale = _initial_menu_scale
-			if Config.hud_scale != _initial_hud_scale:
-				Config.hud_scale = _initial_hud_scale
-			Config.sky_luminosity = _initial_sky_luminosity
-			Config.sun_luminosity = _initial_sun_luminosity
-			Config.self_illumination = _initial_self_illumination
-			Config.freeze_time = _initial_freeze_time
-			Config.day_duration = _initial_day_duration
-			Config.day_time = _initial_day_time
-			Config.fog_density = _initial_fog_density
-			GameState.morph_value = _initial_morph_value
-			Config.terrain_detail = _initial_terrain_detail
-			Config.antialiasing_mode = _initial_antialiasing_mode
-			Config.rendering_scale = _initial_rendering_scale
-			Config.view_distance = _initial_view_distance
-			Config.shadows_enabled = _initial_shadows_enabled
-			Config.riemann_sphere_mode = _initial_riemann_sphere_mode
-			Config.riemann_sphere_height = _initial_riemann_sphere_height
-			Config.riemann_sphere_radius = _initial_riemann_sphere_radius
-			Config.current_preset = _initial_preset
-			Config._edited_presets = _initial_edited_presets
+			_restore_menu_state()
 
-			emit_signal('apply_aa_signal')
+
+func _snapshot_menu_state() -> void:
+	_initial_config_snapshot.clear()
+	for key in SNAPSHOT_CONFIG_KEYS:
+		_initial_config_snapshot[key] = Config.get(key)
+	_initial_preset = Config.current_preset
+	_initial_edited_presets = Config._edited_presets.duplicate(true)
+
+
+func _restore_menu_state() -> void:
+	# Reset morph preview before restoring config keys that may trigger full uniform syncs.
+	GameState.morph_value = 1.0
+	for key in SNAPSHOT_CONFIG_KEYS:
+		if _initial_config_snapshot.has(key):
+			var initial_val = _initial_config_snapshot[key]
+			if Config.get(key) != initial_val:
+				Config.set(key, initial_val)
+	Config.current_preset = _initial_preset
+	Config._edited_presets = _initial_edited_presets
+	emit_signal('apply_aa_signal')
 
 
 static func _create_scaled_grabber_texture(color: Color, _size: int, center: Vector2, inner_radius: float, outer_radius: float) -> Texture2D:
